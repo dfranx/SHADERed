@@ -2,6 +2,8 @@
 #include <vector>
 #include "PipelineItem.h"
 
+#define PIPELINE_ITEM_NAME_LENGTH 64
+
 namespace ed
 {
 	class PipelineManager
@@ -9,7 +11,7 @@ namespace ed
 	public:
 		struct Item
 		{
-			std::string Name;
+			char Name[PIPELINE_ITEM_NAME_LENGTH];
 			PipelineItem Type;
 			void* Data;
 		};
@@ -19,9 +21,10 @@ namespace ed
 
 		void Clear();
 
-		void Add(const std::string& name, PipelineItem type, void* data);
-		void Remove(const std::string& name);
-		Item& Get(const std::string& name);
+		void Add(const char* name, PipelineItem type, void* data);
+		void Remove(const char* name);
+		bool Has(const char* name);
+		Item& Get(const char* name);
 		inline std::vector<Item>& GetList() { return m_items; }
 
 		void New();

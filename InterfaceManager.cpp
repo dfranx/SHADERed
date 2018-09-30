@@ -3,7 +3,7 @@
 namespace ed
 {
 	InterfaceManager::InterfaceManager(ml::Window* wnd) :
-		Renderer(&Pipeline),
+		Renderer(wnd, &Pipeline),
 		Pipeline(wnd)
 	{
 		m_wnd = wnd;

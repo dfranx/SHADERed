@@ -13,8 +13,10 @@ namespace ed
 		
 		void Open(ed::PipelineManager::Item* item);
 		inline std::string CurrentItemName() { return m_current->Name; }
+		inline bool HasItemSelected() { return m_current != nullptr; }
 
 	private:
+		char m_itemName[64];
 		void m_createInputFloat3(const char* label, DirectX::XMFLOAT3& flt);
 
 		ed::PipelineManager::Item* m_current;

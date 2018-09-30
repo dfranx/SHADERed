@@ -1,3 +1,4 @@
 Debug*
 *.vcxproj.*
 MoonLight.dll
+.vs

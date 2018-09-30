@@ -12,10 +12,17 @@ namespace ed
 		virtual void Update(float delta);
 
 	private:
-		void m_renderUpDown(std::vector<ed::PipelineManager::Item>& items, int index);
-		void m_renderContext(std::vector<ed::PipelineManager::Item>& items, int index);
+		bool m_isLayoutOpened;
+
+		ed::PipelineManager::Item* m_modalItem; // item that we are editing in a popup modal
+
+		void m_closePopup();
+
+		void m_renderItemUpDown(std::vector<ed::PipelineManager::Item>& items, int index);
+		void m_renderItemContext(std::vector<ed::PipelineManager::Item>& items, int index);
+		void m_renderInputLayoutUI();
 
 		void m_addShader(const std::string& name, ed::pipe::ShaderItem* data);
-		void m_addGeometry(const std::string& name);
+		void m_addItem(const std::string& name);
 	};
 }

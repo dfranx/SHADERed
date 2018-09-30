@@ -26,6 +26,7 @@ int main()
 
 		engine.Update(0.0f);
 
+		wnd.Bind();
 		wnd.Clear();
 		wnd.ClearDepthStencil(1.0f, 0);
 

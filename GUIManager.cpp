@@ -80,7 +80,7 @@ namespace ed
 
 		if (visible) {
 			// menu
-			if (ImGui::BeginMenuBar()) {
+			if (ImGui::BeginMainMenuBar()) {
 				if (ImGui::BeginMenu("File")) {
 					if (ImGui::MenuItem("New", 0, nullptr)) {
 						m_data->Pipeline.New();
@@ -92,7 +92,7 @@ namespace ed
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 					ImGui::EndMenu();
 				}
-				ImGui::EndMenuBar();
+				ImGui::EndMainMenuBar();
 			}
 
 

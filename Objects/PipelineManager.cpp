@@ -1,4 +1,5 @@
 #include "PipelineManager.h"
+#include <MoonLight/Base/Topology.h>
 #include <MoonLight/Base/GeometryFactory.h>
 
 namespace ed
@@ -17,29 +18,41 @@ namespace ed
 			delete m_items[i].Data;
 		m_items.clear();
 	}
-	void PipelineManager::Add(const std::string & name, PipelineItem type, void * data)
+	void PipelineManager::Add(const char* name, PipelineItem type, void * data)
 	{
-		m_items.push_back({ name, type, data });
+		m_items.push_back({ "\0", type, data });
+		memcpy(m_items.at(m_items.size()-1).Name, name, strlen(name));
 	}
-	void PipelineManager::Remove(const std::string & name)
+	void PipelineManager::Remove(const char* name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i].Name == name) {
+			if (strcmp(m_items[i].Name, name) == 0) {
 				delete m_items[i].Data;
 				m_items.erase(m_items.begin() + i);
 				break;
 			}
 	}
-	PipelineManager::Item& PipelineManager::Get(const std::string & name)
+	bool PipelineManager::Has(const char * name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i].Name == name)
+			if (strcmp(m_items[i].Name, name) == 0)
+				return true;
+		return false;
+	}
+	PipelineManager::Item& PipelineManager::Get(const char* name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (strcmp(m_items[i].Name, name) == 0)
 				return m_items[i];
 	}
 	void PipelineManager::New()
 	{
 		Clear();
 
+		Add("TriangleList", ed::PipelineItem::PrimitiveTopology, new ed::pipe::PrimitiveTopology());
+		ed::pipe::PrimitiveTopology* topology = reinterpret_cast<ed::pipe::PrimitiveTopology*>(Get("TriangleList").Data);
+		topology->Type = ml::Topology::TriangleList;
+		
 		Add("Vertex Shader", PipelineItem::ShaderFile, new ed::pipe::ShaderItem());
 		ed::pipe::ShaderItem* vertexShader = reinterpret_cast<ed::pipe::ShaderItem*>(Get("Vertex Shader").Data);
 		vertexShader->Type = ed::pipe::ShaderItem::VertexShader;
@@ -49,6 +62,11 @@ namespace ed
 		ed::pipe::ShaderItem* pixelShader = reinterpret_cast<ed::pipe::ShaderItem*>(Get("Pixel Shader").Data);
 		pixelShader->Type = ed::pipe::ShaderItem::PixelShader;
 		memcpy(pixelShader->FilePath, "pixel.hlsl\0", strlen("pixel.hlsl\0"));
+
+		Add("Vertex Layout", ed::PipelineItem::InputLayout, new ed::pipe::InputLayout());
+		ed::pipe::InputLayout* inputLayout = reinterpret_cast<ed::pipe::InputLayout*>(Get("Vertex Layout").Data);
+		inputLayout->Layout.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
+		inputLayout->Shader = vertexShader;
 
 		Add("Box", PipelineItem::Geometry, new ed::pipe::GeometryItem());
 		ed::pipe::GeometryItem* boxGeometry = reinterpret_cast<ed::pipe::GeometryItem*>(Get("Box").Data);
