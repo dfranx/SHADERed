@@ -1,0 +1,4 @@
+#pragma once
+
+#define PIPELINE_ITEM_NAME_LENGTH 64
+#define SEMANTIC_LENGTH 16

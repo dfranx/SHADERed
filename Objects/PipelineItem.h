@@ -10,9 +10,7 @@ namespace ed
 	enum class PipelineItem
 	{
 		ShaderFile,
-		Geometry,
-		PrimitiveTopology,
-		InputLayout
+		Geometry
 		/*	Model
 			... */
 	};
@@ -22,6 +20,7 @@ namespace ed
 		struct ShaderItem
 		{
 			char FilePath[512];
+			ml::VertexInputLayout InputLayout;
 			enum ShaderType {
 				PixelShader,
 				VertexShader,
@@ -32,18 +31,8 @@ namespace ed
 		struct GeometryItem
 		{
 			ml::Geometry Geometry;
+			ml::Topology::Type Topology;
 			DirectX::XMFLOAT3 Position, Rotation, Scale;
-		};
-
-		struct PrimitiveTopology
-		{
-			ml::Topology::Type Type;
-		};
-
-		struct InputLayout
-		{
-			ml::VertexInputLayout Layout;
-			ShaderItem* Shader;
 		};
 	}
 }

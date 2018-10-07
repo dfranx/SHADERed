@@ -1,7 +1,6 @@
 cbuffer cbPerFrame : register(b0)
 {
 	matrix matWVP;
-	matrix matWorld;
 };
 
 struct VSInput
@@ -14,11 +13,6 @@ struct VSOutput
 	float4 Position : SV_POSITION;
 	float4 Color : COLOR;
 };
-
-static const float3 LightPos = float3(10, 10, 10);
-static const float4 LightDiffuse = float4(0.5f, 0.5f, 0.5f, 1);
-static const float4 mDiffuse = float4(1,1,1,1);
-static const float3 mAmbient = float4(0.2f, 0.2f, 0.2f, 0.0f);
 
 VSOutput main(VSInput vin)
 {

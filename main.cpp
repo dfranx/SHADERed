@@ -1,7 +1,22 @@
 #include <MoonLight/Base/Window.h>
 #include <MoonLight/Base/Event.h>
 #include "EditorEngine.h"
+#include <fstream>
 
+/*
+TODO:
+	cache shaders and other values
+
+	shader variables
+	.sprj -> project "Save" and "Open" functionalities
+	shader "..." button
+	code editor
+	code stats
+	output window (outputs errors, warnings and other messages)
+	create pipeline items
+	camera that rotates around world origin
+	movable geometry
+*/
 int main()
 {
 	// window configuration
@@ -10,10 +25,23 @@ int main()
 	wndConfig.Sample.Count = 1;
 	wndConfig.Sample.Quality = 0;
 
+	// load window size
+	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
+	std::ifstream preload("preload.dat");
+	if (preload.is_open()) {
+		preload.read(reinterpret_cast<char*>(&wndWidth), 2);
+		preload.read(reinterpret_cast<char*>(&wndHeight), 2);
+		preload.read(reinterpret_cast<char*>(&wndPosX), 2);
+		preload.read(reinterpret_cast<char*>(&wndPosY), 2);
+		preload.close();
+	}
+
 	// open window
 	ml::Window wnd;
-	wnd.Create(DirectX::XMINT2(800, 600), "Test project!", ml::Window::Style::Resizable, wndConfig);
-	
+	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "HLSLed", ml::Window::Style::Resizable, wndConfig);
+	if (wndPosX != -1 && wndPosY != -1)
+		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
+
 	// create engine
 	ed::EditorEngine engine(&wnd);
 	engine.Create();
@@ -21,6 +49,13 @@ int main()
 	ml::Event e;
 	while (wnd.IsOpen()) {
 		while (wnd.GetEvent(e)) {
+			if (e.Type == ml::EventType::WindowResize) {
+				// cache window size and position
+				wndWidth = wnd.GetSize().x;
+				wndHeight = wnd.GetSize().y;
+				wndPosX = wnd.GetPosition().x;
+				wndPosY = wnd.GetPosition().y;
+			}
 			engine.OnEvent(e);
 		}
 
@@ -35,6 +70,27 @@ int main()
 		wnd.Render();
 	}
 
+	// union for converting short to bytes
+	union
+	{
+		short size;
+		char data[2];
+	} converter;
+
+	// save window size
+	std::ofstream save("preload.dat");
+	converter.size = wndWidth;				// write window width
+	save.write(converter.data, 2);
+	converter.size = wndHeight;				// write window height
+	save.write(converter.data, 2);
+	converter.size = wndPosX;				// write window position x
+	save.write(converter.data, 2);
+	converter.size = wndPosY;				// write window position y
+	save.write(converter.data, 2);
+
+	save.close();
+
+	// close and free the memory
 	engine.Destroy();
 	wnd.Destroy();
 

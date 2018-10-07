@@ -167,6 +167,7 @@
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="Objects\PipelineManager.cpp" />
     <ClCompile Include="Objects\RenderEngine.cpp" />
+    <ClCompile Include="UI\CreateItemUI.cpp" />
     <ClCompile Include="UI\PipelineUI.cpp" />
     <ClCompile Include="UI\PreviewUI.cpp" />
     <ClCompile Include="UI\PropertyUI.cpp" />
@@ -187,6 +188,8 @@
     <ClInclude Include="InterfaceManager.h" />
     <ClInclude Include="Objects\PipelineItem.h" />
     <ClInclude Include="Objects\PipelineManager.h" />
+    <ClInclude Include="Options.h" />
+    <ClInclude Include="UI\CreateItemUI.h" />
     <ClInclude Include="UI\PropertyUI.h" />
     <ClInclude Include="Objects\RenderEngine.h" />
     <ClInclude Include="UI\PipelineUI.h" />

@@ -7,7 +7,13 @@ namespace ed
 	{}
 	void PreviewUI::Update(float delta)
 	{
-		//m_data->Renderer.Render(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-		//ImGui::Image()
+		ImVec2 padding = ImGui::GetStyle().WindowPadding;
+		ImVec2 imageSize = ImVec2(ImGui::GetWindowWidth() - padding.x, ImGui::GetWindowHeight() - 2 * padding.y);
+
+		ed::RenderEngine* renderer = &m_data->Renderer;
+		renderer->Render(imageSize.x, imageSize.y);
+
+		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
+		ImGui::Image(view, imageSize);
 	}
 }

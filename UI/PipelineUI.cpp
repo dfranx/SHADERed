@@ -1,9 +1,9 @@
 #include "PipelineUI.h"
 #include "PropertyUI.h"
+#include "../Options.h"
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
 
-#define SEMANTIC_LENGTH 16
 static const char* FORMAT_NAMES[] = {
 	"UNKNOWN\0",
 	"R32G32B32A32_TYPELESS\0",
@@ -194,12 +194,16 @@ namespace ed
 	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineManager::Item>& items, int index)
 	{
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index].Name)).c_str())) {
-			if (items[index].Type == ed::PipelineItem::InputLayout) {
-				if (ImGui::Selectable("Items...")) {
-					m_isLayoutOpened = true;
-					m_modalItem = &items[index];
+			if (items[index].Type == ed::PipelineItem::ShaderFile) {
+				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
+					if (ImGui::Selectable("Items...")) {
+						m_isLayoutOpened = true;
+						m_modalItem = &items[index];
+					}
 				}
-			} else if (ImGui::Selectable("Properties"))
+			}
+			
+			if (ImGui::Selectable("Properties"))
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(&items[index]);
 
 			if (ImGui::Selectable("Delete")) {
@@ -237,10 +241,10 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = reinterpret_cast<ed::pipe::InputLayout*>(m_modalItem->Data)->Layout.GetInputElements();
+		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = reinterpret_cast<ed::pipe::ShaderItem*>(m_modalItem->Data)->InputLayout.GetInputElements();
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-				ImGui::InputText(("##semantic" + std::to_string(id)).c_str(), const_cast<char*>(el.SemanticName), 10);
+				ImGui::InputText(("##semantic" + std::to_string(id)).c_str(), const_cast<char*>(el.SemanticName), SEMANTIC_LENGTH);
 			ImGui::NextColumn();
 			
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);

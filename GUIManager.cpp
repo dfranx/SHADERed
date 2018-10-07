@@ -82,9 +82,16 @@ namespace ed
 			// menu
 			if (ImGui::BeginMainMenuBar()) {
 				if (ImGui::BeginMenu("File")) {
-					if (ImGui::MenuItem("New", 0, nullptr)) {
+					if (ImGui::MenuItem("New")) {
 						m_data->Pipeline.New();
 					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Create")) {
+					ImGui::MenuItem("Shader");
+					ImGui::MenuItem("Geometry");
+					ImGui::MenuItem("Input Layout");
+					ImGui::MenuItem("Topology");
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Window")) {

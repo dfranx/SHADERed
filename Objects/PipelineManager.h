@@ -1,8 +1,7 @@
 #pragma once
 #include <vector>
 #include "PipelineItem.h"
-
-#define PIPELINE_ITEM_NAME_LENGTH 64
+#include "../Options.h"
 
 namespace ed
 {

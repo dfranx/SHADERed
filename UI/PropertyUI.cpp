@@ -9,7 +9,7 @@ namespace ed
 	{
 		if (m_current != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-			// ImGui::Columns(), ImGui::Combo(), Spacing(), SmallButton()
+
 			ImGui::Text(m_current->Name);
 			ImGui::PopStyleColor();
 
@@ -78,7 +78,8 @@ namespace ed
 				ImGui::PushItemWidth(-1);
 				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Type), items, IM_ARRAYSIZE(items));
 				ImGui::PopItemWidth();
-			} else if (m_current->Type == ed::PipelineItem::Geometry) {
+			}
+			else if (m_current->Type == ed::PipelineItem::Geometry) {
 				ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 
 				/* position */
@@ -87,6 +88,29 @@ namespace ed
 
 				ImGui::PushItemWidth(-1);
 				m_createInputFloat3("##pui_geopos", item->Position);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* shader type */
+				static const char* items[] =
+				{
+					"Undefined",
+					"PointList",
+					"LineList",
+					"LineStrip",
+					"TriangleList",
+					"TriangleStrip",
+					"LineListAdjecent",
+					"LineStripAdjecent",
+					"TriangleListAdjecent",
+					"TriangleStripAdjecent"
+				};
+				ImGui::Text("Type:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Topology), items, IM_ARRAYSIZE(items));
 				ImGui::PopItemWidth();
 			}
 
