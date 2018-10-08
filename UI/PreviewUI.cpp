@@ -15,5 +15,10 @@ namespace ed
 
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
+		if (ImGui::IsItemClicked()) {
+			/*
+				TODO: camera movement
+			*/
+		}
 	}
 }

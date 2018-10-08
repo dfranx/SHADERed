@@ -325,8 +325,6 @@ namespace ed
 		std::string type = "PS";
 		if (data->Type == ed::pipe::ShaderItem::VertexShader)
 			type = "VS";
-		else if (data->Type == ed::pipe::ShaderItem::GeometryShader)
-			type = "GS";
 
 		ImGui::Text(type.c_str());
 		ImGui::SameLine();

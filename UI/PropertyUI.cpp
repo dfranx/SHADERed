@@ -65,6 +65,17 @@ namespace ed
 
 				ImGui::Separator();
 
+				/* shader entry */
+				ImGui::Text("Entry:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				ImGui::InputText("##pui_shaderentry", item->Entry, 32);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
 				/* shader type */
 				static const char* items[] =
 				{

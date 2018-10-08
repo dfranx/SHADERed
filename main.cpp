@@ -5,17 +5,16 @@
 
 /*
 TODO:
-	cache shaders and other values
-
+	camera that rotates around world origin
 	shader variables
 	.sprj -> project "Save" and "Open" functionalities
 	shader "..." button
+	output window (outputs errors, warnings and other messages)
 	code editor
 	code stats
-	output window (outputs errors, warnings and other messages)
 	create pipeline items
-	camera that rotates around world origin
 	movable geometry
+	do the caching at 1 FPS
 */
 int main()
 {

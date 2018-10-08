@@ -29,6 +29,7 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (strcmp(m_items[i].Name, name) == 0) {
 				delete m_items[i].Data;
+				m_items[i].Data = nullptr;
 				m_items.erase(m_items.begin() + i);
 				break;
 			}
@@ -55,11 +56,13 @@ namespace ed
 		vertexShader->InputLayout.Add(std::string("POSITION", SEMANTIC_LENGTH), 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
 		vertexShader->Type = ed::pipe::ShaderItem::VertexShader;
 		memcpy(vertexShader->FilePath, "vertex.hlsl\0", strlen("vertex.hlsl\0"));
+		memcpy(vertexShader->Entry, "main\0", strlen("main\0"));
 
 		Add("Pixel Shader", PipelineItem::ShaderFile, new ed::pipe::ShaderItem());
 		ed::pipe::ShaderItem* pixelShader = reinterpret_cast<ed::pipe::ShaderItem*>(Get("Pixel Shader").Data);
 		pixelShader->Type = ed::pipe::ShaderItem::PixelShader;
 		memcpy(pixelShader->FilePath, "pixel.hlsl\0", strlen("pixel.hlsl\0"));
+		memcpy(pixelShader->Entry, "main\0", strlen("main\0"));
 
 		Add("Box", PipelineItem::Geometry, new ed::pipe::GeometryItem());
 		ed::pipe::GeometryItem* boxGeometry = reinterpret_cast<ed::pipe::GeometryItem*>(Get("Box").Data);

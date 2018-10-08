@@ -20,11 +20,11 @@ namespace ed
 		struct ShaderItem
 		{
 			char FilePath[512];
+			char Entry[32];
 			ml::VertexInputLayout InputLayout;
 			enum ShaderType {
 				PixelShader,
-				VertexShader,
-				GeometryShader
+				VertexShader
 			} Type;
 		};
 
