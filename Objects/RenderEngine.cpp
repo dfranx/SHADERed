@@ -1,4 +1,5 @@
 #include "RenderEngine.h"
+#include "SystemVariableManager.h"
 #include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/ConstantBuffer.h>
 
@@ -24,6 +25,10 @@ namespace ed
 			m_rtView.Create(*m_wnd, m_rt);
 		}
 
+		// update system values
+		SystemVariableManager::Instance().SetViewportSize(width, height);
+		
+		// cache elements
 		m_cache();
 
 		// bind and reset render texture
@@ -59,6 +64,18 @@ namespace ed
 
 					if (data->Type == ed::pipe::ShaderItem::VertexShader)
 						m_wnd->SetInputLayout(data->InputLayout);
+
+					data->Variables.UpdateBuffers(m_wnd);
+
+					for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++) {
+						if (data->Variables.IsSlotUsed(i)) {
+							if (data->Type == ed::pipe::ShaderItem::VertexShader)
+								data->Variables.BindVS(i);
+							//else if (data->Type == ed::pipe::ShaderItem::PixelShader)
+							//	data->Variables.GetSlot(i)->BindPS(i);
+						}
+					}
+					//cb.BindVS();
 
 					ml::Shader* shader = reinterpret_cast<ml::Shader*>(m_d3dItems[cacheCounter]);
 					shader->Bind();

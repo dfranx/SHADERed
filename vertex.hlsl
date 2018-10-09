@@ -1,6 +1,6 @@
 cbuffer cbPerFrame : register(b0)
 {
-	matrix matWVP;
+	float4x4 matWVP;
 };
 
 struct VSInput

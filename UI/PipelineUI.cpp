@@ -4,6 +4,9 @@
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
 
+#include <algorithm>
+
+/* todo: move these constants to a different file */
 static const char* FORMAT_NAMES[] = {
 	"UNKNOWN\0",
 	"R32G32B32A32_TYPELESS\0",
@@ -125,6 +128,33 @@ static const char* FORMAT_NAMES[] = {
 	"V208\0",
 	"V408\0"
 };
+static const char* SYSTEM_VARIABLE_NAMES[] = {
+	"--NONE--",
+	"Time",
+	"TimeDelta",
+	"ViewportSize",
+	"MousePosition",
+	"View",
+	"Projection",
+	"ViewProjection"
+};
+static const char* VARIABLE_TYPE_NAMES[] = {
+	"bool",
+	"bool2",
+	"bool3",
+	"bool4",
+	"int",
+	"int2",
+	"int3",
+	"int4",
+	"float",
+	"float2",
+	"float3",
+	"float4",
+	"float2x2",
+	"float3x3",
+	"float4x4"
+};
 
 namespace ed
 {
@@ -145,15 +175,30 @@ namespace ed
 
 
 
-		// Input Layout item manager
+		// various popups
 		if (m_isLayoutOpened) {
 			ImGui::OpenPopup("Item Manager##pui_layout_items");
 			m_isLayoutOpened = false;
 		}
+		if (m_isVarManagerOpened) {
+			ImGui::OpenPopup("Variable Manager##pui_shader_variables");
+			m_isVarManagerOpened = false;
+		}
 
+		// Input Layout item manager
 		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Item Manager##pui_layout_items")) {
 			m_renderInputLayoutUI();
+
+			if (ImGui::Button("Ok")) m_closePopup();
+
+			ImGui::EndPopup();
+		}
+
+		// Shader Variable manager
+		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
+			m_renderVariableManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
 
@@ -200,6 +245,10 @@ namespace ed
 						m_isLayoutOpened = true;
 						m_modalItem = &items[index];
 					}
+				}
+				if (ImGui::Selectable("Variables")) {
+					m_isVarManagerOpened = true;
+					m_modalItem = &items[index];
 				}
 			}
 			
@@ -312,6 +361,126 @@ namespace ed
 				
 				scrollToBottom = true;
 			}
+		ImGui::NextColumn();
+		ImGui::PopStyleColor();
+		//ImGui::PopItemWidth();
+
+		ImGui::EndChild();
+		ImGui::Columns(1);
+	}
+	void PipelineUI::m_renderVariableManagerUI()
+	{
+		static ed::ShaderVariable iVariable(ed::ShaderVariable::ValueType::Integer1, "variable", ed::SystemShaderVariable::None, 0);
+		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Integer1;
+		static bool scrollToBottom = false;
+		
+		ed::pipe::ShaderItem* itemData = reinterpret_cast<ed::pipe::ShaderItem*>(m_modalItem->Data);
+
+		ImGui::Text("Add or remove variables bound to this shader.");
+
+		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
+		ImGui::Columns(5);
+
+		ImGui::Text("Type"); ImGui::NextColumn();
+		ImGui::Text("Name"); ImGui::NextColumn();
+		ImGui::Text("System"); ImGui::NextColumn();
+		ImGui::Text("Slot"); ImGui::NextColumn();
+		ImGui::Text("Controls"); ImGui::NextColumn();
+
+		ImGui::Separator();
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+		int id = 0;
+		std::vector<ed::ShaderVariable>& els = itemData->Variables.GetVariables();
+		for (auto& el : els) {
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el.GetType()]);
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::InputText(("##name" + std::to_string(id)).c_str(), const_cast<char*>(el.Name), VARIABLE_NAME_LENGTH);
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::Combo(("##system" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&el.System), SYSTEM_VARIABLE_NAMES, ARRAYSIZE(SYSTEM_VARIABLE_NAMES));
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::InputInt(("##slot" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&el.Slot));
+			ImGui::NextColumn();
+
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
+				ed::ShaderVariable temp = els[id - 1];
+				els[id - 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(); if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+				ed::ShaderVariable temp = els[id + 1];
+				els[id + 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(); if (ImGui::Button(("X##" + std::to_string(id)).c_str()))
+				itemData->Variables.Remove(el.Name);
+
+			ImGui::PopStyleColor();
+			ImGui::NextColumn();
+
+			id++;
+		}
+
+		ImGui::PopStyleColor();
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, ARRAYSIZE(VARIABLE_TYPE_NAMES))) {
+			if (iValueType != iVariable.GetType()) {
+				ed::ShaderVariable newVariable(iValueType);
+				memcpy(newVariable.Name, iVariable.Name, strlen(iVariable.Name));
+				newVariable.Slot = iVariable.Slot;
+				newVariable.System = iVariable.System;
+				memcpy(newVariable.Data, iVariable.Data, std::min<int>(ed::ShaderVariable::GetSize(iVariable.GetType()), ed::ShaderVariable::GetSize(newVariable.GetType())));
+
+				free(iVariable.Data);
+				iVariable = newVariable;
+			}
+		}
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::InputText("##inputName", const_cast<char*>(iVariable.Name), SEMANTIC_LENGTH);
+		ImGui::NextColumn();
+
+		if (scrollToBottom) {
+			ImGui::SetScrollHere();
+			scrollToBottom = false;
+		}
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::Combo(("##inputSystem" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iVariable.System), SYSTEM_VARIABLE_NAMES, ARRAYSIZE(SYSTEM_VARIABLE_NAMES));
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::InputInt(("##inputSlot" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iVariable.Slot));
+		ImGui::NextColumn();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button("ADD")) {
+			// cant have two variables with same name
+			bool exists = false;
+			for (auto el : els)
+				if (strcmp(el.Name, iVariable.Name) == 0)
+					exists = true;
+
+			// add if it doesnt exist
+			if (!exists) {
+				itemData->Variables.Add(iVariable);
+				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Integer1, "variable", ed::SystemShaderVariable::None, 0);
+				scrollToBottom = true;
+			}
+		}
 		ImGui::NextColumn();
 		ImGui::PopStyleColor();
 		//ImGui::PopItemWidth();

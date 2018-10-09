@@ -53,6 +53,7 @@ namespace ed
 
 		Add("Vertex Shader", PipelineItem::ShaderFile, new ed::pipe::ShaderItem());
 		ed::pipe::ShaderItem* vertexShader = reinterpret_cast<ed::pipe::ShaderItem*>(Get("Vertex Shader").Data);
+		vertexShader->Variables.Add("matVP", ed::ShaderVariable::ValueType::Float4x4, ed::SystemShaderVariable::ViewProjection, 0);
 		vertexShader->InputLayout.Add(std::string("POSITION", SEMANTIC_LENGTH), 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
 		vertexShader->Type = ed::pipe::ShaderItem::VertexShader;
 		memcpy(vertexShader->FilePath, "vertex.hlsl\0", strlen("vertex.hlsl\0"));

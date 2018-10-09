@@ -5,16 +5,22 @@
 
 /*
 TODO:
+	shader variable QoL changes
+	shader variable functions
+	check for value change in InputLayout and VariableContainer - needs memcpy all alocated data
 	camera that rotates around world origin
-	shader variables
 	.sprj -> project "Save" and "Open" functionalities
 	shader "..." button
-	output window (outputs errors, warnings and other messages)
+	output window (outputs errors, warnings and other messages) + error stack (check if project has any errors)
 	code editor
 	code stats
 	create pipeline items
 	movable geometry
-	do the caching at 1 FPS
+	check if system variable type matches the shader variable type and offer only system values that do match the type
+	speed up the constant buffer updating by changing usage from default to dynamic
+	various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
+		or
+	add Passes aka groups - merge shaders and all states into it
 */
 int main()
 {

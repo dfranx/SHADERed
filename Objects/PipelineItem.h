@@ -5,6 +5,8 @@
 #include <MoonLight/Base/VertexInputLayout.h>
 #include <string>
 
+#include "ShaderVariableContainer.h"
+
 namespace ed
 {
 	enum class PipelineItem
@@ -21,6 +23,7 @@ namespace ed
 		{
 			char FilePath[512];
 			char Entry[32];
+			ed::ShaderVariableContainer Variables;
 			ml::VertexInputLayout InputLayout;
 			enum ShaderType {
 				PixelShader,
