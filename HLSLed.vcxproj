@@ -165,6 +165,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
+    <ClCompile Include="Objects\Camera.cpp" />
     <ClCompile Include="Objects\PipelineManager.cpp" />
     <ClCompile Include="Objects\RenderEngine.cpp" />
     <ClCompile Include="Objects\ShaderVariableContainer.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="ImGUI\stb_truetype.h" />
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
+    <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\PipelineItem.h" />
     <ClInclude Include="Objects\PipelineManager.h" />
     <ClInclude Include="Objects\ShaderVariable.h" />

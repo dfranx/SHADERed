@@ -1,11 +1,13 @@
 cbuffer cbPerFrame : register(b0)
 {
 	float4x4 matWVP;
+	float fTime;
 };
 
 struct VSInput
 {
 	float3 Position : POSITION;
+	float3 Normal : NORMAL;
 };
 
 struct VSOutput
@@ -19,7 +21,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 
 	vout.Position = mul(float4(vin.Position, 1.0f), matWVP);
-	vout.Color = float4(1,1,0,1);
+	vout.Color = float4(vin.Normal*tan(fTime),1);
 
 	return vout;
 }

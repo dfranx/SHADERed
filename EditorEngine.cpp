@@ -1,4 +1,5 @@
 #include "EditorEngine.h"
+#include "Objects/SystemVariableManager.h"
 
 namespace ed
 {
@@ -18,6 +19,9 @@ namespace ed
 	}
 	void EditorEngine::Update(float delta)
 	{
+		// first update system time delta value
+		SystemVariableManager::Instance().SetTimeDelta(delta);
+
 		m_ui.Update(delta);
 		m_interface.Update(delta);
 	}

@@ -3,6 +3,7 @@
 #include "../Options.h"
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
+#include "../Objects/SystemVariableManager.h"
 
 #include <algorithm>
 
@@ -403,11 +404,24 @@ namespace ed
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Combo(("##system" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&el.System), SYSTEM_VARIABLE_NAMES, ARRAYSIZE(SYSTEM_VARIABLE_NAMES));
+			const char* systemComboPreview = SYSTEM_VARIABLE_NAMES[(int)el.System];
+			if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), systemComboPreview)) {
+
+				for (int n = 0; n < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
+					bool is_selected = (n == (int)el.System);
+					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el.GetType())
+						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
+							el.System = (ed::SystemShaderVariable)n;
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputInt(("##slot" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&el.Slot));
+			ImGui::DragInt(("##slot" + std::to_string(id)).c_str(), &el.Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS-1, "b%d");
+			el.Slot = std::min<int>(CONSTANT_BUFFER_SLOTS - 1, el.Slot);
 			ImGui::NextColumn();
 
 
@@ -439,7 +453,7 @@ namespace ed
 				ed::ShaderVariable newVariable(iValueType);
 				memcpy(newVariable.Name, iVariable.Name, strlen(iVariable.Name));
 				newVariable.Slot = iVariable.Slot;
-				newVariable.System = iVariable.System;
+				newVariable.System = ed::SystemShaderVariable::None;
 				memcpy(newVariable.Data, iVariable.Data, std::min<int>(ed::ShaderVariable::GetSize(iVariable.GetType()), ed::ShaderVariable::GetSize(newVariable.GetType())));
 
 				free(iVariable.Data);
@@ -458,11 +472,23 @@ namespace ed
 		}
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		ImGui::Combo(("##inputSystem" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iVariable.System), SYSTEM_VARIABLE_NAMES, ARRAYSIZE(SYSTEM_VARIABLE_NAMES));
+		const char* inputComboPreview = SYSTEM_VARIABLE_NAMES[(int)iVariable.System];
+		if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), inputComboPreview)) {
+			for (int n = 0; n < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
+				bool is_selected = (n == (int)iVariable.System);
+				if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == iVariable.GetType())
+					&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
+						iVariable.System = (ed::SystemShaderVariable)n;
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		ImGui::InputInt(("##inputSlot" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iVariable.Slot));
+		ImGui::DragInt(("##inputSlot" + std::to_string(id)).c_str(), &iVariable.Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS - 1, "b%d");
+		iVariable.Slot = std::min<int>(CONSTANT_BUFFER_SLOTS - 1, iVariable.Slot);
 		ImGui::NextColumn();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

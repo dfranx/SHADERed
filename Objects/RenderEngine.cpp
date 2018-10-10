@@ -54,7 +54,7 @@ namespace ed
 
 		ml::ConstantBuffer<DirectX::XMFLOAT4X4> cb;
 		cb.Create(*m_wnd, &projMat, sizeof(DirectX::XMMATRIX), 0);
-		cb.BindVS();
+	//	cb.BindVS();
 
 		int cacheCounter = 0;
 		for (auto it : m_items) {
@@ -70,9 +70,9 @@ namespace ed
 					for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++) {
 						if (data->Variables.IsSlotUsed(i)) {
 							if (data->Type == ed::pipe::ShaderItem::VertexShader)
-								data->Variables.BindVS(i);
-							//else if (data->Type == ed::pipe::ShaderItem::PixelShader)
-							//	data->Variables.GetSlot(i)->BindPS(i);
+								data->Variables.GetSlot(i).BindVS(i);
+							else if (data->Type == ed::pipe::ShaderItem::PixelShader)
+								data->Variables.GetSlot(i).BindPS(i);
 						}
 					}
 					//cb.BindVS();

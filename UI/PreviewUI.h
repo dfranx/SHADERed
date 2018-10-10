@@ -1,5 +1,6 @@
 #pragma once
 #include "UIView.h"
+#include "../ImGUI/imgui.h"
 
 namespace ed
 {
@@ -10,5 +11,8 @@ namespace ed
 
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
+
+	private:
+		ImVec2 m_mouseContact;
 	};
 }
