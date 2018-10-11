@@ -169,10 +169,11 @@
     <ClCompile Include="Objects\PipelineManager.cpp" />
     <ClCompile Include="Objects\RenderEngine.cpp" />
     <ClCompile Include="Objects\ShaderVariableContainer.cpp" />
-    <ClCompile Include="UI\CreateItemUI.cpp" />
+    <ClCompile Include="UI\CreateItem.cpp" />
     <ClCompile Include="UI\PipelineUI.cpp" />
     <ClCompile Include="UI\PreviewUI.cpp" />
     <ClCompile Include="UI\PropertyUI.cpp" />
+    <ClCompile Include="UI\VariableValueEdit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorEngine.h" />
@@ -195,12 +196,13 @@
     <ClInclude Include="Objects\ShaderVariableContainer.h" />
     <ClInclude Include="Objects\SystemVariableManager.h" />
     <ClInclude Include="Options.h" />
-    <ClInclude Include="UI\CreateItemUI.h" />
+    <ClInclude Include="UI\CreateItem.h" />
     <ClInclude Include="UI\PropertyUI.h" />
     <ClInclude Include="Objects\RenderEngine.h" />
     <ClInclude Include="UI\PipelineUI.h" />
     <ClInclude Include="UI\PreviewUI.h" />
     <ClInclude Include="UI\UIView.h" />
+    <ClInclude Include="UI\VariableValueEdit.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -201,6 +201,8 @@ namespace ed
 			}
 		}
 
+		d3dCounter = 0;
+
 		// check if any of the cached items has changed some property
 		for (int i = 0; i < m_cachedItems.size(); i++) {
 			if (m_isCached(m_cachedItems[i])) {

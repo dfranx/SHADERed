@@ -192,7 +192,6 @@ namespace ed
 			m_renderInputLayoutUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
-
 			ImGui::EndPopup();
 		}
 
@@ -202,7 +201,6 @@ namespace ed
 			m_renderVariableManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
-
 			ImGui::EndPopup();
 		}
 	}
@@ -406,7 +404,6 @@ namespace ed
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			const char* systemComboPreview = SYSTEM_VARIABLE_NAMES[(int)el.System];
 			if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), systemComboPreview)) {
-
 				for (int n = 0; n < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
 					bool is_selected = (n == (int)el.System);
 					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el.GetType())
@@ -426,7 +423,12 @@ namespace ed
 
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
+
+			if (ImGui::Button(("EDIT##" + std::to_string(id)).c_str())) {
+				ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
+				m_valueEdit.Open(&el);
+			}
+			ImGui::SameLine(); if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
 				ed::ShaderVariable temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
@@ -445,6 +447,18 @@ namespace ed
 			id++;
 		}
 
+		// render value edit window if needed
+		if (ImGui::BeginPopupModal("Value Edit##pui_shader_value_edit")) {
+			m_valueEdit.Update();
+			
+			if (ImGui::Button("Ok")) {
+				m_valueEdit.Close();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		// widgets for editing "virtual" element - an element that will be added to the list later
 		ImGui::PopStyleColor();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
