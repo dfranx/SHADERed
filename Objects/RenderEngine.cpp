@@ -14,6 +14,8 @@ namespace ed
 	{
 		for (int i = 0; i < m_d3dItems.size(); i++)
 			delete m_d3dItems[i];
+		for (int i = 0; i < m_cachedItems.size(); i++)
+			free(m_cachedItems[i].Data);
 	}
 	void RenderEngine::Render(int width, int height)
 	{
@@ -27,7 +29,7 @@ namespace ed
 
 		// update system values
 		SystemVariableManager::Instance().SetViewportSize(width, height);
-		
+
 		// cache elements
 		m_cache();
 
@@ -44,17 +46,6 @@ namespace ed
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 		m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
-
-		// update constant buffer
-		DirectX::XMMATRIX wvp = DirectX::XMMatrixRotationY(DirectX::XMConvertToRadians(45)) * DirectX::XMMatrixTranslation(0, 0, 10) *
-			DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)width/height, 0.1f, 1000.0f);
-		DirectX::XMFLOAT4X4 projMat;
-
-		DirectX::XMStoreFloat4x4(&projMat, XMMatrixTranspose(wvp));
-
-		ml::ConstantBuffer<DirectX::XMFLOAT4X4> cb;
-		cb.Create(*m_wnd, &projMat, sizeof(DirectX::XMMATRIX), 0);
-	//	cb.BindVS();
 
 		int cacheCounter = 0;
 		for (auto it : m_items) {
@@ -75,7 +66,6 @@ namespace ed
 								data->Variables.GetSlot(i).BindPS(i);
 						}
 					}
-					//cb.BindVS();
 
 					ml::Shader* shader = reinterpret_cast<ml::Shader*>(m_d3dItems[cacheCounter]);
 					shader->Bind();
@@ -138,6 +128,11 @@ namespace ed
 						shader->LoadFromFile(*m_wnd, data->FilePath, data->Entry);
 
 						m_d3dItems.insert(m_d3dItems.begin() + d3dCounter, shader);
+
+						// copy actual item contents
+						m_cachedItems.insert(m_cachedItems.begin() + d3dCounter, items[i]);
+						m_cachedItems[d3dCounter].Data = malloc(sizeof(ed::pipe::ShaderItem));
+						memcpy(m_cachedItems[d3dCounter].Data, data, sizeof(ed::pipe::ShaderItem));
 					}
 				}
 			}
@@ -155,16 +150,22 @@ namespace ed
 				if (items[j].Data == m_items[i].Data)
 					found = true;
 
+			bool isCached = m_isCached(m_items[i]);
+
 			if (!found) {
-				m_items.erase(m_items.begin() + i);
-				if (m_isCached(items[i])) {
+				if (isCached) {
 					delete m_d3dItems[d3dCounter];
 					m_d3dItems.erase(m_d3dItems.begin() + d3dCounter);
+
+					free(m_cachedItems[d3dCounter].Data);
+					m_cachedItems.erase(m_cachedItems.begin() + d3dCounter);
+
 					d3dCounter--;
 				}
+				m_items.erase(m_items.begin() + i);
 			}
 
-			if (m_isCached(items[i]))
+			if (isCached)
 				d3dCounter++;
 		}
 
@@ -185,10 +186,21 @@ namespace ed
 							m_items.erase(m_items.begin() + i, m_items.begin() + i + 1);
 							m_items.insert(m_items.begin() + dest, items[j]);
 
-							int d3dDest = tempD3DCounter > d3dCounter ? (tempD3DCounter - 1) : tempD3DCounter;
-							void* d3dCopy = m_d3dItems[d3dCounter];
-							m_d3dItems.erase(m_d3dItems.begin() + d3dCounter);
-							m_d3dItems.insert(m_d3dItems.begin() + d3dDest, d3dCopy);
+							if (m_isCached(m_items[i])) {
+								int d3dDest = tempD3DCounter > d3dCounter ? (tempD3DCounter - 1) : tempD3DCounter;
+
+								void* d3dCopy = m_d3dItems[d3dCounter];
+								ed::PipelineManager::Item cachedItem = m_cachedItems[d3dCounter];
+
+								m_d3dItems.erase(m_d3dItems.begin() + d3dCounter);
+								m_d3dItems.insert(m_d3dItems.begin() + d3dDest, d3dCopy);
+
+								m_cachedItems.erase(m_cachedItems.begin() + d3dCounter);
+								m_cachedItems.insert(m_cachedItems.begin() + d3dDest, cachedItem);
+
+								if (tempD3DCounter > d3dCounter)
+									d3dCounter--;
+							}
 						}
 
 						if (m_isCached(m_items[j]))
@@ -208,40 +220,45 @@ namespace ed
 			if (m_isCached(m_cachedItems[i])) {
 				
 				if (m_cachedItems[i].Type == ed::PipelineItem::ShaderFile) {
-					ed::pipe::ShaderItem* current = reinterpret_cast<ed::pipe::ShaderItem*>(m_cachedItems[i].Data);
+					ed::pipe::ShaderItem* current = reinterpret_cast<ed::pipe::ShaderItem*>(m_cachedItems[d3dCounter].Data);
 					ed::pipe::ShaderItem* next = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[i].Data);
-
 					// some important property changed - requires recompilation
+
 					if (strcmp(next->Entry, current->Entry) != 0 ||
 						strcmp(next->FilePath, current->FilePath) != 0 ||
 						next->InputLayout.GetInputElements().size() != current->InputLayout.GetInputElements().size() ||
 						next->Type != current->Type)
 					{
 						ml::Shader* shader = nullptr;
+
 						if (next->Type == ed::pipe::ShaderItem::PixelShader)
 							shader = new ml::PixelShader();
 						else if (next->Type == ed::pipe::ShaderItem::VertexShader) {
 							shader = new ml::VertexShader();
 
-							// bind the input layout
+							// rebind the input layout
 							next->InputLayout.Reset();
 							reinterpret_cast<ml::VertexShader*>(shader)->InputSignature = &next->InputLayout;
 						}
 
 						bool valid = shader->LoadFromFile(*m_wnd, next->FilePath, next->Entry);
+
 						if (!valid) {
-							// TODO: outputUI->Print("Failed to compile the shader! Continuing to run the old shader.");
+							// TODO: outputUI->Print("Failed to compile the shader! Continuing to run the old shader. Rebuilding the input layout.");
+							// rebuild the input layout
+							reinterpret_cast<ml::VertexShader*>(m_d3dItems[d3dCounter])->LoadFromFile(*m_wnd, current->FilePath, current->Entry);
 							delete shader;
 						} else {
 							delete m_d3dItems[d3dCounter];
 							m_d3dItems[d3dCounter] = shader;
 						}
+
+						memcpy(current, next, sizeof(ed::pipe::ShaderItem));
 					}
 				}
 
 				d3dCounter++;
 			}
 		}
-		m_cachedItems = m_items;
 	}
 }

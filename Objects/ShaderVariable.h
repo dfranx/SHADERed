@@ -41,7 +41,7 @@ namespace ed
 		ShaderVariable(ValueType type, const char* name = "var\0", SystemShaderVariable systemVar = SystemShaderVariable::None, int slot = 0) :
 			m_type(type), System(systemVar), Slot(slot)
 		{
-			Data = malloc(GetSize(type));
+			Data = (char*)calloc(GetSize(type), 1);
 			memset(Name, 0, VARIABLE_NAME_LENGTH);
 			memcpy(Name, name, strlen(name));
 		}
@@ -74,15 +74,19 @@ namespace ed
 		char Name[VARIABLE_NAME_LENGTH];	// just a descriptive name to help you out
 		SystemShaderVariable System;		// do we provide the value or does our system provide the value?
 		int Slot;			// b0, b1, ..., b15
-		void* Data;			// allocated with malloc()
+		char* Data;			// allocated with malloc()
 
-		inline int AsInteger(int index = 0) { return *(reinterpret_cast<int*>(Data) + index * GetSize(ValueType::Integer1)); }
-		inline bool AsBoolean(int index = 0) { return *(reinterpret_cast<bool*>(Data) + index * GetSize(ValueType::Boolean1)); }
-		inline float AsFloat(int col = 0, int row = 0) { return *(reinterpret_cast<float*>(Data) + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)); }
+		inline int AsInteger(int index = 0) { return *(int*)(Data + index * GetSize(ValueType::Integer1)); }
+		inline bool AsBoolean(int index = 0) { return *(bool*)(Data + index * GetSize(ValueType::Boolean1)); }
+		inline float AsFloat(int col = 0, int row = 0) { return *(bool*)(Data + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)); }
 
-		inline void SetIntegerValue(int value, int index = 0) { *(reinterpret_cast<int*>(Data) + index * GetSize(ValueType::Integer1)) = value; }
-		inline void SetBooleanValue(bool value, int index = 0) { *(reinterpret_cast<bool*>(Data) + index * GetSize(ValueType::Boolean1)) = value; }
-		inline void AsFloat(float value, int col = 0, int row = 0) { *(reinterpret_cast<float*>(Data) + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)) = value; }
+		inline int* AsIntegerPtr(int index = 0) { return (int*)(Data + index * GetSize(ValueType::Integer1)); }
+		inline bool* AsBooleanPtr(int index = 0) { return (bool*)(Data + index * GetSize(ValueType::Boolean1)); }
+		inline float* AsFloatPtr(int col = 0, int row = 0) { return (float*)(Data + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)); }
+
+		inline void SetIntegerValue(int value, int index = 0) { *AsIntegerPtr(index) = value; }
+		inline void SetBooleanValue(bool value, int index = 0) { *AsBooleanPtr(index) = value; }
+		inline void SetFloat(float value, int col = 0, int row = 0) { *AsFloatPtr(col, row) = value; }
 
 		inline ValueType GetType() { return m_type; }
 		inline int GetColumnCount()

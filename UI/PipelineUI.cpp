@@ -217,18 +217,38 @@ namespace ed
 
 		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index].Name)).c_str(), ImGuiDir_Up)) {
 			if (index != 0) {
+				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
+				std::string oldPropertyItemName = props->CurrentItemName();
+
 				ed::PipelineManager::Item temp = items[index - 1];
 				items[index - 1] = items[index];
 				items[index] = temp;
+
+				if (props->HasItemSelected()) {
+					if (oldPropertyItemName == items[index - 1].Name)
+						props->Open(&items[index - 1]);
+					if (oldPropertyItemName == items[index].Name)
+						props->Open(&items[index]);
+				}
 			}
 		}
 		ImGui::SameLine(0, 0);
 
 		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index].Name)).c_str(), ImGuiDir_Down)) {
 			if (index != items.size() - 1) {
+				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
+				std::string oldPropertyItemName = props->CurrentItemName();
+
 				ed::PipelineManager::Item temp = items[index + 1];
 				items[index + 1] = items[index];
 				items[index] = temp;
+
+				if (props->HasItemSelected()) {
+					if (oldPropertyItemName == items[index + 1].Name)
+						props->Open(&items[index + 1]);
+					if (oldPropertyItemName == items[index].Name)
+						props->Open(&items[index]);
+				}
 			}
 		}
 		ImGui::SameLine(0, 0);
@@ -255,7 +275,6 @@ namespace ed
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(&items[index]);
 
 			if (ImGui::Selectable("Delete")) {
-
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index].Name)
 					props->Open(nullptr);
@@ -424,11 +443,14 @@ namespace ed
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-			if (ImGui::Button(("EDIT##" + std::to_string(id)).c_str())) {
-				ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
-				m_valueEdit.Open(&el);
+			if (el.System == ed::SystemShaderVariable::None) {
+				if (ImGui::Button(("EDIT##" + std::to_string(id)).c_str())) {
+					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
+					m_valueEdit.Open(&el);
+				}
+				ImGui::SameLine();
 			}
-			ImGui::SameLine(); if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
+			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
 				ed::ShaderVariable temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
@@ -447,7 +469,10 @@ namespace ed
 			id++;
 		}
 
+		ImGui::PopStyleColor();
+
 		// render value edit window if needed
+		ImGui::SetNextWindowSize(ImVec2(450, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Value Edit##pui_shader_value_edit")) {
 			m_valueEdit.Update();
 			
@@ -459,8 +484,6 @@ namespace ed
 		}
 
 		// widgets for editing "virtual" element - an element that will be added to the list later
-		ImGui::PopStyleColor();
-
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, ARRAYSIZE(VARIABLE_TYPE_NAMES))) {
 			if (iValueType != iVariable.GetType()) {
