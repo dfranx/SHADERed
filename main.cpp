@@ -5,7 +5,6 @@
 
 /*
 TODO:
-	shader variable value editing
 	shader variable functions
 	check for value change in InputLayout and VariableContainer - needs memcpy all alocated data
 	.sprj -> project "Save" and "Open" functionalities

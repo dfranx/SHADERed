@@ -6,6 +6,7 @@
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
+#include "UI/PinnedUI.h"
 
 #include <Windows.h>
 #include <fstream>
@@ -17,6 +18,7 @@ namespace ed
 		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
 		m_views.push_back(new PreviewUI(this, objects, "Preview"));
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
+		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 
 		m_applySize = false;
 

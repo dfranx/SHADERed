@@ -170,6 +170,7 @@
     <ClCompile Include="Objects\RenderEngine.cpp" />
     <ClCompile Include="Objects\ShaderVariableContainer.cpp" />
     <ClCompile Include="UI\CreateItem.cpp" />
+    <ClCompile Include="UI\PinnedUI.cpp" />
     <ClCompile Include="UI\PipelineUI.cpp" />
     <ClCompile Include="UI\PreviewUI.cpp" />
     <ClCompile Include="UI\PropertyUI.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="Objects\SystemVariableManager.h" />
     <ClInclude Include="Options.h" />
     <ClInclude Include="UI\CreateItem.h" />
+    <ClInclude Include="UI\PinnedUI.h" />
     <ClInclude Include="UI\PropertyUI.h" />
     <ClInclude Include="Objects\RenderEngine.h" />
     <ClInclude Include="UI\PipelineUI.h" />

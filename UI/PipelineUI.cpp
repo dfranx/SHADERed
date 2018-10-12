@@ -1,5 +1,6 @@
 #include "PipelineUI.h"
 #include "PropertyUI.h"
+#include "PinnedUI.h"
 #include "../Options.h"
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
@@ -196,7 +197,7 @@ namespace ed
 		}
 
 		// Shader Variable manager
-		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(730, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
 			m_renderVariableManagerUI();
 
@@ -388,8 +389,8 @@ namespace ed
 	}
 	void PipelineUI::m_renderVariableManagerUI()
 	{
-		static ed::ShaderVariable iVariable(ed::ShaderVariable::ValueType::Integer1, "variable", ed::SystemShaderVariable::None, 0);
-		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Integer1;
+		static ed::ShaderVariable iVariable(ed::ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
+		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Float1;
 		static bool scrollToBottom = false;
 		
 		ed::pipe::ShaderItem* itemData = reinterpret_cast<ed::pipe::ShaderItem*>(m_modalItem->Data);
@@ -448,6 +449,19 @@ namespace ed
 					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
 					m_valueEdit.Open(&el);
 				}
+				ImGui::SameLine();
+
+				// TODO: check if it is already pinned
+
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				if (!pinState->Contains(el.Name)) {
+					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
+						pinState->Add(el);
+				} else {
+					if (ImGui::Button(("UNPIN##" + std::to_string(id)).c_str()))
+						pinState->Remove(el.Name);
+				}
+
 				ImGui::SameLine();
 			}
 			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
@@ -540,7 +554,7 @@ namespace ed
 			// add if it doesnt exist
 			if (!exists) {
 				itemData->Variables.Add(iVariable);
-				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Integer1, "variable", ed::SystemShaderVariable::None, 0);
+				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Integer1, "var", ed::SystemShaderVariable::None, 0);
 				scrollToBottom = true;
 			}
 		}
