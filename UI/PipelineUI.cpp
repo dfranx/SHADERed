@@ -158,6 +158,8 @@ static const char* VARIABLE_TYPE_NAMES[] = {
 	"float4x4"
 };
 
+#define PIPELINE_ITEM_INDENT 65
+
 namespace ed
 {
 	void PipelineUI::OnEvent(const ml::Event & e)
@@ -260,6 +262,9 @@ namespace ed
 	{
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index].Name)).c_str())) {
 			if (items[index].Type == ed::PipelineItem::ShaderFile) {
+				if (ImGui::Selectable("Recompile"))
+					m_data->Renderer.Recompile(items[index].Name);
+
 				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
 					if (ImGui::Selectable("Items...")) {
 						m_isLayoutOpened = true;
@@ -271,7 +276,7 @@ namespace ed
 					m_modalItem = &items[index];
 				}
 			}
-			
+
 			if (ImGui::Selectable("Properties"))
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(&items[index]);
 
@@ -572,17 +577,21 @@ namespace ed
 		if (data->Type == ed::pipe::ShaderItem::VertexShader)
 			type = "VS";
 
-		ImGui::Text(type.c_str());
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		if (ImGui::SmallButton(type.c_str()))
+			m_data->Renderer.Recompile(name.c_str());
+		ImGui::PopStyleColor();
+
 		ImGui::SameLine();
 
-		ImGui::Indent(60);
+		ImGui::Indent(PIPELINE_ITEM_INDENT);
 		ImGui::Selectable(name.c_str());
-		ImGui::Unindent(60);
+		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 	void PipelineUI::m_addItem(const std::string & name)
 	{
-		ImGui::Indent(60);
+		ImGui::Indent(PIPELINE_ITEM_INDENT);
 		ImGui::Selectable(name.c_str());
-		ImGui::Unindent(60);
+		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 }

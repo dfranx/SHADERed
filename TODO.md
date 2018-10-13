@@ -11,4 +11,5 @@
 - [ ] keyboard shortcuts
 - [ ] textures
 - [ ] shader variable pointers & copying
-- [ ] pipeline -> shader -> right click -> recompile (or click on "VS", "PS", etc...)
+- [x] pipeline -> shader -> right click -> recompile (or click on "VS", "PS", etc...)
+- [ ] help -> settings | manual | about

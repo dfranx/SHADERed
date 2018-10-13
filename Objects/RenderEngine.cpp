@@ -83,6 +83,18 @@ namespace ed
 		// restore real render target view
 		m_wnd->Bind();
 	}
+	void RenderEngine::Recompile(const char * name)
+	{
+		int d3dCounter = 0;
+		for (auto item : m_items) {
+			if (strcmp(item.Name, name) == 0) {
+				ed::pipe::ShaderItem* shader = (ed::pipe::ShaderItem*)item.Data;
+				((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromFile(*m_wnd, shader->FilePath, shader->Entry);
+			}
+			if (m_isCached(item))
+				d3dCounter++;
+		}
+	}
 	void RenderEngine::m_cache()
 	{
 		// check for any changes

@@ -16,6 +16,30 @@ namespace ed
 		ViewProjection,		// matrix/float4x4 - View*Projection matrix
 	};
 
+	enum class FunctionShaderVariable
+	{
+		None,					// using user input instead of built-in functions
+		MatrixIdentity,			// XMMatrixIdentity()
+		MatrixLookAtLH,			// XMMatrixLookAtLH(float3 EyePosition, float3 FocusPosition, float3 UpDirection)
+		MatrixLookToLH,			// XMMatrixLookToLH(float3 EyePosition, float3 EyeDirection, float3 UpDirection)
+		MatrixOrthographicLH,	// XMMatrixOrthographicLH(float ViewWidth, float ViewHeight, float NearZ, float FarZ)
+		MatrixPerspectiveFovLH,	// XMMatrixPerspectiveFovLH(float fovAngleY, float AspectRatio, float NearZ, float FarZ)
+		MatrixPerspectiveLH,	// XMMatrixPerspectiveLH(float ViewWidth, float ViewHeight, float NearZ, float FarZ)
+		MatrixReflect,			// XMMatrixReflect(float4 ReflectionPlane)
+		MatrixRotationAxis,		// XMMatrixRotationAxis(float4 axis, float angle)
+		MatrixRotationNormal,	// XMMatrixRotationNormal(float4 normal, float angle)
+		MatrixRotationRollPitchYaw, // XMMatrixRotationRollPitchYaw(float pitch, float yaw, float roll)
+		MatrixRotationX,		// XMMatrixRotationX(float angle)
+		MatrixRotationY,		// XMMatrixRotationY(float angle)
+		MatrixRotationZ,		// XMMatrixRotationZ(float angle)
+		MatrixScaling,			// XMMatrixScaling(float x, float y, float z)
+		MatrixShadow,			// XMMatrixShadow(float4 ShadowPlane, float4 LightPosition) -> 4th param actually bool, 0 = directional light, 1 = point light
+		MatrixTranslation,		// XMMatrixScaling(float offsetX, float offsetY, float offsetZ)
+		ScalarCos,				// XMScalarCos(float radians)
+		ScalarSin,				// XMScalarSin(float radians)
+		VectorNormalize,		// XMVector2|3|4Normalize()
+	};
+
 	class ShaderVariable
 	{
 	public:
