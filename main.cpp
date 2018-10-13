@@ -3,22 +3,6 @@
 #include "EditorEngine.h"
 #include <fstream>
 
-/*
-TODO:
-	shader variable functions
-	check for value change in InputLayout and VariableContainer - needs memcpy all alocated data
-	.sprj -> project "Save" and "Open" functionalities
-	save per-window(window and widget sizes, positions, etc...) and per-project(opened files, property viewer item, etc..) settings
-	shader "..." button
-	output window (outputs errors, warnings and other messages) + error&warning stack (check if project has any errors)
-	code editor
-	code stats
-	create pipeline items
-	movable geometry (left click)
-	various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
-		or
-	add Passes aka groups - merge shaders and all states into it
-*/
 int main()
 {
 	// window configuration

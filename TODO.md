@@ -1,0 +1,14 @@
+- [ ] shader variable values from functions
+- [ ] project "Save" and "Open" functionalities - save to .sprj
+- [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
+- [ ] shader "..." button - open files
+- [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)
+- [ ] code editor
+- [ ] code stats
+- [ ] creating pipeline items
+- [ ] movable geometry (left click)
+- [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc... **OR** add Passes aka groups - merge shaders and all states into the Pass
+- [ ] keyboard shortcuts
+- [ ] textures
+- [ ] shader variable pointers & copying
+- [ ] pipeline -> shader -> right click -> recompile (or click on "VS", "PS", etc...)

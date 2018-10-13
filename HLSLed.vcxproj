@@ -206,6 +206,9 @@
     <ClInclude Include="UI\UIView.h" />
     <ClInclude Include="UI\VariableValueEdit.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TODO.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

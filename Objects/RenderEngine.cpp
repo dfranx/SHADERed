@@ -222,8 +222,8 @@ namespace ed
 				if (m_cachedItems[i].Type == ed::PipelineItem::ShaderFile) {
 					ed::pipe::ShaderItem* current = reinterpret_cast<ed::pipe::ShaderItem*>(m_cachedItems[d3dCounter].Data);
 					ed::pipe::ShaderItem* next = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[i].Data);
-					// some important property changed - requires recompilation
-
+					
+					// basic checks
 					if (strcmp(next->Entry, current->Entry) != 0 ||
 						strcmp(next->FilePath, current->FilePath) != 0 ||
 						next->InputLayout.GetInputElements().size() != current->InputLayout.GetInputElements().size() ||
