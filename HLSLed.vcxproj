@@ -166,9 +166,11 @@
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="Objects\Camera.cpp" />
+    <ClCompile Include="Objects\FunctionVariableManager.cpp" />
     <ClCompile Include="Objects\PipelineManager.cpp" />
     <ClCompile Include="Objects\RenderEngine.cpp" />
     <ClCompile Include="Objects\ShaderVariableContainer.cpp" />
+    <ClCompile Include="Objects\SystemVariableManager.cpp" />
     <ClCompile Include="UI\CreateItem.cpp" />
     <ClCompile Include="UI\PinnedUI.cpp" />
     <ClCompile Include="UI\PipelineUI.cpp" />
@@ -191,6 +193,7 @@
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
     <ClInclude Include="Objects\Camera.h" />
+    <ClInclude Include="Objects\FunctionVariableManager.h" />
     <ClInclude Include="Objects\PipelineItem.h" />
     <ClInclude Include="Objects\PipelineManager.h" />
     <ClInclude Include="Objects\ShaderVariable.h" />

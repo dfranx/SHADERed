@@ -15,6 +15,9 @@ namespace ed
 		void Update();
 
 	private:
+		void m_drawRegular();
+		void m_drawFunction();
+
 		ed::ShaderVariable* m_var;
 	};
 }

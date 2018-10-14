@@ -14,6 +14,7 @@ namespace ed
 		View,				// matrix/float4x4 - a built-in camera matrix
 		Projection,			// matrix/float4x4 - a built-in projection matrix
 		ViewProjection,		// matrix/float4x4 - View*Projection matrix
+		Count
 	};
 
 	enum class FunctionShaderVariable
@@ -37,7 +38,8 @@ namespace ed
 		MatrixTranslation,		// XMMatrixScaling(float offsetX, float offsetY, float offsetZ)
 		ScalarCos,				// XMScalarCos(float radians)
 		ScalarSin,				// XMScalarSin(float radians)
-		VectorNormalize,		// XMVector2|3|4Normalize()
+		VectorNormalize,		// XMVector2|3|4Normalize(float2|3|4 vector)
+		Count
 	};
 
 	class ShaderVariable
@@ -59,15 +61,18 @@ namespace ed
 			Float4,
 			Float2x2,
 			Float3x3,
-			Float4x4
+			Float4x4,
+			Count
 		};
 
 		ShaderVariable(ValueType type, const char* name = "var\0", SystemShaderVariable systemVar = SystemShaderVariable::None, int slot = 0) :
 			m_type(type), System(systemVar), Slot(slot)
 		{
+			Arguments = nullptr;
 			Data = (char*)calloc(GetSize(type), 1);
 			memset(Name, 0, VARIABLE_NAME_LENGTH);
 			memcpy(Name, name, strlen(name));
+			Function = FunctionShaderVariable::None;
 		}
 
 		static inline int GetSize(ValueType type)
@@ -97,12 +102,14 @@ namespace ed
 		
 		char Name[VARIABLE_NAME_LENGTH];	// just a descriptive name to help you out
 		SystemShaderVariable System;		// do we provide the value or does our system provide the value?
+		FunctionShaderVariable Function;	// do we input value or does system calculate it for us?
 		int Slot;			// b0, b1, ..., b15
 		char* Data;			// allocated with malloc()
+		char* Arguments;	// space to store arguments for function - allocated if not null!!!
 
-		inline int AsInteger(int index = 0) { return *(int*)(Data + index * GetSize(ValueType::Integer1)); }
-		inline bool AsBoolean(int index = 0) { return *(bool*)(Data + index * GetSize(ValueType::Boolean1)); }
-		inline float AsFloat(int col = 0, int row = 0) { return *(bool*)(Data + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)); }
+		inline int AsInteger(int index = 0) { return *AsIntegerPtr(index); }
+		inline bool AsBoolean(int index = 0) { return *AsBooleanPtr(index); }
+		inline float AsFloat(int col = 0, int row = 0) { return *AsFloatPtr(col, row); }
 
 		inline int* AsIntegerPtr(int index = 0) { return (int*)(Data + index * GetSize(ValueType::Integer1)); }
 		inline bool* AsBooleanPtr(int index = 0) { return (bool*)(Data + index * GetSize(ValueType::Boolean1)); }

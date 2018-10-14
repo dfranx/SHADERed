@@ -17,6 +17,9 @@ namespace ed
 			for (int i = 0; i < m_vars.size(); i++)
 				if (strcmp(m_vars[i].Name, name) == 0) {
 					free(m_vars[i].Data);
+					if (m_vars[i].Arguments != nullptr)
+						free(m_vars[i].Arguments);
+					m_vars[i].Arguments = nullptr;
 					m_vars.erase(m_vars.begin() + i);
 					break;
 				}

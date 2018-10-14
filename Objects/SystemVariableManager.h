@@ -31,6 +31,8 @@ namespace ed
 			return ed::ShaderVariable::ValueType::Float1;
 		}
 
+		void Update(ed::ShaderVariable& var);
+
 		inline DirectX::XMMATRIX GetViewMatrix() { return m_cam.GetMatrix(); }
 		inline DirectX::XMMATRIX GetProjectionMatrix() { return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
 		inline DirectX::XMMATRIX GetViewProjectionMatrix() { return GetViewMatrix() * GetProjectionMatrix(); }

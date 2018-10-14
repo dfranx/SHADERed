@@ -364,15 +364,15 @@ namespace ed
 		}
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputInt(("##inputSemanticID" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iElement.SemanticIndex));
+			ImGui::InputInt("##inputSemanticID", reinterpret_cast<int*>(&iElement.SemanticIndex));
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Combo(("##inputFormatName" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iElement.Format), FORMAT_NAMES, ARRAYSIZE(FORMAT_NAMES));
+			ImGui::Combo("##inputFormatName", reinterpret_cast<int*>(&iElement.Format), FORMAT_NAMES, ARRAYSIZE(FORMAT_NAMES));
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputInt(("##inputByteOffset" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iElement.AlignedByteOffset));
+			ImGui::InputInt("##inputByteOffset", reinterpret_cast<int*>(&iElement.AlignedByteOffset));
 		ImGui::NextColumn();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -456,8 +456,6 @@ namespace ed
 				}
 				ImGui::SameLine();
 
-				// TODO: check if it is already pinned
-
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
 				if (!pinState->Contains(el.Name)) {
 					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
@@ -504,7 +502,7 @@ namespace ed
 
 		// widgets for editing "virtual" element - an element that will be added to the list later
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, ARRAYSIZE(VARIABLE_TYPE_NAMES))) {
+		if (ImGui::Combo("##inputType", reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, ARRAYSIZE(VARIABLE_TYPE_NAMES))) {
 			if (iValueType != iVariable.GetType()) {
 				ed::ShaderVariable newVariable(iValueType);
 				memcpy(newVariable.Name, iVariable.Name, strlen(iVariable.Name));
@@ -530,7 +528,7 @@ namespace ed
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		const char* inputComboPreview = SYSTEM_VARIABLE_NAMES[(int)iVariable.System];
 		if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), inputComboPreview)) {
-			for (int n = 0; n < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
+			for (int n = 0; n < (int)SystemShaderVariable::Count; n++) {
 				bool is_selected = (n == (int)iVariable.System);
 				if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == iVariable.GetType())
 					&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
@@ -543,7 +541,7 @@ namespace ed
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		ImGui::DragInt(("##inputSlot" + std::to_string(id)).c_str(), &iVariable.Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS - 1, "b%d");
+		ImGui::DragInt("##inputSlot", &iVariable.Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS - 1, "b%d");
 		iVariable.Slot = std::min<int>(CONSTANT_BUFFER_SLOTS - 1, iVariable.Slot);
 		ImGui::NextColumn();
 
@@ -559,7 +557,7 @@ namespace ed
 			// add if it doesnt exist
 			if (!exists) {
 				itemData->Variables.Add(iVariable);
-				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Integer1, "var", ed::SystemShaderVariable::None, 0);
+				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
 				scrollToBottom = true;
 			}
 		}

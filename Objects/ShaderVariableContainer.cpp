@@ -1,4 +1,5 @@
 #include "ShaderVariableContainer.h"
+#include "FunctionVariableManager.h"
 #include "SystemVariableManager.h"
 #include <iostream>
 
@@ -14,8 +15,12 @@ namespace ed
 	}
 	ShaderVariableContainer::~ShaderVariableContainer()
 	{
-		for (int i = 0; i < m_vars.size(); i++)
+		for (int i = 0; i < m_vars.size(); i++) {
 			free(m_vars[i].Data);
+			if (m_vars[i].Arguments != nullptr)
+				free(m_vars[i].Arguments);
+			m_vars[i].Arguments = nullptr;
+		}
 		for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++)
 			m_cb[i].Release();
 		free(m_dataBlock);
@@ -72,49 +77,10 @@ namespace ed
 			for (int i = 0; i < m_vars.size(); i++) {
 				if (m_vars[i].Slot != slots[0])
 					continue;
-
-
-				if (m_vars[i].System != ed::SystemShaderVariable::None) {
-					// we are using some system value so now is the right time to update its value
-					// converting is a must when using matrices
-
-					DirectX::XMFLOAT4X4 rawMatrix;
-
-					switch (m_vars[i].System) {
-						case ed::SystemShaderVariable::View:
-							DirectX::XMStoreFloat4x4(&rawMatrix, SystemVariableManager::Instance().GetViewMatrix());
-							memcpy(m_vars[i].Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
-							break;
-						case ed::SystemShaderVariable::Projection:
-							DirectX::XMStoreFloat4x4(&rawMatrix, SystemVariableManager::Instance().GetProjectionMatrix());
-							memcpy(m_vars[i].Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
-							break;
-						case ed::SystemShaderVariable::ViewProjection:
-							DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetViewProjectionMatrix()));
-							memcpy(m_vars[i].Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
-							break;
-						case ed::SystemShaderVariable::ViewportSize:
-						{
-							DirectX::XMFLOAT2 raw = SystemVariableManager::Instance().GetViewportSize();
-							memcpy(m_vars[i].Data, &raw, sizeof(DirectX::XMFLOAT2));
-						} break;
-						case ed::SystemShaderVariable::MousePosition:
-						{
-							DirectX::XMFLOAT2 raw = SystemVariableManager::Instance().GetMousePosition();
-							memcpy(m_vars[i].Data, &raw, sizeof(DirectX::XMFLOAT2));
-						} break;
-						case ed::SystemShaderVariable::Time:
-						{
-							float raw = SystemVariableManager::Instance().GetTime();
-							memcpy(m_vars[i].Data, &raw, sizeof(float));
-						} break;
-						case ed::SystemShaderVariable::TimeDelta:
-						{
-							float raw = SystemVariableManager::Instance().GetTimeDelta();
-							memcpy(m_vars[i].Data, &raw, sizeof(float));
-						} break;
-					}
-				}
+				
+				// update the variable (only if needed)
+				SystemVariableManager::Instance().Update(m_vars[i]);
+				FunctionVariableManager::Update(m_vars[i]);
 
 				int curSize = ShaderVariable::GetSize(m_vars[i].GetType());
 				memcpy(data, m_vars[i].Data, curSize);

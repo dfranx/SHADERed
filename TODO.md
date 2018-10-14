@@ -1,4 +1,5 @@
 - [ ] shader variable values from functions
+- [ ] move FunctionVariableContainer::DrawUI to VariableValueEdit
 - [ ] project "Save" and "Open" functionalities - save to .sprj
 - [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
 - [ ] shader "..." button - open files
