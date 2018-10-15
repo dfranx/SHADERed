@@ -17,6 +17,8 @@ namespace ed
 		void Render(int width, int height);
 		void Recompile(const char* name);
 
+		void FlushCache();
+
 		inline ml::ShaderResourceView& GetTexture() { return m_rtView; }
 	
 	private:

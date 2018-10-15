@@ -221,7 +221,9 @@ namespace ed
 		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index].Name)).c_str(), ImGuiDir_Up)) {
 			if (index != 0) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
-				std::string oldPropertyItemName = props->CurrentItemName();
+				std::string oldPropertyItemName = "";
+				if (props->HasItemSelected())
+					oldPropertyItemName = props->CurrentItemName();
 
 				ed::PipelineManager::Item temp = items[index - 1];
 				items[index - 1] = items[index];
@@ -240,7 +242,9 @@ namespace ed
 		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index].Name)).c_str(), ImGuiDir_Down)) {
 			if (index != items.size() - 1) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
-				std::string oldPropertyItemName = props->CurrentItemName();
+				std::string oldPropertyItemName = "";
+				if (props->HasItemSelected())
+					oldPropertyItemName = props->CurrentItemName();
 
 				ed::PipelineManager::Item temp = items[index + 1];
 				items[index + 1] = items[index];
@@ -459,7 +463,7 @@ namespace ed
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
 				if (!pinState->Contains(el.Name)) {
 					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
-						pinState->Add(el);
+						pinState->Add(&el);
 				} else {
 					if (ImGui::Button(("UNPIN##" + std::to_string(id)).c_str()))
 						pinState->Remove(el.Name);
@@ -468,14 +472,48 @@ namespace ed
 				ImGui::SameLine();
 			}
 			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
+				// check if any of the affected variables are pinned
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				bool containsCur = pinState->Contains(el.Name);
+				bool containsDown = pinState->Contains(els[id-1].Name);
+
+				// first unpin if it was pinned
+				if (containsCur)
+					pinState->Remove(el.Name);
+				if (containsDown)
+					pinState->Remove(els[id - 1].Name);
+
 				ed::ShaderVariable temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
+
+				// then pin again if it was previously pinned
+				if (containsCur)
+					pinState->Add(&els[id-1]);
+				if (containsDown)
+					pinState->Add(&els[id]);
 			}
 			ImGui::SameLine(); if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+				// check if any of the affected variables are pinned
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				bool containsCur = pinState->Contains(el.Name);
+				bool containsDown = pinState->Contains(els[id + 1].Name);
+
+				// first unpin if it was pinned
+				if (containsCur)
+					pinState->Remove(el.Name);
+				if (containsDown)
+					pinState->Remove(els[id + 1].Name);
+
 				ed::ShaderVariable temp = els[id + 1];
 				els[id + 1] = el;
 				els[id] = temp;
+
+				// then pin again if it was previously pinned
+				if (containsCur)
+					pinState->Add(&els[id + 1]);
+				if (containsDown)
+					pinState->Add(&els[id]);
 			}
 			ImGui::SameLine(); if (ImGui::Button(("X##" + std::to_string(id)).c_str()))
 				itemData->Variables.Remove(el.Name);
@@ -557,7 +595,8 @@ namespace ed
 			// add if it doesnt exist
 			if (!exists) {
 				itemData->Variables.Add(iVariable);
-				iVariable = ed::ShaderVariable(ed::ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
+				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
+				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;
 			}
 		}

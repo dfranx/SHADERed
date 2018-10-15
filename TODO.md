@@ -1,5 +1,6 @@
-- [ ] shader variable values from functions
-- [ ] move FunctionVariableContainer::DrawUI to VariableValueEdit
+- [x] shader variable values from functions
+- [x] move FunctionVariableContainer::DrawUI to VariableValueEdit
+- [ ] fix PinnedUI & fix "New" project
 - [ ] project "Save" and "Open" functionalities - save to .sprj
 - [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
 - [ ] shader "..." button - open files
@@ -14,3 +15,4 @@
 - [ ] shader variable pointers & copying
 - [x] pipeline -> shader -> right click -> recompile (or click on "VS", "PS", etc...)
 - [ ] help -> settings | manual | about
+- [ ] has various mem leaks in PipelineManager::Item Data objects

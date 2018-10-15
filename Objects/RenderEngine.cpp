@@ -1,4 +1,5 @@
 #include "RenderEngine.h"
+#include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/ConstantBuffer.h>
@@ -94,6 +95,16 @@ namespace ed
 			if (m_isCached(item))
 				d3dCounter++;
 		}
+	}
+	void RenderEngine::FlushCache()
+	{
+		for (int i = 0; i < m_d3dItems.size(); i++)
+			delete m_d3dItems[i];
+		for (int i = 0; i < m_cachedItems.size(); i++)
+			free(m_cachedItems[i].Data);
+		m_d3dItems.clear();
+		m_cachedItems.clear();
+		m_items.clear();
 	}
 	void RenderEngine::m_cache()
 	{

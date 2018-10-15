@@ -85,6 +85,7 @@ namespace ed
 			if (ImGui::BeginMainMenuBar()) {
 				if (ImGui::BeginMenu("File")) {
 					if (ImGui::MenuItem("New")) {
+						m_data->Renderer.FlushCache();
 						m_data->Pipeline.New();
 					}
 					ImGui::EndMenu();
