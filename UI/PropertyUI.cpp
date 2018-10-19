@@ -1,6 +1,9 @@
 #include "PropertyUI.h"
 #include "../ImGUI/imgui.h"
 
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+
 namespace ed
 {
 	void PropertyUI::OnEvent(const ml::Event & e)
@@ -60,7 +63,28 @@ namespace ed
 				ImGui::InputText("##pui_shaderpath", item->FilePath, 512);
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
-				ImGui::Button("...", ImVec2(-1, 0));
+				if (ImGui::Button("...", ImVec2(-1, 0))) {
+					OPENFILENAME dialog;
+					TCHAR filePath[MAX_PATH] = { 0 };
+
+					ZeroMemory(&dialog, sizeof(dialog));
+					dialog.lStructSize = sizeof(dialog);
+					dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
+					dialog.lpstrFile = filePath;
+					dialog.nMaxFile = sizeof(filePath);
+					dialog.lpstrFilter = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0";
+					dialog.nFilterIndex = 1;
+					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+					if (GetOpenFileName(&dialog) == TRUE) {
+						// TODO: get relative path to project file
+
+						std::wstring wfile = std::wstring(filePath);
+						std::string file(wfile.begin(), wfile.end());
+
+						strcpy(item->FilePath, file.c_str());
+					}
+				}
 				ImGui::NextColumn();
 
 				ImGui::Separator();

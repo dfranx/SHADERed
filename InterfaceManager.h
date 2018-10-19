@@ -14,6 +14,8 @@ namespace ed
 		void OnEvent(const ml::Event& e);
 		void Update(float delta);
 
+		inline ml::Window* GetOwner() { return m_wnd; }
+
 		PipelineManager Pipeline;
 		RenderEngine Renderer;
 
