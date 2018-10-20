@@ -4,33 +4,33 @@
 
 namespace ed
 {
+	size_t FunctionVariableManager::GetArgumentCount(ed::FunctionShaderVariable func)
+	{
+		switch (func) {
+			case FunctionShaderVariable::MatrixIdentity: return 0;
+			case FunctionShaderVariable::MatrixLookAtLH: return 9;
+			case FunctionShaderVariable::MatrixLookToLH: return 9;
+			case FunctionShaderVariable::MatrixOrthographicLH: return 4;
+			case FunctionShaderVariable::MatrixPerspectiveFovLH: return 4;
+			case FunctionShaderVariable::MatrixPerspectiveLH: return 4;
+			case FunctionShaderVariable::MatrixReflect: return 4;
+			case FunctionShaderVariable::MatrixRotationAxis: return 4;
+			case FunctionShaderVariable::MatrixRotationNormal: return 4;
+			case FunctionShaderVariable::MatrixRotationRollPitchYaw: return 3;
+			case FunctionShaderVariable::MatrixRotationX: return 1;
+			case FunctionShaderVariable::MatrixRotationY: return 1;
+			case FunctionShaderVariable::MatrixRotationZ: return 1;
+			case FunctionShaderVariable::MatrixScaling: return 3;
+			case FunctionShaderVariable::MatrixShadow: return 8;
+			case FunctionShaderVariable::MatrixTranslation: return 3;
+			case FunctionShaderVariable::ScalarCos: return 1;
+			case FunctionShaderVariable::ScalarSin: return 1;
+			case FunctionShaderVariable::VectorNormalize: return 4;
+		}
+	}
 	void FunctionVariableManager::AllocateArgumentSpace(ed::ShaderVariable& var, ed::FunctionShaderVariable func)
 	{
-		size_t args = 0; // argument count (floats)
-		switch (func) {
-			case FunctionShaderVariable::MatrixIdentity: args = 0; break;
-			case FunctionShaderVariable::MatrixLookAtLH: args = 9; break;
-			case FunctionShaderVariable::MatrixLookToLH: args = 9; break;
-			case FunctionShaderVariable::MatrixOrthographicLH: args = 4; break;
-			case FunctionShaderVariable::MatrixPerspectiveFovLH: args = 4; break;
-			case FunctionShaderVariable::MatrixPerspectiveLH: args = 4; break;
-			case FunctionShaderVariable::MatrixReflect: args = 4; break;
-			case FunctionShaderVariable::MatrixRotationAxis: args = 4; break;
-			case FunctionShaderVariable::MatrixRotationNormal: args = 4; break;
-			case FunctionShaderVariable::MatrixRotationRollPitchYaw: args = 3; break;
-			case FunctionShaderVariable::MatrixRotationX: args = 1; break;
-			case FunctionShaderVariable::MatrixRotationY: args = 1; break;
-			case FunctionShaderVariable::MatrixRotationZ: args = 1; break;
-			case FunctionShaderVariable::MatrixScaling: args = 3; break;
-			case FunctionShaderVariable::MatrixShadow: args = 8; break;
-			case FunctionShaderVariable::MatrixTranslation: args = 3; break;
-			case FunctionShaderVariable::ScalarCos: args = 1; break;
-			case FunctionShaderVariable::ScalarSin: args = 1; break;
-			case FunctionShaderVariable::VectorNormalize: args = 4; break;
-		}
-
-		args *= 4;
-
+		size_t args = GetArgumentCount(func) * sizeof(float);
 		var.Function = func;
 
 		if (var.Arguments != nullptr) {

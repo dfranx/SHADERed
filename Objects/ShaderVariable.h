@@ -123,10 +123,23 @@ namespace ed
 		inline int GetColumnCount()
 		{
 			switch (m_type) {
+				case ValueType::Boolean1: return 1;
+				case ValueType::Boolean2: return 2;
+				case ValueType::Boolean3: return 3;
+				case ValueType::Boolean4: return 4;
+				case ValueType::Integer1: return 1;
+				case ValueType::Integer2: return 2;
+				case ValueType::Integer3: return 3;
+				case ValueType::Integer4: return 4;
+				case ValueType::Float1: return 1;
+				case ValueType::Float2: return 2;
+				case ValueType::Float3: return 3;
+				case ValueType::Float4: return 4;
 				case ValueType::Float2x2: return 2;
 				case ValueType::Float3x3: return 3;
 				case ValueType::Float4x4: return 4;
 			}
+
 			return 0;
 		}
 

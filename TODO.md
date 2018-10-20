@@ -1,7 +1,7 @@
 - [x] shader variable values from functions
 - [x] move FunctionVariableContainer::DrawUI to VariableValueEdit
 - [x] fix PinnedUI & fix "New" project
-- [ ] project "Save" and "Open" functionalities - save to .sprj
+- [x] project "Save" and "Open" functionalities - save to .sprj
 - [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
 - [x] shader "..." button - open files
 - [ ] load files with path relative to project file

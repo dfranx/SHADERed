@@ -14,6 +14,8 @@ namespace ed
 		void Save();
 		void SaveAs(const std::string& file);
 
+		inline std::string GetOpenedFile() { return m_file; }
+
 	private:
 		PipelineManager* m_pipe;
 		std::string m_file;
