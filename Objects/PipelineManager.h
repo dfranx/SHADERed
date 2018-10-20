@@ -28,6 +28,8 @@ namespace ed
 
 		void New();
 
+		inline ml::Window* GetOwner() { return m_wnd; }
+
 	private:
 		ml::Window* m_wnd;
 		std::vector<Item> m_items;

@@ -2,6 +2,7 @@
 #include <MoonLight/Base/Window.h>
 #include <MoonLight/Base/Event.h>
 #include "Objects/PipelineManager.h"
+#include "Objects/ProjectParser.h"
 #include "Objects/RenderEngine.h"
 
 namespace ed
@@ -18,6 +19,7 @@ namespace ed
 
 		PipelineManager Pipeline;
 		RenderEngine Renderer;
+		ProjectParser Parser;
 
 	private:
 		ml::Window* m_wnd;

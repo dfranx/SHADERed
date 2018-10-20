@@ -88,6 +88,10 @@ namespace ed
 						m_data->Renderer.FlushCache();
 						m_data->Pipeline.New();
 					}
+					if (ImGui::MenuItem("Open")) {
+						m_data->Renderer.FlushCache();
+						m_openProject();
+					}
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Create")) {
@@ -204,4 +208,27 @@ namespace ed
 			break;
 		}
 	}
+	void GUIManager::m_openProject()
+	{
+		OPENFILENAME dialog;
+		TCHAR filePath[MAX_PATH] = { 0 };
+
+		ZeroMemory(&dialog, sizeof(dialog));
+		dialog.lStructSize = sizeof(dialog);
+		dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
+		dialog.lpstrFile = filePath;
+		dialog.nMaxFile = sizeof(filePath);
+		dialog.lpstrFilter = L"HLSLed Project\0*.sprj\0";
+		dialog.nFilterIndex = 1;
+		dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		
+		if (GetOpenFileName(&dialog) == TRUE) {
+			std::wstring wfile = std::wstring(filePath);
+			std::string file(wfile.begin(), wfile.end());
+
+			m_data->Parser.Open(file);
+		}
+	}
+	void GUIManager::m_saveAsProject()
+	{}
 }

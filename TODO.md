@@ -4,7 +4,7 @@
 - [ ] project "Save" and "Open" functionalities - save to .sprj
 - [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
 - [x] shader "..." button - open files
-- [ ] shader "..." get relative path to project file
+- [ ] load files with path relative to project file
 - [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)
 - [ ] code editor
 - [ ] code stats

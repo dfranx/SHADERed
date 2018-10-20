@@ -1,8 +1,6 @@
 #include "PropertyUI.h"
 #include "../ImGUI/imgui.h"
-
-#include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
+#include "../Objects/Names.h"
 
 namespace ed
 {
@@ -101,17 +99,11 @@ namespace ed
 				ImGui::Separator();
 
 				/* shader type */
-				static const char* items[] =
-				{
-					"Pixel\0",
-					"Vertex\0",
-					"Geometry\0"
-				};
 				ImGui::Text("Type:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Type), items, IM_ARRAYSIZE(items));
+				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Type), SHADER_TYPE_NAMES, _ARRAYSIZE(SHADER_TYPE_NAMES));
 				ImGui::PopItemWidth();
 			}
 			else if (m_current->Type == ed::PipelineItem::Geometry) {
@@ -128,24 +120,11 @@ namespace ed
 				ImGui::Separator();
 
 				/* shader type */
-				static const char* items[] =
-				{
-					"Undefined",
-					"PointList",
-					"LineList",
-					"LineStrip",
-					"TriangleList",
-					"TriangleStrip",
-					"LineListAdjecent",
-					"LineStripAdjecent",
-					"TriangleListAdjecent",
-					"TriangleStripAdjecent"
-				};
 				ImGui::Text("Type:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Topology), items, IM_ARRAYSIZE(items));
+				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, _ARRAYSIZE(TOPOLOGY_ITEM_NAMES));
 				ImGui::PopItemWidth();
 			}
 

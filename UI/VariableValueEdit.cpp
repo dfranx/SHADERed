@@ -1,30 +1,9 @@
 #include "VariableValueEdit.h"
-#include <DirectXMath.h>
 #include "../Objects/FunctionVariableManager.h"
+#include "../Objects/Names.h"
 #include "../ImGUI/imgui.h"
 
-static const char* FUNCTION_NAMES[] = {
-	"None",
-	"MatrixIdentity",
-	"MatrixLookAtLH",
-	"MatrixLookToLH",
-	"MatrixOrthographicLH",
-	"MatrixPerspectiveFovLH",
-	"MatrixPerspectiveLH",
-	"MatrixReflect",
-	"MatrixRotationAxis",
-	"MatrixRotationNormal",
-	"MatrixRotationRollPitchYaw",
-	"MatrixRotationX",
-	"MatrixRotationY",
-	"MatrixRotationZ",
-	"MatrixScaling",
-	"MatrixShadow",
-	"MatrixTranslation",
-	"ScalarCos",
-	"ScalarSin",
-	"VectorNormalize"
-};
+#include <DirectXMath.h>
 
 namespace ed
 {

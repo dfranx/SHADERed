@@ -4,7 +4,8 @@ namespace ed
 {
 	InterfaceManager::InterfaceManager(ml::Window* wnd) :
 		Renderer(wnd, &Pipeline),
-		Pipeline(wnd)
+		Pipeline(wnd),
+		Parser(&Pipeline)
 	{
 		m_wnd = wnd;
 		Pipeline.New();

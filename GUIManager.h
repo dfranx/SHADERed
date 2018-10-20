@@ -29,5 +29,8 @@ namespace ed
 
 		ml::Window* m_wnd;
 		InterfaceManager* m_data;
+
+		void m_openProject();
+		void m_saveAsProject();
 	};
 }
