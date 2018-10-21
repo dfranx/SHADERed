@@ -26,7 +26,6 @@ namespace ed
 			char name[PIPELINE_ITEM_NAME_LENGTH];
 			ed::PipelineItem type = ed::PipelineItem::ShaderFile;
 			void* data = nullptr;
-			std::string geoType = "cube";
 
 			// parse type
 			if (!pipeItem.attribute("type").empty()) {
@@ -149,24 +148,45 @@ namespace ed
 					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(data);
 
 					if (strcmp(attrItem.name(), "width") == 0)
-						tData->Scale.x = attrItem.text().as_float();
+						tData->Size.x = attrItem.text().as_float();
 					else if (strcmp(attrItem.name(), "height") == 0)
-						tData->Scale.y = attrItem.text().as_float();
+						tData->Size.y = attrItem.text().as_float();
 					else if (strcmp(attrItem.name(), "depth") == 0)
+						tData->Size.z = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "scaleX") == 0)
+						tData->Scale.x = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "scaleY") == 0)
+						tData->Scale.y = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "scaleZ") == 0)
 						tData->Scale.z = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "roll") == 0)
+						tData->Rotation.z = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "yaw") == 0)
+						tData->Rotation.y = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "pitch") == 0)
+						tData->Rotation.x = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "x") == 0)
+						tData->Position.x = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "y") == 0)
+						tData->Position.y = attrItem.text().as_float();
+					else if (strcmp(attrItem.name(), "z") == 0)
+						tData->Position.z = attrItem.text().as_float();
 					else if (strcmp(attrItem.name(), "topology") == 0) {
 						for (int k = 0; k < _ARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 							if (strcmp(attrItem.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
 								tData->Topology = (ml::Topology::Type)k;
-					} else if (strcmp(attrItem.name(), "type") == 0)
-						geoType = attrItem.text().as_string();
+					} else if (strcmp(attrItem.name(), "type") == 0) {
+						for (int k = 0; k < _ARRAYSIZE(GEOMETRY_NAMES); k++)
+							if (strcmp(attrItem.text().as_string(), GEOMETRY_NAMES[k]) == 0)
+								tData->Type = (pipe::GeometryItem::GeometryType)k;
+					}
 				}
 			}
 
 			if (type == ed::PipelineItem::Geometry) {
 				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(data);
-				if (geoType == "cube")
-					tData->Geometry = ml::GeometryFactory::CreateCube(tData->Scale.x, tData->Scale.y, tData->Scale.z, *m_pipe->GetOwner());
+				if (tData->Type == pipe::GeometryItem::Cube)
+					tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
 			}
 		}
 	}
@@ -262,12 +282,20 @@ namespace ed
 
 				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item.Data);
 
-				itemNode.append_child("width").text().set(tData->Scale.x);
-				itemNode.append_child("height").text().set(tData->Scale.y);
-				itemNode.append_child("depth").text().set(tData->Scale.z);
+				itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
+				itemNode.append_child("width").text().set(tData->Size.x);
+				itemNode.append_child("height").text().set(tData->Size.y);
+				itemNode.append_child("depth").text().set(tData->Size.z);
+				if (tData->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(tData->Scale.x);
+				if (tData->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(tData->Scale.y);
+				if (tData->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(tData->Scale.z);
+				if (tData->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(tData->Rotation.z);
+				if (tData->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(tData->Rotation.x);
+				if (tData->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(tData->Rotation.y);
+				if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.z);
+				if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.x);
+				if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
 				itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
-
-				// TODO: export type!
 			}
 		}
 

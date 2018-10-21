@@ -73,5 +73,7 @@ namespace ed
 		boxGeometry->Position = DirectX::XMFLOAT3(0, 0, 0);
 		boxGeometry->Rotation = DirectX::XMFLOAT3(0, 0, 0);
 		boxGeometry->Scale = DirectX::XMFLOAT3(1, 1, 1);
+		boxGeometry->Type = pipe::GeometryItem::Cube;
+		boxGeometry->Size = DirectX::XMFLOAT3(1, 1, 1);
 	}
 }

@@ -1,20 +1,16 @@
-- [x] shader variable values from functions
-- [x] move FunctionVariableContainer::DrawUI to VariableValueEdit
-- [x] fix PinnedUI & fix "New" project
-- [x] project "Save" and "Open" functionalities - save to .sprj
-- [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
-- [x] shader "..." button - open files
-- [ ] load files with path relative to project file
-- [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)
+- [x] add GeometryType, add Scale, Position and Rotation to ProjectParser
+- [ ] add Scale, Position and Rotation to PropertyUI and add SystemVariable GeometryTransform
 - [ ] code editor
 - [ ] code stats
+- [ ] load files with path relative to project file
+- [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)
+- [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
 - [ ] creating pipeline items
 - [ ] movable geometry (left click)
 - [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc... **OR** add Passes aka groups - merge shaders and all states into the Pass
 - [ ] keyboard shortcuts
 - [ ] textures
 - [ ] shader variable pointers & copying
-- [x] pipeline -> shader -> right click -> recompile (or click on "VS", "PS", etc...)
 - [ ] help -> settings | manual | about
-- [ ] has various mem leaks in PipelineManager::Item Data objects
+- [ ] fix various mem leaks in PipelineManager::Item Data objects
 - [ ] do all TODOs

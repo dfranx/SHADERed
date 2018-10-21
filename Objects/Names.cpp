@@ -191,3 +191,7 @@ const char* FUNCTION_NAMES[] = {
 	"ScalarSin",
 	"VectorNormalize"
 };
+
+const char* GEOMETRY_NAMES[1] = {
+	"Cube"
+};

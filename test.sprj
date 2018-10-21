@@ -15,7 +15,7 @@
             <value>0.75</value>
           </row>
         </variable>
-        <variable type="float2" name="funcTest" function="Normalize" slot="0">
+        <variable type="float2" name="funcTest" function="VectorNormalize" slot="0">
           <row>
             <value>3.14</value>
             <value>1.2</value>
@@ -29,7 +29,7 @@
 			<entry>main</entry>
 		</item>
 		<item type="geometry" name="Box">
-			<type>cube</type>
+			<type>Cube</type>
       <width>1</width>
       <height>1</height>
       <depth>1</depth>

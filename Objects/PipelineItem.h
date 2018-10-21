@@ -33,9 +33,20 @@ namespace ed
 
 		struct GeometryItem
 		{
+			GeometryItem()
+			{
+				Position = DirectX::XMFLOAT3(0, 0, 0);
+				Rotation = DirectX::XMFLOAT3(0, 0, 0);
+				Scale = DirectX::XMFLOAT3(1, 1, 1);
+				Size = DirectX::XMFLOAT3(1, 1, 1);
+			}
+			enum GeometryType {
+				Cube
+			} Type;
+
 			ml::Geometry Geometry;
 			ml::Topology::Type Topology;
-			DirectX::XMFLOAT3 Position, Rotation, Scale;
+			DirectX::XMFLOAT3 Position, Rotation, Scale, Size;
 		};
 	}
 }
