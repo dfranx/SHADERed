@@ -119,12 +119,32 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::Separator();
 
-				/* shader type */
-				ImGui::Text("Type:");
+				/* scale */
+				ImGui::Text("Scale:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, _ARRAYSIZE(TOPOLOGY_ITEM_NAMES));
+				m_createInputFloat3("##pui_geoscale", item->Scale);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* scale */
+				ImGui::Text("Rotation:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				m_createInputFloat3("##pui_georota", item->Rotation);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* topology type */
+				ImGui::Text("Topology:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, _ARRAYSIZE(TOPOLOGY_ITEM_NAMES));
 				ImGui::PopItemWidth();
 			}
 
@@ -144,7 +164,7 @@ namespace ed
 	void PropertyUI::m_createInputFloat3(const char* label, DirectX::XMFLOAT3& flt)
 	{
 		float val[3] = { flt.x , flt.y, flt.z };
-		ImGui::InputFloat3(label, val, 5);
+		ImGui::DragFloat3(label, val, 0.01f);
 		flt = DirectX::XMFLOAT3(val);
 	}
 }

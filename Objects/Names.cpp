@@ -149,7 +149,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"MousePosition",
 	"View",
 	"Projection",
-	"ViewProjection"
+	"ViewProjection",
+	"GeometryTransform"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",

@@ -121,7 +121,7 @@ namespace ed
 					m_data->Renderer.Recompile(items[index].Name);
 
 				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
-					if (ImGui::Selectable("Items...")) {
+					if (ImGui::Selectable("Input Layout")) {
 						m_isLayoutOpened = true;
 						m_modalItem = &items[index];
 					}

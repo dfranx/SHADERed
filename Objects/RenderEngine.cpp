@@ -75,6 +75,9 @@ namespace ed
 			} else {
 				if (it.Type == ed::PipelineItem::Geometry) {
 					ed::pipe::GeometryItem* data = reinterpret_cast<ed::pipe::GeometryItem*>(it.Data);
+
+					SystemVariableManager::Instance().SetGeometryTransform(*data);
+
 					m_wnd->SetTopology(data->Topology);
 					data->Geometry.Draw();
 				}

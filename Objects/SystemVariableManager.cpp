@@ -11,15 +11,19 @@ namespace ed
 
 			switch (var.System) {
 				case ed::SystemShaderVariable::View:
-					DirectX::XMStoreFloat4x4(&rawMatrix, SystemVariableManager::Instance().GetViewMatrix());
+					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetViewMatrix()));
 					memcpy(var.Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
 					break;
 				case ed::SystemShaderVariable::Projection:
-					DirectX::XMStoreFloat4x4(&rawMatrix, SystemVariableManager::Instance().GetProjectionMatrix());
+					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetProjectionMatrix()));
 					memcpy(var.Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
 					break;
 				case ed::SystemShaderVariable::ViewProjection:
 					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetViewProjectionMatrix()));
+					memcpy(var.Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
+					break;
+				case ed::SystemShaderVariable::GeometryTransform:
+					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetGeometryTransform()));
 					memcpy(var.Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
 					break;
 				case ed::SystemShaderVariable::ViewportSize:
