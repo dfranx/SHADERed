@@ -4,3 +4,5 @@
 #define SEMANTIC_LENGTH 16
 #define VARIABLE_NAME_LENGTH 32
 #define CONSTANT_BUFFER_SLOTS 8
+
+#define IMGUI_INI_FILE "workspace.dat"

@@ -1,6 +1,8 @@
-- [x] add GeometryType, add Scale, Position and Rotation to ProjectParser
-- [ ] add Scale, Position and Rotation to PropertyUI and add SystemVariable GeometryTransform
 - [ ] code editor
+  - [ ] open the "Code" tab on "Edit code" button
+  - [ ] allow opening one file only once
+  - [ ] redesign code file tabs
+  - [ ] allow moving file tabs
 - [ ] code stats
 - [ ] load files with path relative to project file
 - [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)

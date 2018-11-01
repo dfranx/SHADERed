@@ -1,5 +1,6 @@
 #include "PreviewUI.h"
 #include "../Objects/SystemVariableManager.h"
+#include "../ImGUI/imgui_internal.h"
 
 namespace ed
 {
@@ -11,8 +12,8 @@ namespace ed
 	void PreviewUI::Update(float delta)
 	{
 		ImVec2 padding = ImGui::GetStyle().WindowPadding;
-		ImVec2 imageSize = ImVec2(ImGui::GetWindowWidth() - padding.x, ImGui::GetWindowHeight() - 2 * padding.y);
-
+		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
+		
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
 

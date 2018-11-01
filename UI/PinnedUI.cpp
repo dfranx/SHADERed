@@ -1,5 +1,6 @@
 #include "PinnedUI.h"
 #include "../ImGUI/imgui.h"
+#include "CodeEditorUI.h"
 
 namespace ed
 {
@@ -20,6 +21,9 @@ namespace ed
 			ImGui::Separator();
 			ImGui::NewLine();
 		}
+
+		if (m_pinnedVars.size() == 0)
+			ImGui::TextWrapped("Pin variables here for easy editing");
 	}
 	void PinnedUI::Add(ed::ShaderVariable* inp)
 	{

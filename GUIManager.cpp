@@ -1,12 +1,13 @@
 #include "GUIManager.h"
 #include "ImGUI/imgui.h"
-#include "ImGUI/imgui_dock.h"
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
+#include "UI/CodeEditorUI.h"
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
 #include "UI/PinnedUI.h"
+#include "Objects/Names.h"
 
 #include <Windows.h>
 #include <fstream>
@@ -19,6 +20,7 @@ namespace ed
 		m_views.push_back(new PreviewUI(this, objects, "Preview"));
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
+		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 
 		m_applySize = false;
 
@@ -27,13 +29,18 @@ namespace ed
 
 		// Initialize imgui
 		ImGui::CreateContext();
+		
 		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange;
+		io.IniFilename = IMGUI_INI_FILE;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigDockingWithShift = false;
+
 		ImGui_ImplWin32_Init(m_wnd->GetWindowHandle());
 		ImGui_ImplDX11_Init(m_wnd->GetDevice(), m_wnd->GetDeviceContext());
+		
 		ImGui::StyleColorsDark();
-		ImGui::InitDock();
-
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.Colors[ImGuiCol_TitleBgActive].w = 0.2f;
 	}
 	GUIManager::~GUIManager()
 	{
@@ -64,74 +71,77 @@ namespace ed
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		// main window
-		const ImGuiWindowFlags flags = (ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-		
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		// window flags
+		const ImGuiWindowFlags window_flags = (ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-		if (!m_applySize) 
-			ImGui::SetNextWindowSize(ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y), ImGuiCond_Once);
-		else {
-			ImGui::SetNextWindowSize(ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y), ImGuiCond_Always);
-			m_applySize = false;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		// create window
+		ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+		ImGui::PopStyleVar(3);
+
+
+		// dockspace
+		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
+
+		// menu
+		if (ImGui::BeginMainMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
+				if (ImGui::MenuItem("New")) {
+					m_data->Renderer.FlushCache();
+					m_data->Pipeline.New();
+				}
+				if (ImGui::MenuItem("Open")) {
+					m_data->Renderer.FlushCache();
+					m_openProject();
+				}
+				if (ImGui::MenuItem("Save")) {
+					if (m_data->Parser.GetOpenedFile() == "")
+						m_saveAsProject();
+					else
+						m_data->Parser.Save();
+				}
+				if (ImGui::MenuItem("Save As"))
+					m_saveAsProject();
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Create")) {
+				ImGui::MenuItem("Shader");
+				ImGui::MenuItem("Geometry");
+				ImGui::MenuItem("Input Layout");
+				ImGui::MenuItem("Topology");
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Window")) {
+				for (auto view : m_views) {
+					if (view->Name != "Code") // dont show the "Code" UI view in this menu
+						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
 		}
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-		const bool visible = ImGui::Begin("MDWindow_Invisible", NULL, ImVec2(0, 0), 0.5f, flags);
-		ImGui::PopStyleVar();
 
-		if (visible) {
-			// menu
-			if (ImGui::BeginMainMenuBar()) {
-				if (ImGui::BeginMenu("File")) {
-					if (ImGui::MenuItem("New")) {
-						m_data->Renderer.FlushCache();
-						m_data->Pipeline.New();
-					}
-					if (ImGui::MenuItem("Open")) {
-						m_data->Renderer.FlushCache();
-						m_openProject();
-					}
-					if (ImGui::MenuItem("Save")) {
-						if (m_data->Parser.GetOpenedFile() == "")
-							m_saveAsProject();
-						else
-							m_data->Parser.Save();
-					}
-					if (ImGui::MenuItem("Save As"))
-						m_saveAsProject();
-					ImGui::EndMenu();
-				}
-				if (ImGui::BeginMenu("Create")) {
-					ImGui::MenuItem("Shader");
-					ImGui::MenuItem("Geometry");
-					ImGui::MenuItem("Input Layout");
-					ImGui::MenuItem("Topology");
-					ImGui::EndMenu();
-				}
-				if (ImGui::BeginMenu("Window")) {
-					for (auto view : m_views)
-						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
-					ImGui::EndMenu();
-				}
-				ImGui::EndMainMenuBar();
+		for (auto view : m_views)
+			if (view->Visible) {
+				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+				ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
+				if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
+				ImGui::End();
 			}
 
+		Get("Code")->Update(delta);
 
-
-			// dock space
-			ImGui::BeginDockspace();
-
-			for (auto view : m_views)
-				if (view->Visible) {
-					if (ImGui::BeginDock(view->Name.c_str())) view->Update(delta);
-					ImGui::EndDock();
-				}
-
-			ImGui::EndDockspace();
-		}
 		ImGui::End();
-		
+
 
 		// render ImGUI
 		ImGui::Render();
@@ -140,6 +150,12 @@ namespace ed
 	{
 		// actually render to back buffer
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		// Update and Render additional Platform Windows
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 	UIView * GUIManager::Get(const std::string & name)
 	{
@@ -167,6 +183,8 @@ namespace ed
 
 			data.close();
 		}
+
+		Get("Code")->Visible = false;
 	}
 	void GUIManager::m_imguiHandleEvent(const ml::Event & e)
 	{

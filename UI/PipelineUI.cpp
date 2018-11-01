@@ -1,4 +1,5 @@
 #include "PipelineUI.h"
+#include "CodeEditorUI.h"
 #include "PropertyUI.h"
 #include "PinnedUI.h"
 #include "../Options.h"
@@ -120,6 +121,9 @@ namespace ed
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index].Name);
 
+				if (ImGui::Selectable("Edit Code"))
+					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(reinterpret_cast<pipe::ShaderItem*>(items[index].Data)->FilePath);
+
 				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
 					if (ImGui::Selectable("Input Layout")) {
 						m_isLayoutOpened = true;
@@ -129,8 +133,7 @@ namespace ed
 				if (ImGui::Selectable("Variables")) {
 					m_isVarManagerOpened = true;
 					m_modalItem = &items[index];
-				}
-			}
+				}}
 
 			if (ImGui::Selectable("Properties"))
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(&items[index]);

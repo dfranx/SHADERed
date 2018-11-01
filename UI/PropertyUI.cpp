@@ -152,7 +152,7 @@ namespace ed
 			ImGui::Separator();
 			ImGui::Columns(1);
 		} else {
-			ImGui::Text("Right click on an item -> Properties");
+			ImGui::TextWrapped("Right click on an item -> Properties");
 		}
 	}
 	void PropertyUI::Open(ed::PipelineManager::Item * item)
