@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include "../ImGUI/TextEditor.h"
+#include <d3d11.h>
 #include <deque>
 
 namespace ed
@@ -21,9 +22,14 @@ namespace ed
 		class StatsPage
 		{
 		public:
-			StatsPage() : IsActive(false) {}
+			StatsPage() : IsActive(false), Info(nullptr) {}
+			~StatsPage()
+			{
+				
+			}
 			bool IsActive;
-			// all the stats
+
+			void* Info;
 		};
 
 	private:

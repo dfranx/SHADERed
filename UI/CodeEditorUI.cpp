@@ -3,6 +3,7 @@
 #include "../Objects/Names.h"
 
 #include <fstream>
+#include <d3dcompiler.h>
 
 namespace ed
 {
@@ -13,7 +14,7 @@ namespace ed
 
 		if (e.Type == ml::EventType::KeyRelease) {
 			if (e.Keyboard.VK == VK_F5) {
-				if (e.Keyboard.Alt) {
+				if (e.Keyboard.Control) {
 					// ALT+F5 -> switch between stats and code
 					if (!m_stats[m_selectedItem].IsActive)
 						m_fetchStats(m_selectedItem);
@@ -48,8 +49,8 @@ namespace ed
 						}
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", "F5")) m_compile(i);
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", "ALT+F5")) m_fetchStats(i);
-							if (m_stats[i].IsActive && ImGui::MenuItem("Code", "ALT+F5")) m_stats[i].IsActive = false;
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", "CTRL+F5")) m_fetchStats(i);
+							if (m_stats[i].IsActive && ImGui::MenuItem("Code", "CTRL+F5")) m_stats[i].IsActive = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
 							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i].CanRedo())) m_editor[i].Redo();
@@ -140,8 +141,112 @@ namespace ed
 	{
 		m_stats[id].IsActive = true;
 
-		ID3D11DeviceChild* shader;
+		pipe::ShaderItem* data = (pipe::ShaderItem*)m_items[id].Data;
+		ID3DBlob *bytecodeBlob = nullptr, *errorBlob = nullptr;
+
+		// get shader version
+		std::string type = "ps_5_0";
+		if (data->Type == pipe::ShaderItem::VertexShader)
+			type = "vs_5_0";
+
+		// generate bytecode
+		D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->Entry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+	
+		// delete the error data, we dont need it
+		if (errorBlob != nullptr) {
+			/* TODO: error stack */
+			errorBlob->Release();
+			errorBlob = nullptr;
+
+			if (bytecodeBlob != nullptr) {
+				bytecodeBlob->Release();
+				bytecodeBlob = nullptr;
+			}
+
+			m_stats[id].IsActive = false;
+			return;
+		}
+
+		// shader reflection
+		D3DReflect(bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&m_stats[id].Info);
 	}
 	void CodeEditorUI::m_renderStats(int id)
-	{}
+	{
+		ImGui::PushFont(m_consolas);
+		/* ImVec4(1.0f, 0.17f, 0.13f, 1.0f) for errors */
+
+		ID3D11ShaderReflection* shader = (ID3D11ShaderReflection*)m_stats[id].Info;
+
+		D3D11_SHADER_DESC shaderDesc;
+		shader->GetDesc(&shaderDesc);
+		
+		ImGui::TextColored(ImVec4(1.0f, 0.89f, 0.71f, 1.0f), shaderDesc.Creator);
+		ImGui::Text("Bound Resource Count: %d", shaderDesc.BoundResources);
+		ImGui::Text("Temprorary Register Count: %d", shaderDesc.TempRegisterCount);
+		ImGui::Text("Temprorary Array Count: %d", shaderDesc.TempArrayCount);
+		ImGui::Text("Number of constant defines: %d", shaderDesc.DefCount);
+		ImGui::Text("Declaration Count: %d", shaderDesc.DclCount);
+
+		ImGui::NewLine();
+		ImGui::Text("Constant Buffer Count: %d", shaderDesc.ConstantBuffers);
+		ImGui::Separator();
+		for (int i = 0; i < shaderDesc.ConstantBuffers; i++) {
+			ID3D11ShaderReflectionConstantBuffer* cb = shader->GetConstantBufferByIndex(i);
+			
+			D3D11_SHADER_BUFFER_DESC cbDesc;
+			cb->GetDesc(&cbDesc);
+
+			ImGui::Text("%s:", cbDesc.Name);
+			ImGui::SameLine();
+			ImGui::Indent(160);
+				ImGui::Text("Type: %s", (cbDesc.Type == D3D11_CT_CBUFFER) ? "scalar" : "texture");
+				ImGui::Text("Size: %dB", cbDesc.Size);
+				ImGui::Text("Variable Count: %d", cbDesc.Variables);
+				for (int j = 0; j < cbDesc.Variables; j++) {
+					ID3D11ShaderReflectionVariable* var = cb->GetVariableByIndex(j);
+
+					D3D11_SHADER_VARIABLE_DESC varDesc;
+					var->GetDesc(&varDesc);
+					
+					ImGui::Text("%s:", varDesc.Name);
+					ImGui::SameLine();
+
+					ImGui::Indent(160);
+						D3D11_SHADER_TYPE_DESC typeDesc;
+						var->GetType()->GetDesc(&typeDesc);
+						ImGui::Text("Type: %s", typeDesc.Name);
+						ImGui::Text("Size: %dB", varDesc.Size);
+						ImGui::Text("Offset: %d", varDesc.StartOffset);
+					ImGui::Unindent(160);
+				}
+			ImGui::Unindent(160);
+		}
+
+
+		ImGui::NewLine();
+		ImGui::Text("Instruction Count: %d", shaderDesc.InstructionCount);
+		ImGui::Separator();
+		ImGui::Indent(30);
+			ImGui::Text("Non-categorized texture instructions: %d", shaderDesc.TextureNormalInstructions);
+			ImGui::Text("Texture load instructions: %d", shaderDesc.TextureLoadInstructions);
+			ImGui::Text("Texture comparison instructions: %d", shaderDesc.TextureCompInstructions);
+			ImGui::Text("Texture bias instructions: %d", shaderDesc.TextureBiasInstructions);
+			ImGui::Text("Texture gradient instructions: %d", shaderDesc.TextureGradientInstructions);
+			ImGui::Text("Floating point arithmetic instructions: %d", shaderDesc.FloatInstructionCount);
+			ImGui::Text("Signed integer arithmetic instructions: %d", shaderDesc.IntInstructionCount);
+			ImGui::Text("Unsigned integer arithmetic instructions: %d", shaderDesc.UintInstructionCount);
+			ImGui::Text("Static flow control instructions: %d", shaderDesc.StaticFlowControlCount);
+			ImGui::Text("Dynamic flow control instructions: %d", shaderDesc.DynamicFlowControlCount);
+			ImGui::Text("Macro instructions: %d", shaderDesc.MacroInstructionCount);
+			ImGui::Text("Array instructions: %d", shaderDesc.ArrayInstructionCount);
+			ImGui::Text("Cut instructions: %d", shaderDesc.CutInstructionCount);
+			ImGui::Text("Emit instructions: %d", shaderDesc.EmitInstructionCount);
+			ImGui::Text("Bitwise instructions: %d", shader->GetBitwiseInstructionCount());
+			ImGui::Text("Conversion instructions: %d", shader->GetConversionInstructionCount());
+			ImGui::Text("Movc instructions: %d", shader->GetMovcInstructionCount());
+			ImGui::Text("Mov instructions: %d", shader->GetMovInstructionCount());
+		ImGui::Unindent(30);
+
+		ImGui::PopFont();
+	}
 }
