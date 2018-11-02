@@ -182,6 +182,8 @@ public:
 	int GetTotalLines() const { return (int)mLines.size(); }
 	bool IsOverwrite() const { return mOverwrite; }
 
+	bool IsFocused() const { return mFocused; }
+
 	void SetReadOnly(bool aValue);
 	bool IsReadOnly() const { return mReadOnly; }
 	bool IsTextChanged() const { return mTextChanged; }
@@ -302,6 +304,7 @@ private:
 	int mUndoIndex;
 	
 	int mTabSize;
+	bool mFocused;
 	bool mOverwrite;
 	bool mReadOnly;
 	bool mWithinRender;

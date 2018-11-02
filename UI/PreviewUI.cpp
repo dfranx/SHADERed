@@ -29,12 +29,17 @@ namespace ed
 
 			// handle right mouse dragging - camera
 			if (ImGui::IsMouseDown(1)) {
+				POINT point;
+				GetCursorPos(&point);
+				ScreenToClient(m_data->GetOwner()->GetWindowHandle(), &point);
+
+
 				// get the delta from the last position
-				int dX = ImGui::GetIO().MousePos.x - m_mouseContact.x;
-				int dY = ImGui::GetIO().MousePos.y - m_mouseContact.y;
+				int dX = point.x - m_mouseContact.x;
+				int dY = point.y - m_mouseContact.y;
 
 				// save the last position
-				m_mouseContact = ImGui::GetIO().MousePos;
+				m_mouseContact = ImVec2(point.x, point.y);
 
 				// rotate the camera according to the delta
 				SystemVariableManager::Instance().GetCamera().RotateX(dX);

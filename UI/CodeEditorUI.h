@@ -8,17 +8,39 @@ namespace ed
 	class CodeEditorUI : public UIView
 	{
 	public:
-		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_active(0) {}
+		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_selectedItem(-1) {
+			m_consolas = ImGui::GetIO().Fonts->AddFontFromFileTTF("consola.ttf", 15.0f);
+		}
 
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
-		void Open(const std::string& str);
+		void Open(PipelineManager::Item item);
 
 	private:
-		int m_active;
-		std::vector<std::string> m_files;
+		class StatsPage
+		{
+		public:
+			StatsPage() : IsActive(false) {}
+			bool IsActive;
+			// all the stats
+		};
+
+	private:
+		// font for code editor
+		ImFont *m_consolas;
+
+		// menu bar item actions
+		void m_save(int id);
+		void m_compile(int id);
+		void m_fetchStats(int id);
+		void m_renderStats(int id);
+
+		std::vector<PipelineManager::Item> m_items;
 		std::vector<TextEditor> m_editor;
+		std::vector<StatsPage> m_stats;
 		std::deque<bool> m_editorOpen;
+
+		int m_selectedItem;
 	};
 }

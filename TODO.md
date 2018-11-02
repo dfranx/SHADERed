@@ -1,17 +1,13 @@
-- [ ] code editor
-  - [ ] open the "Code" tab on "Edit code" button
-  - [ ] allow opening one file only once
-  - [ ] redesign code file tabs
-  - [ ] allow moving file tabs
 - [ ] code stats
-- [ ] load files with path relative to project file
-- [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors)
+- [ ] load files with path relative to project file (add a [static] class)
+- [ ] output window (outputs errors, warnings and other messages) + error & warning stack (check if project has any errors) -> dont render the preview if there are errors
 - [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings
+- [ ] add Passes aka groups - merge shaders and all states into the Pass
 - [ ] creating pipeline items
-- [ ] movable geometry (left click)
-- [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc... **OR** add Passes aka groups - merge shaders and all states into the Pass
-- [ ] keyboard shortcuts
+- [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
 - [ ] textures
+- [ ] movable geometry (left click)
+- [ ] keyboard shortcuts
 - [ ] shader variable pointers & copying
 - [ ] help -> settings | manual | about
 - [ ] fix various mem leaks in PipelineManager::Item Data objects

@@ -25,8 +25,6 @@ namespace ed
 
 		std::vector<UIView*> m_views;
 
-		bool m_applySize;
-
 		ml::Window* m_wnd;
 		InterfaceManager* m_data;
 

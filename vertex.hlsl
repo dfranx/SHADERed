@@ -20,7 +20,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 
 	vout.Position = mul(float4(vin.Position, 1.0f), matVP);
-	vout.Color = abs(float4(vin.Normal,1));
+	vout.Color = abs(float4(vin.Normal,1)) * 1.0f;
 
 	return vout;
 }

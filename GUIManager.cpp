@@ -16,14 +16,6 @@ namespace ed
 {
 	GUIManager::GUIManager(ed::InterfaceManager* objects, ml::Window* wnd)
 	{
-		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
-		m_views.push_back(new PreviewUI(this, objects, "Preview"));
-		m_views.push_back(new PropertyUI(this, objects, "Properties"));
-		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
-		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
-
-		m_applySize = false;
-
 		m_data = objects;
 		m_wnd = wnd;
 
@@ -31,6 +23,7 @@ namespace ed
 		ImGui::CreateContext();
 		
 		ImGuiIO& io = ImGui::GetIO();
+		io.Fonts->AddFontDefault();
 		io.IniFilename = IMGUI_INI_FILE;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigDockingWithShift = false;
@@ -40,7 +33,13 @@ namespace ed
 		
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
-		style.Colors[ImGuiCol_TitleBgActive].w = 0.2f;
+		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
+		m_views.push_back(new PreviewUI(this, objects, "Preview"));
+		m_views.push_back(new PropertyUI(this, objects, "Properties"));
+		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
+		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 	}
 	GUIManager::~GUIManager()
 	{
@@ -56,11 +55,7 @@ namespace ed
 	void GUIManager::OnEvent(const ml::Event& e)
 	{
 		m_imguiHandleEvent(e);
-
-		if (e.Type == ml::EventType::WindowResize) {
-			m_applySize = true;
-		}
-
+		
 		for (auto view : m_views)
 			view->OnEvent(e);
 	}
@@ -124,6 +119,19 @@ namespace ed
 					if (view->Name != "Code") // dont show the "Code" UI view in this menu
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Options")) { /* TODO */ }
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Help")) {
+				if (ImGui::MenuItem("Support Us")) { /* TODO */ }
+				ImGui::Separator();
+				if (ImGui::MenuItem("View Help")) { /* TODO */ }
+				if (ImGui::MenuItem("Tips")) { /* TODO */ }
+				if (ImGui::MenuItem("Send feedback")) { /* TODO */ }
+				if (ImGui::MenuItem("About HLSLed")) { /* TODO */ }
+
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();

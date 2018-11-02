@@ -29,7 +29,7 @@ namespace ed
 		void m_renderVariableManagerUI();
 
 		// adding items to pipeline UI
-		void m_addShader(const std::string& name, ed::pipe::ShaderItem* data);
+		void m_addShader(const ed::PipelineManager::Item& data);
 		void m_addItem(const std::string& name);
 	};
 }

@@ -23,7 +23,7 @@ namespace ed
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
 			if (items[i].Type == ed::PipelineItem::ShaderFile)
-				m_addShader(items[i].Name, (ed::pipe::ShaderItem*)items[i].Data);
+				m_addShader(items[i]);
 			else
 				m_addItem(items[i].Name);
 			m_renderItemContext(items, i);
@@ -122,7 +122,7 @@ namespace ed
 					m_data->Renderer.Recompile(items[index].Name);
 
 				if (ImGui::Selectable("Edit Code"))
-					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(reinterpret_cast<pipe::ShaderItem*>(items[index].Data)->FilePath);
+					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(items[index]);
 
 				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
 					if (ImGui::Selectable("Input Layout")) {
@@ -462,21 +462,24 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShader(const std::string& name, ed::pipe::ShaderItem* data)
+	void PipelineUI::m_addShader(const ed::PipelineManager::Item& item)
 	{
+		ed::pipe::ShaderItem* data = (ed::pipe::ShaderItem*)item.Data;
 		std::string type = "PS";
 		if (data->Type == ed::pipe::ShaderItem::VertexShader)
 			type = "VS";
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::SmallButton(type.c_str()))
-			m_data->Renderer.Recompile(name.c_str());
+			m_data->Renderer.Recompile(item.Name);
 		ImGui::PopStyleColor();
 
 		ImGui::SameLine();
 
 		ImGui::Indent(PIPELINE_ITEM_INDENT);
-		ImGui::Selectable(name.c_str());
+		if (ImGui::Selectable(item.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+			if (ImGui::IsMouseDoubleClicked(0))
+				(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(item);
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 	void PipelineUI::m_addItem(const std::string & name)
