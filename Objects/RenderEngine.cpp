@@ -6,8 +6,9 @@
 
 namespace ed
 {
-	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline) :
+	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline, ProjectParser* project) :
 		m_pipeline(pipeline),
+		m_project(project),
 		m_wnd(wnd),
 		m_lastSize(0, 0)
 	{}
@@ -93,7 +94,9 @@ namespace ed
 		for (auto item : m_items) {
 			if (strcmp(item.Name, name) == 0) {
 				ed::pipe::ShaderItem* shader = (ed::pipe::ShaderItem*)item.Data;
-				((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromFile(*m_wnd, shader->FilePath, shader->Entry);
+				
+				std::string content = m_project->LoadProjectFile(shader->FilePath);
+				((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), shader->Entry);
 			}
 			if (m_isCached(item))
 				d3dCounter++;
@@ -150,8 +153,9 @@ namespace ed
 							data->InputLayout.Reset();
 							reinterpret_cast<ml::VertexShader*>(shader)->InputSignature = &data->InputLayout;
 						}
-						
-						shader->LoadFromFile(*m_wnd, data->FilePath, data->Entry);
+
+						std::string content = m_project->LoadProjectFile(data->FilePath);
+						shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), data->Entry);
 
 						m_d3dItems.insert(m_d3dItems.begin() + d3dCounter, shader);
 
@@ -267,12 +271,14 @@ namespace ed
 							reinterpret_cast<ml::VertexShader*>(shader)->InputSignature = &next->InputLayout;
 						}
 
-						bool valid = shader->LoadFromFile(*m_wnd, next->FilePath, next->Entry);
+						std::string content = m_project->LoadProjectFile(next->FilePath);
+						bool valid = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), next->Entry);
 
 						if (!valid) {
 							// TODO: outputUI->Print("Failed to compile the shader! Continuing to run the old shader. Rebuilding the input layout.");
 							// rebuild the input layout
-							reinterpret_cast<ml::VertexShader*>(m_d3dItems[d3dCounter])->LoadFromFile(*m_wnd, current->FilePath, current->Entry);
+							content = m_project->LoadProjectFile(current->FilePath);
+							reinterpret_cast<ml::VertexShader*>(m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), current->Entry);
 							delete shader;
 						} else {
 							delete m_d3dItems[d3dCounter];

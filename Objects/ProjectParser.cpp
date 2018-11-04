@@ -1,21 +1,28 @@
 #include "ProjectParser.h"
+#include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
 #include "Names.h"
 #include "../pugixml/pugixml.hpp"
 
+#include <fstream>
+#include <direct.h>
+#include <Shlwapi.h>
 #include <MoonLight/Base/GeometryFactory.h>
 
 namespace ed
 {
 	ProjectParser::ProjectParser(PipelineManager* pipeline) :
 		m_pipe(pipeline), m_file("")
-	{}
+	{
+		ResetProjectDirectory();
+	}
 	ProjectParser::~ProjectParser()
 	{}
 	void ProjectParser::Open(const std::string & file)
 	{
 		m_file = file;
+		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
 		pugi::xml_document doc;
 		pugi::xml_parse_result result = doc.load_file(file.c_str());
@@ -199,6 +206,8 @@ namespace ed
 	void ProjectParser::SaveAs(const std::string & file)
 	{
 		m_file = file;
+		std::string oldProjectPath = m_projectPath;
+		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
 		pugi::xml_document doc;
 		pugi::xml_node projectNode = doc.append_child("project");
@@ -216,7 +225,9 @@ namespace ed
 
 				pipe::ShaderItem* tData = reinterpret_cast<pipe::ShaderItem*>(item.Data);
 
-				itemNode.append_child("path").text().set(tData->FilePath);
+				std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(tData->FilePath));
+				itemNode.append_child("path").text().set(relativePath.c_str());
+
 				itemNode.append_child("entry").text().set(tData->Entry);
 				itemNode.append_child("type").text().set(SHADER_TYPE_NAMES[(int)tData->Type]);
 
@@ -302,5 +313,38 @@ namespace ed
 		}
 
 		doc.save_file(file.c_str());
+	}
+	std::string ProjectParser::LoadProjectFile(const std::string & file)
+	{
+		std::ifstream in(m_projectPath + ((m_projectPath[m_projectPath.size()-1] == '\\') ? "" : "\\") + file);
+		if (in.is_open()) {
+			std::string content((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
+			in.close();
+			return content;
+		}
+		return "";
+	}
+	void ProjectParser::SaveProjectFile(const std::string & file, const std::string & data)
+	{
+		std::ofstream out(m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + file);
+		out << data;
+		out.close();
+	}
+	std::string ProjectParser::GetRelativePath(const std::string& to)
+	{
+		char relativePath[MAX_PATH] = { 0 };
+		PathRelativePathToA(relativePath,
+			m_projectPath.c_str(),
+			FILE_ATTRIBUTE_DIRECTORY,
+			to.c_str(),
+			FILE_ATTRIBUTE_NORMAL);
+		return std::string(relativePath);
+	}
+	void ProjectParser::ResetProjectDirectory()
+	{
+		m_file = "";
+		char currentPath[FILENAME_MAX] = { 0 };
+		_getcwd(currentPath, FILENAME_MAX);
+		m_projectPath = currentPath;
 	}
 }

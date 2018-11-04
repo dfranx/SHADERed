@@ -3,6 +3,7 @@
 #include <MoonLight/Base/RenderTexture.h>
 #include <MoonLight/Base/ShaderResourceView.h>
 #include <MoonLight/Base/Timer.h>
+#include "ProjectParser.h"
 
 #include <unordered_map>
 
@@ -11,7 +12,7 @@ namespace ed
 	class RenderEngine
 	{
 	public:
-		RenderEngine(ml::Window* wnd, PipelineManager* pipeline);
+		RenderEngine(ml::Window* wnd, PipelineManager* pipeline, ProjectParser* project);
 		~RenderEngine();
 
 		void Render(int width, int height);
@@ -23,6 +24,7 @@ namespace ed
 	
 	private:
 		PipelineManager* m_pipeline;
+		ProjectParser* m_project;
 		ml::Window* m_wnd;
 
 		DirectX::XMINT2 m_lastSize;

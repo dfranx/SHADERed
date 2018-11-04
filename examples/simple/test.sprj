@@ -2,7 +2,7 @@
 <project>
 	<pipeline>
 		<item name="VertexShader" type="shader">
-			<path>E:/HLSLed/examples/simple/vertex.hlsl</path>
+			<path>vertex.hlsl</path>
 			<entry>main</entry>
 			<type>Vertex</type>
 			<input>
@@ -15,7 +15,7 @@
 			</variables>
 		</item>
 		<item name="PixelShader" type="shader">
-			<path>E:/HLSLed/examples/simple/pixel.hlsl</path>
+			<path>pixel.hlsl</path>
 			<entry>main</entry>
 			<type>Pixel</type>
 		</item>

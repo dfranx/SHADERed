@@ -97,7 +97,7 @@ namespace ed
 					m_data->Renderer.FlushCache();
 					m_openProject();
 				}
-				if (ImGui::MenuItem("Save")) {
+				if (ImGui::MenuItem("Save", 0, false, m_data->Parser.GetOpenedFile() != "")) {
 					if (m_data->Parser.GetOpenedFile() == "")
 						m_saveAsProject();
 					else
@@ -249,12 +249,12 @@ namespace ed
 
 		ZeroMemory(&dialog, sizeof(dialog));
 		dialog.lStructSize = sizeof(dialog);
-		dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
+		dialog.hwndOwner = 0;
 		dialog.lpstrFile = filePath;
 		dialog.nMaxFile = sizeof(filePath);
 		dialog.lpstrFilter = L"HLSLed Project\0*.sprj\0";
 		dialog.nFilterIndex = 0;
-		dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 		
 		if (GetOpenFileName(&dialog) == TRUE) {
 			std::wstring wfile = std::wstring(filePath);
@@ -276,7 +276,7 @@ namespace ed
 		dialog.lpstrFilter = L"HLSLed Project\0*.sprj\0";
 		dialog.nFilterIndex = 1;
 		dialog.lpstrDefExt = L".sprj";
-		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT;
+		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
 
 		if (GetSaveFileName(&dialog) == TRUE) {
 			std::wstring wfile = std::wstring(filePath);

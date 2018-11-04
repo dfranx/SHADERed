@@ -116,21 +116,13 @@ namespace ed
 		editor->SetPalette(pallete);
 		editor->SetLanguageDefinition(lang);
 
-		std::ifstream file(shader->FilePath);
-		if (file.is_open()) {
-			std::string str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-			editor->SetText(str);
-			file.close();
-		}
+		std::string shaderContent = m_data->Parser.LoadProjectFile(shader->FilePath);
+		editor->SetText(shaderContent);
 	}
 	void CodeEditorUI::m_save(int id)
 	{
 		ed::pipe::ShaderItem* shader = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[id].Data);
-		std::ofstream file(shader->FilePath);
-		if (file.is_open()) {
-			file << m_editor[id].GetText();
-			file.close();
-		}
+		m_data->Parser.SaveProjectFile(shader->FilePath, m_editor[id].GetText());
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
@@ -216,7 +208,7 @@ namespace ed
 						var->GetType()->GetDesc(&typeDesc);
 						ImGui::Text("Type: %s", typeDesc.Name);
 						ImGui::Text("Size: %dB", varDesc.Size);
-						ImGui::Text("Offset: %d", varDesc.StartOffset);
+						ImGui::Text("Offset: %dB", varDesc.StartOffset);
 					ImGui::Unindent(160);
 				}
 			ImGui::Unindent(160);

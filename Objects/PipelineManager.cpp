@@ -1,13 +1,15 @@
 #include "PipelineManager.h"
+#include "ProjectParser.h"
 #include "../Options.h"
 #include <MoonLight/Base/Topology.h>
 #include <MoonLight/Base/GeometryFactory.h>
 
 namespace ed
 {
-	PipelineManager::PipelineManager(ml::Window* wnd)
+	PipelineManager::PipelineManager(ml::Window* wnd, ProjectParser* project)
 	{
 		m_wnd = wnd;
+		m_project = project;
 	}
 	PipelineManager::~PipelineManager()
 	{
@@ -51,9 +53,12 @@ namespace ed
 	{
 		Clear();
 
+		m_project->ResetProjectDirectory();
+
 		Add("Vertex Shader", PipelineItem::ShaderFile, new ed::pipe::ShaderItem());
 		ed::pipe::ShaderItem* vertexShader = reinterpret_cast<ed::pipe::ShaderItem*>(Get("Vertex Shader").Data);
 		vertexShader->Variables.Add("matVP", ed::ShaderVariable::ValueType::Float4x4, ed::SystemShaderVariable::ViewProjection, 0);
+		vertexShader->Variables.Add("matGeo", ed::ShaderVariable::ValueType::Float4x4, ed::SystemShaderVariable::GeometryTransform, 0);
 		vertexShader->InputLayout.Add(std::string("POSITION", SEMANTIC_LENGTH), 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
 		vertexShader->InputLayout.Add(std::string("NORMAL", SEMANTIC_LENGTH), 0, DXGI_FORMAT_R32G32B32_FLOAT, 16);
 		vertexShader->Type = ed::pipe::ShaderItem::VertexShader;

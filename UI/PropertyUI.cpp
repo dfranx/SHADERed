@@ -2,6 +2,8 @@
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
 
+#include <Shlwapi.h>
+
 namespace ed
 {
 	void PropertyUI::OnEvent(const ml::Event & e)
@@ -72,13 +74,15 @@ namespace ed
 					dialog.nMaxFile = sizeof(filePath);
 					dialog.lpstrFilter = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0";
 					dialog.nFilterIndex = 1;
-					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 					if (GetOpenFileName(&dialog) == TRUE) {
 						// TODO: get relative path to project file
 
 						std::wstring wfile = std::wstring(filePath);
 						std::string file(wfile.begin(), wfile.end());
+
+						file = m_data->Parser.GetRelativePath(file);
 
 						strcpy(item->FilePath, file.c_str());
 					}
