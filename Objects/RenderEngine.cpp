@@ -246,10 +246,10 @@ namespace ed
 		d3dCounter = 0;
 
 		// check if any of the cached items has changed some property
-		for (int i = 0; i < m_cachedItems.size(); i++) {
-			if (m_isCached(m_cachedItems[i])) {
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_isCached(m_items[i])) {
 				
-				if (m_cachedItems[i].Type == ed::PipelineItem::ShaderFile) {
+				if (m_items[i].Type == ed::PipelineItem::ShaderFile) {
 					ed::pipe::ShaderItem* current = reinterpret_cast<ed::pipe::ShaderItem*>(m_cachedItems[d3dCounter].Data);
 					ed::pipe::ShaderItem* next = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[i].Data);
 					
