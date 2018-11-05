@@ -6,9 +6,10 @@
 
 namespace ed
 {
-	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline, ProjectParser* project) :
+	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline, ProjectParser* project, MessageStack* msgs) :
 		m_pipeline(pipeline),
 		m_project(project),
+		m_msgs(msgs),
 		m_wnd(wnd),
 		m_lastSize(0, 0)
 	{}
@@ -96,7 +97,12 @@ namespace ed
 				ed::pipe::ShaderItem* shader = (ed::pipe::ShaderItem*)item.Data;
 				
 				std::string content = m_project->LoadProjectFile(shader->FilePath);
-				((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), shader->Entry);
+				bool compiled = ((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), shader->Entry);
+
+				if (!compiled)
+					m_msgs->Add(MessageStack::Type::Error, item.Name, "Failed to compile the shader");
+				else
+					m_msgs->ClearGroup(item.Name);
 			}
 			if (m_isCached(item))
 				d3dCounter++;
@@ -155,7 +161,12 @@ namespace ed
 						}
 
 						std::string content = m_project->LoadProjectFile(data->FilePath);
-						shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), data->Entry);
+						bool compiled = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), data->Entry);
+
+						if (!compiled)
+							m_msgs->Add(MessageStack::Type::Error, items[i].Name, "Failed to compile the shader");
+						else
+							m_msgs->ClearGroup(items[i].Name);
 
 						m_d3dItems.insert(m_d3dItems.begin() + d3dCounter, shader);
 
@@ -275,12 +286,15 @@ namespace ed
 						bool valid = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), next->Entry);
 
 						if (!valid) {
+							m_msgs->Add(MessageStack::Type::Error, m_items[i].Name, "Failed to compile the shader.");
 							// TODO: outputUI->Print("Failed to compile the shader! Continuing to run the old shader. Rebuilding the input layout.");
 							// rebuild the input layout
 							content = m_project->LoadProjectFile(current->FilePath);
 							reinterpret_cast<ml::VertexShader*>(m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), current->Entry);
 							delete shader;
 						} else {
+							m_msgs->ClearGroup(m_items[i].Name);
+
 							delete m_d3dItems[d3dCounter];
 							m_d3dItems[d3dCounter] = shader;
 						}

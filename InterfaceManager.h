@@ -4,6 +4,7 @@
 #include "Objects/PipelineManager.h"
 #include "Objects/ProjectParser.h"
 #include "Objects/RenderEngine.h"
+#include "Objects/MessageStack.h"
 
 namespace ed
 {
@@ -20,6 +21,7 @@ namespace ed
 		PipelineManager Pipeline;
 		RenderEngine Renderer;
 		ProjectParser Parser;
+		MessageStack Messages;
 
 	private:
 		ml::Window* m_wnd;

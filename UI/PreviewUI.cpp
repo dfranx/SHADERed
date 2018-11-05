@@ -11,6 +11,11 @@ namespace ed
 	}
 	void PreviewUI::Update(float delta)
 	{
+		if (!m_data->Messages.CanRenderPreview()) {
+			ImGui::TextColored(IMGUI_ERROR_COLOR, "Can not display preview - there are some errors you should fix.");
+			return;
+		}
+
 		ImVec2 padding = ImGui::GetStyle().WindowPadding;
 		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		

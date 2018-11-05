@@ -167,6 +167,7 @@
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="Objects\Camera.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
+    <ClCompile Include="Objects\MessageStack.cpp" />
     <ClCompile Include="Objects\Names.cpp" />
     <ClCompile Include="Objects\PipelineManager.cpp" />
     <ClCompile Include="Objects\ProjectParser.cpp" />
@@ -176,6 +177,7 @@
     <ClCompile Include="pugixml\pugixml.cpp" />
     <ClCompile Include="UI\CodeEditorUI.cpp" />
     <ClCompile Include="UI\CreateItem.cpp" />
+    <ClCompile Include="UI\ErrorListUI.cpp" />
     <ClCompile Include="UI\PinnedUI.cpp" />
     <ClCompile Include="UI\PipelineUI.cpp" />
     <ClCompile Include="UI\PreviewUI.cpp" />
@@ -200,6 +202,7 @@
     <ClInclude Include="InterfaceManager.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\FunctionVariableManager.h" />
+    <ClInclude Include="Objects\MessageStack.h" />
     <ClInclude Include="Objects\Names.h" />
     <ClInclude Include="Objects\PipelineItem.h" />
     <ClInclude Include="Objects\PipelineManager.h" />
@@ -212,6 +215,7 @@
     <ClInclude Include="pugixml\pugixml.hpp" />
     <ClInclude Include="UI\CodeEditorUI.h" />
     <ClInclude Include="UI\CreateItem.h" />
+    <ClInclude Include="UI\ErrorListUI.h" />
     <ClInclude Include="UI\PinnedUI.h" />
     <ClInclude Include="UI\PropertyUI.h" />
     <ClInclude Include="Objects\RenderEngine.h" />

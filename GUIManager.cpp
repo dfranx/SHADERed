@@ -3,6 +3,7 @@
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "UI/CodeEditorUI.h"
+#include "UI/ErrorListUI.h"
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
@@ -40,6 +41,7 @@ namespace ed
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
+		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
 	}
 	GUIManager::~GUIManager()
 	{

@@ -3,7 +3,7 @@
 namespace ed
 {
 	InterfaceManager::InterfaceManager(ml::Window* wnd) :
-		Renderer(wnd, &Pipeline, &Parser),
+		Renderer(wnd, &Pipeline, &Parser, &Messages),
 		Pipeline(wnd, &Parser),
 		Parser(&Pipeline)
 	{

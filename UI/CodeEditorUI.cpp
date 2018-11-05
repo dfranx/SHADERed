@@ -165,7 +165,6 @@ namespace ed
 	void CodeEditorUI::m_renderStats(int id)
 	{
 		ImGui::PushFont(m_consolas);
-		/* ImVec4(1.0f, 0.17f, 0.13f, 1.0f) for errors */
 
 		ID3D11ShaderReflection* shader = (ID3D11ShaderReflection*)m_stats[id].Info;
 
