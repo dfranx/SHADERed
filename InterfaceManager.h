@@ -8,10 +8,12 @@
 
 namespace ed
 {
+	class GUIManager;
+
 	class InterfaceManager
 	{
 	public:
-		InterfaceManager(ml::Window* wnd);
+		InterfaceManager(GUIManager* gui, ml::Window* wnd);
 
 		void OnEvent(const ml::Event& e);
 		void Update(float delta);
@@ -24,6 +26,7 @@ namespace ed
 		MessageStack Messages;
 
 	private:
+		GUIManager* m_ui;
 		ml::Window* m_wnd;
 	};
 }

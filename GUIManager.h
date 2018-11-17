@@ -1,8 +1,9 @@
 #pragma once
-#include "InterfaceManager.h"
+#include <MoonLight/Base/Window.h>
 
 namespace ed
 {
+	class InterfaceManager;
 	class UIView;
 
 	class GUIManager

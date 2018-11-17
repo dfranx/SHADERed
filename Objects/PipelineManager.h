@@ -26,6 +26,7 @@ namespace ed
 		void Remove(const char* name);
 		bool Has(const char* name);
 		Item& Get(const char* name);
+		Item* GetPtr(const char* name);
 		inline std::vector<Item>& GetList() { return m_items; }
 
 		void New();

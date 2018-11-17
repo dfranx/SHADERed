@@ -19,3 +19,5 @@ QoL:
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] fix various mem leaks in PipelineManager::Item Data objects
 - [ ] do all TODOs
+- [ ] replace string names with enums
+- [ ] make PipelineManager::New() just load "template.sprj" file - no hardcoding

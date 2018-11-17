@@ -27,4 +27,9 @@
 			<topology>TriangleList</topology>
 		</item>
 	</pipeline>
+  <settings>
+    <entry type="property" name="Box"/>
+    <entry type="file" name="VertexShader"/>
+    <entry type="file" name="PixelShader"/>
+  </settings>
 </project>

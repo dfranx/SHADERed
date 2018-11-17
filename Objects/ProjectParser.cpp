@@ -5,6 +5,9 @@
 #include "Names.h"
 #include "../pugixml/pugixml.hpp"
 
+#include "../UI/PropertyUI.h"
+#include "../UI/CodeEditorUI.h"
+
 #include <fstream>
 #include <direct.h>
 #include <Shlwapi.h>
@@ -12,10 +15,11 @@
 
 namespace ed
 {
-	ProjectParser::ProjectParser(PipelineManager* pipeline) :
+	ProjectParser::ProjectParser(PipelineManager* pipeline, GUIManager* gui) :
 		m_pipe(pipeline), m_file("")
 	{
 		ResetProjectDirectory();
+		m_ui = gui;
 	}
 	ProjectParser::~ProjectParser()
 	{}
@@ -196,6 +200,25 @@ namespace ed
 				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(data);
 				if (tData->Type == pipe::GeometryItem::Cube)
 					tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
+			}
+		}
+
+		for (pugi::xml_node settingItem : doc.child("project").child("settings").children("entry")) {
+			if (!settingItem.attribute("type").empty()) {
+				std::string type = settingItem.attribute("type").as_string();
+				if (type == "property") {
+					PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
+					if (!settingItem.attribute("name").empty()) {
+						auto item = m_pipe->GetPtr(settingItem.attribute("name").as_string());
+						props->Open(item);
+					}
+				} else if (type == "file") {
+					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
+					if (!settingItem.attribute("name").empty()) {
+						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
+						editor->Open(item);
+					}
+				}
 			}
 		}
 	}

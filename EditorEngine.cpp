@@ -5,7 +5,7 @@ namespace ed
 {
 	EditorEngine::EditorEngine(ml::Window* wnd) :
 		m_ui(&m_interface, wnd),
-		m_interface(wnd)
+		m_interface(&m_ui, wnd)
 	{
 	}
 	void EditorEngine::Create()

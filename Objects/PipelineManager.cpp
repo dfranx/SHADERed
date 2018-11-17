@@ -49,6 +49,13 @@ namespace ed
 			if (strcmp(m_items[i].Name, name) == 0)
 				return m_items[i];
 	}
+	PipelineManager::Item* PipelineManager::GetPtr(const char * name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (strcmp(m_items[i].Name, name) == 0)
+				return &m_items[i];
+		return nullptr;
+	}
 	void PipelineManager::New()
 	{
 		Clear();

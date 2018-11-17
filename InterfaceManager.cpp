@@ -1,12 +1,14 @@
 #include "InterfaceManager.h"
+#include "GUIManager.h"
 
 namespace ed
 {
-	InterfaceManager::InterfaceManager(ml::Window* wnd) :
+	InterfaceManager::InterfaceManager(GUIManager* gui, ml::Window* wnd) :
 		Renderer(wnd, &Pipeline, &Parser, &Messages),
 		Pipeline(wnd, &Parser),
-		Parser(&Pipeline)
+		Parser(&Pipeline, gui)
 	{
+		m_ui = gui;
 		m_wnd = wnd;
 		Pipeline.New();
 	}

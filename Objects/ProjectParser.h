@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "../GUIManager.h"
 
 namespace ed
 {
@@ -8,7 +9,7 @@ namespace ed
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline);
+		ProjectParser(PipelineManager* pipeline, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -28,6 +29,7 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 
 	private:
+		GUIManager* m_ui;
 		PipelineManager* m_pipe;
 		std::string m_file;
 		std::string m_projectPath;
