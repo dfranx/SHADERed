@@ -100,7 +100,7 @@ namespace ed
 					m_data->Renderer.FlushCache();
 					m_openProject();
 				}
-				if (ImGui::MenuItem("Save", 0, false, m_data->Parser.GetOpenedFile() != "")) {
+				if (ImGui::MenuItem("Save")) {
 					if (m_data->Parser.GetOpenedFile() == "")
 						m_saveAsProject();
 					else

@@ -13,6 +13,7 @@ namespace ed
 		~ProjectParser();
 
 		void Open(const std::string& file);
+		void OpenTemplate();
 
 		void Save();
 		void SaveAs(const std::string& file);

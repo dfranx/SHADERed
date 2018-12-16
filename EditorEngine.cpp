@@ -11,6 +11,9 @@ namespace ed
 	void EditorEngine::Create()
 	{
 		m_ui.LoadSettings();
+
+		// load template
+		m_interface.Pipeline.New();
 	}
 	void EditorEngine::OnEvent(const ml::Event & e)
 	{

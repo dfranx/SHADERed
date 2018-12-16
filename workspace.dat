@@ -50,19 +50,19 @@ Collapsed=0
 DockId=0x00000002,1
 
 [Window][Vertex Shader##code_view]
-Pos=244,19
-Size=722,498
+Pos=17,19
+Size=32,32
 Collapsed=0
 DockId=0x00000007,0
 
 [Window][Pixel Shader##code_view]
-Pos=244,519
-Size=722,360
+Pos=17,25
+Size=32,32
 Collapsed=0
 DockId=0x00000008,0
 
 [Window][Error List]
-Pos=17,31
+Pos=17,30
 Size=50,50
 Collapsed=0
 DockId=0x0000000C,0
@@ -75,7 +75,7 @@ DockId=0x0000000F,0
 
 [Window][PixelShader##code_view]
 Pos=17,25
-Size=7,4
+Size=7,3
 Collapsed=0
 DockId=0x00000010,0
 
@@ -86,15 +86,15 @@ DockSpace             ID=0xFA06BC56 Pos=0,19 Size=32,13 Split=X
     DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=170,398 SelectedTab=0xC89E3217
   DockNode            ID=0x00000002 Parent=0xFA06BC56 SizeRef=1673,581 Split=Y SelectedTab=0x763816AC
     DockNode          ID=0x00000005 Parent=0x00000002 SizeRef=868,334 Split=Y SelectedTab=0x763816AC
-      DockNode        ID=0x0000000B Parent=0x00000005 SizeRef=1673,860 Split=X SelectedTab=0x763816AC
+      DockNode        ID=0x0000000B Parent=0x00000005 SizeRef=1673,843 Split=X SelectedTab=0x763816AC
         DockNode      ID=0x00000009 Parent=0x0000000B SizeRef=722,790 Split=Y SelectedTab=0x7263F213
-          DockNode    ID=0x00000007 Parent=0x00000009 SizeRef=725,498 SelectedTab=0x7263F213
-          DockNode    ID=0x00000008 Parent=0x00000009 SizeRef=725,360 SelectedTab=0x36DDF018
+          DockNode    ID=0x00000007 Parent=0x00000009 SizeRef=725,490 SelectedTab=0x7263F213
+          DockNode    ID=0x00000008 Parent=0x00000009 SizeRef=725,351 SelectedTab=0x36DDF018
         DockNode      ID=0x0000000A Parent=0x0000000B SizeRef=949,790 Split=X SelectedTab=0x763816AC
           DockNode    ID=0x0000000D Parent=0x0000000A SizeRef=707,860 Split=Y SelectedTab=0x275EB0A3
-            DockNode  ID=0x0000000F Parent=0x0000000D SizeRef=622,481 SelectedTab=0x275EB0A3
-            DockNode  ID=0x00000010 Parent=0x0000000D SizeRef=622,377 SelectedTab=0x9D71C8CF
+            DockNode  ID=0x0000000F Parent=0x0000000D SizeRef=707,471 SelectedTab=0x275EB0A3
+            DockNode  ID=0x00000010 Parent=0x0000000D SizeRef=707,370 SelectedTab=0x9D71C8CF
           DockNode    ID=0x0000000E Parent=0x0000000A SizeRef=964,860 CentralNode=1 SelectedTab=0x763816AC
-      DockNode        ID=0x0000000C Parent=0x00000005 SizeRef=1673,127 SelectedTab=0x9452EED4
+      DockNode        ID=0x0000000C Parent=0x00000005 SizeRef=1673,144 SelectedTab=0x9452EED4
     DockNode          ID=0x00000006 Parent=0x00000002 SizeRef=868,398 SelectedTab=0x03D60534
 

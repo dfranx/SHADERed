@@ -222,6 +222,11 @@ namespace ed
 			}
 		}
 	}
+	void ProjectParser::OpenTemplate()
+	{
+		Open("template/template.sprj");
+		m_file = ""; // disallow overwriting template.sprj project file
+	}
 	void ProjectParser::Save()
 	{
 		SaveAs(m_file);

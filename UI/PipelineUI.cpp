@@ -120,7 +120,7 @@ namespace ed
 			if (items[index].Type == ed::PipelineItem::ShaderFile) {
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index].Name);
-
+			
 				if (ImGui::Selectable("Edit Code"))
 					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(items[index]);
 

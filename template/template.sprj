@@ -2,7 +2,7 @@
 <project>
 	<pipeline>
 		<item name="VertexShader" type="shader">
-			<path></path>
+			<path>.\vertex.hlsl</path>
 			<entry>main</entry>
 			<type>Vertex</type>
 			<input>
@@ -15,7 +15,7 @@
 			</variables>
 		</item>
 		<item name="PixelShader" type="shader">
-			<path></path>
+			<path>.\pixel.hlsl</path>
 			<entry>main</entry>
 			<type>Pixel</type>
 		</item>
@@ -27,4 +27,9 @@
 			<topology>TriangleList</topology>
 		</item>
 	</pipeline>
+	<settings>
+		<entry type="property" name="Box"/>
+		<entry type="file" name="VertexShader"/>
+		<entry type="file" name="PixelShader"/>
+	</settings>
 </project>
