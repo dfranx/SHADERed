@@ -35,6 +35,7 @@ namespace ed
 
 		void Update(ed::ShaderVariable& var);
 
+		inline Camera& GetCamera() { return m_cam; }
 		inline DirectX::XMMATRIX GetViewMatrix() { return m_cam.GetMatrix(); }
 		inline DirectX::XMMATRIX GetProjectionMatrix() { return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
 		inline DirectX::XMMATRIX GetViewProjectionMatrix() { return GetViewMatrix() * GetProjectionMatrix(); }
@@ -53,7 +54,6 @@ namespace ed
 		inline void SetViewportSize(float x, float y) { m_viewport = DirectX::XMFLOAT2(x, y); }
 		inline void SetMousePosition(float x, float y) { m_mouse = DirectX::XMFLOAT2(x, y); }
 		inline void SetTimeDelta(float x) { m_deltaTime = x; }
-		inline Camera& GetCamera() { return m_cam; }
 
 	private:
 		ml::Timer m_timer;

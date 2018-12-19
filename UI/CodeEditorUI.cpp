@@ -119,6 +119,14 @@ namespace ed
 		std::string shaderContent = m_data->Parser.LoadProjectFile(shader->FilePath);
 		editor->SetText(shaderContent);
 	}
+	std::vector<std::string> CodeEditorUI::GetOpenFiles()
+	{
+		std::vector<std::string> ret;
+		for (auto& item : m_items)
+			ret.push_back(item.Name);
+
+		return ret;
+	}
 	void CodeEditorUI::m_save(int id)
 	{
 		ed::pipe::ShaderItem* shader = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[id].Data);

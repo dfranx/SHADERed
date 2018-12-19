@@ -1,5 +1,3 @@
-- [ ] save per-window (window and widget sizes, positions, etc...) and per-project (opened files, property viewer item, etc..) settings + automatically open file
-- [ ] open pixel and vertex shader code automatically at startup
 - [ ] add Passes aka groups - merge shaders and all states into the Pass
 - [ ] creating pipeline items
 - [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
@@ -20,8 +18,7 @@ QoL:
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] fix various mem leaks in PipelineManager::Item Data objects
-- [ ] do all TODOs
-- [ ] when Save As-ing export properties + save all project files (copy them)
-- [ ] replace string names with enums
-- [ ] make PipelineManager::New() just load "template.sprj" file - no hardcoding
+- [ ] do all TODOs (comments)
+- [ ] add Save Copy (copies all the shaders to the project directory)
+- [ ] replace state string names with enums
 - [ ] save isFullscreen and isMaximized on exit/on size change

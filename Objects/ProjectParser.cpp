@@ -35,6 +35,7 @@ namespace ed
 
 		m_pipe->Clear();
 
+		// pipeline items
 		for (pugi::xml_node pipeItem : doc.child("project").child("pipeline").children("item")) {
 			char name[PIPELINE_ITEM_NAME_LENGTH];
 			ed::PipelineItem type = ed::PipelineItem::ShaderFile;
@@ -203,6 +204,7 @@ namespace ed
 			}
 		}
 
+		// settings
 		for (pugi::xml_node settingItem : doc.child("project").child("settings").children("entry")) {
 			if (!settingItem.attribute("type").empty()) {
 				std::string type = settingItem.attribute("type").as_string();
@@ -218,13 +220,24 @@ namespace ed
 						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
 						editor->Open(item);
 					}
+				} else if (type == "camera") {
+					SystemVariableManager::Instance().GetCamera().Reset();
+					SystemVariableManager::Instance().GetCamera().SetDistance(std::stof(settingItem.child("distance").text().get()));
+					SystemVariableManager::Instance().GetCamera().RotateX(std::stof(settingItem.child("rotationX").text().get()));
+					SystemVariableManager::Instance().GetCamera().RotateY(std::stof(settingItem.child("rotationY").text().get()));
+					SystemVariableManager::Instance().GetCamera().RotateZ(std::stof(settingItem.child("rotationZ").text().get()));
 				}
 			}
 		}
 	}
 	void ProjectParser::OpenTemplate()
 	{
-		Open("template/template.sprj");
+		char appPath[FILENAME_MAX];
+
+		GetCurrentDirectoryA(sizeof(appPath), appPath);
+
+
+		Open(std::string(appPath) + "\\template\\template.sprj");
 		m_file = ""; // disallow overwriting template.sprj project file
 	}
 	void ProjectParser::Save()
@@ -240,7 +253,9 @@ namespace ed
 		pugi::xml_document doc;
 		pugi::xml_node projectNode = doc.append_child("project");
 		pugi::xml_node pipelineNode = projectNode.append_child("pipeline");
+		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
+		// pipeline items
 		std::vector<PipelineManager::Item> pipelineItems = m_pipe->GetList();
 		for (PipelineManager::Item& item : pipelineItems) {
 			pugi::xml_node itemNode = pipelineNode.append_child("item");
@@ -337,6 +352,40 @@ namespace ed
 				if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.x);
 				if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
 				itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
+			}
+		}
+
+		// settings
+		{
+			PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
+			if (props->HasItemSelected()) {
+				std::string name = props->CurrentItemName();
+
+				pugi::xml_node propNode = settingsNode.append_child("entry");
+				propNode.append_attribute("type").set_value("property");
+				propNode.append_attribute("name").set_value(name.c_str());
+			}
+
+			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
+			std::vector<std::string> files = editor->GetOpenFiles();
+			for (const std::string& file : files) {
+				pugi::xml_node fileNode = settingsNode.append_child("entry");
+				fileNode.append_attribute("type").set_value("file");
+				fileNode.append_attribute("name").set_value(file.c_str());
+			}
+
+			// camera settings
+			{
+				ed::Camera cam = SystemVariableManager::Instance().GetCamera();
+				pugi::xml_node camNode = settingsNode.append_child("entry");
+				camNode.append_attribute("type").set_value("camera");
+
+				DirectX::XMFLOAT3 rota = cam.GetRotation();
+
+				camNode.append_child("distance").text().set(cam.GetDistance());
+				camNode.append_child("rotationX").text().set(rota.x);
+				camNode.append_child("rotationY").text().set(rota.y);
+				camNode.append_child("rotationZ").text().set(rota.z);
 			}
 		}
 

@@ -8,12 +8,16 @@ namespace ed
 	public:
 		Camera();
 
+		void Reset();
+
 		void SetDistance(float d);
 		void Move(float d);
 		void RotateX(float rx);
 		void RotateY(float ry);
 		void RotateZ(float rz);
-		inline float GetDistancce() { return distance; }
+
+		inline float GetDistance() { return distance; }
+		inline DirectX::XMFLOAT3 GetRotation() { return DirectX::XMFLOAT3(rotaX, rotaY, rotaZ); }
 
 		DirectX::XMVECTOR GetPosition();
 		DirectX::XMVECTOR GetUpVector();

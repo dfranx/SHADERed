@@ -12,6 +12,13 @@ namespace ed
 		rotaY = 0;
 		rotaZ = 0;
 	}
+	void Camera::Reset()
+	{
+		distance = 7;
+		rotaX = 0;
+		rotaY = 0;
+		rotaZ = 0;
+	}
 	void Camera::SetDistance(float d)
 	{
 		distance = std::max(minDistance, std::min(maxDistance, d));

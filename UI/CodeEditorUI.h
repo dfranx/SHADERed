@@ -18,6 +18,8 @@ namespace ed
 
 		void Open(PipelineManager::Item item);
 
+		std::vector<std::string> GetOpenFiles();
+
 	private:
 		class StatsPage
 		{
