@@ -11,6 +11,7 @@ namespace ed
 {
 	enum class PipelineItem
 	{
+		ShaderPass,
 		ShaderFile,
 		Geometry
 		/*	Model
@@ -19,6 +20,12 @@ namespace ed
 
 	namespace pipe
 	{
+		struct ShaderPass
+		{
+			char VSPath[512];
+			ed::ShaderVariableContainer VSVariables;
+		};
+
 		struct ShaderItem
 		{
 			char FilePath[512];

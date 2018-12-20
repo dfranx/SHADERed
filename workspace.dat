@@ -81,20 +81,20 @@ DockId=0x00000010,0
 
 [Docking][Data]
 DockSpace             ID=0xFA06BC56 Pos=0,19 Size=32,13 Split=X
-  DockNode            ID=0x00000001 Parent=0xFA06BC56 SizeRef=242,581 Split=Y SelectedTab=0x848ABB8F
+  DockNode            ID=0x00000001 Parent=0xFA06BC56 SizeRef=243,581 Split=Y SelectedTab=0x848ABB8F
     DockNode          ID=0x00000003 Parent=0x00000001 SizeRef=170,334 SelectedTab=0x848ABB8F
     DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=170,398 SelectedTab=0xC89E3217
-  DockNode            ID=0x00000002 Parent=0xFA06BC56 SizeRef=1673,581 Split=Y SelectedTab=0x763816AC
+  DockNode            ID=0x00000002 Parent=0xFA06BC56 SizeRef=1669,581 Split=Y SelectedTab=0x763816AC
     DockNode          ID=0x00000005 Parent=0x00000002 SizeRef=868,334 Split=Y SelectedTab=0x763816AC
       DockNode        ID=0x0000000B Parent=0x00000005 SizeRef=1673,843 Split=X SelectedTab=0x763816AC
         DockNode      ID=0x00000009 Parent=0x0000000B SizeRef=722,790 Split=Y SelectedTab=0x7263F213
           DockNode    ID=0x00000007 Parent=0x00000009 SizeRef=725,490 SelectedTab=0x7263F213
           DockNode    ID=0x00000008 Parent=0x00000009 SizeRef=725,351 SelectedTab=0x36DDF018
         DockNode      ID=0x0000000A Parent=0x0000000B SizeRef=949,790 Split=X SelectedTab=0x763816AC
-          DockNode    ID=0x0000000D Parent=0x0000000A SizeRef=686,860 Split=Y SelectedTab=0x275EB0A3
+          DockNode    ID=0x0000000D Parent=0x0000000A SizeRef=689,860 Split=Y SelectedTab=0x275EB0A3
             DockNode  ID=0x0000000F Parent=0x0000000D SizeRef=707,486 SelectedTab=0x275EB0A3
             DockNode  ID=0x00000010 Parent=0x0000000D SizeRef=707,355 SelectedTab=0x9D71C8CF
-          DockNode    ID=0x0000000E Parent=0x0000000A SizeRef=982,860 CentralNode=1 SelectedTab=0x763816AC
+          DockNode    ID=0x0000000E Parent=0x0000000A SizeRef=978,860 CentralNode=1 SelectedTab=0x763816AC
       DockNode        ID=0x0000000C Parent=0x00000005 SizeRef=1673,144 SelectedTab=0x9452EED4
     DockNode          ID=0x00000006 Parent=0x00000002 SizeRef=868,398 SelectedTab=0x03D60534
 

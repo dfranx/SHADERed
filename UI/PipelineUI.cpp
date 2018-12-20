@@ -18,14 +18,14 @@ namespace ed
 	{}
 	void PipelineUI::Update(float delta)
 	{
-		std::vector<ed::PipelineManager::Item>& items = m_data->Pipeline.GetList();
+		std::vector<ed::PipelineManager::Item*>& items = m_data->Pipeline.GetList();
 
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
-			if (items[i].Type == ed::PipelineItem::ShaderFile)
+			if (items[i]->Type == ed::PipelineItem::ShaderFile)
 				m_addShader(items[i]);
 			else
-				m_addItem(items[i].Name);
+				m_addItem(items[i]->Name);
 			m_renderItemContext(items, i);
 		}
 
@@ -66,47 +66,47 @@ namespace ed
 		m_modalItem = nullptr;
 	}
 	
-	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineManager::Item>& items, int index)
+	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineManager::Item*>& items, int index)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index].Name)).c_str(), ImGuiDir_Up)) {
+		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index]->Name)).c_str(), ImGuiDir_Up)) {
 			if (index != 0) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
 
-				ed::PipelineManager::Item temp = items[index - 1];
+				ed::PipelineManager::Item* temp = items[index - 1];
 				items[index - 1] = items[index];
 				items[index] = temp;
 
 				if (props->HasItemSelected()) {
-					if (oldPropertyItemName == items[index - 1].Name)
-						props->Open(&items[index - 1]);
-					if (oldPropertyItemName == items[index].Name)
-						props->Open(&items[index]);
+					if (oldPropertyItemName == items[index - 1]->Name)
+						props->Open(items[index - 1]);
+					if (oldPropertyItemName == items[index]->Name)
+						props->Open(items[index]);
 				}
 			}
 		}
 		ImGui::SameLine(0, 0);
 
-		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index].Name)).c_str(), ImGuiDir_Down)) {
+		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index]->Name)).c_str(), ImGuiDir_Down)) {
 			if (index != items.size() - 1) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
 
-				ed::PipelineManager::Item temp = items[index + 1];
+				ed::PipelineManager::Item* temp = items[index + 1];
 				items[index + 1] = items[index];
 				items[index] = temp;
 
 				if (props->HasItemSelected()) {
-					if (oldPropertyItemName == items[index + 1].Name)
-						props->Open(&items[index + 1]);
-					if (oldPropertyItemName == items[index].Name)
-						props->Open(&items[index]);
+					if (oldPropertyItemName == items[index + 1]->Name)
+						props->Open(items[index + 1]);
+					if (oldPropertyItemName == items[index]->Name)
+						props->Open(items[index]);
 				}
 			}
 		}
@@ -114,36 +114,36 @@ namespace ed
 
 		ImGui::PopStyleColor();
 	}
-	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineManager::Item>& items, int index)
+	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineManager::Item*>& items, int index)
 	{
-		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index].Name)).c_str())) {
-			if (items[index].Type == ed::PipelineItem::ShaderFile) {
+		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
+			if (items[index]->Type == ed::PipelineItem::ShaderFile) {
 				if (ImGui::Selectable("Recompile"))
-					m_data->Renderer.Recompile(items[index].Name);
+					m_data->Renderer.Recompile(items[index]->Name);
 			
 				if (ImGui::Selectable("Edit Code"))
-					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(items[index]);
+					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(*items[index]);
 
-				if (((ed::pipe::ShaderItem*)items[index].Data)->Type == ed::pipe::ShaderItem::VertexShader) {
+				if (((ed::pipe::ShaderItem*)items[index]->Data)->Type == ed::pipe::ShaderItem::VertexShader) {
 					if (ImGui::Selectable("Input Layout")) {
 						m_isLayoutOpened = true;
-						m_modalItem = &items[index];
+						m_modalItem = items[index];
 					}
 				}
 				if (ImGui::Selectable("Variables")) {
 					m_isVarManagerOpened = true;
-					m_modalItem = &items[index];
+					m_modalItem = items[index];
 				}}
 
 			if (ImGui::Selectable("Properties"))
-				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(&items[index]);
+				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(items[index]);
 
 			if (ImGui::Selectable("Delete")) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
-				if (props->HasItemSelected() && props->CurrentItemName() == items[index].Name)
+				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
 					props->Open(nullptr);
 
-				m_data->Pipeline.Remove(items[index].Name);
+				m_data->Pipeline.Remove(items[index]->Name);
 			}
 
 			ImGui::EndPopup();
@@ -462,24 +462,24 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShader(const ed::PipelineManager::Item& item)
+	void PipelineUI::m_addShader(const ed::PipelineManager::Item* item)
 	{
-		ed::pipe::ShaderItem* data = (ed::pipe::ShaderItem*)item.Data;
+		ed::pipe::ShaderItem* data = (ed::pipe::ShaderItem*)item->Data;
 		std::string type = "PS";
 		if (data->Type == ed::pipe::ShaderItem::VertexShader)
 			type = "VS";
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::SmallButton(type.c_str()))
-			m_data->Renderer.Recompile(item.Name);
+			m_data->Renderer.Recompile(item->Name);
 		ImGui::PopStyleColor();
 
 		ImGui::SameLine();
 
 		ImGui::Indent(PIPELINE_ITEM_INDENT);
-		if (ImGui::Selectable(item.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0))
-				(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(item);
+				(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(*item);
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 	void PipelineUI::m_addItem(const std::string & name)

@@ -121,7 +121,7 @@ namespace ed
 	void RenderEngine::m_cache()
 	{
 		// check for any changes
-		std::vector<ed::PipelineManager::Item>& items = m_pipeline->GetList();
+		std::vector<ed::PipelineManager::Item*>& items = m_pipeline->GetList();
 
 		// check if no major changes were made, if so dont cache for another 0.25s
 		if (m_items.size() == items.size()) {
@@ -136,18 +136,18 @@ namespace ed
 		for (int i = 0; i < items.size(); i++) {
 			bool found = false;
 			for (int j = 0; j < m_items.size(); j++)
-				if (items[i].Data == m_items[j].Data)
+				if (items[i]->Data == m_items[j].Data)
 					found = true;
 
 			if (!found) {
-				m_items.insert(m_items.begin() + i, items[i]);
+				m_items.insert(m_items.begin() + i, *items[i]);
 				
 				/*
 					ITEM CACHING
 				*/
-				if (m_isCached(items[i])) {
-					if (items[i].Type == ed::PipelineItem::ShaderFile) {
-						ed::pipe::ShaderItem* data = reinterpret_cast<ed::pipe::ShaderItem*>(items[i].Data);
+				if (m_isCached(*items[i])) {
+					if (items[i]->Type == ed::PipelineItem::ShaderFile) {
+						ed::pipe::ShaderItem* data = reinterpret_cast<ed::pipe::ShaderItem*>(items[i]->Data);
 
 						ml::Shader* shader = nullptr;
 						if (data->Type == ed::pipe::ShaderItem::PixelShader)
@@ -164,21 +164,21 @@ namespace ed
 						bool compiled = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), data->Entry);
 
 						if (!compiled)
-							m_msgs->Add(MessageStack::Type::Error, items[i].Name, "Failed to compile the shader");
+							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 						else
-							m_msgs->ClearGroup(items[i].Name);
+							m_msgs->ClearGroup(items[i]->Name);
 
 						m_d3dItems.insert(m_d3dItems.begin() + d3dCounter, shader);
 
 						// copy actual item contents
-						m_cachedItems.insert(m_cachedItems.begin() + d3dCounter, items[i]);
+						m_cachedItems.insert(m_cachedItems.begin() + d3dCounter, *items[i]);
 						m_cachedItems[d3dCounter].Data = malloc(sizeof(ed::pipe::ShaderItem));
 						memcpy(m_cachedItems[d3dCounter].Data, data, sizeof(ed::pipe::ShaderItem));
 					}
 				}
 			}
 
-			if (m_isCached(items[i]))
+			if (m_isCached(*items[i]))
 				d3dCounter++;
 		}
 
@@ -188,7 +188,7 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++) {
 			bool found = false;
 			for (int j = 0; j < items.size(); j++)
-				if (items[j].Data == m_items[i].Data)
+				if (items[j]->Data == m_items[i].Data)
 					found = true;
 
 			bool isCached = m_isCached(m_items[i]);
@@ -216,16 +216,16 @@ namespace ed
 		if (m_items.size() == items.size()) {
 			for (int i = 0; i < m_items.size(); i++) {
 				// two items at the same position dont match
-				if (items[i].Data != m_items[i].Data) {
+				if (items[i]->Data != m_items[i].Data) {
 					int tempD3DCounter = 0;
 
 					// find the real position from original list
 					for (int j = 0; j < items.size(); j++) {
 						// we found the original position so move the item
-						if (items[j].Data == m_items[i].Data) {
+						if (items[j]->Data == m_items[i].Data) {
 							int dest = j > i ? (j - 1) : j;
 							m_items.erase(m_items.begin() + i, m_items.begin() + i + 1);
-							m_items.insert(m_items.begin() + dest, items[j]);
+							m_items.insert(m_items.begin() + dest, *items[j]);
 
 							if (m_isCached(m_items[i])) {
 								int d3dDest = tempD3DCounter > d3dCounter ? (tempD3DCounter - 1) : tempD3DCounter;

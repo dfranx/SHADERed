@@ -17,21 +17,23 @@ namespace ed
 	}
 	void PipelineManager::Clear()
 	{
-		for (int i = 0; i < m_items.size(); i++)
-			delete m_items[i].Data;
+		for (int i = 0; i < m_items.size(); i++) {
+			delete m_items[i]->Data;
+			delete m_items[i];
+		}
 		m_items.clear();
 	}
 	void PipelineManager::Add(const char* name, PipelineItem type, void * data)
 	{
-		m_items.push_back({ "\0", type, data });
-		memcpy(m_items.at(m_items.size()-1).Name, name, strlen(name));
+		m_items.push_back(new Item{ "\0", type, data });
+		memcpy(m_items.at(m_items.size()-1)->Name, name, strlen(name));
 	}
 	void PipelineManager::Remove(const char* name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, name) == 0) {
-				delete m_items[i].Data;
-				m_items[i].Data = nullptr;
+			if (strcmp(m_items[i]->Name, name) == 0) {
+				delete m_items[i]->Data;
+				m_items[i]->Data = nullptr;
 				m_items.erase(m_items.begin() + i);
 				break;
 			}
@@ -39,22 +41,15 @@ namespace ed
 	bool PipelineManager::Has(const char * name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, name) == 0)
+			if (strcmp(m_items[i]->Name, name) == 0)
 				return true;
 		return false;
 	}
-	PipelineManager::Item& PipelineManager::Get(const char* name)
+	PipelineManager::Item* PipelineManager::Get(const char* name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, name) == 0)
+			if (strcmp(m_items[i]->Name, name) == 0)
 				return m_items[i];
-	}
-	PipelineManager::Item* PipelineManager::GetPtr(const char * name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, name) == 0)
-				return &m_items[i];
-		return nullptr;
 	}
 	void PipelineManager::New()
 	{

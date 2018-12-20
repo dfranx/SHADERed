@@ -111,7 +111,7 @@ namespace ed
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Create")) {
-				ImGui::MenuItem("Shader");
+				if (ImGui::MenuItem("Pass")) { }
 				ImGui::MenuItem("Geometry");
 				ImGui::MenuItem("Input Layout");
 				ImGui::MenuItem("Topology");

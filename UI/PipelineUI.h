@@ -23,13 +23,13 @@ namespace ed
 		ed::VariableValueEditUI m_valueEdit;
 
 		// various small components
-		void m_renderItemUpDown(std::vector<ed::PipelineManager::Item>& items, int index);
-		void m_renderItemContext(std::vector<ed::PipelineManager::Item>& items, int index);
+		void m_renderItemUpDown(std::vector<ed::PipelineManager::Item*>& items, int index);
+		void m_renderItemContext(std::vector<ed::PipelineManager::Item*>& items, int index);
 		void m_renderInputLayoutUI();
 		void m_renderVariableManagerUI();
 
 		// adding items to pipeline UI
-		void m_addShader(const ed::PipelineManager::Item& data);
+		void m_addShader(const ed::PipelineManager::Item* data);
 		void m_addItem(const std::string& name);
 	};
 }

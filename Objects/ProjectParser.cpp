@@ -211,14 +211,14 @@ namespace ed
 				if (type == "property") {
 					PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
 					if (!settingItem.attribute("name").empty()) {
-						auto item = m_pipe->GetPtr(settingItem.attribute("name").as_string());
+						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
 						props->Open(item);
 					}
 				} else if (type == "file") {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 					if (!settingItem.attribute("name").empty()) {
 						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
-						editor->Open(item);
+						editor->Open(*item);
 					}
 				} else if (type == "camera") {
 					SystemVariableManager::Instance().GetCamera().Reset();
@@ -256,17 +256,17 @@ namespace ed
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
 		// pipeline items
-		std::vector<PipelineManager::Item> pipelineItems = m_pipe->GetList();
-		for (PipelineManager::Item& item : pipelineItems) {
+		std::vector<PipelineManager::Item*> pipelineItems = m_pipe->GetList();
+		for (PipelineManager::Item* item : pipelineItems) {
 			pugi::xml_node itemNode = pipelineNode.append_child("item");
 
-			itemNode.append_attribute("name").set_value(item.Name);
+			itemNode.append_attribute("name").set_value(item->Name);
 			
 			pugi::xml_attribute typeAttr = itemNode.append_attribute("type");
-			if (item.Type == PipelineItem::ShaderFile) {
+			if (item->Type == PipelineItem::ShaderFile) {
 				typeAttr.set_value("shader");
 
-				pipe::ShaderItem* tData = reinterpret_cast<pipe::ShaderItem*>(item.Data);
+				pipe::ShaderItem* tData = reinterpret_cast<pipe::ShaderItem*>(item->Data);
 
 				std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(tData->FilePath));
 				itemNode.append_child("path").text().set(relativePath.c_str());
@@ -333,10 +333,10 @@ namespace ed
 					}
 				}
 			}
-			else if (item.Type == PipelineItem::Geometry) {
+			else if (item->Type == PipelineItem::Geometry) {
 				typeAttr.set_value("geometry");
 
-				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item.Data);
+				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
 
 				itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
 				itemNode.append_child("width").text().set(tData->Size.x);

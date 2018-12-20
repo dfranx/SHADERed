@@ -25,9 +25,8 @@ namespace ed
 		void Add(const char* name, PipelineItem type, void* data);
 		void Remove(const char* name);
 		bool Has(const char* name);
-		Item& Get(const char* name);
-		Item* GetPtr(const char* name);
-		inline std::vector<Item>& GetList() { return m_items; }
+		Item* Get(const char* name);
+		inline std::vector<Item*>& GetList() { return m_items; }
 
 		void New();
 
@@ -36,6 +35,6 @@ namespace ed
 	private:
 		ml::Window* m_wnd;
 		ProjectParser* m_project;
-		std::vector<Item> m_items;
+		std::vector<Item*> m_items;
 	};
 }
