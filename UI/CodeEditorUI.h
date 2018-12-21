@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include "../ImGUI/TextEditor.h"
+#include "../Objects/PipelineItem.h"
 #include <d3d11.h>
 #include <deque>
 
@@ -16,9 +17,10 @@ namespace ed
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
-		void Open(PipelineManager::Item item);
+		void OpenVS(PipelineItem item);
+		void OpenPS(PipelineItem item);
 
-		std::vector<std::string> GetOpenFiles();
+		std::vector<std::pair<std::string, bool>> GetOpenedFiles();
 
 	private:
 		class StatsPage
@@ -35,6 +37,8 @@ namespace ed
 		};
 
 	private:
+		void m_open(PipelineItem item, bool vs);
+
 		// font for code editor
 		ImFont *m_consolas;
 
@@ -44,9 +48,10 @@ namespace ed
 		void m_fetchStats(int id);
 		void m_renderStats(int id);
 
-		std::vector<PipelineManager::Item> m_items;
+		std::vector<PipelineItem> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
+		std::vector<bool> m_isVertexShader;
 		std::deque<bool> m_editorOpen;
 
 		int m_selectedItem;

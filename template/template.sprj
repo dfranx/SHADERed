@@ -1,35 +1,38 @@
 <?xml version="1.0"?>
 <project>
 	<pipeline>
-		<item name="VertexShader" type="shader">
-			<path>.\vertex.hlsl</path>
-			<entry>main</entry>
-			<type>Vertex</type>
-			<input>
-				<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
-				<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
-			</input>
-			<variables>
-				<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
-				<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
-			</variables>
-		</item>
-		<item name="PixelShader" type="shader">
-			<path>.\pixel.hlsl</path>
-			<entry>main</entry>
-			<type>Pixel</type>
-		</item>
-		<item name="Box" type="geometry">
-			<type>Cube</type>
-			<width>1</width>
-			<height>1</height>
-			<depth>1</depth>
-			<topology>TriangleList</topology>
-		</item>
+    <pass name="Light">
+      <shader type="vs">
+        <path>vertex.hlsl</path>
+        <entry>main</entry>
+        <input>
+          <element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
+          <element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+        </input>
+        <variables>
+          <variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
+          <variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+        </variables>
+      </shader>
+      <shader type="ps">
+        <path>pixel.hlsl</path>
+        <entry>main</entry>
+        <type>Pixel</type>
+      </shader>
+      <items>
+        <item name="Box" type="geometry">
+          <type>Cube</type>
+          <width>1</width>
+          <height>1</height>
+          <depth>1</depth>
+          <topology>TriangleList</topology>
+        </item>
+      </items>
+    </pass>
 	</pipeline>
 	<settings>
-		<entry type="property" name="Box"/>
-		<entry type="file" name="VertexShader"/>
-		<entry type="file" name="PixelShader"/>
+    <entry type="property" name="Light" />
+    <entry type="file" name="Light" shader="vs" />
+    <entry type="file" name="Light" shader="ps" />
 	</settings>
 </project>

@@ -3,7 +3,6 @@
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
 #include "Names.h"
-#include "../pugixml/pugixml.hpp"
 
 #include "../UI/PropertyUI.h"
 #include "../UI/CodeEditorUI.h"
@@ -35,172 +34,184 @@ namespace ed
 
 		m_pipe->Clear();
 
-		// pipeline items
-		for (pugi::xml_node pipeItem : doc.child("project").child("pipeline").children("item")) {
+		// shader passes
+		for (pugi::xml_node passNode : doc.child("project").child("pipeline").children("pass")) {
 			char name[PIPELINE_ITEM_NAME_LENGTH];
-			ed::PipelineItem type = ed::PipelineItem::ShaderFile;
-			void* data = nullptr;
+			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
+			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
 
-			// parse type
-			if (!pipeItem.attribute("type").empty()) {
-				if (strcmp(pipeItem.attribute("type").as_string(), "shader") == 0) {
-					type = ed::PipelineItem::ShaderFile;
-					data = new ed::pipe::ShaderItem();
-				} else if (strcmp(pipeItem.attribute("type").as_string(), "geometry") == 0) {
-					type = ed::PipelineItem::Geometry;
-					data = new ed::pipe::GeometryItem();
-				}
-			}
-
-			// parse name
-			if (!pipeItem.attribute("type").empty())
-				strcpy(name, pipeItem.attribute("name").as_string());
+			// get pass name
+			if (!passNode.attribute("name").empty())
+				strcpy(name, passNode.attribute("name").as_string());
 			
 			// add the item
-			m_pipe->Add(name, type, data);
+			m_pipe->AddPass(name, data);
+			
+			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY 
+			for (pugi::xml_node shaderNode : passNode.children("shader")) {
+				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps"
 
-			// check for more properties
-			for (pugi::xml_node attrItem : pipeItem.children()) {
-					// search for specific elements for each type
-				if (type == ed::PipelineItem::ShaderFile) {
-					ed::pipe::ShaderItem* tData = reinterpret_cast<ed::pipe::ShaderItem*>(data);
+				// parse path and type
+				auto shaderPath = shaderNode.child("path").text().as_string();
+				auto shaderEntry = shaderNode.child("entry").text().as_string();
+				if (shaderNodeType == "vs") {
+					strcpy(data->VSPath, shaderPath);
+					strcpy(data->VSEntry, shaderEntry);
+				}
+				else if (shaderNodeType == "ps") {
+					strcpy(data->PSPath, shaderPath);
+					strcpy(data->PSEntry, shaderEntry);
+				}
 
-					if (strcmp(attrItem.name(), "path") == 0)
-						strcpy(tData->FilePath, attrItem.text().as_string());
-					else if (strcmp(attrItem.name(), "entry") == 0)
-						strcpy(tData->Entry, attrItem.text().as_string());
-					else if (strcmp(attrItem.name(), "type") == 0) {
-						for (int k = 0; k < _ARRAYSIZE(SHADER_TYPE_NAMES); k++)
-							if (strcmp(attrItem.text().as_string(), SHADER_TYPE_NAMES[k]) == 0) {
-								tData->Type = (ed::pipe::ShaderItem::ShaderType)k;
+				// parse input layout
+				if (shaderNodeType == "vs") {
+					for (pugi::xml_node entry : shaderNode.child("input").children()) {
+						int sID = 0, offset = 0;
+						DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+
+						if (!entry.attribute("id").empty()) sID = entry.attribute("id").as_int();
+						if (!entry.attribute("offset").empty()) offset = entry.attribute("offset").as_int();
+						if (!entry.attribute("format").empty()) {
+							const char* myFormat = entry.attribute("format").as_string();
+
+							for (int i = 0; i < _ARRAYSIZE(FORMAT_NAMES); i++)
+								if (strcmp(myFormat, FORMAT_NAMES[i]) == 0) {
+									format = (DXGI_FORMAT)i;
+									break;
+								}
+						}
+
+						data->VSInputLayout.Add(entry.text().as_string(), sID, format, offset);
+					}
+				}
+
+				// parse variables
+				for (pugi::xml_node variableNode : shaderNode.child("variables").children("variable")) {
+					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
+					SystemShaderVariable system = SystemShaderVariable::None;
+					FunctionShaderVariable func = FunctionShaderVariable::None;
+					int slot = 0;
+
+					if (!variableNode.attribute("slot").empty()) slot = variableNode.attribute("slot").as_int();
+					if (!variableNode.attribute("type").empty()) {
+						const char* myType = variableNode.attribute("type").as_string();
+						for (int i = 0; i < _ARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
+								type = (ed::ShaderVariable::ValueType)i;
 								break;
 							}
 					}
-					else if (strcmp(attrItem.name(), "input") == 0) {
-						for (pugi::xml_node entry : attrItem.children()) {
-							int sID = 0, offset = 0;
-							DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
-							if (!entry.attribute("id").empty()) sID = entry.attribute("id").as_int();
-							if (!entry.attribute("offset").empty()) offset = entry.attribute("offset").as_int();
-							if (!entry.attribute("format").empty()) {
-								const char* myFormat = entry.attribute("format").as_string();
-								for (int i = 0; i < _ARRAYSIZE(FORMAT_NAMES); i++)
-									if (strcmp(myFormat, FORMAT_NAMES[i]) == 0) {
-										format = (DXGI_FORMAT)i;
-										break;
-									}
+					if (!variableNode.attribute("system").empty()) {
+						const char* mySystem = variableNode.attribute("system").as_string();
+						for (int i = 0; i < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
+								system = (ed::SystemShaderVariable)i;
+								break;
 							}
-							tData->InputLayout.Add(entry.text().as_string(), sID, format, offset);
-						}
+						if (SystemVariableManager::GetType(system) != type)
+							system = ed::SystemShaderVariable::None;
 					}
-					else if (strcmp(attrItem.name(), "variables") == 0) {
-						for (pugi::xml_node entry : attrItem.children("variable")) {
-							ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
-							SystemShaderVariable system = SystemShaderVariable::None;
-							FunctionShaderVariable func = FunctionShaderVariable::None;
-							int slot = 0;
-
-							if (!entry.attribute("slot").empty()) slot = entry.attribute("slot").as_int();
-							if (!entry.attribute("type").empty()) {
-								const char* myType = entry.attribute("type").as_string();
-								for (int i = 0; i < _ARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
-									if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
-										type = (ed::ShaderVariable::ValueType)i;
-										break;
-									}
+					if (!variableNode.attribute("function").empty()) {
+						const char* myFunc = variableNode.attribute("function").as_string();
+						for (int i = 0; i < _ARRAYSIZE(FUNCTION_NAMES); i++)
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
+								func = (FunctionShaderVariable)i;
+								break;
 							}
-							if (!entry.attribute("system").empty()) {
-								const char* mySystem = entry.attribute("system").as_string();
-								for (int i = 0; i < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
-									if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
-										system = (ed::SystemShaderVariable)i;
-										break;
-									}
-								if (SystemVariableManager::GetType(system) != type)
-									system = ed::SystemShaderVariable::None;
-							}
-							if (!entry.attribute("function").empty()) {
-								const char* myFunc = entry.attribute("function").as_string();
-								for (int i = 0; i < _ARRAYSIZE(FUNCTION_NAMES); i++)
-									if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
-										func = (FunctionShaderVariable)i;
-										break;
-									}
-								if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
-									func = FunctionShaderVariable::None;
-							}
+						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+							func = FunctionShaderVariable::None;
+					}
 
-							ShaderVariable var(type, entry.attribute("name").as_string(), system, slot);
-							FunctionVariableManager::AllocateArgumentSpace(var, func);
+					ShaderVariable var(type, variableNode.attribute("name").as_string(), system, slot);
+					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
-							// parse value
-							if (system == SystemShaderVariable::None) {
-								int rowID = 0;
-								for (pugi::xml_node row : entry.children("row")) {
-									int colID = 0;
-									for (pugi::xml_node value : row.children("value")) {
-										if (func != FunctionShaderVariable::None)
-											*FunctionVariableManager::LoadFloat(var.Arguments, colID++) = value.text().as_float();
-										else {
-											if (type >= ShaderVariable::ValueType::Boolean1 && type <= ShaderVariable::ValueType::Boolean4)
-												var.SetBooleanValue(value.text().as_bool(), colID++);
-											else if (type >= ShaderVariable::ValueType::Integer1 && type <= ShaderVariable::ValueType::Integer4)
-												var.SetIntegerValue(value.text().as_int(), colID++);
-											else
-												var.SetFloat(value.text().as_float(), colID++, rowID);
-										}
-
-									}
-									rowID++;
+					// parse value
+					if (system == SystemShaderVariable::None) {
+						int rowID = 0;
+						for (pugi::xml_node row : variableNode.children("row")) {
+							int colID = 0;
+							for (pugi::xml_node value : row.children("value")) {
+								if (func != FunctionShaderVariable::None)
+									*FunctionVariableManager::LoadFloat(var.Arguments, colID++) = value.text().as_float();
+								else {
+									if (type >= ShaderVariable::ValueType::Boolean1 && type <= ShaderVariable::ValueType::Boolean4)
+										var.SetBooleanValue(value.text().as_bool(), colID++);
+									else if (type >= ShaderVariable::ValueType::Integer1 && type <= ShaderVariable::ValueType::Integer4)
+										var.SetIntegerValue(value.text().as_int(), colID++);
+									else
+										var.SetFloat(value.text().as_float(), colID++, rowID);
 								}
-							}
 
-							tData->Variables.Add(var);
+							}
+							rowID++;
 						}
 					}
-				} else if (type == ed::PipelineItem::Geometry) {
-					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(data);
 
-					if (strcmp(attrItem.name(), "width") == 0)
-						tData->Size.x = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "height") == 0)
-						tData->Size.y = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "depth") == 0)
-						tData->Size.z = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "scaleX") == 0)
-						tData->Scale.x = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "scaleY") == 0)
-						tData->Scale.y = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "scaleZ") == 0)
-						tData->Scale.z = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "roll") == 0)
-						tData->Rotation.z = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "yaw") == 0)
-						tData->Rotation.y = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "pitch") == 0)
-						tData->Rotation.x = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "x") == 0)
-						tData->Position.x = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "y") == 0)
-						tData->Position.y = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "z") == 0)
-						tData->Position.z = attrItem.text().as_float();
-					else if (strcmp(attrItem.name(), "topology") == 0) {
-						for (int k = 0; k < _ARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
-							if (strcmp(attrItem.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
-								tData->Topology = (ml::Topology::Type)k;
-					} else if (strcmp(attrItem.name(), "type") == 0) {
-						for (int k = 0; k < _ARRAYSIZE(GEOMETRY_NAMES); k++)
-							if (strcmp(attrItem.text().as_string(), GEOMETRY_NAMES[k]) == 0)
-								tData->Type = (pipe::GeometryItem::GeometryType)k;
-					}
+					if (shaderNodeType == "vs")
+						data->VSVariables.Add(var);
+					else
+						data->PSVariables.Add(var);
 				}
 			}
 
-			if (type == ed::PipelineItem::Geometry) {
-				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(data);
-				if (tData->Type == pipe::GeometryItem::Cube)
-					tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
+
+			for (pugi::xml_node itemNode : passNode.child("items").children()) {
+				char itemName[PIPELINE_ITEM_NAME_LENGTH];
+				ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
+				void* itemData = nullptr;
+				
+				strcpy(itemName, itemNode.attribute("name").as_string());
+
+				if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
+					itemType = ed::PipelineItem::ItemType::Geometry;
+					itemData = new pipe::GeometryItem;
+					pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
+
+					for (pugi::xml_node attrNode : itemNode.children()) {
+						if (strcmp(attrNode.name(), "width") == 0)
+							tData->Size.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "height") == 0)
+							tData->Size.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "depth") == 0)
+							tData->Size.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "scaleX") == 0)
+							tData->Scale.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "scaleY") == 0)
+							tData->Scale.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "scaleZ") == 0)
+							tData->Scale.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "roll") == 0)
+							tData->Rotation.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "yaw") == 0)
+							tData->Rotation.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "pitch") == 0)
+							tData->Rotation.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "x") == 0)
+							tData->Position.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "y") == 0)
+							tData->Position.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "z") == 0)
+							tData->Position.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "topology") == 0) {
+							for (int k = 0; k < _ARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
+								if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
+									tData->Topology = (ml::Topology::Type)k;
+						}
+						else if (strcmp(attrNode.name(), "type") == 0) {
+							for (int k = 0; k < _ARRAYSIZE(GEOMETRY_NAMES); k++)
+								if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
+									tData->Type = (pipe::GeometryItem::GeometryType)k;
+						}
+					}
+				}
+
+				if (itemType == ed::PipelineItem::ItemType::Geometry) {
+					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
+					if (tData->Type == pipe::GeometryItem::Cube)
+						tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
+				}
+
+				m_pipe->AddItem(name, itemName, itemType, itemData);
 			}
 		}
 
@@ -218,7 +229,12 @@ namespace ed
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 					if (!settingItem.attribute("name").empty()) {
 						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
-						editor->Open(*item);
+						auto shaderType = settingItem.attribute("shader").as_string();
+						
+						if (strcmp(shaderType, "vs") == 0)
+							editor->OpenVS(*item);
+						else
+							editor->OpenPS(*item);
 					}
 				} else if (type == "camera") {
 					SystemVariableManager::Instance().GetCamera().Reset();
@@ -255,103 +271,72 @@ namespace ed
 		pugi::xml_node pipelineNode = projectNode.append_child("pipeline");
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
-		// pipeline items
-		std::vector<PipelineManager::Item*> pipelineItems = m_pipe->GetList();
-		for (PipelineManager::Item* item : pipelineItems) {
-			pugi::xml_node itemNode = pipelineNode.append_child("item");
+		// shader passes
+		std::vector<PipelineItem*> passItems = m_pipe->GetList();
+		for (PipelineItem* passItem : passItems) {
+			pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
 
-			itemNode.append_attribute("name").set_value(item->Name);
+			pugi::xml_node passNode = pipelineNode.append_child("pass");
+			passNode.append_attribute("name").set_value(passItem->Name);
 			
-			pugi::xml_attribute typeAttr = itemNode.append_attribute("type");
-			if (item->Type == PipelineItem::ShaderFile) {
-				typeAttr.set_value("shader");
+			// vertex shader
+			pugi::xml_node vsNode = passNode.append_child("shader");
+			std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->VSPath));
 
-				pipe::ShaderItem* tData = reinterpret_cast<pipe::ShaderItem*>(item->Data);
+			vsNode.append_attribute("type").set_value("vs");
+			vsNode.append_child("path").text().set(relativePath.c_str());
+			vsNode.append_child("entry").text().set(passData->VSEntry);
 
-				std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(tData->FilePath));
-				itemNode.append_child("path").text().set(relativePath.c_str());
+			
+			pugi::xml_node layoutNode = vsNode.append_child("input");
+			std::vector<D3D11_INPUT_ELEMENT_DESC> layoutItems = passData->VSInputLayout.GetInputElements();
+			for (D3D11_INPUT_ELEMENT_DESC layoutItem : layoutItems) { // input layout
+				pugi::xml_node layoutItemNode = layoutNode.append_child("element");
 
-				itemNode.append_child("entry").text().set(tData->Entry);
-				itemNode.append_child("type").text().set(SHADER_TYPE_NAMES[(int)tData->Type]);
-
-				// export <input> layout tag
-				if (tData->Type == pipe::ShaderItem::VertexShader) {
-					pugi::xml_node layoutNode = itemNode.append_child("input");
-
-					std::vector<D3D11_INPUT_ELEMENT_DESC> layoutItems = tData->InputLayout.GetInputElements();
-					for (D3D11_INPUT_ELEMENT_DESC layoutItem : layoutItems) {
-						pugi::xml_node layoutItemNode = layoutNode.append_child("element");
-
-						layoutItemNode.text().set(layoutItem.SemanticName);
-						layoutItemNode.append_attribute("id").set_value(layoutItem.SemanticIndex);
-						layoutItemNode.append_attribute("format").set_value(FORMAT_NAMES[(int)layoutItem.Format]);
-						layoutItemNode.append_attribute("offset").set_value(layoutItem.AlignedByteOffset);
-					}
-				}
-
-				// export variables
-				std::vector<ShaderVariable> vars = tData->Variables.GetVariables();
-				if (vars.size() > 0) {
-					pugi::xml_node varsNodes = itemNode.append_child("variables");
-					for (ShaderVariable var : vars) {
-						pugi::xml_node varNode = varsNodes.append_child("variable");
-						varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var.GetType()]);
-						varNode.append_attribute("name").set_value(var.Name);
-
-						if (var.System != SystemShaderVariable::None)
-							varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var.System]);
-						else if (var.Function != FunctionShaderVariable::None)
-							varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var.Function]);
-
-						varNode.append_attribute("slot").set_value(var.Slot);
-
-						if (var.System == SystemShaderVariable::None) {
-							pugi::xml_node valueRowNode = varNode.append_child("row");
-
-							if (var.Function == FunctionShaderVariable::None) {
-								int rowID = 0;
-								for (int i = 0; i < ShaderVariable::GetSize(var.GetType()) / 4; i++) {
-									if (var.GetType() >= ShaderVariable::ValueType::Boolean1 && var.GetType() <= ShaderVariable::ValueType::Boolean4)
-										valueRowNode.append_child("value").text().set(var.AsBoolean(i));
-									else if (var.GetType() >= ShaderVariable::ValueType::Integer1 && var.GetType() <= ShaderVariable::ValueType::Integer4)
-										valueRowNode.append_child("value").text().set(var.AsInteger(i));
-									else
-										valueRowNode.append_child("value").text().set(var.AsFloat(i%var.GetColumnCount(), rowID));
-
-									if (i%var.GetColumnCount() == 0 && i != 0) {
-										valueRowNode = varNode.append_child("row");
-										rowID++;
-									}
-								}
-							} else {
-								// save arguments
-								for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var.Function); i++) {
-									valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var.Arguments, i));
-								}
-							}
-						}
-					}
-				}
+				layoutItemNode.text().set(layoutItem.SemanticName);
+				layoutItemNode.append_attribute("id").set_value(layoutItem.SemanticIndex);
+				layoutItemNode.append_attribute("format").set_value(FORMAT_NAMES[(int)layoutItem.Format]);
+				layoutItemNode.append_attribute("offset").set_value(layoutItem.AlignedByteOffset);
 			}
-			else if (item->Type == PipelineItem::Geometry) {
-				typeAttr.set_value("geometry");
 
-				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
+			m_exportShaderVariables(vsNode, passData->VSVariables.GetVariables());
 
-				itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
-				itemNode.append_child("width").text().set(tData->Size.x);
-				itemNode.append_child("height").text().set(tData->Size.y);
-				itemNode.append_child("depth").text().set(tData->Size.z);
-				if (tData->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(tData->Scale.x);
-				if (tData->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(tData->Scale.y);
-				if (tData->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(tData->Scale.z);
-				if (tData->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(tData->Rotation.z);
-				if (tData->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(tData->Rotation.x);
-				if (tData->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(tData->Rotation.y);
-				if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.z);
-				if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.x);
-				if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
-				itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
+			// pixel shader
+			pugi::xml_node psNode = passNode.append_child("shader");
+			relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->PSPath));
+
+			psNode.append_attribute("type").set_value("ps");
+			psNode.append_child("path").text().set(relativePath.c_str());
+			psNode.append_child("entry").text().set(passData->PSEntry);
+			m_exportShaderVariables(psNode, passData->PSVariables.GetVariables());
+
+
+			// pass items
+			pugi::xml_node itemsNode = passNode.append_child("items");
+			for (PipelineItem* item : passData->Items) {
+				pugi::xml_node itemNode = itemsNode.append_child("item");
+				itemNode.append_attribute("name").set_value(item->Name);
+
+				if (item->Type == PipelineItem::ItemType::Geometry) {
+					itemNode.append_attribute("type").set_value("geometry");
+
+					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
+
+					itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
+					itemNode.append_child("width").text().set(tData->Size.x);
+					itemNode.append_child("height").text().set(tData->Size.y);
+					itemNode.append_child("depth").text().set(tData->Size.z);
+					if (tData->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(tData->Scale.x);
+					if (tData->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(tData->Scale.y);
+					if (tData->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(tData->Scale.z);
+					if (tData->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(tData->Rotation.z);
+					if (tData->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(tData->Rotation.x);
+					if (tData->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(tData->Rotation.y);
+					if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.z);
+					if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.x);
+					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
+					itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
+				}
 			}
 		}
 
@@ -367,11 +352,12 @@ namespace ed
 			}
 
 			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
-			std::vector<std::string> files = editor->GetOpenFiles();
-			for (const std::string& file : files) {
+			std::vector<std::pair<std::string, bool>> files = editor->GetOpenedFiles();
+			for (const auto& file : files) {
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
 				fileNode.append_attribute("type").set_value("file");
-				fileNode.append_attribute("name").set_value(file.c_str());
+				fileNode.append_attribute("name").set_value(file.first.c_str());
+				fileNode.append_attribute("shader").set_value(file.second ? "vs" : "ps");
 			}
 
 			// camera settings
@@ -416,6 +402,51 @@ namespace ed
 			to.c_str(),
 			FILE_ATTRIBUTE_NORMAL);
 		return std::string(relativePath);
+	}
+	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars)
+	{
+		if (vars.size() > 0) {
+			pugi::xml_node varsNodes = node.append_child("variables");
+			for (ShaderVariable var : vars) {
+				pugi::xml_node varNode = varsNodes.append_child("variable");
+				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var.GetType()]);
+				varNode.append_attribute("name").set_value(var.Name);
+
+				if (var.System != SystemShaderVariable::None)
+					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var.System]);
+				else if (var.Function != FunctionShaderVariable::None)
+					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var.Function]);
+
+				varNode.append_attribute("slot").set_value(var.Slot);
+
+				if (var.System == SystemShaderVariable::None) {
+					pugi::xml_node valueRowNode = varNode.append_child("row");
+
+					if (var.Function == FunctionShaderVariable::None) {
+						int rowID = 0;
+						for (int i = 0; i < ShaderVariable::GetSize(var.GetType()) / 4; i++) {
+							if (var.GetType() >= ShaderVariable::ValueType::Boolean1 && var.GetType() <= ShaderVariable::ValueType::Boolean4)
+								valueRowNode.append_child("value").text().set(var.AsBoolean(i));
+							else if (var.GetType() >= ShaderVariable::ValueType::Integer1 && var.GetType() <= ShaderVariable::ValueType::Integer4)
+								valueRowNode.append_child("value").text().set(var.AsInteger(i));
+							else
+								valueRowNode.append_child("value").text().set(var.AsFloat(i%var.GetColumnCount(), rowID));
+
+							if (i%var.GetColumnCount() == 0 && i != 0) {
+								valueRowNode = varNode.append_child("row");
+								rowID++;
+							}
+						}
+					}
+					else {
+						// save arguments
+						for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var.Function); i++) {
+							valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var.Arguments, i));
+						}
+					}
+				}
+			}
+		}
 	}
 	void ProjectParser::ResetProjectDirectory()
 	{

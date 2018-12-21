@@ -15,10 +15,7 @@ namespace ed
 	{}
 	RenderEngine::~RenderEngine()
 	{
-		for (int i = 0; i < m_d3dItems.size(); i++)
-			delete m_d3dItems[i];
-		for (int i = 0; i < m_cachedItems.size(); i++)
-			free(m_cachedItems[i].Data);
+		FlushCache();
 	}
 	void RenderEngine::Render(int width, int height)
 	{
@@ -50,38 +47,37 @@ namespace ed
 		viewport.MaxDepth = 1.0f;
 		m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
 
-		int cacheCounter = 0;
-		for (auto it : m_items) {
-			if (m_isCached(it)) {
-				if (it.Type == ed::PipelineItem::ShaderFile) {
-					ed::pipe::ShaderItem* data = reinterpret_cast<ed::pipe::ShaderItem*>(it.Data);
+		for (int i = 0; i < m_items.size(); i++) {
+			auto it = m_items[i];
+			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-					if (data->Type == ed::pipe::ShaderItem::VertexShader)
-						m_wnd->SetInputLayout(data->InputLayout);
+			// bind shaders and their variables
+			m_wnd->SetInputLayout(data->VSInputLayout);
 
-					data->Variables.UpdateBuffers(m_wnd);
+			data->VSVariables.UpdateBuffers(m_wnd);
+			data->PSVariables.UpdateBuffers(m_wnd);
 
-					for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++) {
-						if (data->Variables.IsSlotUsed(i)) {
-							if (data->Type == ed::pipe::ShaderItem::VertexShader)
-								data->Variables.GetSlot(i).BindVS(i);
-							else if (data->Type == ed::pipe::ShaderItem::PixelShader)
-								data->Variables.GetSlot(i).BindPS(i);
-						}
-					}
+			for (int j = 0; j < CONSTANT_BUFFER_SLOTS; j++) {
+				if (data->VSVariables.IsSlotUsed(j))
+					data->VSVariables.GetSlot(j).BindVS(j);
+				if (data->PSVariables.IsSlotUsed(j))
+					data->PSVariables.GetSlot(j).BindPS(j);
+			}
 
-					ml::Shader* shader = reinterpret_cast<ml::Shader*>(m_d3dItems[cacheCounter]);
-					shader->Bind();
-				}
-				cacheCounter++;
-			} else {
-				if (it.Type == ed::PipelineItem::Geometry) {
-					ed::pipe::GeometryItem* data = reinterpret_cast<ed::pipe::GeometryItem*>(it.Data);
+			m_vs[i]->Bind();
+			m_ps[i]->Bind();
 
-					SystemVariableManager::Instance().SetGeometryTransform(*data);
+			// render pipeline items
+			for (int j = 0; j < data->Items.size(); j++) {
+				auto item = data->Items[j];
 
-					m_wnd->SetTopology(data->Topology);
-					data->Geometry.Draw();
+				if (item->Type == PipelineItem::ItemType::Geometry) {
+					ed::pipe::GeometryItem* geoData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
+
+					SystemVariableManager::Instance().SetGeometryTransform(*geoData);
+
+					m_wnd->SetTopology(geoData->Topology);
+					geoData->Geometry.Draw();
 				}
 			}
 		}
@@ -92,36 +88,37 @@ namespace ed
 	void RenderEngine::Recompile(const char * name)
 	{
 		int d3dCounter = 0;
-		for (auto item : m_items) {
-			if (strcmp(item.Name, name) == 0) {
-				ed::pipe::ShaderItem* shader = (ed::pipe::ShaderItem*)item.Data;
-				
-				std::string content = m_project->LoadProjectFile(shader->FilePath);
-				bool compiled = ((ml::Shader*)m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), shader->Entry);
+		for (int i = 0; i < m_items.size(); i++) {
+			auto item = m_items[i];
+			if (strcmp(item->Name, name) == 0) {
+				ed::pipe::ShaderPass* shader = (ed::pipe::ShaderPass*)item->Data;
 
-				if (!compiled)
-					m_msgs->Add(MessageStack::Type::Error, item.Name, "Failed to compile the shader");
+				std::string vsContent = m_project->LoadProjectFile(shader->VSPath);
+				std::string psContent = m_project->LoadProjectFile(shader->PSPath);
+				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);
+				bool psCompiled = m_ps[i]->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), shader->PSEntry);
+
+				if (!vsCompiled || !psCompiled)
+					m_msgs->Add(MessageStack::Type::Error, item->Name, "Failed to compile the shader(s)");
 				else
-					m_msgs->ClearGroup(item.Name);
+					m_msgs->ClearGroup(item->Name);
 			}
-			if (m_isCached(item))
-				d3dCounter++;
 		}
 	}
 	void RenderEngine::FlushCache()
 	{
-		for (int i = 0; i < m_d3dItems.size(); i++)
-			delete m_d3dItems[i];
-		for (int i = 0; i < m_cachedItems.size(); i++)
-			free(m_cachedItems[i].Data);
-		m_d3dItems.clear();
-		m_cachedItems.clear();
+		for (int i = 0; i < m_vs.size(); i++)
+			delete m_vs[i];
+		for (int i = 0; i < m_ps.size(); i++)
+			delete m_ps[i];
+		m_vs.clear();
+		m_ps.clear();
 		m_items.clear();
 	}
 	void RenderEngine::m_cache()
 	{
 		// check for any changes
-		std::vector<ed::PipelineManager::Item*>& items = m_pipeline->GetList();
+		std::vector<ed::PipelineItem*>& items = m_pipeline->GetList();
 
 		// check if no major changes were made, if so dont cache for another 0.25s
 		if (m_items.size() == items.size()) {
@@ -130,180 +127,87 @@ namespace ed
 			else return;
 		}
 
-		int d3dCounter = 0;
-
 		// check if some item was added
 		for (int i = 0; i < items.size(); i++) {
 			bool found = false;
 			for (int j = 0; j < m_items.size(); j++)
-				if (items[i]->Data == m_items[j].Data)
+				if (items[i]->Data == m_items[j]->Data) {
 					found = true;
+					break;
+				}
 
 			if (!found) {
-				m_items.insert(m_items.begin() + i, *items[i]);
-				
+				m_items.insert(m_items.begin() + i, items[i]);
+
 				/*
 					ITEM CACHING
 				*/
-				if (m_isCached(*items[i])) {
-					if (items[i]->Type == ed::PipelineItem::ShaderFile) {
-						ed::pipe::ShaderItem* data = reinterpret_cast<ed::pipe::ShaderItem*>(items[i]->Data);
 
-						ml::Shader* shader = nullptr;
-						if (data->Type == ed::pipe::ShaderItem::PixelShader)
-							shader = new ml::PixelShader();
-						else if (data->Type == ed::pipe::ShaderItem::VertexShader) {
-							shader = new ml::VertexShader();
+				ed::pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
 
-							// bind the input layout
-							data->InputLayout.Reset();
-							reinterpret_cast<ml::VertexShader*>(shader)->InputSignature = &data->InputLayout;
-						}
+				ml::VertexShader* vShader = new ml::VertexShader();
+				ml::PixelShader* pShader = new ml::PixelShader();
 
-						std::string content = m_project->LoadProjectFile(data->FilePath);
-						bool compiled = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), data->Entry);
+				// bind the input layout
+				data->VSInputLayout.Reset();
+				vShader->InputSignature = &data->VSInputLayout;
 
-						if (!compiled)
-							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
-						else
-							m_msgs->ClearGroup(items[i]->Name);
+				std::string vsContent = m_project->LoadProjectFile(data->VSPath);
+				std::string psContent = m_project->LoadProjectFile(data->PSPath);
+				bool vsCompiled = vShader->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), data->VSEntry);
+				bool psCompiled = pShader->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), data->PSEntry);
 
-						m_d3dItems.insert(m_d3dItems.begin() + d3dCounter, shader);
+				if (!vsCompiled || !psCompiled)
+					m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
+				else
+					m_msgs->ClearGroup(items[i]->Name);
 
-						// copy actual item contents
-						m_cachedItems.insert(m_cachedItems.begin() + d3dCounter, *items[i]);
-						m_cachedItems[d3dCounter].Data = malloc(sizeof(ed::pipe::ShaderItem));
-						memcpy(m_cachedItems[d3dCounter].Data, data, sizeof(ed::pipe::ShaderItem));
-					}
-				}
+				m_vs.insert(m_vs.begin() + i, vShader);
+				m_ps.insert(m_ps.begin() + i, pShader);
 			}
-
-			if (m_isCached(*items[i]))
-				d3dCounter++;
 		}
-
-		d3dCounter = 0;
 
 		// check if some item was removed
 		for (int i = 0; i < m_items.size(); i++) {
 			bool found = false;
 			for (int j = 0; j < items.size(); j++)
-				if (items[j]->Data == m_items[i].Data)
+				if (items[j]->Data == m_items[i]->Data) {
 					found = true;
-
-			bool isCached = m_isCached(m_items[i]);
+					break;
+				}
 
 			if (!found) {
-				if (isCached) {
-					delete m_d3dItems[d3dCounter];
-					m_d3dItems.erase(m_d3dItems.begin() + d3dCounter);
+				delete m_vs[i];
+				delete m_ps[i];
+				m_vs.erase(m_vs.begin() + i);
+				m_ps.erase(m_ps.begin() + i);
 
-					free(m_cachedItems[d3dCounter].Data);
-					m_cachedItems.erase(m_cachedItems.begin() + d3dCounter);
-
-					d3dCounter--;
-				}
 				m_items.erase(m_items.begin() + i);
 			}
-
-			if (isCached)
-				d3dCounter++;
 		}
-
-		d3dCounter = 0;
 
 		// check if the order of the items changed
-		if (m_items.size() == items.size()) {
-			for (int i = 0; i < m_items.size(); i++) {
-				// two items at the same position dont match
-				if (items[i]->Data != m_items[i].Data) {
-					int tempD3DCounter = 0;
-
-					// find the real position from original list
-					for (int j = 0; j < items.size(); j++) {
-						// we found the original position so move the item
-						if (items[j]->Data == m_items[i].Data) {
-							int dest = j > i ? (j - 1) : j;
-							m_items.erase(m_items.begin() + i, m_items.begin() + i + 1);
-							m_items.insert(m_items.begin() + dest, *items[j]);
-
-							if (m_isCached(m_items[i])) {
-								int d3dDest = tempD3DCounter > d3dCounter ? (tempD3DCounter - 1) : tempD3DCounter;
-
-								void* d3dCopy = m_d3dItems[d3dCounter];
-								ed::PipelineManager::Item cachedItem = m_cachedItems[d3dCounter];
-
-								m_d3dItems.erase(m_d3dItems.begin() + d3dCounter);
-								m_d3dItems.insert(m_d3dItems.begin() + d3dDest, d3dCopy);
-
-								m_cachedItems.erase(m_cachedItems.begin() + d3dCounter);
-								m_cachedItems.insert(m_cachedItems.begin() + d3dDest, cachedItem);
-
-								if (tempD3DCounter > d3dCounter)
-									d3dCounter--;
-							}
-						}
-
-						if (m_isCached(m_items[j]))
-							tempD3DCounter++;
-					}
-				}
-
-				if (m_isCached(m_items[i]))
-					d3dCounter++;
-			}
-		}
-
-		d3dCounter = 0;
-
-		// check if any of the cached items has changed some property
 		for (int i = 0; i < m_items.size(); i++) {
-			if (m_isCached(m_items[i])) {
-				
-				if (m_items[i].Type == ed::PipelineItem::ShaderFile) {
-					ed::pipe::ShaderItem* current = reinterpret_cast<ed::pipe::ShaderItem*>(m_cachedItems[d3dCounter].Data);
-					ed::pipe::ShaderItem* next = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[i].Data);
-					
-					// basic checks
-					if (strcmp(next->Entry, current->Entry) != 0 ||
-						strcmp(next->FilePath, current->FilePath) != 0 ||
-						next->InputLayout.GetInputElements().size() != current->InputLayout.GetInputElements().size() ||
-						next->Type != current->Type)
-					{
-						ml::Shader* shader = nullptr;
+			// two items at the same position dont match
+			if (items[i]->Data != m_items[i]->Data) {
+				// find the real position from original list
+				for (int j = 0; j < items.size(); j++) {
+					// we found the original position so move the item
+					if (items[j]->Data == m_items[i]->Data) {
+						int dest = j > i ? (j - 1) : j;
+						m_items.erase(m_items.begin() + i, m_items.begin() + i + 1);
+						m_items.insert(m_items.begin() + dest, items[j]);
 
-						if (next->Type == ed::pipe::ShaderItem::PixelShader)
-							shader = new ml::PixelShader();
-						else if (next->Type == ed::pipe::ShaderItem::VertexShader) {
-							shader = new ml::VertexShader();
+						ml::VertexShader* vsCopy = m_vs[i];
+						ml::PixelShader* psCopy = m_ps[i];
 
-							// rebind the input layout
-							next->InputLayout.Reset();
-							reinterpret_cast<ml::VertexShader*>(shader)->InputSignature = &next->InputLayout;
-						}
+						m_vs.erase(m_vs.begin() + i);
+						m_vs.insert(m_vs.begin() + dest, vsCopy);
 
-						std::string content = m_project->LoadProjectFile(next->FilePath);
-						bool valid = shader->LoadFromMemory(*m_wnd, content.c_str(), content.size(), next->Entry);
-
-						if (!valid) {
-							m_msgs->Add(MessageStack::Type::Error, m_items[i].Name, "Failed to compile the shader.");
-							// TODO: outputUI->Print("Failed to compile the shader! Continuing to run the old shader. Rebuilding the input layout.");
-							// rebuild the input layout
-							content = m_project->LoadProjectFile(current->FilePath);
-							reinterpret_cast<ml::VertexShader*>(m_d3dItems[d3dCounter])->LoadFromMemory(*m_wnd, content.c_str(), content.size(), current->Entry);
-							delete shader;
-						} else {
-							m_msgs->ClearGroup(m_items[i].Name);
-
-							delete m_d3dItems[d3dCounter];
-							m_d3dItems[d3dCounter] = shader;
-						}
-
-						memcpy(current, next, sizeof(ed::pipe::ShaderItem));
+						m_ps.erase(m_ps.begin() + i);
+						m_ps.insert(m_ps.begin() + dest, psCopy);
 					}
 				}
-
-				d3dCounter++;
 			}
 		}
 	}

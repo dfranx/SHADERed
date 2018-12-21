@@ -10,7 +10,8 @@
 
 #include <algorithm>
 
-#define PIPELINE_ITEM_INDENT 65
+#define PIPELINE_SHADER_PASS_INDENT 65
+#define PIPELINE_ITEM_INDENT 75
 
 namespace ed
 {
@@ -18,15 +19,20 @@ namespace ed
 	{}
 	void PipelineUI::Update(float delta)
 	{
-		std::vector<ed::PipelineManager::Item*>& items = m_data->Pipeline.GetList();
+		std::vector<ed::PipelineItem*>& items = m_data->Pipeline.GetList();
 
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
-			if (items[i]->Type == ed::PipelineItem::ShaderFile)
-				m_addShader(items[i]);
-			else
-				m_addItem(items[i]->Name);
+			m_addShaderPass(items[i]);
 			m_renderItemContext(items, i);
+
+			ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
+
+			for (int j = 0; j < data->Items.size(); j++) {
+				m_renderItemUpDown(data->Items, j);
+				m_addItem(data->Items[j]->Name);
+				m_renderItemContext(data->Items, j);
+			}
 		}
 
 
@@ -66,7 +72,7 @@ namespace ed
 		m_modalItem = nullptr;
 	}
 	
-	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineManager::Item*>& items, int index)
+	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -77,7 +83,7 @@ namespace ed
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
 
-				ed::PipelineManager::Item* temp = items[index - 1];
+				ed::PipelineItem* temp = items[index - 1];
 				items[index - 1] = items[index];
 				items[index] = temp;
 
@@ -98,7 +104,7 @@ namespace ed
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
 
-				ed::PipelineManager::Item* temp = items[index + 1];
+				ed::PipelineItem* temp = items[index + 1];
 				items[index + 1] = items[index];
 				items[index] = temp;
 
@@ -114,26 +120,35 @@ namespace ed
 
 		ImGui::PopStyleColor();
 	}
-	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineManager::Item*>& items, int index)
+	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index)
 	{
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
-			if (items[index]->Type == ed::PipelineItem::ShaderFile) {
+			if (items[index]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
-			
-				if (ImGui::Selectable("Edit Code"))
-					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(*items[index]);
 
-				if (((ed::pipe::ShaderItem*)items[index]->Data)->Type == ed::pipe::ShaderItem::VertexShader) {
-					if (ImGui::Selectable("Input Layout")) {
-						m_isLayoutOpened = true;
-						m_modalItem = items[index];
-					}
-				}
-				if (ImGui::Selectable("Variables")) {
-					m_isVarManagerOpened = true;
+				if (ImGui::Selectable("Edit VS"))
+					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+
+				if (ImGui::Selectable("Edit PS"))
+					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+
+				if (ImGui::Selectable("Input Layout")) {
+					m_isLayoutOpened = true;
 					m_modalItem = items[index];
-				}}
+				}
+
+				if (ImGui::Selectable("VS Variables")) {
+					m_isVarManagerOpened = true;
+					m_isVarManagerForVS = true;
+					m_modalItem = items[index];
+				}
+				if (ImGui::Selectable("PS Variables")) {
+					m_isVarManagerOpened = true;
+					m_isVarManagerForVS = false;
+					m_modalItem = items[index];
+				}
+			}
 
 			if (ImGui::Selectable("Properties"))
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(items[index]);
@@ -172,7 +187,7 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = reinterpret_cast<ed::pipe::ShaderItem*>(m_modalItem->Data)->InputLayout.GetInputElements();
+		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data)->VSInputLayout.GetInputElements();
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 				ImGui::InputText(("##semantic" + std::to_string(id)).c_str(), const_cast<char*>(el.SemanticName), SEMANTIC_LENGTH);
@@ -256,7 +271,7 @@ namespace ed
 		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Float1;
 		static bool scrollToBottom = false;
 		
-		ed::pipe::ShaderItem* itemData = reinterpret_cast<ed::pipe::ShaderItem*>(m_modalItem->Data);
+		ed::pipe::ShaderPass* itemData = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data);
 
 		ImGui::Text("Add or remove variables bound to this shader.");
 
@@ -274,7 +289,8 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable>& els = itemData->Variables.GetVariables();
+		std::vector<ed::ShaderVariable>& els = m_isVarManagerForVS ? itemData->VSVariables.GetVariables() : itemData->PSVariables.GetVariables();
+
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el.GetType()]);
@@ -347,7 +363,8 @@ namespace ed
 				if (containsDown)
 					pinState->Add(&els[id]);
 			}
-			ImGui::SameLine(); if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+			ImGui::SameLine();
+			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 				// check if any of the affected variables are pinned
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
 				bool containsCur = pinState->Contains(el.Name);
@@ -369,8 +386,13 @@ namespace ed
 				if (containsDown)
 					pinState->Add(&els[id]);
 			}
-			ImGui::SameLine(); if (ImGui::Button(("X##" + std::to_string(id)).c_str()))
-				itemData->Variables.Remove(el.Name);
+			ImGui::SameLine();
+			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
+				if (m_isVarManagerForVS)
+					itemData->VSVariables.Remove(el.Name);
+				else 
+					itemData->PSVariables.Remove(el.Name);
+			}
 
 			ImGui::PopStyleColor();
 			ImGui::NextColumn();
@@ -448,7 +470,10 @@ namespace ed
 
 			// add if it doesnt exist
 			if (!exists) {
-				itemData->Variables.Add(iVariable);
+				if (m_isVarManagerForVS)
+					itemData->VSVariables.Add(iVariable);
+				else
+					itemData->PSVariables.Add(iVariable);
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
 				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;
@@ -462,25 +487,20 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShader(const ed::PipelineManager::Item* item)
+	void PipelineUI::m_addShaderPass(const ed::PipelineItem* item)
 	{
-		ed::pipe::ShaderItem* data = (ed::pipe::ShaderItem*)item->Data;
-		std::string type = "PS";
-		if (data->Type == ed::pipe::ShaderItem::VertexShader)
-			type = "VS";
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::SmallButton(type.c_str()))
-			m_data->Renderer.Recompile(item->Name);
-		ImGui::PopStyleColor();
+		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
 		ImGui::SameLine();
 
-		ImGui::Indent(PIPELINE_ITEM_INDENT);
+		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0))
-				(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->Open(*item);
-		ImGui::Unindent(PIPELINE_ITEM_INDENT);
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
+				editor->OpenVS(*item);
+				editor->OpenPS(*item);
+			}
+		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 	}
 	void PipelineUI::m_addItem(const std::string & name)
 	{

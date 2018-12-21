@@ -1,5 +1,5 @@
-- [ ] add Passes aka groups - merge shaders and all states into the Pass
-- [ ] creating pipeline items
+- [ ] shader pass properties, shader pass collapse/expand, shader pass polishing (context menu and similar stuff)
+- [ ] creating pipeline items (Geometry, Mesh, Shader Pass)
 - [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
 - [ ] textures
 - [ ] movable geometry (left click)
@@ -17,7 +17,7 @@ QoL:
 - [ ] fix the app crash at start up when the program cant compile the shader
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
-- [ ] fix various mem leaks in PipelineManager::Item Data objects
+- [ ] fix various mem leaks in PipelineItem Data objects
 - [ ] do all TODOs (comments)
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums

@@ -39,8 +39,10 @@ namespace ed
 		// dock space
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
+				std::string windowName(std::string(m_items[i].Name) + (m_isVertexShader[i] ? " (VS)" : " (PS)"));
+
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin((std::string(m_items[i].Name) + "##code_view").c_str(), &m_editorOpen[i], ImGuiWindowFlags_MenuBar)) {
+				if (ImGui::Begin((std::string(windowName) + "##code_view").c_str(), &m_editorOpen[i], ImGuiWindowFlags_MenuBar)) {
 					
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
@@ -70,7 +72,7 @@ namespace ed
 						m_renderStats(i);
 					else {
 						ImGui::PushFont(m_consolas);
-						m_editor[i].Render(m_items[i].Name);
+						m_editor[i].Render(windowName.c_str());
 						ImGui::PopFont();
 					}
 
@@ -92,14 +94,14 @@ namespace ed
 			}
 		}
 	}
-	void CodeEditorUI::Open(PipelineManager::Item item)
+	void CodeEditorUI::m_open(PipelineItem item, bool vs)
 	{
 		// check if already opened
-		int fileCount = std::count_if(m_items.begin(), m_items.end(), [&](const PipelineManager::Item& a) { return strcmp(a.Name, item.Name) == 0; });
-		if (fileCount != 0)
-			return;
+		for (int i = 0; i < m_items.size(); i++)
+			if (strcmp(m_items[i].Name, item.Name) == 0 && m_isVertexShader[i] == vs)
+				return;
 
-		ed::pipe::ShaderItem* shader = reinterpret_cast<ed::pipe::ShaderItem*>(item.Data);
+		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
 
 		m_items.push_back(item);
 		m_editor.push_back(TextEditor());
@@ -115,22 +117,40 @@ namespace ed
 
 		editor->SetPalette(pallete);
 		editor->SetLanguageDefinition(lang);
+		
+		m_isVertexShader.push_back(vs);
 
-		std::string shaderContent = m_data->Parser.LoadProjectFile(shader->FilePath);
+		std::string shaderContent = "";
+		if (vs)
+			shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
+		else
+			shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
 		editor->SetText(shaderContent);
 	}
-	std::vector<std::string> CodeEditorUI::GetOpenFiles()
+	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
-		std::vector<std::string> ret;
-		for (auto& item : m_items)
-			ret.push_back(item.Name);
+		m_open(item, true);
+	}
+	void CodeEditorUI::OpenPS(PipelineItem item)
+	{
+		m_open(item, false);
+	}
+	std::vector<std::pair<std::string, bool>> CodeEditorUI::GetOpenedFiles()
+	{
+		std::vector<std::pair<std::string, bool>> ret;
+		for (int i = 0; i < m_items.size(); i++)
+			ret.push_back(std::make_pair<std::string, bool>(m_items[i].Name, m_isVertexShader[i]));
 
 		return ret;
 	}
 	void CodeEditorUI::m_save(int id)
 	{
-		ed::pipe::ShaderItem* shader = reinterpret_cast<ed::pipe::ShaderItem*>(m_items[id].Data);
-		m_data->Parser.SaveProjectFile(shader->FilePath, m_editor[id].GetText());
+		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
+
+		if (m_isVertexShader[id])
+			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
+		else
+			m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
@@ -141,17 +161,20 @@ namespace ed
 	{
 		m_stats[id].IsActive = true;
 
-		pipe::ShaderItem* data = (pipe::ShaderItem*)m_items[id].Data;
+		pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[id].Data;
 		ID3DBlob *bytecodeBlob = nullptr, *errorBlob = nullptr;
 
 		// get shader version
 		std::string type = "ps_5_0";
-		if (data->Type == pipe::ShaderItem::VertexShader)
+		if (m_isVertexShader[id])
 			type = "vs_5_0";
 
 		// generate bytecode
-		D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->Entry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
-	
+		if (m_isVertexShader[id])
+			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+		else
+			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+
 		// delete the error data, we dont need it
 		if (errorBlob != nullptr) {
 			/* TODO: error stack */

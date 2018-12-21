@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include "../GUIManager.h"
+#include "ShaderVariable.h"
+#include "../pugixml/pugixml.hpp"
 
 namespace ed
 {
@@ -30,6 +32,8 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 
 	private:
+		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars);
+
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;
 		std::string m_file;

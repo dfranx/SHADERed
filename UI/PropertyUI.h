@@ -11,7 +11,7 @@ namespace ed
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 		
-		void Open(ed::PipelineManager::Item* item);
+		void Open(ed::PipelineItem* item);
 		inline std::string CurrentItemName() { return m_current->Name; }
 		inline bool HasItemSelected() { return m_current != nullptr; }
 
@@ -19,6 +19,6 @@ namespace ed
 		char m_itemName[64];
 		void m_createInputFloat3(const char* label, DirectX::XMFLOAT3& flt);
 
-		ed::PipelineManager::Item* m_current;
+		ed::PipelineItem* m_current;
 	};
 }

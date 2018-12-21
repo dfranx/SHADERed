@@ -52,15 +52,15 @@ namespace ed
 			}
 			ImGui::PopStyleVar();
 
-			if (m_current->Type == ed::PipelineItem::ShaderFile) {
-				ed::pipe::ShaderItem* item = reinterpret_cast<ed::pipe::ShaderItem*>(m_current->Data);
+			if (m_current->Type == ed::PipelineItem::ItemType::ShaderPass) {
+				ed::pipe::ShaderPass* item = reinterpret_cast<ed::pipe::ShaderPass*>(m_current->Data);
 
-				/* shader path */
+				/* vertex shader path */
 				ImGui::Text("Path:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-40);
-				ImGui::InputText("##pui_shaderpath", item->FilePath, 512);
+				ImGui::InputText("##pui_vspath", item->VSPath, 512);
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				if (ImGui::Button("...", ImVec2(-1, 0))) {
@@ -84,33 +84,73 @@ namespace ed
 
 						file = m_data->Parser.GetRelativePath(file);
 
-						strcpy(item->FilePath, file.c_str());
+						strcpy(item->VSPath, file.c_str());
 					}
 				}
 				ImGui::NextColumn();
 
 				ImGui::Separator();
 
-				/* shader entry */
-				ImGui::Text("Entry:");
+				/* vertex shader entry */
+				ImGui::Text("VS Entry:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				ImGui::InputText("##pui_shaderentry", item->Entry, 32);
+				ImGui::InputText("##pui_vsentry", item->VSEntry, 32);
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 
 				ImGui::Separator();
 
-				/* shader type */
-				ImGui::Text("Type:");
+				/* TODO: create function for "path" property items... */
+				/* pixel shader path */
+				ImGui::Text("Path:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-40);
+				ImGui::InputText("##pui_pspath", item->PSPath, 512);
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button("...", ImVec2(-1, 0))) {
+					OPENFILENAME dialog;
+					TCHAR filePath[MAX_PATH] = { 0 };
+
+					ZeroMemory(&dialog, sizeof(dialog));
+					dialog.lStructSize = sizeof(dialog);
+					dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
+					dialog.lpstrFile = filePath;
+					dialog.nMaxFile = sizeof(filePath);
+					dialog.lpstrFilter = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0";
+					dialog.nFilterIndex = 1;
+					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+					if (GetOpenFileName(&dialog) == TRUE) {
+						// TODO: get relative path to project file
+
+						std::wstring wfile = std::wstring(filePath);
+						std::string file(wfile.begin(), wfile.end());
+
+						file = m_data->Parser.GetRelativePath(file);
+
+						strcpy(item->PSPath, file.c_str());
+					}
+				}
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				/* pixel shader entry */
+				ImGui::Text("PS Entry:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				ImGui::Combo("##pui_shadertype", reinterpret_cast<int*>(&item->Type), SHADER_TYPE_NAMES, _ARRAYSIZE(SHADER_TYPE_NAMES));
+				ImGui::InputText("##pui_psentry", item->PSEntry, 32);
 				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
 			}
-			else if (m_current->Type == ed::PipelineItem::Geometry) {
+			else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 				ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 
 				/* position */
@@ -159,7 +199,7 @@ namespace ed
 			ImGui::TextWrapped("Right click on an item -> Properties");
 		}
 	}
-	void PropertyUI::Open(ed::PipelineManager::Item * item)
+	void PropertyUI::Open(ed::PipelineItem * item)
 	{
 		if (item != nullptr) memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
 

@@ -3,8 +3,10 @@
 #include "ProjectParser.h"
 #include "MessageStack.h"
 
-#include <MoonLight/Base/RenderTexture.h>
 #include <MoonLight/Base/ShaderResourceView.h>
+#include <MoonLight/Base/RenderTexture.h>
+#include <MoonLight/Base/VertexShader.h>
+#include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/Timer.h>
 #include <unordered_map>
 
@@ -34,12 +36,9 @@ namespace ed
 
 		ml::ShaderResourceView m_rtView;
 
-		std::vector<ed::PipelineManager::Item> m_items;
-
-		std::vector<ed::PipelineManager::Item> m_cachedItems;
-		std::vector<void*> m_d3dItems;
-
-		inline bool m_isCached(const ed::PipelineManager::Item& item) { return item.Type == ed::PipelineItem::ShaderFile; }
+		std::vector<ed::PipelineItem*> m_items;
+		std::vector<ml::VertexShader*> m_vs;
+		std::vector<ml::PixelShader*> m_ps;
 
 		ml::Timer m_cacheTimer;
 		void m_cache();

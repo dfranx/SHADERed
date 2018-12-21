@@ -9,13 +9,19 @@
 
 namespace ed
 {
-	enum class PipelineItem
+	struct PipelineItem
 	{
-		ShaderPass,
-		ShaderFile,
-		Geometry
-		/*	Model
-			... */
+		enum class ItemType
+		{
+			ShaderPass,
+			Geometry
+			/*	Model
+				... */
+		};
+
+		char Name[PIPELINE_ITEM_NAME_LENGTH];
+		ItemType Type;
+		void* Data;
 	};
 
 	namespace pipe
@@ -23,19 +29,15 @@ namespace ed
 		struct ShaderPass
 		{
 			char VSPath[512];
-			ed::ShaderVariableContainer VSVariables;
-		};
+			char VSEntry[32];
+			ml::VertexInputLayout VSInputLayout;
+			ShaderVariableContainer VSVariables;
 
-		struct ShaderItem
-		{
-			char FilePath[512];
-			char Entry[32];
-			ed::ShaderVariableContainer Variables;
-			ml::VertexInputLayout InputLayout;
-			enum ShaderType {
-				PixelShader,
-				VertexShader
-			} Type;
+			char PSPath[512];
+			char PSEntry[32];
+			ShaderVariableContainer PSVariables;
+
+			std::vector<PipelineItem*> Items;
 		};
 
 		struct GeometryItem
