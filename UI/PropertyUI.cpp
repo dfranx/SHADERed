@@ -56,7 +56,7 @@ namespace ed
 				ed::pipe::ShaderPass* item = reinterpret_cast<ed::pipe::ShaderPass*>(m_current->Data);
 
 				/* vertex shader path */
-				ImGui::Text("Path:");
+				ImGui::Text("VS Path:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-40);
@@ -104,7 +104,7 @@ namespace ed
 
 				/* TODO: create function for "path" property items... */
 				/* pixel shader path */
-				ImGui::Text("Path:");
+				ImGui::Text("PS Path:");
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-40);
@@ -146,9 +146,6 @@ namespace ed
 				ImGui::PushItemWidth(-1);
 				ImGui::InputText("##pui_psentry", item->PSEntry, 32);
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				ImGui::Separator();
 			}
 			else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 				ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);

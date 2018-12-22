@@ -18,6 +18,8 @@ namespace ed
 		bool m_isVarManagerOpened;
 		bool m_isVarManagerForVS; // do we edit the variables for vertex or pixel shader? (in shader pass)
 
+		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed (we use pointers to identify a specific items - i know its bad but too late rn [TODO])
+
 		ed::PipelineItem* m_modalItem; // item that we are editing in a popup modal
 		void m_closePopup();
 

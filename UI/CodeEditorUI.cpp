@@ -90,6 +90,7 @@ namespace ed
 				m_editor.erase(m_editor.begin() + i);
 				m_editorOpen.erase(m_editorOpen.begin() + i);
 				m_stats.erase(m_stats.begin() + i);
+				m_isVertexShader.erase(m_isVertexShader.begin() + i);
 				i--;
 			}
 		}

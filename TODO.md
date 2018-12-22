@@ -1,4 +1,3 @@
-- [ ] shader pass properties, shader pass collapse/expand, shader pass polishing (context menu and similar stuff)
 - [ ] creating pipeline items (Geometry, Mesh, Shader Pass)
 - [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
 - [ ] textures

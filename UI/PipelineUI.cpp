@@ -28,10 +28,19 @@ namespace ed
 
 			ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
 
-			for (int j = 0; j < data->Items.size(); j++) {
-				m_renderItemUpDown(data->Items, j);
-				m_addItem(data->Items[j]->Name);
-				m_renderItemContext(data->Items, j);
+			bool showItems = true;
+			for (int j = 0; j < m_expandList.size(); j++)
+				if (m_expandList[j] == data) {
+					showItems = false;
+					break;
+				}
+
+			if (showItems) {
+				for (int j = 0; j < data->Items.size(); j++) {
+					m_renderItemUpDown(data->Items, j);
+					m_addItem(data->Items[j]->Name);
+					m_renderItemContext(data->Items, j);
+				}
 			}
 		}
 
@@ -127,11 +136,10 @@ namespace ed
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
 
-				if (ImGui::Selectable("Edit VS"))
+				if (ImGui::Selectable("Edit")) {
 					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
-
-				if (ImGui::Selectable("Edit PS"))
 					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+				}
 
 				if (ImGui::Selectable("Input Layout")) {
 					m_isLayoutOpened = true;
@@ -491,6 +499,26 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
+		
+		std::string expandTxt = "-";
+		for (int i = 0; i < m_expandList.size(); i++)
+			if (m_expandList[i] == data) {
+				expandTxt = "+";
+				break;
+			}
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		if (ImGui::SmallButton(expandTxt.c_str())) {
+			if (expandTxt == "+") {
+				for (int i = 0; i < m_expandList.size(); i++)
+					if (m_expandList[i] == data) {
+						m_expandList.erase(m_expandList.begin() + i);
+						break;
+					}
+			}
+			else m_expandList.push_back(data);
+		}
+		ImGui::PopStyleColor();
 		ImGui::SameLine();
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
