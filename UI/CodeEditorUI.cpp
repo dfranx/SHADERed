@@ -136,6 +136,19 @@ namespace ed
 	{
 		m_open(item, false);
 	}
+	void CodeEditorUI::CloseAll()
+	{
+
+		// delete not needed editors
+		for (int i = 0; i < m_editorOpen.size(); i++) {
+			m_items.erase(m_items.begin() + i);
+			m_editor.erase(m_editor.begin() + i);
+			m_editorOpen.erase(m_editorOpen.begin() + i);
+			m_stats.erase(m_stats.begin() + i);
+			m_isVertexShader.erase(m_isVertexShader.begin() + i);
+			i--;
+		}
+	}
 	std::vector<std::pair<std::string, bool>> CodeEditorUI::GetOpenedFiles()
 	{
 		std::vector<std::pair<std::string, bool>> ret;

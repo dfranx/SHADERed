@@ -24,7 +24,10 @@ namespace ed
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
 			m_addShaderPass(items[i]);
-			m_renderItemContext(items, i);
+			if (m_renderItemContext(items, i)) {
+				i--;
+				continue;
+			}
 
 			ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
 
@@ -39,7 +42,10 @@ namespace ed
 				for (int j = 0; j < data->Items.size(); j++) {
 					m_renderItemUpDown(data->Items, j);
 					m_addItem(data->Items[j]->Name);
-					m_renderItemContext(data->Items, j);
+					if (m_renderItemContext(data->Items, j)) {
+						j--;
+						continue;
+					}
 				}
 			}
 		}
@@ -147,8 +153,10 @@ namespace ed
 
 		ImGui::PopStyleColor();
 	}
-	void PipelineUI::m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index)
+	bool PipelineUI::m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index)
 	{
+		bool ret = false; // false == we didnt delete an item
+
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
 			if (items[index]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 				if (ImGui::Selectable("Recompile"))
@@ -198,14 +206,21 @@ namespace ed
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(items[index]);
 
 			if (ImGui::Selectable("Delete")) {
+
+				// check if it is opened in property viewer
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
 					props->Open(nullptr);
 
+				// tell pipeline to remove this item
 				m_data->Pipeline.Remove(items[index]->Name);
+
+				ret = true;
 			}
 
 			ImGui::EndPopup();
+
+			return ret;
 		}
 	}
 	void PipelineUI::m_renderInputLayoutUI()

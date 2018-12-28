@@ -64,7 +64,7 @@ namespace ed
 				ImGui::InputText("##pui_vspath", item->VSPath, 512);
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
-				if (ImGui::Button("...", ImVec2(-1, 0))) {
+				if (ImGui::Button("...##pui_vsbtn", ImVec2(-1, 0))) {
 					std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
 					if (file.size() != 0) {
 						file = m_data->Parser.GetRelativePath(file);
@@ -95,7 +95,7 @@ namespace ed
 				ImGui::InputText("##pui_pspath", item->PSPath, 512);
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
-				if (ImGui::Button("...", ImVec2(-1, 0))) {
+				if (ImGui::Button("...##pui_psbtn", ImVec2(-1, 0))) {
 					std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
 					if (file.size() != 0) {
 						file = m_data->Parser.GetRelativePath(file);

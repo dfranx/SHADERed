@@ -34,7 +34,7 @@ namespace ed
 
 		// various small components
 		void m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index);
-		void m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
+		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderInputLayoutUI();
 		void m_renderVariableManagerUI();
 

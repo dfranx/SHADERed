@@ -100,10 +100,12 @@ namespace ed
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New")) {
 					m_data->Renderer.FlushCache();
+					((CodeEditorUI*)Get("Code"))->CloseAll();
 					m_data->Pipeline.New();
 				}
 				if (ImGui::MenuItem("Open")) {
 					m_data->Renderer.FlushCache();
+					((CodeEditorUI*)Get("Code"))->CloseAll();
 					m_openProject();
 				}
 				if (ImGui::MenuItem("Save")) {

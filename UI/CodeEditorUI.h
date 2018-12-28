@@ -20,6 +20,8 @@ namespace ed
 		void OpenVS(PipelineItem item);
 		void OpenPS(PipelineItem item);
 
+		void CloseAll();
+
 		std::vector<std::pair<std::string, bool>> GetOpenedFiles();
 
 	private:

@@ -92,6 +92,14 @@ namespace ed
 			if (strcmp(item->Name, name) == 0) {
 				ed::pipe::ShaderPass* shader = (ed::pipe::ShaderPass*)item->Data;
 
+				// bind input layout if needed 
+				if (shader->VSInputLayout.GetInputElements().size() > 0) {
+					m_vs[i]->InputSignature = &shader->VSInputLayout;
+					m_vs[i]->InputSignature->Reset();
+				} 
+				else
+					m_vs[i]->InputSignature = nullptr;
+
 				std::string vsContent = m_project->LoadProjectFile(shader->VSPath);
 				std::string psContent = m_project->LoadProjectFile(shader->PSPath);
 				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);

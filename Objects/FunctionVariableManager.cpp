@@ -88,7 +88,7 @@ namespace ed
 		else if (func >= FunctionShaderVariable::ScalarCos && func <= FunctionShaderVariable::ScalarSin)
 			return ret == ShaderVariable::ValueType::Float1;
 		else if (func == FunctionShaderVariable::VectorNormalize)
-			return ret >= ShaderVariable::ValueType::Float1 && ret <= ShaderVariable::ValueType::Float4;
+			return ret > ShaderVariable::ValueType::Float1 && ret <= ShaderVariable::ValueType::Float4;
 		return false;
 	}
 	void FunctionVariableManager::Update(ed::ShaderVariable & var)

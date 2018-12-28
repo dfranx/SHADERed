@@ -74,6 +74,14 @@ namespace ed
 				m_items[i]->Data = nullptr;
 				m_items.erase(m_items.begin() + i);
 				break;
+			} else {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
+				for (int j = 0; j < data->Items.size(); j++) {
+					delete data->Items[j]->Data;
+					data->Items[j]->Data = nullptr;
+					data->Items.erase(data->Items.begin() + j);
+					break;
+				}
 			}
 	}
 	bool PipelineManager::Has(const char * name)

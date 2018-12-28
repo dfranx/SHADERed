@@ -1,4 +1,3 @@
-- [ ] stats page not working, cant delete pipeline objects, VectorNormalize function available for scalar values, clicking on "New" project doesnt open the template file (cant recompile shaders)
 - [ ] various states + Mesh -> Blend States, Rasterizer State, Depth-Stencil State, etc... + defaults
 - [ ] renderable objects -> right click -> "variables" item -> "vertex/pixel shader" items -> choose which variable to temporarily change when rendering this item
 - [ ] textures & ObjectManager
@@ -18,7 +17,6 @@ QoL:
 - [ ] fix the app crash at start up when the program cant compile the shader
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
-- [ ] fix various mem leaks in PipelineItem Data objects
 - [ ] do all TODOs (comments)
 - [ ] open item properties on double click
 - [ ] add Save Copy (copies all the shaders to the project directory)
