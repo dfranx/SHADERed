@@ -32,12 +32,10 @@ namespace ed
 		}
 		m_items.clear();
 	}
-	void PipelineManager::AddItem(const char * owner, const char * name, PipelineItem::ItemType type, void * data)
+	bool PipelineManager::AddItem(const char * owner, const char * name, PipelineItem::ItemType type, void * data)
 	{
-		if (type == PipelineItem::ItemType::ShaderPass) {
-			AddPass(name, (pipe::ShaderPass*)data);
-			return;
-		}
+		if (type == PipelineItem::ItemType::ShaderPass)
+			return AddPass(name, (pipe::ShaderPass*)data);
 
 		for (auto item : m_items) {
 			if (strcmp(item->Name, owner) != 0)
@@ -45,14 +43,28 @@ namespace ed
 
 			auto pass = (ed::pipe::ShaderPass*)item->Data;
 
+			for (auto& i : pass->Items)
+				if (strcmp(i->Name, name) == 0)
+					return false;
+
 			pass->Items.push_back(new PipelineItem{ "\0", type, data });
-			memcpy(pass->Items.at(m_items.size() - 1)->Name, name, strlen(name));
+			strcpy(pass->Items.at(pass->Items.size() - 1)->Name, name);
+
+			return true;
 		}
+
+		return false;
 	}
-	void PipelineManager::AddPass(const char * name, pipe::ShaderPass* data)
+	bool PipelineManager::AddPass(const char * name, pipe::ShaderPass* data)
 	{
+		for (auto& item : m_items)
+			if (strcmp(item->Name, name) == 0)
+				return false;
+
 		m_items.push_back(new PipelineItem{ "\0", PipelineItem::ItemType::ShaderPass, data });
-		memcpy(m_items.at(m_items.size() - 1)->Name, name, strlen(name));
+		strcpy(m_items.at(m_items.size() - 1)->Name, name);
+
+		return true;
 	}
 	void PipelineManager::Remove(const char* name)
 	{
@@ -76,6 +88,7 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (strcmp(m_items[i]->Name, name) == 0)
 				return m_items[i];
+		return nullptr;
 	}
 	void PipelineManager::New()
 	{

@@ -17,7 +17,6 @@ namespace ed
 
 	private:
 		char m_itemName[64];
-		void m_createInputFloat3(const char* label, DirectX::XMFLOAT3& flt);
 
 		ed::PipelineItem* m_current;
 	};

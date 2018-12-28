@@ -16,8 +16,8 @@ namespace ed
 
 		void Clear();
 
-		void AddItem(const char* owner, const char* name, PipelineItem::ItemType type, void* data);
-		void AddPass(const char* name, ed::pipe::ShaderPass* data);
+		bool AddItem(const char* owner, const char* name, PipelineItem::ItemType type, void* data);
+		bool AddPass(const char* name, ed::pipe::ShaderPass* data);
 		void Remove(const char* name);
 		bool Has(const char* name);
 		PipelineItem* Get(const char* name);

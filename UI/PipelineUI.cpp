@@ -48,17 +48,21 @@ namespace ed
 
 		// various popups
 		if (m_isLayoutOpened) {
-			ImGui::OpenPopup("Item Manager##pui_layout_items");
+			ImGui::OpenPopup("Vertex Input Layout##pui_layout_items");
 			m_isLayoutOpened = false;
 		}
 		if (m_isVarManagerOpened) {
 			ImGui::OpenPopup("Variable Manager##pui_shader_variables");
 			m_isVarManagerOpened = false;
 		}
+		if (m_isCreateViewOpened) {
+			ImGui::OpenPopup("Create Item##pui_create_item");
+			m_isCreateViewOpened = false;
+		}
 
-		// Input Layout item manager
+		// VS Input Layout
 		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Item Manager##pui_layout_items")) {
+		if (ImGui::BeginPopupModal("Vertex Input Layout##pui_layout_items")) {
 			m_renderInputLayoutUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
@@ -71,6 +75,20 @@ namespace ed
 			m_renderVariableManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
+			ImGui::EndPopup();
+		}
+
+		// Create Item
+		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create Item##pui_create_item")) {
+			m_createUI.Update(delta);
+
+			if (ImGui::Button("Ok")) {
+				if (m_createUI.Create())
+					m_closePopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) m_closePopup();
 			ImGui::EndPopup();
 		}
 	}
@@ -136,9 +154,23 @@ namespace ed
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
 
-				if (ImGui::Selectable("Edit")) {
-					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
-					(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+				if (ImGui::BeginMenu("Add")) {
+					if (ImGui::MenuItem("Geometry")) {
+						m_isCreateViewOpened = true;
+						m_createUI.SetOwner(items[index]->Name);
+						m_createUI.SetType(PipelineItem::ItemType::Geometry);
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Edit Code")) {
+					if (ImGui::MenuItem("Vertex Shader"))
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+					else if (ImGui::MenuItem("Pixel Shader"))
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+
+					ImGui::EndMenu();
 				}
 
 				if (ImGui::Selectable("Input Layout")) {
@@ -146,15 +178,19 @@ namespace ed
 					m_modalItem = items[index];
 				}
 
-				if (ImGui::Selectable("VS Variables")) {
-					m_isVarManagerOpened = true;
-					m_isVarManagerForVS = true;
-					m_modalItem = items[index];
-				}
-				if (ImGui::Selectable("PS Variables")) {
-					m_isVarManagerOpened = true;
-					m_isVarManagerForVS = false;
-					m_modalItem = items[index];
+				if (ImGui::BeginMenu("Variables")) {
+					if (ImGui::MenuItem("Vertex Shader")) {
+						m_isVarManagerOpened = true;
+						m_isVarManagerForVS = true;
+						m_modalItem = items[index];
+					}
+					else if (ImGui::MenuItem("Pixel Shader")) {
+						m_isVarManagerOpened = true;
+						m_isVarManagerForVS = false;
+						m_modalItem = items[index];
+					}
+
+					ImGui::EndMenu();
 				}
 			}
 

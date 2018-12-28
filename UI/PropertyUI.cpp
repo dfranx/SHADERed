@@ -1,4 +1,5 @@
 #include "PropertyUI.h"
+#include "UIHelper.h"
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
 
@@ -64,26 +65,9 @@ namespace ed
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				if (ImGui::Button("...", ImVec2(-1, 0))) {
-					OPENFILENAME dialog;
-					TCHAR filePath[MAX_PATH] = { 0 };
-
-					ZeroMemory(&dialog, sizeof(dialog));
-					dialog.lStructSize = sizeof(dialog);
-					dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
-					dialog.lpstrFile = filePath;
-					dialog.nMaxFile = sizeof(filePath);
-					dialog.lpstrFilter = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0";
-					dialog.nFilterIndex = 1;
-					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-					if (GetOpenFileName(&dialog) == TRUE) {
-						// TODO: get relative path to project file
-
-						std::wstring wfile = std::wstring(filePath);
-						std::string file(wfile.begin(), wfile.end());
-
+					std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
+					if (file.size() != 0) {
 						file = m_data->Parser.GetRelativePath(file);
-
 						strcpy(item->VSPath, file.c_str());
 					}
 				}
@@ -112,26 +96,9 @@ namespace ed
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				if (ImGui::Button("...", ImVec2(-1, 0))) {
-					OPENFILENAME dialog;
-					TCHAR filePath[MAX_PATH] = { 0 };
-
-					ZeroMemory(&dialog, sizeof(dialog));
-					dialog.lStructSize = sizeof(dialog);
-					dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
-					dialog.lpstrFile = filePath;
-					dialog.nMaxFile = sizeof(filePath);
-					dialog.lpstrFilter = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0";
-					dialog.nFilterIndex = 1;
-					dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
-					if (GetOpenFileName(&dialog) == TRUE) {
-						// TODO: get relative path to project file
-
-						std::wstring wfile = std::wstring(filePath);
-						std::string file(wfile.begin(), wfile.end());
-
+					std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
+					if (file.size() != 0) {
 						file = m_data->Parser.GetRelativePath(file);
-
 						strcpy(item->PSPath, file.c_str());
 					}
 				}
@@ -155,7 +122,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				m_createInputFloat3("##pui_geopos", item->Position);
+				UIHelper::CreateInputFloat3("##pui_geopos", item->Position);
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 				ImGui::Separator();
@@ -165,7 +132,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				m_createInputFloat3("##pui_geoscale", item->Scale);
+				UIHelper::CreateInputFloat3("##pui_geoscale", item->Scale);
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 				ImGui::Separator();
@@ -175,7 +142,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				m_createInputFloat3("##pui_georota", item->Rotation);
+				UIHelper::CreateInputFloat3("##pui_georota", item->Rotation);
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 				ImGui::Separator();
@@ -201,11 +168,5 @@ namespace ed
 		if (item != nullptr) memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
 
 		m_current = item;
-	}
-	void PropertyUI::m_createInputFloat3(const char* label, DirectX::XMFLOAT3& flt)
-	{
-		float val[3] = { flt.x , flt.y, flt.z };
-		ImGui::DragFloat3(label, val, 0.01f);
-		flt = DirectX::XMFLOAT3(val);
 	}
 }

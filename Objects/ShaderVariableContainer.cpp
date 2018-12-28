@@ -35,8 +35,10 @@ namespace ed
 		
 		for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++) {
 			if (usedSize[i] == 0) {
-				m_cb[i].Release();
-				m_cachedSize[i] = 0;
+				if (m_cachedSize[i] != 0) {
+					m_cb[i].Release();
+					m_cachedSize[i] = 0;
+				}
 			} else {
 				if (usedSize[i] != m_cachedSize[i]) {
 					m_cb[i].Create(*wnd, data, (((usedSize[i] / 16) + 1) * 16), ml::Resource::Dynamic | ml::Resource::CPUWrite);

@@ -4,6 +4,7 @@
 namespace ed
 {
 	class InterfaceManager;
+	class CreateItemUI;
 	class UIView;
 
 	class GUIManager
@@ -25,6 +26,7 @@ namespace ed
 		void m_imguiHandleEvent(const ml::Event& e);
 
 		std::vector<UIView*> m_views;
+		CreateItemUI* m_createUI;
 
 		ml::Window* m_wnd;
 		InterfaceManager* m_data;

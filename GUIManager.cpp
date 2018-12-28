@@ -3,6 +3,7 @@
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "InterfaceManager.h"
+#include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
 #include "UI/ErrorListUI.h"
 #include "UI/PipelineUI.h"
@@ -43,11 +44,15 @@ namespace ed
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
+
+		m_createUI = new CreateItemUI(this, objects);
 	}
 	GUIManager::~GUIManager()
 	{
 		for (auto view : m_views)
 			delete view;
+
+		delete m_createUI;
 
 		// release memory
 		ImGui_ImplDX11_Shutdown();
@@ -90,6 +95,7 @@ namespace ed
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
 
 		// menu
+		static bool s_isCreateItemPopupOpened = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New")) {
@@ -111,10 +117,10 @@ namespace ed
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Create")) {
-				if (ImGui::MenuItem("Pass")) { }
-				ImGui::MenuItem("Geometry");
-				ImGui::MenuItem("Input Layout");
-				ImGui::MenuItem("Topology");
+				if (ImGui::MenuItem("Pass")) {
+					m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
+					s_isCreateItemPopupOpened = true;
+				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
@@ -150,6 +156,25 @@ namespace ed
 			}
 
 		Get("Code")->Update(delta);
+
+		if (s_isCreateItemPopupOpened) {
+			ImGui::OpenPopup("Create Item##main_create_item");
+			s_isCreateItemPopupOpened = false;
+		}
+
+		// Create Item popup
+		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
+			m_createUI->Update(delta);
+
+			if (ImGui::Button("Ok")) {
+				if (m_createUI->Create())
+					ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
 
 		ImGui::End();
 

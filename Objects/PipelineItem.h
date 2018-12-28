@@ -14,9 +14,10 @@ namespace ed
 		enum class ItemType
 		{
 			ShaderPass,
-			Geometry
+			Geometry,
 			/*	Model
 				... */
+			Count
 		};
 
 		char Name[PIPELINE_ITEM_NAME_LENGTH];

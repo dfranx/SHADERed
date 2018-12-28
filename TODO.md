@@ -1,7 +1,9 @@
-- [ ] creating pipeline items (Geometry, Mesh, Shader Pass)
-- [ ] various states -> Blend States, Rasterizer State, Depth-Stencil State, etc...
-- [ ] textures
+- [ ] stats page not working, cant delete pipeline objects, VectorNormalize function available for scalar values, clicking on "New" project doesnt open the template file (cant recompile shaders)
+- [ ] various states + Mesh -> Blend States, Rasterizer State, Depth-Stencil State, etc... + defaults
+- [ ] renderable objects -> right click -> "variables" item -> "vertex/pixel shader" items -> choose which variable to temporarily change when rendering this item
+- [ ] textures & ObjectManager
 - [ ] movable geometry (left click)
+- [ ] RenderPass (groups of PipelineItem objects)
 - [ ] options (code editor font, theme, etc...)
 - [ ] keyboard shortcuts
 - [ ] help -> settings | manual | about
@@ -18,6 +20,11 @@ QoL:
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] fix various mem leaks in PipelineItem Data objects
 - [ ] do all TODOs (comments)
+- [ ] open item properties on double click
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
 - [ ] save isFullscreen and isMaximized on exit/on size change
+- [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
+- [ ] change some constants (example: vertex shader path strcpy)
+- [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)
+- [ ] PipelineUI.GetSelectedShaderPass() + add Geometry and other options under "Create" menu item in GUIManager

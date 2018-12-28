@@ -54,9 +54,6 @@ namespace ed
 			// bind shaders and their variables
 			m_wnd->SetInputLayout(data->VSInputLayout);
 
-			data->VSVariables.UpdateBuffers(m_wnd);
-			data->PSVariables.UpdateBuffers(m_wnd);
-
 			for (int j = 0; j < CONSTANT_BUFFER_SLOTS; j++) {
 				if (data->VSVariables.IsSlotUsed(j))
 					data->VSVariables.GetSlot(j).BindVS(j);
@@ -75,6 +72,8 @@ namespace ed
 					ed::pipe::GeometryItem* geoData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
 
 					SystemVariableManager::Instance().SetGeometryTransform(*geoData);
+					data->VSVariables.UpdateBuffers(m_wnd);
+					data->PSVariables.UpdateBuffers(m_wnd);
 
 					m_wnd->SetTopology(geoData->Topology);
 					geoData->Geometry.Draw();
@@ -150,7 +149,10 @@ namespace ed
 
 				// bind the input layout
 				data->VSInputLayout.Reset();
-				vShader->InputSignature = &data->VSInputLayout;
+				if (data->VSInputLayout.GetInputElements().size() > 0)
+					vShader->InputSignature = &data->VSInputLayout;
+				else
+					vShader->InputSignature = nullptr;
 
 				std::string vsContent = m_project->LoadProjectFile(data->VSPath);
 				std::string psContent = m_project->LoadProjectFile(data->PSPath);

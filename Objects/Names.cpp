@@ -196,3 +196,9 @@ const char* FUNCTION_NAMES[] = {
 const char* GEOMETRY_NAMES[1] = {
 	"Cube"
 };
+
+const char* PIPELINE_ITEM_NAMES[] =
+{
+	"Shader Pass",
+	"Geometry"
+};
