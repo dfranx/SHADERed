@@ -36,7 +36,7 @@ namespace ed
 				// find first function that is compatible with this value type
 				for (int i = 0; i < (int)FunctionShaderVariable::Count; i++)
 					if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)i)) {
-						FunctionVariableManager::AllocateArgumentSpace(*m_var, (FunctionShaderVariable)i);
+						FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)i);
 						break;
 					}
 			}
@@ -113,7 +113,7 @@ namespace ed
 			for (int n = 1; n < (int)FunctionShaderVariable::Count; n++) {
 				bool is_selected = (n == (int)m_var->Function);
 				if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)n) && ImGui::Selectable(FUNCTION_NAMES[n], is_selected))
-					FunctionVariableManager::AllocateArgumentSpace(*m_var, (FunctionShaderVariable)n);
+					FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)n);
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
 			}

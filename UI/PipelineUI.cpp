@@ -352,25 +352,25 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable>& els = m_isVarManagerForVS ? itemData->VSVariables.GetVariables() : itemData->PSVariables.GetVariables();
+		std::vector<ed::ShaderVariable*>& els = m_isVarManagerForVS ? itemData->VSVariables.GetVariables() : itemData->PSVariables.GetVariables();
 
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el.GetType()]);
+			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el->GetType()]);
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputText(("##name" + std::to_string(id)).c_str(), const_cast<char*>(el.Name), VARIABLE_NAME_LENGTH);
+			ImGui::InputText(("##name" + std::to_string(id)).c_str(), const_cast<char*>(el->Name), VARIABLE_NAME_LENGTH);
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			const char* systemComboPreview = SYSTEM_VARIABLE_NAMES[(int)el.System];
+			const char* systemComboPreview = SYSTEM_VARIABLE_NAMES[(int)el->System];
 			if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), systemComboPreview)) {
 				for (int n = 0; n < _ARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
-					bool is_selected = (n == (int)el.System);
-					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el.GetType())
+					bool is_selected = (n == (int)el->System);
+					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el->GetType())
 						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
-							el.System = (ed::SystemShaderVariable)n;
+							el->System = (ed::SystemShaderVariable)n;
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}
@@ -379,82 +379,82 @@ namespace ed
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::DragInt(("##slot" + std::to_string(id)).c_str(), &el.Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS-1, "b%d");
-			el.Slot = std::min<int>(CONSTANT_BUFFER_SLOTS - 1, el.Slot);
+			ImGui::DragInt(("##slot" + std::to_string(id)).c_str(), &el->Slot, 0.1f, 0, CONSTANT_BUFFER_SLOTS-1, "b%d");
+			el->Slot = std::min<int>(CONSTANT_BUFFER_SLOTS - 1, el->Slot);
 			ImGui::NextColumn();
 
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-			if (el.System == ed::SystemShaderVariable::None) {
+			if (el->System == ed::SystemShaderVariable::None) {
 				if (ImGui::Button(("EDIT##" + std::to_string(id)).c_str())) {
 					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
-					m_valueEdit.Open(&el);
+					m_valueEdit.Open(el);
 				}
 				ImGui::SameLine();
 
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
-				if (!pinState->Contains(el.Name)) {
+				if (!pinState->Contains(el->Name)) {
 					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
-						pinState->Add(&el);
-				} else {
-					if (ImGui::Button(("UNPIN##" + std::to_string(id)).c_str()))
-						pinState->Remove(el.Name);
-				}
+						pinState->Add(el);
+				} else if (ImGui::Button(("UNPIN##" + std::to_string(id)).c_str()))
+						pinState->Remove(el->Name);
 
 				ImGui::SameLine();
 			}
 			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
 				// check if any of the affected variables are pinned
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
-				bool containsCur = pinState->Contains(el.Name);
-				bool containsDown = pinState->Contains(els[id-1].Name);
+				bool containsCur = pinState->Contains(el->Name);
+				bool containsDown = pinState->Contains(els[id-1]->Name);
 
 				// first unpin if it was pinned
 				if (containsCur)
-					pinState->Remove(el.Name);
+					pinState->Remove(el->Name);
 				if (containsDown)
-					pinState->Remove(els[id - 1].Name);
+					pinState->Remove(els[id - 1]->Name);
 
-				ed::ShaderVariable temp = els[id - 1];
+				ed::ShaderVariable* temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
 
 				// then pin again if it was previously pinned
 				if (containsCur)
-					pinState->Add(&els[id-1]);
+					pinState->Add(els[id-1]);
 				if (containsDown)
-					pinState->Add(&els[id]);
+					pinState->Add(els[id]);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 				// check if any of the affected variables are pinned
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
-				bool containsCur = pinState->Contains(el.Name);
-				bool containsDown = pinState->Contains(els[id + 1].Name);
+				bool containsCur = pinState->Contains(el->Name);
+				bool containsDown = pinState->Contains(els[id + 1]->Name);
 
 				// first unpin if it was pinned
 				if (containsCur)
-					pinState->Remove(el.Name);
+					pinState->Remove(el->Name);
 				if (containsDown)
-					pinState->Remove(els[id + 1].Name);
+					pinState->Remove(els[id + 1]->Name);
 
-				ed::ShaderVariable temp = els[id + 1];
+				ed::ShaderVariable* temp = els[id + 1];
 				els[id + 1] = el;
 				els[id] = temp;
 
 				// then pin again if it was previously pinned
 				if (containsCur)
-					pinState->Add(&els[id + 1]);
+					pinState->Add(els[id + 1]);
 				if (containsDown)
-					pinState->Add(&els[id]);
+					pinState->Add(els[id]);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
+				((PinnedUI*)m_ui->Get("Pinned"))->Remove(el->Name); // unpin if pinned
+
 				if (m_isVarManagerForVS)
-					itemData->VSVariables.Remove(el.Name);
+					itemData->VSVariables.Remove(el->Name);
 				else 
-					itemData->PSVariables.Remove(el.Name);
+					itemData->PSVariables.Remove(el->Name);
 			}
 
 			ImGui::PopStyleColor();
@@ -528,15 +528,15 @@ namespace ed
 			// cant have two variables with same name
 			bool exists = false;
 			for (auto el : els)
-				if (strcmp(el.Name, iVariable.Name) == 0)
+				if (strcmp(el->Name, iVariable.Name) == 0)
 					exists = true;
 
 			// add if it doesnt exist
 			if (!exists) {
 				if (m_isVarManagerForVS)
-					itemData->VSVariables.Add(iVariable);
+					itemData->VSVariables.AddCopy(iVariable);
 				else
-					itemData->PSVariables.Add(iVariable);
+					itemData->PSVariables.AddCopy(iVariable);
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
 				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;

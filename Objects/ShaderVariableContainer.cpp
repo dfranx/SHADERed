@@ -16,20 +16,39 @@ namespace ed
 	ShaderVariableContainer::~ShaderVariableContainer()
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
-			free(m_vars[i].Data);
-			if (m_vars[i].Arguments != nullptr)
-				free(m_vars[i].Arguments);
-			m_vars[i].Arguments = nullptr;
+			free(m_vars[i]->Data);
+			if (m_vars[i]->Arguments != nullptr)
+				free(m_vars[i]->Arguments);
+			m_vars[i]->Arguments = nullptr;
+			delete m_vars[i];
 		}
 		for (int i = 0; i < CONSTANT_BUFFER_SLOTS; i++)
 			m_cb[i].Release();
 		free(m_dataBlock);
 	}
+	void ShaderVariableContainer::AddCopy(ShaderVariable var)
+	{
+		ShaderVariable* n = new ShaderVariable(var);
+		m_vars.push_back(n);
+	}
+	void ShaderVariableContainer::Remove(const char* name)
+	{
+		for (int i = 0; i < m_vars.size(); i++)
+			if (strcmp(m_vars[i]->Name, name) == 0) {
+				free(m_vars[i]->Data);
+				if (m_vars[i]->Arguments != nullptr)
+					free(m_vars[i]->Arguments);
+				m_vars[i]->Arguments = nullptr;
+				delete m_vars[i];
+				m_vars.erase(m_vars.begin() + i);
+				break;
+			}
+	}
 	void ShaderVariableContainer::UpdateBuffers(ml::Window* wnd)
 	{
 		int usedSize[CONSTANT_BUFFER_SLOTS] = { 0 };
 		for (auto var : m_vars)
-			usedSize[var.Slot] += ed::ShaderVariable::GetSize(var.GetType());
+			usedSize[var->Slot] += ed::ShaderVariable::GetSize(var->GetType());
 
 		char* data = m_updateData();
 		
@@ -66,26 +85,26 @@ namespace ed
 		std::vector<int> slots;
 		for (int i = 0; i < m_vars.size(); i++) {
 			auto cnt = std::count_if(slots.begin(), slots.end(), [=](auto a) {
-				return a == m_vars[i].Slot;
+				return a == m_vars[i]->Slot;
 			});
 
 			if (cnt == 0)
-				slots.push_back(m_vars[i].Slot);
+				slots.push_back(m_vars[i]->Slot);
 		}
 		std::sort(slots.begin(), slots.end());
 
 		char* data = m_dataBlock;
 		while (slots.size() != 0) {
 			for (int i = 0; i < m_vars.size(); i++) {
-				if (m_vars[i].Slot != slots[0])
+				if (m_vars[i]->Slot != slots[0])
 					continue;
 				
 				// update the variable (only if needed)
 				SystemVariableManager::Instance().Update(m_vars[i]);
 				FunctionVariableManager::Update(m_vars[i]);
 
-				int curSize = ShaderVariable::GetSize(m_vars[i].GetType());
-				memcpy(data, m_vars[i].Data, curSize);
+				int curSize = ShaderVariable::GetSize(m_vars[i]->GetType());
+				memcpy(data, m_vars[i]->Data, curSize);
 				data += curSize;
 			}
 			slots.erase(slots.begin() + 0);
@@ -97,7 +116,7 @@ namespace ed
 	size_t ShaderVariableContainer::m_getDataSize()
 	{
 		size_t ret = 0;
-		for (auto var : m_vars) ret += ShaderVariable::GetSize(var.GetType());
+		for (auto var : m_vars) ret += ShaderVariable::GetSize(var->GetType());
 		return ret;
 	}
 }

@@ -2,6 +2,7 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 matVP;
 	float4x4 matGeo;
+	float alpha;
 };
 
 struct VSInput
@@ -21,8 +22,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 
 	vout.Position = mul(mul(float4(vin.Position, 1.0f), matGeo), matVP);
-	vout.Color = abs(float4(vin.Normal, 1.0f));
-
+	vout.Color = abs(float4(vin.Normal, alpha));
 
 	return vout;
 }

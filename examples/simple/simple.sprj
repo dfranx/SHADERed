@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>..\..\template\vertex.hlsl</path>
+				<path>vertex.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>..\..\template\pixel.hlsl</path>
+				<path>pixel.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>

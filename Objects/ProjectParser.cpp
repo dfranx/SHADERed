@@ -4,6 +4,7 @@
 #include "FunctionVariableManager.h"
 #include "Names.h"
 
+#include "../UI/PinnedUI.h"
 #include "../UI/PropertyUI.h"
 #include "../UI/CodeEditorUI.h"
 
@@ -122,7 +123,7 @@ namespace ed
 							func = FunctionShaderVariable::None;
 					}
 
-					ShaderVariable var(type, variableNode.attribute("name").as_string(), system, slot);
+					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system, slot);
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 					// parse value
@@ -132,14 +133,14 @@ namespace ed
 							int colID = 0;
 							for (pugi::xml_node value : row.children("value")) {
 								if (func != FunctionShaderVariable::None)
-									*FunctionVariableManager::LoadFloat(var.Arguments, colID++) = value.text().as_float();
+									*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
 								else {
 									if (type >= ShaderVariable::ValueType::Boolean1 && type <= ShaderVariable::ValueType::Boolean4)
-										var.SetBooleanValue(value.text().as_bool(), colID++);
+										var->SetBooleanValue(value.text().as_bool(), colID++);
 									else if (type >= ShaderVariable::ValueType::Integer1 && type <= ShaderVariable::ValueType::Integer4)
-										var.SetIntegerValue(value.text().as_int(), colID++);
+										var->SetIntegerValue(value.text().as_int(), colID++);
 									else
-										var.SetFloat(value.text().as_float(), colID++, rowID);
+										var->SetFloat(value.text().as_float(), colID++, rowID);
 								}
 
 							}
@@ -282,6 +283,30 @@ namespace ed
 							editor->OpenPS(*item);
 					}
 				}
+				else if (type == "pinned") {
+					PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
+					if (!settingItem.attribute("name").empty()) {
+						auto item = settingItem.attribute("name").as_string();
+						auto shaderType = settingItem.attribute("from").as_string();
+						auto owner = (pipe::ShaderPass*)m_pipe->Get(settingItem.attribute("owner").as_string())->Data;
+
+						if (strcmp(shaderType, "vs") == 0) {
+							auto vars = owner->VSVariables.GetVariables();
+							for (auto var : vars)
+								if (strcmp(var->Name, item) == 0) {
+									pinned->Add(var);
+									break;
+								}
+						} else {
+							auto vars = owner->PSVariables.GetVariables();
+							for (auto var : vars)
+								if (strcmp(var->Name, item) == 0) {
+									pinned->Add(var);
+									break;
+								}
+						}
+					}
+				}
 				else if (type == "camera") {
 					SystemVariableManager::Instance().GetCamera().Reset();
 					SystemVariableManager::Instance().GetCamera().SetDistance(std::stof(settingItem.child("distance").text().get()));
@@ -407,6 +432,7 @@ namespace ed
 
 		// settings
 		{
+			// property ui
 			PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
 			if (props->HasItemSelected()) {
 				std::string name = props->CurrentItemName();
@@ -416,6 +442,7 @@ namespace ed
 				propNode.append_attribute("name").set_value(name.c_str());
 			}
 
+			// code editor ui
 			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 			std::vector<std::pair<std::string, bool>> files = editor->GetOpenedFiles();
 			for (const auto& file : files) {
@@ -423,6 +450,42 @@ namespace ed
 				fileNode.append_attribute("type").set_value("file");
 				fileNode.append_attribute("name").set_value(file.first.c_str());
 				fileNode.append_attribute("shader").set_value(file.second ? "vs" : "ps");
+			}
+
+			// pinned ui
+			PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
+			auto pinnedVars = pinned->GetAll();
+			for (auto var : pinnedVars) {
+				pugi::xml_node varNode = settingsNode.append_child("entry");
+				varNode.append_attribute("type").set_value("pinned");
+				varNode.append_attribute("name").set_value(var->Name);
+
+				for (PipelineItem* passItem : passItems) {
+					auto data = (pipe::ShaderPass*)passItem->Data;
+					bool found = false;
+
+					auto vsVars = data->VSVariables.GetVariables();
+					for (int i = 0; i < vsVars.size(); i++) {
+						if (vsVars[i] == var) {
+							varNode.append_attribute("from").set_value("vs");
+							varNode.append_attribute("owner").set_value(passItem->Name);
+							found = true;
+						}
+					}
+
+					if (!found) {
+						auto psVars = data->PSVariables.GetVariables();
+						for (int i = 0; i < psVars.size(); i++) {
+							if (psVars[i] == var) {
+								varNode.append_attribute("from").set_value("ps");
+								varNode.append_attribute("owner").set_value(passItem->Name);
+								found = true;
+							}
+						}
+					} 
+					
+					if (found) break;
+				}
 			}
 
 			// camera settings
@@ -476,36 +539,36 @@ namespace ed
 		m_projectPath = currentPath;
 	}
 
-	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars)
+	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars)
 	{
 		if (vars.size() > 0) {
 			pugi::xml_node varsNodes = node.append_child("variables");
-			for (ShaderVariable var : vars) {
+			for (auto var : vars) {
 				pugi::xml_node varNode = varsNodes.append_child("variable");
-				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var.GetType()]);
-				varNode.append_attribute("name").set_value(var.Name);
+				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var->GetType()]);
+				varNode.append_attribute("name").set_value(var->Name);
 
-				if (var.System != SystemShaderVariable::None)
-					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var.System]);
-				else if (var.Function != FunctionShaderVariable::None)
-					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var.Function]);
+				if (var->System != SystemShaderVariable::None)
+					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var->System]);
+				else if (var->Function != FunctionShaderVariable::None)
+					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var->Function]);
 
-				varNode.append_attribute("slot").set_value(var.Slot);
+				varNode.append_attribute("slot").set_value(var->Slot);
 
-				if (var.System == SystemShaderVariable::None) {
+				if (var->System == SystemShaderVariable::None) {
 					pugi::xml_node valueRowNode = varNode.append_child("row");
 
-					if (var.Function == FunctionShaderVariable::None) {
+					if (var->Function == FunctionShaderVariable::None) {
 						int rowID = 0;
-						for (int i = 0; i < ShaderVariable::GetSize(var.GetType()) / 4; i++) {
-							if (var.GetType() >= ShaderVariable::ValueType::Boolean1 && var.GetType() <= ShaderVariable::ValueType::Boolean4)
-								valueRowNode.append_child("value").text().set(var.AsBoolean(i));
-							else if (var.GetType() >= ShaderVariable::ValueType::Integer1 && var.GetType() <= ShaderVariable::ValueType::Integer4)
-								valueRowNode.append_child("value").text().set(var.AsInteger(i));
+						for (int i = 0; i < ShaderVariable::GetSize(var->GetType()) / 4; i++) {
+							if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
+								valueRowNode.append_child("value").text().set(var->AsBoolean(i));
+							else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
+								valueRowNode.append_child("value").text().set(var->AsInteger(i));
 							else
-								valueRowNode.append_child("value").text().set(var.AsFloat(i%var.GetColumnCount(), rowID));
+								valueRowNode.append_child("value").text().set(var->AsFloat(i%var->GetColumnCount(), rowID));
 
-							if (i%var.GetColumnCount() == 0 && i != 0) {
+							if (i%var->GetColumnCount() == 0 && i != 0) {
 								valueRowNode = varNode.append_child("row");
 								rowID++;
 							}
@@ -513,8 +576,8 @@ namespace ed
 					}
 					else {
 						// save arguments
-						for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var.Function); i++) {
-							valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var.Arguments, i));
+						for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
+							valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
 						}
 					}
 				}

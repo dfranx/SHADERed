@@ -33,7 +33,7 @@ namespace ed
 			return ed::ShaderVariable::ValueType::Float1;
 		}
 
-		void Update(ed::ShaderVariable& var);
+		void Update(ed::ShaderVariable* var);
 
 		inline Camera& GetCamera() { return m_cam; }
 		inline DirectX::XMMATRIX GetViewMatrix() { return m_cam.GetMatrix(); }

@@ -10,6 +10,7 @@
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
 #include "UI/PinnedUI.h"
+#include "UI/UIHelper.h"
 #include "Objects/Names.h"
 
 #include <Windows.h>
@@ -101,12 +102,19 @@ namespace ed
 				if (ImGui::MenuItem("New")) {
 					m_data->Renderer.FlushCache();
 					((CodeEditorUI*)Get("Code"))->CloseAll();
+					((PinnedUI*)Get("Pinned"))->CloseAll();
 					m_data->Pipeline.New();
 				}
 				if (ImGui::MenuItem("Open")) {
 					m_data->Renderer.FlushCache();
-					((CodeEditorUI*)Get("Code"))->CloseAll();
-					m_openProject();
+					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"HLSLed Project\0*.sprj\0");
+
+					if (file.size() > 0) {
+						((CodeEditorUI*)Get("Code"))->CloseAll();
+						((PinnedUI*)Get("Pinned"))->CloseAll();
+
+						m_data->Parser.Open(file);
+					}
 				}
 				if (ImGui::MenuItem("Save")) {
 					if (m_data->Parser.GetOpenedFile() == "")
@@ -270,27 +278,6 @@ namespace ed
 			case ml::EventType::TextEnter:
 				io.AddInputCharacter(e.TextCode);
 			break;
-		}
-	}
-	void GUIManager::m_openProject()
-	{
-		OPENFILENAME dialog;
-		TCHAR filePath[MAX_PATH] = { 0 };
-
-		ZeroMemory(&dialog, sizeof(dialog));
-		dialog.lStructSize = sizeof(dialog);
-		dialog.hwndOwner = 0;
-		dialog.lpstrFile = filePath;
-		dialog.nMaxFile = sizeof(filePath);
-		dialog.lpstrFilter = L"HLSLed Project\0*.sprj\0";
-		dialog.nFilterIndex = 0;
-		dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-		
-		if (GetOpenFileName(&dialog) == TRUE) {
-			std::wstring wfile = std::wstring(filePath);
-			std::string file(wfile.begin(), wfile.end());
-
-			m_data->Parser.Open(file);
 		}
 	}
 	void GUIManager::m_saveAsProject()

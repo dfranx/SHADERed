@@ -32,7 +32,7 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 
 	private:
-		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars);
+		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars);
 		D3D11_BLEND m_toBlend(const char* str);
 		D3D11_BLEND_OP m_toBlendOp(const char* str);
 

@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>..\..\template\vertex.hlsl</path>
+				<path>.\vertex.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -12,10 +12,15 @@
 				<variables>
 					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
 					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+					<variable type="float" name="alpha" slot="0">
+						<row>
+							<value>0.472000003</value>
+						</row>
+					</variable>
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>..\..\template\pixel.hlsl</path>
+				<path>.\pixel.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -49,11 +54,12 @@
 		<entry type="property" name="Light" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
+		<entry type="pinned" name="alpha" from="vs" owner="Light" />
 		<entry type="camera">
-			<distance>6</distance>
-			<rotationX>93</rotationX>
-			<rotationY>26</rotationY>
-			<rotationZ>0</rotationZ>
+			<distance>5</distance>
+			<rotationX>195</rotationX>
+			<rotationY>21</rotationY>
+			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>
 </project>
