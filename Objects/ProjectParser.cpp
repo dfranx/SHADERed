@@ -43,10 +43,10 @@ namespace ed
 			// get pass name
 			if (!passNode.attribute("name").empty())
 				strcpy(name, passNode.attribute("name").as_string());
-			
+
 			// add the item
 			m_pipe->AddPass(name, data);
-			
+
 			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY 
 			for (pugi::xml_node shaderNode : passNode.children("shader")) {
 				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps"
@@ -154,14 +154,15 @@ namespace ed
 				}
 			}
 
-
+			// parse items
 			for (pugi::xml_node itemNode : passNode.child("items").children()) {
 				char itemName[PIPELINE_ITEM_NAME_LENGTH];
 				ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
 				void* itemData = nullptr;
-				
+
 				strcpy(itemName, itemNode.attribute("name").as_string());
 
+				// parse the inner content of the item
 				if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
 					itemType = ed::PipelineItem::ItemType::Geometry;
 					itemData = new pipe::GeometryItem;
@@ -204,11 +205,54 @@ namespace ed
 						}
 					}
 				}
+				else if (strcmp(itemNode.attribute("type").as_string(), "blend") == 0) {
+					itemType = ed::PipelineItem::ItemType::BlendState;
+					itemData = new pipe::BlendState;
 
+					pipe::BlendState* tData = (pipe::BlendState*)itemData;
+					D3D11_RENDER_TARGET_BLEND_DESC* bDesc = &tData->State.Info.RenderTarget[0];
+					ml::Color blendFactor(0, 0, 0, 0);
+
+					bDesc->BlendEnable = true;
+					tData->State.Info.IndependentBlendEnable = false;
+
+					for (pugi::xml_node attrNode : itemNode.children()) {
+						if (strcmp(attrNode.name(), "srcblend") == 0)
+							bDesc->SrcBlend = m_toBlend(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "blendop") == 0)
+							bDesc->BlendOp = m_toBlendOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "destblend") == 0)
+							bDesc->DestBlend = m_toBlend(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "srcblendalpha") == 0)
+							bDesc->SrcBlendAlpha = m_toBlend(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "alphablendop") == 0)
+							bDesc->BlendOpAlpha = m_toBlendOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "destblendalpha") == 0)
+							bDesc->DestBlendAlpha = m_toBlend(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "alpha2cov") == 0)
+							tData->State.Info.AlphaToCoverageEnable = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "bf_red") == 0)
+							blendFactor.R = attrNode.text().as_uint();
+						else if (strcmp(attrNode.name(), "bf_green") == 0)
+							blendFactor.G = attrNode.text().as_uint();
+						else if (strcmp(attrNode.name(), "bf_blue") == 0)
+							blendFactor.B = attrNode.text().as_uint();
+						else if (strcmp(attrNode.name(), "bf_alpha") == 0)
+							blendFactor.A = attrNode.text().as_uint();
+					}
+
+					tData->State.SetBlendFactor(blendFactor);
+				}
+
+				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
 					if (tData->Type == pipe::GeometryItem::Cube)
 						tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
+				}
+				else if (itemType == ed::PipelineItem::ItemType::BlendState) {
+					ed::pipe::BlendState* tData = reinterpret_cast<ed::pipe::BlendState*>(itemData);
+					tData->State.Create(*m_pipe->GetOwner());
 				}
 
 				m_pipe->AddItem(name, itemName, itemType, itemData);
@@ -225,18 +269,20 @@ namespace ed
 						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
 						props->Open(item);
 					}
-				} else if (type == "file") {
+				}
+				else if (type == "file") {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 					if (!settingItem.attribute("name").empty()) {
 						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
 						auto shaderType = settingItem.attribute("shader").as_string();
-						
+
 						if (strcmp(shaderType, "vs") == 0)
 							editor->OpenVS(*item);
 						else
 							editor->OpenPS(*item);
 					}
-				} else if (type == "camera") {
+				}
+				else if (type == "camera") {
 					SystemVariableManager::Instance().GetCamera().Reset();
 					SystemVariableManager::Instance().GetCamera().SetDistance(std::stof(settingItem.child("distance").text().get()));
 					SystemVariableManager::Instance().GetCamera().RotateX(std::stof(settingItem.child("rotationX").text().get()));
@@ -278,7 +324,7 @@ namespace ed
 
 			pugi::xml_node passNode = pipelineNode.append_child("pass");
 			passNode.append_attribute("name").set_value(passItem->Name);
-			
+
 			// vertex shader
 			pugi::xml_node vsNode = passNode.append_child("shader");
 			std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->VSPath));
@@ -287,7 +333,7 @@ namespace ed
 			vsNode.append_child("path").text().set(relativePath.c_str());
 			vsNode.append_child("entry").text().set(passData->VSEntry);
 
-			
+
 			pugi::xml_node layoutNode = vsNode.append_child("input");
 			std::vector<D3D11_INPUT_ELEMENT_DESC> layoutItems = passData->VSInputLayout.GetInputElements();
 			for (D3D11_INPUT_ELEMENT_DESC layoutItem : layoutItems) { // input layout
@@ -337,6 +383,25 @@ namespace ed
 					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
 					itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
 				}
+				else if (item->Type == PipelineItem::ItemType::BlendState) {
+					itemNode.append_attribute("type").set_value("blend");
+
+					ed::pipe::BlendState* tData = reinterpret_cast<ed::pipe::BlendState*>(item->Data);
+					D3D11_RENDER_TARGET_BLEND_DESC* bDesc = &tData->State.Info.RenderTarget[0];
+					ml::Color blendFactor = tData->State.GetBlendFactor();
+
+					itemNode.append_child("srcblend").text().set(BLEND_NAME[bDesc->SrcBlend]);
+					itemNode.append_child("blendop").text().set(BLEND_OPERATOR[bDesc->BlendOp]);
+					itemNode.append_child("destblend").text().set(BLEND_NAME[bDesc->DestBlend]);
+					itemNode.append_child("srcblendalpha").text().set(BLEND_NAME[bDesc->SrcBlendAlpha]);
+					itemNode.append_child("alphablendop").text().set(BLEND_OPERATOR[bDesc->BlendOpAlpha]);
+					itemNode.append_child("destblendalpha").text().set(BLEND_NAME[bDesc->DestBlendAlpha]);
+					itemNode.append_child("alpha2cov").text().set(tData->State.Info.AlphaToCoverageEnable);
+					if (blendFactor.R != 0) itemNode.append_child("bf_red").text().set(blendFactor.R);
+					if (blendFactor.G != 0) itemNode.append_child("bf_green").text().set(blendFactor.G);
+					if (blendFactor.B != 0) itemNode.append_child("bf_blue").text().set(blendFactor.B);
+					if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor.A);
+				}
 			}
 		}
 
@@ -379,7 +444,7 @@ namespace ed
 	}
 	std::string ProjectParser::LoadProjectFile(const std::string & file)
 	{
-		std::ifstream in(m_projectPath + ((m_projectPath[m_projectPath.size()-1] == '\\') ? "" : "\\") + file);
+		std::ifstream in(m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + file);
 		if (in.is_open()) {
 			std::string content((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
 			in.close();
@@ -403,6 +468,14 @@ namespace ed
 			FILE_ATTRIBUTE_NORMAL);
 		return std::string(relativePath);
 	}
+	void ProjectParser::ResetProjectDirectory()
+	{
+		m_file = "";
+		char currentPath[FILENAME_MAX] = { 0 };
+		_getcwd(currentPath, FILENAME_MAX);
+		m_projectPath = currentPath;
+	}
+
 	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars)
 	{
 		if (vars.size() > 0) {
@@ -448,11 +521,18 @@ namespace ed
 			}
 		}
 	}
-	void ProjectParser::ResetProjectDirectory()
+	D3D11_BLEND ProjectParser::m_toBlend(const char* text)
 	{
-		m_file = "";
-		char currentPath[FILENAME_MAX] = { 0 };
-		_getcwd(currentPath, FILENAME_MAX);
-		m_projectPath = currentPath;
+		for (int k = 0; k < _ARRAYSIZE(BLEND_NAME); k++)
+			if (strcmp(text, BLEND_NAME[k]) == 0)
+				return (D3D11_BLEND)k;
+		return D3D11_BLEND_BLEND_FACTOR;
+	}
+	D3D11_BLEND_OP ProjectParser::m_toBlendOp(const char* text)
+	{
+		for (int k = 0; k < _ARRAYSIZE(BLEND_OPERATOR); k++)
+			if (strcmp(text, BLEND_OPERATOR[k]) == 0)
+				return (D3D11_BLEND_OP)k;
+		return D3D11_BLEND_OP_ADD;
 	}
 }

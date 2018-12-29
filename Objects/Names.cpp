@@ -202,3 +202,33 @@ const char* PIPELINE_ITEM_NAMES[] =
 	"Shader Pass",
 	"Geometry"
 };
+
+const char* BLEND_NAME[] = {
+	"",
+	"Zero",
+	"One",
+	"Source Color",
+	"Inverse Source Color",
+	"Source Alpha",
+	"Inverse Source Alpha",
+	"Destination Alpha",
+	"Inverse Destination Alpha",
+	"Destination Color",
+	"Inverse Destination Color",
+	"Saturated Source Alpha",  // 11
+	"", "",
+	"Blend Factor",
+	"Inverse Blend Factor",
+	"Source 1 Color",
+	"Inverse Source 1 Color",
+	"Source 1 Alpha",
+	"Inverse Source 1 Alpha"
+};
+const char* BLEND_OPERATOR[] = {
+	"",
+	"Add",
+	"Subtract",
+	"Reverse Subtract",
+	"Min",
+	"Max"
+};

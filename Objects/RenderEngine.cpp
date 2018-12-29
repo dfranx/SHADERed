@@ -1,4 +1,5 @@
 #include "RenderEngine.h"
+#include "DefaultState.h"
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include <MoonLight/Base/PixelShader.h>
@@ -64,6 +65,9 @@ namespace ed
 			m_vs[i]->Bind();
 			m_ps[i]->Bind();
 
+			// bind default states for each shader pass
+			DefaultState::Instance().Bind();
+
 			// render pipeline items
 			for (int j = 0; j < data->Items.size(); j++) {
 				auto item = data->Items[j];
@@ -77,6 +81,9 @@ namespace ed
 
 					m_wnd->SetTopology(geoData->Topology);
 					geoData->Geometry.Draw();
+				} else if (item->Type == PipelineItem::ItemType::BlendState) {
+					ed::pipe::BlendState* blend = reinterpret_cast<ed::pipe::BlendState*>(item->Data);
+					blend->State.Bind();
 				}
 			}
 		}

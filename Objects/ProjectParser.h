@@ -33,6 +33,8 @@ namespace ed
 
 	private:
 		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable>& vars);
+		D3D11_BLEND m_toBlend(const char* str);
+		D3D11_BLEND_OP m_toBlendOp(const char* str);
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;

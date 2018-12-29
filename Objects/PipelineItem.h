@@ -1,6 +1,7 @@
 #pragma once
 #include <MoonLight/Base/Geometry.h>
 #include <MoonLight/Base/Topology.h>
+#include <MoonLight/Base/BlendState.h>
 #include <MoonLight/Base/VertexShader.h>
 #include <MoonLight/Base/VertexInputLayout.h>
 #include <string>
@@ -15,6 +16,7 @@ namespace ed
 		{
 			ShaderPass,
 			Geometry,
+			BlendState,
 			/*	Model
 				... */
 			Count
@@ -27,6 +29,11 @@ namespace ed
 
 	namespace pipe
 	{
+		struct BlendState
+		{
+			ml::BlendState State;
+		};
+
 		struct ShaderPass
 		{
 			char VSPath[512];

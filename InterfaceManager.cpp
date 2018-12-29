@@ -1,5 +1,6 @@
 #include "InterfaceManager.h"
 #include "GUIManager.h"
+#include "Objects/DefaultState.h"
 
 namespace ed
 {
@@ -10,6 +11,8 @@ namespace ed
 	{
 		m_ui = gui;
 		m_wnd = wnd;
+
+		DefaultState::Instance().Create(*wnd);
 	}
 	void InterfaceManager::OnEvent(const ml::Event & e)
 	{}

@@ -8,3 +8,5 @@ extern const char* VARIABLE_TYPE_NAMES[15];
 extern const char* FUNCTION_NAMES[20];
 extern const char* GEOMETRY_NAMES[1];
 extern const char* PIPELINE_ITEM_NAMES[2];
+extern const char* BLEND_NAME[20];
+extern const char* BLEND_OPERATOR[6];

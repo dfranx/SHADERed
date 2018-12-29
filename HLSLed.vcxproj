@@ -166,6 +166,7 @@
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="Objects\Camera.cpp" />
+    <ClCompile Include="Objects\DefaultState.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
     <ClCompile Include="Objects\MessageStack.cpp" />
     <ClCompile Include="Objects\Names.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
     <ClInclude Include="Objects\Camera.h" />
+    <ClInclude Include="Objects\DefaultState.h" />
     <ClInclude Include="Objects\FunctionVariableManager.h" />
     <ClInclude Include="Objects\MessageStack.h" />
     <ClInclude Include="Objects\Names.h" />

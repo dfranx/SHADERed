@@ -20,6 +20,9 @@ namespace ed
 		bool Create();
 
 	private:
+		void m_displayBlendOpCombo(const char* name, D3D11_BLEND_OP& op);
+		void m_displayBlendCombo(const char* name, D3D11_BLEND& blend);
+
 		char m_owner[PIPELINE_ITEM_NAME_LENGTH];
 		PipelineItem m_item;
 	};

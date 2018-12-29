@@ -155,6 +155,80 @@ namespace ed
 				ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, _ARRAYSIZE(TOPOLOGY_ITEM_NAMES));
 				ImGui::PopItemWidth();
 			}
+			else if (m_current->Type == PipelineItem::ItemType::BlendState) {
+				pipe::BlendState* data = (pipe::BlendState*)m_current->Data;
+				D3D11_BLEND_DESC* desc = &data->State.Info;
+				bool changed = false;
+
+				// alpha to coverage
+				ImGui::Text("Alpha to coverage:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_alphacov", (bool*)(&desc->AlphaToCoverageEnable))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// source blend factor
+				ImGui::Text("Source blend factor:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// operator
+				ImGui::Text("Blend operator:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// destination blend factor
+				ImGui::Text("Destination blend factor:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// source alpha blend factor
+				ImGui::Text("Source alpha blend factor:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// operator
+				ImGui::Text("Blend operator:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// destination alpha blend factor
+				ImGui::Text("Destination blend factor:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::DisplayBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				// blend factor
+				ml::Color blendFactor = data->State.GetBlendFactor();
+				ImGui::Text("Custom blend factor:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				UIHelper::CreateInputColor("##cui_blendfactor", blendFactor);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				data->State.SetBlendFactor(blendFactor);
+
+				if (changed)
+					data->State.Create(*m_data->GetOwner());
+			}
 
 			ImGui::NextColumn();
 			ImGui::Separator();

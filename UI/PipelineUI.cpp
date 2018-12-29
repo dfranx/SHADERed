@@ -167,6 +167,10 @@ namespace ed
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::Geometry);
+					} else if (ImGui::MenuItem("Blend State")) {
+						m_isCreateViewOpened = true;
+						m_createUI.SetOwner(items[index]->Name);
+						m_createUI.SetType(PipelineItem::ItemType::BlendState);
 					}
 
 					ImGui::EndMenu();
