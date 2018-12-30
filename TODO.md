@@ -1,4 +1,4 @@
-- [ ] various states + Mesh -> Rasterizer State, Depth-Stencil State, etc... + defaults
+- [ ] Mesh + more geometry types
 - [ ] renderable objects -> right click -> "variables" item -> "vertex/pixel shader" items -> choose which variable to temporarily change when rendering this item
 - [ ] textures & ObjectManager
 - [ ] movable geometry (left click)

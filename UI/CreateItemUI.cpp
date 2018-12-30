@@ -240,7 +240,76 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 		}
+		else if (m_item.Type == PipelineItem::ItemType::RasterizerState) {
+			pipe::RasterizerState* data = (pipe::RasterizerState*)m_item.Data;
+			D3D11_RASTERIZER_DESC* desc = &data->State.Info;
 
+			// enable/disable wireframe rendering
+			bool isWireframe = desc->FillMode == D3D11_FILL_WIREFRAME;
+			ImGui::Text("Wireframe:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+			desc->FillMode = isWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+
+			// cull mode
+			ImGui::Text("Cull mode:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateCullModeCombo("##cui_cull", desc->CullMode);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face == counter clockwise order
+			ImGui::Text("Counter clockwise:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_ccw", (bool*)(&desc->FrontCounterClockwise));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// depth bias
+			ImGui::Text("Depth bias:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragInt("##cui_depthbias", &desc->DepthBias);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// depth bias clamp
+			ImGui::Text("Depth bias clamp:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##cui_depthbiasclamp", &desc->DepthBiasClamp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// slope scaled depth bias
+			ImGui::Text("Slope scaled depth bias:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##cui_slopebias", &desc->SlopeScaledDepthBias);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// depth clip
+			ImGui::Text("Depth clip:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_depthclip", (bool*)(&desc->DepthClipEnable));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// antialiasing
+			ImGui::Text("Antialiasing:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_aa", (bool*)(&desc->AntialiasedLineEnable));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+		}
 
 		ImGui::Columns();
 	}
@@ -277,6 +346,8 @@ namespace ed
 			allocatedData->State.Info.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 			m_item.Data = allocatedData;
 		}
+		else if (m_item.Type == PipelineItem::ItemType::RasterizerState)
+			m_item.Data = new pipe::RasterizerState();
 	}
 	bool CreateItemUI::Create()
 	{
@@ -325,6 +396,15 @@ namespace ed
 
 				data->State.Info = origData->State.Info;
 				data->StencilReference = origData->StencilReference;
+				data->State.Create(*m_data->GetOwner());
+
+				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+			}
+			else if (m_item.Type == PipelineItem::ItemType::RasterizerState) {
+				pipe::RasterizerState* data = new pipe::RasterizerState();
+				pipe::RasterizerState* origData = (pipe::RasterizerState*)m_item.Data;
+
+				data->State.Info = origData->State.Info;
 				data->State.Create(*m_data->GetOwner());
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);

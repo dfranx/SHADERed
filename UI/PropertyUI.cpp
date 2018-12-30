@@ -349,6 +349,94 @@ namespace ed
 				if (changed)
 					data->State.Create(*m_data->GetOwner());
 			}
+			else if (m_current->Type == PipelineItem::ItemType::RasterizerState) {
+				pipe::RasterizerState* data = (pipe::RasterizerState*)m_current->Data;
+				D3D11_RASTERIZER_DESC* desc = &data->State.Info;
+				bool changed = false;
+
+				// enable/disable wireframe rendering
+				bool isWireframe = desc->FillMode == D3D11_FILL_WIREFRAME;
+				ImGui::Text("Wireframe:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				desc->FillMode = isWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+
+				ImGui::Separator();
+
+				// cull mode
+				ImGui::Text("Cull mode:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateCullModeCombo("##cui_cull", desc->CullMode)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// front face == counter clockwise order
+				ImGui::Text("Counter clockwise:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_ccw", (bool*)(&desc->FrontCounterClockwise))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// depth bias
+				ImGui::Text("Depth bias:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragInt("##cui_depthbias", &desc->DepthBias)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// depth bias clamp
+				ImGui::Text("Depth bias clamp:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragFloat("##cui_depthbiasclamp", &desc->DepthBiasClamp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// slope scaled depth bias
+				ImGui::Text("Slope scaled depth bias:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragFloat("##cui_slopebias", &desc->SlopeScaledDepthBias)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// depth clip
+				ImGui::Text("Depth clip:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_depthclip", (bool*)(&desc->DepthClipEnable))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// antialiasing
+				ImGui::Text("Antialiasing:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_aa", (bool*)(&desc->AntialiasedLineEnable))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				if (changed)
+					data->State.Create(*m_data->GetOwner());
+			}
 
 			ImGui::NextColumn();
 			ImGui::Separator();

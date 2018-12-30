@@ -15,6 +15,7 @@ namespace ed
 		static bool CreateInputColor(const char* name, ml::Color& data);
 		static bool CreateBlendOperatorCombo(const char* name, D3D11_BLEND_OP& op);
 		static bool CreateBlendCombo(const char* name, D3D11_BLEND& blend);
+		static bool CreateCullModeCombo(const char* name, D3D11_CULL_MODE& cull);
 		static bool CreateComparisonFunctionCombo(const char* name, D3D11_COMPARISON_FUNC& comp);
 		static bool CreateStencilOperationCombo(const char* name, D3D11_STENCIL_OP& op);
 	};

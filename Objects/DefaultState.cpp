@@ -19,10 +19,12 @@ namespace ed
 		Blend.Create(wnd);
 
 		DepthStencil.Create(wnd);
+		Rasterizer.Create(wnd);
 	}
 	void DefaultState::Bind()
 	{
 		Blend.Bind();
 		DepthStencil.Bind();
+		Rasterizer.Bind();
 	}
 }

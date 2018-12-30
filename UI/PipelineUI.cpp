@@ -178,6 +178,11 @@ namespace ed
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::DepthStencilState);
 					}
+					else if (ImGui::MenuItem("Rasterizer State")) {
+						m_isCreateViewOpened = true;
+						m_createUI.SetOwner(items[index]->Name);
+						m_createUI.SetType(PipelineItem::ItemType::RasterizerState);
+					}
 
 					ImGui::EndMenu();
 				}

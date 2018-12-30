@@ -3,6 +3,7 @@
 #include <MoonLight/Base/Topology.h>
 #include <MoonLight/Base/BlendState.h>
 #include <MoonLight/Base/VertexShader.h>
+#include <MoonLight/Base/RasterizerState.h>
 #include <MoonLight/Base/VertexInputLayout.h>
 #include <MoonLight/Base/DepthStencilState.h>
 #include <string>
@@ -19,6 +20,7 @@ namespace ed
 			Geometry,
 			BlendState,
 			DepthStencilState,
+			RasterizerState,
 			/*	Model
 				... */
 			Count
@@ -72,6 +74,11 @@ namespace ed
 		{
 			ml::DepthStencilState State;
 			ml::UInt32 StencilReference;
+		};
+
+		struct RasterizerState
+		{
+			ml::RasterizerState State;
 		};
 	}
 }

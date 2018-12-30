@@ -276,6 +276,32 @@ namespace ed
 							tData->StencilReference = attrNode.text().as_uint();
 					}
 				}
+				else if (strcmp(itemNode.attribute("type").as_string(), "rasterizer") == 0) {
+					itemType = ed::PipelineItem::ItemType::RasterizerState;
+					itemData = new pipe::RasterizerState;
+
+					pipe::RasterizerState* tData = (pipe::RasterizerState*)itemData;
+					D3D11_RASTERIZER_DESC* rDesc = &tData->State.Info;
+
+					for (pugi::xml_node attrNode : itemNode.children()) {
+						if (strcmp(attrNode.name(), "wireframe") == 0)
+							rDesc->FillMode = attrNode.text().as_bool() ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+						else if (strcmp(attrNode.name(), "cull") == 0)
+							rDesc->CullMode = m_toCullMode(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "ccw") == 0)
+							rDesc->FrontCounterClockwise = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "depthbias") == 0)
+							rDesc->DepthBias = attrNode.text().as_int();
+						else if (strcmp(attrNode.name(), "depthbiasclamp") == 0)
+							rDesc->DepthBias = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "slopebias") == 0)
+							rDesc->SlopeScaledDepthBias = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "depthclip") == 0)
+							rDesc->DepthClipEnable = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "aa") == 0)
+							rDesc->AntialiasedLineEnable = attrNode.text().as_bool();
+					}
+				}
 
 				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
@@ -289,6 +315,10 @@ namespace ed
 				}
 				else if (itemType == ed::PipelineItem::ItemType::DepthStencilState) {
 					ed::pipe::DepthStencilState* tData = reinterpret_cast<ed::pipe::DepthStencilState*>(itemData);
+					tData->State.Create(*m_pipe->GetOwner());
+				}
+				else if (itemType == ed::PipelineItem::ItemType::RasterizerState) {
+					ed::pipe::RasterizerState* tData = reinterpret_cast<ed::pipe::RasterizerState*>(itemData);
 					tData->State.Create(*m_pipe->GetOwner());
 				}
 
@@ -480,6 +510,21 @@ namespace ed
 					itemNode.append_child("backfail").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilFailOp]);
 					if (tData->StencilReference != 0) itemNode.append_child("sref").text().set(tData->StencilReference);
 				}
+				else if (item->Type == PipelineItem::ItemType::RasterizerState) {
+					itemNode.append_attribute("type").set_value("rasterizer");
+
+					ed::pipe::RasterizerState* tData = reinterpret_cast<ed::pipe::RasterizerState*>(item->Data);
+					D3D11_RASTERIZER_DESC* bDesc = &tData->State.Info;
+
+					itemNode.append_child("wireframe").text().set(bDesc->FillMode == D3D11_FILL_WIREFRAME);
+					itemNode.append_child("cull").text().set(CULL_MODE_NAMES[bDesc->CullMode]);
+					itemNode.append_child("ccw").text().set(bDesc->FrontCounterClockwise);
+					itemNode.append_child("depthbias").text().set(bDesc->DepthBias);
+					itemNode.append_child("depthbiasclamp").text().set(bDesc->DepthBiasClamp);
+					itemNode.append_child("slopebias").text().set(bDesc->SlopeScaledDepthBias);
+					itemNode.append_child("depthclip").text().set(bDesc->DepthClipEnable);
+					itemNode.append_child("aa").text().set(bDesc->AntialiasedLineEnable);
+				}
 			}
 		}
 
@@ -664,5 +709,12 @@ namespace ed
 			if (strcmp(str, STENCIL_OPERATION_NAMES[k]) == 0)
 				return (D3D11_STENCIL_OP)k;
 		return D3D11_STENCIL_OP_KEEP;
+	}
+	D3D11_CULL_MODE ProjectParser::m_toCullMode(const char* str)
+	{
+		for (int k = 0; k < _ARRAYSIZE(CULL_MODE_NAMES); k++)
+			if (strcmp(str, CULL_MODE_NAMES[k]) == 0)
+				return (D3D11_CULL_MODE)k;
+		return D3D11_CULL_BACK;
 	}
 }

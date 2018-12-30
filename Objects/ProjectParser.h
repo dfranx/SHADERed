@@ -37,6 +37,7 @@ namespace ed
 		D3D11_BLEND_OP m_toBlendOp(const char* str);
 		D3D11_COMPARISON_FUNC m_toComparisonFunc(const char* str);
 		D3D11_STENCIL_OP m_toStencilOp(const char* str);
+		D3D11_CULL_MODE m_toCullMode(const char* str);
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;

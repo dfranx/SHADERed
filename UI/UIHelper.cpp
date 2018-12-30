@@ -92,6 +92,29 @@ namespace ed
 
 		return ret;
 	}
+	bool UIHelper::CreateCullModeCombo(const char * name, D3D11_CULL_MODE& cull)
+	{
+		bool ret = false;
+
+		if (ImGui::BeginCombo(name, CULL_MODE_NAMES[cull])) {
+			for (int i = 0; i < _ARRAYSIZE(CULL_MODE_NAMES); i++) {
+				bool is_selected = ((int)cull == i);
+
+				if (strlen(CULL_MODE_NAMES[i]) > 1)
+					if (ImGui::Selectable(CULL_MODE_NAMES[i], is_selected)) {
+						cull = (D3D11_CULL_MODE)i;
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
 	bool UIHelper::CreateComparisonFunctionCombo(const char * name, D3D11_COMPARISON_FUNC & comp)
 	{
 		bool ret = false;

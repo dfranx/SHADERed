@@ -73,7 +73,7 @@ namespace ed
 				auto item = data->Items[j];
 
 				if (item->Type == PipelineItem::ItemType::Geometry) {
-					ed::pipe::GeometryItem* geoData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
+					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
 
 					SystemVariableManager::Instance().SetGeometryTransform(*geoData);
 					data->VSVariables.UpdateBuffers(m_wnd);
@@ -83,12 +83,16 @@ namespace ed
 					geoData->Geometry.Draw();
 				}
 				else if (item->Type == PipelineItem::ItemType::BlendState) {
-					ed::pipe::BlendState* blend = reinterpret_cast<ed::pipe::BlendState*>(item->Data);
+					pipe::BlendState* blend = reinterpret_cast<pipe::BlendState*>(item->Data);
 					blend->State.Bind();
 				}
 				else if (item->Type == PipelineItem::ItemType::DepthStencilState) {
-					ed::pipe::DepthStencilState* state = reinterpret_cast<ed::pipe::DepthStencilState*>(item->Data);
+					pipe::DepthStencilState* state = reinterpret_cast<pipe::DepthStencilState*>(item->Data);
 					state->State.Bind(state->StencilReference);
+				}
+				else if (item->Type == PipelineItem::ItemType::RasterizerState) {
+					pipe::RasterizerState* state = reinterpret_cast<pipe::RasterizerState*>(item->Data);
+					state->State.Bind();
 				}
 			}
 		}

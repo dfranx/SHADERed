@@ -12,3 +12,4 @@ extern const char* BLEND_NAMES[20];
 extern const char* BLEND_OPERATOR_NAMES[6];
 extern const char* COMPARISON_FUNCTION_NAMES[9];
 extern const char* STENCIL_OPERATION_NAMES[9];
+extern const char* CULL_MODE_NAMES[4];

@@ -254,3 +254,9 @@ const char* STENCIL_OPERATION_NAMES[] = {
 	"Increase",
 	"Decrease"
 };
+const char* CULL_MODE_NAMES[] = {
+	"",
+	"None",
+	"Front",
+	"Back"
+};
