@@ -203,7 +203,7 @@ const char* PIPELINE_ITEM_NAMES[] =
 	"Geometry"
 };
 
-const char* BLEND_NAME[] = {
+const char* BLEND_NAMES[] = {
 	"",
 	"Zero",
 	"One",
@@ -224,11 +224,33 @@ const char* BLEND_NAME[] = {
 	"Source 1 Alpha",
 	"Inverse Source 1 Alpha"
 };
-const char* BLEND_OPERATOR[] = {
+const char* BLEND_OPERATOR_NAMES[] = {
 	"",
 	"Add",
 	"Subtract",
 	"Reverse Subtract",
 	"Min",
 	"Max"
+};
+const char* COMPARISON_FUNCTION_NAMES[] = {
+	"",
+	"Never",
+	"Less",
+	"Equal",
+	"LessEqual",
+	"Greater",
+	"NotEqual",
+	"GreaterEqual",
+	"Always"
+};
+const char* STENCIL_OPERATION_NAMES[] = {
+	"",
+	"Keep",
+	"Zero",
+	"Replace",
+	"Increase Saturated",
+	"Decrease Saturated",
+	"Invert",
+	"Increase",
+	"Decrease"
 };

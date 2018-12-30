@@ -11,8 +11,12 @@ namespace ed
 	}
 	void CreateItemUI::Update(float delta)
 	{
+		int colWidth = 150;
+		if (m_item.Type == PipelineItem::ItemType::DepthStencilState || m_item.Type == PipelineItem::ItemType::BlendState)
+			colWidth = 200;
+
 		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, m_item.Type == PipelineItem::ItemType::BlendState ? 200 : 150);
+		ImGui::SetColumnWidth(0, colWidth);
 
 		ImGui::Text("Name:");
 		ImGui::NextColumn();
@@ -98,7 +102,7 @@ namespace ed
 			ImGui::Text("Source blend factor:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend);
+			UIHelper::CreateBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -106,7 +110,7 @@ namespace ed
 			ImGui::Text("Blend operator:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp);
+			UIHelper::CreateBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -114,7 +118,7 @@ namespace ed
 			ImGui::Text("Destination blend factor:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend);
+			UIHelper::CreateBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -122,7 +126,7 @@ namespace ed
 			ImGui::Text("Source alpha blend factor:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha);
+			UIHelper::CreateBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -130,7 +134,7 @@ namespace ed
 			ImGui::Text("Blend operator:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha);
+			UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -138,7 +142,7 @@ namespace ed
 			ImGui::Text("Destination blend factor:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::DisplayBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha);
+			UIHelper::CreateBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -151,6 +155,90 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 			data->State.SetBlendFactor(blendFactor);
+		}
+		else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
+			pipe::DepthStencilState* data = (pipe::DepthStencilState*)m_item.Data;
+			D3D11_DEPTH_STENCIL_DESC* desc = &data->State.Info;
+
+			// depth enable
+			ImGui::Text("Depth test:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_depth", (bool*)(&desc->DepthEnable));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// depth function
+			ImGui::Text("Depth function:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateComparisonFunctionCombo("##cui_depthop", desc->DepthFunc);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// stencil enable
+			ImGui::Text("Stencil test:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_stencil", (bool*)(&desc->StencilEnable));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face function
+			ImGui::Text("Stencil front face function:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", desc->FrontFace.StencilFunc);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face pass operation
+			ImGui::Text("Stencil front face pass:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_fpass", desc->FrontFace.StencilPassOp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face fail operation
+			ImGui::Text("Stencil front face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_ffail", desc->FrontFace.StencilFailOp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face function
+			ImGui::Text("Stencil back face function:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", desc->BackFace.StencilFunc);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face pass operation
+			ImGui::Text("Stencil back face pass:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_bpass", desc->BackFace.StencilPassOp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face fail operation
+			ImGui::Text("Stencil back face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_bfail", desc->BackFace.StencilFailOp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// stencil reference
+			ImGui::Text("Stencil reference:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // imgui uint input??
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 		}
 
 
@@ -182,6 +270,11 @@ namespace ed
 			auto allocatedData = new pipe::BlendState();
 			allocatedData->State.Info.IndependentBlendEnable = false;
 			allocatedData->State.Info.RenderTarget[0].BlendEnable = true;
+			m_item.Data = allocatedData;
+		}
+		else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
+			auto allocatedData = new pipe::DepthStencilState();
+			allocatedData->State.Info.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 			m_item.Data = allocatedData;
 		}
 	}
@@ -222,6 +315,16 @@ namespace ed
 
 				data->State.Info = origData->State.Info;
 				data->State.SetBlendFactor(origData->State.GetBlendFactor());
+				data->State.Create(*m_data->GetOwner());
+
+				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+			}
+			else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
+				pipe::DepthStencilState* data = new pipe::DepthStencilState();
+				pipe::DepthStencilState* origData = (pipe::DepthStencilState*)m_item.Data;
+
+				data->State.Info = origData->State.Info;
+				data->StencilReference = origData->StencilReference;
 				data->State.Create(*m_data->GetOwner());
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);

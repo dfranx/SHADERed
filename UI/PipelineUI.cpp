@@ -167,10 +167,16 @@ namespace ed
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::Geometry);
-					} else if (ImGui::MenuItem("Blend State")) {
+					}
+					else if (ImGui::MenuItem("Blend State")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::BlendState);
+					}
+					else if (ImGui::MenuItem("Depth Stencil State")) {
+						m_isCreateViewOpened = true;
+						m_createUI.SetOwner(items[index]->Name);
+						m_createUI.SetType(PipelineItem::ItemType::DepthStencilState);
 					}
 
 					ImGui::EndMenu();
@@ -562,9 +568,11 @@ namespace ed
 				break;
 			}
 
+		expandTxt += "##passexp_" + std::string(item->Name);
+
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::SmallButton(expandTxt.c_str())) {
-			if (expandTxt == "+") {
+			if (expandTxt[0] == '+') {
 				for (int i = 0; i < m_expandList.size(); i++)
 					if (m_expandList[i] == data) {
 						m_expandList.erase(m_expandList.begin() + i);

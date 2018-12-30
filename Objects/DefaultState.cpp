@@ -17,9 +17,12 @@ namespace ed
 		desc->BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		desc->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		Blend.Create(wnd);
+
+		DepthStencil.Create(wnd);
 	}
 	void DefaultState::Bind()
 	{
 		Blend.Bind();
+		DepthStencil.Bind();
 	}
 }

@@ -168,53 +168,67 @@ namespace ed
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 
+				ImGui::Separator();
+
 				// source blend factor
 				ImGui::Text("Source blend factor:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend)) changed = true;
+				if (UIHelper::CreateBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// operator
 				ImGui::Text("Blend operator:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp)) changed = true;
+				if (UIHelper::CreateBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// destination blend factor
 				ImGui::Text("Destination blend factor:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend)) changed = true;
+				if (UIHelper::CreateBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// source alpha blend factor
 				ImGui::Text("Source alpha blend factor:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha)) changed = true;
+				if (UIHelper::CreateBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// operator
 				ImGui::Text("Blend operator:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha)) changed = true;
+				if (UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// destination alpha blend factor
 				ImGui::Text("Destination blend factor:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::DisplayBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha)) changed = true;
+				if (UIHelper::CreateBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha)) changed = true;
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
+
+				ImGui::Separator();
 
 				// blend factor
 				ml::Color blendFactor = data->State.GetBlendFactor();
@@ -225,6 +239,112 @@ namespace ed
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
 				data->State.SetBlendFactor(blendFactor);
+
+				if (changed)
+					data->State.Create(*m_data->GetOwner());
+			}
+			else if (m_current->Type == PipelineItem::ItemType::DepthStencilState) {
+				pipe::DepthStencilState* data = (pipe::DepthStencilState*)m_current->Data;
+				D3D11_DEPTH_STENCIL_DESC* desc = &data->State.Info;
+				bool changed = false;
+
+				// depth enable
+				ImGui::Text("Depth test:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_depth", (bool*)(&desc->DepthEnable))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// depth function
+				ImGui::Text("Depth function:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateComparisonFunctionCombo("##cui_depthop", desc->DepthFunc)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// stencil enable
+				ImGui::Text("Stencil test:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##cui_stencil", (bool*)(&desc->StencilEnable))) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// front face function
+				ImGui::Text("Stencil front face function:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", desc->FrontFace.StencilFunc)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// front face pass operation
+				ImGui::Text("Stencil front face pass:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateStencilOperationCombo("##cui_fpass", desc->FrontFace.StencilPassOp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// front face fail operation
+				ImGui::Text("Stencil front face fail:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateStencilOperationCombo("##cui_ffail", desc->FrontFace.StencilFailOp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// back face function
+				ImGui::Text("Stencil back face function:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", desc->BackFace.StencilFunc)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// back face pass operation
+				ImGui::Text("Stencil back face pass:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateStencilOperationCombo("##cui_bpass", desc->BackFace.StencilPassOp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// back face fail operation
+				ImGui::Text("Stencil back face fail:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateStencilOperationCombo("##cui_bfail", desc->BackFace.StencilFailOp)) changed = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Separator();
+
+				// stencil reference
+				ImGui::Text("Stencil reference:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // imgui uint input??
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
 
 				if (changed)
 					data->State.Create(*m_data->GetOwner());

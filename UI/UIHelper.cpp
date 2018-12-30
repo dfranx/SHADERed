@@ -46,16 +46,16 @@ namespace ed
 
 		return ret;
 	}
-	bool UIHelper::DisplayBlendOperatorCombo(const char* name, D3D11_BLEND_OP& op)
+	bool UIHelper::CreateBlendOperatorCombo(const char* name, D3D11_BLEND_OP& op)
 	{
 		bool ret = false;
 
-		if (ImGui::BeginCombo(name, BLEND_OPERATOR[op])) {
-			for (int i = 0; i < _ARRAYSIZE(BLEND_OPERATOR); i++) {
+		if (ImGui::BeginCombo(name, BLEND_OPERATOR_NAMES[op])) {
+			for (int i = 0; i < _ARRAYSIZE(BLEND_OPERATOR_NAMES); i++) {
 				bool is_selected = ((int)op == i);
 
-				if (strlen(BLEND_OPERATOR[i]) > 1)
-					if (ImGui::Selectable(BLEND_OPERATOR[i], is_selected)) {
+				if (strlen(BLEND_OPERATOR_NAMES[i]) > 1)
+					if (ImGui::Selectable(BLEND_OPERATOR_NAMES[i], is_selected)) {
 						op = (D3D11_BLEND_OP)i;
 						ret = true;
 					}
@@ -69,17 +69,63 @@ namespace ed
 
 		return ret;
 	}
-	bool UIHelper::DisplayBlendCombo(const char* name, D3D11_BLEND& blend)
+	bool UIHelper::CreateBlendCombo(const char* name, D3D11_BLEND& blend)
 	{
 		bool ret = false;
 
-		if (ImGui::BeginCombo(name, BLEND_NAME[blend])) {
-			for (int i = 0; i < _ARRAYSIZE(BLEND_NAME); i++) {
+		if (ImGui::BeginCombo(name, BLEND_NAMES[blend])) {
+			for (int i = 0; i < _ARRAYSIZE(BLEND_NAMES); i++) {
 				bool is_selected = ((int)blend == i);
 
-				if (strlen(BLEND_NAME[i]) > 1)
-					if (ImGui::Selectable(BLEND_NAME[i], is_selected)) {
+				if (strlen(BLEND_NAMES[i]) > 1)
+					if (ImGui::Selectable(BLEND_NAMES[i], is_selected)) {
 						blend = (D3D11_BLEND)i;
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
+	bool UIHelper::CreateComparisonFunctionCombo(const char * name, D3D11_COMPARISON_FUNC & comp)
+	{
+		bool ret = false;
+
+		if (ImGui::BeginCombo(name, COMPARISON_FUNCTION_NAMES[comp])) {
+			for (int i = 0; i < _ARRAYSIZE(COMPARISON_FUNCTION_NAMES); i++) {
+				bool is_selected = ((int)comp == i);
+
+				if (strlen(COMPARISON_FUNCTION_NAMES[i]) > 1)
+					if (ImGui::Selectable(COMPARISON_FUNCTION_NAMES[i], is_selected)) {
+						comp = (D3D11_COMPARISON_FUNC)i;
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
+	bool UIHelper::CreateStencilOperationCombo(const char * name, D3D11_STENCIL_OP & op)
+	{
+		bool ret = false;
+
+		if (ImGui::BeginCombo(name, STENCIL_OPERATION_NAMES[op])) {
+			for (int i = 0; i < _ARRAYSIZE(STENCIL_OPERATION_NAMES); i++) {
+				bool is_selected = ((int)op == i);
+
+				if (strlen(STENCIL_OPERATION_NAMES[i]) > 1)
+					if (ImGui::Selectable(STENCIL_OPERATION_NAMES[i], is_selected)) {
+						op = (D3D11_STENCIL_OP)i;
 						ret = true;
 					}
 

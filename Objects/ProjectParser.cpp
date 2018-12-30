@@ -244,6 +244,38 @@ namespace ed
 
 					tData->State.SetBlendFactor(blendFactor);
 				}
+				else if (strcmp(itemNode.attribute("type").as_string(), "depthstencil") == 0) {
+					itemType = ed::PipelineItem::ItemType::DepthStencilState;
+					itemData = new pipe::DepthStencilState;
+
+					pipe::DepthStencilState* tData = (pipe::DepthStencilState*)itemData;
+					D3D11_DEPTH_STENCIL_DESC* dDesc = &tData->State.Info;
+
+					tData->StencilReference = 0;
+
+					for (pugi::xml_node attrNode : itemNode.children()) {
+						if (strcmp(attrNode.name(), "depthenable") == 0)
+							dDesc->DepthEnable = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "depthfunc") == 0)
+							dDesc->DepthFunc = m_toComparisonFunc(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "stencilenable") == 0)
+							dDesc->StencilEnable = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "frontfunc") == 0)
+							dDesc->FrontFace.StencilFunc = m_toComparisonFunc(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "frontpass") == 0)
+							dDesc->FrontFace.StencilPassOp = m_toStencilOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "frontfail") == 0)
+							dDesc->FrontFace.StencilFailOp = m_toStencilOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "backfunc") == 0)
+							dDesc->BackFace.StencilFunc = m_toComparisonFunc(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "backpass") == 0)
+							dDesc->BackFace.StencilPassOp = m_toStencilOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "backfail") == 0)
+							dDesc->BackFace.StencilFailOp = m_toStencilOp(attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "sref") == 0)
+							tData->StencilReference = attrNode.text().as_uint();
+					}
+				}
 
 				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
@@ -253,6 +285,10 @@ namespace ed
 				}
 				else if (itemType == ed::PipelineItem::ItemType::BlendState) {
 					ed::pipe::BlendState* tData = reinterpret_cast<ed::pipe::BlendState*>(itemData);
+					tData->State.Create(*m_pipe->GetOwner());
+				}
+				else if (itemType == ed::PipelineItem::ItemType::DepthStencilState) {
+					ed::pipe::DepthStencilState* tData = reinterpret_cast<ed::pipe::DepthStencilState*>(itemData);
 					tData->State.Create(*m_pipe->GetOwner());
 				}
 
@@ -415,17 +451,34 @@ namespace ed
 					D3D11_RENDER_TARGET_BLEND_DESC* bDesc = &tData->State.Info.RenderTarget[0];
 					ml::Color blendFactor = tData->State.GetBlendFactor();
 
-					itemNode.append_child("srcblend").text().set(BLEND_NAME[bDesc->SrcBlend]);
-					itemNode.append_child("blendop").text().set(BLEND_OPERATOR[bDesc->BlendOp]);
-					itemNode.append_child("destblend").text().set(BLEND_NAME[bDesc->DestBlend]);
-					itemNode.append_child("srcblendalpha").text().set(BLEND_NAME[bDesc->SrcBlendAlpha]);
-					itemNode.append_child("alphablendop").text().set(BLEND_OPERATOR[bDesc->BlendOpAlpha]);
-					itemNode.append_child("destblendalpha").text().set(BLEND_NAME[bDesc->DestBlendAlpha]);
+					itemNode.append_child("srcblend").text().set(BLEND_NAMES[bDesc->SrcBlend]);
+					itemNode.append_child("blendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOp]);
+					itemNode.append_child("destblend").text().set(BLEND_NAMES[bDesc->DestBlend]);
+					itemNode.append_child("srcblendalpha").text().set(BLEND_NAMES[bDesc->SrcBlendAlpha]);
+					itemNode.append_child("alphablendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOpAlpha]);
+					itemNode.append_child("destblendalpha").text().set(BLEND_NAMES[bDesc->DestBlendAlpha]);
 					itemNode.append_child("alpha2cov").text().set(tData->State.Info.AlphaToCoverageEnable);
 					if (blendFactor.R != 0) itemNode.append_child("bf_red").text().set(blendFactor.R);
 					if (blendFactor.G != 0) itemNode.append_child("bf_green").text().set(blendFactor.G);
 					if (blendFactor.B != 0) itemNode.append_child("bf_blue").text().set(blendFactor.B);
 					if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor.A);
+				}
+				else if (item->Type == PipelineItem::ItemType::DepthStencilState) {
+					itemNode.append_attribute("type").set_value("depthstencil");
+
+					ed::pipe::DepthStencilState* tData = reinterpret_cast<ed::pipe::DepthStencilState*>(item->Data);
+					D3D11_DEPTH_STENCIL_DESC* bDesc = &tData->State.Info;
+
+					itemNode.append_child("depthenable").text().set(bDesc->DepthEnable);
+					itemNode.append_child("depthfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->DepthFunc]);
+					itemNode.append_child("stencilenable").text().set(bDesc->StencilEnable);
+					itemNode.append_child("frontfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->FrontFace.StencilFunc]);
+					itemNode.append_child("frontpass").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilPassOp]);
+					itemNode.append_child("frontfail").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilFailOp]);
+					itemNode.append_child("backfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->BackFace.StencilFunc]);
+					itemNode.append_child("backpass").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilPassOp]);
+					itemNode.append_child("backfail").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilFailOp]);
+					if (tData->StencilReference != 0) itemNode.append_child("sref").text().set(tData->StencilReference);
 				}
 			}
 		}
@@ -586,16 +639,30 @@ namespace ed
 	}
 	D3D11_BLEND ProjectParser::m_toBlend(const char* text)
 	{
-		for (int k = 0; k < _ARRAYSIZE(BLEND_NAME); k++)
-			if (strcmp(text, BLEND_NAME[k]) == 0)
+		for (int k = 0; k < _ARRAYSIZE(BLEND_NAMES); k++)
+			if (strcmp(text, BLEND_NAMES[k]) == 0)
 				return (D3D11_BLEND)k;
 		return D3D11_BLEND_BLEND_FACTOR;
 	}
 	D3D11_BLEND_OP ProjectParser::m_toBlendOp(const char* text)
 	{
-		for (int k = 0; k < _ARRAYSIZE(BLEND_OPERATOR); k++)
-			if (strcmp(text, BLEND_OPERATOR[k]) == 0)
+		for (int k = 0; k < _ARRAYSIZE(BLEND_OPERATOR_NAMES); k++)
+			if (strcmp(text, BLEND_OPERATOR_NAMES[k]) == 0)
 				return (D3D11_BLEND_OP)k;
 		return D3D11_BLEND_OP_ADD;
+	}
+	D3D11_COMPARISON_FUNC ProjectParser::m_toComparisonFunc(const char * str)
+	{
+		for (int k = 0; k < _ARRAYSIZE(COMPARISON_FUNCTION_NAMES); k++)
+			if (strcmp(str, COMPARISON_FUNCTION_NAMES[k]) == 0)
+				return (D3D11_COMPARISON_FUNC)k;
+		return D3D11_COMPARISON_ALWAYS;
+	}
+	D3D11_STENCIL_OP ProjectParser::m_toStencilOp(const char * str)
+	{
+		for (int k = 0; k < _ARRAYSIZE(STENCIL_OPERATION_NAMES); k++)
+			if (strcmp(str, STENCIL_OPERATION_NAMES[k]) == 0)
+				return (D3D11_STENCIL_OP)k;
+		return D3D11_STENCIL_OP_KEEP;
 	}
 }

@@ -4,6 +4,7 @@
 #include <MoonLight/Base/BlendState.h>
 #include <MoonLight/Base/VertexShader.h>
 #include <MoonLight/Base/VertexInputLayout.h>
+#include <MoonLight/Base/DepthStencilState.h>
 #include <string>
 
 #include "ShaderVariableContainer.h"
@@ -17,6 +18,7 @@ namespace ed
 			ShaderPass,
 			Geometry,
 			BlendState,
+			DepthStencilState,
 			/*	Model
 				... */
 			Count
@@ -29,11 +31,6 @@ namespace ed
 
 	namespace pipe
 	{
-		struct BlendState
-		{
-			ml::BlendState State;
-		};
-
 		struct ShaderPass
 		{
 			char VSPath[512];
@@ -64,6 +61,17 @@ namespace ed
 			ml::Geometry Geometry;
 			ml::Topology::Type Topology;
 			DirectX::XMFLOAT3 Position, Rotation, Scale, Size;
+		};
+
+		struct BlendState
+		{
+			ml::BlendState State;
+		};
+
+		struct DepthStencilState
+		{
+			ml::DepthStencilState State;
+			ml::UInt32 StencilReference;
 		};
 	}
 }

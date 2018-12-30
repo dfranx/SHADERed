@@ -37,6 +37,10 @@ namespace ed
 		if (type == PipelineItem::ItemType::ShaderPass)
 			return AddPass(name, (pipe::ShaderPass*)data);
 
+		for (auto item : m_items)
+			if (strcmp(item->Name, name) == 0)
+				return false;
+
 		for (auto item : m_items) {
 			if (strcmp(item->Name, owner) != 0)
 				continue;
@@ -77,10 +81,12 @@ namespace ed
 			} else {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
 				for (int j = 0; j < data->Items.size(); j++) {
-					delete data->Items[j]->Data;
-					data->Items[j]->Data = nullptr;
-					data->Items.erase(data->Items.begin() + j);
-					break;
+					if (strcmp(data->Items[j]->Name, name) == 0) {
+						delete data->Items[j]->Data;
+						data->Items[j]->Data = nullptr;
+						data->Items.erase(data->Items.begin() + j);
+						break;
+					}
 				}
 			}
 	}

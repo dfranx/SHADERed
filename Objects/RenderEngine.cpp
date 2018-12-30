@@ -81,9 +81,14 @@ namespace ed
 
 					m_wnd->SetTopology(geoData->Topology);
 					geoData->Geometry.Draw();
-				} else if (item->Type == PipelineItem::ItemType::BlendState) {
+				}
+				else if (item->Type == PipelineItem::ItemType::BlendState) {
 					ed::pipe::BlendState* blend = reinterpret_cast<ed::pipe::BlendState*>(item->Data);
 					blend->State.Bind();
+				}
+				else if (item->Type == PipelineItem::ItemType::DepthStencilState) {
+					ed::pipe::DepthStencilState* state = reinterpret_cast<ed::pipe::DepthStencilState*>(item->Data);
+					state->State.Bind(state->StencilReference);
 				}
 			}
 		}

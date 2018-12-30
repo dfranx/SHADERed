@@ -13,7 +13,8 @@ namespace ed
 			return ret;
 		}
 
-		ml::BlendState Blend;		
+		ml::BlendState Blend;
+		ml::DepthStencilState DepthStencil;
 
 		void Create(ml::Window& wnd);
 		void Bind();
