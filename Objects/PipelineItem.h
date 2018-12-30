@@ -57,7 +57,12 @@ namespace ed
 				Size = DirectX::XMFLOAT3(1, 1, 1);
 			}
 			enum GeometryType {
-				Cube
+				Cube,
+				Rectangle,
+				Circle,
+				Triangle,
+				Sphere,
+				Plane
 			} Type;
 
 			ml::Geometry Geometry;

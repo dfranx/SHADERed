@@ -193,8 +193,13 @@ const char* FUNCTION_NAMES[] = {
 	"VectorNormalize"
 };
 
-const char* GEOMETRY_NAMES[1] = {
-	"Cube"
+const char* GEOMETRY_NAMES[] = {
+	"Cube",
+	"Rectangle",
+	"Circle",
+	"Triangle",
+	"Sphere",
+	"Plane"
 };
 
 const char* PIPELINE_ITEM_NAMES[] =

@@ -308,6 +308,16 @@ namespace ed
 					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
 					if (tData->Type == pipe::GeometryItem::Cube)
 						tData->Geometry = ml::GeometryFactory::CreateCube(tData->Size.x, tData->Size.y, tData->Size.z, *m_pipe->GetOwner());
+					else if (tData->Type == pipe::GeometryItem::Circle)
+						tData->Geometry = ml::GeometryFactory::CreateCircle(0, 0, tData->Size.x, tData->Size.y, *m_pipe->GetOwner());
+					else if (tData->Type == pipe::GeometryItem::Plane)
+						tData->Geometry = ml::GeometryFactory::CreatePlane(tData->Size.x, tData->Size.y, *m_pipe->GetOwner());
+					else if (tData->Type == pipe::GeometryItem::Rectangle)
+						tData->Geometry = ml::GeometryFactory::CreateRectangle(0, 0, tData->Size.x, tData->Size.y, *m_pipe->GetOwner());
+					else if (tData->Type == pipe::GeometryItem::Sphere)
+						tData->Geometry = ml::GeometryFactory::CreateSphere(tData->Size.x, *m_pipe->GetOwner());
+					else if (tData->Type == pipe::GeometryItem::Triangle)
+						tData->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, tData->Size.x, *m_pipe->GetOwner());
 				}
 				else if (itemType == ed::PipelineItem::ItemType::BlendState) {
 					ed::pipe::BlendState* tData = reinterpret_cast<ed::pipe::BlendState*>(itemData);

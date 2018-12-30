@@ -372,6 +372,17 @@ namespace ed
 				data->Type = origData->Type;
 				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
 					data->Geometry = ml::GeometryFactory::CreateCube(origData->Size.x, origData->Size.y, origData->Size.z, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Circle)
+					data->Geometry = ml::GeometryFactory::CreateCircle(0, 0, origData->Size.x, origData->Size.y, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Plane)
+					data->Geometry = ml::GeometryFactory::CreatePlane(origData->Size.x, origData->Size.y, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Rectangle)
+					data->Geometry = ml::GeometryFactory::CreateRectangle(0, 0, origData->Size.x, origData->Size.y, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Sphere)
+					data->Geometry = ml::GeometryFactory::CreateSphere(origData->Size.x, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Triangle)
+					data->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, origData->Size.x, *m_data->GetOwner());
+
 				data->Position = DirectX::XMFLOAT3(0, 0, 0);
 				data->Rotation = DirectX::XMFLOAT3(0, 0, 0);
 				data->Scale = DirectX::XMFLOAT3(1, 1, 1);
