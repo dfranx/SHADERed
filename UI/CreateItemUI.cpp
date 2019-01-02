@@ -3,6 +3,7 @@
 #include "../Objects/Names.h"
 #include "../ImGUI/imgui.h"
 #include <MoonLight/Base/GeometryFactory.h>
+#include <MoonLight/Model/OBJModel.h>
 
 namespace ed
 {
@@ -310,6 +311,38 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 		}
+		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
+			pipe::OBJModel* data = (pipe::OBJModel*)m_item.Data;
+
+			// model filepath
+			ImGui::Text("File:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-40);
+			ImGui::InputText("##cui_objfile", data->Filename, 512);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {
+				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"OBJ\0*.obj\0"));
+				strcpy(data->Filename, file.c_str());
+			}
+			ImGui::NextColumn();
+
+			// should we render only a part of the mesh?
+			ImGui::Text("Render group only:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_meshgroup", &data->OnlyGroup);
+			ImGui::NextColumn();
+
+			// group name
+			if (data->OnlyGroup) {
+				ImGui::Text("Group name:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::InputText("##cui_meshgroupname", data->GroupName, MODEL_GROUP_NAME_LENGTH);
+				ImGui::NextColumn();
+			}
+		}
 
 		ImGui::Columns();
 	}
@@ -330,7 +363,7 @@ namespace ed
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
 			auto allocatedData = new pipe::GeometryItem();
 			allocatedData->Type = pipe::GeometryItem::GeometryType::Cube;
-			allocatedData->Size = DirectX::XMFLOAT3(1,1,1);
+			allocatedData->Size = allocatedData->Scale = DirectX::XMFLOAT3(1,1,1);
 			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass)
@@ -348,6 +381,12 @@ namespace ed
 		}
 		else if (m_item.Type == PipelineItem::ItemType::RasterizerState)
 			m_item.Data = new pipe::RasterizerState();
+		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
+			auto allocatedData = new pipe::OBJModel();
+			allocatedData->OnlyGroup = false;
+			allocatedData->Scale = DirectX::XMFLOAT3(1, 1, 1);
+			m_item.Data = allocatedData;
+		}
 	}
 	bool CreateItemUI::Create()
 	{
@@ -417,6 +456,49 @@ namespace ed
 
 				data->State.Info = origData->State.Info;
 				data->State.Create(*m_data->GetOwner());
+
+				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+			}
+			else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
+				pipe::OBJModel* data = new pipe::OBJModel();
+				pipe::OBJModel* origData = (pipe::OBJModel*)m_item.Data;
+
+				strcpy(data->Filename, origData->Filename);
+				strcpy(data->GroupName, origData->GroupName);
+				data->OnlyGroup = origData->OnlyGroup;
+				data->Scale = origData->Scale;
+				data->Position = origData->Position;
+				data->Rotation = origData->Rotation;
+
+				if (strlen(data->Filename) > 0) {
+					ml::OBJModel vertData;
+					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
+					bool loaded = vertData.LoadFromMemory(objMem.c_str(), objMem.size());
+
+					// TODO: if (!loaded) error "Failed to load a mesh"
+
+					if (loaded) {
+						ml::OBJModel::Vertex* verts = vertData.GetVertexData();
+						ml::UInt32 vertCount = vertData.GetVertexCount();
+
+						if (data->OnlyGroup) {
+							verts = vertData.GetGroupVertices(data->GroupName);
+							vertCount = vertData.GetGroupVertexCount(data->GroupName);
+
+							if (verts == nullptr) {
+								verts = vertData.GetObjectVertices(data->GroupName);
+								vertCount = vertData.GetObjectVertexCount(data->GroupName);
+
+								// TODO: if (verts == nullptr) error "failed to find a group with that name"
+								if (verts == nullptr) return false;
+							}
+						}
+
+						data->VertCount = vertCount;
+						data->Vertices.Create(*m_data->GetOwner(), verts, vertCount, ml::Resource::Immutable);
+					}
+					else return false;
+				}
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 			}

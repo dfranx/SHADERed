@@ -1,4 +1,3 @@
-- [ ] Mesh + more geometry types
 - [ ] renderable objects -> right click -> "variables" item -> "vertex/pixel shader" items -> choose which variable to temporarily change when rendering this item
 - [ ] textures & ObjectManager
 - [ ] movable geometry (left click)
@@ -26,3 +25,9 @@ QoL:
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)
 - [ ] PipelineUI.GetSelectedShaderPass() + add Geometry and other options under "Create" menu item in GUIManager
+- [ ] GLSL to HLSL transcompiler
+- [ ] "Save preview as image" option
+- [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
+- [ ] more model file types
+- [ ] add option to switch to FPS camera
+- [ ] icon

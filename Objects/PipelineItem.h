@@ -1,4 +1,5 @@
 #pragma once
+#include <MoonLight/Model/OBJModel.h>
 #include <MoonLight/Base/Geometry.h>
 #include <MoonLight/Base/Topology.h>
 #include <MoonLight/Base/BlendState.h>
@@ -21,8 +22,7 @@ namespace ed
 			BlendState,
 			DepthStencilState,
 			RasterizerState,
-			/*	Model
-				... */
+			OBJModel,
 			Count
 		};
 
@@ -84,6 +84,17 @@ namespace ed
 		struct RasterizerState
 		{
 			ml::RasterizerState State;
+		};
+
+		struct OBJModel
+		{
+			bool OnlyGroup; // render only a group
+			char GroupName[MODEL_GROUP_NAME_LENGTH];
+			char Filename[512];
+			ml::UInt32 VertCount;
+			ml::VertexBuffer<ml::OBJModel::Vertex> Vertices;
+
+			DirectX::XMFLOAT3 Position, Rotation, Scale;
 		};
 	}
 }

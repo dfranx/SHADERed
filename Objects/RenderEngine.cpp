@@ -75,12 +75,24 @@ namespace ed
 				if (item->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
 
-					SystemVariableManager::Instance().SetGeometryTransform(*geoData);
+					SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);
 
 					m_wnd->SetTopology(geoData->Topology);
 					geoData->Geometry.Draw();
+				}
+				else if (item->Type == PipelineItem::ItemType::OBJModel) {
+					pipe::OBJModel* objData = reinterpret_cast<pipe::OBJModel*>(item->Data);
+
+					// TODO: model transform
+					SystemVariableManager::Instance().SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
+					data->VSVariables.UpdateBuffers(m_wnd);
+					data->PSVariables.UpdateBuffers(m_wnd);
+
+					m_wnd->SetTopology(ml::Topology::TriangleList);
+					objData->Vertices.Bind();
+					m_wnd->Draw(objData->VertCount, 0);
 				}
 				else if (item->Type == PipelineItem::ItemType::BlendState) {
 					pipe::BlendState* blend = reinterpret_cast<pipe::BlendState*>(item->Data);

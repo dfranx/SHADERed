@@ -45,11 +45,11 @@ namespace ed
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
 		inline float GetTimeDelta() { return m_deltaTime; }
 
-		inline void SetGeometryTransform(const pipe::GeometryItem& item)
+		inline void SetGeometryTransform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rota, const DirectX::XMFLOAT3& pos)
 		{
-			m_geometryTransform = DirectX::XMMatrixScaling(item.Scale.x, item.Scale.y, item.Scale.z) *
-				DirectX::XMMatrixRotationRollPitchYaw(item.Rotation.x, item.Rotation.y, item.Rotation.z) *
-				DirectX::XMMatrixTranslation(item.Position.x, item.Position.y, item.Position.z);
+			m_geometryTransform = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z) *
+				DirectX::XMMatrixRotationRollPitchYaw(rota.x, rota.y, rota.z) *
+				DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
 		}
 		inline void SetViewportSize(float x, float y) { m_viewport = DirectX::XMFLOAT2(x, y); }
 		inline void SetMousePosition(float x, float y) { m_mouse = DirectX::XMFLOAT2(x, y); }

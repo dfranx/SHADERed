@@ -169,6 +169,10 @@ namespace ed
 					itemData = new pipe::GeometryItem;
 					pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
 
+					tData->Scale = DirectX::XMFLOAT3(1, 1, 1);
+					tData->Position = DirectX::XMFLOAT3(0, 0, 0);
+					tData->Rotation = DirectX::XMFLOAT3(0, 0, 0);
+
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "width") == 0)
 							tData->Size.x = attrNode.text().as_float();
@@ -302,6 +306,44 @@ namespace ed
 							rDesc->AntialiasedLineEnable = attrNode.text().as_bool();
 					}
 				}
+				else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
+					itemType = ed::PipelineItem::ItemType::OBJModel;
+					itemData = new pipe::OBJModel;
+
+					pipe::OBJModel* mdata = (pipe::OBJModel*)itemData;
+
+					mdata->OnlyGroup = false;
+					mdata->Scale = DirectX::XMFLOAT3(1, 1, 1);
+					mdata->Position = DirectX::XMFLOAT3(0, 0, 0);
+					mdata->Rotation = DirectX::XMFLOAT3(0, 0, 0);
+
+					for (pugi::xml_node attrNode : itemNode.children()) {
+						if (strcmp(attrNode.name(), "filepath") == 0)
+							strcpy(mdata->Filename, attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "group") == 0)
+							strcpy(mdata->GroupName, attrNode.text().as_string());
+						else if (strcmp(attrNode.name(), "grouponly") == 0)
+							mdata->OnlyGroup = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "scaleX") == 0)
+							mdata->Scale.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "scaleY") == 0)
+							mdata->Scale.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "scaleZ") == 0)
+							mdata->Scale.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "roll") == 0)
+							mdata->Rotation.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "yaw") == 0)
+							mdata->Rotation.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "pitch") == 0)
+							mdata->Rotation.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "x") == 0)
+							mdata->Position.x = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "y") == 0)
+							mdata->Position.y = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "z") == 0)
+							mdata->Position.z = attrNode.text().as_float();
+					}
+				}
 
 				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
@@ -330,6 +372,35 @@ namespace ed
 				else if (itemType == ed::PipelineItem::ItemType::RasterizerState) {
 					ed::pipe::RasterizerState* tData = reinterpret_cast<ed::pipe::RasterizerState*>(itemData);
 					tData->State.Create(*m_pipe->GetOwner());
+				}
+				else if (itemType == ed::PipelineItem::ItemType::OBJModel) {
+					ed::pipe::OBJModel* tData = reinterpret_cast<ed::pipe::OBJModel*>(itemData);
+
+					ml::OBJModel vertData;
+					std::string objMem = LoadProjectFile(tData->Filename);
+					bool loaded = vertData.LoadFromMemory(objMem.c_str(), objMem.size());
+
+					// TODO: if (!loaded) error "Failed to load a mesh"
+
+					if (loaded) {
+						ml::OBJModel::Vertex* verts = vertData.GetVertexData();
+						ml::UInt32 vertCount = vertData.GetVertexCount();
+
+						if (tData->OnlyGroup) {
+							verts = vertData.GetGroupVertices(tData->GroupName);
+							vertCount = vertData.GetGroupVertexCount(tData->GroupName);
+
+							if (verts == nullptr) {
+								verts = vertData.GetObjectVertices(tData->GroupName);
+								vertCount = vertData.GetObjectVertexCount(tData->GroupName);
+
+								// TODO: if (verts == nullptr) error "failed to find a group with that name"
+							}
+						}
+
+						tData->VertCount = vertCount;
+						tData->Vertices.Create(*m_pipe->GetOwner(), verts, vertCount, ml::Resource::Immutable);
+					}
 				}
 
 				m_pipe->AddItem(name, itemName, itemType, itemData);
@@ -479,9 +550,9 @@ namespace ed
 					if (tData->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(tData->Rotation.z);
 					if (tData->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(tData->Rotation.x);
 					if (tData->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(tData->Rotation.y);
-					if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.z);
-					if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.x);
-					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.y);
+					if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.x);
+					if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.y);
+					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.z);
 					itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[(int)tData->Topology]);
 				}
 				else if (item->Type == PipelineItem::ItemType::BlendState) {
@@ -534,6 +605,26 @@ namespace ed
 					itemNode.append_child("slopebias").text().set(bDesc->SlopeScaledDepthBias);
 					itemNode.append_child("depthclip").text().set(bDesc->DepthClipEnable);
 					itemNode.append_child("aa").text().set(bDesc->AntialiasedLineEnable);
+				}
+				else if (item->Type == PipelineItem::ItemType::OBJModel) {
+					itemNode.append_attribute("type").set_value("model");
+
+					ed::pipe::OBJModel* data = reinterpret_cast<ed::pipe::OBJModel*>(item->Data);
+
+					std::string opath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(data->Filename));;
+
+					itemNode.append_child("filepath").text().set(opath.c_str());
+					itemNode.append_child("grouponly").text().set(data->OnlyGroup);
+					if (data->OnlyGroup) itemNode.append_child("group").text().set(data->GroupName);
+					if (data->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(data->Scale.x);
+					if (data->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(data->Scale.y);
+					if (data->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(data->Scale.z);
+					if (data->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(data->Rotation.z);
+					if (data->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(data->Rotation.x);
+					if (data->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(data->Rotation.y);
+					if (data->Position.x != 0.0f) itemNode.append_child("x").text().set(data->Position.x);
+					if (data->Position.y != 0.0f) itemNode.append_child("y").text().set(data->Position.y);
+					if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
 				}
 			}
 		}

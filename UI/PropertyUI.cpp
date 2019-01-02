@@ -437,6 +437,39 @@ namespace ed
 				if (changed)
 					data->State.Create(*m_data->GetOwner());
 			}
+			else if (m_current->Type == ed::PipelineItem::ItemType::OBJModel) {
+				ed::pipe::OBJModel* item = reinterpret_cast<ed::pipe::OBJModel*>(m_current->Data);
+
+				/* position */
+				ImGui::Text("Position:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				UIHelper::CreateInputFloat3("##pui_geopos", item->Position);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* scale */
+				ImGui::Text("Scale:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				UIHelper::CreateInputFloat3("##pui_geoscale", item->Scale);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* rotation */
+				ImGui::Text("Rotation:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				UIHelper::CreateInputFloat3("##pui_georota", item->Rotation);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+			}
 
 			ImGui::NextColumn();
 			ImGui::Separator();

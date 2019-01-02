@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>vertex.hlsl</path>
+				<path>.\.\.\vertex.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>pixel.hlsl</path>
+				<path>.\.\.\pixel.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -36,13 +36,22 @@
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
+					<x>-1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Ball" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>1.25</x>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
 		</pass>
 		<pass name="OutlinePass">
 			<shader type="vs">
-				<path>vsOutline.hlsl</path>
+				<path>.\.\.\vsOutline.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -54,7 +63,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>psOutline.hlsl</path>
+				<path>.\.\.\psOutline.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -77,21 +86,32 @@
 					<scaleX>1.10000002</scaleX>
 					<scaleY>1.10000002</scaleY>
 					<scaleZ>1.10000002</scaleZ>
+					<x>-1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="BallOutline" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<scaleX>1.04999995</scaleX>
+					<scaleY>1.04999995</scaleY>
+					<scaleZ>1.04999995</scaleZ>
+					<x>1.25</x>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
 		</pass>
 	</pipeline>
 	<settings>
-		<entry type="property" name="BoxOutline" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="OutlinePass" shader="vs" />
 		<entry type="file" name="OutlinePass" shader="ps" />
 		<entry type="camera">
-			<distance>4</distance>
-			<rotationX>103</rotationX>
-			<rotationY>29</rotationY>
+			<distance>26</distance>
+			<rotationX>357</rotationX>
+			<rotationY>2</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>
