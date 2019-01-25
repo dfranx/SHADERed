@@ -24,7 +24,32 @@ namespace ed
 		void FlushCache();
 
 		inline ml::ShaderResourceView& GetTexture() { return m_rtView; }
-	
+
+	public:
+		struct ItemVariableValue
+		{
+			ItemVariableValue(ed::ShaderVariable* var) { 
+				Variable = var;
+				OldValue = var->Data;
+				NewValue = new ShaderVariable(var->GetType(), var->Name, var->System, var->Slot);
+				NewValue->Function = var->Function;
+			}
+			PipelineItem* Item;
+			ed::ShaderVariable* Variable;
+			char* OldValue;
+			ed::ShaderVariable* NewValue;
+		};
+
+		inline std::vector<ItemVariableValue>& GetItemVariableValues() { return m_itemValues; }
+		inline void AddItemVariableValue(const ItemVariableValue& item) { m_itemValues.push_back(item); }
+		inline void RemoveItemVariableValues(PipelineItem* item) {
+			for (int i = 0; i < m_itemValues.size(); i++)
+				if (m_itemValues[i].Item == item) {
+					m_itemValues.erase(m_itemValues.begin() + i);
+					i--;
+				}
+		}
+
 	private:
 		PipelineManager* m_pipeline;
 		ProjectParser* m_project;
@@ -39,6 +64,8 @@ namespace ed
 		std::vector<ed::PipelineItem*> m_items;
 		std::vector<ml::VertexShader*> m_vs;
 		std::vector<ml::PixelShader*> m_ps;
+
+		std::vector<ItemVariableValue> m_itemValues; // list of all values to apply once we start rendering 
 
 		ml::Timer m_cacheTimer;
 		void m_cache();

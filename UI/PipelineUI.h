@@ -20,6 +20,7 @@ namespace ed
 		// for popups
 		bool m_isLayoutOpened;
 		bool m_isVarManagerOpened;
+		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
 		bool m_isVarManagerForVS; // do we edit the variables for vertex or pixel shader? (in shader pass)
 
@@ -37,6 +38,7 @@ namespace ed
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderInputLayoutUI();
 		void m_renderVariableManagerUI();
+		void m_renderChangeVariablesUI();
 
 		// adding items to pipeline UI
 		void m_addShaderPass(const ed::PipelineItem* data);

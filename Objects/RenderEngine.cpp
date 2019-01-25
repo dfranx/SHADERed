@@ -48,6 +48,8 @@ namespace ed
 		viewport.MaxDepth = 1.0f;
 		m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
 
+		auto& itemVarValues = GetItemVariableValues();
+
 		for (int i = 0; i < m_items.size(); i++) {
 			auto it = m_items[i];
 			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
@@ -71,6 +73,12 @@ namespace ed
 			// render pipeline items
 			for (int j = 0; j < data->Items.size(); j++) {
 				auto item = data->Items[j];
+
+				// update the value for this element
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel)
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
 
 				if (item->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
@@ -106,6 +114,13 @@ namespace ed
 					pipe::RasterizerState* state = reinterpret_cast<pipe::RasterizerState*>(item->Data);
 					state->State.Bind();
 				}
+
+				// set the old value back
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel)
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+
 			}
 		}
 		

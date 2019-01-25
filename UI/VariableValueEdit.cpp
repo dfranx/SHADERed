@@ -56,8 +56,13 @@ namespace ed
 			case ed::ShaderVariable::ValueType::Float4x4:
 			case ed::ShaderVariable::ValueType::Float3x3:
 			case ed::ShaderVariable::ValueType::Float2x2:
-				for (int y = 0; y < m_var->GetColumnCount(); y++)
-					ImGui::DragFloat4(("##valuedit" + std::string(m_var->Name) + std::to_string(y)).c_str(), m_var->AsFloatPtr(0, y), 0.01f);
+				for (int y = 0; y < m_var->GetColumnCount(); y++) {
+					if (m_var->GetType() == ShaderVariable::ValueType::Float2x2)
+						ImGui::DragFloat2(("##valuedit" + std::string(m_var->Name) + std::to_string(y)).c_str(), m_var->AsFloatPtr(0, y), 0.01f);
+					else if (m_var->GetType() == ShaderVariable::ValueType::Float3x3)
+						ImGui::DragFloat3(("##valuedit" + std::string(m_var->Name) + std::to_string(y)).c_str(), m_var->AsFloatPtr(0, y), 0.01f);
+					else ImGui::DragFloat4(("##valuedit" + std::string(m_var->Name) + std::to_string(y)).c_str(), m_var->AsFloatPtr(0, y), 0.01f);
+				}
 				break;
 			case ed::ShaderVariable::ValueType::Float1:
 				ImGui::DragFloat(("##valuedit" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), 0.01f);

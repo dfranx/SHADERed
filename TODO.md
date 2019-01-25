@@ -1,4 +1,3 @@
-- [ ] renderable objects -> right click -> "variables" item -> "vertex/pixel shader" items -> choose which variable to temporarily change when rendering this item
 - [ ] textures & ObjectManager
 - [ ] movable geometry (left click)
 - [ ] RenderPass (groups of PipelineItem objects)
@@ -20,6 +19,7 @@ QoL:
 - [ ] open item properties on double click
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
+- [ ] skin ImGui (add light theme + maybe redesing)
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
 - [ ] change some constants (example: vertex shader path strcpy)

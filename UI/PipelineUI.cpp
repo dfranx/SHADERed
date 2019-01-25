@@ -65,6 +65,10 @@ namespace ed
 			ImGui::OpenPopup("Create Item##pui_create_item");
 			m_isCreateViewOpened = false;
 		}
+		if (m_isChangeVarsOpened) {
+			ImGui::OpenPopup("Change Variables##pui_render_variables");
+			m_isChangeVarsOpened = false;
+		}
 
 		// VS Input Layout
 		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
@@ -97,12 +101,15 @@ namespace ed
 			if (ImGui::Button("Cancel")) m_closePopup();
 			ImGui::EndPopup();
 		}
-	}
-	
-	void PipelineUI::m_closePopup()
-	{
-		ImGui::CloseCurrentPopup();
-		m_modalItem = nullptr;
+
+		// variables to change when rendering specific item
+		ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Change Variables##pui_render_variables")) {
+			m_renderChangeVariablesUI();
+
+			if (ImGui::Button("Ok")) m_closePopup();
+			ImGui::EndPopup();
+		}
 	}
 	
 	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index)
@@ -221,6 +228,12 @@ namespace ed
 					ImGui::EndMenu();
 				}
 			}
+			else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::OBJModel) {
+				if (ImGui::MenuItem("Change Variables")) {
+					m_isChangeVarsOpened = true;
+					m_modalItem = items[index];
+				}
+			}
 
 			if (ImGui::Selectable("Properties"))
 				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(items[index]);
@@ -234,6 +247,7 @@ namespace ed
 
 				// tell pipeline to remove this item
 				m_data->Pipeline.Remove(items[index]->Name);
+				m_data->Renderer.RemoveItemVariableValues(items[index]);
 
 				ret = true;
 			}
@@ -243,6 +257,13 @@ namespace ed
 			return ret;
 		}
 	}
+
+	void PipelineUI::m_closePopup()
+	{
+		ImGui::CloseCurrentPopup();
+		m_modalItem = nullptr;
+	}
+
 	void PipelineUI::m_renderInputLayoutUI()
 	{
 		static D3D11_INPUT_ELEMENT_DESC iElement = {
@@ -561,6 +582,146 @@ namespace ed
 		ImGui::NextColumn();
 		ImGui::PopStyleColor();
 		//ImGui::PopItemWidth();
+
+		ImGui::EndChild();
+		ImGui::Columns(1);
+	}
+	void PipelineUI::m_renderChangeVariablesUI()
+	{
+		static bool scrollToBottom = false;
+		static int shaderTypeSel = 0, shaderVarSel = 0;
+		
+		ImGui::Text("Add variables that you want to change when rendering this item");
+
+		ImGui::BeginChild("##pui_cvar_table", ImVec2(0, -25));
+		ImGui::Columns(3);
+
+		ImGui::Text("From"); ImGui::NextColumn();
+		ImGui::Text("Name"); ImGui::NextColumn();
+		ImGui::Text("Value"); ImGui::NextColumn();
+
+		ImGui::Separator();
+
+		// find this item's owner
+		PipelineItem* owner = nullptr;
+		pipe::ShaderPass* ownerData = nullptr;
+		std::vector<PipelineItem*>& passes = m_data->Pipeline.GetList();
+		for (PipelineItem* pass : passes) {
+			ownerData = ((pipe::ShaderPass*)pass->Data);
+			std::vector<PipelineItem*>& children = ownerData->Items;
+			for (PipelineItem* child : children) {
+				if (child == m_modalItem) {
+					owner = pass;
+					break;
+				}
+			}
+			if (owner != nullptr)
+				break;
+		}
+
+		std::vector<ShaderVariable*>& vsVars = ownerData->VSVariables.GetVariables();
+		std::vector<ShaderVariable*>& psVars = ownerData->PSVariables.GetVariables();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+		// render the list
+		int id = 0;
+		auto allItems = m_data->Renderer.GetItemVariableValues();
+		for (auto& i : allItems) {
+			if (i.Item != m_modalItem)
+				continue;
+
+			bool isVS = false;
+			for (auto& var : vsVars)
+				if (var == i.Variable) {
+					isVS = true;
+					break;
+				}
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			if (isVS) ImGui::Text("vs"); else ImGui::Text("ps");
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::Text(i.Variable->Name);
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			if (ImGui::Button(("EDIT##edBtn" + std::to_string(id)).c_str())) {
+				ImGui::OpenPopup("Value Edit##pui_shader_ivalue_edit");
+				m_valueEdit.Open(i.NewValue);
+			}
+			ImGui::NextColumn();
+
+			id++;
+		}
+
+		ImGui::PopStyleColor();
+
+		// render value edit window if needed
+		ImGui::SetNextWindowSize(ImVec2(450, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Value Edit##pui_shader_ivalue_edit")) {
+			m_valueEdit.Update();
+
+			if (ImGui::Button("Ok")) {
+				m_valueEdit.Close();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		// widgets for editing "virtual" element - an element that will be added to the list later
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::BeginCombo(("##shadertype" + std::to_string(id)).c_str(), shaderTypeSel == 0 ? "vs" : "ps")) {
+			if (ImGui::Selectable("vs", shaderTypeSel == 0)) { shaderTypeSel = 0; shaderVarSel = 0; }
+			if (shaderTypeSel == 0) ImGui::SetItemDefaultFocus();
+
+			if (ImGui::Selectable("ps", shaderTypeSel == 1)) { shaderTypeSel = 1; shaderVarSel = 0; }
+			if (shaderTypeSel == 1) ImGui::SetItemDefaultFocus();
+
+			ImGui::EndCombo();
+		}
+		ImGui::NextColumn();
+
+		if (scrollToBottom) {
+			ImGui::SetScrollHere();
+			scrollToBottom = false;
+		}
+
+		std::vector<ShaderVariable*> vars = vsVars;
+		if (shaderTypeSel == 1) vars = psVars;
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		const char* inputComboPreview = vars.size() > 0 ? vars[shaderVarSel]->Name : "-- NONE --";
+		if (ImGui::BeginCombo(("##itemvarname" + std::to_string(id)).c_str(), inputComboPreview)) {
+			for (int n = 0; n < vars.size(); n++) {
+				bool is_selected = (n == shaderVarSel);
+				if (ImGui::Selectable(vars[n]->Name, is_selected))
+					shaderVarSel = n;
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::NextColumn();
+
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button("ADD")) {
+			bool alreadyAdded = false;
+			for (int i = 0; i < allItems.size(); i++)
+				if (strcmp(vars[shaderVarSel]->Name, allItems[i].Variable->Name) == 0) {
+					alreadyAdded = true;
+					break;
+				}
+
+			if (!alreadyAdded) {
+				RenderEngine::ItemVariableValue itemVal(vars[shaderVarSel]);
+				itemVal.Item = m_modalItem;
+
+				m_data->Renderer.AddItemVariableValue(itemVal);
+			}
+		}
+		ImGui::NextColumn();
 
 		ImGui::EndChild();
 		ImGui::Columns(1);

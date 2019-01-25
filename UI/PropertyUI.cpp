@@ -470,7 +470,7 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::Separator();
 			}
-
+			
 			ImGui::NextColumn();
 			ImGui::Separator();
 			ImGui::Columns(1);
