@@ -7,11 +7,12 @@
 namespace ed
 {
 	class PipelineManager;
+	class RenderEngine;
 
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline, GUIManager* gui);
+		ProjectParser(PipelineManager* pipeline, RenderEngine* renderer, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -32,6 +33,7 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 
 	private:
+		void m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var);
 		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars);
 		D3D11_BLEND m_toBlend(const char* str);
 		D3D11_BLEND_OP m_toBlendOp(const char* str);
@@ -41,6 +43,7 @@ namespace ed
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;
+		RenderEngine* m_renderer;
 		std::string m_file;
 		std::string m_projectPath;
 	};

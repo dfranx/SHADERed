@@ -1,4 +1,5 @@
 #include "ProjectParser.h"
+#include "RenderEngine.h"
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
@@ -15,8 +16,8 @@
 
 namespace ed
 {
-	ProjectParser::ProjectParser(PipelineManager* pipeline, GUIManager* gui) :
-		m_pipe(pipeline), m_file("")
+	ProjectParser::ProjectParser(PipelineManager* pipeline, RenderEngine* rend, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend)
 	{
 		ResetProjectDirectory();
 		m_ui = gui;
@@ -127,26 +128,8 @@ namespace ed
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 					// parse value
-					if (system == SystemShaderVariable::None) {
-						int rowID = 0;
-						for (pugi::xml_node row : variableNode.children("row")) {
-							int colID = 0;
-							for (pugi::xml_node value : row.children("value")) {
-								if (func != FunctionShaderVariable::None)
-									*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
-								else {
-									if (type >= ShaderVariable::ValueType::Boolean1 && type <= ShaderVariable::ValueType::Boolean4)
-										var->SetBooleanValue(value.text().as_bool(), colID++);
-									else if (type >= ShaderVariable::ValueType::Integer1 && type <= ShaderVariable::ValueType::Integer4)
-										var->SetIntegerValue(value.text().as_int(), colID++);
-									else
-										var->SetFloat(value.text().as_float(), colID++, rowID);
-								}
-
-							}
-							rowID++;
-						}
-					}
+					if (system == SystemShaderVariable::None)
+						m_parseVariableValue(variableNode, var);
 
 					if (shaderNodeType == "vs")
 						data->VSVariables.Add(var);
@@ -405,6 +388,39 @@ namespace ed
 
 				m_pipe->AddItem(name, itemName, itemType, itemData);
 			}
+
+			// parse item values
+			for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
+				std::string type = itemValueNode.attribute("from").as_string();
+				auto valname = itemValueNode.attribute("variable").as_string();
+				auto itemname = itemValueNode.attribute("for").as_string();
+
+				std::vector<ShaderVariable*> vars = data->VSVariables.GetVariables();
+				if (type == "ps") vars = data->PSVariables.GetVariables();
+
+				ShaderVariable* cpyVar = nullptr;
+				for (auto& var : vars)
+					if (strcmp(var->Name, valname) == 0) {
+						cpyVar = var;
+						break;
+					}
+
+				if (cpyVar != nullptr) {
+					PipelineItem* cpyItem = nullptr;
+					for (auto& item : data->Items)
+						if (strcmp(item->Name, itemname) == 0) {
+							cpyItem = item;
+							break;
+						}
+
+					RenderEngine::ItemVariableValue ival(cpyVar);
+					m_parseVariableValue(itemValueNode, ival.NewValue);
+					ival.Item = cpyItem;
+
+					m_renderer->AddItemVariableValue(ival);
+				}
+			}
+
 		}
 
 		// settings
@@ -738,6 +754,28 @@ namespace ed
 		m_projectPath = currentPath;
 	}
 
+
+	void ProjectParser::m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var)
+	{
+		int rowID = 0;
+		for (pugi::xml_node row : node.children("row")) {
+			int colID = 0;
+			for (pugi::xml_node value : row.children("value")) {
+				if (var->Function != FunctionShaderVariable::None)
+					*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
+				else {
+					if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
+						var->SetBooleanValue(value.text().as_bool(), colID++);
+					else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
+						var->SetIntegerValue(value.text().as_int(), colID++);
+					else
+						var->SetFloat(value.text().as_float(), colID++, rowID);
+				}
+
+			}
+			rowID++;
+		}
+	}
 	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars)
 	{
 		if (vars.size() > 0) {
