@@ -42,6 +42,13 @@ namespace ed
 
 		inline std::vector<ItemVariableValue>& GetItemVariableValues() { return m_itemValues; }
 		inline void AddItemVariableValue(const ItemVariableValue& item) { m_itemValues.push_back(item); }
+		inline void RemoveItemVariableValue(PipelineItem* item, ShaderVariable* var) {
+			for (int i = 0; i < m_itemValues.size(); i++)
+				if (m_itemValues[i].Item == item && m_itemValues[i].Variable == var) {
+					m_itemValues.erase(m_itemValues.begin() + i);
+					return;
+				}
+		}
 		inline void RemoveItemVariableValues(PipelineItem* item) {
 			for (int i = 0; i < m_itemValues.size(); i++)
 				if (m_itemValues[i].Item == item) {

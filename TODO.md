@@ -9,7 +9,7 @@ QoL:
 - [ ] recompile not working without saving changes
 - [ ] clear message group after renaming pipeline item
 - [ ] close code editor when shader is deleted/replaced/etc..
-- [ ] ask the user if they are 100% sure they want to create new project/delete shader/etc...
+- [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] shader variable pointers & copying
 - [ ] move m_renderStats to StatsPage
 - [ ] fix the app crash at start up when the program cant compile the shader

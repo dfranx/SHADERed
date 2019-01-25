@@ -651,6 +651,9 @@ namespace ed
 				ImGui::OpenPopup("Value Edit##pui_shader_ivalue_edit");
 				m_valueEdit.Open(i.NewValue);
 			}
+			ImGui::SameLine();
+			if (ImGui::Button(("X##delBtn" + std::to_string(id)).c_str()))
+				m_data->Renderer.RemoveItemVariableValue(i.Item, i.Variable);
 			ImGui::NextColumn();
 
 			id++;
