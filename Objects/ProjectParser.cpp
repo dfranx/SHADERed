@@ -420,7 +420,6 @@ namespace ed
 					m_renderer->AddItemVariableValue(ival);
 				}
 			}
-
 		}
 
 		// settings
@@ -643,6 +642,36 @@ namespace ed
 					if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
 				}
 			}
+
+
+			// item variable values
+			pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
+			auto itemValues = m_renderer->GetItemVariableValues();
+			auto& psVars = passData->PSVariables.GetVariables();
+			for (auto itemVal : itemValues) {
+				bool found = false;
+				for (auto passChild : passData->Items)
+					if (passChild == itemVal.Item) {
+						found = true;
+						break;
+					}
+				if (!found) continue;
+
+				pugi::xml_node itemValueNode = itemValuesNode.append_child("value");
+
+				std::string from = "vs";
+				for (auto psVar : psVars)
+					if (strcmp(psVar->Name, itemVal.Variable->Name) == 0) {
+						from = "ps";
+						break;
+					}
+
+				itemValueNode.append_attribute("from").set_value(from.c_str());
+				itemValueNode.append_attribute("variable").set_value(itemVal.Variable->Name);
+				itemValueNode.append_attribute("for").set_value(itemVal.Item->Name);
+
+				m_exportVariableValue(itemValueNode, itemVal.NewValue);
+			}
 		}
 
 		// settings
@@ -776,6 +805,33 @@ namespace ed
 			rowID++;
 		}
 	}
+	void ProjectParser::m_exportVariableValue(pugi::xml_node& node, ShaderVariable* var)
+	{
+		pugi::xml_node valueRowNode = node.append_child("row");
+
+		if (var->Function == FunctionShaderVariable::None) {
+			int rowID = 0;
+			for (int i = 0; i < ShaderVariable::GetSize(var->GetType()) / 4; i++) {
+				if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
+					valueRowNode.append_child("value").text().set(var->AsBoolean(i));
+				else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
+					valueRowNode.append_child("value").text().set(var->AsInteger(i));
+				else
+					valueRowNode.append_child("value").text().set(var->AsFloat(i%var->GetColumnCount(), rowID));
+
+				if (i%var->GetColumnCount() == 0 && i != 0) {
+					valueRowNode = node.append_child("row");
+					rowID++;
+				}
+			}
+		}
+		else {
+			// save arguments
+			for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
+				valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
+			}
+		}
+	}
 	void ProjectParser::m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars)
 	{
 		if (vars.size() > 0) {
@@ -792,32 +848,8 @@ namespace ed
 
 				varNode.append_attribute("slot").set_value(var->Slot);
 
-				if (var->System == SystemShaderVariable::None) {
-					pugi::xml_node valueRowNode = varNode.append_child("row");
-
-					if (var->Function == FunctionShaderVariable::None) {
-						int rowID = 0;
-						for (int i = 0; i < ShaderVariable::GetSize(var->GetType()) / 4; i++) {
-							if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
-								valueRowNode.append_child("value").text().set(var->AsBoolean(i));
-							else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
-								valueRowNode.append_child("value").text().set(var->AsInteger(i));
-							else
-								valueRowNode.append_child("value").text().set(var->AsFloat(i%var->GetColumnCount(), rowID));
-
-							if (i%var->GetColumnCount() == 0 && i != 0) {
-								valueRowNode = varNode.append_child("row");
-								rowID++;
-							}
-						}
-					}
-					else {
-						// save arguments
-						for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
-							valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
-						}
-					}
-				}
+				if (var->System == SystemShaderVariable::None)
+					m_exportVariableValue(varNode, var);
 			}
 		}
 	}

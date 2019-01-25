@@ -34,6 +34,7 @@ namespace ed
 
 	private:
 		void m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var);
+		void m_exportVariableValue(pugi::xml_node& node, ShaderVariable* vars);
 		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars);
 		D3D11_BLEND m_toBlend(const char* str);
 		D3D11_BLEND_OP m_toBlendOp(const char* str);

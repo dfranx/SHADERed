@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>vertex.hlsl</path>
+				<path>.\.\vertex.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -11,16 +11,16 @@
 				</input>
 				<variables>
 					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
-          <variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
-          <variable type="float" name="darkness" slot="0">
-            <row>
-              <value>1</value>
-            </row>
-          </variable>
+					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+					<variable type="float" name="darkness" slot="0">
+						<row>
+							<value>1</value>
+						</row>
+					</variable>
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>pixel.hlsl</path>
+				<path>.\.\pixel.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -29,27 +29,36 @@
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
+					<x>-0.5</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="BoxDefault" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>0.5</x>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
-      <itemvalues>
-        <value from="vs" variable="darkness" for="Box">
-          <row>
-            <value>0.5</value>
-          </row>
-        </value>
-      </itemvalues>
+			<itemvalues>
+				<value from="vs" variable="darkness" for="Box">
+					<row>
+						<value>0.5</value>
+					</row>
+				</value>
+			</itemvalues>
 		</pass>
 	</pipeline>
 	<settings>
-		<entry type="property" name="Light" />
+		<entry type="property" name="BoxDefault" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="camera">
-			<distance>2</distance>
-			<rotationX>46</rotationX>
-			<rotationY>26</rotationY>
-			<rotationZ>0</rotationZ>
+			<distance>8</distance>
+			<rotationX>360</rotationX>
+			<rotationY>1</rotationY>
+			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>
 </project>
