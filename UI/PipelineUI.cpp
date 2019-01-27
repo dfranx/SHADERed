@@ -626,7 +626,7 @@ namespace ed
 
 		// render the list
 		int id = 0;
-		auto allItems = m_data->Renderer.GetItemVariableValues();
+		std::vector<RenderEngine::ItemVariableValue> allItems = m_data->Renderer.GetItemVariableValues();
 		for (auto& i : allItems) {
 			if (i.Item != m_modalItem)
 				continue;

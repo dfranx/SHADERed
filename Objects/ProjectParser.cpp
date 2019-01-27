@@ -54,8 +54,8 @@ namespace ed
 				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps"
 
 				// parse path and type
-				auto shaderPath = shaderNode.child("path").text().as_string();
-				auto shaderEntry = shaderNode.child("entry").text().as_string();
+				const pugi::char_t* shaderPath = shaderNode.child("path").text().as_string();
+				const pugi::char_t* shaderEntry = shaderNode.child("entry").text().as_string();
 				if (shaderNodeType == "vs") {
 					strcpy(data->VSPath, shaderPath);
 					strcpy(data->VSEntry, shaderEntry);
@@ -392,8 +392,8 @@ namespace ed
 			// parse item values
 			for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
 				std::string type = itemValueNode.attribute("from").as_string();
-				auto valname = itemValueNode.attribute("variable").as_string();
-				auto itemname = itemValueNode.attribute("for").as_string();
+				const pugi::char_t* valname = itemValueNode.attribute("variable").as_string();
+				const pugi::char_t* itemname = itemValueNode.attribute("for").as_string();
 
 				std::vector<ShaderVariable*> vars = data->VSVariables.GetVariables();
 				if (type == "ps") vars = data->PSVariables.GetVariables();
@@ -429,15 +429,15 @@ namespace ed
 				if (type == "property") {
 					PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
 					if (!settingItem.attribute("name").empty()) {
-						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
+						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						props->Open(item);
 					}
 				}
 				else if (type == "file") {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 					if (!settingItem.attribute("name").empty()) {
-						auto item = m_pipe->Get(settingItem.attribute("name").as_string());
-						auto shaderType = settingItem.attribute("shader").as_string();
+						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
+						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
 
 						if (strcmp(shaderType, "vs") == 0)
 							editor->OpenVS(*item);
@@ -448,25 +448,19 @@ namespace ed
 				else if (type == "pinned") {
 					PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
 					if (!settingItem.attribute("name").empty()) {
-						auto item = settingItem.attribute("name").as_string();
-						auto shaderType = settingItem.attribute("from").as_string();
-						auto owner = (pipe::ShaderPass*)m_pipe->Get(settingItem.attribute("owner").as_string())->Data;
+						const pugi::char_t* item = settingItem.attribute("name").as_string();
+						const pugi::char_t* shaderType = settingItem.attribute("from").as_string();
+						pipe::ShaderPass* owner = (pipe::ShaderPass*)m_pipe->Get(settingItem.attribute("owner").as_string())->Data;
 
-						if (strcmp(shaderType, "vs") == 0) {
-							auto vars = owner->VSVariables.GetVariables();
-							for (auto var : vars)
-								if (strcmp(var->Name, item) == 0) {
-									pinned->Add(var);
-									break;
-								}
-						} else {
-							auto vars = owner->PSVariables.GetVariables();
-							for (auto var : vars)
-								if (strcmp(var->Name, item) == 0) {
-									pinned->Add(var);
-									break;
-								}
-						}
+						std::vector<ShaderVariable*> vars = owner->VSVariables.GetVariables();
+						if (strcmp(shaderType, "ps") == 0)
+							vars = owner->PSVariables.GetVariables();
+
+						for (auto var : vars)
+							if (strcmp(var->Name, item) == 0) {
+								pinned->Add(var);
+								break;
+							}
 					}
 				}
 				else if (type == "camera") {
@@ -646,8 +640,8 @@ namespace ed
 
 			// item variable values
 			pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
-			auto itemValues = m_renderer->GetItemVariableValues();
-			auto& psVars = passData->PSVariables.GetVariables();
+			std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
+			std::vector<ShaderVariable*>& psVars = passData->PSVariables.GetVariables();
 			for (auto itemVal : itemValues) {
 				bool found = false;
 				for (auto passChild : passData->Items)
@@ -698,17 +692,17 @@ namespace ed
 
 			// pinned ui
 			PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
-			auto pinnedVars = pinned->GetAll();
+			std::vector<ShaderVariable*> pinnedVars = pinned->GetAll();
 			for (auto var : pinnedVars) {
 				pugi::xml_node varNode = settingsNode.append_child("entry");
 				varNode.append_attribute("type").set_value("pinned");
 				varNode.append_attribute("name").set_value(var->Name);
 
 				for (PipelineItem* passItem : passItems) {
-					auto data = (pipe::ShaderPass*)passItem->Data;
+					pipe::ShaderPass* data = (pipe::ShaderPass*)passItem->Data;
 					bool found = false;
 
-					auto vsVars = data->VSVariables.GetVariables();
+					std::vector<ShaderVariable*> vsVars = data->VSVariables.GetVariables();
 					for (int i = 0; i < vsVars.size(); i++) {
 						if (vsVars[i] == var) {
 							varNode.append_attribute("from").set_value("vs");
@@ -718,7 +712,7 @@ namespace ed
 					}
 
 					if (!found) {
-						auto psVars = data->PSVariables.GetVariables();
+						std::vector<ShaderVariable*> psVars = data->PSVariables.GetVariables();
 						for (int i = 0; i < psVars.size(); i++) {
 							if (psVars[i] == var) {
 								varNode.append_attribute("from").set_value("ps");

@@ -5,7 +5,7 @@
 namespace ed
 {
 	InterfaceManager::InterfaceManager(GUIManager* gui, ml::Window* wnd) :
-		Renderer(wnd, &Pipeline, &Parser, &Messages),
+		Renderer(wnd, &Pipeline, &Objects, &Parser, &Messages),
 		Pipeline(wnd, &Parser),
 		Objects(wnd),
 		Parser(&Pipeline, &Renderer, gui)

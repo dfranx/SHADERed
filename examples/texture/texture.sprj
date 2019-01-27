@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<project>
+	<pipeline>
+		<pass name="Light">
+			<shader type="vs">
+				<path>vertex.hlsl</path>
+				<entry>main</entry>
+				<input>
+					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+					<element id="0" format="R32G32_FLOAT" offset="32">TEXCOORD</element>
+				</input>
+				<variables>
+					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
+					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+				</variables>
+			</shader>
+			<shader type="ps">
+				<path>pixel.hlsl</path>
+				<entry>main</entry>
+			</shader>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<settings>
+		<entry type="property" name="Light" />
+		<entry type="file" name="Light" shader="vs" />
+		<entry type="file" name="Light" shader="ps" />
+		<entry type="camera">
+			<distance>10</distance>
+			<rotationX>110</rotationX>
+			<rotationY>10</rotationY>
+			<rotationZ>0</rotationZ>
+		</entry>
+	</settings>
+</project>

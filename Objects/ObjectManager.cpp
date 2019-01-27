@@ -30,7 +30,7 @@ namespace ed
 	}
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{
-		if (!this->IsBound(file, pass))
+		if (IsBound(file, pass) == -1)
 			m_binds[pass].push_back(m_srvs[file]);
 	}
 	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
@@ -67,18 +67,16 @@ namespace ed
 		m_texs.erase(file);
 		m_imgs.erase(file);
 	}
-	bool ObjectManager::IsBound(const std::string & file, PipelineItem * pass)
+	int ObjectManager::IsBound(const std::string & file, PipelineItem * pass)
 	{
 		if (m_binds.count(pass) == 0)
-			return false;
+			return -1;
 
-		bool exists = false;
 		for (int i = 0; i < m_binds[pass].size(); i++)
 			if (m_binds[pass][i] == m_srvs[file]) {
-				exists = true;
-				break;
+				return i;
 			}
 
-		return exists;
+		return -1;
 	}
 }

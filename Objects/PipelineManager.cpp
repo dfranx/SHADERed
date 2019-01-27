@@ -19,7 +19,7 @@ namespace ed
 	{
 		for (int i = 0; i < m_items.size(); i++) {
 			// delete pass' child items and their data
-			auto pass = (ed::pipe::ShaderPass*)m_items[i]->Data;
+			pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
 			for (auto passItem : pass->Items) {
 				delete passItem->Data;
 				delete passItem;
@@ -45,7 +45,7 @@ namespace ed
 			if (strcmp(item->Name, owner) != 0)
 				continue;
 
-			auto pass = (ed::pipe::ShaderPass*)item->Data;
+			pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
 
 			for (auto& i : pass->Items)
 				if (strcmp(i->Name, name) == 0)

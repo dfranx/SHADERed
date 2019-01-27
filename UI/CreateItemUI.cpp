@@ -361,7 +361,7 @@ namespace ed
 			delete m_item.Data;
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
-			auto allocatedData = new pipe::GeometryItem();
+			pipe::GeometryItem* allocatedData = new pipe::GeometryItem();
 			allocatedData->Type = pipe::GeometryItem::GeometryType::Cube;
 			allocatedData->Size = allocatedData->Scale = DirectX::XMFLOAT3(1,1,1);
 			m_item.Data = allocatedData;
@@ -369,20 +369,20 @@ namespace ed
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass)
 			m_item.Data = new pipe::ShaderPass();
 		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
-			auto allocatedData = new pipe::BlendState();
+			pipe::BlendState* allocatedData = new pipe::BlendState();
 			allocatedData->State.Info.IndependentBlendEnable = false;
 			allocatedData->State.Info.RenderTarget[0].BlendEnable = true;
 			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
-			auto allocatedData = new pipe::DepthStencilState();
+			pipe::DepthStencilState* allocatedData = new pipe::DepthStencilState();
 			allocatedData->State.Info.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::RasterizerState)
 			m_item.Data = new pipe::RasterizerState();
 		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
-			auto allocatedData = new pipe::OBJModel();
+			pipe::OBJModel* allocatedData = new pipe::OBJModel();
 			allocatedData->OnlyGroup = false;
 			allocatedData->Scale = DirectX::XMFLOAT3(1, 1, 1);
 			m_item.Data = allocatedData;

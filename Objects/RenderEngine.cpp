@@ -7,13 +7,16 @@
 
 namespace ed
 {
-	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline, ProjectParser* project, MessageStack* msgs) :
+	RenderEngine::RenderEngine(ml::Window* wnd, PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs) :
 		m_pipeline(pipeline),
+		m_objects(objects),
 		m_project(project),
 		m_msgs(msgs),
 		m_wnd(wnd),
 		m_lastSize(0, 0)
-	{}
+	{
+		m_sampler.Create(*wnd);
+	}
 	RenderEngine::~RenderEngine()
 	{
 		FlushCache();
@@ -27,6 +30,10 @@ namespace ed
 
 			m_rtView.Create(*m_wnd, m_rt);
 		}
+
+		// bind default sampler state
+		m_sampler.BindVS(0);
+		m_sampler.BindPS(0);
 
 		// update system values
 		SystemVariableManager::Instance().SetViewportSize(width, height);
@@ -51,8 +58,15 @@ namespace ed
 		auto& itemVarValues = GetItemVariableValues();
 
 		for (int i = 0; i < m_items.size(); i++) {
-			auto it = m_items[i];
+			PipelineItem* it = m_items[i];
 			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
+			std::vector<ml::ShaderResourceView*> srvs = m_objects->GetBindList(m_items[i]);
+
+			// bind shader resource views
+			for (int i = 0; i < srvs.size(); i++) {
+				srvs[i]->BindPS(i);
+				srvs[i]->BindVS(i);
+			}
 
 			// bind shaders and their variables
 			m_wnd->SetInputLayout(data->VSInputLayout);
@@ -72,7 +86,7 @@ namespace ed
 
 			// render pipeline items
 			for (int j = 0; j < data->Items.size(); j++) {
-				auto item = data->Items[j];
+				PipelineItem* item = data->Items[j];
 
 				// update the value for this element
 				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel)
@@ -122,6 +136,10 @@ namespace ed
 							itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
 			}
+
+			// unbind shader resource views
+			for (int i = 0; i < srvs.size(); i++)
+				m_wnd->RemoveShaderResource(i);
 		}
 		
 		// restore real render target view
@@ -131,7 +149,7 @@ namespace ed
 	{
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
-			auto item = m_items[i];
+			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
 				ed::pipe::ShaderPass* shader = (ed::pipe::ShaderPass*)item->Data;
 

@@ -1,11 +1,13 @@
 #pragma once
 #include "PipelineManager.h"
+#include "ObjectManager.h"
 #include "ProjectParser.h"
 #include "MessageStack.h"
 
 #include <MoonLight/Base/ShaderResourceView.h>
 #include <MoonLight/Base/RenderTexture.h>
 #include <MoonLight/Base/VertexShader.h>
+#include <MoonLight/Base/SamplerState.h>
 #include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/Timer.h>
 #include <unordered_map>
@@ -15,7 +17,7 @@ namespace ed
 	class RenderEngine
 	{
 	public:
-		RenderEngine(ml::Window* wnd, PipelineManager* pipeline, ProjectParser* project, MessageStack* messages);
+		RenderEngine(ml::Window* wnd, PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages);
 		~RenderEngine();
 
 		void Render(int width, int height);
@@ -59,12 +61,15 @@ namespace ed
 
 	private:
 		PipelineManager* m_pipeline;
+		ObjectManager* m_objects;
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
 		ml::Window* m_wnd;
 
 		DirectX::XMINT2 m_lastSize;
 		ml::RenderTexture m_rt;
+
+		ml::SamplerState m_sampler;
 
 		ml::ShaderResourceView m_rtView;
 

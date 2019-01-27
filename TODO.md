@@ -1,4 +1,6 @@
 - [ ] textures & ObjectManager
+- [ ] sampler states
+- [ ] Geometry shader
 - [ ] movable geometry (left click)
 - [ ] RenderPass (groups of PipelineItem objects)
 - [ ] options (code editor font, theme, etc...)
@@ -12,7 +14,7 @@ QoL:
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] shader variable pointers & copying
 - [ ] move m_renderStats to StatsPage
-- [ ] fix the app crash at start up when the program cant compile the shader
+- [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] do all TODOs (comments)

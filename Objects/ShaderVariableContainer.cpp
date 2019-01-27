@@ -84,7 +84,7 @@ namespace ed
 		// get the list of all slots
 		std::vector<int> slots;
 		for (int i = 0; i < m_vars.size(); i++) {
-			auto cnt = std::count_if(slots.begin(), slots.end(), [=](auto a) {
+			int cnt = std::count_if(slots.begin(), slots.end(), [=](auto a) {
 				return a == m_vars[i]->Slot;
 			});
 

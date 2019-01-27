@@ -20,7 +20,7 @@ namespace ed
 		void Bind(const std::string& file, PipelineItem* pass);
 		void Unbind(const std::string& file, PipelineItem* pass);
 		void Remove(const std::string& file);
-		bool IsBound(const std::string& file, PipelineItem* pass);
+		int IsBound(const std::string& file, PipelineItem* pass);
 
 		inline std::vector<std::string> GetObjects() { return m_items; }
 		inline ml::ShaderResourceView* GetSRV(const std::string& file) { return m_srvs[file]; }
