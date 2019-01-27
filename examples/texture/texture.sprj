@@ -31,6 +31,11 @@
 			<itemvalues />
 		</pass>
 	</pipeline>
+  <objects>
+    <object type="texture" path="noise.png">
+      <bind name="Light" slot="0"></bind>
+    </object>
+  </objects>
 	<settings>
 		<entry type="property" name="Light" />
 		<entry type="file" name="Light" shader="vs" />
