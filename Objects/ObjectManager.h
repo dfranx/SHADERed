@@ -7,13 +7,14 @@
 #include <MoonLight/Base/ShaderResourceView.h>
 
 #include "PipelineItem.h"
+#include "ProjectParser.h"
 
 namespace ed
 {
 	class ObjectManager
 	{
 	public:
-		ObjectManager(ml::Window* wnd);
+		ObjectManager(ml::Window* wnd, ProjectParser* parser);
 		~ObjectManager();
 
 		void LoadTexture(const std::string& file);
@@ -35,6 +36,7 @@ namespace ed
 
 	private:
 		ml::Window* m_wnd;
+		ProjectParser* m_parser;
 
 		std::vector<std::string> m_items;
 		std::unordered_map<std::string, ml::Image*> m_imgs;

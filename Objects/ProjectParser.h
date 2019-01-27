@@ -22,6 +22,8 @@ namespace ed
 		void SaveAs(const std::string& file);
 
 		std::string LoadProjectFile(const std::string& file);
+		char* LoadProjectFile(const std::string& file, size_t& len);
+
 		void SaveProjectFile(const std::string& file, const std::string& data);
 
 		std::string GetRelativePath(const std::string& to);

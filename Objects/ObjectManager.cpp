@@ -2,7 +2,27 @@
 
 namespace ed
 {
-	ObjectManager::ObjectManager(ml::Window * wnd)
+	ml::Image::Type mGetImgType(const std::string& fname)
+	{
+		ml::Image::Type type = ml::Image::Type::WIC;
+
+		std::size_t lastDot = fname.find_last_of('.');
+		std::string ext = fname.substr(lastDot + 1, fname.size() - (lastDot + 1));
+
+		std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
+
+		if (ext == "dds")
+			type = ml::Image::Type::DDS;
+		else if (ext == "tga")
+			type = ml::Image::Type::TGA;
+		else if (ext == "hdr")
+			type = ml::Image::Type::HDR;
+
+		return type;
+	}
+
+	ObjectManager::ObjectManager(ml::Window * wnd, ProjectParser* parser) :
+		m_parser(parser)
 	{
 		m_wnd = wnd;
 	}
@@ -21,12 +41,14 @@ namespace ed
 		ml::ShaderResourceView* srv = (m_srvs[file] = new ml::ShaderResourceView());
 
 		m_items.push_back(file);
-
-		if (img->LoadFromFile(file)) {
+		
+		size_t imgDataLen = 0;
+		char* imgData = m_parser->LoadProjectFile(file, imgDataLen);
+		if (img->LoadFromMemory(imgData, imgDataLen, mGetImgType(file))) {
 			tex->Create(*m_wnd, *img);
 			srv->Create(*m_wnd, *tex);
 		}
-		
+		free(imgData);
 	}
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{

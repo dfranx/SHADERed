@@ -27,9 +27,9 @@ namespace ed
 			std::string itemText = items[i];
 
 			if (lastBSlash != std::string::npos)
-				itemText = itemText.substr(lastBSlash);
+				itemText = itemText.substr(lastBSlash + 1);
 			else if (lastFSlash != std::string::npos)
-				itemText = itemText.substr(lastFSlash);
+				itemText = itemText.substr(lastFSlash + 1);
 
 			ImGui::Selectable(itemText.c_str());
 

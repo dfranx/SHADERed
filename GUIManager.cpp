@@ -133,6 +133,11 @@ namespace ed
 					m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
 					s_isCreateItemPopupOpened = true;
 				}
+				if (ImGui::MenuItem("Texture")) {
+					std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+					if (!file.empty())
+						m_data->Objects.LoadTexture(file);
+				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {

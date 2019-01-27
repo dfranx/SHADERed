@@ -7,14 +7,13 @@ namespace ed
 	InterfaceManager::InterfaceManager(GUIManager* gui, ml::Window* wnd) :
 		Renderer(wnd, &Pipeline, &Objects, &Parser, &Messages),
 		Pipeline(wnd, &Parser),
-		Objects(wnd),
+		Objects(wnd, &Parser),
 		Parser(&Pipeline, &Renderer, gui)
 	{
 		m_ui = gui;
 		m_wnd = wnd;
 
 		DefaultState::Instance().Create(*wnd);
-		Objects.LoadTexture("noise.png");
 	}
 	void InterfaceManager::OnEvent(const ml::Event & e)
 	{}

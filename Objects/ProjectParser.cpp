@@ -753,6 +753,23 @@ namespace ed
 		}
 		return "";
 	}
+	char * ProjectParser::LoadProjectFile(const std::string& file, size_t& fsize)
+	{
+		std::string actual = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + file;
+
+		FILE *f = fopen(actual.c_str(), "rb");
+		fseek(f, 0, SEEK_END);
+		fsize = ftell(f);
+		fseek(f, 0, SEEK_SET);  //same as rewind(f);
+
+		char *string = (char*)malloc(fsize + 1);
+		fread(string, fsize, 1, f);
+		fclose(f);
+
+		string[fsize] = 0;
+
+		return string;
+	}
 	void ProjectParser::SaveProjectFile(const std::string & file, const std::string & data)
 	{
 		std::ofstream out(m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + file);
