@@ -2,6 +2,7 @@
 #include <MoonLight/Base/Window.h>
 #include <MoonLight/Base/Event.h>
 #include "Objects/PipelineManager.h"
+#include "Objects/ObjectManager.h"
 #include "Objects/ProjectParser.h"
 #include "Objects/RenderEngine.h"
 #include "Objects/MessageStack.h"
@@ -24,6 +25,7 @@ namespace ed
 		RenderEngine Renderer;
 		ProjectParser Parser;
 		MessageStack Messages;
+		ObjectManager Objects;
 
 	private:
 		GUIManager* m_ui;

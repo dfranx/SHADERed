@@ -16,7 +16,6 @@ namespace ed
 			return;
 		}
 
-		ImVec2 padding = ImGui::GetStyle().WindowPadding;
 		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		
 		ed::RenderEngine* renderer = &m_data->Renderer;

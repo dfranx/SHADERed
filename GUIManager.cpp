@@ -5,6 +5,7 @@
 #include "InterfaceManager.h"
 #include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
+#include "UI/ObjectListUI.h"
 #include "UI/ErrorListUI.h"
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
@@ -45,6 +46,7 @@ namespace ed
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
+		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 
 		m_createUI = new CreateItemUI(this, objects);
 	}
