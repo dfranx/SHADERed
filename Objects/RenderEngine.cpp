@@ -1,5 +1,6 @@
 #include "RenderEngine.h"
 #include "DefaultState.h"
+#include "ObjectManager.h"
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include <MoonLight/Base/PixelShader.h>

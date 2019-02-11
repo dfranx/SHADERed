@@ -8,11 +8,12 @@ namespace ed
 {
 	class PipelineManager;
 	class RenderEngine;
+	class ObjectManager;
 
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline, RenderEngine* renderer, GUIManager* gui);
+		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -46,6 +47,7 @@ namespace ed
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;
+		ObjectManager* m_objects;
 		RenderEngine* m_renderer;
 		std::string m_file;
 		std::string m_projectPath;

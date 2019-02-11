@@ -7,8 +7,8 @@ namespace ed
 	InterfaceManager::InterfaceManager(GUIManager* gui, ml::Window* wnd) :
 		Renderer(wnd, &Pipeline, &Objects, &Parser, &Messages),
 		Pipeline(wnd, &Parser),
-		Objects(wnd, &Parser),
-		Parser(&Pipeline, &Renderer, gui)
+		Objects(wnd, &Parser, &Renderer),
+		Parser(&Pipeline, &Objects, &Renderer, gui)
 	{
 		m_ui = gui;
 		m_wnd = wnd;

@@ -1,6 +1,5 @@
 #pragma once
 #include "PipelineManager.h"
-#include "ObjectManager.h"
 #include "ProjectParser.h"
 #include "MessageStack.h"
 
@@ -14,6 +13,8 @@
 
 namespace ed
 {
+	class ObjectManager;
+
 	class RenderEngine
 	{
 	public:
@@ -26,6 +27,8 @@ namespace ed
 		void FlushCache();
 
 		inline ml::ShaderResourceView& GetTexture() { return m_rtView; }
+
+		DirectX::XMINT2 GetLastRenderSize() { return m_lastSize; }
 
 	public:
 		struct ItemVariableValue

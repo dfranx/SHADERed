@@ -1,8 +1,7 @@
-- [ ] textures & ObjectManager
+- [ ] RenderTextures
 - [ ] sampler states
 - [ ] Geometry shader
 - [ ] movable geometry (left click)
-- [ ] RenderPass (groups of PipelineItem objects)
 - [ ] options (code editor font, theme, etc...)
 - [ ] keyboard shortcuts
 - [ ] help -> settings | manual | about
@@ -32,4 +31,5 @@ QoL:
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 - [ ] more model file types
 - [ ] add option to switch to FPS camera
+- [ ] comment the code
 - [ ] icon

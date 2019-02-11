@@ -1,5 +1,6 @@
 #include "ProjectParser.h"
 #include "RenderEngine.h"
+#include "ObjectManager.h"
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
@@ -16,8 +17,8 @@
 
 namespace ed
 {
-	ProjectParser::ProjectParser(PipelineManager* pipeline, RenderEngine* rend, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend)
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects)
 	{
 		ResetProjectDirectory();
 		m_ui = gui;
@@ -35,6 +36,7 @@ namespace ed
 			return;
 
 		m_pipe->Clear();
+		m_objects->Clear();
 
 		// shader passes
 		for (pugi::xml_node passNode : doc.child("project").child("pipeline").children("pass")) {
@@ -422,6 +424,38 @@ namespace ed
 			}
 		}
 
+		// objects
+		std::vector<PipelineItem*> passes = m_pipe->GetList();
+		std::map<PipelineItem*, std::vector<std::string>> boundTextures;
+		for (pugi::xml_node objectNode : doc.child("project").child("objects").children("object")) {
+			const pugi::char_t* objType = objectNode.attribute("type").as_string();
+
+			if (strcmp(objType, "texture") == 0) {
+				const pugi::char_t* objPath = objectNode.attribute("path").as_string();
+
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+
+					for (auto pass : passes) {
+						if (strcmp(pass->Name, passBindName) == 0) {
+							if (boundTextures[pass].size() <= slot)
+								boundTextures[pass].resize(slot+1);
+
+							boundTextures[pass][slot] = objPath;
+							m_objects->CreateTexture(objPath);
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		// bind objects
+		for (auto b : boundTextures)
+			for (auto id : b.second)
+				if (!id.empty()) m_objects->Bind(id, b.first);
+
 		// settings
 		for (pugi::xml_node settingItem : doc.child("project").child("settings").children("entry")) {
 			if (!settingItem.attribute("type").empty()) {
@@ -496,6 +530,7 @@ namespace ed
 		pugi::xml_document doc;
 		pugi::xml_node projectNode = doc.append_child("project");
 		pugi::xml_node pipelineNode = projectNode.append_child("pipeline");
+		pugi::xml_node objectsNode = projectNode.append_child("objects");
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
 		// shader passes
@@ -569,71 +604,71 @@ namespace ed
 
 					ed::pipe::BlendState* tData = reinterpret_cast<ed::pipe::BlendState*>(item->Data);
 					D3D11_RENDER_TARGET_BLEND_DESC* bDesc = &tData->State.Info.RenderTarget[0];
-					ml::Color blendFactor = tData->State.GetBlendFactor();
+ml::Color blendFactor = tData->State.GetBlendFactor();
 
-					itemNode.append_child("srcblend").text().set(BLEND_NAMES[bDesc->SrcBlend]);
-					itemNode.append_child("blendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOp]);
-					itemNode.append_child("destblend").text().set(BLEND_NAMES[bDesc->DestBlend]);
-					itemNode.append_child("srcblendalpha").text().set(BLEND_NAMES[bDesc->SrcBlendAlpha]);
-					itemNode.append_child("alphablendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOpAlpha]);
-					itemNode.append_child("destblendalpha").text().set(BLEND_NAMES[bDesc->DestBlendAlpha]);
-					itemNode.append_child("alpha2cov").text().set(tData->State.Info.AlphaToCoverageEnable);
-					if (blendFactor.R != 0) itemNode.append_child("bf_red").text().set(blendFactor.R);
-					if (blendFactor.G != 0) itemNode.append_child("bf_green").text().set(blendFactor.G);
-					if (blendFactor.B != 0) itemNode.append_child("bf_blue").text().set(blendFactor.B);
-					if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor.A);
+itemNode.append_child("srcblend").text().set(BLEND_NAMES[bDesc->SrcBlend]);
+itemNode.append_child("blendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOp]);
+itemNode.append_child("destblend").text().set(BLEND_NAMES[bDesc->DestBlend]);
+itemNode.append_child("srcblendalpha").text().set(BLEND_NAMES[bDesc->SrcBlendAlpha]);
+itemNode.append_child("alphablendop").text().set(BLEND_OPERATOR_NAMES[bDesc->BlendOpAlpha]);
+itemNode.append_child("destblendalpha").text().set(BLEND_NAMES[bDesc->DestBlendAlpha]);
+itemNode.append_child("alpha2cov").text().set(tData->State.Info.AlphaToCoverageEnable);
+if (blendFactor.R != 0) itemNode.append_child("bf_red").text().set(blendFactor.R);
+if (blendFactor.G != 0) itemNode.append_child("bf_green").text().set(blendFactor.G);
+if (blendFactor.B != 0) itemNode.append_child("bf_blue").text().set(blendFactor.B);
+if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor.A);
 				}
 				else if (item->Type == PipelineItem::ItemType::DepthStencilState) {
-					itemNode.append_attribute("type").set_value("depthstencil");
+				itemNode.append_attribute("type").set_value("depthstencil");
 
-					ed::pipe::DepthStencilState* tData = reinterpret_cast<ed::pipe::DepthStencilState*>(item->Data);
-					D3D11_DEPTH_STENCIL_DESC* bDesc = &tData->State.Info;
+				ed::pipe::DepthStencilState* tData = reinterpret_cast<ed::pipe::DepthStencilState*>(item->Data);
+				D3D11_DEPTH_STENCIL_DESC* bDesc = &tData->State.Info;
 
-					itemNode.append_child("depthenable").text().set(bDesc->DepthEnable);
-					itemNode.append_child("depthfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->DepthFunc]);
-					itemNode.append_child("stencilenable").text().set(bDesc->StencilEnable);
-					itemNode.append_child("frontfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->FrontFace.StencilFunc]);
-					itemNode.append_child("frontpass").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilPassOp]);
-					itemNode.append_child("frontfail").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilFailOp]);
-					itemNode.append_child("backfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->BackFace.StencilFunc]);
-					itemNode.append_child("backpass").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilPassOp]);
-					itemNode.append_child("backfail").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilFailOp]);
-					if (tData->StencilReference != 0) itemNode.append_child("sref").text().set(tData->StencilReference);
+				itemNode.append_child("depthenable").text().set(bDesc->DepthEnable);
+				itemNode.append_child("depthfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->DepthFunc]);
+				itemNode.append_child("stencilenable").text().set(bDesc->StencilEnable);
+				itemNode.append_child("frontfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->FrontFace.StencilFunc]);
+				itemNode.append_child("frontpass").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilPassOp]);
+				itemNode.append_child("frontfail").text().set(STENCIL_OPERATION_NAMES[bDesc->FrontFace.StencilFailOp]);
+				itemNode.append_child("backfunc").text().set(COMPARISON_FUNCTION_NAMES[bDesc->BackFace.StencilFunc]);
+				itemNode.append_child("backpass").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilPassOp]);
+				itemNode.append_child("backfail").text().set(STENCIL_OPERATION_NAMES[bDesc->BackFace.StencilFailOp]);
+				if (tData->StencilReference != 0) itemNode.append_child("sref").text().set(tData->StencilReference);
 				}
 				else if (item->Type == PipelineItem::ItemType::RasterizerState) {
-					itemNode.append_attribute("type").set_value("rasterizer");
+				itemNode.append_attribute("type").set_value("rasterizer");
 
-					ed::pipe::RasterizerState* tData = reinterpret_cast<ed::pipe::RasterizerState*>(item->Data);
-					D3D11_RASTERIZER_DESC* bDesc = &tData->State.Info;
+				ed::pipe::RasterizerState* tData = reinterpret_cast<ed::pipe::RasterizerState*>(item->Data);
+				D3D11_RASTERIZER_DESC* bDesc = &tData->State.Info;
 
-					itemNode.append_child("wireframe").text().set(bDesc->FillMode == D3D11_FILL_WIREFRAME);
-					itemNode.append_child("cull").text().set(CULL_MODE_NAMES[bDesc->CullMode]);
-					itemNode.append_child("ccw").text().set(bDesc->FrontCounterClockwise);
-					itemNode.append_child("depthbias").text().set(bDesc->DepthBias);
-					itemNode.append_child("depthbiasclamp").text().set(bDesc->DepthBiasClamp);
-					itemNode.append_child("slopebias").text().set(bDesc->SlopeScaledDepthBias);
-					itemNode.append_child("depthclip").text().set(bDesc->DepthClipEnable);
-					itemNode.append_child("aa").text().set(bDesc->AntialiasedLineEnable);
+				itemNode.append_child("wireframe").text().set(bDesc->FillMode == D3D11_FILL_WIREFRAME);
+				itemNode.append_child("cull").text().set(CULL_MODE_NAMES[bDesc->CullMode]);
+				itemNode.append_child("ccw").text().set(bDesc->FrontCounterClockwise);
+				itemNode.append_child("depthbias").text().set(bDesc->DepthBias);
+				itemNode.append_child("depthbiasclamp").text().set(bDesc->DepthBiasClamp);
+				itemNode.append_child("slopebias").text().set(bDesc->SlopeScaledDepthBias);
+				itemNode.append_child("depthclip").text().set(bDesc->DepthClipEnable);
+				itemNode.append_child("aa").text().set(bDesc->AntialiasedLineEnable);
 				}
 				else if (item->Type == PipelineItem::ItemType::OBJModel) {
-					itemNode.append_attribute("type").set_value("model");
+				itemNode.append_attribute("type").set_value("model");
 
-					ed::pipe::OBJModel* data = reinterpret_cast<ed::pipe::OBJModel*>(item->Data);
+				ed::pipe::OBJModel* data = reinterpret_cast<ed::pipe::OBJModel*>(item->Data);
 
-					std::string opath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(data->Filename));;
+				std::string opath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(data->Filename));;
 
-					itemNode.append_child("filepath").text().set(opath.c_str());
-					itemNode.append_child("grouponly").text().set(data->OnlyGroup);
-					if (data->OnlyGroup) itemNode.append_child("group").text().set(data->GroupName);
-					if (data->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(data->Scale.x);
-					if (data->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(data->Scale.y);
-					if (data->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(data->Scale.z);
-					if (data->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(data->Rotation.z);
-					if (data->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(data->Rotation.x);
-					if (data->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(data->Rotation.y);
-					if (data->Position.x != 0.0f) itemNode.append_child("x").text().set(data->Position.x);
-					if (data->Position.y != 0.0f) itemNode.append_child("y").text().set(data->Position.y);
-					if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
+				itemNode.append_child("filepath").text().set(opath.c_str());
+				itemNode.append_child("grouponly").text().set(data->OnlyGroup);
+				if (data->OnlyGroup) itemNode.append_child("group").text().set(data->GroupName);
+				if (data->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(data->Scale.x);
+				if (data->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(data->Scale.y);
+				if (data->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(data->Scale.z);
+				if (data->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(data->Rotation.z);
+				if (data->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(data->Rotation.x);
+				if (data->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(data->Rotation.y);
+				if (data->Position.x != 0.0f) itemNode.append_child("x").text().set(data->Position.x);
+				if (data->Position.y != 0.0f) itemNode.append_child("y").text().set(data->Position.y);
+				if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
 				}
 			}
 
@@ -665,6 +700,30 @@ namespace ed
 				itemValueNode.append_attribute("for").set_value(itemVal.Item->Name);
 
 				m_exportVariableValue(itemValueNode, itemVal.NewValue);
+			}
+		}
+
+		// objects
+		{
+			// textures
+			std::vector<std::string> texs = m_objects->GetObjects();
+			for (int i = 0; i < texs.size(); i++) {
+				pugi::xml_node textureNode = objectsNode.append_child("object");
+				textureNode.append_attribute("type").set_value("texture");
+				textureNode.append_attribute("path").set_value(texs[i].c_str());
+
+				ml::ShaderResourceView* mySRV = m_objects->GetSRV(texs[i]);
+
+				for (int j = 0; j < passItems.size(); j++) {
+					std::vector<ml::ShaderResourceView*> bound = m_objects->GetBindList(passItems[j]);
+
+					for (int slot = 0; slot < bound.size(); slot++)
+						if (bound[slot] == mySRV) {
+							pugi::xml_node bindNode = textureNode.append_child("bind");
+							bindNode.append_attribute("slot").set_value(slot);
+							bindNode.append_attribute("name").set_value(passItems[j]->Name);
+						}
+				}
 			}
 		}
 

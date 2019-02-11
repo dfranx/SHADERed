@@ -98,7 +98,7 @@ namespace ed
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
 
 		// menu
-		static bool s_isCreateItemPopupOpened = false;
+		static bool s_isCreateItemPopupOpened = false, s_isCreateRTOpened = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New")) {
@@ -136,8 +136,10 @@ namespace ed
 				if (ImGui::MenuItem("Texture")) {
 					std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
 					if (!file.empty())
-						m_data->Objects.LoadTexture(file);
+						m_data->Objects.CreateTexture(file);
 				}
+				if (ImGui::MenuItem("Render Texture"))
+					s_isCreateRTOpened = true;
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
@@ -179,6 +181,11 @@ namespace ed
 			s_isCreateItemPopupOpened = false;
 		}
 
+		if (s_isCreateRTOpened) {
+			ImGui::OpenPopup("Create RT##main_create_rt");
+			s_isCreateRTOpened = false;
+		}
+
 		// Create Item popup
 		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
@@ -186,6 +193,21 @@ namespace ed
 
 			if (ImGui::Button("Ok")) {
 				if (m_createUI->Create())
+					ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create RT popup
+		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create RT##main_create_rt")) {
+			static char buf[65] = { 0 };
+			ImGui::InputText("Name", buf, 64);
+
+			if (ImGui::Button("Ok")) {
+				if (m_data->Objects.CreateRenderTexture(buf))
 					ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();

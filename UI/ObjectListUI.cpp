@@ -19,8 +19,16 @@ namespace ed
 
 		for (int i = 0; i < items.size(); i++) {
 			ml::ShaderResourceView* srv = m_data->Objects.GetSRV(items[i]);
-			ml::Image* img = m_data->Objects.GetImage(items[i]);
-			DirectX::Image imgData = img->GetImage()->GetImages()[0];
+
+			float imgWH = 0.0f;
+			if (m_data->Objects.IsRenderTexture(items[i])) {
+				DirectX::XMINT2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
+				imgWH = (float)rtSize.y / rtSize.x;
+			} else {
+				ml::Image* img = m_data->Objects.GetImage(items[i]);
+				DirectX::Image imgData = img->GetImage()->GetImages()[0];
+				imgWH = (float)imgData.height / imgData.width;
+			}
 
 			size_t lastBSlash = items[i].find_last_of('\\');
 			size_t lastFSlash = items[i].find_last_of('/');
@@ -36,7 +44,7 @@ namespace ed
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
 				ImGui::Text("Preview");
-				ImGui::Image(srv->GetView(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgData.height/imgData.width)* IMAGE_CONTEXT_WIDTH));
+				ImGui::Image(srv->GetView(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH));
 
 				ImGui::Separator();
 
