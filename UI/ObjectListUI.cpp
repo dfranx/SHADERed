@@ -1,4 +1,5 @@
 #include "ObjectListUI.h"
+#include "PropertyUI.h"
 #include "../ImGUI/imgui_internal.h"
 
 #define IMAGE_CONTEXT_WIDTH 150
@@ -62,6 +63,12 @@ namespace ed
 						}
 					}
 					ImGui::EndMenu();
+				}
+
+				if (m_data->Objects.IsRenderTexture(items[i])) {
+					if (ImGui::Selectable("Properties")) {
+						((ed::PropertyUI*)m_ui->Get("Properties"))->Open(items[i], m_data->Objects.GetRenderTexture(items[i]));
+					}
 				}
 
 				if (ImGui::Selectable("Delete"))

@@ -12,6 +12,8 @@ namespace ed
 	public:
 		static std::string GetOpenFileDialog(HWND wnd, LPCWSTR files = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0");
 		static void CreateInputFloat3(const char* name, DirectX::XMFLOAT3& data);
+		static bool CreateInputFloat2(const char* name, DirectX::XMFLOAT2& data);
+		static bool CreateInputInt2(const char* name, DirectX::XMINT2& data);
 		static bool CreateInputColor(const char* name, ml::Color& data);
 		static bool CreateBlendOperatorCombo(const char* name, D3D11_BLEND_OP& op);
 		static bool CreateBlendCombo(const char* name, D3D11_BLEND& blend);

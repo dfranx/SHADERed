@@ -32,6 +32,22 @@ namespace ed
 		ImGui::DragFloat3(name, val, 0.01f);
 		data = DirectX::XMFLOAT3(val);
 	}
+	bool UIHelper::CreateInputFloat2(const char * name, DirectX::XMFLOAT2& data)
+	{
+		float val[2] = { data.x , data.y };
+		bool ret = ImGui::DragFloat2(name, val, 0.01f);
+		data = DirectX::XMFLOAT2(val);
+
+		return ret;
+	}
+	bool UIHelper::CreateInputInt2(const char * name, DirectX::XMINT2 & data)
+	{
+		int val[2] = { data.x , data.y };
+		bool ret = ImGui::DragInt2(name, val);
+		data = DirectX::XMINT2(val);
+
+		return ret;
+	}
 	bool UIHelper::CreateInputColor(const char * name, ml::Color & data)
 	{
 		bool ret = false;

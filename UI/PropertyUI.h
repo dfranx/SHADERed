@@ -12,6 +12,7 @@ namespace ed
 		virtual void Update(float delta);
 		
 		void Open(ed::PipelineItem* item);
+		void Open(const std::string& name, ed::RenderTextureObject* obj);
 		inline std::string CurrentItemName() { return m_current->Name; }
 		inline bool HasItemSelected() { return m_current != nullptr; }
 
@@ -19,5 +20,6 @@ namespace ed
 		char m_itemName[64];
 
 		ed::PipelineItem* m_current;
+		ed::RenderTextureObject* m_currentRT;
 	};
 }

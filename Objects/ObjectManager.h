@@ -35,8 +35,10 @@ namespace ed
 		void Remove(const std::string& file);
 		int IsBound(const std::string& file, PipelineItem* pass);
 
+		RenderTextureObject* GetRenderTexture(const std::string& name) { return m_rts[name]; }
 		DirectX::XMINT2 GetRenderTextureSize(const std::string& name);
 		inline bool IsRenderTexture(const std::string& name) { return m_rts.count(name) > 0; }
+		void ResizeRenderTexture(const std::string& name, DirectX::XMINT2 size);
 
 		void Clear();
 
@@ -61,7 +63,7 @@ namespace ed
 		std::unordered_map<std::string, ml::Texture*> m_texs;
 		std::unordered_map<std::string, ml::ShaderResourceView*> m_srvs;
 
-		std::unordered_map<std::string, RenderTextureObject> m_rts;
+		std::unordered_map<std::string, RenderTextureObject*> m_rts;
 		
 		std::unordered_map<PipelineItem*, std::vector<ml::ShaderResourceView*>> m_binds;
 	};

@@ -34,10 +34,15 @@ namespace ed
 	void ObjectManager::Clear()
 	{
 		for (auto str : m_items) {
-			delete m_imgs[str];
+			if (m_imgs.count(str) > 0) {
+				delete m_imgs[str];
+				delete m_texs[str];
+			} else
+				delete m_rts[str];
 			delete m_srvs[str];
-			delete m_texs[str];
 		}
+		
+		m_rts.clear();
 		m_imgs.clear();
 		m_srvs.clear();
 		m_texs.clear();
@@ -51,13 +56,14 @@ namespace ed
 
 		m_items.push_back(name);
 
-		m_rts[name].RT = new ml::RenderTexture();
 		m_srvs[name] = new ml::ShaderResourceView();
+		m_rts[name] = new ed::RenderTextureObject();
 
-		m_rts[name].RT->Create(*m_wnd, m_wnd->GetSize(), ml::Resource::ShaderResource, true);
-		m_srvs[name]->Create(*m_wnd, *m_rts[name].RT);
+		m_rts[name]->RT = new ml::RenderTexture();
+		m_rts[name]->RT->Create(*m_wnd, m_wnd->GetSize(), ml::Resource::ShaderResource, true);
+		m_srvs[name]->Create(*m_wnd, *m_rts[name]->RT);
 
-		m_rts[name].FixedSize = m_wnd->GetSize();
+		m_rts[name]->FixedSize = m_wnd->GetSize();
 	}
 	void ObjectManager::CreateTexture(const std::string& file)
 	{
@@ -108,7 +114,9 @@ namespace ed
 		if (!IsRenderTexture(file)) {
 			delete m_texs[file];
 			delete m_imgs[file];
-		}
+		} else
+			delete m_rts[file];
+
 
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == file) {
@@ -134,7 +142,12 @@ namespace ed
 	}
 	DirectX::XMINT2 ObjectManager::GetRenderTextureSize(const std::string & name)
 	{
-		if (m_rts[name].FixedSize.x < 0) return DirectX::XMINT2(m_rts[name].RatioSize.x * m_renderer->GetLastRenderSize().x, m_rts[name].RatioSize.y * m_renderer->GetLastRenderSize().y);
-		return m_rts[name].FixedSize;
+		if (m_rts[name]->FixedSize.x < 0) return DirectX::XMINT2(m_rts[name]->RatioSize.x * m_renderer->GetLastRenderSize().x, m_rts[name]->RatioSize.y * m_renderer->GetLastRenderSize().y);
+		return m_rts[name]->FixedSize;
+	}
+	void ObjectManager::ResizeRenderTexture(const std::string & name, DirectX::XMINT2 size)
+	{
+		m_rts[name]->RT->Create(*m_wnd, size, ml::Resource::ShaderResource, true);
+		m_srvs[name]->Create(*m_wnd, *m_rts[name]->RT);
 	}
 }
