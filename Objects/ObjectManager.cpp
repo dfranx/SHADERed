@@ -51,7 +51,7 @@ namespace ed
 	}
 	bool ObjectManager::CreateRenderTexture(const std::string & name)
 	{
-		if (name.size() == 0 || m_rts.count(name) > 0)
+		if (name.size() == 0 || m_rts.count(name) > 0 || name == "Window")
 			return false;
 
 		m_items.push_back(name);
@@ -64,6 +64,7 @@ namespace ed
 		m_srvs[name]->Create(*m_wnd, *m_rts[name]->RT);
 
 		m_rts[name]->FixedSize = m_wnd->GetSize();
+		m_rts[name]->ClearColor = ml::Color(0, 0, 0, 0);
 	}
 	void ObjectManager::CreateTexture(const std::string& file)
 	{

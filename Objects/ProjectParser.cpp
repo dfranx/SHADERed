@@ -43,6 +43,7 @@ namespace ed
 			char name[PIPELINE_ITEM_NAME_LENGTH];
 			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
 			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
+			strcpy(data->RenderTexture, "Window");
 
 			// get pass name
 			if (!passNode.attribute("name").empty())

@@ -22,21 +22,23 @@ namespace ed
 
 			ImGui::Separator();
 			
-			ImGui::Text("Name:");
-			ImGui::NextColumn();
+			if (m_currentRT == nullptr) {
+				ImGui::Text("Name:");
+				ImGui::NextColumn();
 
-			ImGui::PushItemWidth(-40);
-			ImGui::InputText("##pui_itemname", m_itemName, PIPELINE_ITEM_NAME_LENGTH);
-			ImGui::PopItemWidth();
-			ImGui::SameLine();
-			if (ImGui::Button("Ok##pui_itemname", ImVec2(-1, 0))) {
-				if (m_data->Pipeline.Has(m_itemName))
-					ImGui::OpenPopup("ERROR##pui_itemname_taken");
-				else if (strlen(m_itemName) <= 2)
-					ImGui::OpenPopup("ERROR##pui_itemname_short");
-				else if (m_current != nullptr) memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+				ImGui::PushItemWidth(-40);
+				ImGui::InputText("##pui_itemname", m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button("Ok##pui_itemname", ImVec2(-1, 0))) {
+					if (m_data->Pipeline.Has(m_itemName))
+						ImGui::OpenPopup("ERROR##pui_itemname_taken");
+					else if (strlen(m_itemName) <= 2)
+						ImGui::OpenPopup("ERROR##pui_itemname_short");
+					else if (m_current != nullptr) memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+				}
+				ImGui::NextColumn();
 			}
-			ImGui::NextColumn();
 
 			ImGui::Separator();
 
@@ -56,6 +58,37 @@ namespace ed
 			if (m_current != nullptr) {
 				if (m_current->Type == ed::PipelineItem::ItemType::ShaderPass) {
 					ed::pipe::ShaderPass* item = reinterpret_cast<ed::pipe::ShaderPass*>(m_current->Data);
+
+					/* Render Texture */
+					ImGui::Text("RT:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					std::vector<std::string> rts = m_data->Objects.GetObjects();
+					size_t rtsStrLen = 1;
+					std::string rtsStr = "Window";
+					rtsStr.push_back('\0');
+
+					int rtsCur = 0;
+					for (int i = 0; i < rts.size(); i++) {
+						if (!m_data->Objects.IsRenderTexture(rts[i])) {
+							rts.erase(rts.begin() + i);
+							i--;
+						} else {
+							rtsStr += rts[i];
+							rtsStr.push_back('\0');
+							rtsStrLen++;
+							if (strcmp(item->RenderTexture, rts[i].c_str()) == 0)
+								rtsCur = i+1;
+						}
+					}
+
+
+					if (ImGui::Combo("##pui_rt_combo", &rtsCur, rtsStr.c_str()))
+						strcpy(item->RenderTexture, ((rtsCur == 0) ? "Window\0" : rts[rtsCur - 1].c_str()));
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+
+					ImGui::Separator();
 
 					/* vertex shader path */
 					ImGui::Text("VS Path:");

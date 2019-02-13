@@ -366,8 +366,11 @@ namespace ed
 			allocatedData->Size = allocatedData->Scale = DirectX::XMFLOAT3(1,1,1);
 			m_item.Data = allocatedData;
 		}
-		else if (m_item.Type == PipelineItem::ItemType::ShaderPass)
-			m_item.Data = new pipe::ShaderPass();
+		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
+			m_item.Data = allocatedData;
+			strcpy(allocatedData->RenderTexture, "Window");			
+		}
 		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
 			pipe::BlendState* allocatedData = new pipe::BlendState();
 			allocatedData->State.Info.IndependentBlendEnable = false;

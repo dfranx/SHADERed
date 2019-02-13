@@ -30,6 +30,17 @@ namespace ed
 			m_rt.Create(*m_wnd, m_lastSize, ml::Resource::ShaderResource, true);
 
 			m_rtView.Create(*m_wnd, m_rt);
+		
+			std::vector<std::string> objs = m_objects->GetObjects();
+			for (int i = 0; i < objs.size(); i++) {
+				ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(objs[i]);
+				DirectX::XMINT2 rtSize = rtObj->FixedSize;
+				if (rtSize.x == -1) {
+					rtSize.x = rtObj->RatioSize.x * width;
+					rtSize.y = rtObj->RatioSize.y * height;
+					m_objects->ResizeRenderTexture(objs[i], rtSize);
+				}
+			}
 		}
 
 		// bind default sampler state
@@ -41,11 +52,6 @@ namespace ed
 
 		// cache elements
 		m_cache();
-
-		// bind and reset render texture
-		m_rt.Bind();
-		m_rt.Clear();
-		m_rt.ClearDepthStencil(1.0f, 0);
 
 		// set viewport and cache old viewport
 		D3D11_VIEWPORT viewport;
@@ -62,6 +68,22 @@ namespace ed
 			PipelineItem* it = m_items[i];
 			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 			std::vector<ml::ShaderResourceView*> srvs = m_objects->GetBindList(m_items[i]);
+
+			if (strcmp(data->RenderTexture, "Window") == 0) {
+				// bind and reset render texture
+				m_rt.Bind();
+				m_rt.Clear();
+				m_rt.ClearDepthStencil(1.0f, 0);
+			} else {
+				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(data->RenderTexture);
+				ml::Color oldClearClr = m_wnd->GetClearColor();
+
+				m_wnd->SetClearColor(rt->ClearColor);
+				rt->RT->Bind();
+				rt->RT->Clear();
+				rt->RT->ClearDepthStencil(1.0f, 0);
+				m_wnd->SetClearColor(oldClearClr);
+			}
 
 			// bind shader resource views
 			for (int i = 0; i < srvs.size(); i++) {

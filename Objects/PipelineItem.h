@@ -35,6 +35,8 @@ namespace ed
 	{
 		struct ShaderPass
 		{
+			char RenderTexture[64];
+
 			char VSPath[512];
 			char VSEntry[32];
 			ml::VertexInputLayout VSInputLayout;
