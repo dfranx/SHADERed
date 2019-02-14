@@ -1,4 +1,4 @@
-- [ ] RenderTexture example (+ ortho matrix)
+- [ ] OrthoPanel
 - [ ] sampler states
 - [ ] Geometry shader
 - [ ] movable geometry (left click)

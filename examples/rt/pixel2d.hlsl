@@ -10,5 +10,7 @@ SamplerState smp : register(s0);
 
 float4 main(PSInput pin) : SV_TARGET
 {
-	return pin.Color * tex.Sample(smp, pin.UV);
+	float4 pixel = tex.Sample(smp, pin.UV);
+	float sum = (pixel.x+pixel.y+pixel.z)/3;
+	return float4(sum, sum, sum, 1);
 }

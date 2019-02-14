@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light" rt="rt">
 			<shader type="vs">
-				<path>.\.\.\.\.\.\vertex3d.hlsl</path>
+				<path>.\vertex3d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,12 +15,12 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\.\.\.\.\.\pixel3d.hlsl</path>
+				<path>.\pixel3d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
-				<item name="Box" type="geometry">
-					<type>Cube</type>
+				<item name="Sphere" type="geometry">
+					<type>Sphere</type>
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
@@ -31,24 +31,29 @@
 		</pass>
 		<pass name="RenderTxt">
 			<shader type="vs">
-				<path>.\vertex2d.hlsl</path>
+				<path>.\.\.\vertex2d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
 					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
 					<element id="0" format="R32G32B32_FLOAT" offset="32">TEXCOORD</element>
 				</input>
+				<variables>
+					<variable type="float4x4" name="matVP" system="Orthographic" slot="0" />
+					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\pixel2d.hlsl</path>
+				<path>.\.\.\pixel2d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
-				<item name="fullRT" type="geometry">
+				<item name="FullQuad" type="geometry">
 					<type>Plane</type>
-					<width>1</width>
-					<height>1</height>
+					<width>800</width>
+					<height>600</height>
 					<depth>1</depth>
+					<z>4.82000017</z>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
@@ -56,20 +61,19 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="rendertexture" name="rt" rsize="1.000000,1.000000" r="255" g="255" b="255" a="255">
+		<object type="rendertexture" name="rt" rsize="0.230000,0.230000" r="255" g="255" b="255" a="255">
 			<bind slot="0" name="RenderTxt" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="RenderTxt" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="RenderTxt" shader="vs" />
 		<entry type="file" name="RenderTxt" shader="ps" />
 		<entry type="camera">
-			<distance>2</distance>
-			<rotationX>7</rotationX>
-			<rotationY>6</rotationY>
+			<distance>4</distance>
+			<rotationX>331</rotationX>
+			<rotationY>28</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>

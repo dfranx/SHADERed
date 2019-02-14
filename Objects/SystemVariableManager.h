@@ -27,6 +27,8 @@ namespace ed
 				case ed::SystemShaderVariable::View: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::ViewportSize: return ed::ShaderVariable::ValueType::Float2;
 				case ed::SystemShaderVariable::ViewProjection: return ed::ShaderVariable::ValueType::Float4x4;
+				case ed::SystemShaderVariable::Orthographic: return ed::ShaderVariable::ValueType::Float4x4;
+				case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
 			}
 
@@ -38,7 +40,9 @@ namespace ed
 		inline Camera& GetCamera() { return m_cam; }
 		inline DirectX::XMMATRIX GetViewMatrix() { return m_cam.GetMatrix(); }
 		inline DirectX::XMMATRIX GetProjectionMatrix() { return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
+		inline DirectX::XMMATRIX GetOrthographicMatrix() { return DirectX::XMMatrixOrthographicLH(m_viewport.x, m_viewport.y, 0.1f, 1000.0f); }
 		inline DirectX::XMMATRIX GetViewProjectionMatrix() { return GetViewMatrix() * GetProjectionMatrix(); }
+		inline DirectX::XMMATRIX GetViewOrthographicMatrix() { return GetViewMatrix() * GetOrthographicMatrix(); }
 		inline DirectX::XMMATRIX GetGeometryTransform() { return m_geometryTransform; }
 		inline DirectX::XMFLOAT2 GetViewportSize() { return m_viewport; }
 		inline DirectX::XMFLOAT2 GetMousePosition() { return m_mouse; }

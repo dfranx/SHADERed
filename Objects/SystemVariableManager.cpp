@@ -22,6 +22,14 @@ namespace ed
 					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetViewProjectionMatrix()));
 					memcpy(var->Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
 					break;
+				case ed::SystemShaderVariable::Orthographic:
+					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetOrthographicMatrix()));
+					memcpy(var->Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
+					break;
+				case ed::SystemShaderVariable::ViewOrthographic:
+					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetViewOrthographicMatrix()));
+					memcpy(var->Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));
+					break;
 				case ed::SystemShaderVariable::GeometryTransform:
 					DirectX::XMStoreFloat4x4(&rawMatrix, DirectX::XMMatrixTranspose(SystemVariableManager::Instance().GetGeometryTransform()));
 					memcpy(var->Data, &rawMatrix, sizeof(DirectX::XMFLOAT4X4));

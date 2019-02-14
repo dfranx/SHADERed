@@ -14,6 +14,8 @@ namespace ed
 		View,				// matrix/float4x4 - a built-in camera matrix
 		Projection,			// matrix/float4x4 - a built-in projection matrix
 		ViewProjection,		// matrix/float4x4 - View*Projection matrix
+		Orthographic,		// matrix/float4x4 - an orthographic matrix
+		ViewOrthographic,	// matrix/float4x4 - View*Orthographic
 		GeometryTransform,	// matrix/float4x4 - apply Scale, Rotation and Position to geometry
 		Count
 	};

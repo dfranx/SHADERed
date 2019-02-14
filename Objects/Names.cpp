@@ -150,6 +150,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"View",
 	"Projection",
 	"ViewProjection",
+	"Orthographic",
+	"ViewOrthographic",
 	"GeometryTransform"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
