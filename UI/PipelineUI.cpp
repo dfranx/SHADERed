@@ -246,8 +246,8 @@ namespace ed
 					props->Open(nullptr);
 
 				// tell pipeline to remove this item
-				m_data->Pipeline.Remove(items[index]->Name);
 				m_data->Renderer.RemoveItemVariableValues(items[index]);
+				m_data->Pipeline.Remove(items[index]->Name);
 
 				ret = true;
 			}

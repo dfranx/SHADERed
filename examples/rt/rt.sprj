@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project>
 	<pipeline>
-		<pass name="Light">
+		<pass name="Light" rt="rt">
 			<shader type="vs">
-				<path>.\vertex3d.hlsl</path>
+				<path>.\.\.\.\.\.\vertex3d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\pixel3d.hlsl</path>
+				<path>.\.\.\.\.\.\pixel3d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -31,7 +31,7 @@
 		</pass>
 		<pass name="RenderTxt">
 			<shader type="vs">
-				<path>.\.\vertex2d.hlsl</path>
+				<path>.\vertex2d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -40,12 +40,12 @@
 				</input>
 			</shader>
 			<shader type="ps">
-				<path>.\.\pixel2d.hlsl</path>
+				<path>.\pixel2d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
 				<item name="fullRT" type="geometry">
-					<type>Rectangle</type>
+					<type>Plane</type>
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
@@ -56,20 +56,20 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" path="rt">
+		<object type="rendertexture" name="rt" rsize="1.000000,1.000000" r="255" g="255" b="255" a="255">
 			<bind slot="0" name="RenderTxt" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="fullRT" />
+		<entry type="property" name="RenderTxt" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="RenderTxt" shader="vs" />
 		<entry type="file" name="RenderTxt" shader="ps" />
 		<entry type="camera">
 			<distance>2</distance>
-			<rotationX>26</rotationX>
-			<rotationY>25</rotationY>
+			<rotationX>7</rotationX>
+			<rotationY>6</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>

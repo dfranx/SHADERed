@@ -49,6 +49,12 @@ namespace ed
 			if (!passNode.attribute("name").empty())
 				strcpy(name, passNode.attribute("name").as_string());
 
+			// get pass name
+			if (!passNode.attribute("rt").empty())
+				strcpy(data->RenderTexture, passNode.attribute("rt").as_string());
+			else
+				strcpy(data->RenderTexture, "Window");
+
 			// add the item
 			m_pipe->AddPass(name, data);
 
@@ -449,6 +455,57 @@ namespace ed
 						}
 					}
 				}
+			} else if (strcmp(objType, "rendertexture") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
+
+				m_objects->CreateRenderTexture(objName);
+				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(objName);
+
+				// load size
+				if (objectNode.attribute("fsize").empty()) { // load RatioSize if attribute fsize (FixedSize) doesnt exist
+					std::string rtSize = objectNode.attribute("rsize").as_string();
+					float rtSizeX = std::stof(rtSize.substr(0, rtSize.find(',')));
+					float rtSizeY = std::stof(rtSize.substr(rtSize.find(',') + 1));
+
+					rt->RatioSize = DirectX::XMFLOAT2(rtSizeX, rtSizeY);
+					rt->FixedSize = DirectX::XMINT2(-1, -1);
+
+					m_objects->ResizeRenderTexture(objName, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
+				} else {
+					std::string rtSize = objectNode.attribute("fsize").as_string();
+					int rtSizeX = std::stoi(rtSize.substr(0, rtSize.find(',')));
+					int rtSizeY = std::stoi(rtSize.substr(rtSize.find(',') + 1));
+
+					rt->FixedSize = DirectX::XMINT2(rtSizeX, rtSizeY);
+
+					m_objects->ResizeRenderTexture(objName, rt->FixedSize);
+				}
+
+				// load clear color
+				if (!objectNode.attribute("r").empty()) rt->ClearColor.R = objectNode.attribute("r").as_int();
+				else rt->ClearColor.R = 0;
+				if (!objectNode.attribute("g").empty()) rt->ClearColor.G = objectNode.attribute("g").as_int();
+				else rt->ClearColor.G = 0;
+				if (!objectNode.attribute("b").empty()) rt->ClearColor.B = objectNode.attribute("b").as_int();
+				else rt->ClearColor.B = 0;
+				if (!objectNode.attribute("a").empty()) rt->ClearColor.A = objectNode.attribute("a").as_int();
+				else rt->ClearColor.A = 0;
+
+				// load binds
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+
+					for (auto pass : passes) {
+						if (strcmp(pass->Name, passBindName) == 0) {
+							if (boundTextures[pass].size() <= slot)
+								boundTextures[pass].resize(slot + 1);
+
+							boundTextures[pass][slot] = objName;
+							break;
+						}
+					}
+				}
 			}
 		}
 		
@@ -541,6 +598,8 @@ namespace ed
 
 			pugi::xml_node passNode = pipelineNode.append_child("pass");
 			passNode.append_attribute("name").set_value(passItem->Name);
+			if (strcmp(passData->RenderTexture, "Window") != 0)
+				passNode.append_attribute("rt").set_value(passData->RenderTexture);
 
 			// vertex shader
 			pugi::xml_node vsNode = passNode.append_child("shader");
@@ -709,9 +768,24 @@ if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor
 			// textures
 			std::vector<std::string> texs = m_objects->GetObjects();
 			for (int i = 0; i < texs.size(); i++) {
+				bool isRT = m_objects->IsRenderTexture(texs[i]);
+
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value("texture");
-				textureNode.append_attribute("path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isRT ? "rendertexture" : "texture");
+				textureNode.append_attribute(isRT ? "name" : "path").set_value(texs[i].c_str());
+
+				if (isRT) {
+					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(texs[i]);
+					if (rtObj->FixedSize.x != -1)
+						textureNode.append_attribute("fsize").set_value((std::to_string(rtObj->FixedSize.x) + "," + std::to_string(rtObj->FixedSize.y)).c_str());
+					else
+						textureNode.append_attribute("rsize").set_value((std::to_string(rtObj->RatioSize.x) + "," + std::to_string(rtObj->RatioSize.y)).c_str());
+
+					if (rtObj->ClearColor.R != 0) textureNode.append_attribute("r").set_value(rtObj->ClearColor.R);
+					if (rtObj->ClearColor.G != 0) textureNode.append_attribute("g").set_value(rtObj->ClearColor.G);
+					if (rtObj->ClearColor.B != 0) textureNode.append_attribute("b").set_value(rtObj->ClearColor.B);
+					if (rtObj->ClearColor.A != 0) textureNode.append_attribute("a").set_value(rtObj->ClearColor.A);
+				}
 
 				ml::ShaderResourceView* mySRV = m_objects->GetSRV(texs[i]);
 

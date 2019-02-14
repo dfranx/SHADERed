@@ -1,4 +1,4 @@
-- [ ] RenderTexture loading/saving, RenderTexture example
+- [ ] RenderTexture example (+ ortho matrix)
 - [ ] sampler states
 - [ ] Geometry shader
 - [ ] movable geometry (left click)
