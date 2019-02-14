@@ -19,6 +19,17 @@ namespace ed
 		DirectX::XMINT2 FixedSize;
 		DirectX::XMFLOAT2 RatioSize;
 		ml::Color ClearColor;
+
+		DirectX::XMINT2 CalculateSize(int w, int h)
+		{
+			DirectX::XMINT2 rtSize = FixedSize;
+			if (rtSize.x == -1) {
+				rtSize.x = RatioSize.x * w;
+				rtSize.y = RatioSize.y * h;
+			}
+
+			return rtSize;
+		}
 	};
 
 	class ObjectManager

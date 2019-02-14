@@ -34,33 +34,21 @@ namespace ed
 			std::vector<std::string> objs = m_objects->GetObjects();
 			for (int i = 0; i < objs.size(); i++) {
 				ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(objs[i]);
-				DirectX::XMINT2 rtSize = rtObj->FixedSize;
-				if (rtSize.x == -1) {
-					rtSize.x = rtObj->RatioSize.x * width;
-					rtSize.y = rtObj->RatioSize.y * height;
-					m_objects->ResizeRenderTexture(objs[i], rtSize);
-				}
+				if (rtObj->FixedSize.x == -1)
+					m_objects->ResizeRenderTexture(objs[i], rtObj->CalculateSize(width, height));
 			}
 		}
+
+		// clear main rt only once
+		m_rt.Clear();
+		m_rt.ClearDepthStencil(1.0f, 0);
 
 		// bind default sampler state
 		m_sampler.BindVS(0);
 		m_sampler.BindPS(0);
 
-		// update system values
-		SystemVariableManager::Instance().SetViewportSize(width, height);
-
 		// cache elements
 		m_cache();
-
-		// set viewport and cache old viewport
-		D3D11_VIEWPORT viewport;
-		viewport.TopLeftX = viewport.TopLeftY = 0;
-		viewport.Height = height;
-		viewport.Width = width;
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-		m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
 
 		auto& itemVarValues = GetItemVariableValues();
 
@@ -70,14 +58,38 @@ namespace ed
 			std::vector<ml::ShaderResourceView*> srvs = m_objects->GetBindList(m_items[i]);
 
 			if (strcmp(data->RenderTexture, "Window") == 0) {
-				// bind and reset render texture
+				// update viewport value
+				SystemVariableManager::Instance().SetViewportSize(width, height);
+
+				// set viewport and cache old viewport
+				D3D11_VIEWPORT viewport;
+				viewport.TopLeftX = viewport.TopLeftY = 0;
+				viewport.Height = height;
+				viewport.Width = width;
+				viewport.MinDepth = 0.0f;
+				viewport.MaxDepth = 1.0f;
+				m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
+
+				// bind window rt
 				m_rt.Bind();
-				m_rt.Clear();
-				m_rt.ClearDepthStencil(1.0f, 0);
 			} else {
 				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(data->RenderTexture);
 				ml::Color oldClearClr = m_wnd->GetClearColor();
+				DirectX::XMINT2 calcSize = rt->CalculateSize(width, height);
 
+				// update viewport value
+				SystemVariableManager::Instance().SetViewportSize(calcSize.x, calcSize.y);
+
+				// set viewport and cache old viewport
+				D3D11_VIEWPORT viewport;
+				viewport.TopLeftX = viewport.TopLeftY = 0;
+				viewport.Height = calcSize.y;
+				viewport.Width = calcSize.x;
+				viewport.MinDepth = 0.0f;
+				viewport.MaxDepth = 1.0f;
+				m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
+
+				// clear and bind rt
 				m_wnd->SetClearColor(rt->ClearColor);
 				rt->RT->Bind();
 				rt->RT->Clear();

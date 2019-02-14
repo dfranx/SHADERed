@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<project>
+	<pipeline>
+		<pass name="Light">
+			<shader type="vs">
+				<path>.\vertex3d.hlsl</path>
+				<entry>main</entry>
+				<input>
+					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+				</input>
+				<variables>
+					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
+					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+				</variables>
+			</shader>
+			<shader type="ps">
+				<path>.\pixel3d.hlsl</path>
+				<entry>main</entry>
+			</shader>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+		<pass name="RenderTxt">
+			<shader type="vs">
+				<path>.\.\vertex2d.hlsl</path>
+				<entry>main</entry>
+				<input>
+					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="32">TEXCOORD</element>
+				</input>
+			</shader>
+			<shader type="ps">
+				<path>.\.\pixel2d.hlsl</path>
+				<entry>main</entry>
+			</shader>
+			<items>
+				<item name="fullRT" type="geometry">
+					<type>Rectangle</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="texture" path="rt">
+			<bind slot="0" name="RenderTxt" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="property" name="fullRT" />
+		<entry type="file" name="Light" shader="vs" />
+		<entry type="file" name="Light" shader="ps" />
+		<entry type="file" name="RenderTxt" shader="vs" />
+		<entry type="file" name="RenderTxt" shader="ps" />
+		<entry type="camera">
+			<distance>2</distance>
+			<rotationX>26</rotationX>
+			<rotationY>25</rotationY>
+			<rotationZ>360</rotationZ>
+		</entry>
+	</settings>
+</project>

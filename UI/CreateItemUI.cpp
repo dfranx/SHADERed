@@ -369,7 +369,7 @@ namespace ed
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
 			m_item.Data = allocatedData;
-			strcpy(allocatedData->RenderTexture, "Window");			
+			strcpy(allocatedData->RenderTexture, "Window\0");			
 		}
 		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
 			pipe::BlendState* allocatedData = new pipe::BlendState();
@@ -404,6 +404,7 @@ namespace ed
 			strcpy(data->PSPath, origData->PSPath);
 			strcpy(data->VSEntry, origData->VSEntry);
 			strcpy(data->VSPath, origData->VSPath);
+			strcpy(data->RenderTexture, origData->RenderTexture);
 
 			return m_data->Pipeline.AddPass(m_item.Name, data);
 		} else if (m_owner[0] != 0) {
