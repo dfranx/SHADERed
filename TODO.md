@@ -1,4 +1,3 @@
-- [ ] OrthoPanel
 - [ ] sampler states
 - [ ] Geometry shader
 - [ ] movable geometry (left click)

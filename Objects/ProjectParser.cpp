@@ -347,7 +347,7 @@ namespace ed
 					else if (tData->Type == pipe::GeometryItem::Plane)
 						tData->Geometry = ml::GeometryFactory::CreatePlane(tData->Size.x, tData->Size.y, *m_pipe->GetOwner());
 					else if (tData->Type == pipe::GeometryItem::Rectangle)
-						tData->Geometry = ml::GeometryFactory::CreateRectangle(0, 0, tData->Size.x, tData->Size.y, *m_pipe->GetOwner());
+						tData->Geometry = ml::GeometryFactory::CreatePlane(1, 1, *m_pipe->GetOwner());
 					else if (tData->Type == pipe::GeometryItem::Sphere)
 						tData->Geometry = ml::GeometryFactory::CreateSphere(tData->Size.x, *m_pipe->GetOwner());
 					else if (tData->Type == pipe::GeometryItem::Triangle)

@@ -132,7 +132,12 @@ namespace ed
 				if (item->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
 
-					SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
+					if (geoData->Type == pipe::GeometryItem::Rectangle) {
+						DirectX::XMFLOAT3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
+						DirectX::XMFLOAT3 posRect(geoData->Position.x * width, geoData->Position.y * height, 1.0f);
+						SystemVariableManager::Instance().SetGeometryTransform(scaleRect, geoData->Rotation, posRect);
+					} else
+						SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);
 

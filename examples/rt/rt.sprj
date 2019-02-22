@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light" rt="rt">
 			<shader type="vs">
-				<path>.\vertex3d.hlsl</path>
+				<path>.\.\vertex3d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\pixel3d.hlsl</path>
+				<path>.\.\pixel3d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -31,7 +31,7 @@
 		</pass>
 		<pass name="RenderTxt">
 			<shader type="vs">
-				<path>.\.\.\vertex2d.hlsl</path>
+				<path>.\.\.\.\vertex2d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -44,16 +44,19 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\.\.\pixel2d.hlsl</path>
+				<path>.\.\.\.\pixel2d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
-				<item name="FullQuad" type="geometry">
-					<type>Plane</type>
-					<width>800</width>
-					<height>600</height>
+				<item name="Rect" type="geometry">
+					<type>Rectangle</type>
+					<width>1</width>
+					<height>1</height>
 					<depth>1</depth>
-					<z>4.82000017</z>
+					<scaleX>0.25</scaleX>
+					<scaleY>0.25</scaleY>
+					<x>-0.379999995</x>
+					<y>0.370000005</y>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
@@ -66,14 +69,15 @@
 		</object>
 	</objects>
 	<settings>
+		<entry type="property" name="Rect" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="RenderTxt" shader="vs" />
 		<entry type="file" name="RenderTxt" shader="ps" />
 		<entry type="camera">
-			<distance>4</distance>
-			<rotationX>331</rotationX>
-			<rotationY>28</rotationY>
+			<distance>9</distance>
+			<rotationX>257</rotationX>
+			<rotationY>-20</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>
