@@ -24,7 +24,7 @@ int main()
 
 	// open window
 	ml::Window wnd;
-	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "HLSLed", ml::Window::Style::Resizable, wndConfig);
+	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "SHADERed", ml::Window::Style::Resizable, wndConfig);
 	if (wndPosX != -1 && wndPosY != -1)
 		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
 

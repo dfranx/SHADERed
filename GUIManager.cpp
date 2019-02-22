@@ -109,7 +109,7 @@ namespace ed
 				}
 				if (ImGui::MenuItem("Open")) {
 					m_data->Renderer.FlushCache();
-					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"HLSLed Project\0*.sprj\0");
+					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
 					if (file.size() > 0) {
 						((CodeEditorUI*)Get("Code"))->CloseAll();
@@ -158,7 +158,7 @@ namespace ed
 				if (ImGui::MenuItem("View Help")) { /* TODO */ }
 				if (ImGui::MenuItem("Tips")) { /* TODO */ }
 				if (ImGui::MenuItem("Send feedback")) { /* TODO */ }
-				if (ImGui::MenuItem("About HLSLed")) { /* TODO */ }
+				if (ImGui::MenuItem("About SHADERed")) { /* TODO */ }
 
 				ImGui::EndMenu();
 			}
@@ -319,7 +319,7 @@ namespace ed
 		dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
 		dialog.lpstrFile = filePath;
 		dialog.nMaxFile = sizeof(filePath);
-		dialog.lpstrFilter = L"HLSLed Project\0*.sprj\0";
+		dialog.lpstrFilter = L"SHADERed Project\0*.sprj\0";
 		dialog.nFilterIndex = 1;
 		dialog.lpstrDefExt = L".sprj";
 		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
