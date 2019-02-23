@@ -19,10 +19,11 @@ namespace ed
 
 		void OpenVS(PipelineItem item);
 		void OpenPS(PipelineItem item);
+		void OpenGS(PipelineItem item);
 
 		void CloseAll();
 
-		std::vector<std::pair<std::string, bool>> GetOpenedFiles();
+		std::vector<std::pair<std::string, int>> GetOpenedFiles();
 
 	private:
 		class StatsPage
@@ -39,7 +40,7 @@ namespace ed
 		};
 
 	private:
-		void m_open(PipelineItem item, bool vs);
+		void m_open(PipelineItem item, int shaderTypeID);
 
 		// font for code editor
 		ImFont *m_consolas;
@@ -53,7 +54,7 @@ namespace ed
 		std::vector<PipelineItem> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
-		std::vector<bool> m_isVertexShader;
+		std::vector<int> m_shaderTypeId;
 		std::deque<bool> m_editorOpen;
 
 		int m_selectedItem;

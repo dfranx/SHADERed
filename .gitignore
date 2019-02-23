@@ -3,3 +3,4 @@ Release*
 *.vcxproj.*
 MoonLight.dll
 .vs
+vNext.txt

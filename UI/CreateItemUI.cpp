@@ -2,6 +2,7 @@
 #include "UIHelper.h"
 #include "../Objects/Names.h"
 #include "../ImGUI/imgui.h"
+#include "../ImGUI/imgui_internal.h"
 #include <MoonLight/Base/GeometryFactory.h>
 #include <MoonLight/Model/OBJModel.h>
 
@@ -80,12 +81,44 @@ namespace ed
 			}
 			ImGui::NextColumn();
 
-			// vs entry
+			// ps entry
 			ImGui::Text("Pixel shader entry:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputText("##cui_sppsentry", data->PSEntry, 32);
 			ImGui::NextColumn();
+
+			// gs used
+			ImGui::Text("Use geometry shader:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_spgsuse", &data->GSUsed);
+			ImGui::NextColumn();
+
+			if (!data->GSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
+			// gs path
+			ImGui::Text("Geometry shader path:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-40);
+			ImGui::InputText("##cui_spgspath", data->GSPath, 512);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (ImGui::Button("...##cui_spgspath", ImVec2(-1, 0))) {
+				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
+				if (file.size() != 0)
+					strcpy(data->GSPath, file.c_str());
+			}
+			ImGui::NextColumn();
+
+			// gs entry
+			ImGui::Text("Geometry shader entry:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputText("##cui_spgsentry", data->GSEntry, 32);
+			ImGui::NextColumn();
+
+			if (!data->GSUsed) ImGui::PopItemFlag();
 		}
 		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
 			pipe::BlendState* data = (pipe::BlendState*)m_item.Data;

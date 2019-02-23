@@ -1,6 +1,7 @@
 #include "PropertyUI.h"
 #include "UIHelper.h"
 #include "../ImGUI/imgui.h"
+#include "../ImGUI/imgui_internal.h"
 #include "../Objects/Names.h"
 
 #include <Shlwapi.h>
@@ -147,6 +148,44 @@ namespace ed
 					ImGui::PushItemWidth(-1);
 					ImGui::InputText("##pui_psentry", item->PSEntry, 32);
 					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+
+					ImGui::Separator();
+
+					// gs used
+					ImGui::Text("GS:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##pui_gsuse", &item->GSUsed);
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!item->GSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
+					// gs path
+					ImGui::Text("GS path:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-40);
+					ImGui::InputText("##pui_gspath", item->GSPath, 512);
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("...##pui_gsbtn", ImVec2(-1, 0))) {
+						std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
+						if (file.size() != 0) {
+							file = m_data->Parser.GetRelativePath(file);
+							strcpy(item->GSPath, file.c_str());
+						}
+					}
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// gs entry
+					ImGui::Text("GS entry:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::InputText("##pui_gsentry", item->GSEntry, 32);
+
+					if (!item->GSUsed) ImGui::PopItemFlag();
 				}
 				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);

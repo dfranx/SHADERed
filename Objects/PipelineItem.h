@@ -46,6 +46,11 @@ namespace ed
 			char PSEntry[32];
 			ShaderVariableContainer PSVariables;
 
+			char GSPath[512];
+			char GSEntry[32];
+			ShaderVariableContainer GSVariables;
+			bool GSUsed;
+
 			std::vector<PipelineItem*> Items;
 		};
 

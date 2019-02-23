@@ -3,7 +3,6 @@
 #include "ObjectManager.h"
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
-#include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/ConstantBuffer.h>
 
 namespace ed
@@ -46,6 +45,7 @@ namespace ed
 		// bind default sampler state
 		m_sampler.BindVS(0);
 		m_sampler.BindPS(0);
+		m_sampler.BindGS(0);
 
 		// cache elements
 		m_cache();
@@ -101,6 +101,7 @@ namespace ed
 			for (int i = 0; i < srvs.size(); i++) {
 				srvs[i]->BindPS(i);
 				srvs[i]->BindVS(i);
+				if (data->GSUsed) srvs[i]->BindGS(i);
 			}
 
 			// bind shaders and their variables
@@ -111,9 +112,12 @@ namespace ed
 					data->VSVariables.GetSlot(j).BindVS(j);
 				if (data->PSVariables.IsSlotUsed(j))
 					data->PSVariables.GetSlot(j).BindPS(j);
+				if (data->GSUsed && data->GSVariables.IsSlotUsed(j))
+					data->GSVariables.GetSlot(j).BindGS(j);
 			}
 
 			m_vs[i]->Bind();
+			if (data->GSUsed && m_gs[i] != nullptr) m_gs[i]->Bind();
 			m_ps[i]->Bind();
 
 			// bind default states for each shader pass
@@ -140,6 +144,7 @@ namespace ed
 						SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);
+					if (data->GSUsed) data->GSVariables.UpdateBuffers(m_wnd);
 
 					m_wnd->SetTopology(geoData->Topology);
 					geoData->Geometry.Draw();
@@ -151,6 +156,7 @@ namespace ed
 					SystemVariableManager::Instance().SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);
+					if (data->GSUsed) data->GSVariables.UpdateBuffers(m_wnd);
 
 					m_wnd->SetTopology(ml::Topology::TriangleList);
 					objData->Vertices.Bind();
@@ -180,6 +186,9 @@ namespace ed
 			// unbind shader resource views
 			for (int i = 0; i < srvs.size(); i++)
 				m_wnd->RemoveShaderResource(i);
+
+			// unbind geometry shader
+			if (data->GSUsed) m_wnd->RemoveGeometryShader();
 		}
 		
 		// restore real render target view
@@ -206,7 +215,16 @@ namespace ed
 				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);
 				bool psCompiled = m_ps[i]->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), shader->PSEntry);
 
-				if (!vsCompiled || !psCompiled)
+				bool gsCompiled = true;
+				if (strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
+					if (m_gs[i] == nullptr)
+						m_gs[i] = new ml::GeometryShader();
+
+					std::string gsContent = m_project->LoadProjectFile(shader->GSPath);
+					gsCompiled = m_gs[i]->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), shader->GSEntry);
+				}
+
+				if (!vsCompiled || !psCompiled || !gsCompiled)
 					m_msgs->Add(MessageStack::Type::Error, item->Name, "Failed to compile the shader(s)");
 				else
 					m_msgs->ClearGroup(item->Name);
@@ -219,8 +237,11 @@ namespace ed
 			delete m_vs[i];
 		for (int i = 0; i < m_ps.size(); i++)
 			delete m_ps[i];
+		for (int i = 0; i < m_gs.size(); i++)
+			delete m_gs[i];
 		m_vs.clear();
 		m_ps.clear();
+		m_gs.clear();
 		m_items.clear();
 	}
 	void RenderEngine::m_cache()
@@ -267,8 +288,18 @@ namespace ed
 				std::string psContent = m_project->LoadProjectFile(data->PSPath);
 				bool vsCompiled = vShader->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), data->VSEntry);
 				bool psCompiled = pShader->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), data->PSEntry);
+				bool gsCompiled = true;
 
-				if (!vsCompiled || !psCompiled)
+				if (strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
+					std::string gsContent = m_project->LoadProjectFile(data->GSPath);
+					ml::GeometryShader* gShader = new ml::GeometryShader();
+
+					gsCompiled = gShader->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), data->GSEntry);
+					m_gs.insert(m_gs.begin() + i, gShader);
+				}
+				else m_gs.insert(m_gs.begin() + i, nullptr);
+
+				if (!vsCompiled || !psCompiled || !gsCompiled)
 					m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 				else
 					m_msgs->ClearGroup(items[i]->Name);
@@ -290,8 +321,13 @@ namespace ed
 			if (!found) {
 				delete m_vs[i];
 				delete m_ps[i];
+
+				if (m_gs[i] != nullptr)
+					delete m_gs[i];
+				
 				m_vs.erase(m_vs.begin() + i);
 				m_ps.erase(m_ps.begin() + i);
+				m_gs.erase(m_gs.begin() + i);
 
 				m_items.erase(m_items.begin() + i);
 			}
@@ -311,12 +347,16 @@ namespace ed
 
 						ml::VertexShader* vsCopy = m_vs[i];
 						ml::PixelShader* psCopy = m_ps[i];
+						ml::GeometryShader* gsCopy = m_gs[i];
 
 						m_vs.erase(m_vs.begin() + i);
 						m_vs.insert(m_vs.begin() + dest, vsCopy);
 
 						m_ps.erase(m_ps.begin() + i);
 						m_ps.insert(m_ps.begin() + dest, psCopy);
+
+						m_gs.erase(m_gs.begin() + i);
+						m_gs.insert(m_gs.begin() + dest, gsCopy);
 					}
 				}
 			}

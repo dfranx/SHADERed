@@ -39,7 +39,7 @@ namespace ed
 		// dock space
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
-				std::string windowName(std::string(m_items[i].Name) + (m_isVertexShader[i] ? " (VS)" : " (PS)"));
+				std::string windowName(std::string(m_items[i].Name) + (m_shaderTypeId[i] == 0 ? " (VS)" : (m_shaderTypeId[i] == 1 ? " (PS)" : " (GS)")));
 
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 				if (ImGui::Begin((std::string(windowName) + "##code_view").c_str(), &m_editorOpen[i], ImGuiWindowFlags_MenuBar)) {
@@ -90,16 +90,16 @@ namespace ed
 				m_editor.erase(m_editor.begin() + i);
 				m_editorOpen.erase(m_editorOpen.begin() + i);
 				m_stats.erase(m_stats.begin() + i);
-				m_isVertexShader.erase(m_isVertexShader.begin() + i);
+				m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 				i--;
 			}
 		}
 	}
-	void CodeEditorUI::m_open(PipelineItem item, bool vs)
+	void CodeEditorUI::m_open(PipelineItem item, int sid)
 	{
 		// check if already opened
 		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, item.Name) == 0 && m_isVertexShader[i] == vs)
+			if (strcmp(m_items[i].Name, item.Name) == 0 && m_shaderTypeId[i] == sid)
 				return;
 
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
@@ -119,22 +119,28 @@ namespace ed
 		editor->SetPalette(pallete);
 		editor->SetLanguageDefinition(lang);
 		
-		m_isVertexShader.push_back(vs);
+		m_shaderTypeId.push_back(sid);
 
 		std::string shaderContent = "";
-		if (vs)
+		if (sid == 0)
 			shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
-		else
+		else if (sid == 1)
 			shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
+		else if (sid == 2)
+			shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 		editor->SetText(shaderContent);
 	}
 	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
-		m_open(item, true);
+		m_open(item, 0);
 	}
 	void CodeEditorUI::OpenPS(PipelineItem item)
 	{
-		m_open(item, false);
+		m_open(item, 1);
+	}
+	void CodeEditorUI::OpenGS(PipelineItem item)
+	{
+		m_open(item, 2);
 	}
 	void CodeEditorUI::CloseAll()
 	{
@@ -145,26 +151,27 @@ namespace ed
 			m_editor.erase(m_editor.begin() + i);
 			m_editorOpen.erase(m_editorOpen.begin() + i);
 			m_stats.erase(m_stats.begin() + i);
-			m_isVertexShader.erase(m_isVertexShader.begin() + i);
+			m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 			i--;
 		}
 	}
-	std::vector<std::pair<std::string, bool>> CodeEditorUI::GetOpenedFiles()
+	std::vector<std::pair<std::string, int>> CodeEditorUI::GetOpenedFiles()
 	{
-		std::vector<std::pair<std::string, bool>> ret;
+		std::vector<std::pair<std::string, int>> ret;
 		for (int i = 0; i < m_items.size(); i++)
-			ret.push_back(std::make_pair<std::string, bool>(m_items[i].Name, m_isVertexShader[i]));
-
+			ret.push_back(std::make_pair(std::string(m_items[i].Name), m_shaderTypeId[i]));
 		return ret;
 	}
 	void CodeEditorUI::m_save(int id)
 	{
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
 
-		if (m_isVertexShader[id])
+		if (m_shaderTypeId[id] == 0)
 			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
-		else
+		else if (m_shaderTypeId[id] == 1)
 			m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
+		else if (m_shaderTypeId[id] == 2)
+			m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
@@ -180,14 +187,18 @@ namespace ed
 
 		// get shader version
 		std::string type = "ps_5_0";
-		if (m_isVertexShader[id])
+		if (m_shaderTypeId[id] == 0)
 			type = "vs_5_0";
+		else if (m_shaderTypeId[id] == 2)
+			type = "gs_5_0";
 
 		// generate bytecode
-		if (m_isVertexShader[id])
+		if (m_shaderTypeId[id] == 0)
 			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
-		else
+		else if (m_shaderTypeId[id] == 1)
 			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+		else if (m_shaderTypeId[id] == 2)
+			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->GSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
 
 		// delete the error data, we dont need it
 		if (errorBlob != nullptr) {

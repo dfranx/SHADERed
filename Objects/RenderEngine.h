@@ -5,6 +5,7 @@
 
 #include <MoonLight/Base/ShaderResourceView.h>
 #include <MoonLight/Base/RenderTexture.h>
+#include <MoonLight/Base/GeometryShader.h>
 #include <MoonLight/Base/VertexShader.h>
 #include <MoonLight/Base/SamplerState.h>
 #include <MoonLight/Base/PixelShader.h>
@@ -79,6 +80,7 @@ namespace ed
 		std::vector<ed::PipelineItem*> m_items;
 		std::vector<ml::VertexShader*> m_vs;
 		std::vector<ml::PixelShader*> m_ps;
+		std::vector<ml::GeometryShader*> m_gs;
 
 		std::vector<ItemVariableValue> m_itemValues; // list of all values to apply once we start rendering 
 

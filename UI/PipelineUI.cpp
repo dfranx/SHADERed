@@ -200,10 +200,20 @@ namespace ed
 				}
 
 				if (ImGui::BeginMenu("Edit Code")) {
+					pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
+
 					if (ImGui::MenuItem("Vertex Shader"))
 						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
 					else if (ImGui::MenuItem("Pixel Shader"))
 						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+					else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader"))
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
+					else if (ImGui::MenuItem("All")) {
+						if (passData->GSUsed)
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+					}
 
 					ImGui::EndMenu();
 				}
@@ -216,12 +226,17 @@ namespace ed
 				if (ImGui::BeginMenu("Variables")) {
 					if (ImGui::MenuItem("Vertex Shader")) {
 						m_isVarManagerOpened = true;
-						m_isVarManagerForVS = true;
+						m_VarManagerSID = 0;
 						m_modalItem = items[index];
 					}
 					else if (ImGui::MenuItem("Pixel Shader")) {
 						m_isVarManagerOpened = true;
-						m_isVarManagerForVS = false;
+						m_VarManagerSID = 1;
+						m_modalItem = items[index];
+					}
+					else if (ImGui::MenuItem("Geometry Shader")) {
+						m_isVarManagerOpened = true;
+						m_VarManagerSID = 2;
 						m_modalItem = items[index];
 					}
 
@@ -389,7 +404,8 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable*>& els = m_isVarManagerForVS ? itemData->VSVariables.GetVariables() : itemData->PSVariables.GetVariables();
+		std::vector<ed::ShaderVariable*>& els = m_VarManagerSID == 0 ? itemData->VSVariables.GetVariables() :
+			(m_VarManagerSID == 1 ? itemData->PSVariables.GetVariables() : itemData->GSVariables.GetVariables());
 
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
@@ -488,10 +504,12 @@ namespace ed
 			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
 				((PinnedUI*)m_ui->Get("Pinned"))->Remove(el->Name); // unpin if pinned
 
-				if (m_isVarManagerForVS)
+				if (m_VarManagerSID == 0)
 					itemData->VSVariables.Remove(el->Name);
-				else 
+				else if (m_VarManagerSID == 1)
 					itemData->PSVariables.Remove(el->Name);
+				else if (m_VarManagerSID == 2)
+					itemData->GSVariables.Remove(el->Name);
 			}
 
 			ImGui::PopStyleColor();
@@ -570,10 +588,12 @@ namespace ed
 
 			// add if it doesnt exist
 			if (!exists) {
-				if (m_isVarManagerForVS)
+				if (m_VarManagerSID == 0)
 					itemData->VSVariables.AddCopy(iVariable);
-				else
+				else if (m_VarManagerSID == 1)
 					itemData->PSVariables.AddCopy(iVariable);
+				else if (m_VarManagerSID == 2)
+					itemData->GSVariables.AddCopy(iVariable);
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None, 0);
 				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;
@@ -621,6 +641,7 @@ namespace ed
 
 		std::vector<ShaderVariable*>& vsVars = ownerData->VSVariables.GetVariables();
 		std::vector<ShaderVariable*>& psVars = ownerData->PSVariables.GetVariables();
+		std::vector<ShaderVariable*>& gsVars = ownerData->GSVariables.GetVariables();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -631,15 +652,20 @@ namespace ed
 			if (i.Item != m_modalItem)
 				continue;
 
-			bool isVS = false;
-			for (auto& var : vsVars)
+			int sid = 0;
+			for (auto& var : psVars)
 				if (var == i.Variable) {
-					isVS = true;
+					sid = 1;
+					break;
+				}
+			for (auto& var : gsVars)
+				if (var == i.Variable) {
+					sid = 2;
 					break;
 				}
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			if (isVS) ImGui::Text("vs"); else ImGui::Text("ps");
+			if (sid == 0) ImGui::Text("vs"); else if (sid == 1) ImGui::Text("ps"); else if (sid == 2) ImGui::Text("gs");
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
@@ -675,12 +701,15 @@ namespace ed
 
 		// widgets for editing "virtual" element - an element that will be added to the list later
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::BeginCombo(("##shadertype" + std::to_string(id)).c_str(), shaderTypeSel == 0 ? "vs" : "ps")) {
+		if (ImGui::BeginCombo(("##shadertype" + std::to_string(id)).c_str(), shaderTypeSel == 0 ? "vs" : (shaderTypeSel == 1 ? "ps" : "gs"))) {
 			if (ImGui::Selectable("vs", shaderTypeSel == 0)) { shaderTypeSel = 0; shaderVarSel = 0; }
 			if (shaderTypeSel == 0) ImGui::SetItemDefaultFocus();
 
 			if (ImGui::Selectable("ps", shaderTypeSel == 1)) { shaderTypeSel = 1; shaderVarSel = 0; }
 			if (shaderTypeSel == 1) ImGui::SetItemDefaultFocus();
+
+			if (ImGui::Selectable("gs", shaderTypeSel == 2)) { shaderTypeSel = 2; shaderVarSel = 0; }
+			if (shaderTypeSel == 2) ImGui::SetItemDefaultFocus();
 
 			ImGui::EndCombo();
 		}
@@ -693,6 +722,7 @@ namespace ed
 
 		std::vector<ShaderVariable*> vars = vsVars;
 		if (shaderTypeSel == 1) vars = psVars;
+		if (shaderTypeSel == 2) vars = gsVars;
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		const char* inputComboPreview = vars.size() > 0 ? vars[shaderVarSel]->Name : "-- NONE --";
@@ -734,7 +764,6 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
-		
 		std::string expandTxt = "-";
 		for (int i = 0; i < m_expandList.size(); i++)
 			if (m_expandList[i] == data) {
@@ -764,6 +793,7 @@ namespace ed
 				CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
 				editor->OpenVS(*item);
 				editor->OpenPS(*item);
+				if (data->GSUsed) editor->OpenGS(*item);
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 	}

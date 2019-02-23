@@ -60,7 +60,7 @@ namespace ed
 
 			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY 
 			for (pugi::xml_node shaderNode : passNode.children("shader")) {
-				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps"
+				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
 
 				// parse path and type
 				const pugi::char_t* shaderPath = shaderNode.child("path").text().as_string();
@@ -68,10 +68,14 @@ namespace ed
 				if (shaderNodeType == "vs") {
 					strcpy(data->VSPath, shaderPath);
 					strcpy(data->VSEntry, shaderEntry);
-				}
-				else if (shaderNodeType == "ps") {
+				} else if (shaderNodeType == "ps") {
 					strcpy(data->PSPath, shaderPath);
 					strcpy(data->PSEntry, shaderEntry);
+				} else if (shaderNodeType == "gs") {
+					if (!shaderNode.attribute("used").empty()) data->GSUsed = shaderNode.attribute("used").as_bool();
+					else data->GSUsed = false;
+					strcpy(data->GSPath, shaderPath);
+					strcpy(data->GSEntry, shaderEntry);
 				}
 
 				// parse input layout
@@ -142,8 +146,10 @@ namespace ed
 
 					if (shaderNodeType == "vs")
 						data->VSVariables.Add(var);
-					else
+					else if (shaderNodeType == "ps")
 						data->PSVariables.Add(var);
+					else if (shaderNodeType == "gs")
+						data->GSVariables.Add(var);
 				}
 			}
 
@@ -406,6 +412,7 @@ namespace ed
 
 				std::vector<ShaderVariable*> vars = data->VSVariables.GetVariables();
 				if (type == "ps") vars = data->PSVariables.GetVariables();
+				else if (type == "gs") vars = data->GSVariables.GetVariables();
 
 				ShaderVariable* cpyVar = nullptr;
 				for (auto& var : vars)
@@ -533,8 +540,10 @@ namespace ed
 
 						if (strcmp(shaderType, "vs") == 0)
 							editor->OpenVS(*item);
-						else
+						else if (strcmp(shaderType, "ps") == 0)
 							editor->OpenPS(*item);
+						else if (strcmp(shaderType, "gs") == 0)
+							editor->OpenGS(*item);
 					}
 				}
 				else if (type == "pinned") {
@@ -547,6 +556,8 @@ namespace ed
 						std::vector<ShaderVariable*> vars = owner->VSVariables.GetVariables();
 						if (strcmp(shaderType, "ps") == 0)
 							vars = owner->PSVariables.GetVariables();
+						else if (strcmp(shaderType, "gs") == 0)
+							vars = owner->GSVariables.GetVariables();
 
 						for (auto var : vars)
 							if (strcmp(var->Name, item) == 0) {
@@ -631,6 +642,20 @@ namespace ed
 			psNode.append_child("path").text().set(relativePath.c_str());
 			psNode.append_child("entry").text().set(passData->PSEntry);
 			m_exportShaderVariables(psNode, passData->PSVariables.GetVariables());
+
+			// geometry shader
+			if (strlen(passData->GSEntry) > 0 && strlen(passData->GSPath) > 0) {
+				pugi::xml_node gsNode = passNode.append_child("shader");
+				relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->GSPath));
+
+				gsNode.append_attribute("used").set_value(passData->GSUsed);
+
+				gsNode.append_attribute("type").set_value("gs");
+				gsNode.append_child("path").text().set(relativePath.c_str());
+				gsNode.append_child("entry").text().set(passData->GSEntry);
+				m_exportShaderVariables(gsNode, passData->GSVariables.GetVariables());
+
+			}
 
 
 			// pass items
@@ -737,6 +762,7 @@ if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor
 			pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
 			std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
 			std::vector<ShaderVariable*>& psVars = passData->PSVariables.GetVariables();
+			std::vector<ShaderVariable*>& gsVars = passData->GSVariables.GetVariables();
 			for (auto itemVal : itemValues) {
 				bool found = false;
 				for (auto passChild : passData->Items)
@@ -752,6 +778,11 @@ if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor
 				for (auto psVar : psVars)
 					if (strcmp(psVar->Name, itemVal.Variable->Name) == 0) {
 						from = "ps";
+						break;
+					}
+				for (auto gsVar : gsVars)
+					if (strcmp(gsVar->Name, itemVal.Variable->Name) == 0) {
+						from = "gs";
 						break;
 					}
 
@@ -816,12 +847,12 @@ if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor
 
 			// code editor ui
 			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
-			std::vector<std::pair<std::string, bool>> files = editor->GetOpenedFiles();
+			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
 			for (const auto& file : files) {
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
 				fileNode.append_attribute("type").set_value("file");
 				fileNode.append_attribute("name").set_value(file.first.c_str());
-				fileNode.append_attribute("shader").set_value(file.second ? "vs" : "ps");
+				fileNode.append_attribute("shader").set_value(file.second == 0 ? "vs" : (file.second == 1 ? "ps" : "gs"));
 			}
 
 			// pinned ui
@@ -854,7 +885,18 @@ if (blendFactor.A != 0) itemNode.append_child("bf_alpha").text().set(blendFactor
 								found = true;
 							}
 						}
-					} 
+					}
+
+					if (!found) {
+						std::vector<ShaderVariable*> gsVars = data->GSVariables.GetVariables();
+						for (int i = 0; i < gsVars.size(); i++) {
+							if (gsVars[i] == var) {
+								varNode.append_attribute("from").set_value("gs");
+								varNode.append_attribute("owner").set_value(passItem->Name);
+								found = true;
+							}
+						}
+					}
 					
 					if (found) break;
 				}

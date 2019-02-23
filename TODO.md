@@ -1,5 +1,3 @@
-- [ ] sampler states
-- [ ] Geometry shader
 - [ ] movable geometry (left click)
 - [ ] options (code editor font, theme, etc...)
 - [ ] keyboard shortcuts
@@ -7,10 +5,12 @@
 
 QoL:
 - [ ] recompile not working without saving changes
+- [ ] ignore AltGr in code editor + add tabs on \n in code edtiro + more improvements
+- [ ] GetRelativePath() remove ".\"
+- [ ] better error handling
 - [ ] clear message group after renaming pipeline item
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
-- [ ] shader variable pointers & copying
 - [ ] move m_renderStats to StatsPage
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] having split view code editors messes up the focus
@@ -21,14 +21,12 @@ QoL:
 - [ ] replace state string names with enums
 - [ ] skin ImGui (add light theme + maybe redesing)
 - [ ] save isFullscreen and isMaximized on exit/on size change
-- [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
 - [ ] change some constants (example: vertex shader path strcpy)
+- [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
 - [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)
 - [ ] PipelineUI.GetSelectedShaderPass() + add Geometry and other options under "Create" menu item in GUIManager
-- [ ] GLSL to HLSL transcompiler
 - [ ] "Save preview as image" option
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
-- [ ] more model file types
 - [ ] add option to switch to FPS camera
 - [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
 - [ ] comment the code
