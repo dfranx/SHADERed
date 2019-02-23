@@ -21,11 +21,13 @@ namespace ed
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
 
-		// update system variable mouse position value
-		SystemVariableManager::Instance().SetMousePosition(ImGui::GetCursorScreenPos().x - ImGui::GetMousePos().x, ImGui::GetCursorScreenPos().y - ImGui::GetMousePos().y);
-		
+		// display the image on the imgui window
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
+
+		// update system variable mouse position value
+		SystemVariableManager::Instance().SetMousePosition(	ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX(),
+															imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY()));
 
 		if (ImGui::IsItemHovered()) {
 			// zoom in/out if needed

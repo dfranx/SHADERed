@@ -128,18 +128,26 @@ namespace ed
 					m_saveAsProject();
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("Create")) {
-				if (ImGui::MenuItem("Pass")) {
-					m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
-					s_isCreateItemPopupOpened = true;
+			if (ImGui::BeginMenu("Project")) {
+				if (ImGui::MenuItem("Rebuild project")) {
+					std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+					for (PipelineItem*& pass : passes)
+						m_data->Renderer.Recompile(pass->Name);
 				}
-				if (ImGui::MenuItem("Texture")) {
-					std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-					if (!file.empty())
-						m_data->Objects.CreateTexture(file);
+				if (ImGui::BeginMenu("Create")) {
+					if (ImGui::MenuItem("Pass")) {
+						m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
+						s_isCreateItemPopupOpened = true;
+					}
+					if (ImGui::MenuItem("Texture")) {
+						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+						if (!file.empty())
+							m_data->Objects.CreateTexture(file);
+					}
+					if (ImGui::MenuItem("Render Texture"))
+						s_isCreateRTOpened = true;
+					ImGui::EndMenu();
 				}
-				if (ImGui::MenuItem("Render Texture"))
-					s_isCreateRTOpened = true;
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {

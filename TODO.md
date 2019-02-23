@@ -30,5 +30,6 @@ QoL:
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 - [ ] more model file types
 - [ ] add option to switch to FPS camera
+- [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
 - [ ] comment the code
 - [ ] icon
