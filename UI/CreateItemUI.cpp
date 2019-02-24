@@ -510,23 +510,22 @@ namespace ed
 				data->Rotation = origData->Rotation;
 
 				if (strlen(data->Filename) > 0) {
-					ml::OBJModel vertData;
 					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
-					bool loaded = vertData.LoadFromMemory(objMem.c_str(), objMem.size());
+					bool loaded = data->Mesh.LoadFromMemory(objMem.c_str(), objMem.size());
 
 					// TODO: if (!loaded) error "Failed to load a mesh"
 
 					if (loaded) {
-						ml::OBJModel::Vertex* verts = vertData.GetVertexData();
-						ml::UInt32 vertCount = vertData.GetVertexCount();
+						ml::OBJModel::Vertex* verts = data->Mesh.GetVertexData();
+						ml::UInt32 vertCount = data->Mesh.GetVertexCount();
 
 						if (data->OnlyGroup) {
-							verts = vertData.GetGroupVertices(data->GroupName);
-							vertCount = vertData.GetGroupVertexCount(data->GroupName);
+							verts = data->Mesh.GetGroupVertices(data->GroupName);
+							vertCount = data->Mesh.GetGroupVertexCount(data->GroupName);
 
 							if (verts == nullptr) {
-								verts = vertData.GetObjectVertices(data->GroupName);
-								vertCount = vertData.GetObjectVertexCount(data->GroupName);
+								verts = data->Mesh.GetObjectVertices(data->GroupName);
+								vertCount = data->Mesh.GetObjectVertexCount(data->GroupName);
 
 								// TODO: if (verts == nullptr) error "failed to find a group with that name"
 								if (verts == nullptr) return false;

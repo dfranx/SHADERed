@@ -131,8 +131,6 @@ namespace ed
 			for (int j = 0; j < data->Items.size(); j++) {
 				PipelineItem* item = data->Items[j];
 
-				if (m_pick == item) continue;
-
 				// update the value for this element and check if the we picked it
 				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel) {
 					if (m_pickAwaiting) m_pickItem(item);
@@ -202,9 +200,11 @@ namespace ed
 		// restore real render target view
 		m_wnd->Bind();
 
-		m_pickAwaiting = false;
 		if (m_pickDist == std::numeric_limits<float>::infinity())
 			m_pick = nullptr;
+		if (m_pickAwaiting && m_pickHandle != nullptr)
+			m_pickHandle(m_pick);
+		m_pickAwaiting = false;
 	}
 	void RenderEngine::Recompile(const char * name)
 	{
@@ -243,10 +243,11 @@ namespace ed
 			}
 		}
 	}
-	void RenderEngine::Pick(float sx, float sy)
+	void RenderEngine::Pick(float sx, float sy, std::function<void(PipelineItem*)> func)
 	{
 		m_pickAwaiting = true;
 		m_pickDist = std::numeric_limits<float>::infinity();
+		m_pickHandle = func;
 		
 		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
 		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
@@ -287,7 +288,7 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin = DirectX::XMVector3TransformCoord(m_pickOrigin, invWorld);
 		DirectX::XMVECTOR rayDir = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(m_pickDir, invWorld));
 
-		float myDist;
+		float myDist = std::numeric_limits<float>::infinity();
 		if (item->Type == PipelineItem::ItemType::Geometry) {
 			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
 			if (geo->Type == pipe::GeometryItem::GeometryType::Cube) {
@@ -335,7 +336,45 @@ namespace ed
 		} else if (item->Type == PipelineItem::ItemType::OBJModel) {
 			pipe::OBJModel* obj = (pipe::OBJModel*)item->Data;
 
-			/* TODO: 1. AABB intersection check 2. triangle intersection check */
+			ml::Bounds3D bounds = obj->Mesh.GetBounds();
+			ml::OBJModel::Vertex* verts = obj->Mesh.GetVertexData();
+			ml::UInt32 vertCount = obj->Mesh.GetVertexCount();
+
+			if (obj->OnlyGroup) {
+				verts = obj->Mesh.GetGroupVertices(obj->GroupName);
+				vertCount = obj->Mesh.GetGroupVertexCount(obj->GroupName);
+				bounds = obj->Mesh.GetGroupBounds(obj->GroupName);
+
+				if (verts == nullptr) {
+					verts = obj->Mesh.GetObjectVertices(obj->GroupName);
+					vertCount = obj->Mesh.GetObjectVertexCount(obj->GroupName);
+					bounds = obj->Mesh.GetObjectBounds(obj->GroupName);
+				}
+			}
+
+			DirectX::BoundingBox iBox;
+			iBox.Center = bounds.Center();
+			iBox.Extents = DirectX::XMFLOAT3(
+				std::abs(bounds.Max.x - bounds.Min.x) / 2,
+				std::abs(bounds.Max.y - bounds.Min.y) / 2,
+				std::abs(bounds.Max.z - bounds.Min.z) / 2
+			);
+
+			float triDist = std::numeric_limits<float>::infinity();
+			if (iBox.Intersects(rayOrigin, rayDir, triDist)) {
+				if (vertCount % 3 == 0 && triDist < m_pickDist) { // optimization: check if bounding box is closer than selected object
+					for (int i = 0; i < vertCount; i += 3) {
+						DirectX::XMVECTOR v0 = DirectX::XMLoadFloat3(&verts[i+0].Position);
+						DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&verts[i+1].Position);
+						DirectX::XMVECTOR v2 = DirectX::XMLoadFloat3(&verts[i+2].Position);
+
+						if (DirectX::TriangleTests::Intersects(rayOrigin, rayDir, v0, v1, v2, triDist)) {
+							if (triDist < myDist)
+								myDist = triDist;
+						}
+					}
+				}
+			}
 		}
 
 		// did we actually pick sth that is closer?

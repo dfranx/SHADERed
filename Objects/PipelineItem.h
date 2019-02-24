@@ -101,6 +101,7 @@ namespace ed
 			ml::UInt32 VertCount;
 			ml::VertexBuffer<ml::OBJModel::Vertex> Vertices;
 
+			ml::OBJModel Mesh;
 			DirectX::XMFLOAT3 Position, Rotation, Scale;
 		};
 	}

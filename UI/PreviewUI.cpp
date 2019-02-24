@@ -1,6 +1,10 @@
 #include "PreviewUI.h"
+#include "PropertyUI.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../ImGUI/imgui_internal.h"
+
+#define STATUSBAR_HEIGHT 25
+#define STATUSBAR_ACTIVE true
 
 namespace ed
 {
@@ -16,8 +20,8 @@ namespace ed
 			return;
 		}
 
-		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
-		
+		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * STATUSBAR_ACTIVE));
+
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
 
@@ -25,10 +29,12 @@ namespace ed
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
 
-		// update system variable mouse position value
-		SystemVariableManager::Instance().SetMousePosition(	(ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
-															(imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 
+		// update system variable mouse position value
+		SystemVariableManager::Instance().SetMousePosition((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
+			(imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+
+		// mouse controls for preview window
 		if (ImGui::IsItemHovered()) {
 			// zoom in/out if needed
 			SystemVariableManager::Instance().GetCamera().Move(-ImGui::GetIO().MouseWheel);
@@ -40,7 +46,10 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				renderer->Pick(s.x, s.y);
+				renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
+					((PropertyUI*)m_ui->Get("Properties"))->Open(item);
+					m_pick = item;
+				});
 			}
 
 			// handle right mouse dragging - camera
@@ -69,6 +78,36 @@ namespace ed
 				s.y *= imageSize.y;
 
 				// renderer->Move(s.x, s.y);
+			}
+		}
+
+		// status bar
+		if (STATUSBAR_ACTIVE) {
+			ImGui::Separator();
+			ImGui::Text("FPS: %.2f", 1 / delta);
+			ImGui::SameLine();
+			ImGui::Text("|");
+			ImGui::SameLine();
+
+			if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("P##pickModePos", ImVec2(17, 17)) && m_pickMode != 0) m_pickMode = 0;
+			else if (m_pickMode == 0) ImGui::PopStyleColor();
+			ImGui::SameLine();
+
+			if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("S##pickModeScl", ImVec2(17, 17)) && m_pickMode != 1) m_pickMode = 1;
+			else if (m_pickMode == 1) ImGui::PopStyleColor();
+			ImGui::SameLine();
+
+			if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("R##pickModeRot", ImVec2(17, 17)) && m_pickMode != 2) m_pickMode = 2;
+			else if (m_pickMode == 2) ImGui::PopStyleColor();
+			ImGui::SameLine();
+
+			if (m_pick != nullptr) {
+				ImGui::Text("|");
+				ImGui::SameLine();
+				ImGui::Text("Pick: %s", m_pick->Name);
 			}
 		}
 	}

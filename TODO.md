@@ -1,4 +1,5 @@
-- [ ] movable geometry (left click)
+- [ ] picked geometry gizmos 
+- [ ] cube maps
 - [ ] options (code editor font, theme, etc...)
 - [ ] keyboard shortcuts
 - [ ] help -> settings | manual | about

@@ -24,7 +24,7 @@ namespace ed
 
 		void Render(int width, int height);
 		void Recompile(const char* name);
-		void Pick(float sx, float sy);
+		void Pick(float sx, float sy, std::function<void(PipelineItem*)> func = nullptr);
 
 		void FlushCache();
 
@@ -74,6 +74,7 @@ namespace ed
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;
+		std::function<void(PipelineItem*)> m_pickHandle;
 		DirectX::XMVECTOR m_pickOrigin; // view space
 		DirectX::XMVECTOR m_pickDir;
 		PipelineItem* m_pick;

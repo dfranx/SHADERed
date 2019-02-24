@@ -133,14 +133,14 @@ Collapsed=0
 DockId=0x00000003,1
 
 [Window][RenderTxt (VS)##code_view]
-Pos=230,-12
-Size=726,587
+Pos=17,19
+Size=32,32
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][RenderTxt (PS)##code_view]
-Pos=230,577
-Size=726,400
+Pos=17,28
+Size=32,32
 Collapsed=0
 DockId=0x00000019,1
 
