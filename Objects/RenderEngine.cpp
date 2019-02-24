@@ -131,6 +131,8 @@ namespace ed
 			for (int j = 0; j < data->Items.size(); j++) {
 				PipelineItem* item = data->Items[j];
 
+				if (m_pick == item) continue;
+
 				// update the value for this element and check if the we picked it
 				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel) {
 					if (m_pickAwaiting) m_pickItem(item);
@@ -201,6 +203,8 @@ namespace ed
 		m_wnd->Bind();
 
 		m_pickAwaiting = false;
+		if (m_pickDist == std::numeric_limits<float>::infinity())
+			m_pick = nullptr;
 	}
 	void RenderEngine::Recompile(const char * name)
 	{
@@ -283,6 +287,7 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin = DirectX::XMVector3TransformCoord(m_pickOrigin, invWorld);
 		DirectX::XMVECTOR rayDir = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(m_pickDir, invWorld));
 
+		float myDist;
 		if (item->Type == PipelineItem::ItemType::Geometry) {
 			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
 			if (geo->Type == pipe::GeometryItem::GeometryType::Cube) {
@@ -290,18 +295,53 @@ namespace ed
 				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
 				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x / 2, geo->Size.y / 2, geo->Size.z / 2);
 
-				float myDist;
-				if (iBox.Intersects(rayOrigin, rayDir, myDist)) {
-					if (myDist < m_pickDist) {
-						m_pickDist = myDist;
-						m_pick = item;
-						printf("You just picked a cube!\n");
-					}
-				}
+				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
+					myDist = std::numeric_limits<float>::infinity();
 			}
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
-				/* TODO */
+				float size = geo->Size.x;
+				float rightOffs = size / tan(DirectX::XMConvertToRadians(30));
+
+				DirectX::XMVECTOR v0 = DirectX::XMVectorSet(0, size, 0, 0);
+				DirectX::XMVECTOR v1 = DirectX::XMVectorSet(rightOffs, -size, 0, 0);
+				DirectX::XMVECTOR v2 = DirectX::XMVectorSet(-rightOffs, -size, 0, 0);
+				if (!DirectX::TriangleTests::Intersects(rayOrigin, rayDir, v0, v1, v2, myDist))
+					myDist = std::numeric_limits<float>::infinity();
 			}
+			else if (geo->Type == pipe::GeometryItem::GeometryType::Sphere) {
+				DirectX::BoundingSphere sphere;
+				sphere.Center = DirectX::XMFLOAT3(0, 0, 0);
+				sphere.Radius = geo->Size.x;
+
+				if (!sphere.Intersects(rayOrigin, rayDir, myDist))
+					myDist = std::numeric_limits<float>::infinity();
+			}
+			else if (geo->Type == pipe::GeometryItem::GeometryType::Plane) {
+				DirectX::BoundingBox iBox;
+				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x / 2, geo->Size.y / 2, 0.0001f);
+
+				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
+					myDist = std::numeric_limits<float>::infinity();
+			}
+			else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
+				DirectX::BoundingBox iBox;
+				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x, geo->Size.y, 0.0001f);
+
+				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
+					myDist = std::numeric_limits<float>::infinity();
+			}
+		} else if (item->Type == PipelineItem::ItemType::OBJModel) {
+			pipe::OBJModel* obj = (pipe::OBJModel*)item->Data;
+
+			/* TODO: 1. AABB intersection check 2. triangle intersection check */
+		}
+
+		// did we actually pick sth that is closer?
+		if (myDist < m_pickDist) {
+			m_pickDist = myDist;
+			m_pick = item;
 		}
 	}
 	void RenderEngine::FlushCache()

@@ -445,25 +445,27 @@ namespace ed
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)m_item.Data;
 
-				data->Type = origData->Type;
-				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
-					data->Geometry = ml::GeometryFactory::CreateCube(origData->Size.x, origData->Size.y, origData->Size.z, *m_data->GetOwner());
-				else if (data->Type == pipe::GeometryItem::Circle)
-					data->Geometry = ml::GeometryFactory::CreateCircle(0, 0, origData->Size.x, origData->Size.y, *m_data->GetOwner());
-				else if (data->Type == pipe::GeometryItem::Plane)
-					data->Geometry = ml::GeometryFactory::CreatePlane(origData->Size.x, origData->Size.y, *m_data->GetOwner());
-				else if (data->Type == pipe::GeometryItem::Rectangle)
-					data->Geometry = ml::GeometryFactory::CreatePlane(1, 1, *m_data->GetOwner());
-				else if (data->Type == pipe::GeometryItem::Sphere)
-					data->Geometry = ml::GeometryFactory::CreateSphere(origData->Size.x, *m_data->GetOwner());
-				else if (data->Type == pipe::GeometryItem::Triangle)
-					data->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, origData->Size.x, *m_data->GetOwner());
-
 				data->Position = DirectX::XMFLOAT3(0, 0, 0);
 				data->Rotation = DirectX::XMFLOAT3(0, 0, 0);
 				data->Scale = DirectX::XMFLOAT3(1, 1, 1);
 				data->Size = origData->Size;
 				data->Topology = ml::Topology::TriangleList;
+				data->Type = origData->Type;
+
+				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
+					data->Geometry = ml::GeometryFactory::CreateCube(data->Size.x, data->Size.y, data->Size.z, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Circle) {
+					data->Geometry = ml::GeometryFactory::CreateCircle(0, 0, data->Size.x, data->Size.y, *m_data->GetOwner());
+					data->Topology = ml::Topology::TriangleStrip;
+				}
+				else if (data->Type == pipe::GeometryItem::Plane)
+					data->Geometry = ml::GeometryFactory::CreatePlane(data->Size.x, data->Size.y, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Rectangle)
+					data->Geometry = ml::GeometryFactory::CreatePlane(1, 1, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Sphere)
+					data->Geometry = ml::GeometryFactory::CreateSphere(data->Size.x, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Triangle)
+					data->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, data->Size.x, *m_data->GetOwner());
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 			}
