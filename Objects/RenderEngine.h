@@ -24,6 +24,7 @@ namespace ed
 
 		void Render(int width, int height);
 		void Recompile(const char* name);
+		void Pick(float sx, float sy);
 
 		void FlushCache();
 
@@ -69,6 +70,14 @@ namespace ed
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
 		ml::Window* m_wnd;
+
+		/* picking */
+		bool m_pickAwaiting;
+		float m_pickDist;
+		DirectX::XMVECTOR m_pickOrigin; // view space
+		DirectX::XMVECTOR m_pickDir;
+		PipelineItem* m_pick;
+		void m_pickItem(PipelineItem* item);
 
 		DirectX::XMINT2 m_lastSize;
 		ml::RenderTexture m_rt;

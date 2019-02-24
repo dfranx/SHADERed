@@ -8,6 +8,7 @@ QoL:
 - [ ] ignore AltGr in code editor + add tabs on \n in code edtiro + more improvements
 - [ ] GetRelativePath() remove ".\"
 - [ ] better error handling
+- [ ] MouseClicked (bool) and MouseClickPosition (float2) system shader variables
 - [ ] clear message group after renaming pipeline item
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
@@ -20,6 +21,7 @@ QoL:
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
 - [ ] skin ImGui (add light theme + maybe redesing)
+- [ ] options -> On pick do: [DROP], ui theme shortcut, open error window on errors [X], other cool nifty options
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console

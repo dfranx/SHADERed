@@ -4,6 +4,7 @@
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include <MoonLight/Base/ConstantBuffer.h>
+#include <DirectXCollision.h>
 
 namespace ed
 {
@@ -13,7 +14,9 @@ namespace ed
 		m_project(project),
 		m_msgs(msgs),
 		m_wnd(wnd),
-		m_lastSize(0, 0)
+		m_lastSize(0, 0),
+		m_pickAwaiting(false),
+		m_pick(nullptr)
 	{
 		m_sampler.Create(*wnd);
 	}
@@ -72,7 +75,8 @@ namespace ed
 
 				// bind window rt
 				m_rt.Bind();
-			} else {
+			}
+			else {
 				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(data->RenderTexture);
 				ml::Color oldClearClr = m_wnd->GetClearColor();
 				DirectX::XMINT2 calcSize = rt->CalculateSize(width, height);
@@ -127,11 +131,13 @@ namespace ed
 			for (int j = 0; j < data->Items.size(); j++) {
 				PipelineItem* item = data->Items[j];
 
-				// update the value for this element
-				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel)
+				// update the value for this element and check if the we picked it
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel) {
+					if (m_pickAwaiting) m_pickItem(item);
 					for (int k = 0; k < itemVarValues.size(); k++)
 						if (itemVarValues[k].Item == item)
 							itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+				}
 
 				if (item->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
@@ -190,9 +196,11 @@ namespace ed
 			// unbind geometry shader
 			if (data->GSUsed) m_wnd->RemoveGeometryShader();
 		}
-		
+
 		// restore real render target view
 		m_wnd->Bind();
+
+		m_pickAwaiting = false;
 	}
 	void RenderEngine::Recompile(const char * name)
 	{
@@ -228,6 +236,71 @@ namespace ed
 					m_msgs->Add(MessageStack::Type::Error, item->Name, "Failed to compile the shader(s)");
 				else
 					m_msgs->ClearGroup(item->Name);
+			}
+		}
+	}
+	void RenderEngine::Pick(float sx, float sy)
+	{
+		m_pickAwaiting = true;
+		m_pickDist = std::numeric_limits<float>::infinity();
+		
+		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
+		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
+
+		float vx = (+2.0f*sx/m_lastSize.x - 1.0f)/ proj4x4(0,0);
+		float vy = (-2.0f*sy/m_lastSize.y + 1.0f)/ proj4x4(1,1);
+
+		m_pickOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+		m_pickDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
+
+		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera().GetMatrix();
+		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
+
+		m_pickOrigin = DirectX::XMVector3TransformCoord(m_pickOrigin, invView);
+		m_pickDir = DirectX::XMVector3TransformNormal(m_pickDir, invView);
+	}
+	void RenderEngine::m_pickItem(PipelineItem* item)
+	{
+		DirectX::XMMATRIX world;
+		if (item->Type == PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
+			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle)
+				return;
+
+			world = DirectX::XMMatrixScaling(geo->Scale.x, geo->Scale.y, geo->Scale.z) *
+				DirectX::XMMatrixRotationRollPitchYaw(geo->Rotation.x, geo->Rotation.y, geo->Rotation.z) *
+				DirectX::XMMatrixTranslation(geo->Position.x, geo->Position.y, geo->Position.z);
+		}
+		else if (item->Type == PipelineItem::ItemType::OBJModel) {
+			pipe::OBJModel* obj = (pipe::OBJModel*)item->Data;
+			
+			world = DirectX::XMMatrixScaling(obj->Scale.x, obj->Scale.y, obj->Scale.z) *
+				DirectX::XMMatrixRotationRollPitchYaw(obj->Rotation.x, obj->Rotation.y, obj->Rotation.z) *
+				DirectX::XMMatrixTranslation(obj->Position.x, obj->Position.y, obj->Position.z);
+		}
+		DirectX::XMMATRIX invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(world), world);
+		
+		DirectX::XMVECTOR rayOrigin = DirectX::XMVector3TransformCoord(m_pickOrigin, invWorld);
+		DirectX::XMVECTOR rayDir = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(m_pickDir, invWorld));
+
+		if (item->Type == PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
+			if (geo->Type == pipe::GeometryItem::GeometryType::Cube) {
+				DirectX::BoundingBox iBox;
+				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x / 2, geo->Size.y / 2, geo->Size.z / 2);
+
+				float myDist;
+				if (iBox.Intersects(rayOrigin, rayDir, myDist)) {
+					if (myDist < m_pickDist) {
+						m_pickDist = myDist;
+						m_pick = item;
+						printf("You just picked a cube!\n");
+					}
+				}
+			}
+			else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
+				/* TODO */
 			}
 		}
 	}

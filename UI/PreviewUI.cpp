@@ -26,12 +26,22 @@ namespace ed
 		ImGui::Image(view, imageSize);
 
 		// update system variable mouse position value
-		SystemVariableManager::Instance().SetMousePosition(	ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX(),
-															imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY()));
+		SystemVariableManager::Instance().SetMousePosition(	(ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
+															(imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 
 		if (ImGui::IsItemHovered()) {
 			// zoom in/out if needed
 			SystemVariableManager::Instance().GetCamera().Move(-ImGui::GetIO().MouseWheel);
+
+			// handle left click - selection
+			if (ImGui::IsMouseClicked(0)) {
+				// screen space position
+				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
+				s.x *= imageSize.x;
+				s.y *= imageSize.y;
+
+				renderer->Pick(s.x, s.y);
+			}
 
 			// handle right mouse dragging - camera
 			if (ImGui::IsMouseDown(1)) {
@@ -50,6 +60,15 @@ namespace ed
 				// rotate the camera according to the delta
 				SystemVariableManager::Instance().GetCamera().RotateX(dX);
 				SystemVariableManager::Instance().GetCamera().RotateY(dY);
+			}
+			// handle left mouse dragging - moving objects if selected
+			else if (ImGui::IsMouseDown(0)) {
+				// screen space position
+				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
+				s.x *= imageSize.x;
+				s.y *= imageSize.y;
+
+				// renderer->Move(s.x, s.y);
 			}
 		}
 	}

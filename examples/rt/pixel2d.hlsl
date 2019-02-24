@@ -1,6 +1,5 @@
 cbuffer cbPerFrame : register(b0)
 {
-	float2 view;
 	float2 mPos;
 };
 
@@ -20,7 +19,7 @@ float4 main(PSInput pin) : SV_TARGET
 {
 	float4 pixel = tex.Sample(smp, pin.UV);
 
-	bool isIn = length(float2(pin.UV.x - mPos.x/view.x, pin.UV.y - mPos.y/view.y)) < radius;
+	bool isIn = length(float2(pin.UV.x - mPos.x, pin.UV.y - mPos.y)) < radius;
 	float sum = ((pixel.x+pixel.y+pixel.z)/3) * isIn;
 
 	return float4(sum, sum, sum, 1);
