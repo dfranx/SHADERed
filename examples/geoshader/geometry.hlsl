@@ -25,17 +25,16 @@ void main(
 {
 	matrix matWVP = mul(matGeo, matVP);
 
-	float3 triCenter = (input[0].Position + input[1].Position + input[2].Position) / 3;
+	float3 nc = normalize((input[0].Normal + input[1].Normal + input[2].Normal) / 3);
 
 	for (int i = 0; i < 3; i++) {
 		float3 p = input[i].Position;
-		float3 n = input[i].Normal;
 
-		float4 newPos = float4(p+scale*n, 1);
+		float4 newPos = float4(p+scale*nc, 1);
 
 		GSOutput gout;
 		gout.Position = mul(newPos, matWVP);
-		gout.Color = abs(float4(n, 1.0f));
+		gout.Color = abs(float4(input[i].Normal, 1.0f));
 		output.Append(gout);
 	}
 	//output.RestartStrip();

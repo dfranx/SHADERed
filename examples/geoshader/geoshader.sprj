@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>.\.\.\.\vertex.hlsl</path>
+				<path>.\.\.\.\.\vertex.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,18 +15,18 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\.\.\.\pixel.hlsl</path>
+				<path>.\.\.\.\.\pixel.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<shader used="true" type="gs">
-				<path>.\.\.\geometry.hlsl</path>
+				<path>.\.\.\.\geometry.hlsl</path>
 				<entry>main</entry>
 				<variables>
 					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
 					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
 					<variable type="float" name="scale" slot="0">
 						<row>
-							<value>0.100000001</value>
+							<value>0.180000007</value>
 						</row>
 					</variable>
 				</variables>
@@ -37,6 +37,15 @@
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
+					<x>-1</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Sphere" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>1</x>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
@@ -45,15 +54,15 @@
 	</pipeline>
 	<objects />
 	<settings>
-		<entry type="property" name="Light" />
+		<entry type="property" name="Cube" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="gs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="pinned" name="scale" from="gs" owner="Light" />
 		<entry type="camera">
-			<distance>9</distance>
-			<rotationX>146</rotationX>
-			<rotationY>49</rotationY>
+			<distance>7</distance>
+			<rotationX>325</rotationX>
+			<rotationY>27</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 	</settings>
