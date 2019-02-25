@@ -29,6 +29,7 @@ namespace ed
 		void FlushCache();
 
 		inline ml::ShaderResourceView& GetTexture() { return m_rtView; }
+		inline ml::RenderTexture& GetRenderTexture() { return m_rt; }
 
 		DirectX::XMINT2 GetLastRenderSize() { return m_lastSize; }
 

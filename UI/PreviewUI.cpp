@@ -1,5 +1,6 @@
 #include "PreviewUI.h"
 #include "PropertyUI.h"
+#include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../ImGUI/imgui_internal.h"
 
@@ -25,6 +26,18 @@ namespace ed
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
 
+		if (m_pick != nullptr) {
+			renderer->GetRenderTexture().Bind();
+			m_gizmoDSS.Bind();
+
+			m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
+			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera().GetMatrix());
+			m_gizmo.Render();
+		
+			DefaultState::Instance().DepthStencil.Bind();
+			m_data->GetOwner()->Bind();
+		}
+
 		// display the image on the imgui window
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
@@ -46,10 +59,22 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
-					((PropertyUI*)m_ui->Get("Properties"))->Open(item);
-					m_pick = item;
-				});
+				if (m_gizmo.Click(s.x, s.y) == -1) {
+					renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
+						((PropertyUI*)m_ui->Get("Properties"))->Open(item);
+						m_pick = item;
+
+						if (item != nullptr) {
+							if (item->Type == PipelineItem::ItemType::Geometry) {
+								pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
+								m_gizmo.SetTransform(&geo->Position, &geo->Scale, &geo->Rotation);
+							} else if (item->Type == PipelineItem::ItemType::OBJModel) {
+								pipe::OBJModel* obj = (pipe::OBJModel*)item->Data;
+								m_gizmo.SetTransform(&obj->Position, &obj->Scale, &obj->Rotation);
+							}
+						}
+					});
+				}
 			}
 
 			// handle right mouse dragging - camera

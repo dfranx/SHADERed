@@ -165,10 +165,10 @@ DockSpace               ID=0xFA06BC56 Pos=0,19 Size=32,13 Split=X
           DockNode      ID=0x0000000F Parent=0x0000000D SizeRef=707,486 SelectedTab=0x275EB0A3
           DockNode      ID=0x00000010 Parent=0x0000000D SizeRef=707,355 SelectedTab=0x9D71C8CF
         DockNode        ID=0x0000000E Parent=0x0000000A SizeRef=978,860 Split=X SelectedTab=0x763816AC
-          DockNode      ID=0x00000011 Parent=0x0000000E SizeRef=732,843 Split=Y SelectedTab=0xB8AB31B4
+          DockNode      ID=0x00000011 Parent=0x0000000E SizeRef=751,843 Split=Y SelectedTab=0xB8AB31B4
             DockNode    ID=0x00000013 Parent=0x00000011 SizeRef=685,587 SelectedTab=0xB8AB31B4
             DockNode    ID=0x00000019 Parent=0x00000011 SizeRef=685,400 SelectedTab=0x40697A02
-          DockNode      ID=0x00000012 Parent=0x0000000E SizeRef=969,843 Split=X SelectedTab=0x763816AC
+          DockNode      ID=0x00000012 Parent=0x0000000E SizeRef=936,843 Split=X SelectedTab=0x763816AC
             DockNode    ID=0x00000015 Parent=0x00000012 SizeRef=692,843 Split=Y SelectedTab=0x2E312F8D
               DockNode  ID=0x00000017 Parent=0x00000015 SizeRef=692,499 SelectedTab=0x2E312F8D
               DockNode  ID=0x00000018 Parent=0x00000015 SizeRef=692,342 SelectedTab=0xD6F3643B

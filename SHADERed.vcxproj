@@ -172,6 +172,7 @@
     <ClCompile Include="Objects\Camera.cpp" />
     <ClCompile Include="Objects\DefaultState.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
+    <ClCompile Include="Objects\GizmoObject.cpp" />
     <ClCompile Include="Objects\MessageStack.cpp" />
     <ClCompile Include="Objects\Names.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\DefaultState.h" />
     <ClInclude Include="Objects\FunctionVariableManager.h" />
+    <ClInclude Include="Objects\GizmoObject.h" />
     <ClInclude Include="Objects\MessageStack.h" />
     <ClInclude Include="Objects\Names.h" />
     <ClInclude Include="Objects\ObjectManager.h" />
