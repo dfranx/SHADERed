@@ -197,6 +197,9 @@ namespace ed
 			if (data->GSUsed) m_wnd->RemoveGeometryShader();
 		}
 
+		// bind default state after rendering everything
+		DefaultState::Instance().Bind();
+
 		// restore real render target view
 		m_wnd->Bind();
 

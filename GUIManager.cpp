@@ -105,6 +105,7 @@ namespace ed
 					m_data->Renderer.FlushCache();
 					((CodeEditorUI*)Get("Code"))->CloseAll();
 					((PinnedUI*)Get("Pinned"))->CloseAll();
+					((PreviewUI*)Get("Preview"))->Pick(nullptr);
 					m_data->Pipeline.New();
 				}
 				if (ImGui::MenuItem("Open")) {
@@ -114,6 +115,7 @@ namespace ed
 					if (file.size() > 0) {
 						((CodeEditorUI*)Get("Code"))->CloseAll();
 						((PinnedUI*)Get("Pinned"))->CloseAll();
+						((PreviewUI*)Get("Preview"))->Pick(nullptr);
 
 						m_data->Parser.Open(file);
 					}

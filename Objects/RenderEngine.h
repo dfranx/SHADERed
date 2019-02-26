@@ -83,10 +83,9 @@ namespace ed
 
 		DirectX::XMINT2 m_lastSize;
 		ml::RenderTexture m_rt;
+		ml::ShaderResourceView m_rtView;
 
 		ml::SamplerState m_sampler;
-
-		ml::ShaderResourceView m_rtView;
 
 		std::vector<ed::PipelineItem*> m_items;
 		std::vector<ml::VertexShader*> m_vs;

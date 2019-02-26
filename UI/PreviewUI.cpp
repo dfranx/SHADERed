@@ -26,22 +26,31 @@ namespace ed
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
 
-		if (m_pick != nullptr) {
-			renderer->GetRenderTexture().Bind();
-			m_gizmoDSS.Bind();
-
-			m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
-			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera().GetMatrix());
-			m_gizmo.Render();
-		
-			DefaultState::Instance().DepthStencil.Bind();
-			m_data->GetOwner()->Bind();
-		}
-
 		// display the image on the imgui window
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
 
+		// render the gizmo if necessary
+		if (m_pick != nullptr) {
+			// recreate render texture if size is changed
+			if (m_lastSize.x != imageSize.x || m_lastSize.y != imageSize.y) {
+				m_lastSize = DirectX::XMINT2(imageSize.x, imageSize.y);
+				m_rt.Create(*m_data->GetOwner(), m_lastSize, ml::Resource::ShaderResource, true);
+				m_rtView.Create(*m_data->GetOwner(), m_rt);
+			}
+			m_rt.Bind();
+			m_rt.Clear();
+			m_rt.ClearDepthStencil(1.0f, 0);
+
+			m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
+			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera().GetMatrix());
+			m_gizmo.Render();
+
+			m_data->GetOwner()->Bind();
+
+			ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
+			ImGui::Image(m_rtView.GetView(), imageSize);
+		}
 
 		// update system variable mouse position value
 		SystemVariableManager::Instance().SetMousePosition((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
@@ -59,7 +68,7 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				if (m_gizmo.Click(s.x, s.y) == -1) {
+				if ((m_pick != nullptr && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) || m_pick == nullptr) {
 					renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
 						((PropertyUI*)m_ui->Get("Properties"))->Open(item);
 						m_pick = item;
