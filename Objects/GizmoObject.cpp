@@ -111,6 +111,9 @@ namespace ed
 		rayOrigin = DirectX::XMVector3TransformCoord(rayOrigin, invView);
 		rayDir = DirectX::XMVector3TransformNormal(rayDir, invView);
 
+		DirectX::BoundingBox handleBox;
+		handleBox.Center = DirectX::XMFLOAT3(0, 0, 0);
+		handleBox.Extents = DirectX::XMFLOAT3(GIZMO_WIDTH / 2, (GIZMO_HEIGHT + GIZMO_POINTER_HEIGHT) / 2, GIZMO_WIDTH / 2);
 
 		// X axis
 		DirectX::XMMATRIX invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(m_xWorld), m_xWorld);
@@ -118,15 +121,28 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
 		DirectX::XMVECTOR rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
 
-		DirectX::BoundingBox xBox;
-		xBox.Center = DirectX::XMFLOAT3(0, 0, 0);
-		xBox.Extents = DirectX::XMFLOAT3(GIZMO_WIDTH, GIZMO_HEIGHT, GIZMO_WIDTH);
-
-		float dist;
-		if (xBox.Intersects(rayOrigin2, rayDir2, dist)) {
+		float distX, distY, distZ;
+		if (handleBox.Intersects(rayOrigin2, rayDir2, distX))
 			m_axisSelected = 0;
-			printf("x axis!\n");
-		}
+		else distX = std::numeric_limits<float>::infinity();
+
+		// Y axis
+		invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(m_yWorld), m_yWorld);
+		rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
+		rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+
+		if (handleBox.Intersects(rayOrigin2, rayDir2, distY) && distY < distX)
+			m_axisSelected = 1;
+		else distY = std::numeric_limits<float>::infinity();
+
+		// Z axis
+		invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(m_zWorld), m_zWorld);
+		rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
+		rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+
+		if (handleBox.Intersects(rayOrigin2, rayDir2, distZ) && distZ < distY && distZ < distX)
+			m_axisSelected = 2;
+		else distZ = std::numeric_limits<float>::infinity();
 
 		return m_axisSelected;
 	}
