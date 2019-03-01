@@ -146,6 +146,11 @@ namespace ed
 						if (!file.empty())
 							m_data->Objects.CreateTexture(file);
 					}
+					if (ImGui::MenuItem("Cube Map")) {
+						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+						if (!file.empty())
+							m_data->Objects.CreateTexture(file, true);
+					}
 					if (ImGui::MenuItem("Render Texture"))
 						s_isCreateRTOpened = true;
 					ImGui::EndMenu();

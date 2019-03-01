@@ -48,6 +48,7 @@ namespace ed
 		m_texs.clear();
 		m_binds.clear();
 		m_items.clear();
+		m_isCube.clear();
 	}
 	bool ObjectManager::CreateRenderTexture(const std::string & name)
 	{
@@ -66,7 +67,7 @@ namespace ed
 		m_rts[name]->FixedSize = m_wnd->GetSize();
 		m_rts[name]->ClearColor = ml::Color(0, 0, 0, 0);
 	}
-	void ObjectManager::CreateTexture(const std::string& file)
+	void ObjectManager::CreateTexture(const std::string& file, bool cube)
 	{
 		if (m_imgs.count(file) > 0)
 			return;
@@ -76,11 +77,13 @@ namespace ed
 		ml::ShaderResourceView* srv = (m_srvs[file] = new ml::ShaderResourceView());
 
 		m_items.push_back(file);
-		
+
+		m_isCube[file] = cube;
+
 		size_t imgDataLen = 0;
 		char* imgData = m_parser->LoadProjectFile(file, imgDataLen);
 		if (img->LoadFromMemory(imgData, imgDataLen, mGetImgType(file))) {
-			tex->Create(*m_wnd, *img);
+			tex->Create(*m_wnd, *img, ml::Resource::ShaderResource | (ml::Resource::TextureCube * cube));
 			srv->Create(*m_wnd, *tex);
 		}
 		free(imgData);
@@ -128,6 +131,7 @@ namespace ed
 		m_srvs.erase(file);
 		m_texs.erase(file);
 		m_imgs.erase(file);
+		m_isCube.erase(file);
 	}
 	int ObjectManager::IsBound(const std::string & file, PipelineItem * pass)
 	{

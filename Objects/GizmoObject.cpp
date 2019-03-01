@@ -182,11 +182,26 @@ namespace ed
 		float dotval = DirectX::XMVectorGetX(DirectX::XMVector3Dot(DirectX::XMVector3Normalize(moveVec), tAxisVec));
 		float length = DirectX::XMVectorGetX(DirectX::XMVector3Length(moveVec));
 
-		float moveDist = -length * dotval;
+		float scale = DirectX::XMVectorGetX(
+			DirectX::XMVector3Length(
+				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera().GetPosition()
+				))) / GIZMO_SCALE_FACTOR;
 
-		if (m_axisSelected == 0) m_trans->x += moveDist;
-		else if (m_axisSelected == 1) m_trans->y += moveDist;
-		else if (m_axisSelected == 2) m_trans->z += moveDist;
+		float moveDist = -length * dotval * scale;
+
+		if (m_mode == 0) {
+			if (m_axisSelected == 0) m_trans->x += moveDist;
+			else if (m_axisSelected == 1) m_trans->y += moveDist;
+			else if (m_axisSelected == 2) m_trans->z += moveDist;
+		} else if (m_mode == 1) {
+			if (m_axisSelected == 0) m_scale->x += moveDist;
+			else if (m_axisSelected == 1) m_scale->y += moveDist;
+			else if (m_axisSelected == 2) m_scale->z += moveDist;
+		} else if (m_mode == 2) {
+			if (m_axisSelected == 0) m_rota->x += moveDist;
+			else if (m_axisSelected == 1) m_rota->y += moveDist;
+			else if (m_axisSelected == 2) m_rota->z += moveDist;
+		}
 
 		m_clickStart = mouseVec;
 	}

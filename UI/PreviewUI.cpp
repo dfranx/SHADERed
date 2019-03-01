@@ -124,17 +124,26 @@ namespace ed
 			ImGui::SameLine();
 
 			if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("P##pickModePos", ImVec2(17, 17)) && m_pickMode != 0) m_pickMode = 0;
+			if (ImGui::Button("P##pickModePos", ImVec2(17, 17)) && m_pickMode != 0) {
+				m_pickMode = 0;
+				m_gizmo.SetMode(m_pickMode);
+			}
 			else if (m_pickMode == 0) ImGui::PopStyleColor();
 			ImGui::SameLine();
 
 			if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("S##pickModeScl", ImVec2(17, 17)) && m_pickMode != 1) m_pickMode = 1;
+			if (ImGui::Button("S##pickModeScl", ImVec2(17, 17)) && m_pickMode != 1) {
+				m_pickMode = 1;
+				m_gizmo.SetMode(m_pickMode);
+			}
 			else if (m_pickMode == 1) ImGui::PopStyleColor();
 			ImGui::SameLine();
 
 			if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("R##pickModeRot", ImVec2(17, 17)) && m_pickMode != 2) m_pickMode = 2;
+			if (ImGui::Button("R##pickModeRot", ImVec2(17, 17)) && m_pickMode != 2) {
+				m_pickMode = 2;
+				m_gizmo.SetMode(m_pickMode);
+			}
 			else if (m_pickMode == 2) ImGui::PopStyleColor();
 			ImGui::SameLine();
 

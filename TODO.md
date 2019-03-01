@@ -1,12 +1,10 @@
-- [ ] picked geometry gizmos 
-- [ ] cube maps
 - [ ] options (code editor font, theme, etc...)
 - [ ] keyboard shortcuts
 - [ ] help -> settings | manual | about
 
 QoL:
 - [ ] recompile not working without saving changes
-- [ ] ignore AltGr in code editor + add tabs on \n in code edtiro + more improvements
+- [ ] ignore AltGr in code editor, add tabs on newline, ctrl backspace + more improvements
 - [ ] GetRelativePath() remove ".\"
 - [ ] better error handling
 - [ ] MouseClicked (bool) and MouseClickPosition (float2) system shader variables
@@ -22,7 +20,7 @@ QoL:
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
 - [ ] skin ImGui (add light theme + maybe redesing)
-- [ ] options -> On pick do: [DROP], ui theme shortcut, open error window on errors [X], other cool nifty options
+- [ ] options -> On pick do: [DROP], ui theme shortcut, gizmo [grab,P,S,R] shortcut, open error window on errors [X], other cool nifty options
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console

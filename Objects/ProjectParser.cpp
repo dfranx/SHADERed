@@ -445,6 +445,9 @@ namespace ed
 
 			if (strcmp(objType, "texture") == 0) {
 				const pugi::char_t* objPath = objectNode.attribute("path").as_string();
+				bool isCube = false;
+				if (!objectNode.attribute("cube").empty())
+					isCube = objectNode.attribute("cube").as_bool();
 
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
@@ -456,7 +459,7 @@ namespace ed
 								boundTextures[pass].resize(slot+1);
 
 							boundTextures[pass][slot] = objPath;
-							m_objects->CreateTexture(objPath);
+							m_objects->CreateTexture(objPath, isCube);
 							break;
 						}
 					}
@@ -803,6 +806,12 @@ namespace ed
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isRT ? "rendertexture" : "texture");
 				textureNode.append_attribute(isRT ? "name" : "path").set_value(texs[i].c_str());
+
+				if (!isRT) {
+					bool isCube = m_objects->IsCubeMap(texs[i]);
+					if (isCube)
+						textureNode.append_attribute("cube").set_value(isCube);
+				}
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(texs[i]);

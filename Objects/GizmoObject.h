@@ -16,6 +16,8 @@ namespace ed
 		inline void SetViewMatrix(DirectX::XMMATRIX view) { DirectX::XMStoreFloat4x4(&m_cbData.matVP, DirectX::XMMatrixTranspose(DirectX::XMMatrixMultiply(view, DirectX::XMLoadFloat4x4(&m_proj)))); }
 		inline void SetTransform(DirectX::XMFLOAT3* t, DirectX::XMFLOAT3* s, DirectX::XMFLOAT3* r) { m_trans = t; m_scale = s; m_rota = r; }
 
+		inline void SetMode(int mode) { m_mode = mode; }
+
 		int Click(int sx, int sy, int vw, int wh);
 		void Move(int dx, int dy);
 

@@ -39,7 +39,7 @@ namespace ed
 		~ObjectManager();
 
 		bool CreateRenderTexture(const std::string& name);
-		void CreateTexture(const std::string& file);
+		void CreateTexture(const std::string& file, bool cube = false);
 
 		void Bind(const std::string& file, PipelineItem* pass);
 		void Unbind(const std::string& file, PipelineItem* pass);
@@ -49,6 +49,7 @@ namespace ed
 		RenderTextureObject* GetRenderTexture(const std::string& name) { return m_rts[name]; }
 		DirectX::XMINT2 GetRenderTextureSize(const std::string& name);
 		inline bool IsRenderTexture(const std::string& name) { return m_rts.count(name) > 0; }
+		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }
 		void ResizeRenderTexture(const std::string& name, DirectX::XMINT2 size);
 
 		void Clear();
@@ -73,6 +74,7 @@ namespace ed
 		std::unordered_map<std::string, ml::Image*> m_imgs;
 		std::unordered_map<std::string, ml::Texture*> m_texs;
 		std::unordered_map<std::string, ml::ShaderResourceView*> m_srvs;
+		std::unordered_map<std::string, bool> m_isCube;
 
 		std::unordered_map<std::string, RenderTextureObject*> m_rts;
 		
