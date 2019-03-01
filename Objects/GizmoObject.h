@@ -28,6 +28,8 @@ namespace ed
 		ml::VertexInputLayout m_vlayout;
 		DirectX::XMFLOAT4X4 m_proj;
 		DirectX::XMMATRIX m_xWorld, m_yWorld, m_zWorld;
+		float m_clickDepth, m_vw, m_vh;
+		DirectX::XMVECTOR m_clickStart;
 		DirectX::XMFLOAT3 *m_trans, *m_scale, *m_rota;
 		int m_axisSelected; // -1 = none, 0 = x, 1 = y, 2 = z
 		int m_mode; // 0 = translation, 1 = scale, 2 = rotation

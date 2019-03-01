@@ -111,7 +111,7 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				// renderer->Move(s.x, s.y);
+				m_gizmo.Move(s.x, s.y);
 			}
 		}
 

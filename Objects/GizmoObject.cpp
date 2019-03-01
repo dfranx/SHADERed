@@ -94,10 +94,11 @@ namespace ed
 	int GizmoObject::Click(int sx, int sy, int vw, int vh)
 	{
 		m_axisSelected = -1;
+		m_vw = vw;
+		m_vh = vh;
 
 		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
 		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
-		
 
 		float vx = (+2.0f*sx / vw - 1.0f) / proj4x4(0, 0);
 		float vy = (-2.0f*sy / vh + 1.0f) / proj4x4(1, 1);
@@ -121,9 +122,9 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
 		DirectX::XMVECTOR rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
 
-		float distX, distY, distZ;
+		float distX, distY, distZ, dist = std::numeric_limits<float>::infinity();;
 		if (handleBox.Intersects(rayOrigin2, rayDir2, distX))
-			m_axisSelected = 0;
+			m_axisSelected = 0, dist = distX;
 		else distX = std::numeric_limits<float>::infinity();
 
 		// Y axis
@@ -132,7 +133,7 @@ namespace ed
 		rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
 
 		if (handleBox.Intersects(rayOrigin2, rayDir2, distY) && distY < distX)
-			m_axisSelected = 1;
+			m_axisSelected = 1, dist = distY;
 		else distY = std::numeric_limits<float>::infinity();
 
 		// Z axis
@@ -141,8 +142,13 @@ namespace ed
 		rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
 
 		if (handleBox.Intersects(rayOrigin2, rayDir2, distZ) && distZ < distY && distZ < distX)
-			m_axisSelected = 2;
+			m_axisSelected = 2, dist = distZ;
 		else distZ = std::numeric_limits<float>::infinity();
+
+		if (m_axisSelected != -1) {
+			m_clickDepth = dist;
+			m_clickStart = DirectX::XMVectorAdd(rayOrigin, DirectX::XMVectorScale(rayDir, m_clickDepth));
+		}
 
 		return m_axisSelected;
 	}
@@ -150,6 +156,39 @@ namespace ed
 	{
 		if (m_axisSelected == -1)
 			return;
+
+		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
+		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
+
+		float vx = (+2.0f * dx / m_vw - 1.0f) / proj4x4(0, 0);
+		float vy = (-2.0f * dy / m_vh + 1.0f) / proj4x4(1, 1);
+
+		DirectX::XMVECTOR rayOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+		DirectX::XMVECTOR rayDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
+
+		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera().GetMatrix();
+		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
+		
+		DirectX::XMVECTOR axisVec = DirectX::XMVectorSet(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
+		DirectX::XMVECTOR tAxisVec = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(axisVec, invView));
+
+		rayOrigin = DirectX::XMVector3TransformCoord(rayOrigin, invView);
+		rayDir = DirectX::XMVector3TransformNormal(rayDir, invView);
+
+		DirectX::XMVECTOR mouseVec = DirectX::XMVectorAdd(rayOrigin, DirectX::XMVectorScale(rayDir, m_clickDepth));
+		DirectX::XMVECTOR moveVec = DirectX::XMVectorSubtract(m_clickStart, mouseVec);
+		moveVec = DirectX::XMVector3TransformNormal(moveVec, invView);
+
+		float dotval = DirectX::XMVectorGetX(DirectX::XMVector3Dot(DirectX::XMVector3Normalize(moveVec), tAxisVec));
+		float length = DirectX::XMVectorGetX(DirectX::XMVector3Length(moveVec));
+
+		float moveDist = -length * dotval;
+
+		if (m_axisSelected == 0) m_trans->x += moveDist;
+		else if (m_axisSelected == 1) m_trans->y += moveDist;
+		else if (m_axisSelected == 2) m_trans->z += moveDist;
+
+		m_clickStart = mouseVec;
 	}
 	void GizmoObject::Render()
 	{
