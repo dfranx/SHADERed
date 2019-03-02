@@ -1,4 +1,5 @@
 #include "EditorEngine.h"
+#include "Objects/Settings.h"
 #include "Objects/SystemVariableManager.h"
 
 namespace ed
@@ -10,6 +11,7 @@ namespace ed
 	}
 	void EditorEngine::Create()
 	{
+		Settings::Instance().Load();
 		m_ui.LoadSettings();
 
 		// load template
@@ -35,5 +37,6 @@ namespace ed
 	void EditorEngine::Destroy()
 	{
 		m_ui.SaveSettings();
+		Settings::Instance().Save();
 	}
 }

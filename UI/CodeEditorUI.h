@@ -21,6 +21,11 @@ namespace ed
 		void OpenPS(PipelineItem item);
 		void OpenGS(PipelineItem item);
 
+		inline void SetTheme(const TextEditor::Palette& colors) {
+			for (TextEditor& editor : m_editor)
+				editor.SetPalette(colors);
+		}
+
 		void CloseAll();
 
 		std::vector<std::pair<std::string, int>> GetOpenedFiles();

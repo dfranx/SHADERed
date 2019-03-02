@@ -1,6 +1,7 @@
 #include "CodeEditorUI.h"
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
+#include "../Objects/Settings.h"
 
 #include <fstream>
 #include <d3dcompiler.h>
@@ -112,11 +113,8 @@ namespace ed
 		TextEditor* editor = &m_editor[m_editor.size() - 1];
 		
 		TextEditor::LanguageDefinition lang = TextEditor::LanguageDefinition::HLSL();
-		TextEditor::Palette pallete = TextEditor::GetDarkPalette();
 
-		pallete[(int)TextEditor::PaletteIndex::Background] = 0x00000000;
-
-		editor->SetPalette(pallete);
+		editor->SetPalette(Settings::Instance().GetTextEditorPalette());
 		editor->SetLanguageDefinition(lang);
 		
 		m_shaderTypeId.push_back(sid);

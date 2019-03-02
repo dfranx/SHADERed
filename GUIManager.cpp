@@ -10,9 +10,11 @@
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
+#include "UI/OptionsUI.h"
 #include "UI/PinnedUI.h"
 #include "UI/UIHelper.h"
 #include "Objects/Names.h"
+#include "Objects/Settings.h"
 
 #include <Windows.h>
 #include <fstream>
@@ -37,8 +39,6 @@ namespace ed
 		ImGui_ImplDX11_Init(m_wnd->GetDevice(), m_wnd->GetDeviceContext());
 		
 		ImGui::StyleColorsDark();
-		ImGuiStyle& style = ImGui::GetStyle();
-		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
 		m_views.push_back(new PreviewUI(this, objects, "Preview"));
@@ -48,7 +48,10 @@ namespace ed
 		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 
+		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
+
+		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 	}
 	GUIManager::~GUIManager()
 	{
@@ -163,7 +166,9 @@ namespace ed
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("Options")) { /* TODO */ }
+				if (ImGui::MenuItem("Options")) { 
+					m_optionsOpened = true;
+				}
 
 				ImGui::EndMenu();
 			}
@@ -190,6 +195,13 @@ namespace ed
 			}
 
 		Get("Code")->Update(delta);
+
+
+		if (m_optionsOpened) {
+			ImGui::Begin("Options", &m_optionsOpened);
+			m_renderOptions();
+			ImGui::End();
+		}
 
 		if (s_isCreateItemPopupOpened) {
 			ImGui::OpenPopup("Create Item##main_create_item");
@@ -236,6 +248,43 @@ namespace ed
 		// render ImGUI
 		ImGui::Render();
 	}
+	void GUIManager::m_renderOptions()
+	{
+		OptionsUI* options = (OptionsUI*)m_options;
+		static const char* optGroups[4] = {
+			"General",
+			"Editor",
+			"Shortcuts",
+			"Preview"
+		};
+
+		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y*2) / ImGui::GetTextLineHeightWithSpacing() - 1;
+
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, 100 + ImGui::GetStyle().WindowPadding.x * 2);
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(100);
+		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, _ARRAYSIZE(optGroups), height))
+			options->SetGroup((OptionsUI::Page)m_optGroup);
+		ImGui::PopStyleColor();
+
+		ImGui::NextColumn();
+
+		options->Update(0.0f);
+
+		ImGui::Columns();
+
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160);
+		if (ImGui::Button("Save", ImVec2(70, 0)))
+			Settings::Instance().Save();
+
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80);
+		if (ImGui::Button("Close", ImVec2(-1, 0))) { m_optionsOpened = false; }
+
+
+	}
 	void GUIManager::Render()
 	{
 		// actually render to back buffer
@@ -275,6 +324,8 @@ namespace ed
 		}
 
 		Get("Code")->Visible = false;
+
+		((OptionsUI*)m_options)->ApplyTheme();
 	}
 	void GUIManager::m_imguiHandleEvent(const ml::Event & e)
 	{

@@ -25,6 +25,11 @@ namespace ed
 	private:
 		void m_imguiHandleEvent(const ml::Event& e);
 
+		void m_renderOptions();
+		bool m_optionsOpened;
+		int m_optGroup;
+		UIView* m_options;
+
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
 
