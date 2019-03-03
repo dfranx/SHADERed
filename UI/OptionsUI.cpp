@@ -39,7 +39,7 @@ namespace ed
 		else
 			ImGui::GetStyle() = ThemeContainer::Instance().GetUIStyle(theme);
 
-		editor->SetTheme(Settings::Instance().GetTextEditorPalette());		
+		editor->SetTheme(ThemeContainer::Instance().GetTextEditorStyle(theme));
 	}
 
 	void OptionsUI::m_loadThemeList()

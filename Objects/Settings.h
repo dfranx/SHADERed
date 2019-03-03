@@ -10,7 +10,6 @@ namespace ed
 		Settings();
 		void Load();
 		void Save();
-		TextEditor::Palette GetTextEditorPalette();
 
 		std::string Theme;
 

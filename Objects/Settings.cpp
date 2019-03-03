@@ -25,15 +25,4 @@ namespace ed
 		ini << "[general]" << std::endl;
 		ini << "theme=" << Theme << std::endl;
 	}
-	TextEditor::Palette Settings::GetTextEditorPalette()
-	{
-		TextEditor::Palette palette = TextEditor::GetDarkPalette();
-
-		if (Theme != "Dark")
-			palette = TextEditor::GetLightPalette();
-
-		palette[(int)TextEditor::PaletteIndex::Background] = 0x00000000;
-
-		return palette;
-	}
 }

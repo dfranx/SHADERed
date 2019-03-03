@@ -12,6 +12,7 @@ QoL:
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] move m_renderStats to StatsPage
+- [ ] cancel button on OptionsUI, applytheme -> reset style on dark and light theme, refresh themes button
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
@@ -19,8 +20,6 @@ QoL:
 - [ ] open item properties on double click
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
-- [ ] skin ImGui (add light theme + maybe redesing)
-- [ ] custom themes
 - [ ] options -> On pick do: [DROP], ui theme shortcut, gizmo [grab,P,S,R] shortcut, open error window on errors [X], other cool nifty options
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)

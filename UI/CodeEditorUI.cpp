@@ -2,6 +2,7 @@
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
+#include "../Objects/ThemeContainer.h"
 
 #include <fstream>
 #include <d3dcompiler.h>
@@ -114,7 +115,7 @@ namespace ed
 		
 		TextEditor::LanguageDefinition lang = TextEditor::LanguageDefinition::HLSL();
 
-		editor->SetPalette(Settings::Instance().GetTextEditorPalette());
+		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		editor->SetLanguageDefinition(lang);
 		
 		m_shaderTypeId.push_back(sid);

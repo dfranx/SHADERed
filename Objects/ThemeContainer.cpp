@@ -58,10 +58,35 @@ namespace ed
 			"NavWindowingDimBg",
 			"ModalWindowDimBg"
 		};
+		static const std::string EditorNames[] = {
+			"Default",
+			"Keyword",
+			"Number",
+			"String",
+			"CharLiteral",
+			"Punctuation",
+			"Preprocessor",
+			"Identifier",
+			"KnownIdentifier",
+			"PreprocIdentifier",
+			"Comment",
+			"MultiLineComment",
+			"Background",
+			"Cursor",
+			"Selection",
+			"ErrorMarker",
+			"Breakpoint",
+			"LineNumber",
+			"CurrentLineFill",
+			"CurrentLineFillInactive",
+			"CurrentLineEdge"
+		};
 
 		INIReader ini("./themes/" + filename);
 		
 		std::string name = ini.Get("general", "name", "NULL");
+		std::string editorTheme = ini.Get("general", "editor", "Dark");
+		int version = ini.GetInteger("general", "version", 1);
 
 		ImGuiStyle& style = m_ui[name];
 		ImGuiStyle& defaultStyle = ImGui::GetStyle();
@@ -117,9 +142,29 @@ namespace ed
 		style.AntiAliasedFill = ini.GetBoolean("style", "AntiAliasedFill", defaultStyle.AntiAliasedFill);
 		style.CurveTessellationTol = ini.GetReal("style", "CurveTessellationTol", defaultStyle.CurveTessellationTol);
 
-		if (ini.Get("general", "editor", "Dark") == "Custom") {
-			/* TODO: LOAD TEXT EDITOR PALETTE */
+		if (editorTheme == "Custom") {
+			TextEditor::Palette defaultPalette = TextEditor::GetDarkPalette();
+			for (int i = 0; i < (int)TextEditor::PaletteIndex::Max; i++) {
+				std::string clr = ini.Get("editor", EditorNames[i], "0");
+				if (clr == "0")
+					palette[i] = defaultPalette[i];
+				else {
+					ImVec4 c = m_parseColor(clr);
+					uint32_t r = c.x * 255;
+					uint32_t g = c.y * 255;
+					uint32_t b = c.z * 255;
+					uint32_t a = c.w * 255;
+					palette[i] = (a << 24) | (b << 16) | (g << 8) | r;
+				}
+			}
+
+			defaultPalette = TextEditor::GetRetroBluePalette();
+			for (int i = 0; i < (int)TextEditor::PaletteIndex::Max; i++) {
+				printf("%d %d\n", palette[i], defaultPalette[i]);
+			}
 		}
+		else if (editorTheme == "Light" || editorTheme == "Dark")
+			m_editor[name] = GetTextEditorStyle(editorTheme);
 
 		return name;
 	}
@@ -129,6 +174,17 @@ namespace ed
 	}
 	TextEditor::Palette ThemeContainer::GetTextEditorStyle(const std::string& name)
 	{
+		if (name == "Dark") {
+			TextEditor::Palette pal = TextEditor::GetDarkPalette();
+			pal[(int)TextEditor::PaletteIndex::Background] = 0x00000000;
+			return pal;
+		}
+		if (name == "Light") {
+			TextEditor::Palette pal = TextEditor::GetLightPalette();
+			pal[(int)TextEditor::PaletteIndex::Background] = 0x00000000;
+			return pal;
+		}
+
 		return m_editor[name];
 	}
 	ImVec4 ThemeContainer::m_parseColor(const std::string& str)
@@ -137,7 +193,7 @@ namespace ed
 		int cur = 0;
 
 		std::stringstream ss(str);
-		while(ss.good())
+		while(ss.good() && cur <= 3)
 		{
 			std::string substr;
 			std::getline(ss, substr, ',');
