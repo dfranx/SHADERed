@@ -29,13 +29,19 @@ namespace ed
 		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 
 		if (theme == "Dark") {
+			ImGuiStyle& style = ImGui::GetStyle();
+			style = ImGuiStyle();
+
 			ImGui::StyleColorsDark();
 
-			ImGuiStyle& style = ImGui::GetStyle();
 			style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
-		else if (theme == "Light")
+		else if (theme == "Light") {
+			ImGuiStyle& style = ImGui::GetStyle();
+			style = ImGuiStyle();
+
 			ImGui::StyleColorsLight();
+		}
 		else
 			ImGui::GetStyle() = ThemeContainer::Instance().GetUIStyle(theme);
 
