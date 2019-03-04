@@ -75,7 +75,7 @@ namespace ed
 	{
 		/* THEME */
 		ImGui::Text("Theme: "); ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
+		ImGui::PushItemWidth(-80);
 		if (ImGui::BeginCombo("##opt_theme", Settings::Instance().Theme.c_str())) {
 			for (int i = 0; i < 2; i++)
 				if (ImGui::Selectable(m_themes[i].c_str(), m_themes[i] == Settings::Instance().Theme)) {
@@ -93,6 +93,11 @@ namespace ed
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("REFRESH", ImVec2(-1, 0))) {
+			m_loadThemeList();
+			ApplyTheme();
+		}
 	}
 	void OptionsUI::m_renderEditor()  {}
 	void OptionsUI::m_renderShortcuts() {}

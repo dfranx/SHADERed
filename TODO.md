@@ -12,7 +12,7 @@ QoL:
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] move m_renderStats to StatsPage
-- [ ] cancel button on OptionsUI, applytheme -> reset style on dark and light theme, refresh themes button
+- [ ] cancel button on OptionsUI, 
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
