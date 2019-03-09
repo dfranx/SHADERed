@@ -11,7 +11,6 @@ namespace ed
 	}
 	void EditorEngine::Create()
 	{
-		Settings::Instance().Load();
 		m_ui.LoadSettings();
 
 		// load template

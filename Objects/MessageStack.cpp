@@ -3,7 +3,9 @@
 namespace ed
 {
 	MessageStack::MessageStack()
-	{}
+	{
+		BuildOccured = false;
+	}
 	MessageStack::~MessageStack()
 	{}
 	void MessageStack::Add(Type type, const std::string & group, const std::string & message)

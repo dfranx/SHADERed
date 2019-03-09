@@ -2,6 +2,9 @@
 #include "UIView.h"
 #include "../ImGUI/TextEditor.h"
 #include "../Objects/PipelineItem.h"
+#include "../Objects/Settings.h"
+#include "../ImGUI/imgui_impl_win32.h"
+#include "../ImGUI/imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <deque>
 
@@ -11,7 +14,10 @@ namespace ed
 	{
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_selectedItem(-1) {
-			m_consolas = ImGui::GetIO().Fonts->AddFontFromFileTTF("consola.ttf", 15.0f);
+			m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
+			m_fontFilename = Settings::Instance().Editor.Font;
+			m_fontSize = Settings::Instance().Editor.FontSize;
+			m_fontNeedsUpdate = false;
 		}
 
 		virtual void OnEvent(const ml::Event& e);
@@ -45,6 +51,38 @@ namespace ed
 			for (TextEditor& editor : m_editor)
 				editor.SetShowLineNumbers(ts);
 		}
+		inline void SetCompleteBraces(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetCompleteBraces(ts);
+		}
+		inline void SetHorizontalScrollbar(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetHorizontalScroll(ts);
+		}
+		inline void SetSmartPredictions(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetSmartPredictions(ts);
+		}
+		inline void SetFont(const std::string& filename, int size = 15)
+		{
+			m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
+			m_fontFilename = filename;
+			m_fontSize = size;
+		}
+		inline void UpdateFont() {
+			if (m_fontNeedsUpdate) {
+				ImGui::GetIO().Fonts->Clear();
+				ImGui::GetIO().Fonts->AddFontDefault();
+				m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(m_fontFilename.c_str(), m_fontSize);
+				
+				unsigned char* out = nullptr;
+				int wid, heig;
+				ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&out, &wid, &heig);
+
+				m_fontNeedsUpdate = false;
+
+			}
+		}
 
 		void CloseAll();
 
@@ -68,7 +106,7 @@ namespace ed
 		void m_open(PipelineItem item, int shaderTypeID);
 
 		// font for code editor
-		ImFont *m_consolas;
+		ImFont *m_font;
 
 		// menu bar item actions
 		void m_save(int id);
@@ -81,6 +119,10 @@ namespace ed
 		std::vector<StatsPage> m_stats;
 		std::vector<int> m_shaderTypeId;
 		std::deque<bool> m_editorOpen;
+
+		bool m_fontNeedsUpdate;
+		std::string m_fontFilename;
+		int m_fontSize;
 
 		int m_selectedItem;
 	};

@@ -1,18 +1,14 @@
-- [ ] options (code editor font, theme, etc...)
-- [ ] keyboard shortcuts
-- [ ] help -> settings | manual | about
+- [ ] keyboard shortcuts (gizmo [P,R,S], ui theme shortcut, editor shortcuts, etc...)
 
 QoL:
 - [ ] recompile not working without saving changes
-- [ ] ignore AltGr in code editor, add tabs on newline, ctrl backspace, smart predictions (intellisense), find and replace + more improvements
+- [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] GetRelativePath() remove ".\"
-- [ ] better error handling
-- [ ] MouseClicked (bool) and MouseClickPosition (float2) system shader variables
+- [ ] better error handling, error markers in text editor
 - [ ] clear message group after renaming pipeline item
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] move m_renderStats to StatsPage
-- [ ] cancel button on OptionsUI, 
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
@@ -20,7 +16,6 @@ QoL:
 - [ ] open item properties on double click
 - [ ] add Save Copy (copies all the shaders to the project directory)
 - [ ] replace state string names with enums
-- [ ] options -> On pick do: [DROP], ui theme shortcut, gizmo [grab,P,S,R] shortcut, open error window on errors [X], other cool nifty options
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
@@ -32,3 +27,4 @@ QoL:
 - [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
 - [ ] comment the code
 - [ ] icon
+- [ ] help -> manual, about, etc...

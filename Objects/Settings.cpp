@@ -25,14 +25,15 @@ namespace ed
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
 		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
-		General.StayOnTop = ini.GetBoolean("general", "stayontop", true);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
-		Editor.Font = ini.Get("editor", "font", "consola.ttf");
+		strcpy(Editor.Font, ini.Get("editor", "font", "inconsolata.ttf").c_str());
+		Editor.FontSize = ini.GetInteger("editor", "fontsize", 15);
 		Editor.ShowWhitespace = ini.GetBoolean("editor", "whitespace", false);
 		Editor.HiglightCurrentLine = ini.GetBoolean("editor", "highlightline", true);
 		Editor.LineNumbers = ini.GetBoolean("editor", "linenumbers", true);
+		Editor.HorizontalScroll = ini.GetBoolean("editor", "horizscroll", true);
 		Editor.AutoBraceCompletion = ini.GetBoolean("editor", "autobrace", true);
 		strcpy(Editor.HLSL_Extenstion, ini.Get("editor", "hlslext", "hlsl").c_str());
 		strcpy(Editor.GLSLVS_Extenstion, ini.Get("editor", "glslvsext", "vert").c_str());
@@ -56,7 +57,6 @@ namespace ed
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
 		ini << "glsl=" << General.SupportGLSL << std::endl;
-		ini << "stayontop=" << General.StayOnTop << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 
 		ini << "[preview]" << std::endl;
@@ -67,9 +67,11 @@ namespace ed
 		ini << "[editor]" << std::endl;
 		ini << "smartpred=" << Editor.SmartPredictions << std::endl;
 		ini << "font=" << Editor.Font << std::endl;
+		ini << "fontsize=" << Editor.FontSize << std::endl;
 		ini << "whitespace=" << Editor.ShowWhitespace << std::endl;
 		ini << "highlightline=" << Editor.HiglightCurrentLine << std::endl;
 		ini << "linenumbers=" << Editor.LineNumbers << std::endl;
+		ini << "horizscroll=" << Editor.HorizontalScroll << std::endl;
 		ini << "autobrace=" << Editor.AutoBraceCompletion << std::endl;
 		ini << "hlslext=" << Editor.HLSL_Extenstion << std::endl;
 		ini << "glslvsext=" << Editor.GLSLVS_Extenstion << std::endl;

@@ -534,7 +534,7 @@ namespace ed
 						props->Open(item);
 					}
 				}
-				else if (type == "file") {
+				else if (type == "file" && Settings::Instance().General.ReopenShaders) {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
 					if (!settingItem.attribute("name").empty()) {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());

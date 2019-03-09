@@ -73,7 +73,7 @@ namespace ed
 					if (m_stats[i].IsActive)
 						m_renderStats(i);
 					else {
-						ImGui::PushFont(m_consolas);
+						ImGui::PushFont(m_font);
 						m_editor[i].Render(windowName.c_str());
 						ImGui::PopFont();
 					}
@@ -121,6 +121,11 @@ namespace ed
 		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
 		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+
+		// TODO: GLSL
 		editor->SetLanguageDefinition(lang);
 		
 		m_shaderTypeId.push_back(sid);
@@ -224,7 +229,7 @@ namespace ed
 	}
 	void CodeEditorUI::m_renderStats(int id)
 	{
-		ImGui::PushFont(m_consolas);
+		ImGui::PushFont(m_font);
 
 		ID3D11ShaderReflection* shader = (ID3D11ShaderReflection*)m_stats[id].Info;
 

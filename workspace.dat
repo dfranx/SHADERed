@@ -151,7 +151,7 @@ Collapsed=0
 DockId=0x00000019,1
 
 [Window][Options]
-Pos=495,400
+Pos=166,47
 Size=650,471
 Collapsed=0
 
@@ -178,7 +178,7 @@ DockSpace               ID=0xFA06BC56 Pos=0,19 Size=32,13 Split=X
               DockNode  ID=0x00000017 Parent=0x00000015 SizeRef=692,499 SelectedTab=0x2E312F8D
               DockNode  ID=0x00000018 Parent=0x00000015 SizeRef=692,342 SelectedTab=0xD6F3643B
             DockNode    ID=0x00000016 Parent=0x00000012 SizeRef=984,843 Split=Y SelectedTab=0x763816AC
-              DockNode  ID=0x0000000B Parent=0x00000016 SizeRef=996,894 CentralNode=1 SelectedTab=0x763816AC
+              DockNode  ID=0x0000000B Parent=0x00000016 SizeRef=996,892 CentralNode=1 SelectedTab=0x763816AC
               DockNode  ID=0x0000000C Parent=0x00000016 SizeRef=996,104 SelectedTab=0x9452EED4
     DockNode            ID=0x00000006 Parent=0x00000002 SizeRef=868,398 SelectedTab=0x03D60534
 

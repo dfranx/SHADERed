@@ -14,29 +14,29 @@ namespace ed
 		std::string Theme;
 
 		struct strGeneral {
-			bool AutoOpenErrorWindow;	// [TODO] Not implemented
+			// std::string Language;	// [TODO] Not implemented
+			bool AutoOpenErrorWindow;
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;			// [TODO] Not implemented
-			// std::string Language;	// [TODO] Not implemented
-			bool SupportGLSL;			// [TODO] Not implemented
-			// OnStartup Startup;		// [TODO] Not implemented
-			bool StayOnTop;				// [TODO] Not implemented
-			bool ReopenShaders;			// [TODO] Not implemented
+			bool SupportGLSL;
+			bool ReopenShaders;
 		} General;
 
 		struct strEditor {
-			bool SmartPredictions;			// [TODO] Not implemented
-			std::string Font;				// [TODO] Not implemented 
+			bool SmartPredictions;
+			char Font[256];
+			int FontSize;
 			bool ShowWhitespace;			// [TODO] Not implemented
-			bool HiglightCurrentLine;		// [TODO] Not implemented
-			bool LineNumbers;				// [TODO] Not implemented
-			bool AutoBraceCompletion;		// [TODO] Not implemented
-			char HLSL_Extenstion[12];		// [TODO] Not implemented
-			char GLSLVS_Extenstion[12];		// [TODO] Not implemented
-			char GLSLPS_Extenstion[12];		// [TODO] Not implemented
-			char GLSLGS_Extenstion[12];		// [TODO] Not implemented
-			bool SmartIndent;			// [TODO] Not implemented
-			bool InsertSpaces;				// [TODO] Not implemented
+			bool HiglightCurrentLine;
+			bool LineNumbers;
+			bool HorizontalScroll;
+			bool AutoBraceCompletion;
+			char HLSL_Extenstion[12];
+			char GLSLVS_Extenstion[12];
+			char GLSLPS_Extenstion[12];
+			char GLSLGS_Extenstion[12];
+			bool SmartIndent;
+			bool InsertSpaces;
 			int TabSize;
 		} Editor;
 

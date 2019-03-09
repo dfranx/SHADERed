@@ -6,6 +6,7 @@ namespace ed
 	class InterfaceManager;
 	class CreateItemUI;
 	class UIView;
+	class Settings;
 
 	class GUIManager
 	{
@@ -29,6 +30,8 @@ namespace ed
 		bool m_optionsOpened;
 		int m_optGroup;
 		UIView* m_options;
+
+		Settings* m_settingsBkp;
 
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;

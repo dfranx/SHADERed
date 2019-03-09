@@ -25,6 +25,9 @@ namespace ed
 	{
 		m_data = objects;
 		m_wnd = wnd;
+		m_settingsBkp = new Settings();
+
+		Settings::Instance().Load();
 
 		// Initialize imgui
 		ImGui::CreateContext();
@@ -59,6 +62,7 @@ namespace ed
 			delete view;
 
 		delete m_createUI;
+		delete m_settingsBkp;
 
 		// release memory
 		ImGui_ImplDX11_Shutdown();
@@ -75,6 +79,9 @@ namespace ed
 	}
 	void GUIManager::Update(float delta)
 	{
+		// update fonts
+		((CodeEditorUI*)Get("Code"))->UpdateFont();
+
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -168,6 +175,7 @@ namespace ed
 				ImGui::Separator();
 				if (ImGui::MenuItem("Options")) { 
 					m_optionsOpened = true;
+					*m_settingsBkp = Settings::Instance();
 				}
 
 				ImGui::EndMenu();
@@ -196,13 +204,22 @@ namespace ed
 
 		Get("Code")->Update(delta);
 
+		// handle the build occured event
+		if (Settings::Instance().General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
+			size_t errors = m_data->Messages.GetMessages().size();
+			if (errors > 0 && !Get("Error List")->Visible)
+				Get("Error List")->Visible = true;
+			m_data->Messages.BuildOccured = false;
+		}
 
+		// render options window
 		if (m_optionsOpened) {
 			ImGui::Begin("Options", &m_optionsOpened, ImGuiWindowFlags_NoDocking);
 			m_renderOptions();
 			ImGui::End();
 		}
 
+		// open popups
 		if (s_isCreateItemPopupOpened) {
 			ImGui::OpenPopup("Create Item##main_create_item");
 			s_isCreateItemPopupOpened = false;
@@ -223,7 +240,8 @@ namespace ed
 					ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			if (ImGui::Button("Cancel"))
+				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
 
@@ -275,7 +293,7 @@ namespace ed
 		ImGui::Columns();
 
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160);
-		if (ImGui::Button("Save", ImVec2(70, 0))) {
+		if (ImGui::Button("OK", ImVec2(70, 0))) {
 			Settings::Instance().Save();
 
 			CodeEditorUI* code = ((CodeEditorUI*)Get("Code"));
@@ -285,12 +303,21 @@ namespace ed
 			code->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
 			code->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 			code->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			code->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			code->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
+			code->SetHorizontalScrollbar(Settings::Instance().Editor.HorizontalScroll);
+			code->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+
+			m_optionsOpened = false;
 		}
 
 		ImGui::SameLine();
 
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80);
-		if (ImGui::Button("Close", ImVec2(-1, 0))) { m_optionsOpened = false; }
+		if (ImGui::Button("Close", ImVec2(-1, 0))) {
+			Settings::Instance() = *m_settingsBkp;
+			m_optionsOpened = false;
+		}
 
 
 	}

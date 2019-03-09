@@ -228,6 +228,9 @@ public:
 
 	inline void SetSmartIndent(bool s) { mSmartIndent = s; }
 	inline void SetHighlightLine(bool s) { mHighlightLine = s; }
+	inline void SetCompleteBraces(bool s) { mCompleteBraces = s; }
+	inline void SetHorizontalScroll(bool s) { mHorizontalScroll = s; }
+	inline void SetSmartPredictions(bool s) { mAutocomplete = s; }
 
 	inline void SetShowLineNumbers(bool s) { mShowLineNumbers = s; }
 	inline int GetTextStart() const { return mShowLineNumbers ? 7 : 3; }
@@ -297,6 +300,7 @@ private:
 	int InsertTextAt(Coordinates& aWhere, const char* aValue);
 	void AddUndo(UndoRecord& aValue);
 	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition) const;
+	ImVec2 CoordinatesToScreenPos(const TextEditor::Coordinates& aPosition) const;
 	Coordinates FindWordStart(const Coordinates& aFrom) const;
 	Coordinates FindWordEnd(const Coordinates& aFrom) const;
 	bool IsOnWordBoundary(const Coordinates& aAt) const;
@@ -314,7 +318,17 @@ private:
 	EditorState mState;
 	UndoBuffer mUndoBuffer;
 	int mUndoIndex;
-	
+
+	bool mAutocomplete;
+	std::string mACWord;
+	std::vector<std::string> mACSuggestions;
+	int mACIndex;
+	bool mACOpened;
+	bool mACSwitched; // if == true then allow selection with enter
+	Coordinates mACPosition;
+
+	bool mHorizontalScroll;
+	bool mCompleteBraces;
 	bool mShowLineNumbers;
 	bool mHighlightLine;
 	bool mSmartIndent;

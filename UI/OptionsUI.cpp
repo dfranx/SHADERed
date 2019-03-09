@@ -4,6 +4,7 @@
 #include "../Objects/Settings.h"
 #include "../ImGUI/imgui_internal.h"
 #include "../Objects/ThemeContainer.h"
+#include "UIHelper.h"
 
 #include <algorithm>
 
@@ -106,14 +107,13 @@ namespace ed
 
 
 
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-
-
 		/* AUTO ERROR SHOW: */
 		ImGui::Text("Show error list when build finishes with an error: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autoerror", &settings->General.AutoOpenErrorWindow);
+
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 
 		/* RECOVERY: */
 		ImGui::Text("Save recovery file every 10mins: ");
@@ -125,33 +125,21 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_checkupdates", &settings->General.CheckUpdates);
 
+		ImGui::PopStyleVar();
+		ImGui::PopItemFlag();
+
 		/* GLSL: */
 		ImGui::Text("Allow GLSL shaders: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_glsl", &settings->General.SupportGLSL);
 
-		/* STAY ON TOP: */
-		ImGui::Text("Undocked windows will stay on top: ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##optg_stayontop", &settings->General.StayOnTop);
-
 		/* REOPEN: */
 		ImGui::Text("Reopen shaders after openning a project: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
-
-
-
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
 	}
 	void OptionsUI::m_renderEditor()  {
 		Settings* settings = &Settings::Instance();
-
-
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-
 
 
 		/* SMART PREDICTIONS: */
@@ -159,30 +147,51 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_smart_pred", &settings->Editor.SmartPredictions);
 
+		/* SHOW WHITESPACE: */
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+
+		ImGui::Text("Show whitespace: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_show_whitespace", &settings->Editor.ShowWhitespace);
+
+		ImGui::PopStyleVar();
+		ImGui::PopItemFlag();
+
 		/* FONT: */
 		ImGui::Text("Font: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-80);
-		if (ImGui::BeginCombo("##opte_font", settings->Editor.Font.c_str()))
-			ImGui::EndCombo();
-
-		/* SHOW WHITESPACE: */
-		ImGui::Text("Show whitespace: ");
+		ImGui::InputText("##opte_font", settings->Editor.Font, 256);
+		ImGui::PopItemWidth();
 		ImGui::SameLine();
-		ImGui::Checkbox("##opte_show_whitespace", &settings->Editor.ShowWhitespace);
+		if (ImGui::Button("...", ImVec2(-1, 0))) {
+			std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"Font\0*.ttf;*.otf\0");
+			if (file.size() != 0)
+				strcpy(settings->Editor.Font, file.c_str());
+		}
+
+
+		/* FONT SIZE: */
+		ImGui::Text("Font size: ");
+		ImGui::SameLine();
+		if (ImGui::InputInt("##opte_fontsize", &settings->Editor.FontSize, 1, 5))
+			settings->Editor.FontSize = std::max<int>(std::min<int>(settings->Editor.FontSize, 72), 9);
 
 		/* AUTO BRACE COMPLETION: */
 		ImGui::Text("Brace completion: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_autobrace", &settings->Editor.AutoBraceCompletion);
 
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
-
 		/* LINE NUMBERS: */
 		ImGui::Text("Line numbers: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_ln_numbers", &settings->Editor.LineNumbers);
+
+		/* HORIZONTAL SCROLL BAR: */
+		ImGui::Text("Enable horizontal scroll bar: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_horizscroll", &settings->Editor.HorizontalScroll);
 
 		/* HIGHLIGHT CURRENT LINE: */
 		ImGui::Text("Highlight current line: ");

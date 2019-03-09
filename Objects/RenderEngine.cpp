@@ -211,6 +211,8 @@ namespace ed
 	}
 	void RenderEngine::Recompile(const char * name)
 	{
+		m_msgs->BuildOccured = true;
+
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];

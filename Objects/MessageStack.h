@@ -36,6 +36,8 @@ namespace ed
 			std::string Text;
 		};
 
+		bool BuildOccured; // have we recompiled project/shader? if yes and an error has occured we can open error window
+
 		// group -> pipeline item name
 		void Add(Type type, const std::string& group, const std::string& message);
 		void ClearGroup(const std::string& group);
