@@ -116,6 +116,11 @@ namespace ed
 		TextEditor::LanguageDefinition lang = TextEditor::LanguageDefinition::HLSL();
 
 		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+		editor->SetTabSize(Settings::Instance().Editor.TabSize);
+		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
 		editor->SetLanguageDefinition(lang);
 		
 		m_shaderTypeId.push_back(sid);

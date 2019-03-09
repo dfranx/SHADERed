@@ -25,6 +25,26 @@ namespace ed
 			for (TextEditor& editor : m_editor)
 				editor.SetPalette(colors);
 		}
+		inline void SetTabSize(int ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetTabSize(ts);
+		}
+		inline void SetInsertSpaces(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetInsertSpaces(ts);
+		}
+		inline void SetSmartIndent(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetSmartIndent(ts);
+		}
+		inline void SetHighlightLine(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetHighlightLine(ts);
+		}
+		inline void SetShowLineNumbers(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetShowLineNumbers(ts);
+		}
 
 		void CloseAll();
 

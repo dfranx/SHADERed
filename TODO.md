@@ -4,7 +4,7 @@
 
 QoL:
 - [ ] recompile not working without saving changes
-- [ ] ignore AltGr in code editor, add tabs on newline, ctrl backspace, intellisense + more improvements
+- [ ] ignore AltGr in code editor, add tabs on newline, ctrl backspace, smart predictions (intellisense), find and replace + more improvements
 - [ ] GetRelativePath() remove ".\"
 - [ ] better error handling
 - [ ] MouseClicked (bool) and MouseClickPosition (float2) system shader variables

@@ -198,7 +198,7 @@ namespace ed
 
 
 		if (m_optionsOpened) {
-			ImGui::Begin("Options", &m_optionsOpened);
+			ImGui::Begin("Options", &m_optionsOpened, ImGuiWindowFlags_NoDocking);
 			m_renderOptions();
 			ImGui::End();
 		}
@@ -275,8 +275,17 @@ namespace ed
 		ImGui::Columns();
 
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160);
-		if (ImGui::Button("Save", ImVec2(70, 0)))
+		if (ImGui::Button("Save", ImVec2(70, 0))) {
 			Settings::Instance().Save();
+
+			CodeEditorUI* code = ((CodeEditorUI*)Get("Code"));
+
+			code->SetTabSize(Settings::Instance().Editor.TabSize);
+			code->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			code->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			code->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			code->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+		}
 
 		ImGui::SameLine();
 

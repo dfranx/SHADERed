@@ -220,6 +220,18 @@ public:
 	void Undo(int aSteps = 1);
 	void Redo(int aSteps = 1);
 
+	inline void SetTabSize(int s) { mTabSize = s; }
+	inline int GetTabSize() { return mTabSize; }
+
+	inline void SetInsertSpaces(bool s) { mInsertSpaces = s; }
+	inline int GetInsertSpaces() { return mInsertSpaces; }
+
+	inline void SetSmartIndent(bool s) { mSmartIndent = s; }
+	inline void SetHighlightLine(bool s) { mHighlightLine = s; }
+
+	inline void SetShowLineNumbers(bool s) { mShowLineNumbers = s; }
+	inline int GetTextStart() const { return mShowLineNumbers ? 7 : 3; }
+
 	static const Palette& GetDarkPalette();
 	static const Palette& GetLightPalette();
 	static const Palette& GetRetroBluePalette();
@@ -303,6 +315,10 @@ private:
 	UndoBuffer mUndoBuffer;
 	int mUndoIndex;
 	
+	bool mShowLineNumbers;
+	bool mHighlightLine;
+	bool mSmartIndent;
+	bool mInsertSpaces;
 	int mTabSize;
 	bool mFocused;
 	bool mOverwrite;

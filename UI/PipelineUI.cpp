@@ -271,6 +271,8 @@ namespace ed
 
 			return ret;
 		}
+
+		return ret;
 	}
 
 	void PipelineUI::m_closePopup()

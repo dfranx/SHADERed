@@ -1,11 +1,11 @@
 #include "PreviewUI.h"
 #include "PropertyUI.h"
+#include "../Objects/Settings.h"
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../ImGUI/imgui_internal.h"
 
 #define STATUSBAR_HEIGHT 25
-#define STATUSBAR_ACTIVE true
 
 namespace ed
 {
@@ -21,7 +21,9 @@ namespace ed
 			return;
 		}
 
-		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * STATUSBAR_ACTIVE));
+		bool statusbar = Settings::Instance().Preview.StatusBar;
+
+		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
 
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		renderer->Render(imageSize.x, imageSize.y);
@@ -31,7 +33,7 @@ namespace ed
 		ImGui::Image(view, imageSize);
 
 		// render the gizmo if necessary
-		if (m_pick != nullptr) {
+		if (m_pick != nullptr && Settings::Instance().Preview.Gizmo) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != imageSize.x || m_lastSize.y != imageSize.y) {
 				m_lastSize = DirectX::XMINT2(imageSize.x, imageSize.y);
@@ -62,7 +64,7 @@ namespace ed
 			SystemVariableManager::Instance().GetCamera().Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
-			if (ImGui::IsMouseClicked(0)) {
+			if (ImGui::IsMouseClicked(0) && Settings::Instance().Preview.Gizmo) {
 				// screen space position
 				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
 				s.x *= imageSize.x;
@@ -70,7 +72,8 @@ namespace ed
 
 				if ((m_pick != nullptr && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) || m_pick == nullptr) {
 					renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
-						((PropertyUI*)m_ui->Get("Properties"))->Open(item);
+						if (Settings::Instance().Preview.PropertyPick)
+							((PropertyUI*)m_ui->Get("Properties"))->Open(item);
 						m_pick = item;
 
 						if (item != nullptr) {
@@ -105,7 +108,7 @@ namespace ed
 				SystemVariableManager::Instance().GetCamera().RotateY(dY);
 			}
 			// handle left mouse dragging - moving objects if selected
-			else if (ImGui::IsMouseDown(0)) {
+			else if (ImGui::IsMouseDown(0) && Settings::Instance().Preview.Gizmo) {
 				// screen space position
 				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
 				s.x *= imageSize.x;
@@ -116,7 +119,7 @@ namespace ed
 		}
 
 		// status bar
-		if (STATUSBAR_ACTIVE) {
+		if (statusbar) {
 			ImGui::Separator();
 			ImGui::Text("FPS: %.2f", 1 / delta);
 			ImGui::SameLine();
