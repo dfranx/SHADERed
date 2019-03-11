@@ -1,10 +1,8 @@
 - [ ] keyboard shortcuts (gizmo [P,R,S], ui theme shortcut, editor shortcuts, etc...)
-
-QoL:
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] GetRelativePath() remove ".\"
-- [ ] better error handling, error markers in text editor
+- [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)
 - [ ] clear message group after renaming pipeline item
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
@@ -14,7 +12,8 @@ QoL:
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] do all TODOs (comments)
 - [ ] open item properties on double click
-- [ ] add Save Copy (copies all the shaders to the project directory)
+- [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
+- [ ] status bar - add line count, current columnt/max column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)

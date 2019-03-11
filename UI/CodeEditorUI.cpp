@@ -16,18 +16,18 @@ namespace ed
 
 		if (e.Type == ml::EventType::KeyRelease) {
 			if (e.Keyboard.VK == VK_F5) {
-				if (e.Keyboard.Control) {
-					// ALT+F5 -> switch between stats and code
-					if (!m_stats[m_selectedItem].IsActive)
-						m_fetchStats(m_selectedItem);
-					else m_stats[m_selectedItem].IsActive = false;
-				} else {
+				if (!e.Keyboard.Control) {
 					// F5 -> compile shader
 					m_compile(m_selectedItem);
 				}
 			} else if (e.Keyboard.VK == 'S') {
 				if (e.Keyboard.Control) // CTRL+S -> save file
 					m_save(m_selectedItem);
+			} else if (e.Keyboard.VK == VK_F2) {
+				// ALT+F5 -> switch between stats and code
+				if (!m_stats[m_selectedItem].IsActive)
+					m_fetchStats(m_selectedItem);
+				else m_stats[m_selectedItem].IsActive = false;
 			}
 		}
 	}
@@ -53,8 +53,8 @@ namespace ed
 						}
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", "F5")) m_compile(i);
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", "CTRL+F5")) m_fetchStats(i);
-							if (m_stats[i].IsActive && ImGui::MenuItem("Code", "CTRL+F5")) m_stats[i].IsActive = false;
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", "F2")) m_fetchStats(i);
+							if (m_stats[i].IsActive && ImGui::MenuItem("Code", "F2")) m_stats[i].IsActive = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
 							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i].CanRedo())) m_editor[i].Redo();

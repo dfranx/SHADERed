@@ -15,6 +15,7 @@
 #include "UI/UIHelper.h"
 #include "Objects/Names.h"
 #include "Objects/Settings.h"
+#include "Objects/KeyboardShortcuts.h"
 
 #include <Windows.h>
 #include <fstream>
@@ -51,6 +52,16 @@ namespace ed
 		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 
+		KeyboardShortcuts::Instance().Attach("Project.Rebuild", VK_F5, -1, false, true, false, [=]() {
+			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+			for (PipelineItem*& pass : passes)
+				m_data->Renderer.Recompile(pass->Name);
+		});
+
+		KeyboardShortcuts::Instance().Attach("Workspace.HideError", 'W', '1', false, true, false, [=]() {
+			((ErrorListUI*)Get("Error List"))->Visible = !((ErrorListUI*)Get("Error List"))->Visible;
+		});
+
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
 
@@ -73,7 +84,11 @@ namespace ed
 	void GUIManager::OnEvent(const ml::Event& e)
 	{
 		m_imguiHandleEvent(e);
-		
+
+		// check for shortcut presses
+		if (e.Type == ml::EventType::KeyPress)
+			KeyboardShortcuts::Instance().Check(e);
+
 		for (auto view : m_views)
 			view->OnEvent(e);
 	}
