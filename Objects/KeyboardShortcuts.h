@@ -16,19 +16,6 @@ namespace ed
 			static KeyboardShortcuts ret;
 			return ret;
 		}
-
-		KeyboardShortcuts();
-
-		// set vk2 to negative if not used
-		bool Attach(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift, std::function<void()> func);
-
-		inline void Detach(const std::string& name) { m_data.erase(name); }
-
-		void Check(const ml::Event& e);
-
-	private:
-		bool m_canSolo(int k);
-
 		struct Shortcut
 		{
 			int Key1;
@@ -38,6 +25,34 @@ namespace ed
 			bool Shift;
 			std::function<void()> Function;
 		};
+
+
+		KeyboardShortcuts();
+
+		void Load();
+		void Save();
+
+		// set vk2 to negative if not used
+		bool Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift);
+		inline void Remove(const std::string& name) {
+			m_data[name].Alt = m_data[name].Ctrl = m_data[name].Shift = false;
+			m_data[name].Key1 = m_data[name].Key2 = -1;
+		}
+		void SetCallback(const std::string& name, std::function<void()> func);
+
+		std::string GetString(const std::string& name);
+		std::vector<std::string> GetNameList();
+		
+		inline std::map<std::string, Shortcut> GetMap() { return m_data; }
+		inline void SetMap(std::map<std::string, Shortcut>& m) { m_data = m; }
+
+
+		inline void Detach(const std::string& name) { m_data.erase(name); }
+
+		void Check(const ml::Event& e);
+
+	private:
+		bool m_canSolo(int k);
 
 		int m_keys[2];
 		std::map<std::string, Shortcut> m_data;

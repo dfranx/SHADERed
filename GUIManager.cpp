@@ -27,6 +27,8 @@ namespace ed
 		m_data = objects;
 		m_wnd = wnd;
 		m_settingsBkp = new Settings();
+		m_isCreateRTOpened = false;
+		m_isCreateItemPopupOpened = false;
 
 		Settings::Instance().Load();
 
@@ -52,15 +54,8 @@ namespace ed
 		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 
-		KeyboardShortcuts::Instance().Attach("Project.Rebuild", VK_F5, -1, false, true, false, [=]() {
-			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
-			for (PipelineItem*& pass : passes)
-				m_data->Renderer.Recompile(pass->Name);
-		});
-
-		KeyboardShortcuts::Instance().Attach("Workspace.HideError", 'W', '1', false, true, false, [=]() {
-			((ErrorListUI*)Get("Error List"))->Visible = !((ErrorListUI*)Get("Error List"))->Visible;
-		});
+		KeyboardShortcuts::Instance().Load();
+		m_setupShortcuts();
 
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
@@ -86,8 +81,13 @@ namespace ed
 		m_imguiHandleEvent(e);
 
 		// check for shortcut presses
-		if (e.Type == ml::EventType::KeyPress)
-			KeyboardShortcuts::Instance().Check(e);
+		if (e.Type == ml::EventType::KeyPress) {
+			if (!(m_optionsOpened && ((OptionsUI*)m_options)->IsListening()))
+				KeyboardShortcuts::Instance().Check(e);
+		}
+
+		if (m_optionsOpened)
+			m_options->OnEvent(e);
 
 		for (auto view : m_views)
 			view->OnEvent(e);
@@ -123,17 +123,17 @@ namespace ed
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
 
 		// menu
-		static bool s_isCreateItemPopupOpened = false, s_isCreateRTOpened = false;
+		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New")) {
+				if (ImGui::MenuItem("New", KeyboardShortcuts::Instance().GetString("Project.New").c_str())) {
 					m_data->Renderer.FlushCache();
 					((CodeEditorUI*)Get("Code"))->CloseAll();
 					((PinnedUI*)Get("Pinned"))->CloseAll();
 					((PreviewUI*)Get("Preview"))->Pick(nullptr);
 					m_data->Pipeline.New();
 				}
-				if (ImGui::MenuItem("Open")) {
+				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
 					m_data->Renderer.FlushCache();
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
@@ -145,39 +145,39 @@ namespace ed
 						m_data->Parser.Open(file);
 					}
 				}
-				if (ImGui::MenuItem("Save")) {
+				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str())) {
 					if (m_data->Parser.GetOpenedFile() == "")
 						m_saveAsProject();
 					else
 						m_data->Parser.Save();
 				}
-				if (ImGui::MenuItem("Save As"))
+				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
 					m_saveAsProject();
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Project")) {
-				if (ImGui::MenuItem("Rebuild project")) {
+				if (ImGui::MenuItem("Rebuild project", KeyboardShortcuts::Instance().GetString("Project.Rebuild").c_str())) {
 					std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 					for (PipelineItem*& pass : passes)
 						m_data->Renderer.Recompile(pass->Name);
 				}
 				if (ImGui::BeginMenu("Create")) {
-					if (ImGui::MenuItem("Pass")) {
+					if (ImGui::MenuItem("Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str())) {
 						m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
-						s_isCreateItemPopupOpened = true;
+						m_isCreateItemPopupOpened = true;
 					}
-					if (ImGui::MenuItem("Texture")) {
+					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str())) {
 						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
 						if (!file.empty())
 							m_data->Objects.CreateTexture(file);
 					}
-					if (ImGui::MenuItem("Cube Map")) {
+					if (ImGui::MenuItem("Cube Map", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str())) {
 						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
 						if (!file.empty())
 							m_data->Objects.CreateTexture(file, true);
 					}
-					if (ImGui::MenuItem("Render Texture"))
-						s_isCreateRTOpened = true;
+					if (ImGui::MenuItem("Render Texture", KeyboardShortcuts::Instance().GetString("Project.NewRenderTexture").c_str()))
+						m_isCreateRTOpened = true;
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
@@ -188,9 +188,10 @@ namespace ed
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("Options")) { 
+				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
 					*m_settingsBkp = Settings::Instance();
+					m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
 				}
 
 				ImGui::EndMenu();
@@ -235,14 +236,14 @@ namespace ed
 		}
 
 		// open popups
-		if (s_isCreateItemPopupOpened) {
+		if (m_isCreateItemPopupOpened) {
 			ImGui::OpenPopup("Create Item##main_create_item");
-			s_isCreateItemPopupOpened = false;
+			m_isCreateItemPopupOpened = false;
 		}
 
-		if (s_isCreateRTOpened) {
+		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
-			s_isCreateRTOpened = false;
+			m_isCreateRTOpened = false;
 		}
 
 		// Create Item popup
@@ -310,6 +311,7 @@ namespace ed
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160);
 		if (ImGui::Button("OK", ImVec2(70, 0))) {
 			Settings::Instance().Save();
+			KeyboardShortcuts::Instance().Save();
 
 			CodeEditorUI* code = ((CodeEditorUI*)Get("Code"));
 
@@ -329,8 +331,9 @@ namespace ed
 		ImGui::SameLine();
 
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80);
-		if (ImGui::Button("Close", ImVec2(-1, 0))) {
+		if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
 			Settings::Instance() = *m_settingsBkp;
+			KeyboardShortcuts::Instance().SetMap(m_shortcutsBkp);
 			m_optionsOpened = false;
 		}
 
@@ -447,5 +450,125 @@ namespace ed
 
 			m_data->Parser.SaveAs(file);
 		}
+	}
+
+	void GUIManager::m_setupShortcuts()
+	{
+		// PROJECT
+		KeyboardShortcuts::Instance().SetCallback("Project.Rebuild", [=]() {
+			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+			for (PipelineItem*& pass : passes)
+				m_data->Renderer.Recompile(pass->Name);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.Save", [=]() {
+			if (m_data->Parser.GetOpenedFile() == "")
+				m_saveAsProject();
+			else
+				m_data->Parser.Save();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.SaveAs", [=]() {
+			m_saveAsProject();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.Open", [=]() {
+			m_data->Renderer.FlushCache();
+			std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
+
+			if (file.size() > 0) {
+				((CodeEditorUI*)Get("Code"))->CloseAll();
+				((PinnedUI*)Get("Pinned"))->CloseAll();
+				((PreviewUI*)Get("Preview"))->Pick(nullptr);
+
+				m_data->Parser.Open(file);
+			}
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.New", [=]() {
+			m_data->Renderer.FlushCache();
+			((CodeEditorUI*)Get("Code"))->CloseAll();
+			((PinnedUI*)Get("Pinned"))->CloseAll();
+			((PreviewUI*)Get("Preview"))->Pick(nullptr);
+			m_data->Pipeline.New();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {
+			m_isCreateRTOpened = true;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
+			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+			if (!file.empty())
+				m_data->Objects.CreateTexture(file, true);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewTexture", [=]() {
+			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+			if (!file.empty())
+				m_data->Objects.CreateTexture(file);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewShaderPass", [=]() {
+			m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
+			m_isCreateItemPopupOpened = true;
+		});
+
+
+		// PREVIEW
+		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleStatusbar", [=]() {
+			Settings::Instance().Preview.StatusBar = !Settings::Instance().Preview.StatusBar;
+		});
+
+		// WORKSPACE
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HideOutput", [=]() {
+			Get("Error List")->Visible = !Get("Error List")->Visible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HideEditor", [=]() {
+			Get("Code")->Visible = !Get("Code")->Visible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePreview", [=]() {
+			Get("Preview")->Visible = !Get("Preview")->Visible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePipeline", [=]() {
+			Get("Pipeline")->Visible = !Get("Pipeline")->Visible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePinned", [=]() {
+			Get("Pinned")->Visible = !Get("Pinned")->Visible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
+			// TODO
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.Options", [=]() {
+			m_optionsOpened = true;
+			*m_settingsBkp = Settings::Instance();
+			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.ChangeThemeUp", [=]() {
+			std::vector<std::string> themes = ((OptionsUI*)m_options)->GetThemeList();
+
+			std::string& theme = Settings::Instance().Theme;
+
+			for (int i = 0; i < themes.size(); i++) {
+				if (theme == themes[i]) {
+					if (i != 0)
+						theme = themes[i - 1];
+					else
+						theme = themes[themes.size() - 1];
+					break;
+				}
+			}
+
+			((OptionsUI*)m_options)->ApplyTheme();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.ChangeThemeDown", [=]() {
+			std::vector<std::string> themes = ((OptionsUI*)m_options)->GetThemeList();
+
+			std::string& theme = Settings::Instance().Theme;
+
+			for (int i = 0; i < themes.size(); i++) {
+				if (theme == themes[i]) {
+					if (i != themes.size() - 1)
+						theme = themes[i + 1];
+					else
+						theme = themes[0];
+					break;
+				}
+			}
+
+			((OptionsUI*)m_options)->ApplyTheme();
+		});
 	}
 }

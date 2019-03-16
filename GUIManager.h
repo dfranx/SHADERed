@@ -1,5 +1,7 @@
 #pragma once
 #include <MoonLight/Base/Window.h>
+#include "Objects/KeyboardShortcuts.h"
+#include <map>
 
 namespace ed
 {
@@ -24,6 +26,8 @@ namespace ed
 		void LoadSettings();
 
 	private:
+		void m_setupShortcuts();
+
 		void m_imguiHandleEvent(const ml::Event& e);
 
 		void m_renderOptions();
@@ -32,12 +36,14 @@ namespace ed
 		UIView* m_options;
 
 		Settings* m_settingsBkp;
+		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
 
 		ml::Window* m_wnd;
 		InterfaceManager* m_data;
+		bool m_isCreateItemPopupOpened, m_isCreateRTOpened;
 
 		void m_saveAsProject();
 	};

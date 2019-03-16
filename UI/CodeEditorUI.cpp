@@ -3,33 +3,40 @@
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ThemeContainer.h"
+#include "../Objects/KeyboardShortcuts.h"
 
 #include <fstream>
 #include <d3dcompiler.h>
 
 namespace ed
 {
+	void CodeEditorUI::m_setupShortcuts() {
+		KeyboardShortcuts::Instance().SetCallback("Editor.Compile", [=]() {
+			if (m_selectedItem == -1)
+				return;
+
+			m_compile(m_selectedItem);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Editor.Save", [=]() {
+			if (m_selectedItem == -1)
+				return;
+
+			m_save(m_selectedItem);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Editor.SwitchView", [=]() {
+			if (m_selectedItem == -1)
+				return;
+
+			if (!m_stats[m_selectedItem].IsActive)
+				m_fetchStats(m_selectedItem);
+			else m_stats[m_selectedItem].IsActive = false;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Editor.ToggleStatusbar", [=]() {
+			// TODO
+		});
+	}
 	void CodeEditorUI::OnEvent(const ml::Event & e)
 	{
-		if (m_selectedItem == -1)
-			return;
-
-		if (e.Type == ml::EventType::KeyRelease) {
-			if (e.Keyboard.VK == VK_F5) {
-				if (!e.Keyboard.Control) {
-					// F5 -> compile shader
-					m_compile(m_selectedItem);
-				}
-			} else if (e.Keyboard.VK == 'S') {
-				if (e.Keyboard.Control) // CTRL+S -> save file
-					m_save(m_selectedItem);
-			} else if (e.Keyboard.VK == VK_F2) {
-				// ALT+F5 -> switch between stats and code
-				if (!m_stats[m_selectedItem].IsActive)
-					m_fetchStats(m_selectedItem);
-				else m_stats[m_selectedItem].IsActive = false;
-			}
-		}
 	}
 	void CodeEditorUI::Update(float delta)
 	{
@@ -48,13 +55,13 @@ namespace ed
 					
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
-							if (ImGui::MenuItem("Save", "CTRL+S")) m_save(i);
+							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Editor.Save").c_str())) m_save(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
-							if (ImGui::MenuItem("Compile", "F5")) m_compile(i);
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", "F2")) m_fetchStats(i);
-							if (m_stats[i].IsActive && ImGui::MenuItem("Code", "F2")) m_stats[i].IsActive = false;
+							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("Editor.Compile").c_str())) m_compile(i);
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("Editor.SwitchView").c_str())) m_fetchStats(i);
+							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("Editor.SwitchView").c_str())) m_stats[i].IsActive = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
 							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i].CanRedo())) m_editor[i].Redo();

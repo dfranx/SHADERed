@@ -14,6 +14,7 @@ namespace ed
 			m_pickMode(0),
 			m_gizmo(objects->GetOwner()),
 			m_lastSize(-1, -1) {
+			m_setupShortcuts();
 		}
 
 		virtual void OnEvent(const ml::Event& e);
@@ -22,6 +23,8 @@ namespace ed
 		inline void Pick(PipelineItem* item) { m_pick = item; }
 
 	private:
+		void m_setupShortcuts();
+
 		ImVec2 m_mouseContact;
 		GizmoObject m_gizmo;
 

@@ -4,6 +4,7 @@
 #include "../Objects/Settings.h"
 #include "../ImGUI/imgui_internal.h"
 #include "../Objects/ThemeContainer.h"
+#include "../Objects/KeyboardShortcuts.h"
 #include "UIHelper.h"
 
 #include <algorithm>
@@ -12,11 +13,37 @@ namespace ed
 {
 	void OptionsUI::OnEvent(const ml::Event& e)
 	{
-
+		if (m_page == Page::Shortcuts && m_selectedShortcut != -1) {
+			if (e.Type == ml::EventType::KeyPress) {
+				m_newShortcut.Alt = e.Keyboard.Alt;
+				m_newShortcut.Ctrl = e.Keyboard.Control;
+				m_newShortcut.Shift = e.Keyboard.Shift;
+				if (e.Keyboard.VK != VK_CONTROL && e.Keyboard.VK != VK_SHIFT && e.Keyboard.VK != VK_MENU) {
+					if (m_newShortcut.Alt == true || m_newShortcut.Ctrl == true || m_newShortcut.Shift == true) {
+						if (m_newShortcut.Key1 == -1)
+							m_newShortcut.Key1 = e.Keyboard.VK;
+						else if (m_newShortcut.Key2 == -1)
+							m_newShortcut.Key2 = e.Keyboard.VK;
+						else {
+							m_newShortcut.Key1 = e.Keyboard.VK;
+							m_newShortcut.Key2 = -1;
+						}
+					} else {
+						m_newShortcut.Key1 = -1;
+						m_newShortcut.Key2 = -1;
+					}
+				} else {
+					m_newShortcut.Key1 = -1;
+					m_newShortcut.Key2 = -1;
+				}
+			}
+		}
 	}
 
 	void OptionsUI::Update(float delta)
 	{
+		ImGui::BeginChild("##opt_container", ImVec2(0, -30));
+
 		if (m_page == Page::General)
 			m_renderGeneral();
 		else if (m_page == Page::Editor)
@@ -25,6 +52,8 @@ namespace ed
 			m_renderShortcuts();
 		else if (m_page == Page::Preview)
 			m_renderPreview();
+		
+		ImGui::EndChild();
 	}
 
 	void OptionsUI::ApplyTheme()
@@ -50,6 +79,27 @@ namespace ed
 			ImGui::GetStyle() = ThemeContainer::Instance().GetUIStyle(theme);
 
 		editor->SetTheme(ThemeContainer::Instance().GetTextEditorStyle(theme));
+	}
+
+	std::string OptionsUI::m_getShortcutString()
+	{
+		std::string ret = "";
+
+		if (m_newShortcut.Ctrl)
+			ret += "CTRL+";
+		if (m_newShortcut.Alt)
+			ret += "ALT+";
+		if (m_newShortcut.Shift)
+			ret += "SHIFT+";
+		if (m_newShortcut.Key1 != -1)
+			ret += ml::Keyboard::KeyToString(m_newShortcut.Key1) + "+";
+		if (m_newShortcut.Key2 != -1)
+			ret += ml::Keyboard::KeyToString(m_newShortcut.Key2) + "+";
+
+		if (ret.size() == 0)
+			return "";
+
+		return ret.substr(0, ret.size() - 1);
 	}
 
 	void OptionsUI::m_loadThemeList()
@@ -138,7 +188,8 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
 	}
-	void OptionsUI::m_renderEditor()  {
+	void OptionsUI::m_renderEditor()
+	{
 		Settings* settings = &Settings::Instance();
 
 
@@ -234,8 +285,49 @@ namespace ed
 		if (ImGui::InputInt("##opte_tabsize", &settings->Editor.TabSize, 1, 2))
 			settings->Editor.TabSize = std::max<int>(std::min<int>(settings->Editor.TabSize, 12), 1);
 	}
-	void OptionsUI::m_renderShortcuts() {}
-	void OptionsUI::m_renderPreview() {
+	void OptionsUI::m_renderShortcuts()
+	{
+		std::vector<std::string> names = KeyboardShortcuts::Instance().GetNameList();
+
+		ImGui::Columns(2);
+
+		for (int i = 0; i < names.size(); i++) {
+			ImGui::Text(names[i].c_str());
+			ImGui::NextColumn();
+
+			if (m_selectedShortcut == i) {
+				std::string txt = m_getShortcutString();
+				if (txt.size() == 0)
+					txt = "-- press keys --";
+
+				ImGui::Text(txt.c_str());
+				ImGui::SameLine();
+				if (ImGui::Button("ASSIGN")) {
+					bool updated = KeyboardShortcuts::Instance().Set(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+					if (!updated)
+						KeyboardShortcuts::Instance().Remove(names[i]);
+					m_selectedShortcut = -1;
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("CANCEL"))
+					m_selectedShortcut = -1;
+			} else {
+				if (ImGui::Button(KeyboardShortcuts::Instance().GetString(names[i]).c_str(), ImVec2(-1, 0))) {
+					m_selectedShortcut = i;
+					m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = false;
+					m_newShortcut.Key1 = m_newShortcut.Key2 = -1;
+				}
+			}
+
+			ImGui::NextColumn();
+
+			ImGui::Separator();
+		}
+
+		ImGui::Columns(1);
+	}
+	void OptionsUI::m_renderPreview()
+	{
 		Settings* settings = &Settings::Instance();
 
 		/* STATUS BAR: */

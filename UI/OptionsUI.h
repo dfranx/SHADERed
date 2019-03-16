@@ -1,5 +1,6 @@
 #pragma once
 #include "UIView.h"
+#include "../Objects/KeyboardShortcuts.h"
 
 namespace ed
 {
@@ -14,10 +15,15 @@ namespace ed
 			Preview
 		};
 
-		using UIView::UIView;
+		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
+			UIView(ui, objects, name, visible),
+			m_selectedShortcut(-1) { }
+		//using UIView::UIView;
 
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
+
+		inline bool IsListening() { return m_page == Page::Shortcuts && m_selectedShortcut != -1; }
 
 		inline void SetGroup(Page grp) {
 			m_page = grp;
@@ -27,8 +33,14 @@ namespace ed
 
 		void ApplyTheme();
 
+		inline std::vector<std::string> GetThemeList() { return m_themes; }
+
 	private:
 		Page m_page;
+
+		int m_selectedShortcut;
+		KeyboardShortcuts::Shortcut m_newShortcut;
+		std::string m_getShortcutString();
 
 		std::vector<std::string> m_themes;
 		void m_loadThemeList();

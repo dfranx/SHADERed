@@ -18,6 +18,8 @@ namespace ed
 			m_fontFilename = Settings::Instance().Editor.Font;
 			m_fontSize = Settings::Instance().Editor.FontSize;
 			m_fontNeedsUpdate = false;
+
+			m_setupShortcuts();
 		}
 
 		virtual void OnEvent(const ml::Event& e);
@@ -104,6 +106,7 @@ namespace ed
 
 	private:
 		void m_open(PipelineItem item, int shaderTypeID);
+		void m_setupShortcuts();
 
 		// font for code editor
 		ImFont *m_font;

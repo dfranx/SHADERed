@@ -1,4 +1,3 @@
-- [ ] keyboard shortcuts (gizmo [P,R,S], ui theme shortcut, editor shortcuts, etc...)
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] GetRelativePath() remove ".\"

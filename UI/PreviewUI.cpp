@@ -3,12 +3,28 @@
 #include "../Objects/Settings.h"
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
+#include "../Objects/KeyboardShortcuts.h"
 #include "../ImGUI/imgui_internal.h"
 
 #define STATUSBAR_HEIGHT 25
 
 namespace ed
 {
+	void PreviewUI::m_setupShortcuts()
+	{
+		KeyboardShortcuts::Instance().SetCallback("Gizmo.Position", [=]() {
+			m_pickMode = 0;
+			m_gizmo.SetMode(m_pickMode);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Gizmo.Scale", [=]() {
+			m_pickMode = 1;
+			m_gizmo.SetMode(m_pickMode);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Gizmo.Rotation", [=]() {
+			m_pickMode = 2;
+			m_gizmo.SetMode(m_pickMode);
+		});
+	}
 	void PreviewUI::OnEvent(const ml::Event & e)
 	{
 		if (e.Type == ml::EventType::MouseButtonPress)
