@@ -115,14 +115,14 @@ Collapsed=0
 DockId=0x00000018,0
 
 [Window][OutlinePass (VS)##code_view]
-Pos=17,19
-Size=32,32
+Pos=230,-4
+Size=692,592
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][OutlinePass (PS)##code_view]
-Pos=17,28
-Size=32,32
+Pos=230,590
+Size=692,404
 Collapsed=0
 DockId=0x00000019,1
 
@@ -133,20 +133,20 @@ Collapsed=0
 DockId=0x00000003,1
 
 [Window][RenderTxt (VS)##code_view]
-Pos=253575824,19
-Size=770536768,32
+Pos=230,-4
+Size=692,592
 Collapsed=0
-DockId=0x00000013,0
+DockId=0x00000013,1
 
 [Window][RenderTxt (PS)##code_view]
-Pos=253575824,28
-Size=770536768,32
+Pos=230,590
+Size=692,404
 Collapsed=0
-DockId=0x00000019,0
+DockId=0x00000019,1
 
 [Window][Light (GS)##code_view]
-Pos=7,577
-Size=619,400
+Pos=17,28
+Size=32,32
 Collapsed=0
 DockId=0x00000019,1
 

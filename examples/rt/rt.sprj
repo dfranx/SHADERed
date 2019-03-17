@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light" rt="rt">
 			<shader type="vs">
-				<path>.\.\.\.\.\.\vertex3d.hlsl</path>
+				<path>vertex3d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\.\.\.\.\.\pixel3d.hlsl</path>
+				<path>pixel3d.hlsl</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -31,7 +31,7 @@
 		</pass>
 		<pass name="RenderTxt">
 			<shader type="vs">
-				<path>.\.\.\.\.\.\.\.\vertex2d.hlsl</path>
+				<path>vertex2d.hlsl</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
@@ -44,7 +44,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>.\.\.\.\.\.\.\.\pixel2d.hlsl</path>
+				<path>pixel2d.hlsl</path>
 				<entry>main</entry>
 				<variables>
 					<variable type="float2" name="mPos" system="MousePosition" slot="0" />
@@ -68,7 +68,7 @@
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Sphere" />
+		<entry type="property" name="Light" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="RenderTxt" shader="vs" />

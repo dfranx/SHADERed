@@ -968,7 +968,19 @@ namespace ed
 			FILE_ATTRIBUTE_DIRECTORY,
 			to.c_str(),
 			FILE_ATTRIBUTE_NORMAL);
-		return std::string(relativePath);
+		
+		// remove ./
+		std::string ret(relativePath);
+		for (int i = 1; i < ret.size(); i++)
+			if (ret[i] == '/' || ret[i] == '\\')
+				if (ret[i - 1] == '.')
+					if (i == 1 || ret[i - 2] != '.') {
+						int ind = i - 1;
+						ret.erase(ind, 2);
+						i -= 2;
+					}
+
+		return ret;
 	}
 	void ProjectParser::ResetProjectDirectory()
 	{
