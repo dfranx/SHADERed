@@ -1,19 +1,22 @@
+- [ ] close code editor when shader is deleted/replaced/etc..
+- [x] having split view code editors messes up the focus
+- [x] move m_renderStats to StatsPage
+- [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
+- [ ] save isFullscreen and isMaximized on exit/on size change
+- [ ] save file when closing code editor
+- [ ] rendertexture clear color
+
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)
 - [ ] clear message group after renaming pipeline item
-- [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
-- [ ] move m_renderStats to StatsPage
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
-- [ ] having split view code editors messes up the focus
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] do all TODOs (comments)
-- [ ] open item properties on double click
 - [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
 - [ ] status bar - add line count, current columnt/max column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
-- [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
 - [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)

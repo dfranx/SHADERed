@@ -90,19 +90,21 @@ namespace ed
 
 		std::vector<std::pair<std::string, int>> GetOpenedFiles();
 
+
 	private:
 		class StatsPage
 		{
 		public:
 			StatsPage() : IsActive(false), Info(nullptr) {}
-			~StatsPage()
-			{
-				
-			}
-			bool IsActive;
+			~StatsPage() { }
 
+			void Fetch(ed::PipelineItem* item, const std::string& code, int type);
+			void Render();
+
+			bool IsActive;
 			void* Info;
 		};
+
 
 	private:
 		void m_open(PipelineItem item, int shaderTypeID);
@@ -114,8 +116,8 @@ namespace ed
 		// menu bar item actions
 		void m_save(int id);
 		void m_compile(int id);
-		void m_fetchStats(int id);
-		void m_renderStats(int id);
+		//void m_fetchStats(int id);
+		//void m_renderStats(int id);
 
 		std::vector<PipelineItem> m_items;
 		std::vector<TextEditor> m_editor;

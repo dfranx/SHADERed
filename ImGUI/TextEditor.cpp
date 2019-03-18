@@ -447,10 +447,10 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 	auto shift = io.KeyShift;
 	auto ctrl = io.KeyCtrl;
 	auto alt = io.KeyAlt;
+	mFocused = ImGui::IsWindowFocused();
 
 	if (ImGui::IsWindowFocused())
 	{
-		mFocused = true;
 		if (ImGui::IsWindowHovered())
 			ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 		//ImGui::CaptureKeyboardFromApp(true);

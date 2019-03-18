@@ -28,7 +28,7 @@ namespace ed
 				return;
 
 			if (!m_stats[m_selectedItem].IsActive)
-				m_fetchStats(m_selectedItem);
+				m_stats[m_selectedItem].Fetch(&m_items[m_selectedItem], m_editor[m_selectedItem].GetText(), m_shaderTypeId[m_selectedItem]);
 			else m_stats[m_selectedItem].IsActive = false;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Editor.ToggleStatusbar", [=]() {
@@ -60,7 +60,7 @@ namespace ed
 						}
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("Editor.Compile").c_str())) m_compile(i);
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("Editor.SwitchView").c_str())) m_fetchStats(i);
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("Editor.SwitchView").c_str())) m_stats[i].Fetch(&m_items[i], m_editor[i].GetText(), m_shaderTypeId[i]);
 							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("Editor.SwitchView").c_str())) m_stats[i].IsActive = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
@@ -78,7 +78,7 @@ namespace ed
 					}
 
 					if (m_stats[i].IsActive)
-						m_renderStats(i);
+						m_stats[i].Render();
 					else {
 						ImGui::PushFont(m_font);
 						m_editor[i].Render(windowName.c_str());
@@ -194,27 +194,28 @@ namespace ed
 		m_save(id);
 		m_data->Renderer.Recompile(m_items[id].Name);
 	}
-	void CodeEditorUI::m_fetchStats(int id)
+	
+	void CodeEditorUI::StatsPage::Fetch(ed::PipelineItem* item, const std::string& code, int typeId)
 	{
-		m_stats[id].IsActive = true;
+		IsActive = true;
 
-		pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[id].Data;
+		pipe::ShaderPass* data = (pipe::ShaderPass*)item->Data;
 		ID3DBlob *bytecodeBlob = nullptr, *errorBlob = nullptr;
 
 		// get shader version
 		std::string type = "ps_5_0";
-		if (m_shaderTypeId[id] == 0)
+		if (typeId == 0)
 			type = "vs_5_0";
-		else if (m_shaderTypeId[id] == 2)
+		else if (typeId == 2)
 			type = "gs_5_0";
 
 		// generate bytecode
-		if (m_shaderTypeId[id] == 0)
-			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
-		else if (m_shaderTypeId[id] == 1)
-			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
-		else if (m_shaderTypeId[id] == 2)
-			D3DCompile(m_editor[id].GetText().c_str(), m_editor[id].GetText().size(), m_items[id].Name, nullptr, nullptr, data->GSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+		if (typeId == 0)
+			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+		else if (typeId == 1)
+			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+		else if (typeId == 2)
+			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->GSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
 
 		// delete the error data, we dont need it
 		if (errorBlob != nullptr) {
@@ -227,18 +228,18 @@ namespace ed
 				bytecodeBlob = nullptr;
 			}
 
-			m_stats[id].IsActive = false;
+			IsActive = false;
 			return;
 		}
 
 		// shader reflection
-		D3DReflect(bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&m_stats[id].Info);
+		D3DReflect(bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&Info);
 	}
-	void CodeEditorUI::m_renderStats(int id)
+	void CodeEditorUI::StatsPage::Render()
 	{
-		ImGui::PushFont(m_font);
+		//ImGui::PushFont(m_font);
 
-		ID3D11ShaderReflection* shader = (ID3D11ShaderReflection*)m_stats[id].Info;
+		ID3D11ShaderReflection* shader = (ID3D11ShaderReflection*)Info;
 
 		D3D11_SHADER_DESC shaderDesc;
 		shader->GetDesc(&shaderDesc);
@@ -310,6 +311,6 @@ namespace ed
 			ImGui::Text("Mov instructions: %d", shader->GetMovInstructionCount());
 		ImGui::Unindent(30);
 
-		ImGui::PopFont();
+		//ImGui::PopFont();
 	}
 }
