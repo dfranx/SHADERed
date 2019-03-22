@@ -918,7 +918,7 @@ void TextEditor::EnterCharacter(Char aChar)
 		std::string txt = GetText();
 		Coordinates cursor = GetCursorPosition();
 
-		int cline = 0, lnstart, i = 0;
+		int cline = 0, lnstart = 0, i = 0;
 		for (; i < txt.size(); i++) {
 			if (cline == cursor.mLine && i - lnstart == cursor.mColumn)
 				break;

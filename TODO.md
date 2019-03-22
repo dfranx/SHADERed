@@ -1,13 +1,15 @@
+- [ ] glsl2hlsl
+- [ ] remove hlsl extension from settings
+- [ ] add glsl extension check in glsl2hlsl transcompile function
+- [ ] fix backspace when there are 2 spaces together + fix enter multiple lines
 - [ ] close code editor when shader is deleted/replaced/etc..
-- [x] having split view code editors messes up the focus
-- [x] move m_renderStats to StatsPage
 - [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
 - [ ] save isFullscreen and isMaximized on exit/on size change
-- [ ] save file when closing code editor
+- [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] rendertexture clear color
 
 - [ ] recompile not working without saving changes
-- [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
+- [ ] find and replace, right click in text editor, detailed descriptions for identifiers, better GLSL syntax highlighting + more improvements
 - [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)
 - [ ] clear message group after renaming pipeline item
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...

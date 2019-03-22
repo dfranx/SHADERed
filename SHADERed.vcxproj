@@ -173,6 +173,7 @@
     <ClCompile Include="Objects\DefaultState.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
     <ClCompile Include="Objects\GizmoObject.cpp" />
+    <ClCompile Include="Objects\GLSL2HLSL.cpp" />
     <ClCompile Include="Objects\KeyboardShortcuts.cpp" />
     <ClCompile Include="Objects\MessageStack.cpp" />
     <ClCompile Include="Objects\Names.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="Objects\DefaultState.h" />
     <ClInclude Include="Objects\FunctionVariableManager.h" />
     <ClInclude Include="Objects\GizmoObject.h" />
+    <ClInclude Include="Objects\GLSL2HLSL.h" />
     <ClInclude Include="Objects\INIReader.h" />
     <ClInclude Include="Objects\KeyboardShortcuts.h" />
     <ClInclude Include="Objects\MessageStack.h" />

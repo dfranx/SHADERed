@@ -2,6 +2,7 @@
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
+#include "../Objects/GLSL2HLSL.h"
 #include "../Objects/ThemeContainer.h"
 #include "../Objects/KeyboardShortcuts.h"
 
@@ -119,8 +120,9 @@ namespace ed
 		m_stats.push_back(StatsPage());
 
 		TextEditor* editor = &m_editor[m_editor.size() - 1];
-		
-		TextEditor::LanguageDefinition lang = TextEditor::LanguageDefinition::HLSL();
+
+		TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
+		TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
 
 		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		editor->SetTabSize(Settings::Instance().Editor.TabSize);
@@ -133,7 +135,14 @@ namespace ed
 		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 
 		// TODO: GLSL
-		editor->SetLanguageDefinition(lang);
+		bool isGLSL = false;
+		if (sid == 0)
+			isGLSL = GLSL2HLSL::IsGLSL(shader->VSPath);
+		else if (sid == 1)
+			isGLSL = GLSL2HLSL::IsGLSL(shader->PSPath);
+		else if (sid == 2)
+			isGLSL = GLSL2HLSL::IsGLSL(shader->GSPath);
+		editor->SetLanguageDefinition(isGLSL ? defGLSL : defHLSL);
 		
 		m_shaderTypeId.push_back(sid);
 

@@ -982,6 +982,10 @@ namespace ed
 
 		return ret;
 	}
+	std::string ProjectParser::GetProjectPath(const std::string& to)
+	{
+		return m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + to;
+	}
 	void ProjectParser::ResetProjectDirectory()
 	{
 		m_file = "";

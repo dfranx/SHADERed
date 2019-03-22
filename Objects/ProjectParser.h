@@ -28,6 +28,7 @@ namespace ed
 		void SaveProjectFile(const std::string& file, const std::string& data);
 
 		std::string GetRelativePath(const std::string& to);
+		std::string GetProjectPath(const std::string& projectFile);
 
 		void ResetProjectDirectory();
 		inline void SetProjectDirectory(const std::string& path) { m_projectPath = path; }

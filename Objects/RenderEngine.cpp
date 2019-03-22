@@ -1,4 +1,6 @@
 #include "RenderEngine.h"
+#include "Settings.h"
+#include "GLSL2HLSL.h"
 #include "DefaultState.h"
 #include "ObjectManager.h"
 #include "PipelineManager.h"
@@ -227,17 +229,34 @@ namespace ed
 				else
 					m_vs[i]->InputSignature = nullptr;
 
-				std::string vsContent = m_project->LoadProjectFile(shader->VSPath);
-				std::string psContent = m_project->LoadProjectFile(shader->PSPath);
-				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);
-				bool psCompiled = m_ps[i]->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), shader->PSEntry);
+				std::string psContent = "", vsContent = "";
 
+				
+				if (!GLSL2HLSL::IsGLSL(shader->PSPath)) // HLSL
+					psContent = m_project->LoadProjectFile(shader->PSPath);
+				else // GLSL
+					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)));
+
+				if (!GLSL2HLSL::IsGLSL(shader->VSPath)) // HLSL
+					vsContent = m_project->LoadProjectFile(shader->VSPath);
+				else // GLSL
+					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)));
+
+				bool psCompiled = m_ps[i]->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), shader->PSEntry);
+				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);
+				
 				bool gsCompiled = true;
 				if (strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 					if (m_gs[i] == nullptr)
 						m_gs[i] = new ml::GeometryShader();
 
-					std::string gsContent = m_project->LoadProjectFile(shader->GSPath);
+					std::string gsContent = "";
+
+					if (!GLSL2HLSL::IsGLSL(shader->GSPath)) // HLSL
+						gsContent = m_project->LoadProjectFile(shader->GSPath);
+					else // GLSL
+						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)));
+
 					gsCompiled = m_gs[i]->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), shader->GSEntry);
 				}
 
@@ -441,16 +460,31 @@ namespace ed
 				else
 					vShader->InputSignature = nullptr;
 
-				std::string vsContent = m_project->LoadProjectFile(data->VSPath);
-				std::string psContent = m_project->LoadProjectFile(data->PSPath);
+				std::string psContent = "", vsContent = "";
+
+				if (!GLSL2HLSL::IsGLSL(data->PSPath)) // HLSL
+					psContent = m_project->LoadProjectFile(data->PSPath);
+				else // GLSL
+					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)));
+
+				if (!GLSL2HLSL::IsGLSL(data->VSPath)) // HLSL
+					vsContent = m_project->LoadProjectFile(data->VSPath);
+				else // GLSL
+					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)));
+
 				bool vsCompiled = vShader->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), data->VSEntry);
 				bool psCompiled = pShader->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), data->PSEntry);
 				bool gsCompiled = true;
 
 				if (strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
-					std::string gsContent = m_project->LoadProjectFile(data->GSPath);
-					ml::GeometryShader* gShader = new ml::GeometryShader();
+					std::string gsContent = "";
+					if (!GLSL2HLSL::IsGLSL(data->GSPath)) // HLSL
+						gsContent = m_project->LoadProjectFile(data->GSPath);
+					else // GLSL
+						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)));
 
+
+					ml::GeometryShader* gShader = new ml::GeometryShader();
 					gsCompiled = gShader->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), data->GSEntry);
 					m_gs.insert(m_gs.begin() + i, gShader);
 				}
