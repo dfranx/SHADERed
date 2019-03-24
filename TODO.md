@@ -1,17 +1,19 @@
-- [ ] glsl2hlsl
-- [ ] remove hlsl extension from settings
-- [ ] add glsl extension check in glsl2hlsl transcompile function
+- [x] remove hlsl extension from settings
+- [x] better glsl syntax highlighting
+- [x] add glsl extension check in glsl2hlsl transcompile function
 - [ ] fix backspace when there are 2 spaces together + fix enter multiple lines
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] rendertexture clear color
+- [ ] automatically generate semantic names in input layout when compiling GLSL shader
 
 - [ ] recompile not working without saving changes
-- [ ] find and replace, right click in text editor, detailed descriptions for identifiers, better GLSL syntax highlighting + more improvements
+- [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)
 - [ ] clear message group after renaming pipeline item
+- [ ] pipe glslangValidator errors to our error list
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
 - [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
@@ -30,3 +32,4 @@
 - [ ] comment the code
 - [ ] icon
 - [ ] help -> manual, about, etc...
+- [ ] README.md

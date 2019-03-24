@@ -11,11 +11,20 @@ namespace ed
 	std::string GLSL2HLSL::Transcompile(const std::string& filename)
 	{
 		const std::string tempLoc = "./GLSL/temp/";
-		std::string stage = filename.substr(filename.find_last_of('.')+1);
+
+		int glsl = IsGLSL(filename);
+
+		std::string stage = "vert";
+		if (glsl == 2)
+			stage = "frag";
+		else if (glsl == 3)
+			stage = "geom";
+
+
 		std::string spv(tempLoc + stage + ".spv");
 		std::string hlsl(tempLoc + stage + ".hlsl");
 
-		m_exec("./GLSL/glslangValidator.exe", "-o " + spv + " -H -V " + filename);
+		m_exec("./GLSL/glslangValidator.exe", "-S " + stage + " -o " + spv + " -V " + filename);
 		m_exec("./GLSL/spirv-cross.exe", spv + " --hlsl --shader-model 50 --output " + tempLoc + stage + ".hlsl");
 
 		std::ifstream hlslStream(hlsl);

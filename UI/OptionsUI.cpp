@@ -249,11 +249,6 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_highlight_cur_ln", &settings->Editor.HiglightCurrentLine);
 
-		/* HLSL EXTENSION: */
-		ImGui::Text("HLSL extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::InputText("##opte_hlslext", settings->Editor.HLSL_Extenstion, 12);
-
 		/* GLSL VS EXTENSION: */
 		ImGui::Text("GLSL vertex shader extension: ");
 		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();

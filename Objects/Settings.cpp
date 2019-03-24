@@ -35,7 +35,6 @@ namespace ed
 		Editor.LineNumbers = ini.GetBoolean("editor", "linenumbers", true);
 		Editor.HorizontalScroll = ini.GetBoolean("editor", "horizscroll", true);
 		Editor.AutoBraceCompletion = ini.GetBoolean("editor", "autobrace", true);
-		strcpy(Editor.HLSL_Extenstion, ini.Get("editor", "hlslext", "hlsl").c_str());
 		strcpy(Editor.GLSLVS_Extenstion, ini.Get("editor", "glslvsext", "vert").c_str());
 		strcpy(Editor.GLSLPS_Extenstion, ini.Get("editor", "glslpsext", "frag").c_str());
 		strcpy(Editor.GLSLGS_Extenstion, ini.Get("editor", "glslgsext", "geom").c_str());
@@ -73,7 +72,6 @@ namespace ed
 		ini << "linenumbers=" << Editor.LineNumbers << std::endl;
 		ini << "horizscroll=" << Editor.HorizontalScroll << std::endl;
 		ini << "autobrace=" << Editor.AutoBraceCompletion << std::endl;
-		ini << "hlslext=" << Editor.HLSL_Extenstion << std::endl;
 		ini << "glslvsext=" << Editor.GLSLVS_Extenstion << std::endl;
 		ini << "glslpsext=" << Editor.GLSLPS_Extenstion << std::endl;
 		ini << "glslgsext=" << Editor.GLSLGS_Extenstion << std::endl;

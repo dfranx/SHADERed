@@ -31,7 +31,6 @@ namespace ed
 			bool LineNumbers;
 			bool HorizontalScroll;
 			bool AutoBraceCompletion;
-			char HLSL_Extenstion[12];
 			char GLSLVS_Extenstion[12];
 			char GLSLPS_Extenstion[12];
 			char GLSLGS_Extenstion[12];
