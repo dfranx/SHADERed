@@ -93,15 +93,54 @@ namespace ed
 			}
 		}
 
+		// save popup
+		for (int i = 0; i < m_editorOpen.size(); i++)
+			if (!m_editorOpen[i] && m_originalContent[i] != m_editor[i].GetText()) {
+				ImGui::OpenPopup("Save Changes##code_save");
+				m_savePopupOpen = i;
+				m_editorOpen[i] = true;
+				break;
+			}
+
+		// Create Item popup
+		ImGui::SetNextWindowSize(ImVec2(200, 75), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Save Changes##code_save")) {
+			ImGui::Text("Do you want to save changes?");
+			if (ImGui::Button("Yes")) {
+				m_save(m_savePopupOpen);
+				m_editorOpen[m_savePopupOpen] = false;
+				m_savePopupOpen = -1;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("No")) {
+				m_editorOpen[m_savePopupOpen] = false;
+				m_savePopupOpen = -1;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				m_editorOpen[m_savePopupOpen] = true;
+				m_savePopupOpen = -1;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
 		// delete not needed editors
-		for (int i = 0; i < m_editorOpen.size(); i++) {
-			if (!m_editorOpen[i]) {
-				m_items.erase(m_items.begin() + i);
-				m_editor.erase(m_editor.begin() + i);
-				m_editorOpen.erase(m_editorOpen.begin() + i);
-				m_stats.erase(m_stats.begin() + i);
-				m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
-				i--;
+		
+		if (m_savePopupOpen == -1) {
+			for (int i = 0; i < m_editorOpen.size(); i++) {
+				if (!m_editorOpen[i]) {
+					m_items.erase(m_items.begin() + i);
+					m_editor.erase(m_editor.begin() + i);
+					m_editorOpen.erase(m_editorOpen.begin() + i);
+					m_stats.erase(m_stats.begin() + i);
+					m_originalContent.erase(m_originalContent.begin() + i);
+					m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
+					i--;
+				}
 			}
 		}
 	}
@@ -154,6 +193,8 @@ namespace ed
 		else if (sid == 2)
 			shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 		editor->SetText(shaderContent);
+
+		m_originalContent.push_back(shaderContent);
 	}
 	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
@@ -169,13 +210,13 @@ namespace ed
 	}
 	void CodeEditorUI::CloseAll()
 	{
-
 		// delete not needed editors
 		for (int i = 0; i < m_editorOpen.size(); i++) {
 			m_items.erase(m_items.begin() + i);
 			m_editor.erase(m_editor.begin() + i);
 			m_editorOpen.erase(m_editorOpen.begin() + i);
 			m_stats.erase(m_stats.begin() + i);
+			m_originalContent.erase(m_originalContent.begin() + i);
 			m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 			i--;
 		}
@@ -195,6 +236,8 @@ namespace ed
 	void CodeEditorUI::m_save(int id)
 	{
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
+
+		m_originalContent[id] = m_editor[id].GetText();
 
 		if (m_shaderTypeId[id] == 0)
 			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());

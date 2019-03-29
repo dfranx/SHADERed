@@ -1,26 +1,22 @@
 - [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] close code editor when shader is deleted/replaced/etc..
-- [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
+- [ ] detailed descriptions for identifiers
 - [ ] better error handling/prevent crashes, error markers in text editor, rename error list to output (output stuff on shader recompiling)
 - [ ] clear message group after renaming pipeline item or recompiling
 - [ ] pipe glslangValidator errors to our error list
-- [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
+- [ ] ask the user if they are 100% sure they want to create new project
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
-- [ ] automatically detect buffer index when adding variables on triple click on buffer index (using D3DReflect)
 - [ ] do all TODOs (comments)
 - [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
 - [ ] status bar - add line count, current columnt/max column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
 - [ ] project name on the win32 window titlebar
-- [ ] change some constants (example: vertex shader path strcpy)
-- [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
-- [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)
-- [ ] PipelineUI.GetSelectedShaderPass() + add Geometry and other options under "Create" menu item in GUIManager
+- [ ] change some constant literals with constant variables (example: vertex shader path strcpy)
+- [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console in release mode
 - [ ] "Save preview as image" option
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 - [ ] add option to switch to FPS camera
-- [ ] horizontal scrollbar in code editor (+ options)
-- [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
+- [ ] horizontal scrollbar in code editor (+ in options)
 - [ ] comment the code
 - [ ] icon
 - [ ] bool IsPicked shader variable

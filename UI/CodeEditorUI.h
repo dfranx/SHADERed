@@ -18,6 +18,7 @@ namespace ed
 			m_fontFilename = Settings::Instance().Editor.Font;
 			m_fontSize = Settings::Instance().Editor.FontSize;
 			m_fontNeedsUpdate = false;
+			m_savePopupOpen = -1;
 
 			m_setupShortcuts();
 		}
@@ -124,9 +125,11 @@ namespace ed
 		std::vector<PipelineItem> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
+		std::vector<std::string> m_originalContent;
 		std::vector<int> m_shaderTypeId;
 		std::deque<bool> m_editorOpen;
 
+		int m_savePopupOpen;
 		bool m_fontNeedsUpdate;
 		std::string m_fontFilename;
 		int m_fontSize;

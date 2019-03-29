@@ -151,12 +151,17 @@ Collapsed=0
 DockId=0x00000011,1
 
 [Window][Options]
-Pos=404,294
+Pos=404,271
 Size=750,496
 Collapsed=0
 
 [Window][Code]
 Pos=60,37
+Size=400,300
+Collapsed=0
+
+[Window][*Light (PS)##code_view]
+Pos=60,60
 Size=400,300
 Collapsed=0
 
