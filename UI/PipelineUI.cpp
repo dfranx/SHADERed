@@ -41,7 +41,7 @@ namespace ed
 			if (showItems) {
 				for (int j = 0; j < data->Items.size(); j++) {
 					m_renderItemUpDown(data->Items, j);
-					m_addItem(data->Items[j]->Name);
+					m_addItem(data->Items[j]);
 					if (m_renderItemContext(data->Items, j)) {
 						j--;
 						continue;
@@ -762,7 +762,7 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShaderPass(const ed::PipelineItem* item)
+	void PipelineUI::m_addShaderPass(ed::PipelineItem* item)
 	{
 		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
@@ -792,17 +792,26 @@ namespace ed
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0)) {
-				CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
-				editor->OpenVS(*item);
-				editor->OpenPS(*item);
-				if (data->GSUsed) editor->OpenGS(*item);
+				if (Settings::Instance().General.OpenShadersOnDblClk) {
+					CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
+					editor->OpenVS(*item);
+					editor->OpenPS(*item);
+					if (data->GSUsed) editor->OpenGS(*item);
+				} else {
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get("Properties"));
+					props->Open(item);
+				}
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 	}
-	void PipelineUI::m_addItem(const std::string & name)
+	void PipelineUI::m_addItem(ed::PipelineItem* item)
 	{
 		ImGui::Indent(PIPELINE_ITEM_INDENT);
-		ImGui::Selectable(name.c_str());
+		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get("Properties"));
+				props->Open(item);
+			}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 }

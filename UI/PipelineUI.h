@@ -41,7 +41,7 @@ namespace ed
 		void m_renderChangeVariablesUI();
 
 		// adding items to pipeline UI
-		void m_addShaderPass(const ed::PipelineItem* data);
-		void m_addItem(const std::string& name);
+		void m_addShaderPass(ed::PipelineItem* data);
+		void m_addItem(ed::PipelineItem* name);
 	};
 }

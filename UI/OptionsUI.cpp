@@ -187,6 +187,11 @@ namespace ed
 		ImGui::Text("Reopen shaders after openning a project: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
+
+		/* REOPEN: */
+		ImGui::Text("Open shaders on double click on shader pass: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_opensdblclk", &settings->General.OpenShadersOnDblClk);
 	}
 	void OptionsUI::m_renderEditor()
 	{

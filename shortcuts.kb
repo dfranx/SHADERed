@@ -15,6 +15,7 @@ Project.Open CTRL O
 Project.Rebuild CTRL F5
 Project.Save CTRL P S
 Project.SaveAs CTRL P A
+Window.Exit ALT F4
 Workspace.ChangeThemeDown CTRL DOWN
 Workspace.ChangeThemeUp CTRL UP
 Workspace.Help CTRL H
@@ -24,4 +25,3 @@ Workspace.HidePinned CTRL W N
 Workspace.HidePipeline CTRL W L
 Workspace.HidePreview CTRL W P
 Workspace.Options CTRL W O
-Window.Exit ALT F4

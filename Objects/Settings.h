@@ -20,6 +20,7 @@ namespace ed
 			bool CheckUpdates;			// [TODO] Not implemented
 			bool SupportGLSL;
 			bool ReopenShaders;
+			bool OpenShadersOnDblClk;
 		} General;
 
 		struct strEditor {

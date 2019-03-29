@@ -1,5 +1,3 @@
-
-- [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
 - [ ] release mode: ctrl + left/right while editing code changes the theme
 - [ ] automatically generate semantic names in input layout when compiling GLSL shader
 
