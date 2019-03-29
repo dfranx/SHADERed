@@ -23,6 +23,7 @@ namespace ed
 	{
 		std::vector<ed::PipelineItem*>& items = m_data->Pipeline.GetList();
 
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
 			m_addShaderPass(items[i]);
@@ -51,7 +52,7 @@ namespace ed
 				}
 			}
 		}
-
+		ImGui::PopStyleVar();
 
 
 		// various popups

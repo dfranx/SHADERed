@@ -1,4 +1,3 @@
-- [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] detailed descriptions for identifiers
 - [ ] better error handling/prevent crashes, error markers in text editor, rename error list to output (output stuff on shader recompiling)
