@@ -1,13 +1,12 @@
-- [x] remove hlsl extension from settings
-- [x] better glsl syntax highlighting
-- [x] add glsl extension check in glsl2hlsl transcompile function
-- [ ] fix backspace when there are 2 spaces together + fix enter multiple lines
+- [x] fix ctrl + backspace
+- [x] fix shift + click
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
 - [ ] save isFullscreen and isMaximized on exit/on size change
 - [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] rendertexture clear color
 - [ ] automatically generate semantic names in input layout when compiling GLSL shader
+- [ ] release mode: ctrl + left/right while editing code changes the theme
 
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
@@ -21,6 +20,7 @@
 - [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
 - [ ] status bar - add line count, current columnt/max column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
+- [ ] project name on the win32 window titlebar
 - [ ] change some constants (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console
 - [ ] CreateItemUI (ShaderPass) -> decompile shader and detect input layout (+ possibly detect variables - matVP == automatically add ViewProjection variable, matGeo == auto add GeoMatrix variable, etc...)
@@ -28,6 +28,7 @@
 - [ ] "Save preview as image" option
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 - [ ] add option to switch to FPS camera
+- [ ] horizontal scrollbar in code editor (+ options)
 - [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
 - [ ] comment the code
 - [ ] icon

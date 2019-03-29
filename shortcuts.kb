@@ -24,3 +24,4 @@ Workspace.HidePinned CTRL W N
 Workspace.HidePipeline CTRL W L
 Workspace.HidePreview CTRL W P
 Workspace.Options CTRL W O
+Window.Exit ALT F4

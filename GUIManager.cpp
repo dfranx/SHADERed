@@ -153,6 +153,13 @@ namespace ed
 				}
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
 					m_saveAsProject();
+
+				ImGui::Separator();
+				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
+					m_wnd->Destroy();
+					return;
+				}
+
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Project")) {
@@ -277,7 +284,6 @@ namespace ed
 		}
 
 		ImGui::End();
-
 
 		// render ImGUI
 		ImGui::Render();
@@ -569,6 +575,10 @@ namespace ed
 			}
 
 			((OptionsUI*)m_options)->ApplyTheme();
+		});
+
+		KeyboardShortcuts::Instance().SetCallback("Window.Exit", [=]() {
+			m_wnd->Destroy();
 		});
 	}
 }

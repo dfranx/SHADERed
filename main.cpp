@@ -13,12 +13,14 @@ int main()
 
 	// load window size
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
+	BOOL fullscreen = FALSE;
 	std::ifstream preload("preload.dat");
 	if (preload.is_open()) {
 		preload.read(reinterpret_cast<char*>(&wndWidth), 2);
 		preload.read(reinterpret_cast<char*>(&wndHeight), 2);
 		preload.read(reinterpret_cast<char*>(&wndPosX), 2);
 		preload.read(reinterpret_cast<char*>(&wndPosY), 2);
+		fullscreen = preload.get();
 		preload.close();
 	}
 
@@ -27,6 +29,9 @@ int main()
 	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "SHADERed", ml::Window::Style::Resizable, wndConfig);
 	if (wndPosX != -1 && wndPosY != -1)
 		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
+
+	if (fullscreen)
+		wnd.GetSwapChain()->SetFullscreenState(true, nullptr);
 
 	// create engine
 	ed::EditorEngine engine(&wnd);
@@ -44,12 +49,18 @@ int main()
 				wndHeight = wnd.GetSize().y;
 				wndPosX = wnd.GetPosition().x;
 				wndPosY = wnd.GetPosition().y;
+
+				// save fullscreen state
+				wnd.GetSwapChain()->GetFullscreenState(&fullscreen, nullptr);
+
 			}
 			engine.OnEvent(e);
 		}
 
 		float delta = timer.Restart();
 		engine.Update(delta);
+		if (!wnd.IsOpen())
+			break;
 
 		wnd.Bind();
 		wnd.Clear();
@@ -77,6 +88,7 @@ int main()
 	save.write(converter.data, 2);
 	converter.size = wndPosY;				// write window position y
 	save.write(converter.data, 2);
+	save.put(fullscreen);
 
 	save.close();
 

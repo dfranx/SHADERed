@@ -6,6 +6,7 @@
 #include <memory>
 #include <unordered_set>
 #include <unordered_map>
+#include <thread>
 #include <map>
 #include <regex>
 #include "imgui.h"
@@ -241,7 +242,7 @@ public:
 
 private:
 	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
-
+	
 	struct EditorState
 	{
 		Coordinates mSelectionStart;

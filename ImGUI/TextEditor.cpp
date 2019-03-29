@@ -445,6 +445,7 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 	ImGui::PushAllowKeyboardFocus(true);
 
 	auto shift = io.KeyShift;
+
 	auto ctrl = io.KeyCtrl;
 	auto alt = io.KeyAlt;
 	mFocused = ImGui::IsWindowFocused();
@@ -619,7 +620,7 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 	if (ImGui::IsWindowHovered())
 	{
 		static float lastClick = -1.0f;
-		if (!shift && !alt)
+		if (!alt)
 		{
 			auto click = ImGui::IsMouseClicked(0);
 			auto doubleClick = ImGui::IsMouseDoubleClicked(0);
@@ -653,12 +654,18 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 			}
 			else if (click)
 			{
-				mState.mCursorPosition = mInteractiveStart = mInteractiveEnd = SanitizeCoordinates(ScreenPosToCoordinates(ImGui::GetMousePos()));
-				if (ctrl)
-					mSelectionMode = SelectionMode::Word;
-				else
-					mSelectionMode = SelectionMode::Normal;
-				SetSelection(mInteractiveStart, mInteractiveEnd, mSelectionMode);
+				auto clickCoords = SanitizeCoordinates(ScreenPosToCoordinates(ImGui::GetMousePos()));
+				if (shift) {
+					SetSelection(clickCoords, mInteractiveEnd);
+					mState.mCursorPosition = mInteractiveStart = clickCoords;
+				} else {
+					mState.mCursorPosition = mInteractiveStart = mInteractiveEnd = clickCoords;
+					if (ctrl)
+						mSelectionMode = SelectionMode::Word;
+					else
+						mSelectionMode = SelectionMode::Normal;
+					SetSelection(mInteractiveStart, mInteractiveEnd, mSelectionMode);
+				}
 
 				lastClick = ImGui::GetTime();
 			}
@@ -676,8 +683,6 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 		//if (!ImGui::IsMouseDown(0))
 		//	mWordSelectionMode = false;
 	}
-
-	ColorizeInternal();
 
 	static std::string buffer;
 	auto contentSize = ImGui::GetWindowContentRegionMax();
@@ -840,6 +845,8 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 			}
 		}
 	}
+
+	ColorizeInternal();
 
 	// suggestions window
 	if (mACOpened) {
@@ -1208,7 +1215,7 @@ void TextEditor::MoveLeft(int aAmount, bool aSelect, bool aWordMode)
 	}
 	else
 		mInteractiveStart = mInteractiveEnd = mState.mCursorPosition;
-	SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal);
+	SetSelection(mInteractiveStart, mInteractiveEnd, SelectionMode::Normal);
 
 	EnsureCursorVisible();
 }
