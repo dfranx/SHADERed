@@ -104,14 +104,14 @@ namespace ed
 			}
 
 			// bind shader resource views
-			for (int i = 0; i < srvs.size(); i++) {
-				srvs[i]->BindPS(i);
-				srvs[i]->BindVS(i);
-				if (data->GSUsed) srvs[i]->BindGS(i);
+			for (int j = 0; j < srvs.size(); j++) {
+				srvs[j]->BindPS(j);
+				srvs[j]->BindVS(j);
+				if (data->GSUsed) srvs[j]->BindGS(j);
 			}
 
 			// bind shaders and their variables
-			m_wnd->SetInputLayout(data->VSInputLayout);
+			m_wnd->SetInputLayout(*m_vsLayout[i]);
 
 			for (int j = 0; j < CONSTANT_BUFFER_SLOTS; j++) {
 				if (data->VSVariables.IsSlotUsed(j))
@@ -192,8 +192,8 @@ namespace ed
 			}
 
 			// unbind shader resource views
-			for (int i = 0; i < srvs.size(); i++)
-				m_wnd->RemoveShaderResource(i);
+			for (int j = 0; j < srvs.size(); j++)
+				m_wnd->RemoveShaderResource(j);
 
 			// unbind geometry shader
 			if (data->GSUsed) m_wnd->RemoveGeometryShader();
@@ -223,7 +223,14 @@ namespace ed
 
 				// bind input layout if needed 
 				if (shader->VSInputLayout.GetInputElements().size() > 0) {
-					m_vs[i]->InputSignature = &shader->VSInputLayout;
+					ml::VertexInputLayout* inputLayout = m_vsLayout[i];
+					inputLayout->GetInputElements().clear();
+
+					auto inputLayoutElements = shader->VSInputLayout.GetInputElements();
+					for (auto ilElement : inputLayoutElements)
+						inputLayout->Add(ilElement.SemanticName, ilElement.SemanticIndex, ilElement.Format, ilElement.AlignedByteOffset, ilElement.InputSlot, ilElement.InputSlotClass, ilElement.InstanceDataStepRate);
+
+					m_vs[i]->InputSignature = inputLayout;
 					m_vs[i]->InputSignature->Reset();
 				} 
 				else
@@ -415,10 +422,13 @@ namespace ed
 			delete m_ps[i];
 		for (int i = 0; i < m_gs.size(); i++)
 			delete m_gs[i];
+		for (int i = 0; i < m_vsLayout.size(); i++)
+			delete m_vsLayout[i];
 		m_vs.clear();
 		m_ps.clear();
 		m_gs.clear();
 		m_items.clear();
+		m_vsLayout.clear();
 	}
 	void RenderEngine::m_cache()
 	{
@@ -449,14 +459,23 @@ namespace ed
 				*/
 
 				ed::pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
+				std::vector<D3D11_INPUT_ELEMENT_DESC> inputEls = data->VSInputLayout.GetInputElements();
 
 				ml::VertexShader* vShader = new ml::VertexShader();
 				ml::PixelShader* pShader = new ml::PixelShader();
 
+				m_vsLayout.insert(m_vsLayout.begin() + i, new ml::VertexInputLayout());
+				ml::VertexInputLayout* inputLayout = m_vsLayout[i];
+				auto inputLayoutElements = data->VSInputLayout.GetInputElements();
+				for (auto ilElement : inputLayoutElements)
+					inputLayout->Add(ilElement.SemanticName, ilElement.SemanticIndex, ilElement.Format, ilElement.AlignedByteOffset, ilElement.InputSlot, ilElement.InputSlotClass, ilElement.InstanceDataStepRate);
+
+				bool isGLSL = GLSL2HLSL::IsGLSL(data->VSPath);
+
 				// bind the input layout
 				data->VSInputLayout.Reset();
 				if (data->VSInputLayout.GetInputElements().size() > 0)
-					vShader->InputSignature = &data->VSInputLayout;
+					vShader->InputSignature = inputLayout;
 				else
 					vShader->InputSignature = nullptr;
 
@@ -467,7 +486,7 @@ namespace ed
 				else // GLSL
 					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)));
 
-				if (!GLSL2HLSL::IsGLSL(data->VSPath)) // HLSL
+				if (!isGLSL) // HLSL
 					vsContent = m_project->LoadProjectFile(data->VSPath);
 				else // GLSL
 					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)));
@@ -512,11 +531,13 @@ namespace ed
 			if (!found) {
 				delete m_vs[i];
 				delete m_ps[i];
+				delete m_vsLayout[i];
 
 				if (m_gs[i] != nullptr)
 					delete m_gs[i];
 				
 				m_vs.erase(m_vs.begin() + i);
+				m_vsLayout.erase(m_vsLayout.begin() + i);
 				m_ps.erase(m_ps.begin() + i);
 				m_gs.erase(m_gs.begin() + i);
 
@@ -539,9 +560,13 @@ namespace ed
 						ml::VertexShader* vsCopy = m_vs[i];
 						ml::PixelShader* psCopy = m_ps[i];
 						ml::GeometryShader* gsCopy = m_gs[i];
+						ml::VertexInputLayout* vsLayoutCopy = m_vsLayout[i];
 
 						m_vs.erase(m_vs.begin() + i);
 						m_vs.insert(m_vs.begin() + dest, vsCopy);
+
+						m_vsLayout.erase(m_vsLayout.begin() + i);
+						m_vsLayout.insert(m_vsLayout.begin() + dest, vsLayoutCopy);
 
 						m_ps.erase(m_ps.begin() + i);
 						m_ps.insert(m_ps.begin() + dest, psCopy);

@@ -1,12 +1,11 @@
-- [ ] release mode: ctrl + left/right while editing code changes the theme
 - [ ] automatically generate semantic names in input layout when compiling GLSL shader
 
 - [ ] save file when closing code editor (open a message box: do you want to save the file?)
 - [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
-- [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)
-- [ ] clear message group after renaming pipeline item
+- [ ] better error handling/prevent crashes, error markers in text editor, rename error list to output (output stuff on shader recompiling)
+- [ ] clear message group after renaming pipeline item or recompiling
 - [ ] pipe glslangValidator errors to our error list
 - [ ] ask the user if they are 100% sure they want to create new project/delete shader/close program/etc...
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
@@ -27,5 +26,6 @@
 - [ ] easy interface for saving all changed/opened files -> save files when "Rebuild Project" is clicked, etc...
 - [ ] comment the code
 - [ ] icon
+- [ ] bool IsPicked shader variable
 - [ ] help -> manual, about, etc...
 - [ ] README.md

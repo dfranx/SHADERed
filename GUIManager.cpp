@@ -134,10 +134,11 @@ namespace ed
 					m_data->Pipeline.New();
 				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
-					m_data->Renderer.FlushCache();
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
 					if (file.size() > 0) {
+						m_data->Renderer.FlushCache();
+
 						((CodeEditorUI*)Get("Code"))->CloseAll();
 						((PinnedUI*)Get("Pinned"))->CloseAll();
 						((PreviewUI*)Get("Preview"))->Pick(nullptr);

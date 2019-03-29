@@ -89,6 +89,7 @@ namespace ed
 
 		std::vector<ed::PipelineItem*> m_items;
 		std::vector<ml::VertexShader*> m_vs;
+		std::vector<ml::VertexInputLayout*> m_vsLayout;
 		std::vector<ml::PixelShader*> m_ps;
 		std::vector<ml::GeometryShader*> m_gs;
 

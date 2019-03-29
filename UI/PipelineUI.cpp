@@ -6,7 +6,9 @@
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
+#include "../Objects/GLSL2HLSL.h"
 #include "../Objects/SystemVariableManager.h"
+#include "../ImGUI/imgui_internal.h"
 
 #include <algorithm>
 
@@ -304,10 +306,22 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data)->VSInputLayout.GetInputElements();
+		pipe::ShaderPass* shaderPass = reinterpret_cast<pipe::ShaderPass*>(m_modalItem->Data);
+		std::vector<D3D11_INPUT_ELEMENT_DESC>& els = shaderPass->VSInputLayout.GetInputElements();
+
+		bool isGLSL = GLSL2HLSL::IsGLSL(shaderPass->VSPath);
+
 		for (auto& el : els) {
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+				if (isGLSL) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
 				ImGui::InputText(("##semantic" + std::to_string(id)).c_str(), const_cast<char*>(el.SemanticName), SEMANTIC_LENGTH);
+				if (isGLSL) {
+					ImGui::PopItemFlag();
+					ImGui::PopStyleVar();
+				}
 			ImGui::NextColumn();
 			
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
@@ -368,11 +382,17 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			if (ImGui::Button("ADD")) {
+				if (isGLSL) {
+					strcpy(const_cast<char*>(iElement.SemanticName), "TEXCOORD");
+					iElement.SemanticIndex = els.size();
+				}
+
 				els.push_back(iElement);
 
-				iElement.SemanticName = (char*)calloc(SEMANTIC_LENGTH, sizeof(char));
-				iElement.SemanticIndex = 0;
-				
+					iElement.SemanticName = (char*)calloc(SEMANTIC_LENGTH, sizeof(char));
+					iElement.SemanticIndex = 0;
+	
+
 				scrollToBottom = true;
 			}
 		ImGui::NextColumn();
