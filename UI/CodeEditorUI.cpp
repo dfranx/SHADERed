@@ -180,6 +180,11 @@ namespace ed
 			i--;
 		}
 	}
+	void CodeEditorUI::SaveAll()
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			m_save(i);
+	}
 	std::vector<std::pair<std::string, int>> CodeEditorUI::GetOpenedFiles()
 	{
 		std::vector<std::pair<std::string, int>> ret;

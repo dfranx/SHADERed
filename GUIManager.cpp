@@ -165,6 +165,8 @@ namespace ed
 			}
 			if (ImGui::BeginMenu("Project")) {
 				if (ImGui::MenuItem("Rebuild project", KeyboardShortcuts::Instance().GetString("Project.Rebuild").c_str())) {
+					((CodeEditorUI*)Get("Code"))->SaveAll();
+
 					std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 					for (PipelineItem*& pass : passes)
 						m_data->Renderer.Recompile(pass->Name);
@@ -463,6 +465,8 @@ namespace ed
 	{
 		// PROJECT
 		KeyboardShortcuts::Instance().SetCallback("Project.Rebuild", [=]() {
+			((CodeEditorUI*)Get("Code"))->SaveAll();
+
 			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 			for (PipelineItem*& pass : passes)
 				m_data->Renderer.Recompile(pass->Name);

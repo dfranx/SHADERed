@@ -25,6 +25,8 @@ namespace ed
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
+		void SaveAll();
+
 		void OpenVS(PipelineItem item);
 		void OpenPS(PipelineItem item);
 		void OpenGS(PipelineItem item);
