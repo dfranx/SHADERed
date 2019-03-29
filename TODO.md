@@ -1,13 +1,10 @@
-- [x] fix ctrl + backspace
-- [x] fix shift + click
-- [ ] close code editor when shader is deleted/replaced/etc..
-- [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
-- [ ] save isFullscreen and isMaximized on exit/on size change
-- [ ] save file when closing code editor (open a message box: do you want to save the file?)
-- [ ] rendertexture clear color
-- [ ] automatically generate semantic names in input layout when compiling GLSL shader
-- [ ] release mode: ctrl + left/right while editing code changes the theme
 
+- [ ] open item properties on double click + add option "On shader pass dbl click: open properties | open all shaders"
+- [ ] release mode: ctrl + left/right while editing code changes the theme
+- [ ] automatically generate semantic names in input layout when compiling GLSL shader
+
+- [ ] save file when closing code editor (open a message box: do you want to save the file?)
+- [ ] close code editor when shader is deleted/replaced/etc..
 - [ ] recompile not working without saving changes
 - [ ] find and replace, right click in text editor, detailed descriptions for identifiers + more improvements
 - [ ] better error handling, error markers in text editor, rename error list to output (output stuff on shader recompiling)

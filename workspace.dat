@@ -136,13 +136,11 @@ DockId=0x00000003,1
 Pos=230,-4
 Size=692,592
 Collapsed=0
-DockId=0x00000011,1
 
 [Window][RenderTxt (PS)##code_view]
 Pos=230,590
 Size=692,404
 Collapsed=0
-DockId=0x00000011,1
 
 [Window][Light (GS)##code_view]
 Pos=17,28

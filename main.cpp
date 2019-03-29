@@ -13,7 +13,7 @@ int main()
 
 	// load window size
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
-	BOOL fullscreen = FALSE;
+	BOOL fullscreen = FALSE, maximized = FALSE;
 	std::ifstream preload("preload.dat");
 	if (preload.is_open()) {
 		preload.read(reinterpret_cast<char*>(&wndWidth), 2);
@@ -21,6 +21,7 @@ int main()
 		preload.read(reinterpret_cast<char*>(&wndPosX), 2);
 		preload.read(reinterpret_cast<char*>(&wndPosY), 2);
 		fullscreen = preload.get();
+		maximized = preload.get();
 		preload.close();
 	}
 
@@ -30,6 +31,8 @@ int main()
 	if (wndPosX != -1 && wndPosY != -1)
 		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
 
+	if (maximized)
+		SendMessage(wnd.GetWindowHandle(), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	if (fullscreen)
 		wnd.GetSwapChain()->SetFullscreenState(true, nullptr);
 
@@ -44,15 +47,20 @@ int main()
 	while (wnd.IsOpen()) {
 		while (wnd.GetEvent(e)) {
 			if (e.Type == ml::EventType::WindowResize) {
-				// cache window size and position
-				wndWidth = wnd.GetSize().x;
-				wndHeight = wnd.GetSize().y;
-				wndPosX = wnd.GetPosition().x;
-				wndPosY = wnd.GetPosition().y;
+				WINDOWPLACEMENT wndPlace;
+				GetWindowPlacement(wnd.GetWindowHandle(), &wndPlace);
+				maximized = (wndPlace.showCmd == SW_SHOWMAXIMIZED);
 
 				// save fullscreen state
 				wnd.GetSwapChain()->GetFullscreenState(&fullscreen, nullptr);
 
+				if (!maximized) {
+					// cache window size and position
+					wndWidth = wnd.GetSize().x;
+					wndHeight = wnd.GetSize().y;
+					wndPosX = wnd.GetPosition().x;
+					wndPosY = wnd.GetPosition().y;
+				}
 			}
 			engine.OnEvent(e);
 		}
@@ -89,6 +97,7 @@ int main()
 	converter.size = wndPosY;				// write window position y
 	save.write(converter.data, 2);
 	save.put(fullscreen);
+	save.put(maximized);
 
 	save.close();
 
