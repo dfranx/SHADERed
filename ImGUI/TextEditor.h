@@ -164,6 +164,7 @@ public:
 
 	private:
 		static void m_HLSLDocumentation(Identifiers& idents);
+		static void m_GLSLDocumentation(Identifiers& idents);
 	};
 
 	TextEditor();

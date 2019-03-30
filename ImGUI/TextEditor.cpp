@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <functional>
 #include <chrono>
 #include <string>
@@ -2228,23 +2228,7 @@ TextEditor::LanguageDefinition TextEditor::LanguageDefinition::GLSL()
 		for (auto& k : keywords)
 			langDef.mKeywords.insert(k);
 
-		static const char* const identifiers[] = {
-			"radians", "degrees", "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "pow", "exp", "log", "exp2", "log2", "sqrt", "inversesqrt", "abs", "sign", "floor", "trunc", "round",
-			"roundEven", "ceil", "fract", "mod", "modf", "min", "max", "clamp", "mix", "step", "smoothstep", "isnan", "isinf", "floatBitsToInt", "floatBitsToUint", "intBitsToFloat", "uintBitsToFloat",
-			"fma", "frexp", "ldexp", "packUnorm2x16", "packUnorm4x8", "packSnorm4x8", "unpackUnorm2x16", "unpackUnorm4x8", "unpackSnorm4x8", "packDouble2x32", "unpackDouble2x32", "length", "distance", "dot", "cross", "normalize", "ftransform",
-			"faceforward", "reflect", "refract", "matrixCompMult", "outerProduct", "transpose", "determinant", "inverse", "lessThan", "lessThanEqual", "greaterThan", "greaterThanEqual", "equal", "notEqual", "any", "all", "not", "uaddCarry", "usubBorrow",
-			"umulExtended", "imulExtended", "bitfieldExtract", "bitfieldInsert", "bitfieldReverse", "bitCount", "findLSB", "findMSB", "textureSize", "textureQueryLod", "texture", "textureProj", "textureLod", "textureOffset", "texelFetch", 
-			"texelFetchOffset", "textureProjOffset", "textureLodOffset", "textureProjLod", "textureProjLodOffset", "textureGrad", "textureGradOffset", "textureProjGrad", "textureProjGradOffset", "textureGather", "textureGatherOffset", "textureGatherOffsets",
-			"texture1D", "texture1DProj", "texture1DLod", "texture1DProjLod", "texture2D", "texture2DProj", "texture2DLod", "texture2DProjLod", "texture3D", "texture3DProj", "texture3DLod", "texture3DProjLod", "textureCube", "textureCubeLod",
-			"shadow1D", "shadow1DProj", "shadow1DLod", "shadow1DProjLod", "shadow2D", "shadow2DProj", "shadow2DLod", "shadow2DProjLod", "dFdx", "dFdy", "fwidth", "interpolateAtCentroid", "interpolateAtSample", "interpolateAtOffset", "noise1", "noise2",
-			"noise3", "noise4", "EmitStreamVertex", "EndStreamPrimitive", "EmitVertex", "EndPrimitive", "barrier"
-		};
-		for (auto& k : identifiers)
-		{
-			Identifier id;
-			id.mDeclaration = "Built-in function";
-			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
-		}
+		m_GLSLDocumentation(langDef.mIdentifiers);
 
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("//.*", PaletteIndex::Comment));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[ \\t]*#[ \\t]*[a-zA-Z_]+", PaletteIndex::Preprocessor));
@@ -2267,6 +2251,160 @@ TextEditor::LanguageDefinition TextEditor::LanguageDefinition::GLSL()
 		inited = true;
 	}
 	return langDef;
+}
+void TextEditor::LanguageDefinition::m_GLSLDocumentation(Identifiers& idents)
+{
+	std::function<Identifier(const std::string&)> desc = [](const std::string & str) {
+		Identifier id;
+		id.mDeclaration = str;
+		return id;
+	};
+
+	/* SOURCE: https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions */
+
+	idents.insert(std::make_pair("radians", desc("Converts x from degrees to radians.")));
+	idents.insert(std::make_pair("degrees", desc("Converts x from radians to degrees.")));
+	idents.insert(std::make_pair("sin", desc("Returns the sine of x")));
+	idents.insert(std::make_pair("cos", desc("Returns the cosine of x.")));
+	idents.insert(std::make_pair("tan", desc("Returns the tangent of x")));
+	idents.insert(std::make_pair("asin", desc("Returns the arcsine of each component of x.")));
+	idents.insert(std::make_pair("acos", desc("Returns the arccosine of each component of x.")));
+	idents.insert(std::make_pair("atan", desc("Returns the arctangent of x.")));
+	idents.insert(std::make_pair("sinh", desc("Returns the hyperbolic sine of x")));
+	idents.insert(std::make_pair("cosh", desc("Returns the hyperbolic cosine of x.")));
+	idents.insert(std::make_pair("tanh", desc("Returns the hyperbolic tangent of x")));
+	idents.insert(std::make_pair("asinh", desc("Returns the arc hyperbolic sine of x")));
+	idents.insert(std::make_pair("acosh", desc("Returns the arc hyperbolic cosine of x.")));
+	idents.insert(std::make_pair("atanh", desc("Returns the arc hyperbolic tangent of x")));
+	idents.insert(std::make_pair("pow", desc("Returns x^n.")));
+	idents.insert(std::make_pair("exp", desc("Returns the base-e exponent.")));
+	idents.insert(std::make_pair("exp2", desc("Base 2 exponent(per component).")));
+	idents.insert(std::make_pair("log", desc("Returns the base-e logarithm of x.")));
+	idents.insert(std::make_pair("log2", desc("Returns the base - 2 logarithm of x.")));
+	idents.insert(std::make_pair("sqrt", desc("Square root (per component).")));
+	idents.insert(std::make_pair("inversesqrt", desc("Returns rcp(sqrt(x)).")));
+	idents.insert(std::make_pair("abs", desc("Absolute value (per component).")));
+	idents.insert(std::make_pair("sign", desc("Computes the sign of x.")));
+	idents.insert(std::make_pair("floor", desc("Returns the greatest integer which is less than or equal to x.")));
+	idents.insert(std::make_pair("trunc", desc("Truncates floating-point value(s) to integer value(s)")));
+	idents.insert(std::make_pair("round", desc("Rounds x to the nearest integer")));
+	idents.insert(std::make_pair("roundEven", desc("Returns a value equal to the nearest integer to x. A fractional part of 0.5 will round toward the nearest even integer.")));
+	idents.insert(std::make_pair("ceil", desc("Returns the smallest integer which is greater than or equal to x.")));
+	idents.insert(std::make_pair("fract", desc("Returns the fractional part of x.")));
+	idents.insert(std::make_pair("mod", desc("Modulus. Returns x – y ∗ floor (x/y).")));
+	idents.insert(std::make_pair("modf", desc("Splits the value x into fractional and integer parts.")));
+	idents.insert(std::make_pair("max", desc("Selects the greater of x and y.")));
+	idents.insert(std::make_pair("min", desc("Selects the lesser of x and y.")));
+	idents.insert(std::make_pair("clamp", desc("Clamps x to the range [min, max].")));
+	idents.insert(std::make_pair("mix", desc("Returns x*(1-a)+y*a.")));
+	idents.insert(std::make_pair("isinf", desc("Returns true if x is +INF or -INF, false otherwise.")));
+	idents.insert(std::make_pair("isnan", desc("Returns true if x is NAN or QNAN, false otherwise.")));
+	idents.insert(std::make_pair("smoothstep", desc("Returns a smooth Hermite interpolation between 0 and 1.")));
+	idents.insert(std::make_pair("step", desc("Returns (x >= a) ? 1 : 0")));
+	idents.insert(std::make_pair("floatBitsToInt", desc("Returns a signed or unsigned integer value representing the encoding of a floating-point value. The floatingpoint value's bit-level representation is preserved.")));
+	idents.insert(std::make_pair("floatBitsToUint", desc("Returns a signed or unsigned integer value representing the encoding of a floating-point value. The floatingpoint value's bit-level representation is preserved.")));
+	idents.insert(std::make_pair("intBitsToFloat", desc("Returns a floating-point value corresponding to a signed or unsigned integer encoding of a floating-point value.")));
+	idents.insert(std::make_pair("uintBitsToFloat", desc("Returns a floating-point value corresponding to a signed or unsigned integer encoding of a floating-point value.")));
+	idents.insert(std::make_pair("fmod", desc("Returns the floating point remainder of x/y.")));
+	idents.insert(std::make_pair("fma", desc("Returns the double-precision fused multiply-addition of a * b + c.")));
+	idents.insert(std::make_pair("ldexp", desc("Returns x * 2exp")));
+	idents.insert(std::make_pair("packUnorm2x16", desc("First, converts each component of the normalized floating - point value v into 8 or 16bit integer values. Then, the results are packed into the returned 32bit unsigned integer.")));
+	idents.insert(std::make_pair("packUnorm4x8", desc("First, converts each component of the normalized floating - point value v into 8 or 16bit integer values. Then, the results are packed into the returned 32bit unsigned integer.")));
+	idents.insert(std::make_pair("packSnorm4x8", desc("First, converts each component of the normalized floating - point value v into 8 or 16bit integer values. Then, the results are packed into the returned 32bit unsigned integer.")));
+	idents.insert(std::make_pair("unpackUnorm2x16", desc("First, unpacks a single 32bit unsigned integer p into a pair of 16bit unsigned integers, four 8bit unsigned integers, or four 8bit signed integers.Then, each component is converted to a normalized floating point value to generate the returned two or four component vector.")));
+	idents.insert(std::make_pair("unpackUnorm4x8", desc("First, unpacks a single 32bit unsigned integer p into a pair of 16bit unsigned integers, four 8bit unsigned integers, or four 8bit signed integers.Then, each component is converted to a normalized floating point value to generate the returned two or four component vector.")));
+	idents.insert(std::make_pair("unpackSnorm4x8", desc("First, unpacks a single 32bit unsigned integer p into a pair of 16bit unsigned integers, four 8bit unsigned integers, or four 8bit signed integers.Then, each component is converted to a normalized floating point value to generate the returned two or four component vector.")));
+	idents.insert(std::make_pair("packDouble2x32", desc("Returns a double-precision value obtained by packing the components of v into a 64-bit value.")));
+	idents.insert(std::make_pair("unpackDouble2x32", desc("Returns a two-component unsigned integer vector representation of v.")));
+	idents.insert(std::make_pair("length", desc("Returns the length of the vector v.")));
+	idents.insert(std::make_pair("distance", desc("Returns the distance between two points.")));
+	idents.insert(std::make_pair("dot", desc("Returns the dot product of two vectors.")));
+	idents.insert(std::make_pair("cross", desc("Returns the cross product of two 3D vectors.")));
+	idents.insert(std::make_pair("normalize", desc("Returns a normalized vector.")));
+	idents.insert(std::make_pair("faceforward", desc("Returns -n * sign(dot(i, ng)).")));
+	idents.insert(std::make_pair("reflect", desc("Returns a reflection vector.")));
+	idents.insert(std::make_pair("refract", desc("Returns the refraction vector.")));
+	idents.insert(std::make_pair("matrixCompMult", desc("Multiply matrix x by matrix y component-wise.")));
+	idents.insert(std::make_pair("outerProduct", desc("Linear algebraic matrix multiply c * r.")));
+	idents.insert(std::make_pair("transpose", desc("Returns the transpose of the matrix m.")));
+	idents.insert(std::make_pair("determinant", desc("Returns the determinant of the square matrix m.")));
+	idents.insert(std::make_pair("inverse", desc("Returns a matrix that is the inverse of m.")));
+	idents.insert(std::make_pair("lessThan", desc("Returns the component-wise compare of x < y")));
+	idents.insert(std::make_pair("lessThanEqual", desc("Returns the component-wise compare of x <= y")));
+	idents.insert(std::make_pair("greaterThan", desc("Returns the component-wise compare of x > y")));
+	idents.insert(std::make_pair("greaterThanEqual", desc("Returns the component-wise compare of x >= y")));
+	idents.insert(std::make_pair("equal", desc("Returns the component-wise compare of x == y")));
+	idents.insert(std::make_pair("notEqual", desc("Returns the component-wise compare of x != y")));
+	idents.insert(std::make_pair("any", desc("Test if any component of x is nonzero.")));
+	idents.insert(std::make_pair("all", desc("Test if all components of x are nonzero.")));
+	idents.insert(std::make_pair("not", desc("Returns the component-wise logical complement of x.")));
+	idents.insert(std::make_pair("uaddCarry", desc("Adds 32bit unsigned integer x and y, returning the sum modulo 2^32.")));
+	idents.insert(std::make_pair("usubBorrow", desc("Subtracts the 32bit unsigned integer y from x, returning the difference if non-negatice, or 2^32 plus the difference otherwise.")));
+	idents.insert(std::make_pair("umulExtended", desc("Multiplies 32bit integers x and y, producing a 64bit result.")));
+	idents.insert(std::make_pair("imulExtended", desc("Multiplies 32bit integers x and y, producing a 64bit result.")));
+	idents.insert(std::make_pair("bitfieldExtract", desc("Extracts bits [offset, offset + bits - 1] from value, returning them in the least significant bits of the result.")));
+	idents.insert(std::make_pair("bitfieldInsert", desc("Returns the insertion the bits leas-significant bits of insert into base")));
+	idents.insert(std::make_pair("bitfieldReverse", desc("Returns the reversal of the bits of value.")));
+	idents.insert(std::make_pair("bitCount", desc("Returns the number of bits set to 1 in the binary representation of value.")));
+	idents.insert(std::make_pair("findLSB", desc("Returns the bit number of the least significant bit set to 1 in the binary representation of value.")));
+	idents.insert(std::make_pair("findMSB", desc("Returns the bit number of the most significant bit in the binary representation of value.")));
+	idents.insert(std::make_pair("textureSize", desc("Returns the dimensions of level lod  (if present) for the texture bound to sample.")));
+	idents.insert(std::make_pair("textureQueryLod", desc("Returns the mipmap array(s) that would be accessed in the x component of the return value.")));
+	idents.insert(std::make_pair("texture", desc("Use the texture coordinate P to do a texture lookup in the texture currently bound to sampler.")));
+	idents.insert(std::make_pair("textureProj", desc("Do a texture lookup with projection.")));
+	idents.insert(std::make_pair("textureLod", desc("Do a texture lookup as in texture but with explicit LOD.")));
+	idents.insert(std::make_pair("textureOffset", desc("Do a texture lookup as in texture but with offset added to the (u,v,w) texel coordinates before looking up each texel.")));
+	idents.insert(std::make_pair("texelFetch", desc("Use integer texture coordinate P to lookup a single texel from sampler.")));
+	idents.insert(std::make_pair("texelFetchOffset", desc("Fetch a single texel as in texelFetch offset by offset.")));
+	idents.insert(std::make_pair("texetureProjOffset", desc("Do a projective texture lookup as described in textureProj offset by offset as descrived in textureOffset.")));
+	idents.insert(std::make_pair("texetureLodOffset", desc("Do an offset texture lookup with explicit LOD.")));
+	idents.insert(std::make_pair("textureProjLod", desc("Do a projective texture lookup with explicit LOD.")));
+	idents.insert(std::make_pair("textureLodOffset", desc("Do an offset texture lookup with explicit LOD.")));
+	idents.insert(std::make_pair("textureProjLodOffset", desc("Do an offset projective texture lookup with explicit LOD.")));
+	idents.insert(std::make_pair("textureGrad", desc("Do a texture lookup as in texture but with explicit gradients.")));
+	idents.insert(std::make_pair("textureGradOffset", desc("Do a texture lookup with both explicit gradient and offset, as described in textureGrad and textureOffset.")));
+	idents.insert(std::make_pair("textureProjGrad", desc("Do a texture lookup both projectively and with explicit gradient.")));
+	idents.insert(std::make_pair("textureProjGradOffset", desc("Do a texture lookup both projectively and with explicit gradient as well as with offset.")));
+	idents.insert(std::make_pair("textureGather", desc("Built-in function.")));
+	idents.insert(std::make_pair("textureGatherOffset", desc("Built-in function.")));
+	idents.insert(std::make_pair("textureGatherOffsets", desc("Built-in function.")));
+	idents.insert(std::make_pair("texture1D", desc("1D texture lookup.")));
+	idents.insert(std::make_pair("texture1DLod", desc("1D texture lookup with LOD.")));
+	idents.insert(std::make_pair("texture1DProj", desc("1D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("texture1DProjLod", desc("1D texture lookup with projective divide and with LOD.")));
+	idents.insert(std::make_pair("texture2D", desc("2D texture lookup.")));
+	idents.insert(std::make_pair("texture2DLod", desc("2D texture lookup with LOD.")));
+	idents.insert(std::make_pair("texture2DProj", desc("2D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("texture2DProjLod", desc("2D texture lookup with projective divide and with LOD.")));
+	idents.insert(std::make_pair("texture3D", desc("3D texture lookup.")));
+	idents.insert(std::make_pair("texture3DLod", desc("3D texture lookup with LOD.")));
+	idents.insert(std::make_pair("texture3DProj", desc("3D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("texture3DProjLod", desc("3D texture lookup with projective divide and with LOD.")));
+	idents.insert(std::make_pair("textureCube", desc("Cube texture lookup.")));
+	idents.insert(std::make_pair("textureCubeLod", desc("Cube texture lookup with LOD.")));
+	idents.insert(std::make_pair("shadow1D", desc("1D texture lookup.")));
+	idents.insert(std::make_pair("shadow1DLod", desc("1D texture lookup with LOD.")));
+	idents.insert(std::make_pair("shadow1DProj", desc("1D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("shadow1DProjLod", desc("1D texture lookup with projective divide and with LOD.")));
+	idents.insert(std::make_pair("shadow2D", desc("2D texture lookup.")));
+	idents.insert(std::make_pair("shadow2DLod", desc("2D texture lookup with LOD.")));
+	idents.insert(std::make_pair("shadow2DProj", desc("2D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("shadow2DProjLod", desc("2D texture lookup with projective divide and with LOD.")));
+	idents.insert(std::make_pair("dFdx", desc("Returns the partial derivative of x with respect to the screen-space x-coordinate.")));
+	idents.insert(std::make_pair("dFdy", desc("Returns the partial derivative of x with respect to the screen-space y-coordinate.")));
+	idents.insert(std::make_pair("fwidth", desc("Returns abs(ddx(x)) + abs(ddy(x))")));
+	idents.insert(std::make_pair("interpolateAtCentroid", desc("Return the value of the input varying interpolant sampled at a location inside the both the pixel and the primitive being processed.")));
+	idents.insert(std::make_pair("interpolateAtSample", desc("Return the value of the input varying interpolant at the location of sample number sample.")));
+	idents.insert(std::make_pair("interpolateAtOffset", desc("Return the value of the input varying interpolant sampled at an offset from the center of the pixel specified by offset.")));
+	idents.insert(std::make_pair("noise1", desc("Generates a random value")));
+	idents.insert(std::make_pair("noise2", desc("Generates a random value")));
+	idents.insert(std::make_pair("noise3", desc("Generates a random value")));
+	idents.insert(std::make_pair("noise4", desc("Generates a random value")));
+	idents.insert(std::make_pair("EmitStreamVertex", desc("Emit the current values of output variables to the current output primitive on stream stream.")));
+	idents.insert(std::make_pair("EndStreamPrimitive", desc("Completes the current output primitive on stream stream and starts a new one.")));
+	idents.insert(std::make_pair("EmitVertex", desc("Emit the current values to the current output primitive.")));
+	idents.insert(std::make_pair("EndPrimitive", desc("Completes the current output primitive and starts a new one.")));
+	idents.insert(std::make_pair("barrier", desc("For any given static instance of barrier(), all tessellation control shader invocations for a single input patch must enter it before any will be allowed to continue beyond it.")));
 }
 
 TextEditor::LanguageDefinition TextEditor::LanguageDefinition::C()
