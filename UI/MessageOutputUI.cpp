@@ -1,11 +1,11 @@
-#include "ErrorListUI.h"
+#include "MessageOutputUI.h"
 #include "../ImGUI/imgui.h"
 
 namespace ed
 {
-	void ErrorListUI::OnEvent(const ml::Event & e)
+	void MessageOutputUI::OnEvent(const ml::Event & e)
 	{}
-	void ErrorListUI::Update(float delta)
+	void MessageOutputUI::Update(float delta)
 	{
 		std::vector<MessageStack::Message> msgs = m_data->Messages.GetMessages();
 

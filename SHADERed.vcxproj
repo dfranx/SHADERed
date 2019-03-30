@@ -175,6 +175,7 @@
     <ClCompile Include="Objects\GizmoObject.cpp" />
     <ClCompile Include="Objects\GLSL2HLSL.cpp" />
     <ClCompile Include="Objects\KeyboardShortcuts.cpp" />
+    <ClCompile Include="Objects\Logger.cpp" />
     <ClCompile Include="Objects\MessageStack.cpp" />
     <ClCompile Include="Objects\Names.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
@@ -188,7 +189,7 @@
     <ClCompile Include="pugixml\pugixml.cpp" />
     <ClCompile Include="UI\CodeEditorUI.cpp" />
     <ClCompile Include="UI\CreateItemUI.cpp" />
-    <ClCompile Include="UI\ErrorListUI.cpp" />
+    <ClCompile Include="UI\MessageOutputUI.cpp" />
     <ClCompile Include="UI\ObjectListUI.cpp" />
     <ClCompile Include="UI\OptionsUI.cpp" />
     <ClCompile Include="UI\PinnedUI.cpp" />
@@ -221,6 +222,7 @@
     <ClInclude Include="Objects\GLSL2HLSL.h" />
     <ClInclude Include="Objects\INIReader.h" />
     <ClInclude Include="Objects\KeyboardShortcuts.h" />
+    <ClInclude Include="Objects\Logger.h" />
     <ClInclude Include="Objects\MessageStack.h" />
     <ClInclude Include="Objects\Names.h" />
     <ClInclude Include="Objects\ObjectManager.h" />
@@ -237,7 +239,7 @@
     <ClInclude Include="pugixml\pugixml.hpp" />
     <ClInclude Include="UI\CodeEditorUI.h" />
     <ClInclude Include="UI\CreateItemUI.h" />
-    <ClInclude Include="UI\ErrorListUI.h" />
+    <ClInclude Include="UI\MessageOutputUI.h" />
     <ClInclude Include="UI\ObjectListUI.h" />
     <ClInclude Include="UI\OptionsUI.h" />
     <ClInclude Include="UI\PinnedUI.h" />

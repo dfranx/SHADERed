@@ -1,5 +1,6 @@
 #include <MoonLight/Base/Window.h>
 #include <MoonLight/Base/Event.h>
+#include "Objects/Logger.h"
 #include "EditorEngine.h"
 #include <fstream>
 
@@ -36,9 +37,14 @@ int main()
 	if (fullscreen)
 		wnd.GetSwapChain()->SetFullscreenState(true, nullptr);
 
+	ed::Logger* log = new ed::Logger();
+	wnd.SetLogger(log);
+
 	// create engine
 	ed::EditorEngine engine(&wnd);
 	engine.Create();
+
+	log->Stack = &engine.Interface().Messages;
 
 	// timer for time delta
 	ml::Timer timer;

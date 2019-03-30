@@ -3,7 +3,7 @@
 
 namespace ed
 {
-	class ErrorListUI : public UIView
+	class MessageOutputUI : public UIView
 	{
 	public:
 		using UIView::UIView;

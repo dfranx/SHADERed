@@ -6,7 +6,7 @@
 #include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
 #include "UI/ObjectListUI.h"
-#include "UI/ErrorListUI.h"
+#include "UI/MessageOutputUI.h"
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
@@ -51,7 +51,7 @@ namespace ed
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
-		m_views.push_back(new ErrorListUI(this, objects, "Error List"));
+		m_views.push_back(new MessageOutputUI(this, objects, "Output"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 
 		KeyboardShortcuts::Instance().Load();
@@ -233,8 +233,8 @@ namespace ed
 		// handle the build occured event
 		if (Settings::Instance().General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
 			size_t errors = m_data->Messages.GetMessages().size();
-			if (errors > 0 && !Get("Error List")->Visible)
-				Get("Error List")->Visible = true;
+			if (errors > 0 && !Get("Output")->Visible)
+				Get("Output")->Visible = true;
 			m_data->Messages.BuildOccured = false;
 		}
 
@@ -525,7 +525,7 @@ namespace ed
 
 		// WORKSPACE
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideOutput", [=]() {
-			Get("Error List")->Visible = !Get("Error List")->Visible;
+			Get("Output")->Visible = !Get("Output")->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideEditor", [=]() {
 			Get("Code")->Visible = !Get("Code")->Visible;

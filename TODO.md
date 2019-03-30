@@ -1,14 +1,12 @@
-- [ ] detailed descriptions for identifiers
-- [ ] better error handling/prevent crashes, error markers in text editor, rename error list to output (output stuff on shader recompiling)
+- [ ] better error handling/prevent crashes, error markers in text editor
 - [ ] clear message group after renaming pipeline item or recompiling
 - [ ] pipe glslangValidator errors to our error list
-- [ ] ask the user if they are 100% sure they want to create new project
 - [ ] fix the app crash at start up when the program cant compile the shader + all other crashes
-- [ ] do all TODOs (comments)
+- [ ] ask the user if they are 100% sure they want to create new project
 - [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
 - [ ] status bar - current line, current column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
-- [ ] project name/path on the win32 window titlebar
+- [ ] project name & path on the win32 window titlebar
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy)
 - [ ] implement Logger in MoonLight (so that we can redirect errors from console to our ErrorView) + hide win32 console in release mode
 - [ ] "Save preview as image" option
@@ -19,4 +17,5 @@
 - [ ] icon
 - [ ] bool IsPicked shader variable
 - [ ] help -> manual, about, etc...
+- [ ] do all TODOs (comments)
 - [ ] README.md

@@ -214,12 +214,15 @@ namespace ed
 	void RenderEngine::Recompile(const char * name)
 	{
 		m_msgs->BuildOccured = true;
+		m_msgs->CurrentItem = name;
 
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
 				ed::pipe::ShaderPass* shader = (ed::pipe::ShaderPass*)item->Data;
+
+				m_msgs->ClearGroup(name);
 
 				// bind input layout if needed 
 				if (shader->VSInputLayout.GetInputElements().size() > 0) {
@@ -232,13 +235,13 @@ namespace ed
 
 					m_vs[i]->InputSignature = inputLayout;
 					m_vs[i]->InputSignature->Reset();
-				} 
+				}
 				else
 					m_vs[i]->InputSignature = nullptr;
 
 				std::string psContent = "", vsContent = "";
 
-				
+				m_msgs->CurrentItemType = 1;
 				if (!GLSL2HLSL::IsGLSL(shader->PSPath)) // HLSL
 					psContent = m_project->LoadProjectFile(shader->PSPath);
 				else // GLSL
@@ -249,9 +252,12 @@ namespace ed
 				else // GLSL
 					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)));
 
+				m_msgs->CurrentItemType = 1;
 				bool psCompiled = m_ps[i]->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), shader->PSEntry);
+
+				m_msgs->CurrentItemType = 0;
 				bool vsCompiled = m_vs[i]->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), shader->VSEntry);
-				
+
 				bool gsCompiled = true;
 				if (strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 					if (m_gs[i] == nullptr)
@@ -259,6 +265,7 @@ namespace ed
 
 					std::string gsContent = "";
 
+					m_msgs->CurrentItemType = 2;
 					if (!GLSL2HLSL::IsGLSL(shader->GSPath)) // HLSL
 						gsContent = m_project->LoadProjectFile(shader->GSPath);
 					else // GLSL
@@ -268,9 +275,9 @@ namespace ed
 				}
 
 				if (!vsCompiled || !psCompiled || !gsCompiled)
-					m_msgs->Add(MessageStack::Type::Error, item->Name, "Failed to compile the shader(s)");
+					m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
 				else
-					m_msgs->ClearGroup(item->Name);
+					m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
 			}
 		}
 	}
@@ -464,6 +471,8 @@ namespace ed
 				ml::VertexShader* vShader = new ml::VertexShader();
 				ml::PixelShader* pShader = new ml::PixelShader();
 
+				m_msgs->CurrentItem = items[i]->Name;
+
 				m_vsLayout.insert(m_vsLayout.begin() + i, new ml::VertexInputLayout());
 				ml::VertexInputLayout* inputLayout = m_vsLayout[i];
 				auto inputLayoutElements = data->VSInputLayout.GetInputElements();
@@ -491,10 +500,13 @@ namespace ed
 				else // GLSL
 					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)));
 
+				m_msgs->CurrentItemType = 0;
 				bool vsCompiled = vShader->LoadFromMemory(*m_wnd, vsContent.c_str(), vsContent.size(), data->VSEntry);
-				bool psCompiled = pShader->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), data->PSEntry);
-				bool gsCompiled = true;
 
+				m_msgs->CurrentItemType = 1;
+				bool psCompiled = pShader->LoadFromMemory(*m_wnd, psContent.c_str(), psContent.size(), data->PSEntry);
+
+				bool gsCompiled = true;
 				if (strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
 					std::string gsContent = "";
 					if (!GLSL2HLSL::IsGLSL(data->GSPath)) // HLSL
@@ -502,7 +514,7 @@ namespace ed
 					else // GLSL
 						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)));
 
-
+					m_msgs->CurrentItemType = 2;
 					ml::GeometryShader* gShader = new ml::GeometryShader();
 					gsCompiled = gShader->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), data->GSEntry);
 					m_gs.insert(m_gs.begin() + i, gShader);

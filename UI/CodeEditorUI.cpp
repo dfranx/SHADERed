@@ -53,7 +53,6 @@ namespace ed
 
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 				if (ImGui::Begin((std::string(windowName) + "##code_view").c_str(), &m_editorOpen[i], ImGuiWindowFlags_MenuBar)) {
-					
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Editor.Save").c_str())) m_save(i);
@@ -81,6 +80,16 @@ namespace ed
 					if (m_stats[i].IsActive)
 						m_stats[i].Render();
 					else {
+						// add error markers if needed
+						auto msgs = m_data->Messages.GetMessages();
+						int groupMsg = 0;
+						TextEditor::ErrorMarkers groupErrs;
+						for (int j = 0; j < msgs.size(); j++)
+							if (msgs[j].Group == m_items[i].Name && msgs[j].Shader == m_shaderTypeId[i] && msgs[j].Line > 0)
+								groupErrs[msgs[j].Line] = msgs[j].Text;
+						m_editor[i].SetErrorMarkers(groupErrs);
+						
+						// render
 						ImGui::PushFont(m_font);
 						m_editor[i].Render(windowName.c_str());
 						ImGui::PopFont();
@@ -249,6 +258,7 @@ namespace ed
 	void CodeEditorUI::m_compile(int id)
 	{
 		m_save(id);
+
 		m_data->Renderer.Recompile(m_items[id].Name);
 	}
 	

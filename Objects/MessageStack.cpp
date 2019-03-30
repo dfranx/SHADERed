@@ -8,9 +8,9 @@ namespace ed
 	}
 	MessageStack::~MessageStack()
 	{}
-	void MessageStack::Add(Type type, const std::string & group, const std::string & message)
+	void MessageStack::Add(Type type, const std::string & group, const std::string & message, int ln, int sh)
 	{
-		m_msgs.push_back({ type, group, message });
+		m_msgs.push_back({ type, group, message, ln, sh });
 	}
 	void MessageStack::ClearGroup(const std::string & group)
 	{

@@ -6,6 +6,8 @@
 #include "Settings.h"
 #include "GLSL2HLSL.h"
 
+#define PIPE_BUFFER_SIZE 1024 
+
 namespace ed
 {
 	std::string GLSL2HLSL::Transcompile(const std::string& filename)
@@ -70,7 +72,7 @@ namespace ed
 			&si,
 			&pi
 		);
-		
+
 		WaitForSingleObject(pi.hProcess, INFINITE);
 
 		CloseHandle(pi.hProcess);
