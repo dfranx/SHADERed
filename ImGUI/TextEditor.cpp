@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include <chrono>
 #include <string>
 #include <regex>
@@ -829,8 +830,9 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 			auto it = mLanguageDefinition.mIdentifiers.find(id);
 			if (it != mLanguageDefinition.mIdentifiers.end())
 			{
+				ImGui::SetNextWindowSize(ImVec2(350, 0));
 				ImGui::BeginTooltip();
-				ImGui::TextUnformatted(it->second.mDeclaration.c_str());
+				ImGui::TextWrapped(it->second.mDeclaration.c_str());
 				ImGui::EndTooltip();
 			}
 			else
@@ -838,8 +840,9 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 				auto pi = mLanguageDefinition.mPreprocIdentifiers.find(id);
 				if (pi != mLanguageDefinition.mPreprocIdentifiers.end())
 				{
+					ImGui::SetNextWindowSize(ImVec2(2350, 0));
 					ImGui::BeginTooltip();
-					ImGui::TextUnformatted(pi->second.mDeclaration.c_str());
+					ImGui::TextWrapped(pi->second.mDeclaration.c_str());
 					ImGui::EndTooltip();
 				}
 			}
@@ -2029,32 +2032,12 @@ TextEditor::LanguageDefinition TextEditor::LanguageDefinition::HLSL()
 			"float1x1","float2x1","float3x1","float4x1","float1x2","float2x2","float3x2","float4x2",
 			"float1x3","float2x3","float3x3","float4x3","float1x4","float2x4","float3x4","float4x4",
 			"half1x1","half2x1","half3x1","half4x1","half1x2","half2x2","half3x2","half4x2",
-			"half1x3","half2x3","half3x3","half4x3","half1x4","half2x4","half3x4","half4x4",
+			"half1x3","half2x3","half3x3","half4x3","half1x4","half2x4","half3x4","half4x4"
 		};
 		for (auto& k : keywords)
 			langDef.mKeywords.insert(k);
 
-		static const char* const identifiers[] = {
-			"abort", "abs", "acos", "all", "AllMemoryBarrier", "AllMemoryBarrierWithGroupSync", "any", "asdouble", "asfloat", "asin", "asint", "asint", "asuint",
-			"asuint", "atan", "atan2", "ceil", "CheckAccessFullyMapped", "clamp", "clip", "cos", "cosh", "countbits", "cross", "D3DCOLORtoUBYTE4", "ddx",
-			"ddx_coarse", "ddx_fine", "ddy", "ddy_coarse", "ddy_fine", "degrees", "determinant", "DeviceMemoryBarrier", "DeviceMemoryBarrierWithGroupSync",
-			"distance", "dot", "dst", "errorf", "EvaluateAttributeAtCentroid", "EvaluateAttributeAtSample", "EvaluateAttributeSnapped", "exp", "exp2",
-			"f16tof32", "f32tof16", "faceforward", "firstbithigh", "firstbitlow", "floor", "fma", "fmod", "frac", "frexp", "fwidth", "GetRenderTargetSampleCount",
-			"GetRenderTargetSamplePosition", "GroupMemoryBarrier", "GroupMemoryBarrierWithGroupSync", "InterlockedAdd", "InterlockedAnd", "InterlockedCompareExchange",
-			"InterlockedCompareStore", "InterlockedExchange", "InterlockedMax", "InterlockedMin", "InterlockedOr", "InterlockedXor", "isfinite", "isinf", "isnan",
-			"ldexp", "length", "lerp", "lit", "log", "log10", "log2", "mad", "max", "min", "modf", "msad4", "mul", "noise", "normalize", "pow", "printf",
-			"Process2DQuadTessFactorsAvg", "Process2DQuadTessFactorsMax", "Process2DQuadTessFactorsMin", "ProcessIsolineTessFactors", "ProcessQuadTessFactorsAvg",
-			"ProcessQuadTessFactorsMax", "ProcessQuadTessFactorsMin", "ProcessTriTessFactorsAvg", "ProcessTriTessFactorsMax", "ProcessTriTessFactorsMin",
-			"radians", "rcp", "reflect", "refract", "reversebits", "round", "rsqrt", "saturate", "sign", "sin", "sincos", "sinh", "smoothstep", "sqrt", "step",
-			"tan", "tanh", "tex1D", "tex1D", "tex1Dbias", "tex1Dgrad", "tex1Dlod", "tex1Dproj", "tex2D", "tex2D", "tex2Dbias", "tex2Dgrad", "tex2Dlod", "tex2Dproj",
-			"tex3D", "tex3D", "tex3Dbias", "tex3Dgrad", "tex3Dlod", "tex3Dproj", "texCUBE", "texCUBE", "texCUBEbias", "texCUBEgrad", "texCUBElod", "texCUBEproj", "transpose", "trunc"
-		};
-		for (auto& k : identifiers)
-		{
-			Identifier id;
-			id.mDeclaration = "Built-in function";
-			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
-		}
+		m_HLSLDocumentation(langDef.mIdentifiers);
 
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("//.*", PaletteIndex::Comment));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[ \\t]*#[ \\t]*[a-zA-Z_]+", PaletteIndex::Preprocessor));
@@ -2077,6 +2060,152 @@ TextEditor::LanguageDefinition TextEditor::LanguageDefinition::HLSL()
 		inited = true;
 	}
 	return langDef;
+}
+void TextEditor::LanguageDefinition::m_HLSLDocumentation(Identifiers& idents)
+{
+	std::function<Identifier(const std::string&)> desc = [](const std::string & str) {
+		Identifier id;
+		id.mDeclaration = str;
+		return id;
+	};
+
+	/* SOURCE: https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-intrinsic-functions */
+
+	idents.insert(std::make_pair("abort", desc("Terminates the current draw or dispatch call being executed.")));
+	idents.insert(std::make_pair("abs", desc("Absolute value (per component).")));
+	idents.insert(std::make_pair("acos", desc("Returns the arccosine of each component of x.")));
+	idents.insert(std::make_pair("all", desc("Test if all components of x are nonzero.")));
+	idents.insert(std::make_pair("AllMemoryBarrier", desc("Blocks execution of all threads in a group until all memory accesses have been completed.")));
+	idents.insert(std::make_pair("AllMemoryBarrierWithGroupSync", desc("Blocks execution of all threads in a group until all memory accesses have been completed and all threads in the group have reached this call.")));
+	idents.insert(std::make_pair("any", desc("Test if any component of x is nonzero.")));
+	idents.insert(std::make_pair("asdouble", desc("Reinterprets a cast value into a double.")));
+	idents.insert(std::make_pair("asfloat", desc("Convert the input type to a float.")));
+	idents.insert(std::make_pair("asin", desc("Returns the arcsine of each component of x.")));
+	idents.insert(std::make_pair("asint", desc("Convert the input type to an integer.")));
+	idents.insert(std::make_pair("asuint", desc("Convert the input type to an unsigned integer.")));
+	idents.insert(std::make_pair("atan", desc("Returns the arctangent of x.")));
+	idents.insert(std::make_pair("atan2", desc("Returns the arctangent of of two values (x,y).")));
+	idents.insert(std::make_pair("ceil", desc("Returns the smallest integer which is greater than or equal to x.")));
+	idents.insert(std::make_pair("CheckAccessFullyMapped", desc("Determines whether all values from a Sample or Load operation accessed mapped tiles in a tiled resource.")));
+	idents.insert(std::make_pair("clamp", desc("Clamps x to the range [min, max].")));
+	idents.insert(std::make_pair("clip", desc("Discards the current pixel, if any component of x is less than zero.")));
+	idents.insert(std::make_pair("cos", desc("Returns the cosine of x.")));
+	idents.insert(std::make_pair("cosh", desc("Returns the hyperbolic cosine of x.")));
+	idents.insert(std::make_pair("countbits", desc("Counts the number of bits (per component) in the input integer.")));
+	idents.insert(std::make_pair("cross", desc("Returns the cross product of two 3D vectors.")));
+	idents.insert(std::make_pair("D3DCOLORtoUBYTE4", desc("Swizzles and scales components of the 4D vector x to compensate for the lack of UBYTE4 support in some hardware.")));
+	idents.insert(std::make_pair("ddx", desc("Returns the partial derivative of x with respect to the screen-space x-coordinate.")));
+	idents.insert(std::make_pair("ddx_coarse", desc("Computes a low precision partial derivative with respect to the screen-space x-coordinate.")));
+	idents.insert(std::make_pair("ddx_fine", desc("Computes a high precision partial derivative with respect to the screen-space x-coordinate.")));
+	idents.insert(std::make_pair("ddy", desc("Returns the partial derivative of x with respect to the screen-space y-coordinate.")));
+	idents.insert(std::make_pair("ddy_coarse", desc("Returns the partial derivative of x with respect to the screen-space y-coordinate.")));
+	idents.insert(std::make_pair("ddy_fine", desc("Computes a high precision partial derivative with respect to the screen-space y-coordinate.")));
+	idents.insert(std::make_pair("degrees", desc("Converts x from radians to degrees.")));
+	idents.insert(std::make_pair("determinant", desc("Returns the determinant of the square matrix m.")));
+	idents.insert(std::make_pair("DeviceMemoryBarrier", desc("Blocks execution of all threads in a group until all device memory accesses have been completed.")));
+	idents.insert(std::make_pair("DeviceMemoryBarrierWithGroupSync", desc("Blocks execution of all threads in a group until all device memory accesses have been completed and all threads in the group have reached this call.")));
+	idents.insert(std::make_pair("distance", desc("Returns the distance between two points.")));
+	idents.insert(std::make_pair("dot", desc("Returns the dot product of two vectors.")));
+	idents.insert(std::make_pair("dst", desc("Calculates a distance vector.")));
+	idents.insert(std::make_pair("errorf", desc("Submits an error message to the information queue.")));
+	idents.insert(std::make_pair("EvaluateAttributeAtCentroid", desc("Evaluates at the pixel centroid.")));
+	idents.insert(std::make_pair("EvaluateAttributeAtSample", desc("Evaluates at the indexed sample location.")));
+	idents.insert(std::make_pair("EvaluateAttributeSnapped", desc("Evaluates at the pixel centroid with an offset.")));
+	idents.insert(std::make_pair("exp", desc("Returns the base-e exponent.")));
+	idents.insert(std::make_pair("exp2", desc("Base 2 exponent(per component).")));
+	idents.insert(std::make_pair("f16tof32", desc("Converts the float16 stored in the low-half of the uint to a float.")));
+	idents.insert(std::make_pair("f32tof16", desc("Converts an input into a float16 type.")));
+	idents.insert(std::make_pair("faceforward", desc("Returns -n * sign(dot(i, ng)).")));
+	idents.insert(std::make_pair("firstbithigh", desc("Gets the location of the first set bit starting from the highest order bit and working downward, per component.")));
+	idents.insert(std::make_pair("firstbitlow", desc("Returns the location of the first set bit starting from the lowest order bit and working upward, per component.")));
+	idents.insert(std::make_pair("floor", desc("Returns the greatest integer which is less than or equal to x.")));
+	idents.insert(std::make_pair("fma", desc("Returns the double-precision fused multiply-addition of a * b + c.")));
+	idents.insert(std::make_pair("fmod", desc("Returns the floating point remainder of x/y.")));
+	idents.insert(std::make_pair("frac", desc("Returns the fractional part of x.")));
+	idents.insert(std::make_pair("frexp", desc("Returns the mantissa and exponent of x.")));
+	idents.insert(std::make_pair("fwidth", desc("Returns abs(ddx(x)) + abs(ddy(x))")));
+	idents.insert(std::make_pair("GetRenderTargetSampleCount", desc("Returns the number of render-target samples.")));
+	idents.insert(std::make_pair("GetRenderTargetSamplePosition", desc("Returns a sample position (x,y) for a given sample index.")));
+	idents.insert(std::make_pair("GroupMemoryBarrier", desc("Blocks execution of all threads in a group until all group shared accesses have been completed.")));
+	idents.insert(std::make_pair("GroupMemoryBarrierWithGroupSync", desc("Blocks execution of all threads in a group until all group shared accesses have been completed and all threads in the group have reached this call.")));
+	idents.insert(std::make_pair("InterlockedAdd", desc("Performs a guaranteed atomic add of value to the dest resource variable.")));
+	idents.insert(std::make_pair("InterlockedAnd", desc("Performs a guaranteed atomic and.")));
+	idents.insert(std::make_pair("InterlockedCompareExchange", desc("Atomically compares the input to the comparison value and exchanges the result.")));
+	idents.insert(std::make_pair("InterlockedCompareStore", desc("Atomically compares the input to the comparison value.")));
+	idents.insert(std::make_pair("InterlockedExchange", desc("Assigns value to dest and returns the original value.")));
+	idents.insert(std::make_pair("InterlockedMax", desc("Performs a guaranteed atomic max.")));
+	idents.insert(std::make_pair("InterlockedMin", desc("Performs a guaranteed atomic min.")));
+	idents.insert(std::make_pair("InterlockedOr", desc("Performs a guaranteed atomic or.")));
+	idents.insert(std::make_pair("InterlockedXor", desc("Performs a guaranteed atomic xor.")));
+	idents.insert(std::make_pair("isfinite", desc("Returns true if x is finite, false otherwise.")));
+	idents.insert(std::make_pair("isinf", desc("Returns true if x is +INF or -INF, false otherwise.")));
+	idents.insert(std::make_pair("isnan", desc("Returns true if x is NAN or QNAN, false otherwise.")));
+	idents.insert(std::make_pair("ldexp", desc("Returns x * 2exp")));
+	idents.insert(std::make_pair("length", desc("Returns the length of the vector v.")));
+	idents.insert(std::make_pair("lerp", desc("Returns x + s(y - x).")));
+	idents.insert(std::make_pair("lit", desc("Returns a lighting vector (ambient, diffuse, specular, 1)")));
+	idents.insert(std::make_pair("log", desc("Returns the base-e logarithm of x.")));
+	idents.insert(std::make_pair("log10", desc("Returns the base-10 logarithm of x.")));
+	idents.insert(std::make_pair("log2", desc("Returns the base - 2 logarithm of x.")));
+	idents.insert(std::make_pair("mad", desc("Performs an arithmetic multiply/add operation on three values.")));
+	idents.insert(std::make_pair("max", desc("Selects the greater of x and y.")));
+	idents.insert(std::make_pair("min", desc("Selects the lesser of x and y.")));
+	idents.insert(std::make_pair("modf", desc("Splits the value x into fractional and integer parts.")));
+	idents.insert(std::make_pair("msad4", desc("Compares a 4-byte reference value and an 8-byte source value and accumulates a vector of 4 sums.")));
+	idents.insert(std::make_pair("mul", desc("Performs matrix multiplication using x and y.")));
+	idents.insert(std::make_pair("noise", desc("Generates a random value using the Perlin-noise algorithm.")));
+	idents.insert(std::make_pair("normalize", desc("Returns a normalized vector.")));
+	idents.insert(std::make_pair("pow", desc("Returns x^n.")));
+	idents.insert(std::make_pair("printf", desc("Submits a custom shader message to the information queue.")));
+	idents.insert(std::make_pair("Process2DQuadTessFactorsAvg", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("Process2DQuadTessFactorsMax", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("Process2DQuadTessFactorsMin", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("ProcessIsolineTessFactors", desc("Generates the rounded tessellation factors for an isoline.")));
+	idents.insert(std::make_pair("ProcessQuadTessFactorsAvg", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("ProcessQuadTessFactorsMax", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("ProcessQuadTessFactorsMin", desc("Generates the corrected tessellation factors for a quad patch.")));
+	idents.insert(std::make_pair("ProcessTriTessFactorsAvg", desc("Generates the corrected tessellation factors for a tri patch.")));
+	idents.insert(std::make_pair("ProcessTriTessFactorsMax", desc("Generates the corrected tessellation factors for a tri patch.")));
+	idents.insert(std::make_pair("ProcessTriTessFactorsMin", desc("Generates the corrected tessellation factors for a tri patch.")));
+	idents.insert(std::make_pair("radians", desc("Converts x from degrees to radians.")));
+	idents.insert(std::make_pair("rcp", desc("Calculates a fast, approximate, per-component reciprocal.")));
+	idents.insert(std::make_pair("reflect", desc("Returns a reflection vector.")));
+	idents.insert(std::make_pair("refract", desc("Returns the refraction vector.")));
+	idents.insert(std::make_pair("reversebits", desc("Reverses the order of the bits, per component.")));
+	idents.insert(std::make_pair("round", desc("Rounds x to the nearest integer")));
+	idents.insert(std::make_pair("rsqrt", desc("Returns 1 / sqrt(x)")));
+	idents.insert(std::make_pair("saturate", desc("Clamps x to the range [0, 1]")));
+	idents.insert(std::make_pair("sign", desc("Computes the sign of x.")));
+	idents.insert(std::make_pair("sin", desc("Returns the sine of x")));
+	idents.insert(std::make_pair("sincos", desc("Returns the sineand cosine of x.")));
+	idents.insert(std::make_pair("sinh", desc("Returns the hyperbolic sine of x")));
+	idents.insert(std::make_pair("smoothstep", desc("Returns a smooth Hermite interpolation between 0 and 1.")));
+	idents.insert(std::make_pair("sqrt", desc("Square root (per component)")));
+	idents.insert(std::make_pair("step", desc("Returns (x >= a) ? 1 : 0")));
+	idents.insert(std::make_pair("tan", desc("Returns the tangent of x")));
+	idents.insert(std::make_pair("tanh", desc("Returns the hyperbolic tangent of x")));
+	idents.insert(std::make_pair("tex1D", desc("1D texture lookup.")));
+	idents.insert(std::make_pair("tex1Dbias", desc("1D texture lookup with bias.")));
+	idents.insert(std::make_pair("tex1Dgrad", desc("1D texture lookup with a gradient.")));
+	idents.insert(std::make_pair("tex1Dlod", desc("1D texture lookup with LOD.")));
+	idents.insert(std::make_pair("tex1Dproj", desc("1D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("tex2D", desc("2D texture lookup.")));
+	idents.insert(std::make_pair("tex2Dbias", desc("2D texture lookup with bias.")));
+	idents.insert(std::make_pair("tex2Dgrad", desc("2D texture lookup with a gradient.")));
+	idents.insert(std::make_pair("tex2Dlod", desc("2D texture lookup with LOD.")));
+	idents.insert(std::make_pair("tex2Dproj", desc("2D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("tex3D", desc("3D texture lookup.")));
+	idents.insert(std::make_pair("tex3Dbias", desc("3D texture lookup with bias.")));
+	idents.insert(std::make_pair("tex3Dgrad", desc("3D texture lookup with a gradient.")));
+	idents.insert(std::make_pair("tex3Dlod", desc("3D texture lookup with LOD.")));
+	idents.insert(std::make_pair("tex3Dproj", desc("3D texture lookup with projective divide.")));
+	idents.insert(std::make_pair("texCUBE", desc("Cube texture lookup.")));
+	idents.insert(std::make_pair("texCUBEbias", desc("Cube texture lookup with bias.")));
+	idents.insert(std::make_pair("texCUBEgrad", desc("Cube texture lookup with a gradient.")));
+	idents.insert(std::make_pair("texCUBElod", desc("Cube texture lookup with LOD.")));
+	idents.insert(std::make_pair("texCUBEproj", desc("Cube texture lookup with projective divide.")));
+	idents.insert(std::make_pair("transpose", desc("Returns the transpose of the matrix m.")));
+	idents.insert(std::make_pair("trunc", desc("Truncates floating-point value(s) to integer value(s)")));
 }
 
 TextEditor::LanguageDefinition TextEditor::LanguageDefinition::GLSL()

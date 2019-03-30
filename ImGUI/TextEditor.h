@@ -161,6 +161,9 @@ public:
 		static LanguageDefinition SQL();
 		static LanguageDefinition AngelScript();
 		static LanguageDefinition Lua();
+
+	private:
+		static void m_HLSLDocumentation(Identifiers& idents);
 	};
 
 	TextEditor();
