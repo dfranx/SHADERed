@@ -47,6 +47,7 @@ namespace ed
 		// group -> pipeline item name
 		void Add(Type type, const std::string& group, const std::string& message, int ln = -1, int sh = -1);
 		void ClearGroup(const std::string& group);
+		void RenameGroup(const std::string& group, const std::string& newName);
 
 		bool CanRenderPreview();
 

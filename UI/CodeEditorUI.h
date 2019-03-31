@@ -32,6 +32,8 @@ namespace ed
 		void OpenPS(PipelineItem item);
 		void OpenGS(PipelineItem item);
 
+		void RenameShaderPass(const std::string& name, const std::string& newName);
+
 		inline void SetTheme(const TextEditor::Palette& colors) {
 			for (TextEditor& editor : m_editor)
 				editor.SetPalette(colors);

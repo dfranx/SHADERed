@@ -1,5 +1,6 @@
 #include "PropertyUI.h"
 #include "UIHelper.h"
+#include "CodeEditorUI.h"
 #include "../ImGUI/imgui.h"
 #include "../ImGUI/imgui_internal.h"
 #include "../Objects/Names.h"
@@ -14,8 +15,10 @@ namespace ed
 	{
 		if (m_current != nullptr || m_currentRT != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-
-			ImGui::Text(m_itemName);
+			if (m_current != nullptr)
+				ImGui::Text(m_current->Name);
+			else
+				ImGui::Text("nullptr");
 			ImGui::PopStyleColor();
 
 			ImGui::Columns(2, "##content_columns");
@@ -36,7 +39,11 @@ namespace ed
 						ImGui::OpenPopup("ERROR##pui_itemname_taken");
 					else if (strlen(m_itemName) <= 2)
 						ImGui::OpenPopup("ERROR##pui_itemname_short");
-					else if (m_current != nullptr) memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+					else if (m_current != nullptr) {
+						m_data->Messages.RenameGroup(m_current->Name, m_itemName);
+						((CodeEditorUI*)m_ui->Get("Code"))->RenameShaderPass(m_current->Name, m_itemName);
+						memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+					}
 				}
 				ImGui::NextColumn();
 			}

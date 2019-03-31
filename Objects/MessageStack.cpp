@@ -20,6 +20,12 @@ namespace ed
 				i--;
 			}
 	}
+	void MessageStack::RenameGroup(const std::string& group, const std::string& newName)
+	{
+		for (int i = 0; i < m_msgs.size(); i++)
+			if (m_msgs[i].Group == group)
+				m_msgs[i].Group = newName;
+	}
 	bool MessageStack::CanRenderPreview()
 	{
 		for (int i = 0; i < m_msgs.size(); i++)

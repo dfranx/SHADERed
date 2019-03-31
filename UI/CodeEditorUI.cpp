@@ -153,6 +153,12 @@ namespace ed
 			}
 		}
 	}
+	void CodeEditorUI::RenameShaderPass(const std::string& name, const std::string& newName)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (name == m_items[i].Name)
+				strcpy(m_items[i].Name, newName.c_str());
+	}
 	void CodeEditorUI::m_open(PipelineItem item, int sid)
 	{
 		// check if already opened
