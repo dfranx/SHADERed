@@ -139,6 +139,11 @@ namespace ed
 						((PreviewUI*)Get("Preview"))->Pick(nullptr);
 
 						m_data->Parser.Open(file);
+
+						std::string projName = m_data->Parser.GetOpenedFile();
+						projName = projName.substr(projName.find_last_of("/\\") + 1);
+
+						SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + projName + ")").c_str());
 					}
 				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str())) {
@@ -478,6 +483,11 @@ namespace ed
 
 			m_data->Parser.SaveAs(file, true);
 			m_data->Parser.Open(file);
+
+			std::string projName = m_data->Parser.GetOpenedFile();
+			projName = projName.substr(projName.find_last_of("/\\") + 1);
+
+			SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + projName + ")").c_str());
 		}
 	}
 

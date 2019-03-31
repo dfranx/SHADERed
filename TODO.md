@@ -1,5 +1,4 @@
 - [ ] replace state string names with enums
-- [ ] project name & path on the win32 window titlebar
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)
 - [ ] hide win32 console in release mode
 - [ ] "Save preview as image" option
