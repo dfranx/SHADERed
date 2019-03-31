@@ -476,7 +476,8 @@ namespace ed
 			std::wstring wfile = std::wstring(filePath);
 			std::string file(wfile.begin(), wfile.end());
 
-			m_data->Parser.SaveAs(file);
+			m_data->Parser.SaveAs(file, true);
+			m_data->Parser.Open(file);
 		}
 	}
 

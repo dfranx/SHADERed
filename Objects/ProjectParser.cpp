@@ -592,11 +592,35 @@ namespace ed
 	{
 		SaveAs(m_file);
 	}
-	void ProjectParser::SaveAs(const std::string & file)
+	void ProjectParser::SaveAs(const std::string & file, bool copyFiles)
 	{
 		m_file = file;
 		std::string oldProjectPath = m_projectPath;
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
+
+		std::vector<PipelineItem*> passItems = m_pipe->GetList();
+
+		std::string shadersDir = m_projectPath + "\\shaders";
+		if (copyFiles) {
+			CreateDirectoryA(shadersDir.c_str(), NULL);
+
+			std::string proj = oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\");
+
+			for (PipelineItem* passItem : passItems) {
+				pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
+
+				std::string vs = proj + std::string(passData->VSPath);
+				std::string ps = proj + std::string(passData->PSPath);
+
+				CopyFileA(vs.c_str(), (shadersDir + "\\" + passItem->Name + "VS.hlsl").c_str(), false);
+				CopyFileA(ps.c_str(), (shadersDir + "\\" + passItem->Name + "PS.hlsl").c_str(), false);
+
+				if (passData->GSUsed) {
+					std::string gs = proj + std::string(passData->GSPath);
+					CopyFileA(gs.c_str(), (shadersDir + "\\" + passItem->Name + "GS.hlsl").c_str(), false);
+				}
+			}
+		}
 
 		pugi::xml_document doc;
 		pugi::xml_node projectNode = doc.append_child("project");
@@ -605,7 +629,6 @@ namespace ed
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
 		// shader passes
-		std::vector<PipelineItem*> passItems = m_pipe->GetList();
 		for (PipelineItem* passItem : passItems) {
 			pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
 
@@ -617,6 +640,8 @@ namespace ed
 			// vertex shader
 			pugi::xml_node vsNode = passNode.append_child("shader");
 			std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->VSPath));
+			if (copyFiles)
+				relativePath = "shaders\\" + std::string(passItem->Name) + "VS.hlsl";
 
 			vsNode.append_attribute("type").set_value("vs");
 			vsNode.append_child("path").text().set(relativePath.c_str());
@@ -639,6 +664,8 @@ namespace ed
 			// pixel shader
 			pugi::xml_node psNode = passNode.append_child("shader");
 			relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->PSPath));
+			if (copyFiles)
+				relativePath = "shaders\\" + std::string(passItem->Name) + "PS.hlsl";
 
 			psNode.append_attribute("type").set_value("ps");
 			psNode.append_child("path").text().set(relativePath.c_str());
@@ -649,6 +676,8 @@ namespace ed
 			if (strlen(passData->GSEntry) > 0 && strlen(passData->GSPath) > 0) {
 				pugi::xml_node gsNode = passNode.append_child("shader");
 				relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->GSPath));
+				if (copyFiles)
+					relativePath = "shaders\\" + std::string(passItem->Name) + "GS.hlsl";
 
 				gsNode.append_attribute("used").set_value(passData->GSUsed);
 

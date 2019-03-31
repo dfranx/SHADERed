@@ -20,7 +20,7 @@ namespace ed
 		void OpenTemplate();
 
 		void Save();
-		void SaveAs(const std::string& file);
+		void SaveAs(const std::string& file, bool copyFiles = false);
 
 		std::string LoadProjectFile(const std::string& file);
 		char* LoadProjectFile(const std::string& file, size_t& len);
