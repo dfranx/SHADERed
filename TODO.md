@@ -1,5 +1,3 @@
-- [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
-- [ ] status bar - current line, current column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
 - [ ] project name & path on the win32 window titlebar
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)
@@ -7,7 +5,6 @@
 - [ ] "Save preview as image" option
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 - [ ] add option to switch to FPS camera
-- [ ] horizontal scrollbar in code editor (+ in options)
 - [ ] comment the code
 - [ ] icon
 - [ ] test software and fix crashes (if any) and build cool examples

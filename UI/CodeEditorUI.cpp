@@ -9,6 +9,8 @@
 #include <fstream>
 #include <d3dcompiler.h>
 
+#define STATUSBAR_HEIGHT 18
+
 namespace ed
 {
 	void CodeEditorUI::m_setupShortcuts() {
@@ -88,11 +90,28 @@ namespace ed
 							if (msgs[j].Group == m_items[i].Name && msgs[j].Shader == m_shaderTypeId[i] && msgs[j].Line > 0)
 								groupErrs[msgs[j].Line] = msgs[j].Text;
 						m_editor[i].SetErrorMarkers(groupErrs);
-						
-						// render
+
+						bool statusbar = Settings::Instance().Preview.StatusBar;
+
+						// render code
 						ImGui::PushFont(m_font);
-						m_editor[i].Render(windowName.c_str());
+						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar*STATUSBAR_HEIGHT));
 						ImGui::PopFont();
+
+						// status bar
+						if (statusbar) {
+							auto cursor = m_editor[i].GetCursorPosition();
+
+							ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+							char* path = shader->VSPath;
+							if (m_shaderTypeId[i] == 1)
+								path = shader->PSPath;
+							else if (m_shaderTypeId[i] == 2)
+								path = shader->GSPath;
+
+							ImGui::Separator();
+							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i].GetLanguageDefinition().mName.c_str(), path);
+						}
 					}
 
 					if (m_editor[i].IsFocused())

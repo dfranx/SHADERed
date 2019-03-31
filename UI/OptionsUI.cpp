@@ -244,6 +244,11 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_ln_numbers", &settings->Editor.LineNumbers);
 
+		/* STATUS BAR: */
+		ImGui::Text("Status bar: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_statusbar", &settings->Editor.StatusBar);
+
 		/* HORIZONTAL SCROLL BAR: */
 		ImGui::Text("Enable horizontal scroll bar: ");
 		ImGui::SameLine();

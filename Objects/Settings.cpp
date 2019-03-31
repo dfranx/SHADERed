@@ -35,6 +35,7 @@ namespace ed
 		Editor.HiglightCurrentLine = ini.GetBoolean("editor", "highlightline", true);
 		Editor.LineNumbers = ini.GetBoolean("editor", "linenumbers", true);
 		Editor.HorizontalScroll = ini.GetBoolean("editor", "horizscroll", true);
+		Editor.StatusBar = ini.GetBoolean("editor", "statusbar", false);
 		Editor.AutoBraceCompletion = ini.GetBoolean("editor", "autobrace", true);
 		strcpy(Editor.GLSLVS_Extenstion, ini.Get("editor", "glslvsext", "vert").c_str());
 		strcpy(Editor.GLSLPS_Extenstion, ini.Get("editor", "glslpsext", "frag").c_str());
@@ -73,6 +74,7 @@ namespace ed
 		ini << "highlightline=" << Editor.HiglightCurrentLine << std::endl;
 		ini << "linenumbers=" << Editor.LineNumbers << std::endl;
 		ini << "horizscroll=" << Editor.HorizontalScroll << std::endl;
+		ini << "statusbar=" << Editor.StatusBar << std::endl;
 		ini << "autobrace=" << Editor.AutoBraceCompletion << std::endl;
 		ini << "glslvsext=" << Editor.GLSLVS_Extenstion << std::endl;
 		ini << "glslpsext=" << Editor.GLSLPS_Extenstion << std::endl;

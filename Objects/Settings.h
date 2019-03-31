@@ -30,6 +30,7 @@ namespace ed
 			bool ShowWhitespace;			// [TODO] Not implemented
 			bool HiglightCurrentLine;
 			bool LineNumbers;
+			bool StatusBar;
 			bool HorizontalScroll;
 			bool AutoBraceCompletion;
 			char GLSLVS_Extenstion[12];
