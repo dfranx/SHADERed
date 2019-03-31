@@ -123,16 +123,11 @@ namespace ed
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
 
 		// menu
-		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false;
+		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New", KeyboardShortcuts::Instance().GetString("Project.New").c_str())) {
-					m_data->Renderer.FlushCache();
-					((CodeEditorUI*)Get("Code"))->CloseAll();
-					((PinnedUI*)Get("Pinned"))->CloseAll();
-					((PreviewUI*)Get("Preview"))->Pick(nullptr);
-					m_data->Pipeline.New();
-				}
+				if (ImGui::MenuItem("New", KeyboardShortcuts::Instance().GetString("Project.New").c_str()))
+					m_isNewProjectPopupOpened = true;
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
@@ -256,6 +251,11 @@ namespace ed
 			m_isCreateRTOpened = false;
 		}
 
+		if (m_isNewProjectPopupOpened) {
+			ImGui::OpenPopup("Are you sure?##main_new_proj");
+			m_isNewProjectPopupOpened = false;
+		}
+
 		// Create Item popup
 		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
@@ -283,6 +283,25 @@ namespace ed
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create new project
+		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
+			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
+			if (ImGui::Button("Yes")) {
+				m_data->Renderer.FlushCache();
+				((CodeEditorUI*)Get("Code"))->CloseAll();
+				((PinnedUI*)Get("Pinned"))->CloseAll();
+				((PreviewUI*)Get("Preview"))->Pick(nullptr);
+				m_data->Pipeline.New();
+
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("No"))
+				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
 

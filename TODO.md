@@ -1,4 +1,3 @@
-- [ ] ask the user if they are 100% sure they want to create new project
 - [ ] add File -> Save Project Copy (copies all the shaders to the project directory)
 - [ ] status bar - current line, current column, full file name, label: "HLSL"/"GLSL" (aka show the language)
 - [ ] replace state string names with enums
