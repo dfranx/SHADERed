@@ -4,6 +4,10 @@
 #include "EditorEngine.h"
 #include <fstream>
 
+#ifdef NDEBUG
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+
 int main()
 {
 	// window configuration

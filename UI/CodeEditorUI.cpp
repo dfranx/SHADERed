@@ -35,7 +35,7 @@ namespace ed
 			else m_stats[m_selectedItem].IsActive = false;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Editor.ToggleStatusbar", [=]() {
-			// TODO
+			Settings::Instance().Editor.StatusBar = !Settings::Instance().Editor.StatusBar;
 		});
 	}
 	void CodeEditorUI::OnEvent(const ml::Event & e)
@@ -91,7 +91,7 @@ namespace ed
 								groupErrs[msgs[j].Line] = msgs[j].Text;
 						m_editor[i].SetErrorMarkers(groupErrs);
 
-						bool statusbar = Settings::Instance().Preview.StatusBar;
+						bool statusbar = Settings::Instance().Editor.StatusBar;
 
 						// render code
 						ImGui::PushFont(m_font);

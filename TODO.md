@@ -1,13 +1,12 @@
+- [ ] add option to switch to FPS camera
+- [ ] bool IsPicked shader variable
+- [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
+
 - [ ] replace state string names with enums
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)
-- [ ] hide win32 console in release mode
-- [ ] "Save preview as image" option
-- [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
-- [ ] add option to switch to FPS camera
 - [ ] comment the code
 - [ ] icon
 - [ ] test software and fix crashes (if any) and build cool examples
-- [ ] bool IsPicked shader variable
 - [ ] help -> manual, about, etc...
 - [ ] do all TODOs (comments)
 - [ ] README.md

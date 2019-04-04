@@ -29,6 +29,8 @@ namespace ed
 		m_settingsBkp = new Settings();
 		m_isCreateRTOpened = false;
 		m_isCreateItemPopupOpened = false;
+		m_previewSaveSize = DirectX::XMINT2(1920, 1080);
+		m_savePreviewPopupOpened = false;
 
 		Settings::Instance().Load();
 
@@ -154,6 +156,8 @@ namespace ed
 				}
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
 					m_saveAsProject();
+				if (ImGui::MenuItem("Save Preview as Image", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
+					m_savePreviewPopupOpened = true;
 
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
@@ -171,6 +175,8 @@ namespace ed
 					for (PipelineItem*& pass : passes)
 						m_data->Renderer.Recompile(pass->Name);
 				}
+				if (ImGui::MenuItem("Render", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
+					m_savePreviewPopupOpened = true;
 				if (ImGui::BeginMenu("Create")) {
 					if (ImGui::MenuItem("Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str())) {
 						m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
@@ -245,17 +251,26 @@ namespace ed
 			ImGui::End();
 		}
 
-		// open popups
+		// open popup for creating items
 		if (m_isCreateItemPopupOpened) {
 			ImGui::OpenPopup("Create Item##main_create_item");
 			m_isCreateItemPopupOpened = false;
 		}
 
+		// open popup for saving preview as image
+		if (m_savePreviewPopupOpened) {
+			ImGui::OpenPopup("Save Preview##main_save_preview");
+			m_previewSavePath = "render.png";
+			m_savePreviewPopupOpened = false;
+		}
+
+		// open popup for creating render texture
 		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
 			m_isCreateRTOpened = false;
 		}
 
+		// open popup for openning new project
 		if (m_isNewProjectPopupOpened) {
 			ImGui::OpenPopup("Are you sure?##main_new_proj");
 			m_isNewProjectPopupOpened = false;
@@ -306,6 +321,45 @@ namespace ed
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("No"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Save preview
+		ImGui::SetNextWindowSize(ImVec2(400, 125), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
+			ImGui::Text("Path: %s", m_previewSavePath.c_str());
+			ImGui::SameLine();
+			if (ImGui::Button("...##save_prev_path"))
+				m_previewSavePath = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0"); /* TODO: more options */
+			
+			ImGui::Text("Width: ");
+			ImGui::SameLine();
+			ImGui::Indent(55);
+			ImGui::InputInt("##save_prev_sizew", &m_previewSaveSize.x);
+			ImGui::Unindent(55);
+
+			ImGui::Text("Height: ");
+			ImGui::SameLine();
+			ImGui::Indent(55);
+			ImGui::InputInt("##save_prev_sizeh", &m_previewSaveSize.y);
+			ImGui::Unindent(55);
+
+			if (ImGui::Button("Save")) {
+				DirectX::ScratchImage img;
+				std::wstring wpath(m_previewSavePath.begin(), m_previewSavePath.end());
+				
+				if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0)
+					m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+
+				DirectX::CaptureTexture(m_wnd->GetDevice(), m_wnd->GetDeviceContext(), m_data->Renderer.GetRenderTexture().GetResource(), img);
+				DirectX::SaveToWICFile(img.GetImages()[0], DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WICCodecs::WIC_CODEC_PNG), wpath.c_str());
+
+				//DirectX::SaveToWICFile()
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel"))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
@@ -551,6 +605,9 @@ namespace ed
 		// PREVIEW
 		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleStatusbar", [=]() {
 			Settings::Instance().Preview.StatusBar = !Settings::Instance().Preview.StatusBar;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.SaveImage", [=]() {
+			m_savePreviewPopupOpened = true;
 		});
 
 		// WORKSPACE

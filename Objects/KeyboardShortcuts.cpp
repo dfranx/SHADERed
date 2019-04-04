@@ -98,7 +98,7 @@ namespace ed
 	}
 	std::string KeyboardShortcuts::GetString(const std::string& name)
 	{
-		if (m_data[name].Key1 == -1)
+		if (m_data[name].Key1 == -1 || (m_data[name].Key1 == 0 && m_data[name].Key2 == 0))
 			return "";
 
 		std::string ret = "";

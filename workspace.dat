@@ -116,15 +116,13 @@ DockId=0x00000018,0
 
 [Window][OutlinePass (VS)##code_view]
 Pos=17,19
-Size=32,32
+Size=32,44
 Collapsed=0
-DockId=0x00000011,1
 
 [Window][OutlinePass (PS)##code_view]
 Pos=17,28
-Size=32,32
+Size=32,44
 Collapsed=0
-DockId=0x00000011,1
 
 [Window][Objects]
 Pos=0,19
@@ -151,7 +149,7 @@ Collapsed=0
 DockId=0x00000011,1
 
 [Window][Options]
-Pos=404,271
+Pos=404,248
 Size=816,554
 Collapsed=0
 

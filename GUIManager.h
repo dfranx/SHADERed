@@ -38,6 +38,10 @@ namespace ed
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
+		bool m_savePreviewPopupOpened;
+		std::string m_previewSavePath;
+		DirectX::XMINT2 m_previewSaveSize;
+
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
 
