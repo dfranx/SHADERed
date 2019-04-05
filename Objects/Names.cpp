@@ -152,7 +152,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"ViewProjection",
 	"Orthographic",
 	"ViewOrthographic",
-	"GeometryTransform"
+	"GeometryTransform",
+	"IsPicked"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",

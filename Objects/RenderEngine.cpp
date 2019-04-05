@@ -133,6 +133,8 @@ namespace ed
 			for (int j = 0; j < data->Items.size(); j++) {
 				PipelineItem* item = data->Items[j];
 
+				SystemVariableManager::Instance().SetPicked(false);
+
 				// update the value for this element and check if the we picked it
 				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::OBJModel) {
 					if (m_pickAwaiting) m_pickItem(item);
@@ -150,6 +152,9 @@ namespace ed
 						SystemVariableManager::Instance().SetGeometryTransform(scaleRect, geoData->Rotation, posRect);
 					} else
 						SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
+
+					SystemVariableManager::Instance().SetPicked(m_pick == item);
+
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);
 					if (data->GSUsed) data->GSVariables.UpdateBuffers(m_wnd);
@@ -160,7 +165,8 @@ namespace ed
 				else if (item->Type == PipelineItem::ItemType::OBJModel) {
 					pipe::OBJModel* objData = reinterpret_cast<pipe::OBJModel*>(item->Data);
 
-					// TODO: model transform
+					SystemVariableManager::Instance().SetPicked(m_pick == item);
+
 					SystemVariableManager::Instance().SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
 					data->VSVariables.UpdateBuffers(m_wnd);
 					data->PSVariables.UpdateBuffers(m_wnd);

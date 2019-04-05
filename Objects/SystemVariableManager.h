@@ -30,6 +30,7 @@ namespace ed
 				case ed::SystemShaderVariable::Orthographic: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
+				case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
 			}
 
 			return ed::ShaderVariable::ValueType::Float1;
@@ -48,6 +49,7 @@ namespace ed
 		inline DirectX::XMFLOAT2 GetMousePosition() { return m_mouse; }
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
 		inline float GetTimeDelta() { return m_deltaTime; }
+		inline bool IsPicked() { return m_isPicked; }
 
 		inline void SetGeometryTransform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rota, const DirectX::XMFLOAT3& pos)
 		{
@@ -58,6 +60,7 @@ namespace ed
 		inline void SetViewportSize(float x, float y) { m_viewport = DirectX::XMFLOAT2(x, y); }
 		inline void SetMousePosition(float x, float y) { m_mouse = DirectX::XMFLOAT2(x, y); }
 		inline void SetTimeDelta(float x) { m_deltaTime = x; }
+		inline void SetPicked(bool picked) { m_isPicked = picked; }
 
 	private:
 		ml::Timer m_timer;
@@ -65,5 +68,6 @@ namespace ed
 		Camera m_cam;
 		DirectX::XMFLOAT2 m_viewport, m_mouse;
 		DirectX::XMMATRIX m_geometryTransform;
+		bool m_isPicked;
 	};
 }

@@ -54,6 +54,11 @@ namespace ed
 					float raw = SystemVariableManager::Instance().GetTimeDelta();
 					memcpy(var->Data, &raw, sizeof(float));
 				} break;
+				case ed::SystemShaderVariable::IsPicked:
+				{
+					bool raw = SystemVariableManager::Instance().IsPicked();
+					memcpy(var->Data, &raw, sizeof(bool));
+				} break;
 			}
 		}
 	}

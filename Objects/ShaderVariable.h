@@ -17,6 +17,7 @@ namespace ed
 		Orthographic,		// matrix/float4x4 - an orthographic matrix
 		ViewOrthographic,	// matrix/float4x4 - View*Orthographic
 		GeometryTransform,	// matrix/float4x4 - apply Scale, Rotation and Position to geometry
+		IsPicked,			// bool		- check if current item is selected
 		Count
 	};
 
