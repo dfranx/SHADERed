@@ -20,6 +20,9 @@ namespace ed
 		bool Create();
 
 	private:
+		std::vector<std::string> m_groups;
+		int m_selectedGroup;
+
 		char m_owner[PIPELINE_ITEM_NAME_LENGTH];
 		PipelineItem m_item;
 	};

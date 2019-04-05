@@ -1,5 +1,4 @@
 - [ ] add option to switch to FPS camera
-- [ ] bool IsPicked shader variable
 - [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
 
 - [ ] replace state string names with enums

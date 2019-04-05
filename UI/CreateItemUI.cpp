@@ -357,23 +357,46 @@ namespace ed
 			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {
 				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"OBJ\0*.obj\0"));
 				strcpy(data->Filename, file.c_str());
+
+				if (file.size() > 0) {
+					ml::OBJModel mdl;
+					mdl.LoadFromFile(file);
+					m_groups = mdl.GetObjects();
+
+
+					std::vector<std::string> grps = mdl.GetGroups();
+					for (std::string& str : grps)
+						if (std::count(m_groups.begin(), m_groups.end(), str) == 0)
+							m_groups.push_back(str);
+				}
 			}
 			ImGui::NextColumn();
 
-			// should we render only a part of the mesh?
-			ImGui::Text("Render group only:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_meshgroup", &data->OnlyGroup);
-			ImGui::NextColumn();
-
-			// group name
-			if (data->OnlyGroup) {
-				ImGui::Text("Group name:");
+			if (m_groups.size() > 0) {
+				// should we render only a part of the mesh?
+				ImGui::Text("Render group only:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				ImGui::InputText("##cui_meshgroupname", data->GroupName, MODEL_GROUP_NAME_LENGTH);
+				ImGui::Checkbox("##cui_meshgroup", &data->OnlyGroup);
 				ImGui::NextColumn();
+
+				// group name
+				if (data->OnlyGroup) {
+					ImGui::Text("Group name:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##cui_meshgroupname", m_groups[m_selectedGroup].c_str())) {
+						for (int i = 0; i < m_groups.size(); i++)
+							if (ImGui::Selectable(m_groups[i].c_str(), i == m_selectedGroup)) {
+								strcpy(data->GroupName, m_groups[i].c_str());
+								m_selectedGroup = i;
+							}
+						ImGui::EndCombo();
+					}
+
+					//ImGui::InputText("##cui_meshgroupname", data->GroupName, MODEL_GROUP_NAME_LENGTH);
+					ImGui::NextColumn();
+				}
 			}
 		}
 
@@ -418,6 +441,9 @@ namespace ed
 		else if (m_item.Type == PipelineItem::ItemType::RasterizerState)
 			m_item.Data = new pipe::RasterizerState();
 		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
+			m_selectedGroup = 0;
+			m_groups.clear();
+
 			pipe::OBJModel* allocatedData = new pipe::OBJModel();
 			allocatedData->OnlyGroup = false;
 			allocatedData->Scale = DirectX::XMFLOAT3(1, 1, 1);
