@@ -372,11 +372,12 @@ namespace ed
 	void GUIManager::m_renderOptions()
 	{
 		OptionsUI* options = (OptionsUI*)m_options;
-		static const char* optGroups[4] = {
+		static const char* optGroups[5] = {
 			"General",
 			"Editor",
 			"Shortcuts",
-			"Preview"
+			"Preview",
+			"Project"
 		};
 
 		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y*2) / ImGui::GetTextLineHeightWithSpacing() - 1;

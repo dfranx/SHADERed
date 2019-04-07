@@ -38,6 +38,11 @@ namespace ed
 		m_pipe->Clear();
 		m_objects->Clear();
 
+		strcpy(Settings::Instance().Project.GLSLVS_Extenstion, "vert");
+		strcpy(Settings::Instance().Project.GLSLPS_Extenstion, "frag");
+		strcpy(Settings::Instance().Project.GLSLGS_Extenstion, "geom");
+		Settings::Instance().Project.FPCamera = false;
+
 		// shader passes
 		for (pugi::xml_node passNode : doc.child("project").child("pipeline").children("pass")) {
 			char name[PIPELINE_ITEM_NAME_LENGTH];
@@ -569,11 +574,26 @@ namespace ed
 					}
 				}
 				else if (type == "camera") {
+					if (settingItem.attribute("fp").empty())
+						Settings::Instance().Project.FPCamera = false;
+					else
+						Settings::Instance().Project.FPCamera = settingItem.attribute("fp").as_bool();
+
 					SystemVariableManager::Instance().GetCamera().Reset();
 					SystemVariableManager::Instance().GetCamera().SetDistance(std::stof(settingItem.child("distance").text().get()));
 					SystemVariableManager::Instance().GetCamera().RotateX(std::stof(settingItem.child("rotationX").text().get()));
 					SystemVariableManager::Instance().GetCamera().RotateY(std::stof(settingItem.child("rotationY").text().get()));
 					SystemVariableManager::Instance().GetCamera().RotateZ(std::stof(settingItem.child("rotationZ").text().get()));
+				}
+				else if (type == "extension") {
+					std::string stage = settingItem.attribute("stage").as_string();
+
+					if (stage == "vertex")
+						strcpy(Settings::Instance().Project.GLSLVS_Extenstion, settingItem.text().get());
+					if (stage == "pixel")
+						strcpy(Settings::Instance().Project.GLSLPS_Extenstion, settingItem.text().get());
+					if (stage == "geometry")
+						strcpy(Settings::Instance().Project.GLSLGS_Extenstion, settingItem.text().get());
 				}
 			}
 		}
@@ -944,13 +964,31 @@ namespace ed
 				ed::Camera cam = SystemVariableManager::Instance().GetCamera();
 				pugi::xml_node camNode = settingsNode.append_child("entry");
 				camNode.append_attribute("type").set_value("camera");
+				camNode.append_attribute("fp").set_value(Settings::Instance().Project.FPCamera);
 
 				DirectX::XMFLOAT3 rota = cam.GetRotation();
+
+				// TODO: save fps cam props instead of the default ones
 
 				camNode.append_child("distance").text().set(cam.GetDistance());
 				camNode.append_child("rotationX").text().set(rota.x);
 				camNode.append_child("rotationY").text().set(rota.y);
 				camNode.append_child("rotationZ").text().set(rota.z);
+			}
+
+			// extensions
+			{
+				pugi::xml_node extNodeVS = settingsNode.append_child("extension");
+				extNodeVS.append_attribute("stage").set_value("vertex");
+				extNodeVS.text().set(Settings::Instance().Project.GLSLVS_Extenstion);
+
+				pugi::xml_node extNodePS = settingsNode.append_child("extension");
+				extNodePS.append_attribute("stage").set_value("pixel");
+				extNodePS.text().set(Settings::Instance().Project.GLSLPS_Extenstion);
+
+				pugi::xml_node extNodeGS = settingsNode.append_child("extension");
+				extNodeGS.append_attribute("stage").set_value("geometry");
+				extNodeGS.text().set(Settings::Instance().Project.GLSLGS_Extenstion);
 			}
 		}
 

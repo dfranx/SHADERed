@@ -37,9 +37,6 @@ namespace ed
 		Editor.HorizontalScroll = ini.GetBoolean("editor", "horizscroll", true);
 		Editor.StatusBar = ini.GetBoolean("editor", "statusbar", false);
 		Editor.AutoBraceCompletion = ini.GetBoolean("editor", "autobrace", true);
-		strcpy(Editor.GLSLVS_Extenstion, ini.Get("editor", "glslvsext", "vert").c_str());
-		strcpy(Editor.GLSLPS_Extenstion, ini.Get("editor", "glslpsext", "frag").c_str());
-		strcpy(Editor.GLSLGS_Extenstion, ini.Get("editor", "glslgsext", "geom").c_str());
 		Editor.SmartIndent = ini.GetBoolean("editor", "smartindent", true);
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
@@ -76,9 +73,6 @@ namespace ed
 		ini << "horizscroll=" << Editor.HorizontalScroll << std::endl;
 		ini << "statusbar=" << Editor.StatusBar << std::endl;
 		ini << "autobrace=" << Editor.AutoBraceCompletion << std::endl;
-		ini << "glslvsext=" << Editor.GLSLVS_Extenstion << std::endl;
-		ini << "glslpsext=" << Editor.GLSLPS_Extenstion << std::endl;
-		ini << "glslgsext=" << Editor.GLSLGS_Extenstion << std::endl;
 		ini << "smartindent=" << Editor.SmartIndent << std::endl;
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;

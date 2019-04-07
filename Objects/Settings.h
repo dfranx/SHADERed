@@ -33,9 +33,6 @@ namespace ed
 			bool StatusBar;
 			bool HorizontalScroll;
 			bool AutoBraceCompletion;
-			char GLSLVS_Extenstion[12];
-			char GLSLPS_Extenstion[12];
-			char GLSLGS_Extenstion[12];
 			bool SmartIndent;
 			bool InsertSpaces;
 			int TabSize;
@@ -46,6 +43,13 @@ namespace ed
 			bool PropertyPick;
 			bool StatusBar;
 		} Preview;
+
+		struct strProject {
+			bool FPCamera;
+			char GLSLVS_Extenstion[12];
+			char GLSLPS_Extenstion[12];
+			char GLSLGS_Extenstion[12];
+		} Project;
 
 		static inline Settings& Instance()
 		{

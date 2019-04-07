@@ -12,7 +12,8 @@ namespace ed
 			General,
 			Editor,
 			Shortcuts,
-			Preview
+			Preview,
+			Project
 		};
 
 		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
@@ -49,5 +50,6 @@ namespace ed
 		void m_renderEditor();
 		void m_renderShortcuts();
 		void m_renderPreview();
+		void m_renderProject();
 	};
 }

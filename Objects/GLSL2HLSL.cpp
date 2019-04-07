@@ -41,11 +41,11 @@ namespace ed
 	}
 	int GLSL2HLSL::IsGLSL(const std::string& file)
 	{
-		if (file.find("." + std::string(Settings::Instance().Editor.GLSLVS_Extenstion)) != std::string::npos)
+		if (file.find("." + std::string(Settings::Instance().Project.GLSLVS_Extenstion)) != std::string::npos)
 			return 1;
-		if (file.find("." + std::string(Settings::Instance().Editor.GLSLPS_Extenstion)) != std::string::npos)
+		if (file.find("." + std::string(Settings::Instance().Project.GLSLPS_Extenstion)) != std::string::npos)
 			return 2;
-		if (file.find("." + std::string(Settings::Instance().Editor.GLSLGS_Extenstion)) != std::string::npos)
+		if (file.find("." + std::string(Settings::Instance().Project.GLSLGS_Extenstion)) != std::string::npos)
 			return 3;
 
 		return 0;

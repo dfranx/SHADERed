@@ -1,5 +1,5 @@
 - [ ] add option to switch to FPS camera
-- [ ] offer list of all groups instead of manually entering group name when creating mesh/model item
+- [ ] multiple templates: dir template -> dir GLSL/HLSL/etc...
 
 - [ ] replace state string names with enums
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)

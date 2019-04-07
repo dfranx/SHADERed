@@ -28,11 +28,13 @@ namespace ed
 							m_newShortcut.Key1 = e.Keyboard.VK;
 							m_newShortcut.Key2 = -1;
 						}
-					} else {
+					}
+					else {
 						m_newShortcut.Key1 = -1;
 						m_newShortcut.Key2 = -1;
 					}
-				} else {
+				}
+				else {
 					m_newShortcut.Key1 = -1;
 					m_newShortcut.Key2 = -1;
 				}
@@ -52,7 +54,9 @@ namespace ed
 			m_renderShortcuts();
 		else if (m_page == Page::Preview)
 			m_renderPreview();
-		
+		else if (m_page == Page::Project)
+			m_renderProject();
+
 		ImGui::EndChild();
 	}
 
@@ -259,21 +263,6 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_highlight_cur_ln", &settings->Editor.HiglightCurrentLine);
 
-		/* GLSL VS EXTENSION: */
-		ImGui::Text("GLSL vertex shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::InputText("##opte_glslvsext", settings->Editor.GLSLVS_Extenstion, 12);
-
-		/* GLSL PS EXTENSION: */
-		ImGui::Text("GLSL pixel shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::InputText("##opte_glslpsext", settings->Editor.GLSLPS_Extenstion, 12);
-
-		/* GLSL GS EXTENSION: */
-		ImGui::Text("GLSL geometry shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::InputText("##opte_glslgsext", settings->Editor.GLSLGS_Extenstion, 12);
-
 		/* SMART INDENTING: */
 		ImGui::Text("Smart indenting: ");
 		ImGui::SameLine();
@@ -316,7 +305,8 @@ namespace ed
 				ImGui::SameLine();
 				if (ImGui::Button("CANCEL"))
 					m_selectedShortcut = -1;
-			} else {
+			}
+			else {
 				if (ImGui::Button(KeyboardShortcuts::Instance().GetString(names[i]).c_str(), ImVec2(-1, 0))) {
 					m_selectedShortcut = i;
 					m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = false;
@@ -339,7 +329,7 @@ namespace ed
 		ImGui::Text("Status bar: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_status_bar", &settings->Preview.StatusBar);
-		
+
 		/* SHOW GIZMO: */
 		ImGui::Text("Show gizmo/3d manipulators: ");
 		ImGui::SameLine();
@@ -350,5 +340,29 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_prop_pick", &settings->Preview.PropertyPick);
 
+	}
+	void OptionsUI::m_renderProject()
+	{
+		Settings* settings = &Settings::Instance();
+
+		/* GLSL VS EXTENSION: */
+		ImGui::Text("GLSL vertex shader extension: ");
+		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::InputText("##optpr_glslvsext", settings->Project.GLSLVS_Extenstion, 12);
+
+		/* GLSL PS EXTENSION: */
+		ImGui::Text("GLSL pixel shader extension: ");
+		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::InputText("##optpr_glslpsext", settings->Project.GLSLPS_Extenstion, 12);
+
+		/* GLSL GS EXTENSION: */
+		ImGui::Text("GLSL geometry shader extension: ");
+		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::InputText("##optpr_glslgsext", settings->Project.GLSLGS_Extenstion, 12);
+
+		/* FPS CAMERA: */
+		ImGui::Text("First person camera: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera);
 	}
 }
