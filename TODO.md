@@ -1,5 +1,4 @@
 - [ ] add option to switch to FPS camera
-- [ ] multiple templates: dir template -> dir GLSL/HLSL/etc...
 
 - [ ] replace state string names with enums
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)

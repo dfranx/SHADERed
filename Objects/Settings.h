@@ -14,6 +14,7 @@ namespace ed
 		std::string Theme;
 
 		struct strGeneral {
+			bool VSync;
 			// std::string Language;	// [TODO] Not implemented
 			bool AutoOpenErrorWindow;
 			bool Recovery;				// [TODO] Not implemented
@@ -21,6 +22,7 @@ namespace ed
 			bool SupportGLSL;
 			bool ReopenShaders;
 			bool OpenShadersOnDblClk;
+			std::string StartUpTemplate;
 		} General;
 
 		struct strEditor {
@@ -42,6 +44,7 @@ namespace ed
 			bool Gizmo;
 			bool PropertyPick;
 			bool StatusBar;
+			int FPSLimit;
 		} Preview;
 
 		struct strProject {

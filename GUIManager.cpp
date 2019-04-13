@@ -33,6 +33,7 @@ namespace ed
 		m_savePreviewPopupOpened = false;
 
 		Settings::Instance().Load();
+		m_loadTemplateList();
 
 		// Initialize imgui
 		ImGui::CreateContext();
@@ -61,6 +62,8 @@ namespace ed
 
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
+
+		
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 	}
@@ -128,8 +131,14 @@ namespace ed
 		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New", KeyboardShortcuts::Instance().GetString("Project.New").c_str()))
-					m_isNewProjectPopupOpened = true;
+				if (ImGui::BeginMenu("New")) {
+					for (int i = 0; i < m_templates.size(); i++)
+						if (ImGui::MenuItem(m_templates[i].c_str())) {
+							m_selectedTemplate = m_templates[i];
+							m_isNewProjectPopupOpened = true;
+						}
+					ImGui::EndMenu();
+				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
@@ -311,11 +320,15 @@ namespace ed
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
 			if (ImGui::Button("Yes")) {
+				m_data->Parser.SetTemplate(m_selectedTemplate);
+
 				m_data->Renderer.FlushCache();
 				((CodeEditorUI*)Get("Code"))->CloseAll();
 				((PinnedUI*)Get("Pinned"))->CloseAll();
 				((PreviewUI*)Get("Preview"))->Pick(nullptr);
 				m_data->Pipeline.New();
+
+				m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -681,5 +694,34 @@ namespace ed
 		KeyboardShortcuts::Instance().SetCallback("Window.Exit", [=]() {
 			m_wnd->Destroy();
 		});
+	}
+	void GUIManager::m_loadTemplateList()
+	{
+		m_selectedTemplate = "";
+
+		WIN32_FIND_DATA data;
+		HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
+
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do {
+				if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+					std::wstring wfile(data.cFileName);
+					std::string file(wfile.begin(), wfile.end());
+
+					if (file[0] != '.') {
+						m_templates.push_back(file);
+						
+						if (file == Settings::Instance().General.StartUpTemplate)
+							m_selectedTemplate = file;
+					}
+				}
+			} while (FindNextFile(hFind, &data));
+			FindClose(hFind);
+		}
+
+		if (m_selectedTemplate == "" && m_selectedTemplate.size() > 0)
+			m_selectedTemplate = m_templates[0];
+
+		m_data->Parser.SetTemplate(m_selectedTemplate);
 	}
 }

@@ -133,6 +133,12 @@ namespace ed
 	{
 		Settings* settings = &Settings::Instance();
 
+		/* VSYNC: */
+		ImGui::Text("VSync: ");
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##optg_vsync", &settings->General.VSync))
+			m_data->GetOwner()->SetVSync(settings->General.VSync);
+
 		/* THEME */
 		ImGui::Text("Theme: "); ImGui::SameLine();
 		ImGui::PushItemWidth(-80);
@@ -192,10 +198,35 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
 
-		/* REOPEN: */
+		/* SHADER PASS DOUBLE CLICK: */
 		ImGui::Text("Open shaders on double click on shader pass: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_opensdblclk", &settings->General.OpenShadersOnDblClk);
+
+		/* STARTUP TEMPLATE: */
+		ImGui::Text("Default template: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-80);
+		if (ImGui::BeginCombo("##optg_template", settings->General.StartUpTemplate.c_str())) {
+			WIN32_FIND_DATA data;
+			HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
+
+			if (hFind != INVALID_HANDLE_VALUE) {
+				do {
+					if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+						std::wstring wfile(data.cFileName);
+						std::string file(wfile.begin(), wfile.end());
+
+						if (file[0] != '.' && ImGui::Selectable(file.c_str(), file == settings->General.StartUpTemplate))
+							settings->General.StartUpTemplate = file;
+					}
+				} while (FindNextFile(hFind, &data));
+				FindClose(hFind);
+			}
+
+			ImGui::EndCombo();
+		}
+		ImGui::PopItemWidth();
 	}
 	void OptionsUI::m_renderEditor()
 	{
@@ -340,6 +371,10 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_prop_pick", &settings->Preview.PropertyPick);
 
+		/* FPS LIMITI: */
+		ImGui::Text("FPS limit: ");
+		ImGui::SameLine();
+		ImGui::InputInt("##opte_fpslimit", &settings->Preview.FPSLimit, 1, 10);
 	}
 	void OptionsUI::m_renderProject()
 	{

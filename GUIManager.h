@@ -42,6 +42,10 @@ namespace ed
 		std::string m_previewSavePath;
 		DirectX::XMINT2 m_previewSaveSize;
 
+		std::string m_selectedTemplate;
+		std::vector<std::string> m_templates;
+		void m_loadTemplateList();
+
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
 

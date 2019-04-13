@@ -18,6 +18,7 @@ namespace ed
 
 		void Open(const std::string& file);
 		void OpenTemplate();
+		inline void SetTemplate(const std::string& str) { m_template = str; }
 
 		void Save();
 		void SaveAs(const std::string& file, bool copyFiles = false);
@@ -52,5 +53,6 @@ namespace ed
 		RenderEngine* m_renderer;
 		std::string m_file;
 		std::string m_projectPath;
+		std::string m_template;
 	};
 }

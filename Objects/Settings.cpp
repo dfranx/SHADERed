@@ -21,12 +21,14 @@ namespace ed
 
 		Theme = ini.Get("general", "theme", "Dark");
 
+		General.VSync = ini.GetBoolean("general", "vsync", false);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
 		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
+		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "inconsolata.ttf").c_str());
@@ -44,6 +46,7 @@ namespace ed
 		Preview.Gizmo = ini.GetBoolean("preview", "gizmo", true);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
 		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
+		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
 	}
 	void Settings::Save()
 	{
@@ -51,17 +54,20 @@ namespace ed
 
 		ini << "[general]" << std::endl;
 		ini << "theme=" << Theme << std::endl;
+		ini << "vsync=" << General.VSync << std::endl;
 		ini << "autoerror=" << General.AutoOpenErrorWindow << std::endl;
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
 		ini << "glsl=" << General.SupportGLSL << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
+		ini << "template=" << General.StartUpTemplate << std::endl;
 
 		ini << "[preview]" << std::endl;
 		ini << "gizmo=" << Preview.Gizmo << std::endl;
 		ini << "propertypick=" << Preview.PropertyPick << std::endl;
 		ini << "statusbar=" << Preview.StatusBar << std::endl;
+		ini << "fpslimit=" << Preview.FPSLimit << std::endl;
 
 		ini << "[editor]" << std::endl;
 		ini << "smartpred=" << Editor.SmartPredictions << std::endl;

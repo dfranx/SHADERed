@@ -605,7 +605,7 @@ namespace ed
 		GetCurrentDirectoryA(sizeof(appPath), appPath);
 
 
-		Open(std::string(appPath) + "\\template\\template.sprj");
+		Open(std::string(appPath) + "\\templates\\" + m_template + "\\template.sprj");
 		m_file = ""; // disallow overwriting template.sprj project file
 	}
 	void ProjectParser::Save()

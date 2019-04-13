@@ -7,6 +7,7 @@
 #include "../ImGUI/imgui_internal.h"
 
 #define STATUSBAR_HEIGHT 25
+#define FPS_UPDATE_RATE 0.3f
 
 namespace ed
 {
@@ -38,11 +39,29 @@ namespace ed
 		}
 
 		bool statusbar = Settings::Instance().Preview.StatusBar;
+		float fpsLimit = Settings::Instance().Preview.FPSLimit;
+		if (fpsLimit != m_fpsLimit) {
+			m_elapsedTime = 0;
+			m_fpsLimit = fpsLimit;
+		}
 
 		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
-
 		ed::RenderEngine* renderer = &m_data->Renderer;
-		renderer->Render(imageSize.x, imageSize.y);
+
+		m_fpsUpdateTime += delta;
+		m_elapsedTime += delta;
+		if (m_fpsLimit <= 0 || m_elapsedTime >= 1.0f / m_fpsLimit) {
+			renderer->Render(imageSize.x, imageSize.y);
+
+			float fps = m_fpsTimer.Restart();
+			if (m_fpsUpdateTime > FPS_UPDATE_RATE) {
+				m_fpsDelta = fps;
+				m_fpsUpdateTime -= FPS_UPDATE_RATE;
+			}
+
+			m_elapsedTime -= 1 / m_fpsLimit;
+		}
+
 
 		// display the image on the imgui window
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
@@ -137,7 +156,7 @@ namespace ed
 		// status bar
 		if (statusbar) {
 			ImGui::Separator();
-			ImGui::Text("FPS: %.2f", 1 / delta);
+			ImGui::Text("FPS: %.2f", 1 / m_fpsDelta);
 			ImGui::SameLine();
 			ImGui::Text("|");
 			ImGui::SameLine();
