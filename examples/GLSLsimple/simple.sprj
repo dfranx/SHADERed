@@ -35,11 +35,15 @@
 		<entry type="property" name="Light" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
-		<entry type="camera">
-			<distance>8</distance>
-			<rotationX>50</rotationX>
-			<rotationY>31</rotationY>
-			<rotationZ>360</rotationZ>
+		<entry type="camera" fp="true">
+			<positionX>0</positionX>
+			<positionY>0</positionY>
+			<positionZ>7</positionZ>
+			<yaw>0</yaw>
+			<pitch>0</pitch>
 		</entry>
+		<extension stage="vertex">vert</extension>
+		<extension stage="pixel">frag</extension>
+		<extension stage="geometry">geom</extension>
 	</settings>
 </project>

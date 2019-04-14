@@ -579,11 +579,26 @@ namespace ed
 					else
 						Settings::Instance().Project.FPCamera = settingItem.attribute("fp").as_bool();
 
-					SystemVariableManager::Instance().GetCamera().Reset();
-					SystemVariableManager::Instance().GetCamera().SetDistance(std::stof(settingItem.child("distance").text().get()));
-					SystemVariableManager::Instance().GetCamera().RotateX(std::stof(settingItem.child("rotationX").text().get()));
-					SystemVariableManager::Instance().GetCamera().RotateY(std::stof(settingItem.child("rotationY").text().get()));
-					SystemVariableManager::Instance().GetCamera().RotateZ(std::stof(settingItem.child("rotationZ").text().get()));
+					SystemVariableManager::Instance().GetCamera()->Reset();
+
+					bool fp = Settings::Instance().Project.FPCamera;
+
+					if (fp) {
+						ed::FirstPersonCamera* fp = (ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera();
+						fp->SetPosition(std::stof(settingItem.child("positionX").text().get()),
+									   std::stof(settingItem.child("positionY").text().get()),
+									   std::stof(settingItem.child("positionZ").text().get())
+						);
+						fp->Yaw(std::stof(settingItem.child("yaw").text().get()));
+						fp->Pitch(std::stof(settingItem.child("pitch").text().get()));
+					} else {
+						ed::ArcBallCamera* ab = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
+						ab->SetDistance(std::stof(settingItem.child("distance").text().get()));
+						ab->RotateX(std::stof(settingItem.child("rotationX").text().get()));
+						ab->RotateY(std::stof(settingItem.child("rotationY").text().get()));
+						ab->RotateZ(std::stof(settingItem.child("rotationZ").text().get()));
+					}
+
 				}
 				else if (type == "extension") {
 					std::string stage = settingItem.attribute("stage").as_string();
@@ -961,19 +976,32 @@ namespace ed
 
 			// camera settings
 			{
-				ed::Camera cam = SystemVariableManager::Instance().GetCamera();
-				pugi::xml_node camNode = settingsNode.append_child("entry");
-				camNode.append_attribute("type").set_value("camera");
-				camNode.append_attribute("fp").set_value(Settings::Instance().Project.FPCamera);
+				if (Settings::Instance().Project.FPCamera) {
+					ed::FirstPersonCamera* cam = (ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera();
+					pugi::xml_node camNode = settingsNode.append_child("entry");
+					camNode.append_attribute("type").set_value("camera");
+					camNode.append_attribute("fp").set_value(true);
 
-				DirectX::XMFLOAT3 rota = cam.GetRotation();
+					DirectX::XMFLOAT3 rota = cam->GetRotation();
 
-				// TODO: save fps cam props instead of the default ones
+					camNode.append_child("positionX").text().set(DirectX::XMVectorGetX(cam->GetPosition()));
+					camNode.append_child("positionY").text().set(DirectX::XMVectorGetY(cam->GetPosition()));
+					camNode.append_child("positionZ").text().set(DirectX::XMVectorGetZ(cam->GetPosition()));
+					camNode.append_child("yaw").text().set(rota.x);
+					camNode.append_child("pitch").text().set(rota.y);
+				} else {
+					ed::ArcBallCamera* cam = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
+					pugi::xml_node camNode = settingsNode.append_child("entry");
+					camNode.append_attribute("type").set_value("camera");
+					camNode.append_attribute("fp").set_value(false);
 
-				camNode.append_child("distance").text().set(cam.GetDistance());
-				camNode.append_child("rotationX").text().set(rota.x);
-				camNode.append_child("rotationY").text().set(rota.y);
-				camNode.append_child("rotationZ").text().set(rota.z);
+					DirectX::XMFLOAT3 rota = cam->GetRotation();
+
+					camNode.append_child("distance").text().set(cam->GetDistance());
+					camNode.append_child("rotationX").text().set(rota.x);
+					camNode.append_child("rotationY").text().set(rota.y);
+					camNode.append_child("rotationZ").text().set(rota.z);
+				}
 			}
 
 			// extensions

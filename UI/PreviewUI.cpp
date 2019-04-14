@@ -80,7 +80,7 @@ namespace ed
 			m_rt.ClearDepthStencil(1.0f, 0);
 
 			m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
-			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera().GetMatrix());
+			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
 			m_gizmo.Render();
 
 			m_data->GetOwner()->Bind();
@@ -95,8 +95,11 @@ namespace ed
 
 		// mouse controls for preview window
 		if (ImGui::IsItemHovered()) {
+			bool fp = Settings::Instance().Project.FPCamera;
+
 			// zoom in/out if needed
-			SystemVariableManager::Instance().GetCamera().Move(-ImGui::GetIO().MouseWheel);
+			if (!fp)
+				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
 			if (ImGui::IsMouseClicked(0) && Settings::Instance().Preview.Gizmo) {
@@ -139,8 +142,15 @@ namespace ed
 				m_mouseContact = ImVec2(point.x, point.y);
 
 				// rotate the camera according to the delta
-				SystemVariableManager::Instance().GetCamera().RotateX(dX);
-				SystemVariableManager::Instance().GetCamera().RotateY(dY);
+				if (!fp) {
+					ed::ArcBallCamera* cam = ((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera());
+					cam->RotateX(dX);
+					cam->RotateY(dY);
+				} else {
+					ed::FirstPersonCamera* cam = ((ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera());
+					cam->Yaw(dX * 0.005f);
+					cam->Pitch(-dY * 0.005f);
+				}
 			}
 			// handle left mouse dragging - moving objects if selected
 			else if (ImGui::IsMouseDown(0) && Settings::Instance().Preview.Gizmo) {
@@ -150,6 +160,13 @@ namespace ed
 				s.y *= imageSize.y;
 
 				m_gizmo.Move(s.x, s.y);
+			}
+
+			// WASD key press - first person camera
+			if (fp) {
+				ed::FirstPersonCamera* cam = ((ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera());
+				cam->MoveUpDown((ImGui::IsKeyDown('S') - ImGui::IsKeyDown('W')) / 100.0f);
+				cam->MoveLeftRight((ImGui::IsKeyDown('A') - ImGui::IsKeyDown('D')) / 100.0f);
 			}
 		}
 

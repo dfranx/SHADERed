@@ -1,33 +1,26 @@
-#include "Camera.h"
+#include "ArcBallCamera.h"
 #include <algorithm>
 
 using namespace DirectX;
 
 namespace ed
 {
-	Camera::Camera()
+	void ArcBallCamera::Reset()
 	{
 		distance = 7;
 		rotaX = 0;
 		rotaY = 0;
 		rotaZ = 0;
 	}
-	void Camera::Reset()
-	{
-		distance = 7;
-		rotaX = 0;
-		rotaY = 0;
-		rotaZ = 0;
-	}
-	void Camera::SetDistance(float d)
+	void ArcBallCamera::SetDistance(float d)
 	{
 		distance = std::max(minDistance, std::min(maxDistance, d));
 	}
-	void Camera::Move(float d)
+	void ArcBallCamera::Move(float d)
 	{
 		distance = std::max(minDistance, std::min(maxDistance, distance + d));
 	}
-	void Camera::RotateX(float rx)
+	void ArcBallCamera::RotateX(float rx)
 	{
 		rotaX += rx;
 		if (rotaX >= 360)
@@ -35,11 +28,11 @@ namespace ed
 		if (rotaX <= 0)
 			rotaX += 360;
 	}
-	void Camera::RotateY(float ry)
+	void ArcBallCamera::RotateY(float ry)
 	{
 		rotaY = std::max(-maxRotaY, std::min(maxRotaY, rotaY + ry));
 	}
-	void Camera::RotateZ(float rz)
+	void ArcBallCamera::RotateZ(float rz)
 	{
 		rotaZ += rz;
 		if (rotaZ >= 360)
@@ -47,7 +40,7 @@ namespace ed
 		if (rotaZ <= 0)
 			rotaZ += 360;
 	}
-	DirectX::XMVECTOR Camera::GetPosition()
+	DirectX::XMVECTOR ArcBallCamera::GetPosition()
 	{
 		XMVECTOR pos = XMVectorSet(0, 0, -distance, 0);
 		XMMATRIX rotaMat = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotaY), XMConvertToRadians(rotaX), XMConvertToRadians(rotaZ));
@@ -56,7 +49,7 @@ namespace ed
 
 		return pos;
 	}
-	DirectX::XMVECTOR Camera::GetUpVector()
+	DirectX::XMVECTOR ArcBallCamera::GetUpVector()
 	{
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 		XMMATRIX rotaMat = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotaY), XMConvertToRadians(rotaX), XMConvertToRadians(rotaZ));
@@ -65,7 +58,7 @@ namespace ed
 
 		return XMVector3Normalize(up);
 	}
-	XMMATRIX Camera::GetMatrix()
+	XMMATRIX ArcBallCamera::GetMatrix()
 	{
 		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 		XMVECTOR pos = XMVectorSet(0, 0, -distance, 0);

@@ -1,5 +1,4 @@
-- [ ] add option to switch to FPS camera
-
+- [ ] fps camera - lock mose when pressed + fix loading camera info
 - [ ] replace state string names with enums
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)
 - [ ] comment the code

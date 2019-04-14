@@ -106,7 +106,7 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		DirectX::XMVECTOR rayDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
 
-		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera().GetMatrix();
+		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
 		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
 
 		rayOrigin = DirectX::XMVector3TransformCoord(rayOrigin, invView);
@@ -166,7 +166,7 @@ namespace ed
 		DirectX::XMVECTOR rayOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		DirectX::XMVECTOR rayDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
 
-		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera().GetMatrix();
+		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
 		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
 		
 		DirectX::XMVECTOR axisVec = DirectX::XMVectorSet(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
@@ -184,7 +184,7 @@ namespace ed
 
 		float scale = DirectX::XMVectorGetX(
 			DirectX::XMVector3Length(
-				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera().GetPosition()
+				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
 				))) / GIZMO_SCALE_FACTOR;
 
 		float moveDist = -length * dotval * scale;
@@ -209,7 +209,7 @@ namespace ed
 	{
 		float scale = DirectX::XMVectorGetX(
 						DirectX::XMVector3Length(
-							DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera().GetPosition()
+							DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
 					  ))) / GIZMO_SCALE_FACTOR;
 
 		m_vs.Bind();

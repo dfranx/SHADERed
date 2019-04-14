@@ -6,28 +6,13 @@ namespace ed
 	class Camera
 	{
 	public:
-		Camera();
+		virtual void Reset() {};
 
-		void Reset();
+		virtual DirectX::XMFLOAT3 GetRotation() = 0;
 
-		void SetDistance(float d);
-		void Move(float d);
-		void RotateX(float rx);
-		void RotateY(float ry);
-		void RotateZ(float rz);
+		virtual DirectX::XMVECTOR GetPosition() = 0;
+		virtual DirectX::XMVECTOR GetUpVector() = 0;
 
-		inline float GetDistance() { return distance; }
-		inline DirectX::XMFLOAT3 GetRotation() { return DirectX::XMFLOAT3(rotaX, rotaY, rotaZ); }
-
-		DirectX::XMVECTOR GetPosition();
-		DirectX::XMVECTOR GetUpVector();
-
-		DirectX::XMMATRIX GetMatrix();
-
-	private:
-		const float maxDistance = 50, minDistance = 2;
-		const float maxRotaY = 89;
-		float distance;
-		float rotaY, rotaX, rotaZ;
+		virtual DirectX::XMMATRIX GetMatrix() = 0;
 	};
 }

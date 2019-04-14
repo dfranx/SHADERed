@@ -149,7 +149,8 @@ Collapsed=0
 DockId=0x00000011,1
 
 [Window][Options]
-Pos=241,52
+ViewportPos=-14,210
+ViewportId=0x1F88C31B
 Size=816,554
 Collapsed=0
 

@@ -302,7 +302,7 @@ namespace ed
 		m_pickOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		m_pickDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
 
-		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera().GetMatrix();
+		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
 		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
 
 		m_pickOrigin = DirectX::XMVector3TransformCoord(m_pickOrigin, invView);

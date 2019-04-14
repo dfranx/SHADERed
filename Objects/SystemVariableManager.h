@@ -3,7 +3,9 @@
 #include <DirectXMath.h>
 #include "ShaderVariable.h"
 #include "PipelineItem.h"
-#include "Camera.h"
+#include "ArcBallCamera.h"
+#include "FirstPersonCamera.h"
+#include "Settings.h"
 
 namespace ed
 {
@@ -38,8 +40,8 @@ namespace ed
 
 		void Update(ed::ShaderVariable* var);
 
-		inline Camera& GetCamera() { return m_cam; }
-		inline DirectX::XMMATRIX GetViewMatrix() { return m_cam.GetMatrix(); }
+		inline Camera* GetCamera() { return Settings::Instance().Project.FPCamera ? (Camera*)&m_fpCam : (Camera*)&m_abCam; }
+		inline DirectX::XMMATRIX GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_fpCam.GetMatrix() : m_abCam.GetMatrix(); }
 		inline DirectX::XMMATRIX GetProjectionMatrix() { return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
 		inline DirectX::XMMATRIX GetOrthographicMatrix() { return DirectX::XMMatrixOrthographicLH(m_viewport.x, m_viewport.y, 0.1f, 1000.0f); }
 		inline DirectX::XMMATRIX GetViewProjectionMatrix() { return GetViewMatrix() * GetProjectionMatrix(); }
@@ -65,7 +67,8 @@ namespace ed
 	private:
 		ml::Timer m_timer;
 		float m_deltaTime;
-		Camera m_cam;
+		ArcBallCamera m_abCam;
+		FirstPersonCamera m_fpCam;
 		DirectX::XMFLOAT2 m_viewport, m_mouse;
 		DirectX::XMMATRIX m_geometryTransform;
 		bool m_isPicked;

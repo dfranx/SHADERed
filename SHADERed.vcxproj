@@ -169,8 +169,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
-    <ClCompile Include="Objects\Camera.cpp" />
+    <ClCompile Include="Objects\ArcBallCamera.cpp" />
     <ClCompile Include="Objects\DefaultState.cpp" />
+    <ClCompile Include="Objects\FirstPersonCamera.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
     <ClCompile Include="Objects\GizmoObject.cpp" />
     <ClCompile Include="Objects\GLSL2HLSL.cpp" />
@@ -215,8 +216,10 @@
     <ClInclude Include="ImGUI\stb_truetype.h" />
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
+    <ClInclude Include="Objects\ArcBallCamera.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\DefaultState.h" />
+    <ClInclude Include="Objects\FirstPersonCamera.h" />
     <ClInclude Include="Objects\FunctionVariableManager.h" />
     <ClInclude Include="Objects\GizmoObject.h" />
     <ClInclude Include="Objects\GLSL2HLSL.h" />
