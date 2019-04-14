@@ -4,6 +4,7 @@
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
+#include "GLSL2HLSL.h"
 #include "Names.h"
 
 #include "../UI/PinnedUI.h"
@@ -584,13 +585,14 @@ namespace ed
 					bool fp = Settings::Instance().Project.FPCamera;
 
 					if (fp) {
-						ed::FirstPersonCamera* fp = (ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera();
-						fp->SetPosition(std::stof(settingItem.child("positionX").text().get()),
+						ed::FirstPersonCamera* fpCam = (ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera();
+						fpCam->Reset();
+						fpCam->SetPosition(std::stof(settingItem.child("positionX").text().get()),
 									   std::stof(settingItem.child("positionY").text().get()),
 									   std::stof(settingItem.child("positionZ").text().get())
 						);
-						fp->Yaw(std::stof(settingItem.child("yaw").text().get()));
-						fp->Pitch(std::stof(settingItem.child("pitch").text().get()));
+						fpCam->SetYaw(std::stof(settingItem.child("yaw").text().get()));
+						fpCam->SetPitch(std::stof(settingItem.child("pitch").text().get()));
 					} else {
 						ed::ArcBallCamera* ab = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 						ab->SetDistance(std::stof(settingItem.child("distance").text().get()));
@@ -640,19 +642,23 @@ namespace ed
 			CreateDirectoryA(shadersDir.c_str(), NULL);
 
 			std::string proj = oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\");
-
+			
 			for (PipelineItem* passItem : passItems) {
 				pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
 
 				std::string vs = proj + std::string(passData->VSPath);
 				std::string ps = proj + std::string(passData->PSPath);
 
-				CopyFileA(vs.c_str(), (shadersDir + "\\" + passItem->Name + "VS.hlsl").c_str(), false);
-				CopyFileA(ps.c_str(), (shadersDir + "\\" + passItem->Name + "PS.hlsl").c_str(), false);
+				std::string vsExt = ed::GLSL2HLSL::IsGLSL(vs) ? Settings::Instance().Project.GLSLVS_Extenstion : "hlsl";
+				std::string psExt = ed::GLSL2HLSL::IsGLSL(ps) ? Settings::Instance().Project.GLSLPS_Extenstion : "hlsl";
+
+				CopyFileA(vs.c_str(), (shadersDir + "\\" + passItem->Name + "VS." + vsExt).c_str(), false);
+				CopyFileA(ps.c_str(), (shadersDir + "\\" + passItem->Name + "PS." + psExt).c_str(), false);
 
 				if (passData->GSUsed) {
 					std::string gs = proj + std::string(passData->GSPath);
-					CopyFileA(gs.c_str(), (shadersDir + "\\" + passItem->Name + "GS.hlsl").c_str(), false);
+					std::string gsExt = ed::GLSL2HLSL::IsGLSL(gs) ? Settings::Instance().Project.GLSLGS_Extenstion : "hlsl";
+					CopyFileA(gs.c_str(), (shadersDir + "\\" + passItem->Name + "GS." + gsExt).c_str(), false);
 				}
 			}
 		}
@@ -675,8 +681,10 @@ namespace ed
 			// vertex shader
 			pugi::xml_node vsNode = passNode.append_child("shader");
 			std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->VSPath));
-			if (copyFiles)
-				relativePath = "shaders\\" + std::string(passItem->Name) + "VS.hlsl";
+			if (copyFiles) {
+				std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->VSPath) ? Settings::Instance().Project.GLSLVS_Extenstion : "hlsl";
+				relativePath = "shaders\\" + std::string(passItem->Name) + "VS." +vsExt;
+			}
 
 			vsNode.append_attribute("type").set_value("vs");
 			vsNode.append_child("path").text().set(relativePath.c_str());
@@ -699,8 +707,10 @@ namespace ed
 			// pixel shader
 			pugi::xml_node psNode = passNode.append_child("shader");
 			relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->PSPath));
-			if (copyFiles)
-				relativePath = "shaders\\" + std::string(passItem->Name) + "PS.hlsl";
+			if (copyFiles) {
+				std::string psExt = ed::GLSL2HLSL::IsGLSL(passData->PSPath) ? Settings::Instance().Project.GLSLPS_Extenstion : "hlsl";
+				relativePath = "shaders\\" + std::string(passItem->Name) + "PS." + psExt;
+			}
 
 			psNode.append_attribute("type").set_value("ps");
 			psNode.append_child("path").text().set(relativePath.c_str());
@@ -711,8 +721,10 @@ namespace ed
 			if (strlen(passData->GSEntry) > 0 && strlen(passData->GSPath) > 0) {
 				pugi::xml_node gsNode = passNode.append_child("shader");
 				relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->GSPath));
-				if (copyFiles)
+				if (copyFiles) {
+					std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->GSPath) ? Settings::Instance().Project.GLSLGS_Extenstion : "hlsl";
 					relativePath = "shaders\\" + std::string(passItem->Name) + "GS.hlsl";
+				}
 
 				gsNode.append_attribute("used").set_value(passData->GSUsed);
 

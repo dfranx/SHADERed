@@ -115,14 +115,16 @@ Collapsed=0
 DockId=0x00000018,0
 
 [Window][OutlinePass (VS)##code_view]
-Pos=17,19
-Size=32,44
+Pos=230,19
+Size=623,525
 Collapsed=0
+DockId=0x00000013,1
 
 [Window][OutlinePass (PS)##code_view]
-Pos=17,28
-Size=32,44
+Pos=230,546
+Size=623,471
 Collapsed=0
+DockId=0x00000014,1
 
 [Window][Objects]
 Pos=0,19
@@ -143,15 +145,15 @@ Collapsed=0
 DockId=0x00000014,1
 
 [Window][Light (GS)##code_view]
-Pos=17,28
-Size=32,32
+Pos=230,546
+Size=623,471
 Collapsed=0
-DockId=0x00000011,1
+DockId=0x00000014,1
 
 [Window][Options]
-ViewportPos=-14,210
+ViewportPos=-15,181
 ViewportId=0x1F88C31B
-Size=816,554
+Size=816,541
 Collapsed=0
 
 [Window][Code]

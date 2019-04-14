@@ -1,4 +1,4 @@
-- [ ] fps camera - lock mose when pressed + fix loading camera info
+- [ ] camera position, bool4 KeyStatus(W, A, S, D) shader variables
 - [ ] replace state string names with enums
 - [ ] change some constant literals with constant variables (example: vertex shader path strcpy, ShaderType enum)
 - [ ] comment the code

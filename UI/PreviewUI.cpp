@@ -138,6 +138,35 @@ namespace ed
 				int dX = point.x - m_mouseContact.x;
 				int dY = point.y - m_mouseContact.y;
 
+				// wrap the mouse
+				{
+					// screen space position
+					DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
+
+					bool wrappedMouse = false;
+					if (s.x < 0.01f) {
+						point.x += imageSize.x - 20;
+						wrappedMouse = true;
+					}
+					else if (s.x > 0.99f) {
+						point.x -= imageSize.x - 20;
+						wrappedMouse = true;
+					} else if (s.y > 0.99f) {
+						point.y -= imageSize.y - 20;
+						wrappedMouse = true;
+					} else if (s.y < 0.01f) {
+						point.y += imageSize.y - 20;
+						wrappedMouse = true;
+					}
+
+					if (wrappedMouse) {
+						POINT spt = point;
+						ClientToScreen(m_data->GetOwner()->GetWindowHandle(), &spt);
+
+						SetCursorPos(spt.x, spt.y);
+					}
+				}
+
 				// save the last position
 				m_mouseContact = ImVec2(point.x, point.y);
 

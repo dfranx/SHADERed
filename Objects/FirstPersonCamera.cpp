@@ -36,14 +36,6 @@ namespace ed
 		pos += forward * d;
 		DirectX::XMStoreFloat3(&m_pos, pos);
 	}
-	void FirstPersonCamera::Yaw(float yaw)
-	{
-		m_yaw += yaw;
-	}
-	void FirstPersonCamera::Pitch(float p)
-	{
-		m_pitch += p;
-	}
 	DirectX::XMVECTOR FirstPersonCamera::GetUpVector()
 	{
 		XMMATRIX yawMatrix;

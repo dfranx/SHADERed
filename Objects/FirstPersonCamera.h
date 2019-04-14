@@ -15,8 +15,10 @@ namespace ed
 
 		void MoveLeftRight(float d);
 		void MoveUpDown(float d);
-		void Yaw(float y);
-		void Pitch(float p);
+		inline void Yaw(float y) { m_yaw += y; }
+		inline void Pitch(float p) { m_pitch += p; }
+		inline void SetYaw(float y) { m_yaw = y; }
+		inline void SetPitch(float p) { m_pitch = p; }
 
 		virtual inline DirectX::XMFLOAT3 GetRotation() { return DirectX::XMFLOAT3(m_yaw, m_pitch, 0); }
 

@@ -3,7 +3,7 @@
 	<pipeline>
 		<pass name="Light">
 			<shader type="vs">
-				<path>vertex.vert</path>
+				<path>shaders\LightVS.vert</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">TEXCOORD</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>pixel.frag</path>
+				<path>shaders\LightPS.frag</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -36,11 +36,11 @@
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="camera" fp="true">
-			<positionX>0</positionX>
-			<positionY>0</positionY>
-			<positionZ>7</positionZ>
-			<yaw>0</yaw>
-			<pitch>0</pitch>
+			<positionX>-4.09775019</positionX>
+			<positionY>1.57427156</positionY>
+			<positionZ>3.73038912</positionZ>
+			<yaw>-7.24999905</yaw>
+			<pitch>-12.870039</pitch>
 		</entry>
 		<extension stage="vertex">vert</extension>
 		<extension stage="pixel">frag</extension>
