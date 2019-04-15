@@ -33,6 +33,8 @@ namespace ed
 				case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
+				case ed::SystemShaderVariable::CameraPosition: return ed::ShaderVariable::ValueType::Float4;
+				case ed::SystemShaderVariable::KeysWASD: return ed::ShaderVariable::ValueType::Integer4;
 			}
 
 			return ed::ShaderVariable::ValueType::Float1;
@@ -48,6 +50,7 @@ namespace ed
 		inline DirectX::XMMATRIX GetViewOrthographicMatrix() { return GetViewMatrix() * GetOrthographicMatrix(); }
 		inline DirectX::XMMATRIX GetGeometryTransform() { return m_geometryTransform; }
 		inline DirectX::XMFLOAT2 GetViewportSize() { return m_viewport; }
+		inline DirectX::XMINT4 GetKeysWASD() { return m_wasd; }
 		inline DirectX::XMFLOAT2 GetMousePosition() { return m_mouse; }
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
 		inline float GetTimeDelta() { return m_deltaTime; }
@@ -63,6 +66,7 @@ namespace ed
 		inline void SetMousePosition(float x, float y) { m_mouse = DirectX::XMFLOAT2(x, y); }
 		inline void SetTimeDelta(float x) { m_deltaTime = x; }
 		inline void SetPicked(bool picked) { m_isPicked = picked; }
+		inline void SetKeysWASD(int w, int a, int s, int d) { m_wasd = DirectX::XMINT4(w, a, s, d); }
 
 	private:
 		ml::Timer m_timer;
@@ -72,5 +76,8 @@ namespace ed
 		DirectX::XMFLOAT2 m_viewport, m_mouse;
 		DirectX::XMMATRIX m_geometryTransform;
 		bool m_isPicked;
+
+		DirectX::XMFLOAT3 m_camPos;
+		DirectX::XMINT4 m_wasd;
 	};
 }

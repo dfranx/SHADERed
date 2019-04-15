@@ -2,6 +2,7 @@
 #include <string>
 #include "../GUIManager.h"
 #include "ShaderVariable.h"
+#include "MessageStack.h"
 #include "../pugixml/pugixml.hpp"
 
 namespace ed
@@ -13,7 +14,7 @@ namespace ed
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, GUIManager* gui);
+		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, MessageStack* msgs, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -51,6 +52,7 @@ namespace ed
 		PipelineManager* m_pipe;
 		ObjectManager* m_objects;
 		RenderEngine* m_renderer;
+		MessageStack* m_msgs;
 		std::string m_file;
 		std::string m_projectPath;
 		std::string m_template;

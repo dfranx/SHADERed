@@ -59,6 +59,18 @@ namespace ed
 					bool raw = SystemVariableManager::Instance().IsPicked();
 					memcpy(var->Data, &raw, sizeof(bool));
 				} break;
+				case ed::SystemShaderVariable::CameraPosition:
+				{
+					DirectX::XMFLOAT3 cam;
+					DirectX::XMStoreFloat3(&cam, SystemVariableManager::Instance().GetCamera()->GetPosition());
+					DirectX::XMFLOAT4 raw(cam.x, cam.y, cam.z, 1);
+					memcpy(var->Data, &raw, sizeof(DirectX::XMFLOAT4));
+				} break;
+				case ed::SystemShaderVariable::KeysWASD:
+				{
+					DirectX::XMINT4 raw = SystemVariableManager::Instance().GetKeysWASD();
+					memcpy(var->Data, &raw, sizeof(DirectX::XMFLOAT3));
+				} break;
 			}
 		}
 	}

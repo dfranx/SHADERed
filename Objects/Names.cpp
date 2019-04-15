@@ -153,7 +153,9 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"Orthographic",
 	"ViewOrthographic",
 	"GeometryTransform",
-	"IsPicked"
+	"IsPicked",
+	"CameraPosition",
+	"KeysWASD"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",

@@ -18,6 +18,8 @@ namespace ed
 		ViewOrthographic,	// matrix/float4x4 - View*Orthographic
 		GeometryTransform,	// matrix/float4x4 - apply Scale, Rotation and Position to geometry
 		IsPicked,			// bool		- check if current item is selected
+		CameraPosition,		// float4	- current camera position
+		KeysWASD,			// int4	- are W, A, S or D keys pressed
 		Count
 	};
 

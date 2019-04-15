@@ -16,10 +16,20 @@
 #include <Shlwapi.h>
 #include <MoonLight/Base/GeometryFactory.h>
 
+
 namespace ed
 {
-	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects)
+	/* https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program */
+	BOOL FileExists(LPCSTR szPath)
+	{
+		DWORD dwAttrib = GetFileAttributesA(szPath);
+
+		return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+			!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+	}
+
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, MessageStack* msgs, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs)
 	{
 		ResetProjectDirectory();
 		m_ui = gui;
@@ -83,6 +93,10 @@ namespace ed
 					strcpy(data->GSPath, shaderPath);
 					strcpy(data->GSEntry, shaderEntry);
 				}
+
+				std::string type = ((shaderNodeType == "vs") ? "vertex" : ((shaderNodeType == "ps") ? "pixel" : "geometry"));
+				if (!FileExists((m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + shaderPath).c_str()))
+					m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load " + type + " shader.");
 
 				// parse input layout
 				if (shaderNodeType == "vs") {
@@ -546,11 +560,19 @@ namespace ed
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
 
-						if (strcmp(shaderType, "vs") == 0)
-							editor->OpenVS(*item);
-						else if (strcmp(shaderType, "ps") == 0)
-							editor->OpenPS(*item);
+						std::string type = ((strcmp(shaderType, "vs") == 0) ? "vertex" : ((strcmp(shaderType, "ps") == 0) ? "pixel" : "geometry"));
+						std::string path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+						
+						if (strcmp(shaderType, "ps") == 0)
+							path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
 						else if (strcmp(shaderType, "gs") == 0)
+							path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+
+						if (strcmp(shaderType, "vs") == 0 && FileExists(path.c_str()))
+							editor->OpenVS(*item);
+						else if (strcmp(shaderType, "ps") == 0 && FileExists(path.c_str()))
+							editor->OpenPS(*item);
+						else if (strcmp(shaderType, "gs") == 0 && FileExists(path.c_str()))
 							editor->OpenGS(*item);
 					}
 				}
