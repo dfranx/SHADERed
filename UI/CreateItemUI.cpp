@@ -55,8 +55,14 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spvspath", ImVec2(-1, 0))) {
 				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0)
+				if (file.size() != 0) {
 					strcpy(data->VSPath, file.c_str());
+
+					if (m_data->Parser.FileExists(file))
+						m_data->Messages.ClearGroup(m_item.Name);
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, "Vertex shader file doesnt exist");
+				}
 			}
 			ImGui::NextColumn();
 
@@ -76,8 +82,14 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_sppspath", ImVec2(-1, 0))) {
 				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0)
+				if (file.size() != 0) {
 					strcpy(data->PSPath, file.c_str());
+
+					if (m_data->Parser.FileExists(file))
+						m_data->Messages.ClearGroup(m_item.Name);
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, "Pixel shader file doesnt exist");
+				}
 			}
 			ImGui::NextColumn();
 
@@ -106,8 +118,14 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spgspath", ImVec2(-1, 0))) {
 				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0)
+				if (file.size() != 0) {
 					strcpy(data->GSPath, file.c_str());
+
+					if (m_data->Parser.FileExists(file))
+						m_data->Messages.ClearGroup(m_item.Name);
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, "Geometry shader file doesnt exist");
+				}
 			}
 			ImGui::NextColumn();
 

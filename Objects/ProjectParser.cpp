@@ -19,15 +19,6 @@
 
 namespace ed
 {
-	/* https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program */
-	BOOL FileExists(LPCSTR szPath)
-	{
-		DWORD dwAttrib = GetFileAttributesA(szPath);
-
-		return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-			!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
-	}
-
 	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, MessageStack* msgs, GUIManager* gui) :
 		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs)
 	{
@@ -95,7 +86,7 @@ namespace ed
 				}
 
 				std::string type = ((shaderNodeType == "vs") ? "vertex" : ((shaderNodeType == "ps") ? "pixel" : "geometry"));
-				if (!FileExists((m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + shaderPath).c_str()))
+				if (!FileExists(shaderPath))
 					m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load " + type + " shader.");
 
 				// parse input layout
@@ -561,18 +552,18 @@ namespace ed
 						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
 
 						std::string type = ((strcmp(shaderType, "vs") == 0) ? "vertex" : ((strcmp(shaderType, "ps") == 0) ? "pixel" : "geometry"));
-						std::string path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+						std::string path = ((ed::pipe::ShaderPass*)item->Data)->VSPath;
 						
 						if (strcmp(shaderType, "ps") == 0)
-							path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+							path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
 						else if (strcmp(shaderType, "gs") == 0)
-							path = m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+							path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
-						if (strcmp(shaderType, "vs") == 0 && FileExists(path.c_str()))
+						if (strcmp(shaderType, "vs") == 0 && FileExists(path))
 							editor->OpenVS(*item);
-						else if (strcmp(shaderType, "ps") == 0 && FileExists(path.c_str()))
+						else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
 							editor->OpenPS(*item);
-						else if (strcmp(shaderType, "gs") == 0 && FileExists(path.c_str()))
+						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
 							editor->OpenGS(*item);
 					}
 				}
@@ -1114,6 +1105,13 @@ namespace ed
 	std::string ProjectParser::GetProjectPath(const std::string& to)
 	{
 		return m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + to;
+	}
+	bool ProjectParser::FileExists(const std::string& str)
+	{
+		DWORD dwAttrib = GetFileAttributesA(GetProjectPath(str).c_str());
+
+		return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+			!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 	}
 	void ProjectParser::ResetProjectDirectory()
 	{

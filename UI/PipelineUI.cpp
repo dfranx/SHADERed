@@ -205,17 +205,24 @@ namespace ed
 				if (ImGui::BeginMenu("Edit Code")) {
 					pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
 
-					if (ImGui::MenuItem("Vertex Shader"))
+					if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
 						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
-					else if (ImGui::MenuItem("Pixel Shader"))
+					}
+					else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
 						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
-					else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader"))
+					}
+					else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
 						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
+					}
 					else if (ImGui::MenuItem("All")) {
-						if (passData->GSUsed)
+						if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+
+						if (m_data->Parser.FileExists(passData->PSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+
+						if (m_data->Parser.FileExists(passData->VSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
 					}
 
 					ImGui::EndMenu();
@@ -264,6 +271,7 @@ namespace ed
 					props->Open(nullptr);
 
 				// tell pipeline to remove this item
+				m_data->Messages.ClearGroup(items[index]->Name);
 				m_data->Renderer.RemoveItemVariableValues(items[index]);
 				m_data->Pipeline.Remove(items[index]->Name);
 
@@ -815,9 +823,14 @@ namespace ed
 			if (ImGui::IsMouseDoubleClicked(0)) {
 				if (Settings::Instance().General.OpenShadersOnDblClk) {
 					CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
-					editor->OpenVS(*item);
-					editor->OpenPS(*item);
-					if (data->GSUsed) editor->OpenGS(*item);
+					if (m_data->Parser.FileExists(data->VSPath))
+						editor->OpenVS(*item);
+
+					if (m_data->Parser.FileExists(data->PSPath))
+						editor->OpenPS(*item);
+
+					if (data->GSUsed && m_data->Parser.FileExists(data->GSPath))
+						editor->OpenGS(*item);
 				} else {
 					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get("Properties"));
 					props->Open(item);

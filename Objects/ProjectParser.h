@@ -31,6 +31,7 @@ namespace ed
 
 		std::string GetRelativePath(const std::string& to);
 		std::string GetProjectPath(const std::string& projectFile);
+		bool FileExists(const std::string& file);
 
 		void ResetProjectDirectory();
 		inline void SetProjectDirectory(const std::string& path) { m_projectPath = path; }

@@ -111,6 +111,11 @@ namespace ed
 						if (file.size() != 0) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->VSPath, file.c_str());
+
+							if (m_data->Parser.FileExists(file))
+								m_data->Messages.ClearGroup(m_current->Name);
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Vertex shader file doesnt exist");
 						}
 					}
 					ImGui::NextColumn();
@@ -142,6 +147,11 @@ namespace ed
 						if (file.size() != 0) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->PSPath, file.c_str());
+
+							if (m_data->Parser.FileExists(file))
+								m_data->Messages.ClearGroup(m_current->Name);
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Pixel shader file doesnt exist");
 						}
 					}
 					ImGui::NextColumn();
@@ -181,6 +191,11 @@ namespace ed
 						if (file.size() != 0) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->GSPath, file.c_str());
+
+							if (m_data->Parser.FileExists(file))
+								m_data->Messages.ClearGroup(m_current->Name);
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Geometry shader file doesnt exist");
 						}
 					}
 					ImGui::NextColumn();
