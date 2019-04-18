@@ -121,7 +121,7 @@ namespace ed
 
 		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index]->Name)).c_str(), ImGuiDir_Up)) {
 			if (index != 0) {
-				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
+				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
@@ -142,7 +142,7 @@ namespace ed
 
 		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index]->Name)).c_str(), ImGuiDir_Down)) {
 			if (index != items.size() - 1) {
-				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
+				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
@@ -206,23 +206,23 @@ namespace ed
 					pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
 
 					if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
 					}
 					else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
 					}
 					else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
+						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
 					}
 					else if (ImGui::MenuItem("All")) {
 						if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenGS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
 
 						if (m_data->Parser.FileExists(passData->PSPath))
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenPS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
 
 						if (m_data->Parser.FileExists(passData->VSPath))
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")))->OpenVS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
 					}
 
 					ImGui::EndMenu();
@@ -261,12 +261,12 @@ namespace ed
 			}
 
 			if (ImGui::Selectable("Properties"))
-				(reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")))->Open(items[index]);
+				(reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)))->Open(items[index]);
 
 			if (ImGui::Selectable("Delete")) {
 
 				// check if it is opened in property viewer
-				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get("Properties")));
+				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
 					props->Open(nullptr);
 
@@ -477,7 +477,7 @@ namespace ed
 				}
 				ImGui::SameLine();
 
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				if (!pinState->Contains(el->Name)) {
 					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
 						pinState->Add(el);
@@ -488,7 +488,7 @@ namespace ed
 			}
 			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
 				// check if any of the affected variables are pinned
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				bool containsCur = pinState->Contains(el->Name);
 				bool containsDown = pinState->Contains(els[id-1]->Name);
 
@@ -511,7 +511,7 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 				// check if any of the affected variables are pinned
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get("Pinned"));
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				bool containsCur = pinState->Contains(el->Name);
 				bool containsDown = pinState->Contains(els[id + 1]->Name);
 
@@ -533,7 +533,7 @@ namespace ed
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
-				((PinnedUI*)m_ui->Get("Pinned"))->Remove(el->Name); // unpin if pinned
+				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
 
 				if (m_VarManagerSID == 0)
 					itemData->VSVariables.Remove(el->Name);
@@ -822,7 +822,7 @@ namespace ed
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0)) {
 				if (Settings::Instance().General.OpenShadersOnDblClk) {
-					CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get("Code")));
+					CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					if (m_data->Parser.FileExists(data->VSPath))
 						editor->OpenVS(*item);
 
@@ -832,7 +832,7 @@ namespace ed
 					if (data->GSUsed && m_data->Parser.FileExists(data->GSPath))
 						editor->OpenGS(*item);
 				} else {
-					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get("Properties"));
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}
@@ -843,7 +843,7 @@ namespace ed
 		ImGui::Indent(PIPELINE_ITEM_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0)) {
-				PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get("Properties"));
+				PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 				props->Open(item);
 			}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);

@@ -63,7 +63,7 @@ namespace ed
 	void OptionsUI::ApplyTheme()
 	{
 		std::string theme = Settings::Instance().Theme;
-		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
+		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 
 		if (theme == "Dark") {
 			ImGuiStyle& style = ImGui::GetStyle();

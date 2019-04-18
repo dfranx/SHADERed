@@ -67,7 +67,7 @@ namespace ed
 
 				if (m_data->Objects.IsRenderTexture(items[i])) {
 					if (ImGui::Selectable("Properties")) {
-						((ed::PropertyUI*)m_ui->Get("Properties"))->Open(items[i], m_data->Objects.GetRenderTexture(items[i]));
+						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(items[i]));
 					}
 				}
 

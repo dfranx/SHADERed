@@ -100,7 +100,7 @@ namespace ed
 	void GUIManager::Update(float delta)
 	{
 		// update fonts
-		((CodeEditorUI*)Get("Code"))->UpdateFont();
+		((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
 
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
@@ -145,9 +145,9 @@ namespace ed
 					if (file.size() > 0) {
 						m_data->Renderer.FlushCache();
 
-						((CodeEditorUI*)Get("Code"))->CloseAll();
-						((PinnedUI*)Get("Pinned"))->CloseAll();
-						((PreviewUI*)Get("Preview"))->Pick(nullptr);
+						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 
 						m_data->Parser.Open(file);
 
@@ -178,7 +178,7 @@ namespace ed
 			}
 			if (ImGui::BeginMenu("Project")) {
 				if (ImGui::MenuItem("Rebuild project", KeyboardShortcuts::Instance().GetString("Project.Rebuild").c_str())) {
-					((CodeEditorUI*)Get("Code"))->SaveAll();
+					((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
 
 					std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 					for (PipelineItem*& pass : passes)
@@ -243,13 +243,13 @@ namespace ed
 				ImGui::End();
 			}
 
-		Get("Code")->Update(delta);
+		Get(ViewID::Code)->Update(delta);
 
 		// handle the build occured event
 		if (Settings::Instance().General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
 			size_t errors = m_data->Messages.GetMessages().size();
-			if (errors > 0 && !Get("Output")->Visible)
-				Get("Output")->Visible = true;
+			if (errors > 0 && !Get(ViewID::Output)->Visible)
+				Get(ViewID::Output)->Visible = true;
 			m_data->Messages.BuildOccured = false;
 		}
 
@@ -323,9 +323,9 @@ namespace ed
 				m_data->Parser.SetTemplate(m_selectedTemplate);
 
 				m_data->Renderer.FlushCache();
-				((CodeEditorUI*)Get("Code"))->CloseAll();
-				((PinnedUI*)Get("Pinned"))->CloseAll();
-				((PreviewUI*)Get("Preview"))->Pick(nullptr);
+				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+				((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
 				m_data->Pipeline.New();
 
 				m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
@@ -414,7 +414,7 @@ namespace ed
 			Settings::Instance().Save();
 			KeyboardShortcuts::Instance().Save();
 
-			CodeEditorUI* code = ((CodeEditorUI*)Get("Code"));
+			CodeEditorUI* code = ((CodeEditorUI*)Get(ViewID::Code));
 
 			code->SetTabSize(Settings::Instance().Editor.TabSize);
 			code->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
@@ -451,12 +451,11 @@ namespace ed
 			ImGui::RenderPlatformWindowsDefault();
 		}
 	}
-	UIView * GUIManager::Get(const std::string & name)
+	UIView * GUIManager::Get(ViewID view)
 	{
-		for (auto view : m_views)
-			if (view->Name == name)
-				return view;
-		return nullptr;
+		if (view == ViewID::Options)
+			return m_options;
+		return m_views[(int)view];
 	}
 	void GUIManager::SaveSettings()
 	{
@@ -478,7 +477,7 @@ namespace ed
 			data.close();
 		}
 
-		Get("Code")->Visible = false;
+		Get(ViewID::Code)->Visible = false;
 
 		((OptionsUI*)m_options)->ApplyTheme();
 	}
@@ -554,9 +553,9 @@ namespace ed
 
 			m_data->Renderer.FlushCache();
 
-			((CodeEditorUI*)Get("Code"))->CloseAll();
-			((PinnedUI*)Get("Pinned"))->CloseAll();
-			((PreviewUI*)Get("Preview"))->Pick(nullptr);
+			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 
 			m_data->Parser.Open(file);
 
@@ -571,7 +570,7 @@ namespace ed
 	{
 		// PROJECT
 		KeyboardShortcuts::Instance().SetCallback("Project.Rebuild", [=]() {
-			((CodeEditorUI*)Get("Code"))->SaveAll();
+			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
 
 			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 			for (PipelineItem*& pass : passes)
@@ -591,18 +590,18 @@ namespace ed
 			std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
 			if (file.size() > 0) {
-				((CodeEditorUI*)Get("Code"))->CloseAll();
-				((PinnedUI*)Get("Pinned"))->CloseAll();
-				((PreviewUI*)Get("Preview"))->Pick(nullptr);
+				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 
 				m_data->Parser.Open(file);
 			}
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.New", [=]() {
 			m_data->Renderer.FlushCache();
-			((CodeEditorUI*)Get("Code"))->CloseAll();
-			((PinnedUI*)Get("Pinned"))->CloseAll();
-			((PreviewUI*)Get("Preview"))->Pick(nullptr);
+			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {
@@ -634,19 +633,19 @@ namespace ed
 
 		// WORKSPACE
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideOutput", [=]() {
-			Get("Output")->Visible = !Get("Output")->Visible;
+			Get(ViewID::Output)->Visible = !Get(ViewID::Output)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideEditor", [=]() {
-			Get("Code")->Visible = !Get("Code")->Visible;
+			Get(ViewID::Code)->Visible = !Get(ViewID::Code)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePreview", [=]() {
-			Get("Preview")->Visible = !Get("Preview")->Visible;
+			Get(ViewID::Preview)->Visible = !Get(ViewID::Preview)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePipeline", [=]() {
-			Get("Pipeline")->Visible = !Get("Pipeline")->Visible;
+			Get(ViewID::Pipeline)->Visible = !Get(ViewID::Pipeline)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePinned", [=]() {
-			Get("Pinned")->Visible = !Get("Pinned")->Visible;
+			Get(ViewID::Pinned)->Visible = !Get(ViewID::Pinned)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
 			// TODO

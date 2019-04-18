@@ -539,14 +539,14 @@ namespace ed
 			if (!settingItem.attribute("type").empty()) {
 				std::string type = settingItem.attribute("type").as_string();
 				if (type == "property") {
-					PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
+					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 					if (!settingItem.attribute("name").empty()) {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						props->Open(item);
 					}
 				}
 				else if (type == "file" && Settings::Instance().General.ReopenShaders) {
-					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
+					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 					if (!settingItem.attribute("name").empty()) {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
@@ -568,7 +568,7 @@ namespace ed
 					}
 				}
 				else if (type == "pinned") {
-					PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
+					PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 					if (!settingItem.attribute("name").empty()) {
 						const pugi::char_t* item = settingItem.attribute("name").as_string();
 						const pugi::char_t* shaderType = settingItem.attribute("from").as_string();
@@ -933,7 +933,7 @@ namespace ed
 		// settings
 		{
 			// property ui
-			PropertyUI* props = ((PropertyUI*)m_ui->Get("Properties"));
+			PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 			if (props->HasItemSelected()) {
 				std::string name = props->CurrentItemName();
 
@@ -943,7 +943,7 @@ namespace ed
 			}
 
 			// code editor ui
-			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get("Code"));
+			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
 			for (const auto& file : files) {
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
@@ -953,7 +953,7 @@ namespace ed
 			}
 
 			// pinned ui
-			PinnedUI* pinned = ((PinnedUI*)m_ui->Get("Pinned"));
+			PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 			std::vector<ShaderVariable*> pinnedVars = pinned->GetAll();
 			for (auto var : pinnedVars) {
 				pugi::xml_node varNode = settingsNode.append_child("entry");

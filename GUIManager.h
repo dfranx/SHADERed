@@ -10,6 +10,18 @@ namespace ed
 	class UIView;
 	class Settings;
 
+	enum class ViewID
+	{
+		Pipeline, 
+		Preview,
+		Properties,
+		Pinned,
+		Code,
+		Output,
+		Objects,
+		Options
+	};
+
 	class GUIManager
 	{
 	public:
@@ -20,7 +32,7 @@ namespace ed
 		void Update(float delta);
 		void Render();
 
-		UIView* Get(const std::string& name);
+		UIView* Get(ViewID view);
 
 		void SaveSettings();
 		void LoadSettings();

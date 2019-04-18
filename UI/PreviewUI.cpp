@@ -114,7 +114,7 @@ namespace ed
 				if ((m_pick != nullptr && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) || m_pick == nullptr) {
 					renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
 						if (Settings::Instance().Preview.PropertyPick)
-							((PropertyUI*)m_ui->Get("Properties"))->Open(item);
+							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
 						m_pick = item;
 
 						if (item != nullptr) {
