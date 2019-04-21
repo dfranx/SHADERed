@@ -26,6 +26,28 @@ namespace ed
 		}
 		return "";
 	}
+	std::string UIHelper::GetSaveFileDialog(HWND wnd, LPCWSTR files)
+	{
+		OPENFILENAME dialog;
+		TCHAR filePath[MAX_PATH] = { 0 };
+
+		ZeroMemory(&dialog, sizeof(dialog));
+		dialog.lStructSize = sizeof(dialog);
+		dialog.hwndOwner = wnd;
+		dialog.lpstrFile = filePath;
+		dialog.nMaxFile = sizeof(filePath);
+		dialog.lpstrFilter = files;
+		dialog.nFilterIndex = 1;
+		dialog.lpstrDefExt = L".png";
+		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+
+		if (GetSaveFileName(&dialog) == TRUE) {
+			std::wstring wfile = std::wstring(filePath);
+			return std::string(wfile.begin(), wfile.end());
+		}
+
+		return "";
+	}
 	void UIHelper::CreateInputFloat3(const char * name, DirectX::XMFLOAT3& data)
 	{
 		float val[3] = { data.x , data.y, data.z };

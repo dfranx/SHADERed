@@ -24,6 +24,8 @@ namespace ed
 				Type = Type::Error;
 				Group = "";
 				Text = "";
+				Line = -1;
+				Shader = -1;
 			}
 			Message(Type type, const std::string& group, const std::string& txt, int line = -1, int shader = -1)
 			{
@@ -46,7 +48,8 @@ namespace ed
 
 		// group -> pipeline item name
 		void Add(Type type, const std::string& group, const std::string& message, int ln = -1, int sh = -1);
-		void ClearGroup(const std::string& group);
+		void ClearGroup(const std::string& group, int type = -1); // -1 == all, else use an MessageStack::Type enum
+		int GetGroupWarningMsgCount(const std::string& group);
 		void RenameGroup(const std::string& group, const std::string& newName);
 
 		bool CanRenderPreview();

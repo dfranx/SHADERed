@@ -11,6 +11,7 @@ namespace ed
 	{
 	public:
 		static std::string GetOpenFileDialog(HWND wnd, LPCWSTR files = L"All\0*.*\0HLSL\0*.hlsl;.hlsli\0");
+		static std::string GetSaveFileDialog(HWND wnd, LPCWSTR files = L"PNG\0*.png");
 		static void CreateInputFloat3(const char* name, DirectX::XMFLOAT3& data);
 		static bool CreateInputFloat2(const char* name, DirectX::XMFLOAT2& data);
 		static bool CreateInputInt2(const char* name, DirectX::XMINT2& data);

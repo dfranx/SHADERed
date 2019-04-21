@@ -16,7 +16,7 @@ namespace ed
 		std::vector<std::string> items = m_data->Objects.GetObjects();
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 
-		ImGui::BeginChild("test", containerSize);
+		ImGui::BeginChild("##object_scroll_container", containerSize);
 
 		for (int i = 0; i < items.size(); i++) {
 			ml::ShaderResourceView* srv = m_data->Objects.GetSRV(items[i]);
@@ -71,23 +71,25 @@ namespace ed
 					}
 				}
 
-				if (ImGui::Selectable("Delete"))
+				if (ImGui::Selectable("Delete")) {
+					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr);
 					m_data->Objects.Remove(items[i]);
+				}
 
 				ImGui::EndPopup();
 			}
 		}
 
 		ImGui::EndChild();
+
+		/*
 		if (!itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_objects")) {
-			if (ImGui::Selectable("Properties")) {
-
-			}
-
-			if (ImGui::Selectable("Delete")) {
-			}
+			if (ImGui::Selectable("Create Texture")) { }
+			if (ImGui::Selectable("Create Cube Map")) {}
+			if (ImGui::Selectable("Create Render Texture")) { }
 
 			ImGui::EndPopup();
 		}
+		*/
 	}
 }

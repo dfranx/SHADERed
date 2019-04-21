@@ -19,6 +19,7 @@ namespace ed
 		DirectX::XMINT2 FixedSize;
 		DirectX::XMFLOAT2 RatioSize;
 		ml::Color ClearColor;
+		std::string Name;
 
 		DirectX::XMINT2 CalculateSize(int w, int h)
 		{
@@ -46,7 +47,9 @@ namespace ed
 		void Remove(const std::string& file);
 		int IsBound(const std::string& file, PipelineItem* pass);
 
-		RenderTextureObject* GetRenderTexture(const std::string& name) { return m_rts[name]; }
+		RenderTextureObject* GetRenderTexture(const std::string& name) { 
+			return m_rts[name];
+		}
 		DirectX::XMINT2 GetRenderTextureSize(const std::string& name);
 		inline bool IsRenderTexture(const std::string& name) { return m_rts.count(name) > 0; }
 		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }

@@ -139,6 +139,10 @@ namespace ed
 						}
 					ImGui::EndMenu();
 				}
+				if (ImGui::MenuItem("New Shader")) {
+					std::string file = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"HLSL\0*.hlsl\0GLSL Vertex\0*.vert\0GLSL Pixel\0*.frag\0GLSL Geometry\0*.geom\0");
+					CreateFileA(file.c_str(), GENERIC_READ, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
 
@@ -344,7 +348,7 @@ namespace ed
 			ImGui::Text("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
-				m_previewSavePath = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0"); /* TODO: more options */
+				m_previewSavePath = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0"); /* TODO: more options */
 			
 			ImGui::Text("Width: ");
 			ImGui::SameLine();

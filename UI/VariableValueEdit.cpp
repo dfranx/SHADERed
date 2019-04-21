@@ -16,7 +16,7 @@ namespace ed
 		if (m_var != nullptr) {
 			FunctionShaderVariable state = m_var->Function;
 
-			ImGui::Text("Variable \"%s\"", m_var->Name);
+			ImGui::Text("%s ", m_var->Name);
 
 			if (state != FunctionShaderVariable::None)
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

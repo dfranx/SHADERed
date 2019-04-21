@@ -72,6 +72,9 @@ namespace ed
 		MessageStack* m_msgs;
 		ml::Window* m_wnd;
 
+		// multiple render targets
+		ID3D11RenderTargetView* m_views[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;

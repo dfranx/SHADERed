@@ -35,18 +35,18 @@ namespace ed
 	{
 		struct ShaderPass
 		{
-			char RenderTexture[64];
+			char RenderTexture[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT][64];
 
-			char VSPath[512];
+			char VSPath[MAX_PATH];
 			char VSEntry[32];
 			ml::VertexInputLayout VSInputLayout;
 			ShaderVariableContainer VSVariables;
 
-			char PSPath[512];
+			char PSPath[MAX_PATH];
 			char PSEntry[32];
 			ShaderVariableContainer PSVariables;
 
-			char GSPath[512];
+			char GSPath[MAX_PATH];
 			char GSEntry[32];
 			ShaderVariableContainer GSVariables;
 			bool GSUsed;
@@ -97,7 +97,7 @@ namespace ed
 		{
 			bool OnlyGroup; // render only a group
 			char GroupName[MODEL_GROUP_NAME_LENGTH];
-			char Filename[512];
+			char Filename[MAX_PATH];
 			ml::UInt32 VertCount;
 			ml::VertexBuffer<ml::OBJModel::Vertex> Vertices;
 

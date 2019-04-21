@@ -2,6 +2,7 @@
 #include "CodeEditorUI.h"
 #include "PropertyUI.h"
 #include "PinnedUI.h"
+#include "PreviewUI.h"
 #include "../Options.h"
 #include "../GUIManager.h"
 #include "../ImGUI/imgui.h"
@@ -269,6 +270,9 @@ namespace ed
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
 					props->Open(nullptr);
+
+				if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->GetPicked() == items[index])
+					(reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->Pick(nullptr);
 
 				// tell pipeline to remove this item
 				m_data->Messages.ClearGroup(items[index]->Name);
@@ -773,7 +777,7 @@ namespace ed
 		if (ImGui::Button("ADD")) {
 			bool alreadyAdded = false;
 			for (int i = 0; i < allItems.size(); i++)
-				if (strcmp(vars[shaderVarSel]->Name, allItems[i].Variable->Name) == 0) {
+				if (strcmp(vars[shaderVarSel]->Name, allItems[i].Variable->Name) == 0 && allItems[i].Item == m_modalItem) {
 					alreadyAdded = true;
 					break;
 				}

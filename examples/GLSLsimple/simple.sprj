@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project>
 	<pipeline>
-		<pass name="Light">
+		<pass name="Simple">
 			<shader type="vs">
-				<path>shaders\LightVS.vert</path>
+				<path>shaders\SimpleVS.vert</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">TEXCOORD</element>
@@ -15,7 +15,7 @@
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>shaders\LightPS.frag</path>
+				<path>shaders\SimplePS.frag</path>
 				<entry>main</entry>
 			</shader>
 			<items>
@@ -32,9 +32,9 @@
 	</pipeline>
 	<objects />
 	<settings>
-		<entry type="property" name="Light" />
-		<entry type="file" name="Light" shader="vs" />
-		<entry type="file" name="Light" shader="ps" />
+		<entry type="property" name="Simple" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="true">
 			<positionX>-4.09775019</positionX>
 			<positionY>1.57427156</positionY>

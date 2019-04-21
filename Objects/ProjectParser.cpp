@@ -50,17 +50,24 @@ namespace ed
 			char name[PIPELINE_ITEM_NAME_LENGTH];
 			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
 			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
-			strcpy(data->RenderTexture, "Window");
+
+			strcpy(data->RenderTexture[0], "Window");
+			for (int i = 1; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+				data->RenderTexture[i][0] = 0;
 
 			// get pass name
 			if (!passNode.attribute("name").empty())
 				strcpy(name, passNode.attribute("name").as_string());
 
-			// get pass name
-			if (!passNode.attribute("rt").empty())
-				strcpy(data->RenderTexture, passNode.attribute("rt").as_string());
-			else
-				strcpy(data->RenderTexture, "Window");
+			// get render textures
+			int rtCur = 0;
+			for (pugi::xml_node rtNode : passNode.children("rendertexture")) {
+				std::string rtName(rtNode.attribute("name").as_string());
+
+				strcpy(data->RenderTexture[rtCur], rtName.c_str());
+
+				rtCur++;
+			}
 
 			// add the item
 			m_pipe->AddPass(name, data);
@@ -688,8 +695,13 @@ namespace ed
 
 			pugi::xml_node passNode = pipelineNode.append_child("pass");
 			passNode.append_attribute("name").set_value(passItem->Name);
-			if (strcmp(passData->RenderTexture, "Window") != 0)
-				passNode.append_attribute("rt").set_value(passData->RenderTexture);
+
+			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+				if (passData->RenderTexture[i][0] == 0)
+					break;
+
+				passNode.append_child("rendertexture").append_attribute("name").set_value(passData->RenderTexture[i]);
+			}
 
 			// vertex shader
 			pugi::xml_node vsNode = passNode.append_child("shader");

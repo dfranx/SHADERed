@@ -17,6 +17,8 @@ namespace ed
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			if (m_current != nullptr)
 				ImGui::Text(m_current->Name);
+			else if (m_currentRT != nullptr)
+				ImGui::Text(m_currentRT->Name.c_str());
 			else
 				ImGui::Text("nullptr");
 			ImGui::PopStyleColor();
@@ -46,9 +48,8 @@ namespace ed
 					}
 				}
 				ImGui::NextColumn();
+				ImGui::Separator();
 			}
-
-			ImGui::Separator();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
 			if (ImGui::BeginPopupModal("ERROR##pui_itemname_taken", 0, ImGuiWindowFlags_NoResize)) {
@@ -72,27 +73,51 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
 					std::vector<std::string> rts = m_data->Objects.GetObjects();
-					size_t rtsStrLen = 1;
-					std::string rtsStr = "Window";
-					rtsStr.push_back('\0');
+					bool windowAlreadyBound = false;
+					for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+						if (item->RenderTexture[i][0] == 0)
+							continue;
+						
+						if (!windowAlreadyBound && strcmp(item->RenderTexture[i], "Window") == 0) {
+							windowAlreadyBound = true;
+							continue;
+						}
 
-					int rtsCur = 0;
-					for (int i = 0; i < rts.size(); i++) {
-						if (!m_data->Objects.IsRenderTexture(rts[i])) {
-							rts.erase(rts.begin() + i);
-							i--;
-						} else {
-							rtsStr += rts[i];
-							rtsStr.push_back('\0');
-							rtsStrLen++;
-							if (strcmp(item->RenderTexture, rts[i].c_str()) == 0)
-								rtsCur = i+1;
+						for (int j = 0; j < rts.size(); j++) {
+							if (m_data->Objects.IsRenderTexture(rts[j]) && strcmp(item->RenderTexture[i], rts[j].c_str()) == 0) {
+								rts.erase(rts.begin() + j);
+								j--;
+							}
 						}
 					}
+					for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+						char firstChar = item->RenderTexture[i][0];
+						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), firstChar == 0 ? "NULL" : item->RenderTexture[i])) {
+							// null element
+							if (i != 0 && firstChar != 0) {
+								if (ImGui::Selectable("NULL", firstChar == 0)) {
+									item->RenderTexture[i][0] = 0;
+									for (int j = i + 1; j < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; j++)
+										item->RenderTexture[j][0] = 0;
+								}
+							}
 
+							// window element
+							if (!windowAlreadyBound)
+								if (ImGui::Selectable("Window", strcmp(item->RenderTexture[i], "Window") == 0))
+									strcpy(item->RenderTexture[i], "Window");
 
-					if (ImGui::Combo("##pui_rt_combo", &rtsCur, rtsStr.c_str()))
-						strcpy(item->RenderTexture, ((rtsCur == 0) ? "Window\0" : rts[rtsCur - 1].c_str()));
+							// users RTs
+							for (int j = 0; j < rts.size(); j++)
+								if (ImGui::Selectable(rts[j].c_str(), strcmp(item->RenderTexture[i], rts[j].c_str()) == 0))
+									strcpy(item->RenderTexture[i], rts[j].c_str());
+
+							ImGui::EndCombo();
+						}
+
+						if (item->RenderTexture[i][0] == 0)
+							break;
+					}
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 
@@ -103,7 +128,7 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-40);
-					ImGui::InputText("##pui_vspath", item->VSPath, 512);
+					ImGui::InputText("##pui_vspath", item->VSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_vsbtn", ImVec2(-1, 0))) {
@@ -139,7 +164,7 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-40);
-					ImGui::InputText("##pui_pspath", item->PSPath, 512);
+					ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_psbtn", ImVec2(-1, 0))) {
@@ -183,7 +208,7 @@ namespace ed
 					ImGui::Text("GS path:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-40);
-					ImGui::InputText("##pui_gspath", item->GSPath, 512);
+					ImGui::InputText("##pui_gspath", item->GSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_gsbtn", ImVec2(-1, 0))) {

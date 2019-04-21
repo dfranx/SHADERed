@@ -50,7 +50,7 @@ namespace ed
 			ImGui::Text("Vertex shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-40);
-			ImGui::InputText("##cui_spvspath", data->VSPath, 512);
+			ImGui::InputText("##cui_spvspath", data->VSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spvspath", ImVec2(-1, 0))) {
@@ -77,7 +77,7 @@ namespace ed
 			ImGui::Text("Pixel shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-40);
-			ImGui::InputText("##cui_sppspath", data->PSPath, 512);
+			ImGui::InputText("##cui_sppspath", data->PSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_sppspath", ImVec2(-1, 0))) {
@@ -113,7 +113,7 @@ namespace ed
 			ImGui::Text("Geometry shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-40);
-			ImGui::InputText("##cui_spgspath", data->GSPath, 512);
+			ImGui::InputText("##cui_spgspath", data->GSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spgspath", ImVec2(-1, 0))) {
@@ -369,7 +369,7 @@ namespace ed
 			ImGui::Text("File:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-40);
-			ImGui::InputText("##cui_objfile", data->Filename, 512);
+			ImGui::InputText("##cui_objfile", data->Filename, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {
@@ -443,7 +443,7 @@ namespace ed
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
 			m_item.Data = allocatedData;
-			strcpy(allocatedData->RenderTexture, "Window\0");			
+			strcpy(allocatedData->RenderTexture[0], "Window");			
 		}
 		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
 			pipe::BlendState* allocatedData = new pipe::BlendState();
@@ -481,7 +481,7 @@ namespace ed
 			strcpy(data->PSPath, origData->PSPath);
 			strcpy(data->VSEntry, origData->VSEntry);
 			strcpy(data->VSPath, origData->VSPath);
-			strcpy(data->RenderTexture, origData->RenderTexture);
+			strcpy(data->RenderTexture[0], origData->RenderTexture[0]);
 
 			return m_data->Pipeline.AddPass(m_item.Name, data);
 		} else if (m_owner[0] != 0) {

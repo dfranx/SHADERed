@@ -16,12 +16,14 @@ namespace ed
 			m_lastSize(-1, -1) {
 			m_setupShortcuts();
 			m_fpsLimit = m_elapsedTime = 0;
+			m_hasFocus = false;
 		}
 
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
 		inline void Pick(PipelineItem* item) { m_pick = item; }
+		inline PipelineItem* GetPicked() { return m_pick; }
 
 	private:
 		void m_setupShortcuts();
@@ -38,6 +40,7 @@ namespace ed
 		ml::RenderTexture m_rt;
 		ml::ShaderResourceView m_rtView;
 		DirectX::XMINT2 m_lastSize;
+		bool m_hasFocus;
 
 		float m_elapsedTime;
 		float m_fpsLimit;

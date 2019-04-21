@@ -26,6 +26,9 @@ namespace ed
 		m_parser(parser), m_renderer(rnd)
 	{
 		m_wnd = wnd;
+		m_rts.clear();
+		m_binds.clear();
+		m_imgs.clear();
 	}
 	ObjectManager::~ObjectManager()
 	{
@@ -61,11 +64,12 @@ namespace ed
 		m_rts[name] = new ed::RenderTextureObject();
 
 		m_rts[name]->RT = new ml::RenderTexture();
-		m_rts[name]->RT->Create(*m_wnd, m_wnd->GetSize(), ml::Resource::ShaderResource, true);
+		m_rts[name]->RT->Create(*m_wnd, m_wnd->GetSize(), ml::Resource::ShaderResource, true, 32);
 		m_srvs[name]->Create(*m_wnd, *m_rts[name]->RT);
 
-		m_rts[name]->FixedSize = m_wnd->GetSize();
+		m_rts[name]->FixedSize = m_renderer->GetLastRenderSize();
 		m_rts[name]->ClearColor = ml::Color(0, 0, 0, 0);
+		m_rts[name]->Name = name;
 	}
 	void ObjectManager::CreateTexture(const std::string& file, bool cube)
 	{
@@ -152,7 +156,7 @@ namespace ed
 	}
 	void ObjectManager::ResizeRenderTexture(const std::string & name, DirectX::XMINT2 size)
 	{
-		m_rts[name]->RT->Create(*m_wnd, size, ml::Resource::ShaderResource, true);
+		m_rts[name]->RT->Create(*m_wnd, size, ml::Resource::ShaderResource, true, 32);
 		m_srvs[name]->Create(*m_wnd, *m_rts[name]->RT);
 	}
 }

@@ -37,9 +37,11 @@ namespace ed
 		
 			std::vector<std::string> objs = m_objects->GetObjects();
 			for (int i = 0; i < objs.size(); i++) {
-				ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(objs[i]);
-				if (rtObj->FixedSize.x == -1)
-					m_objects->ResizeRenderTexture(objs[i], rtObj->CalculateSize(width, height));
+				if (m_objects->IsRenderTexture(objs[i])) {
+					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(objs[i]);
+					if (rtObj != nullptr && rtObj->FixedSize.x == -1)
+						m_objects->ResizeRenderTexture(objs[i], rtObj->CalculateSize(width, height));
+				}
 			}
 		}
 
@@ -62,46 +64,73 @@ namespace ed
 			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 			std::vector<ml::ShaderResourceView*> srvs = m_objects->GetBindList(m_items[i]);
 
-			if (strcmp(data->RenderTexture, "Window") == 0) {
-				// update viewport value
-				SystemVariableManager::Instance().SetViewportSize(width, height);
+			// bind RTs
+			int rtCount = 0;
+			ID3D11DepthStencilView* depthView = nullptr;
+			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+				if (data->RenderTexture[i][0] == 0) {
+					break;
+				}
 
-				// set viewport and cache old viewport
+				char rtName[64];
+				strcpy(rtName, data->RenderTexture[i]);
+
+				ml::RenderTexture* rt = nullptr;
+				DirectX::XMINT2 rtSize = DirectX::XMINT2(width, height);
+
+				if (strcmp(rtName, "Window") == 0) {
+					// update viewport value
+					SystemVariableManager::Instance().SetViewportSize(rtSize.x, rtSize.y);
+
+					rt = &m_rt;
+
+					if (depthView == nullptr)
+						depthView = rt->GetDepthStencilView();
+				} else {
+					ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rtName);
+					ml::Color oldClearClr = m_wnd->GetClearColor();
+
+					rtSize = rtObject->CalculateSize(width, height);
+					rt = rtObject->RT;
+
+					// update viewport value
+					SystemVariableManager::Instance().SetViewportSize(rtSize.x, rtSize.y);
+
+					// set viewport and cache old viewport
+					D3D11_VIEWPORT viewport;
+					viewport.TopLeftX = viewport.TopLeftY = 0;
+					viewport.Height = rtSize.y;
+					viewport.Width = rtSize.x;
+					viewport.MinDepth = 0.0f;
+					viewport.MaxDepth = 1.0f;
+					m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
+
+					// clear and bind rt
+					m_wnd->SetClearColor(rtObject->ClearColor);
+					rt->Clear();
+					m_wnd->SetClearColor(oldClearClr);
+
+					if (depthView == nullptr) {
+						depthView = rt->GetDepthStencilView();
+						m_wnd->GetDeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+					}
+				}
+
+				// set viewport
 				D3D11_VIEWPORT viewport;
 				viewport.TopLeftX = viewport.TopLeftY = 0;
-				viewport.Height = height;
-				viewport.Width = width;
+				viewport.Height = rtSize.y;
+				viewport.Width = rtSize.x;
 				viewport.MinDepth = 0.0f;
 				viewport.MaxDepth = 1.0f;
 				m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
 
-				// bind window rt
-				m_rt.Bind();
+				// add render target
+				m_views[rtCount] = rt->GetView();
+				rtCount++;
 			}
-			else {
-				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(data->RenderTexture);
-				ml::Color oldClearClr = m_wnd->GetClearColor();
-				DirectX::XMINT2 calcSize = rt->CalculateSize(width, height);
 
-				// update viewport value
-				SystemVariableManager::Instance().SetViewportSize(calcSize.x, calcSize.y);
-
-				// set viewport and cache old viewport
-				D3D11_VIEWPORT viewport;
-				viewport.TopLeftX = viewport.TopLeftY = 0;
-				viewport.Height = calcSize.y;
-				viewport.Width = calcSize.x;
-				viewport.MinDepth = 0.0f;
-				viewport.MaxDepth = 1.0f;
-				m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
-
-				// clear and bind rt
-				m_wnd->SetClearColor(rt->ClearColor);
-				rt->RT->Bind();
-				rt->RT->Clear();
-				rt->RT->ClearDepthStencil(1.0f, 0);
-				m_wnd->SetClearColor(oldClearClr);
-			}
+			m_wnd->GetDeviceContext()->OMSetRenderTargets(rtCount, m_views, depthView);
 
 			// bind shader resource views
 			for (int j = 0; j < srvs.size(); j++) {
@@ -120,6 +149,14 @@ namespace ed
 					data->PSVariables.GetSlot(j).BindPS(j);
 				if (data->GSUsed && data->GSVariables.IsSlotUsed(j))
 					data->GSVariables.GetSlot(j).BindGS(j);
+			}
+
+			if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
+				m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);
+
+			if (m_vs[i]->InputSignature == nullptr) {
+				m_msgs->Add(ed::MessageStack::Type::Warning, it->Name, "Vertex shader/input layout not loaded - skipping the shader.");
+				continue;
 			}
 
 			m_vs[i]->Bind();

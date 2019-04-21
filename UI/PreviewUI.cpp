@@ -1,5 +1,6 @@
 #include "PreviewUI.h"
 #include "PropertyUI.h"
+#include "PipelineUI.h"
 #include "../Objects/Settings.h"
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
@@ -24,6 +25,15 @@ namespace ed
 		KeyboardShortcuts::Instance().SetCallback("Gizmo.Rotation", [=]() {
 			m_pickMode = 2;
 			m_gizmo.SetMode(m_pickMode);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.Delete", [=]() {
+			if (m_pick != nullptr && m_hasFocus) {
+				m_data->Pipeline.Remove(m_pick->Name);
+				m_pick = nullptr;
+			}
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
+			m_pick = nullptr;
 		});
 	}
 	void PreviewUI::OnEvent(const ml::Event & e)
@@ -66,6 +76,8 @@ namespace ed
 		// display the image on the imgui window
 		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
+
+		m_hasFocus = ImGui::IsWindowFocused();
 
 		// render the gizmo if necessary
 		if (m_pick != nullptr && Settings::Instance().Preview.Gizmo) {
