@@ -3,3 +3,4 @@
 - [ ] help -> manual, about, etc...
 - [ ] do all TODOs (comments)
 - [ ] README.md
+- [ ] write tutorial

@@ -7,7 +7,7 @@
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
-					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="12">NORMAL</element>
 				</input>
 				<variables>
 					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
@@ -56,7 +56,7 @@
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">POSITION</element>
-					<element id="0" format="R32G32B32_FLOAT" offset="16">NORMAL</element>
+					<element id="0" format="R32G32B32_FLOAT" offset="12">NORMAL</element>
 				</input>
 				<variables>
 					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />

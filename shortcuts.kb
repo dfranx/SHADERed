@@ -6,9 +6,9 @@ Gizmo.Position CTRL G P
 Gizmo.Rotation CTRL G R
 Gizmo.Scale CTRL G S
 Preview.Delete CTRL DELETE
-Preview.Unselect CTRL SHIFT DELETE
 Preview.SaveImage CTRL R
 Preview.ToggleStatusbar CTRL ALT F3
+Preview.Unselect CTRL SHIFT DELETE
 Project.New CTRL N N
 Project.NewCubeMap CTRL N C
 Project.NewRenderTexture CTRL N R

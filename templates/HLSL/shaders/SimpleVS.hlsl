@@ -21,7 +21,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 	
 	vout.Position = mul(mul(float4(vin.Position, 1), matGeo), matVP);
-	vout.Color = float4(1.0f, 0, 0, 1);
+	vout.Color = float4(abs(vin.Normal), 1);
 	
 	return vout;
 }

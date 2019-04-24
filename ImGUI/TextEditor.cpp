@@ -913,6 +913,10 @@ void TextEditor::SetText(const std::string & aText)
 		mTextChanged = true;
 	}
 
+	// empty files -> add 1 empty line
+	if (mLines.empty())
+		mLines.push_back(Line());
+
 	mUndoBuffer.clear();
 
 	Colorize();

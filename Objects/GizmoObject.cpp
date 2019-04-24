@@ -72,7 +72,7 @@ namespace ed
 		m_mode(0)
 	{
 		m_vlayout.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
-		m_vlayout.Add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 16);
+		m_vlayout.Add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12);
 		m_vs.InputSignature = &m_vlayout;
 
 		m_vs.LoadFromMemory(*m_wnd, GIZMO_VS_CODE, strlen(GIZMO_VS_CODE), "main");
@@ -282,47 +282,47 @@ namespace ed
 
 		m_ptrVerts.resize(18);
 
-		m_ptrVerts[0].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[1].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[2].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
+		m_ptrVerts[0].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[1].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[2].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
 
 
-		m_ptrVerts[3].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[4].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[5].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
+		m_ptrVerts[3].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[4].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[5].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
 		m_ptrVerts[0].Normal = m_ptrVerts[1].Normal = m_ptrVerts[2].Normal =
-			m_ptrVerts[3].Normal = m_ptrVerts[4].Normal = m_ptrVerts[5].Normal = DirectX::XMFLOAT4(0, 1, 0, 0);
+			m_ptrVerts[3].Normal = m_ptrVerts[4].Normal = m_ptrVerts[5].Normal = DirectX::XMFLOAT3(0, 1, 0);
 
-		m_ptrVerts[6].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[7].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[8].Position = DirectX::XMFLOAT4(0, GIZMO_POINTER_HEIGHT, 0, 1);
-		DirectX::XMVECTOR p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[6].Position), DirectX::XMLoadFloat4(&m_ptrVerts[7].Position));
-		DirectX::XMVECTOR p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[7].Position), DirectX::XMLoadFloat4(&m_ptrVerts[8].Position));
-		DirectX::XMStoreFloat4(&m_ptrVerts[6].Normal, DirectX::XMVector3Cross(p1, p2));
+		m_ptrVerts[6].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[7].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[8].Position = DirectX::XMFLOAT3(0, GIZMO_POINTER_HEIGHT, 0);
+		DirectX::XMVECTOR p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[6].Position), DirectX::XMLoadFloat3(&m_ptrVerts[7].Position));
+		DirectX::XMVECTOR p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[7].Position), DirectX::XMLoadFloat3(&m_ptrVerts[8].Position));
+		DirectX::XMStoreFloat3(&m_ptrVerts[6].Normal, DirectX::XMVector3Cross(p1, p2));
 		m_ptrVerts[7].Normal = m_ptrVerts[8].Normal = m_ptrVerts[6].Normal;
 
-		m_ptrVerts[9].Position = DirectX::XMFLOAT4(0, GIZMO_POINTER_HEIGHT, 0, 1);
-		m_ptrVerts[10].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[11].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[9].Position), DirectX::XMLoadFloat4(&m_ptrVerts[10].Position));
-		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[10].Position), DirectX::XMLoadFloat4(&m_ptrVerts[11].Position));
-		DirectX::XMStoreFloat4(&m_ptrVerts[9].Normal, DirectX::XMVector3Cross(p1, p2));
+		m_ptrVerts[9].Position = DirectX::XMFLOAT3(0, GIZMO_POINTER_HEIGHT, 0);
+		m_ptrVerts[10].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[11].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[9].Position), DirectX::XMLoadFloat3(&m_ptrVerts[10].Position));
+		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[10].Position), DirectX::XMLoadFloat3(&m_ptrVerts[11].Position));
+		DirectX::XMStoreFloat3(&m_ptrVerts[9].Normal, DirectX::XMVector3Cross(p1, p2));
 		m_ptrVerts[10].Normal = m_ptrVerts[11].Normal = m_ptrVerts[9].Normal;
 
-		m_ptrVerts[12].Position = DirectX::XMFLOAT4(0, GIZMO_POINTER_HEIGHT, 0, 1);
-		m_ptrVerts[13].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[14].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2, 1);
-		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[12].Position), DirectX::XMLoadFloat4(&m_ptrVerts[13].Position));
-		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[13].Position), DirectX::XMLoadFloat4(&m_ptrVerts[14].Position));
-		DirectX::XMStoreFloat4(&m_ptrVerts[12].Normal, DirectX::XMVector3Cross(p1, p2));
+		m_ptrVerts[12].Position = DirectX::XMFLOAT3(0, GIZMO_POINTER_HEIGHT, 0);
+		m_ptrVerts[13].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[14].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, GIZMO_POINTER_WIDTH / 2);
+		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[12].Position), DirectX::XMLoadFloat3(&m_ptrVerts[13].Position));
+		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[13].Position), DirectX::XMLoadFloat3(&m_ptrVerts[14].Position));
+		DirectX::XMStoreFloat3(&m_ptrVerts[12].Normal, DirectX::XMVector3Cross(p1, p2));
 		m_ptrVerts[13].Normal = m_ptrVerts[14].Normal = m_ptrVerts[12].Normal;
 
-		m_ptrVerts[15].Position = DirectX::XMFLOAT4(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		m_ptrVerts[16].Position = DirectX::XMFLOAT4(0, GIZMO_POINTER_HEIGHT, 0, 1);
-		m_ptrVerts[17].Position = DirectX::XMFLOAT4(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2, 1);
-		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[15].Position), DirectX::XMLoadFloat4(&m_ptrVerts[16].Position));
-		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat4(&m_ptrVerts[16].Position), DirectX::XMLoadFloat4(&m_ptrVerts[17].Position));
-		DirectX::XMStoreFloat4(&m_ptrVerts[15].Normal, DirectX::XMVector3Cross(p1, p2));
+		m_ptrVerts[15].Position = DirectX::XMFLOAT3(-GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		m_ptrVerts[16].Position = DirectX::XMFLOAT3(0, GIZMO_POINTER_HEIGHT, 0);
+		m_ptrVerts[17].Position = DirectX::XMFLOAT3(GIZMO_POINTER_WIDTH / 2, 0, -GIZMO_POINTER_WIDTH / 2);
+		p1 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[15].Position), DirectX::XMLoadFloat3(&m_ptrVerts[16].Position));
+		p2 = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&m_ptrVerts[16].Position), DirectX::XMLoadFloat3(&m_ptrVerts[17].Position));
+		DirectX::XMStoreFloat3(&m_ptrVerts[15].Normal, DirectX::XMVector3Cross(p1, p2));
 		m_ptrVerts[16].Normal = m_ptrVerts[17].Normal = m_ptrVerts[15].Normal;
 
 		m_pointer.Create(*m_wnd, m_ptrVerts.data(), m_ptrVerts.size());

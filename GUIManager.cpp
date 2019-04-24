@@ -141,7 +141,8 @@ namespace ed
 				}
 				if (ImGui::MenuItem("New Shader")) {
 					std::string file = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"HLSL\0*.hlsl\0GLSL Vertex\0*.vert\0GLSL Pixel\0*.frag\0GLSL Geometry\0*.geom\0");
-					CreateFileA(file.c_str(), GENERIC_READ, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+					HANDLE fileHandle = CreateFileA(file.c_str(), GENERIC_READ, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+					CloseHandle(fileHandle);
 				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
 					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
@@ -152,6 +153,7 @@ namespace ed
 						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 
 						m_data->Parser.Open(file);
 
@@ -333,6 +335,8 @@ namespace ed
 				m_data->Pipeline.New();
 
 				m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
+
+				SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -560,6 +564,7 @@ namespace ed
 			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 
 			m_data->Parser.Open(file);
 
@@ -597,6 +602,7 @@ namespace ed
 				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+				((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 
 				m_data->Parser.Open(file);
 			}
@@ -606,6 +612,7 @@ namespace ed
 			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {

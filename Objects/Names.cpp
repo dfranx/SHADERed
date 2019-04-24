@@ -200,7 +200,7 @@ const char* FUNCTION_NAMES[] = {
 
 const char* GEOMETRY_NAMES[] = {
 	"Cube",
-	"Rectangle",
+	"ScreenQuad",
 	"Circle",
 	"Triangle",
 	"Sphere",
