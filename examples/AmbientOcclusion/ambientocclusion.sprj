@@ -2,6 +2,7 @@
 <project>
 	<pipeline>
 		<pass name="Background">
+			<rendertexture name="Window" />
 			<shader type="vs">
 				<path>shaders\SimpleVS.hlsl</path>
 				<entry>main</entry>
@@ -60,6 +61,7 @@
 			<itemvalues />
 		</pass>
 		<pass name="Statue">
+			<rendertexture name="Window" />
 			<shader type="vs">
 				<path>shaders\StatueVS.hlsl</path>
 				<entry>main</entry>
@@ -96,18 +98,17 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" path="cathedral.dds" cube="true">
-			<bind slot="0" name="Background" />
-		</object>
 		<object type="texture" path="ao.png">
 			<bind slot="0" name="Statue" />
 		</object>
 		<object type="texture" path="diffuse.dds" cube="true">
 			<bind slot="1" name="Statue" />
 		</object>
+		<object type="texture" path="..\Common\cathedral.dds" cube="true">
+			<bind slot="0" name="Background" />
+		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Background" />
 		<entry type="file" name="Background" shader="vs" />
 		<entry type="file" name="Background" shader="ps" />
 		<entry type="file" name="Statue" shader="vs" />

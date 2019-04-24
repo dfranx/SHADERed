@@ -10,25 +10,25 @@ Collapsed=0
 
 [Window][Pipeline]
 Pos=0,19
-Size=228,529
+Size=50,50
 Collapsed=0
 DockId=0x00000003,0
 
 [Window][Pinned]
-Pos=0,550
-Size=228,467
+Pos=0,27
+Size=50,50
 Collapsed=0
 DockId=0x00000004,1
 
 [Window][Properties]
-Pos=0,550
-Size=228,467
+Pos=0,27
+Size=50,50
 Collapsed=0
 DockId=0x00000004,0
 
 [Window][Preview]
-Pos=900,19
-Size=1020,893
+Pos=25,19
+Size=50,50
 Collapsed=0
 DockId=0x00000019,0
 
@@ -40,7 +40,7 @@ DockId=0x00000006,0
 
 [Window][DockSpace Demo]
 Pos=0,0
-Size=1920,1017
+Size=32,32
 Collapsed=0
 
 [Window][pixel.hlsl]
@@ -85,13 +85,13 @@ Size=773,687
 Collapsed=0
 
 [Window][Light (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=623,525
 Collapsed=0
 DockId=0x00000013,0
 
 [Window][Light (PS)##code_view]
-Pos=230,546
+Pos=230,523
 Size=623,471
 Collapsed=0
 DockId=0x00000014,0
@@ -115,31 +115,31 @@ Collapsed=0
 DockId=0x00000018,0
 
 [Window][OutlinePass (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=623,525
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][OutlinePass (PS)##code_view]
-Pos=230,546
+Pos=230,523
 Size=623,471
 Collapsed=0
 DockId=0x00000014,1
 
 [Window][Objects]
 Pos=0,19
-Size=228,529
+Size=50,50
 Collapsed=0
 DockId=0x00000003,1
 
 [Window][RenderTxt (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=623,525
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][RenderTxt (PS)##code_view]
-Pos=230,546
+Pos=230,523
 Size=623,471
 Collapsed=0
 DockId=0x00000014,1
@@ -151,7 +151,7 @@ Collapsed=0
 DockId=0x00000014,0
 
 [Window][Options]
-Pos=330,190
+Pos=330,167
 Size=816,541
 Collapsed=0
 
@@ -166,8 +166,8 @@ Size=400,300
 Collapsed=0
 
 [Window][Output]
-Pos=900,914
-Size=1020,103
+Pos=25,26
+Size=50,50
 Collapsed=0
 DockId=0x0000001A,0
 
@@ -201,31 +201,31 @@ Collapsed=0
 DockId=0x00000021,0
 
 [Window][Simple (PS)##code_view]
-Pos=230,546
-Size=623,471
+Pos=17,27
+Size=6,5
 Collapsed=0
 DockId=0x00000014,0
 
 [Window][Simple (VS)##code_view]
-Pos=230,19
-Size=623,525
+Pos=17,19
+Size=6,6
 Collapsed=0
 DockId=0x00000013,0
 
 [Window][Cubemap (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=668,617
 Collapsed=0
 DockId=0x00000029,0
 
 [Window][Cubemap (PS)##code_view]
-Pos=230,638
+Pos=230,615
 Size=668,379
 Collapsed=0
 DockId=0x0000002A,0
 
 [Window][Simple (GS)##code_view]
-Pos=230,546
+Pos=230,523
 Size=623,471
 Collapsed=0
 DockId=0x00000014,1
@@ -241,47 +241,47 @@ Size=400,300
 Collapsed=0
 
 [Window][SimpleTexture (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=666,569
 Collapsed=0
 DockId=0x00000025,0
 
 [Window][SimpleTexture (PS)##code_view]
-Pos=230,590
+Pos=230,567
 Size=666,427
 Collapsed=0
 DockId=0x00000026,0
 
 [Window][Depth (VS)##code_view]
-Pos=230,-4
+Pos=230,-27
 Size=748,593
 Collapsed=0
 
 [Window][Depth (PS)##code_view]
-Pos=230,591
+Pos=230,568
 Size=748,403
 Collapsed=0
 
 [Window][SSAO (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=623,525
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][SSAO (PS)##code_view]
-Pos=230,546
+Pos=230,523
 Size=623,471
 Collapsed=0
 DockId=0x00000014,1
 
 [Window][Background (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=630,631
 Collapsed=0
 DockId=0x00000031,0
 
 [Window][Background (PS)##code_view]
-Pos=230,652
+Pos=230,629
 Size=630,365
 Collapsed=0
 DockId=0x00000032,0
@@ -299,70 +299,70 @@ Collapsed=0
 DockId=0x00000032,1
 
 [Window][GBuffer (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=650,623
 Collapsed=0
 DockId=0x00000035,0
 
 [Window][GBuffer (PS)##code_view]
-Pos=230,644
+Pos=230,621
 Size=650,373
 Collapsed=0
 DockId=0x00000036,0
 
 [Window][Processing (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=650,623
 Collapsed=0
 DockId=0x00000035,1
 
 [Window][Processing (PS)##code_view]
-Pos=230,644
+Pos=230,621
 Size=650,373
 Collapsed=0
 DockId=0x00000036,1
 
 [Window][Refraction (VS)##code_view]
-Pos=230,19
+Pos=230,-4
 Size=630,631
 Collapsed=0
 DockId=0x00000031,1
 
 [Window][Refraction (PS)##code_view]
-Pos=230,652
+Pos=230,629
 Size=630,365
 Collapsed=0
 DockId=0x00000032,1
 
 [Window][Edge (PS)##code_view]
-Pos=230,571
+Pos=230,548
+Size=659,446
+Collapsed=0
+DockId=0x0000003A,1
+
+[Window][Edge (VS)##code_view]
+Pos=230,-4
+Size=659,550
+Collapsed=0
+DockId=0x00000039,1
+
+[Window][Objects (PS)##code_view]
+Pos=230,548
 Size=659,446
 Collapsed=0
 DockId=0x0000003A,0
 
-[Window][Edge (VS)##code_view]
-Pos=230,19
+[Window][Objects (VS)##code_view]
+Pos=230,-4
 Size=659,550
 Collapsed=0
 DockId=0x00000039,0
 
-[Window][Objects (PS)##code_view]
-Pos=17,27
-Size=32,32
-Collapsed=0
-DockId=0x0000003A,0
-
-[Window][Objects (VS)##code_view]
-Pos=17,19
-Size=32,32
-Collapsed=0
-DockId=0x00000039,0
-
 [Docking][Data]
-DockSpace                               ID=0xFA06BC56 Pos=0,42 Size=1920,998 Split=X
+DockSpace                               ID=0xFA06BC56 Pos=0,19 Size=32,13 Split=X
   DockNode                              ID=0x00000001 Parent=0xFA06BC56 SizeRef=228,581 Split=Y SelectedTab=0xC89E3217
     DockNode                            ID=0x00000003 Parent=0x00000001 SizeRef=240,529 SelectedTab=0x848ABB8F
-    DockNode                            ID=0x00000004 Parent=0x00000001 SizeRef=240,467 SelectedTab=0xE28BE0D1
+    DockNode                            ID=0x00000004 Parent=0x00000001 SizeRef=240,467 SelectedTab=0xC89E3217
   DockNode                              ID=0x00000002 Parent=0xFA06BC56 SizeRef=1690,581 Split=Y SelectedTab=0x763816AC
     DockNode                            ID=0x00000005 Parent=0x00000002 SizeRef=868,334 Split=X SelectedTab=0x763816AC
       DockNode                          ID=0x00000009 Parent=0x00000005 SizeRef=722,790 Split=Y SelectedTab=0x7263F213
@@ -399,8 +399,8 @@ DockSpace                               ID=0xFA06BC56 Pos=0,42 Size=1920,998 Spl
                         DockNode        ID=0x00000026 Parent=0x00000023 SizeRef=399,427 SelectedTab=0x888F677F
                       DockNode          ID=0x00000024 Parent=0x00000028 SizeRef=1022,872 Split=X SelectedTab=0x763816AC
                         DockNode        ID=0x0000002F Parent=0x00000024 SizeRef=630,872 Split=Y SelectedTab=0xF2ED9B9E
-                          DockNode      ID=0x00000031 Parent=0x0000002F SizeRef=399,551 SelectedTab=0x73D5AC17
-                          DockNode      ID=0x00000032 Parent=0x0000002F SizeRef=399,319 SelectedTab=0x8B17E7A1
+                          DockNode      ID=0x00000031 Parent=0x0000002F SizeRef=399,551 SelectedTab=0x92A91587
+                          DockNode      ID=0x00000032 Parent=0x0000002F SizeRef=399,319 SelectedTab=0x6A6B5E31
                         DockNode        ID=0x00000030 Parent=0x00000024 SizeRef=1058,872 Split=X SelectedTab=0x763816AC
                           DockNode      ID=0x00000033 Parent=0x00000030 SizeRef=650,872 Split=Y SelectedTab=0x7D46C552
                             DockNode    ID=0x00000035 Parent=0x00000033 SizeRef=399,544 SelectedTab=0x85848EE4

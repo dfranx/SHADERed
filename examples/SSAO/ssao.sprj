@@ -96,7 +96,7 @@
 		<object type="rendertexture" name="depthRT" fsize="800,600">
 			<bind slot="0" name="SSAO" />
 		</object>
-		<object type="texture" path="noise.png">
+		<object type="texture" path="..\Common\noise.png">
 			<bind slot="1" name="SSAO" />
 		</object>
 	</objects>
@@ -109,9 +109,9 @@
 		<entry type="pinned" name="falloff" from="ps" owner="SSAO" />
 		<entry type="pinned" name="base" from="ps" owner="SSAO" />
 		<entry type="camera" fp="false">
-			<distance>8</distance>
-			<rotationX>112</rotationX>
-			<rotationY>22</rotationY>
+			<distance>15</distance>
+			<rotationX>125</rotationX>
+			<rotationY>30</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>

@@ -101,7 +101,7 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" path="cubemap1.dds" cube="true">
+		<object type="texture" path="..\Common\cathedral.dds" cube="true">
 			<bind slot="0" name="Background" />
 			<bind slot="0" name="Refraction" />
 		</object>
@@ -114,9 +114,9 @@
 		<entry type="pinned" name="factor" from="ps" owner="Refraction" />
 		<entry type="pinned" name="darkness" from="ps" owner="Refraction" />
 		<entry type="camera" fp="false">
-			<distance>48</distance>
-			<rotationX>349</rotationX>
-			<rotationY>-37</rotationY>
+			<distance>34</distance>
+			<rotationX>358</rotationX>
+			<rotationY>38</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>

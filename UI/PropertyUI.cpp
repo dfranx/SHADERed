@@ -588,7 +588,6 @@ namespace ed
 					UIHelper::CreateInputFloat3("##pui_georota", item->Rotation);
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
-					ImGui::Separator();
 				}
 			} else if (m_currentRT != nullptr) {
 				/* FIXED SIZE */
