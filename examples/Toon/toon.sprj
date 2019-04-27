@@ -11,8 +11,16 @@
 					<element id="0" format="R32G32B32_FLOAT" offset="12">NORMAL</element>
 				</input>
 				<variables>
-					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
+					<variable type="float4x4" name="matView" system="View" slot="0" />
+					<variable type="float4x4" name="matProj" system="ViewProjection" slot="0" />
 					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
+					<variable type="float3" name="lightDir" slot="0">
+						<row>
+							<value>0</value>
+							<value>0</value>
+							<value>1</value>
+						</row>
+					</variable>
 				</variables>
 			</shader>
 			<shader type="ps">
@@ -31,15 +39,18 @@
 			<itemvalues />
 		</pass>
 	</pipeline>
-	<objects />
+	<objects>
+		<object type="texture" path="colormap.png">
+			<bind slot="0" name="Simple" />
+		</object>
+	</objects>
 	<settings>
-		<entry type="property" name="Teapot" />
 		<entry type="file" name="Simple" shader="vs" />
 		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>23</distance>
-			<rotationX>1</rotationX>
-			<rotationY>27</rotationY>
+			<rotationX>186</rotationX>
+			<rotationY>32</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>

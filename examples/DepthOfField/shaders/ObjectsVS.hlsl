@@ -23,8 +23,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 	
 	vout.Position = mul(mul(float4(vin.Position, 1), matGeo), matVP);
-	vout.Normal = vin.Normal;
 	vout.Depth = mul(mul(float4(vin.Position,1),matGeo), matView).z;
-	
+	vout.Normal = vin.Normal;
 	return vout;
 }

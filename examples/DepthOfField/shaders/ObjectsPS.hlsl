@@ -1,5 +1,6 @@
 cbuffer cbPerFrame : register(b0)
 {
+	float4 color;
 	float d_near;
 	float d_far;
 	float d_focus;
@@ -12,9 +13,6 @@ struct PSInput
 	float3 Normal : NORMAL;
 	float Depth : TEXCOORD1;
 };
-
-TextureCube tex : register(t0);
-SamplerState smp : register(s0);
 
 float ComputeDepthBlur (float depth)
 {
@@ -39,7 +37,10 @@ float ComputeDepthBlur (float depth)
    return f * 0.5f + 0.5f;
 }
 
+static const float3 light = float3(1,1,0);
+
 float4 main(PSInput pin) : SV_TARGET
 {
-	return float4(tex.Sample(smp, pin.Normal).xyz, ComputeDepthBlur(d_far));
+	float dif = abs(dot(normalize(light), pin.Normal));
+	return float4(color.xyz * dif, ComputeDepthBlur(pin.Depth));
 }
