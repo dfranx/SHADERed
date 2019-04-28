@@ -136,6 +136,10 @@ namespace ed
 		std::string m_fontFilename;
 		int m_fontSize;
 
+		bool m_focusWindow;
+		int m_focusSID;
+		std::string m_focusItem;
+
 		int m_selectedItem;
 	};
 }

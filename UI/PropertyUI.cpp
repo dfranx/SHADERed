@@ -84,7 +84,7 @@ namespace ed
 						}
 
 						for (int j = 0; j < rts.size(); j++) {
-							if (m_data->Objects.IsRenderTexture(rts[j]) && strcmp(item->RenderTexture[i], rts[j].c_str()) == 0) {
+							if (!m_data->Objects.IsRenderTexture(rts[j]) || (m_data->Objects.IsRenderTexture(rts[j]) && strcmp(item->RenderTexture[i], rts[j].c_str()) == 0)) {
 								rts.erase(rts.begin() + j);
 								j--;
 							}
@@ -109,8 +109,10 @@ namespace ed
 
 							// users RTs
 							for (int j = 0; j < rts.size(); j++)
-								if (ImGui::Selectable(rts[j].c_str(), strcmp(item->RenderTexture[i], rts[j].c_str()) == 0))
-									strcpy(item->RenderTexture[i], rts[j].c_str());
+								if (m_data->Objects.IsRenderTexture(rts[j])) {
+									if (ImGui::Selectable(rts[j].c_str(), strcmp(item->RenderTexture[i], rts[j].c_str()) == 0))
+										strcpy(item->RenderTexture[i], rts[j].c_str());
+								}
 
 							ImGui::EndCombo();
 						}

@@ -28,6 +28,10 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.Delete", [=]() {
 			if (m_pick != nullptr && m_hasFocus) {
+				PropertyUI* props = (PropertyUI*)m_ui->Get(ViewID::Properties);
+				if (props->CurrentItemName() == m_pick->Name)
+					props->Open(nullptr);
+
 				m_data->Pipeline.Remove(m_pick->Name);
 				m_pick = nullptr;
 			}

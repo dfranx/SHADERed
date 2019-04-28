@@ -117,6 +117,14 @@ namespace ed
 					if (m_editor[i].IsFocused())
 						m_selectedItem = i;
 				}
+
+				if (m_focusWindow) {
+					if (m_focusItem == m_items[i].Name && m_focusSID == m_shaderTypeId[i]) {
+						ImGui::SetWindowFocus();
+						m_focusWindow = false;
+					}
+				}
+
 				ImGui::End();
 			}
 		}
@@ -180,12 +188,28 @@ namespace ed
 	}
 	void CodeEditorUI::m_open(PipelineItem item, int sid)
 	{
-		// check if already opened
-		for (int i = 0; i < m_items.size(); i++)
-			if (strcmp(m_items[i].Name, item.Name) == 0 && m_shaderTypeId[i] == sid)
-				return;
-
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
+
+		// check if already opened
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_shaderTypeId[i] == sid) {
+				ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+				bool match = false;
+				if (sid == 0 && (strcmp(shader->VSPath, sData->VSPath) == 0 || strcmp(shader->VSPath, sData->PSPath) == 0 || strcmp(shader->VSPath, sData->GSPath) == 0))
+					match = true;
+				else if (sid == 1 && (strcmp(shader->PSPath, sData->VSPath) == 0 || strcmp(shader->PSPath, sData->PSPath) == 0 || strcmp(shader->PSPath, sData->GSPath) == 0))
+					match = true;
+				else if (sid == 2 && (strcmp(shader->GSPath, sData->VSPath) == 0 || strcmp(shader->GSPath, sData->PSPath) == 0 || strcmp(shader->GSPath, sData->GSPath) == 0))
+					match = true;
+
+				if (match) {
+					m_focusWindow = true;
+					m_focusSID = sid;
+					m_focusItem = m_items[i].Name;
+					return;
+				}
+			}
+		}
 
 		m_items.push_back(item);
 		m_editor.push_back(TextEditor());

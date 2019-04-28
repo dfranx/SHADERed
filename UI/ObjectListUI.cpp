@@ -72,6 +72,37 @@ namespace ed
 				}
 
 				if (ImGui::Selectable("Delete")) {
+					if (m_data->Objects.IsRenderTexture(items[i])) {
+						auto& passes = m_data->Pipeline.GetList();
+						for (int j = 0; j < passes.size(); j++) {
+							pipe::ShaderPass* sData = (pipe::ShaderPass*)passes[j]->Data;
+
+							for (int k = 0; k < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; k++) {
+								if (items[i] == sData->RenderTexture[k]) {
+									// TODO: maybe implement better logic for what to replace the deleted RT with
+									bool alreadyUsesWindow = false;
+									for (int l = 0; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
+										if (strcmp(sData->RenderTexture[l], "Window") == 0) {
+											alreadyUsesWindow = true;
+											break;
+										}
+
+									if (!alreadyUsesWindow)
+										strcpy(sData->RenderTexture[k], "Window");
+									else if (k != 0) {
+										for (int l = j; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
+											sData->RenderTexture[l][0] = 0;
+									}
+									else {
+										for (int l = 0; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
+											sData->RenderTexture[l][0] = 0;
+										strcpy(sData->RenderTexture[0], "Window");
+									}
+								}
+							}
+						}
+					}
+
 					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr);
 					m_data->Objects.Remove(items[i]);
 				}

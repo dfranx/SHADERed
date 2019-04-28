@@ -122,8 +122,11 @@ namespace ed
 		if (!IsRenderTexture(file)) {
 			delete m_texs[file];
 			delete m_imgs[file];
-		} else
+		}
+		else {
 			delete m_rts[file];
+			m_rts.erase(file);
+		}
 
 
 		for (int i = 0; i < m_items.size(); i++)

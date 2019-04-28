@@ -30,6 +30,11 @@ namespace ed
 		m_exec("./GLSL/spirv-cross.exe", spv + " --hlsl --shader-model 50 --output " + tempLoc + stage + ".hlsl");
 
 		std::ifstream hlslStream(hlsl);
+		if (!hlslStream.is_open()) {
+			hlslStream.close();
+			return "";
+		}
+
 		std::string code((std::istreambuf_iterator<char>(hlslStream)),
 			std::istreambuf_iterator<char>());
 

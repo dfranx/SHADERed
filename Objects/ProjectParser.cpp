@@ -32,6 +32,12 @@ namespace ed
 		m_file = file;
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
+		m_msgs->Clear();
+		for (auto& mdl : m_models)
+			if (mdl.second != nullptr)
+				delete mdl.second;
+		m_models.clear();
+
 		pugi::xml_document doc;
 		pugi::xml_parse_result result = doc.load_file(file.c_str());
 		if (!result)
@@ -392,10 +398,13 @@ namespace ed
 				else if (itemType == ed::PipelineItem::ItemType::OBJModel) {
 					ed::pipe::OBJModel* tData = reinterpret_cast<ed::pipe::OBJModel*>(itemData);
 
-					std::string objMem = LoadProjectFile(tData->Filename);
-					bool loaded = tData->Mesh.LoadFromMemory(objMem.c_str(), objMem.size());
+					//std::string objMem = LoadProjectFile(tData->Filename);
+					ml::OBJModel* ptrObject = LoadModel(tData->Filename);
+					bool loaded = ptrObject != nullptr;
 
-					// TODO: if (!loaded) error "Failed to load a mesh"
+					if (loaded)
+						tData->Mesh = *ptrObject;// tData->Mesh.LoadFromMemory(objMem.c_str(), objMem.size());
+					else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
 
 					if (loaded) {
 						ml::OBJModel::Vertex* verts = tData->Mesh.GetVertexData();
@@ -1085,6 +1094,24 @@ namespace ed
 		string[fsize] = 0;
 
 		return string;
+	}
+	ml::OBJModel* ProjectParser::LoadModel(const std::string& file)
+	{
+		// return already loaded model
+		for (auto& mdl : m_models)
+			if (mdl.first == file)
+				return mdl.second;
+
+		// load the model
+		std::string data = LoadProjectFile(file);
+		ml::OBJModel* model = new ml::OBJModel();
+		bool loaded = model->LoadFromMemory(data.c_str(), data.size());
+		if (!loaded)
+			return nullptr;
+
+		m_models.push_back(std::make_pair(file, model));
+
+		return m_models[m_models.size() - 1].second;
 	}
 	void ProjectParser::SaveProjectFile(const std::string & file, const std::string & data)
 	{

@@ -774,7 +774,7 @@ namespace ed
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Button("ADD")) {
+		if (ImGui::Button("ADD") && vars.size() > 0) {
 			bool alreadyAdded = false;
 			for (int i = 0; i < allItems.size(); i++)
 				if (strcmp(vars[shaderVarSel]->Name, allItems[i].Variable->Name) == 0 && allItems[i].Item == m_modalItem) {

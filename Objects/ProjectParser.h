@@ -4,6 +4,7 @@
 #include "ShaderVariable.h"
 #include "MessageStack.h"
 #include "../pugixml/pugixml.hpp"
+#include <MoonLight/Model/OBJModel.h>
 
 namespace ed
 {
@@ -26,6 +27,7 @@ namespace ed
 
 		std::string LoadProjectFile(const std::string& file);
 		char* LoadProjectFile(const std::string& file, size_t& len);
+		ml::OBJModel* LoadModel(const std::string& file);
 
 		void SaveProjectFile(const std::string& file, const std::string& data);
 
@@ -57,5 +59,7 @@ namespace ed
 		std::string m_file;
 		std::string m_projectPath;
 		std::string m_template;
+
+		std::vector<std::pair<std::string, ml::OBJModel*>> m_models;
 	};
 }

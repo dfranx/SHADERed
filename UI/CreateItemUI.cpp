@@ -552,10 +552,16 @@ namespace ed
 				data->Scale = origData->Scale;
 				data->Position = origData->Position;
 				data->Rotation = origData->Rotation;
+			
 
 				if (strlen(data->Filename) > 0) {
 					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
-					bool loaded = data->Mesh.LoadFromMemory(objMem.c_str(), objMem.size());
+					ml::OBJModel* mdl = m_data->Parser.LoadModel(data->Filename);
+
+					bool loaded = mdl != nullptr;
+					if (loaded)
+						data->Mesh = *mdl;
+					else m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create .obj model " + std::string(m_item.Name));
 
 					// TODO: if (!loaded) error "Failed to load a mesh"
 

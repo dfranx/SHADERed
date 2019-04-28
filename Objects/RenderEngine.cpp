@@ -58,6 +58,8 @@ namespace ed
 		m_cache();
 
 		auto& itemVarValues = GetItemVariableValues();
+		ml::RenderTexture *previousRT[9], *currentRT[9]; // dont clear the render target if we use it two times in a row
+		ID3D11DepthStencilView* previousDSV = nullptr;
 
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
@@ -69,6 +71,7 @@ namespace ed
 			ID3D11DepthStencilView* depthView = nullptr;
 			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
 				if (data->RenderTexture[i][0] == 0) {
+					currentRT[i] = nullptr;
 					break;
 				}
 
@@ -86,12 +89,13 @@ namespace ed
 
 					if (depthView == nullptr)
 						depthView = rt->GetDepthStencilView();
-				} else {
+				}
+				else {
 					ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rtName);
 					ml::Color oldClearClr = m_wnd->GetClearColor();
 
 					rtSize = rtObject->CalculateSize(width, height);
-					rt = rtObject->RT;
+					rt = currentRT[i] = rtObject->RT;
 
 					// update viewport value
 					SystemVariableManager::Instance().SetViewportSize(rtSize.x, rtSize.y);
@@ -105,15 +109,26 @@ namespace ed
 					viewport.MaxDepth = 1.0f;
 					m_wnd->GetDeviceContext()->RSSetViewports(1, &viewport);
 
-					// clear and bind rt
-					m_wnd->SetClearColor(rtObject->ClearColor);
-					rt->Clear();
-					m_wnd->SetClearColor(oldClearClr);
+					// clear and bind rt (only if not used in last shader pass)
+					bool usedPreviously = false;
+					for (int j = 0; j < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; j++)
+						if (previousRT[j] == rt) {
+							usedPreviously = true;
+							break;
+						}
+					if (!usedPreviously) {
+						m_wnd->SetClearColor(rtObject->ClearColor);
+						rt->Clear();
+						m_wnd->SetClearColor(oldClearClr);
+					}
 
 					if (depthView == nullptr) {
 						depthView = rt->GetDepthStencilView();
-						m_wnd->GetDeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+						if (depthView != previousDSV)
+							m_wnd->GetDeviceContext()->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 					}
+					previousDSV = depthView;
 				}
 
 				// set viewport
@@ -129,6 +144,8 @@ namespace ed
 				m_views[rtCount] = rt->GetView();
 				rtCount++;
 			}
+			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+				previousRT[i] = currentRT[i];
 
 			m_wnd->GetDeviceContext()->OMSetRenderTargets(rtCount, m_views, depthView);
 
