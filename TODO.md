@@ -5,9 +5,9 @@
 - [ ] fix warnings
 - [ ] README.md
 - [ ] write tutorial
+- [ ] create a release on github (+ test in wine on linux)
 
 - [ ] examples:
-	GL2/Earth.rfx
 	ShaderToy/[SH16B] Speed Drive 80
 	+ other ShaderToy examples
 
