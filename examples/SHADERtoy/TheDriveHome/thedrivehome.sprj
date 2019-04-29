@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <project>
 	<pipeline>
-		<pass name="Light">
+		<pass name="Simple">
+			<rendertexture name="Window" />
 			<shader type="vs">
 				<path>vertex.vert</path>
 				<entry>main</entry>
@@ -20,7 +21,6 @@
 				<variables>
 					<variable type="float" name="iTime" system="Time" slot="0" />
 					<variable type="float2" name="iResolution" system="ViewportSize" slot="0" />
-					<variable type="float2" name="iMouse" system="MousePosition" slot="0" />
 				</variables>
 			</shader>
 			<items>
@@ -37,14 +37,17 @@
 	</pipeline>
 	<objects />
 	<settings>
-		<entry type="property" name="Light" />
-		<entry type="file" name="Light" shader="vs" />
-		<entry type="file" name="Light" shader="ps" />
-		<entry type="camera">
-			<distance>19</distance>
-			<rotationX>3</rotationX>
+		<entry type="property" name="Simple" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
+		<entry type="camera" fp="false">
+			<distance>15</distance>
+			<rotationX>182</rotationX>
 			<rotationY>89</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
+		<extension stage="vertex">vert</extension>
+		<extension stage="pixel">frag</extension>
+		<extension stage="geometry">geom</extension>
 	</settings>
 </project>

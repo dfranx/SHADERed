@@ -1,28 +1,32 @@
 <?xml version="1.0"?>
 <project>
 	<pipeline>
-		<pass name="Light">
+		<pass name="Simple">
 			<rendertexture name="Window" />
 			<shader type="vs">
-				<path>shaders\LightVS.vert</path>
+				<path>vertex.vert</path>
 				<entry>main</entry>
 				<input>
 					<element id="0" format="R32G32B32_FLOAT" offset="0">TEXCOORD</element>
-					<element id="1" format="R32G32B32_FLOAT" offset="12">TEXCOORD</element>
-					<element id="2" format="R32G32_FLOAT" offset="24">TEXCOORD</element>
+					<element id="1" format="R32G32B32_FLOAT" offset="16">TEXCOORD</element>
 				</input>
 				<variables>
-					<variable type="float4x4" name="matVP" system="ViewProjection" slot="0" />
+					<variable type="float4x4" name="matVP" system="Orthographic" slot="0" />
 					<variable type="float4x4" name="matGeo" system="GeometryTransform" slot="0" />
 				</variables>
 			</shader>
 			<shader type="ps">
-				<path>shaders\LightPS.frag</path>
+				<path>pixel.frag</path>
 				<entry>main</entry>
+				<variables>
+					<variable type="float" name="iTime" system="Time" slot="0" />
+					<variable type="float2" name="iResolution" system="ViewportSize" slot="0" />
+					<variable type="float2" name="iMouse" system="MousePosition" slot="0" />
+				</variables>
 			</shader>
 			<items>
-				<item name="Box" type="geometry">
-					<type>Cube</type>
+				<item name="FS" type="geometry">
+					<type>ScreenQuad</type>
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
@@ -32,19 +36,15 @@
 			<itemvalues />
 		</pass>
 	</pipeline>
-	<objects>
-		<object type="texture" path="..\Common\noise.png">
-			<bind slot="0" name="Light" />
-		</object>
-	</objects>
+	<objects />
 	<settings>
-		<entry type="property" name="Light" />
-		<entry type="file" name="Light" shader="vs" />
-		<entry type="file" name="Light" shader="ps" />
+		<entry type="property" name="Simple" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
-			<distance>3</distance>
-			<rotationX>125</rotationX>
-			<rotationY>30</rotationY>
+			<distance>19</distance>
+			<rotationX>3</rotationX>
+			<rotationY>89</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>

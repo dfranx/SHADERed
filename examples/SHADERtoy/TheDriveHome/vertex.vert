@@ -9,11 +9,9 @@ layout (binding = 0) uniform bufferVals {
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 uv;
 
-layout (location = 0) out vec2 outUV;
+layout (location = 0) out vec4 outPos;
 
 void main() {
-   outUV = uv;
-   gl_Position = vec4(pos, 1) * cb.matVP * cb.matGeo;
+   gl_Position = outPos = vec4(pos, 1) * cb.matVP * cb.matGeo;
 }
