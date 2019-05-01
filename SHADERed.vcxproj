@@ -255,6 +255,7 @@
     <ClInclude Include="UI\VariableValueEdit.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="README.md" />
     <None Include="shortcuts.kb" />
     <None Include="TODO.md" />
   </ItemGroup>
