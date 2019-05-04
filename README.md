@@ -16,6 +16,7 @@ them easily, and many more great features...
 Feel free to contact me and suggest some missing feature you would like me to implement.
 
 <img src="./Screenshots/IMG2.png"/>
+<br/><br/>
 
 ## Features
 
@@ -24,30 +25,42 @@ You can modify SHADERed workspace to your own needs thanks to Omar Cornut's grea
 Dear IMGUI's docking branch, which implements window docking. Your workspace configuration
 will be saved to a file so that on next startup it looks just like you made it to look.
 <p align="center">
-    <img align="center" width="300" src="./Screenshots/workspace.gif">
+    <img width="300" src="./Screenshots/workspace.gif">
 </p>
 
 ### Shader Pass
 You need to create a shader pass to apply an effect to a 3D model or a texture. A shader pass
 is just a set of shaders. A shader pass can only have one pixel, vertex and geometry shader but
 you can have multiple shader passes.
-<p align="center">
-    <img align="center" width="200" src="./Screenshots/shaderpass.jpg">
-</p>
-
 You can have as many 3D objects or render states that you want to in a single shader pass. All shader
 passes and 3D objects are part of a pipeline.
 <p align="center">
-    <img align="center" width="200" src="./Screenshots/pipeline.jpg">
+    <img width="200" src="./Screenshots/shaderpass.jpg">
+    &nbsp;&nbsp;&nbsp;
+    <img width="200" src="./Screenshots/pipeline.jpg">
 </p>
 
 ### Render states
+You can modify rasterizer, blend and depth-stencil state. Using these states you can: turn on wireframe mode,
+disable depth test, use stencil buffer, disable cull, custom blending, etc... All those things help you achieve even more advanced effects.
+
+Heres an example of rasterizer state properties:
+<p align="center">
+    <img width="300" src="./Screenshots/rasterizerstate.jpg">
+</p>
 
 ### See changes instantly
-text
+Modified your shader? Just hit F5 key (or whatever shortcut you have set) and see your results almost
+immediately! There is no need to restart your application.
+<img src="./Screenshots/instantresult.gif">
 
 ### Geometry shaders
-text
+You are not limited to vertex and pixel shaders. SHADERed has also support for geometry
+shaders. Just enable GS in your shader pass and set the path to your shader. Create advanced
+animations and effects for your 3D models using geometry shaders.
+<p align="center">
+    <img width="200" src="./Screenshots/geometryshader.gif">
+</p>
 
 ### Code editor features
 'Smart' predictions
