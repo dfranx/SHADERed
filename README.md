@@ -20,10 +20,28 @@ Feel free to contact me and suggest some missing feature you would like me to im
 ## Features
 
 ### Dynamic workspace
-text
+You can modify SHADERed workspace to your own needs thanks to Omar Cornut's great work on
+Dear IMGUI's docking branch, which implements window docking. Your workspace configuration
+will be saved to a file so that on next startup it looks just like you made it to look.
+<p align="center">
+    <img align="center" width="300" src="./Screenshots/workspace.gif">
+</p>
 
 ### Shader Pass
-text
+You need to create a shader pass to apply an effect to a 3D model or a texture. A shader pass
+is just a set of shaders. A shader pass can only have one pixel, vertex and geometry shader but
+you can have multiple shader passes.
+<p align="center">
+    <img align="center" width="200" src="./Screenshots/shaderpass.jpg">
+</p>
+
+You can have as many 3D objects or render states that you want to in a single shader pass. All shader
+passes and 3D objects are part of a pipeline.
+<p align="center">
+    <img align="center" width="200" src="./Screenshots/pipeline.jpg">
+</p>
+
+### Render states
 
 ### See changes instantly
 text
@@ -31,8 +49,13 @@ text
 ### Geometry shaders
 text
 
-### 'Smart' predictions
-text
+### Code editor features
+'Smart' predictions
+Autocompletion
+tab <-> spaces
+'Smart' indenting
+
+to be improved
 
 ### Loading .obj models
 text
@@ -142,6 +165,7 @@ list of all the library creators
 \+ inconsolata.ttf
 \+ Khronos
 \+ AMD
+\+ creators of the themes
 
 ## LICENSE
 SHADERed is licensed under MIT license. See [LICENSE](./LICENSE) for more details.
