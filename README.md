@@ -1,14 +1,10 @@
 # SHADERed
 
-<p align="center">
-<img width="300" src="./Screenshots/IMG1.png"/>
-</p>
-
 SHADERed is a lightweight tool for creating and testing your HLSL and GLSL shaders. It is easy to use,
 open source and frequently updated with new features. SHADERed is great for fast shader development.
 Hit one key and see your new shader in action immediately. It currently only works on Windows.
 
-SHADERed has many **features** such as: rendering to multiple render targets simultaneously,
+SHADERed has many **features** such as: rendering to multiple render textures simultaneously,
 loading WAVEFRONT (.obj) models, loading custom textures, custom themes, 'smart' predictions,
 geometry shaders, create your own shader input variables and pin them to a window to edit
 them easily, and many more great features...
@@ -63,38 +59,72 @@ animations and effects for your 3D models using geometry shaders.
 </p>
 
 ### Code editor features
-'Smart' predictions
-Autocompletion
-tab <-> spaces
-'Smart' indenting
+SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
+It is called Smart predictions and it will be updated and improved over time. It also has very basic version
+of autocompletion (inserts/removes a bracket) and automatic indenting. All of these features can be turned on/off
+in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
 
-to be improved
+You are not forced to use our code editor. You can run seperately your favourite code editor and SHADERed. 
+Modify your shaders in editor of your choice and just hit "Rebuild" in SHADERed.
 
 ### Loading .obj models
-text
+You can easily add your custom complex 3D models to scene. Only Wavefront .obj models are currently supported, but
+you can expect formats to be supported in near future. You can also add built-in geometry (cubes, spheres, planes,
+full screen quads, etc...).
 
 ### Textures
-text
+Load textures from files and bind them to your shader. SHADERed currently supports JPG, PNG,
+DDS and BMP file format. Currently there is only a built-in sampler state. I plan to add customizable
+sampler states in future. The sampler state is always bound to s0 register (when using a texture).
+SHADERed also supports cubemaps.
+<p align="center">
+    <img width="260" src="./Screenshots/texture.jpg">
+</p>
 
-### Render targets
-text
+### Render textures
+You can render your results to a window or a custom render texture. You can bind multiple render textures
+to one shader pass. It helps you create things such as G-Buffer more easily and in only one shader pass. 
+<p align="center">
+    <img width="220" src="./Screenshots/multiplert.jpg">
+</p>
 
 ### Shader input variables
-text
+You can create your own variables and edit their values. Those variables will be sent to a shader using a
+constant buffer. There are also a lot of built-in 'system' shader variables (elapsed time, window size, various
+view matrices, etc...).
+<img src="./Screenshots/varmanager.jpg">
+You can also pin those variables. All pinned variables (from different shader passes) will be visible on
+one window. You can edit them there easily and see your results in real time.
+<p align="center">
+    <img width="230" src="./Screenshots/pinned.jpg">
+</p>
 
 ### Error markers
-Currently only supported for HLSL.
-text
+Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
+to see the message or just check it in the "Output" window. Error markers are currently only supported for 
+HLSL but I am looking into implementing them for GLSL too (I just have to pipe the process output in GLSL2HLSL.cpp).
+<p align="center">
+    <img width="370" src="./Screenshots/error.jpg">
+</p>
 
 ### Shader stats
-text
+Don't know if your new shader has less instructions and is more optimized? Just check the stats page for your shader
+in SHADERed. It shows you total number of instructions and number of specific instructions. This way you can see if your shader
+really became more optimized or not:
+<p align="center">
+    <img width="250" src="./Screenshots/stats.jpg">
+</p>
 
 ### Custom themes
 text
 
+Want to create your own theme? Visit TUTORIAL.md and see how to do so.
+
 ### Custom template
 text
 
+To create your own template paste your project directory in /templates directory and name your project file template.sprj.
+You have to reopen SHADERed if it was running.
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -165,6 +195,7 @@ This library uses:
  - [pugixml](https://github.com/zeux/pugixml)
  - [MoonLight](https://github.com/GeneralNote/MoonLight)
  - [inih](https://github.com/benhoyt/inih)
+ - DirectXTex
  - Khronos/glslangValidator
  - Khronos/SPIRV-Cross
 
