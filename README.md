@@ -12,7 +12,7 @@ them easily, and many more great features...
 Feel free to contact me and suggest some missing feature you would like me to implement.
 
 <img src="./Screenshots/IMG2.png"/>
-<br/><br/>
+<br/>
 
 ## Features
 
@@ -32,7 +32,6 @@ You can have as many 3D objects or render states that you want to in a single sh
 passes and 3D objects are part of a pipeline.
 <p align="center">
     <img width="200" src="./Screenshots/shaderpass.jpg">
-    &nbsp;&nbsp;&nbsp;
     <img width="200" src="./Screenshots/pipeline.jpg">
 </p>
 
@@ -58,7 +57,7 @@ animations and effects for your 3D models using geometry shaders.
     <img width="200" src="./Screenshots/geometryshader.gif">
 </p>
 
-### Code editor features
+### Code editor
 SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
 It is called Smart predictions and it will be updated and improved over time. It also has very basic version
 of autocompletion (inserts/removes a bracket) and automatic indenting. All of these features can be turned on/off
@@ -73,10 +72,10 @@ you can expect formats to be supported in near future. You can also add built-in
 full screen quads, etc...).
 
 ### Textures
-Load textures from files and bind them to your shader. SHADERed currently supports JPG, PNG,
+Load textures from files and bind them to your shader. SHADERed supports JPG, PNG,
 DDS and BMP file format. Currently there is only a built-in sampler state. I plan to add customizable
-sampler states in future. The sampler state is always bound to s0 register (when using a texture).
-SHADERed also supports cubemaps.
+sampler states in future. The sampler state is always bound to s0 register (in a shader pass which is
+using a texture). SHADERed also supports cubemaps.
 <p align="center">
     <img width="260" src="./Screenshots/texture.jpg">
 </p>
@@ -98,6 +97,13 @@ one window. You can edit them there easily and see your results in real time.
 <p align="center">
     <img width="230" src="./Screenshots/pinned.jpg">
 </p>
+You can change a shader variable value only for a specific 3D model/geometry item. No programming is required.
+Imagine passing a variable objColor with value (1,1,1,1) to a shader in a constant buffer. You can change that
+variable's value before rendering an item:
+<p align="center">
+    <img width="400" src="./Screenshots/itemvarvalue.gif">
+</p>
+
 
 ### Error markers
 Error markers help you locate and identify your shader errors more easily. Hover over a line with an error

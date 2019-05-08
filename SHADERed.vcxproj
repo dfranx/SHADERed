@@ -258,6 +258,7 @@
     <None Include="README.md" />
     <None Include="shortcuts.kb" />
     <None Include="TODO.md" />
+    <None Include="TUTORIAL.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

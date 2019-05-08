@@ -3,6 +3,7 @@
 - [ ] do all TODOs (comments)
 - [ ] fix warnings
 - [ ] README.md
+- [ ] README.md -> move TODO section into TODO.md file
 - [ ] write tutorial
 - [ ] create a release on github (+ test in wine on linux)
 
