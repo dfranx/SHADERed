@@ -4,8 +4,10 @@
 - [ ] fix warnings
 - [ ] README.md
 - [ ] README.md -> move TODO section into TODO.md file
+- [ ] opening a template should immediately do "Save as" operation
 - [ ] write tutorial
 - [ ] create a release on github (+ test in wine on linux)
+- [ ] git submodules
 
 - features: intellisense, code stats, etc...
 - create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes

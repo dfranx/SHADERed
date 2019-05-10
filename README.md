@@ -50,7 +50,7 @@ immediately! There is no need to restart your application.
 <img src="./Screenshots/instantresult.gif">
 
 ### Geometry shaders
-You are not limited to vertex and pixel shaders. SHADERed has also support for geometry
+You are not limited to vertex and pixel shaders. SHADERed also has support for geometry
 shaders. Just enable GS in your shader pass and set the path to your shader. Create advanced
 animations and effects for your 3D models using geometry shaders.
 <p align="center">
@@ -122,15 +122,17 @@ really became more optimized or not:
 </p>
 
 ### Custom themes
-text
+You can create your own theme SHADERed theme. Modify ImGuiStyle members from an *.ini file. SHADERed themes allow you to
+customize everything including text editor color palette. SHADERed comes with a few built-in themes. I am bad at designing 
+so please submit your themes!
 
-Want to create your own theme? Visit TUTORIAL.md and see how to do so.
+Want to create your own theme? Visit [TUTORIAL.md](./TUTORIAL.md) and see how to do so.
 
 ### Custom template
-text
-
+You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering example.
 To create your own template paste your project directory in /templates directory and name your project file template.sprj.
-You have to reopen SHADERed if it was running.
+You have to reopen SHADERed if it was already running to see the template under File -> New -> (your template). A menu item
+for creating a template will have same text as the parent directory of the template.
 
 ## TODO
 There are also some features that I am looking to implement:
