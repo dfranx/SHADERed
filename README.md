@@ -21,7 +21,7 @@ You can modify SHADERed workspace to your own needs thanks to Omar Cornut's grea
 Dear IMGUI's docking branch, which implements window docking. Your workspace configuration
 will be saved to a file so that on next startup it looks just like you made it to look.
 <p align="center">
-    <img width="300" src="./Screenshots/workspace.gif">
+    <img width="400" src="./Screenshots/workspace.gif">
 </p>
 
 ### Shader Pass
@@ -92,11 +92,13 @@ You can create your own variables and edit their values. Those variables will be
 constant buffer. There are also a lot of built-in 'system' shader variables (elapsed time, window size, various
 view matrices, etc...).
 <img src="./Screenshots/varmanager.jpg">
+
 You can also pin those variables. All pinned variables (from different shader passes) will be visible on
 one window. You can edit them there easily and see your results in real time.
 <p align="center">
     <img width="230" src="./Screenshots/pinned.jpg">
 </p>
+
 You can change a shader variable value only for a specific 3D model/geometry item. No programming is required.
 Imagine passing a variable objColor with value (1,1,1,1) to a shader in a constant buffer. You can change that
 variable's value before rendering an item:
@@ -129,10 +131,11 @@ so please submit your themes!
 Want to create your own theme? Visit [TUTORIAL.md](./TUTORIAL.md) and see how to do so.
 
 ### Custom template
-You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering example.
-To create your own template paste your project directory in /templates directory and name your project file template.sprj.
-You have to reopen SHADERed if it was already running to see the template under File -> New -> (your template). A menu item
-for creating a template will have same text as the parent directory of the template.
+You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
+Templates help you start with already built base for your new project. To create your own project template, paste your project
+directory in /templates directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
+already running to see the template under `File -> New`. A menu item for creating a template will
+have same text as the parent directory of the template.
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -190,7 +193,10 @@ This is my e-mail address for businesses or if you just want to contact me:
 **e-mail**
 
 ## Binaries
-Link
+To get started you can visit [Release](https://github.com/GeneralNote/SHADERed/releases) page and download latest stable binary release.
+If you want to compile the program yourself, install [vcpkg]() or any package manager. Then run following command: ```vcpkg install directxtex```.
+If you don't have a C++ package manager, download and compile [DirectXTex]() library manually. 
+You also have to download, compile and link [MoonLight](). Tutorial is written in the README.md file of the repo.
 
 ## Usage
 TUTORIAL.md link
