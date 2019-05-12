@@ -12,7 +12,6 @@ them easily, and many more great features...
 Feel free to contact me and suggest some missing feature you would like me to implement.
 
 <img src="./Screenshots/IMG2.png"/>
-<br/>
 
 ## Features
 
@@ -185,27 +184,34 @@ Except those large features, I am also planning to do some small QoL changes:
 
 ## Support
 Your support will help me continue the development of this program (and any other program
-that I plan to develop in future). I will be a student in few months so any support is welcome.
+that I plan to develop in future). I will be a student in few months so any support is welcome
+and helps me dedicate my time to these projects instead of having a part-time job.
 
-You can support me on: **Patreon**, **PayPal**
+You can support me on Patreon: [![Patreon](https://c5.patreon.com/external/logo/become_a_patron_button@2x.png)](http://www.patreon.com/GeneralNote)
+
+But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://www.paypal.com/GeneralNote)
+
 
 This is my e-mail address for businesses or if you just want to contact me:
 **e-mail**
 
 ## Binaries
-To get started you can visit [Release](https://github.com/GeneralNote/SHADERed/releases) page and download latest stable binary release.
-If you want to compile the program yourself, install [vcpkg]() or any package manager. Then run following command: ```vcpkg install directxtex```.
-If you don't have a C++ package manager, download and compile [DirectXTex]() library manually. 
-You also have to download, compile and link [MoonLight](). Tutorial is written in the README.md file of the repo.
+To get started you can visit [Release](https://github.com/GeneralNote/SHADERed/releases) page and download
+latest stable binary release. If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
+or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have
+a C++ package manager, download and compile [DirectXTex](https://github.com/Microsoft/directxtex) library manually. 
+You also have to download, compile and link [MoonLight](https://github.com/GeneralNote/MoonLight) - a Direct3D 11 wrapper.
+Tutorial is written in the [README.md](https://github.com/GeneralNote/MoonLight/README.md) file of the MoonLight repo.
 
 ## Usage
-TUTORIAL.md link
+Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md]() to see
+detailed steps on how to do so.
 
 ## Dependencies
 This library uses:
  - DirectX 11
- - [imgui](https://github.com/ocornut/imgui/tree/docking) docking branch - huge thanks to Omar Cornut, go follow him on [twitter](https://twitter.com/ocornut) or support him on [patreon](https://www.patreon.com/imgui)
- - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit) - also huge thanks to BalazsJako
+ - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
+ - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
  - [pugixml](https://github.com/zeux/pugixml)
  - [MoonLight](https://github.com/GeneralNote/MoonLight)
  - [inih](https://github.com/benhoyt/inih)
@@ -216,14 +222,20 @@ This library uses:
 Some of the examples were taken from AMDs Render Monkey, credits to AMD!
 
 ## Screenshots
-images
+![](./Screenshots/screen1.jpg)
+![](./Screenshots/screen2.jpg)
+
+Send your best screenshots!
 
 ## Credits
-list of all the library creators
-\+ inconsolata.ttf
-\+ Khronos
-\+ AMD
-\+ creators of the themes
+Huge thanks to Omar Cornut, go follow him on [twitter](https://twitter.com/ocornut) or support him on [patreon](https://www.patreon.com/imgui).
+I dont think SHADERed would exist without his awesome library [Dear ImGUI](https://github.com/ocornut/).
+list of all the library creators. I came up with the shader editor idea when I stubmled upon a [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit).
+So big thanks to BalazsJako for his amazing creation. Also, thanks to Raph Levien for the [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font.
+
+Thanks to Khronos for creating [glslangValidator](https://github.com/KhronosGroup/glslang) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) tools.
+Those programs allowed me to add support for GLSL. Thanks to AMD and their RenderMonkey examples. Credits to creators of the
+themes that SHADERed comes with. Those themes and their creators can be found [here](https://github.com/ocornut/imgui/issues/707).
 
 ## LICENSE
 SHADERed is licensed under MIT license. See [LICENSE](./LICENSE) for more details.
