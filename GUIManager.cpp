@@ -132,6 +132,12 @@ namespace ed
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::BeginMenu("New")) {
+					if (ImGui::MenuItem("Empty")) {
+						m_selectedTemplate = "?empty";
+						m_isNewProjectPopupOpened = true;
+					}
+					ImGui::Separator();
+
 					for (int i = 0; i < m_templates.size(); i++)
 						if (ImGui::MenuItem(m_templates[i].c_str())) {
 							m_selectedTemplate = m_templates[i];
@@ -326,18 +332,32 @@ namespace ed
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
 			if (ImGui::Button("Yes")) {
-				m_data->Parser.SetTemplate(m_selectedTemplate);
+				if (m_selectedTemplate == "?empty") {
+					m_data->Renderer.FlushCache();
+					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+					((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+					m_data->Pipeline.New(false);
 
-				m_data->Renderer.FlushCache();
-				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-				((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
-				m_data->Pipeline.New();
+					SetWindowTextA(m_wnd->GetWindowHandle(), "SHADERed");
+				}
+				else {
+					m_data->Parser.SetTemplate(m_selectedTemplate);
 
-				m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
+					m_data->Renderer.FlushCache();
+					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+					((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+					m_data->Pipeline.New();
 
-				SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
+					m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
 
+					SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
+				}
+
+				m_saveAsProject();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();

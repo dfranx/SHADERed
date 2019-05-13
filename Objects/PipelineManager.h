@@ -23,7 +23,7 @@ namespace ed
 		PipelineItem* Get(const char* name);
 		inline std::vector<PipelineItem*>& GetList() { return m_items; }
 
-		void New();
+		void New(bool openTemplate = true);
 
 		inline ml::Window* GetOwner() { return m_wnd; }
 

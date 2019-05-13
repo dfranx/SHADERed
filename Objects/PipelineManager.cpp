@@ -104,11 +104,13 @@ namespace ed
 				return m_items[i];
 		return nullptr;
 	}
-	void PipelineManager::New()
+	void PipelineManager::New(bool openTemplate)
 	{
 		Clear();
 
 		m_project->ResetProjectDirectory();
-		m_project->OpenTemplate();
+
+		if (openTemplate)
+			m_project->OpenTemplate();
 	}
 }

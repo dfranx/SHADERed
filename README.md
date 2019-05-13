@@ -187,9 +187,9 @@ Your support will help me continue the development of this program (and any othe
 that I plan to develop in future). I will be a student in few months so any support is welcome
 and helps me dedicate my time to these projects instead of having a part-time job.
 
-You can support me on Patreon: [![Patreon](https://c5.patreon.com/external/logo/become_a_patron_button@2x.png)](http://www.patreon.com/GeneralNote)
+You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/GeneralNote)
 
-But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](http://www.paypal.com/GeneralNote)
+But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/GeneralNote)
 
 
 This is my e-mail address for businesses or if you just want to contact me:
@@ -215,9 +215,9 @@ This library uses:
  - [pugixml](https://github.com/zeux/pugixml)
  - [MoonLight](https://github.com/GeneralNote/MoonLight)
  - [inih](https://github.com/benhoyt/inih)
- - DirectXTex
- - Khronos/glslangValidator
- - Khronos/SPIRV-Cross
+ - [DirectXTex](https://github.com/microsoft/DirectXTex)
+ - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
+ - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
 
 Some of the examples were taken from AMDs Render Monkey, credits to AMD!
 
