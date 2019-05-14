@@ -234,11 +234,14 @@ namespace ed
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Help")) {
-				if (ImGui::MenuItem("Support Us")) { /* TODO */ }
+				if (ImGui::BeginMenu("Support Us")) {
+					if (ImGui::MenuItem("Patreon")) { ShellExecute(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL); }
+					if (ImGui::MenuItem("PayPal")) { ShellExecute(NULL, L"open", L"https://www.paypal.com/dfranx", NULL, NULL, SW_SHOWNORMAL); }
+					ImGui::EndMenu();
+				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("View Help")) { /* TODO */ }
-				if (ImGui::MenuItem("Tips")) { /* TODO */ }
-				if (ImGui::MenuItem("Send feedback")) { /* TODO */ }
+				if (ImGui::MenuItem("Tutorial")) { ShellExecute(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL); }
+				if (ImGui::MenuItem("Send feedback")) { ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL); }
 				if (ImGui::MenuItem("About SHADERed")) { /* TODO */ }
 
 				ImGui::EndMenu();

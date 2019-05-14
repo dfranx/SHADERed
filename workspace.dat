@@ -115,14 +115,14 @@ Collapsed=0
 DockId=0x00000018,0
 
 [Window][OutlinePass (VS)##code_view]
-Pos=17,21
-Size=32,32
+Pos=203,19
+Size=601,575
 Collapsed=0
 DockId=0x00000013,1
 
 [Window][OutlinePass (PS)##code_view]
-Pos=17,29
-Size=32,32
+Pos=203,596
+Size=601,277
 Collapsed=0
 DockId=0x00000014,1
 

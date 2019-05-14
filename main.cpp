@@ -8,6 +8,29 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
+HICON hWindowIcon = NULL;
+HICON hWindowIconBig = NULL;
+void SetIcon(HWND hwnd, std::string stricon)
+{
+	if (hWindowIcon != NULL)
+		DestroyIcon(hWindowIcon);
+	if (hWindowIconBig != NULL)
+		DestroyIcon(hWindowIconBig);
+	if (stricon == "")
+	{
+		SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)NULL);
+		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)NULL);
+	}
+	else
+	{
+		hWindowIcon = (HICON)LoadImageA(NULL, stricon.c_str(), IMAGE_ICON, 150, 147, LR_LOADFROMFILE);
+		hWindowIconBig = (HICON)LoadImageA(NULL, stricon.c_str(), IMAGE_ICON, 150, 147, LR_LOADFROMFILE);
+		SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+	}
+
+}
+
 int main()
 {
 	// window configuration
@@ -35,6 +58,8 @@ int main()
 	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "SHADERed", ml::Window::Style::Resizable, wndConfig);
 	if (wndPosX != -1 && wndPosY != -1)
 		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
+
+	SetIcon(wnd.GetWindowHandle(), "icon.ico");
 
 	if (maximized)
 		SendMessage(wnd.GetWindowHandle(), WM_SYSCOMMAND, SC_MAXIMIZE, 0);

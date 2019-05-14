@@ -1,4 +1,3 @@
-- [ ] icon
 - [ ] help -> manual, about, etc...
 - [ ] do all TODOs (comments)
 - [ ] fix warnings

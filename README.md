@@ -187,21 +187,21 @@ Your support will help me continue the development of this program (and any othe
 that I plan to develop in future). I will be a student in few months so any support is welcome
 and helps me dedicate my time to these projects instead of having a part-time job.
 
-You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/GeneralNote)
+You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
 
-But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/GeneralNote)
+But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/dfranx)
 
 
 This is my e-mail address for businesses or if you just want to contact me:
 **e-mail**
 
 ## Binaries
-To get started you can visit [Release](https://github.com/GeneralNote/SHADERed/releases) page and download
+To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
 latest stable binary release. If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
 or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have
 a C++ package manager, download and compile [DirectXTex](https://github.com/Microsoft/directxtex) library manually. 
-You also have to download, compile and link [MoonLight](https://github.com/GeneralNote/MoonLight) - a Direct3D 11 wrapper.
-Tutorial is written in the [README.md](https://github.com/GeneralNote/MoonLight/README.md) file of the MoonLight repo.
+You also have to download, compile and link [MoonLight](https://github.com/dfranx/MoonLight) - a Direct3D 11 wrapper.
+Tutorial is written in the [README.md](https://github.com/dfranx/MoonLight/README.md) file of the MoonLight repo.
 
 ## Usage
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md]() to see
@@ -213,7 +213,7 @@ This library uses:
  - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
  - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
  - [pugixml](https://github.com/zeux/pugixml)
- - [MoonLight](https://github.com/GeneralNote/MoonLight)
+ - [MoonLight](https://github.com/dfranx/MoonLight)
  - [inih](https://github.com/benhoyt/inih)
  - [DirectXTex](https://github.com/microsoft/DirectXTex)
  - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
