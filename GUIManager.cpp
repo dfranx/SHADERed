@@ -128,7 +128,7 @@ namespace ed
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
 
 		// menu
-		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false;
+		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false, m_isAboutOpen = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::BeginMenu("New")) {
@@ -242,7 +242,7 @@ namespace ed
 				ImGui::Separator();
 				if (ImGui::MenuItem("Tutorial")) { ShellExecute(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL); }
 				if (ImGui::MenuItem("Send feedback")) { ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL); }
-				if (ImGui::MenuItem("About SHADERed")) { /* TODO */ }
+				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true;}
 
 				ImGui::EndMenu();
 			}
@@ -300,6 +300,12 @@ namespace ed
 			m_isNewProjectPopupOpened = false;
 		}
 
+		// open about popup
+		if (m_isAboutOpen) {
+			ImGui::OpenPopup("About##main_about");
+			m_isAboutOpen = false;
+		}
+
 		// Create Item popup
 		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
@@ -327,6 +333,23 @@ namespace ed
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create about popup
+		ImGui::SetNextWindowSize(ImVec2(250, 145), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("About##main_about")) {
+			ImGui::Text("(C) 2019 dfranx");
+			ImGui::Text("Version 1.0");
+			ImGui::NewLine();
+			ImGui::Text("This app is open sourced: ");
+			ImGui::SameLine();
+			if (ImGui::Button("link"))
+				ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
+
+
+			if (ImGui::Button("Ok"))
+				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
 
@@ -375,7 +398,7 @@ namespace ed
 			ImGui::Text("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
-				m_previewSavePath = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0"); /* TODO: more options */
+				m_previewSavePath = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0DDS\0*.dds\0BMP\0*.bmp\0JPEG\0*.jpg\0TIFF\0*.tiff\0GIF\0*.gif\0ICO\0*.ico\0");
 			
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
@@ -390,6 +413,19 @@ namespace ed
 			ImGui::Unindent(55);
 
 			if (ImGui::Button("Save")) {
+				DirectX::WICCodecs codec = DirectX::WICCodecs::WIC_CODEC_PNG;
+				std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+				if (ext == "bmp")
+					codec = DirectX::WICCodecs::WIC_CODEC_BMP;
+				else if (ext == "jpg" || ext == "jpeg")
+					codec = DirectX::WICCodecs::WIC_CODEC_JPEG;
+				else if (ext == "tiff" || ext == "tif")
+					codec = DirectX::WICCodecs::WIC_CODEC_TIFF;
+				else if (ext == "gif")
+					codec = DirectX::WICCodecs::WIC_CODEC_GIF;
+				else if (ext == "ico")
+					codec = DirectX::WICCodecs::WIC_CODEC_ICO;
+
 				DirectX::ScratchImage img;
 				std::wstring wpath(m_previewSavePath.begin(), m_previewSavePath.end());
 				
@@ -397,7 +433,11 @@ namespace ed
 					m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
 
 				DirectX::CaptureTexture(m_wnd->GetDevice(), m_wnd->GetDeviceContext(), m_data->Renderer.GetRenderTexture().GetResource(), img);
-				DirectX::SaveToWICFile(img.GetImages()[0], DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WICCodecs::WIC_CODEC_PNG), wpath.c_str());
+				if (ext == "dds")
+					DirectX::SaveToDDSFile(img.GetImages()[0], DirectX::DDS_FLAGS_NONE, wpath.c_str());
+				else 
+					DirectX::SaveToWICFile(img.GetImages()[0], DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(codec), wpath.c_str());
+				
 
 				//DirectX::SaveToWICFile()
 				ImGui::CloseCurrentPopup();
@@ -682,7 +722,7 @@ namespace ed
 			Get(ViewID::Pinned)->Visible = !Get(ViewID::Pinned)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
-			// TODO
+			ShellExecute(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Options", [=]() {
 			m_optionsOpened = true;

@@ -1,10 +1,6 @@
-- [ ] help -> manual, about, etc...
-- [ ] do all TODOs (comments)
-- [ ] fix warnings
-- [ ] README.md
 - [ ] write a tutorial
+- [ ] git submodules (inih, pugixml, TextEditor)
 - [ ] create a release on github (+ test in wine on linux)
-- [ ] git submodules
 
 - proof read README.md
 - create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes

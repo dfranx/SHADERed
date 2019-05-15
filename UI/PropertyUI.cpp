@@ -160,7 +160,6 @@ namespace ed
 
 					ImGui::Separator();
 
-					/* TODO: create function for "path" property items... */
 					/* pixel shader path */
 					ImGui::Text("PS Path:");
 					ImGui::NextColumn();

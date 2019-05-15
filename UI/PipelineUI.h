@@ -24,7 +24,7 @@ namespace ed
 		bool m_isCreateViewOpened;
 		int m_VarManagerSID; // do we edit the variables for vertex, pixel or geometry shader? (in shader pass)
 
-		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed (we use pointers to identify a specific items - i know its bad but too late rn [TODO])
+		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed
 
 		CreateItemUI m_createUI;
 		ed::PipelineItem* m_modalItem; // item that we are editing in a popup modal

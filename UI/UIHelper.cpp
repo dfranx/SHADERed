@@ -19,8 +19,6 @@ namespace ed
 		dialog.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if (GetOpenFileName(&dialog) == TRUE) {
-			// TODO: get relative path to project file
-
 			std::wstring wfile = std::wstring(filePath);
 			return std::string(wfile.begin(), wfile.end());
 		}

@@ -70,6 +70,8 @@ namespace ed
 		m_rts[name]->FixedSize = m_renderer->GetLastRenderSize();
 		m_rts[name]->ClearColor = ml::Color(0, 0, 0, 0);
 		m_rts[name]->Name = name;
+
+		return true;
 	}
 	void ObjectManager::CreateTexture(const std::string& file, bool cube)
 	{

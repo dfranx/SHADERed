@@ -100,7 +100,7 @@ namespace ed
 		class StatsPage
 		{
 		public:
-			StatsPage() : IsActive(false), Info(nullptr) {}
+			StatsPage(InterfaceManager* im) : IsActive(false), Info(nullptr), m_data(im) {}
 			~StatsPage() { }
 
 			void Fetch(ed::PipelineItem* item, const std::string& code, int type);
@@ -108,6 +108,9 @@ namespace ed
 
 			bool IsActive;
 			void* Info;
+
+		private:
+			InterfaceManager* m_data;
 		};
 
 

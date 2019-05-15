@@ -214,7 +214,7 @@ namespace ed
 		m_items.push_back(item);
 		m_editor.push_back(TextEditor());
 		m_editorOpen.push_back(true);
-		m_stats.push_back(StatsPage());
+		m_stats.push_back(StatsPage(m_data));
 
 		TextEditor* editor = &m_editor[m_editor.size() - 1];
 
@@ -231,7 +231,6 @@ namespace ed
 		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 
-		// TODO: GLSL
 		bool isGLSL = false;
 		if (sid == 0)
 			isGLSL = GLSL2HLSL::IsGLSL(shader->VSPath);
@@ -327,15 +326,17 @@ namespace ed
 
 		// generate bytecode
 		if (typeId == 0)
-			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+			D3DCompile(code.c_str(), code.size(), "shader.hlsl", nullptr, nullptr, data->VSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
 		else if (typeId == 1)
-			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+			D3DCompile(code.c_str(), code.size(), "shader.hlsl", nullptr, nullptr, data->PSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
 		else if (typeId == 2)
-			D3DCompile(code.c_str(), code.size(), item->Name, nullptr, nullptr, data->GSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
+			D3DCompile(code.c_str(), code.size(), "shader.hlsl", nullptr, nullptr, data->GSEntry, type.c_str(), 0, 0, &bytecodeBlob, &errorBlob);
 
 		// delete the error data, we dont need it
 		if (errorBlob != nullptr) {
-			/* TODO: error stack */
+			std::string msg = std::string((char*)errorBlob->GetBufferPointer());
+			m_data->GetOwner()->GetLogger()->Log(msg);
+
 			errorBlob->Release();
 			errorBlob = nullptr;
 
