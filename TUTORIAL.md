@@ -139,7 +139,47 @@ shader files end with the specific extension (.vert for vertex, .frag for fragme
 under project tab).
 
 # Build your own theme
-steps
+Create an `.ini` file. Under `[general]` write the name of your theme and the version. Also, there is
+option to set the editor theme. Set `editor` variable to "Dark"/"Light" to use built-in code editor
+themes or set it to "Custom" and then build your own theme for the code editor.
+
+Under the `[style]` group you can change all the members of the ImGuiStyle class. Here is the
+exact list of all of the variables that you can play with:
+```
+Alpha, WindowPaddingX, WindowPaddingY, WindowRounding, WindowBorderSize, WindowMinSizeX,
+WindowMinSizeY, WindowTitleAlignX, WindowTitleAlignY, ChildRounding, ChildBorderSize,
+PopupRounding, PopupBorderSize, FramePaddingX, FramePaddingY, FrameRounding, FrameBorderSize,
+ItemSpacingX, ItemSpacingY, ItemInnerSpacingX, ItemInnerSpacingY, TouchExtraPaddingX,
+TouchExtraPaddingY, IndentSpacing, ColumnsMinSpacing, ScrollbarSize, ScrollbarRounding,
+GrabMinSize, GrabRounding, TabRounding, TabBorderSize, ButtonTextAlignX, ButtonTextAlignY,
+DisplayWindowPaddingX, DisplayWindowPaddingY, DisplaySafeAreaPaddingX,
+DisplaySafeAreaPaddingY, MouseCursorScale, AntiAliasedLines, AntiAliasedFill, CurveTessellationTol
+```
+
+To change the actual colors of the UI, modify these variables in the `[colors]` group:
+```
+Text, TextDisabled, WindowBg, ChildBg, PopupBg, Border, BorderShadow, FrameBg, FrameBgHovered,
+FrameBgActive, TitleBg, TitleBgActive, TitleBgCollapsed, MenuBarBg, ScrollbarBg, ScrollbarGrab,
+ScrollbarGrabHovered, ScrollbarGrabActive, CheckMark, SliderGrab, SliderGrabActive, Button,
+ButtonHovered, ButtonActive, Header, HeaderHovered, HeaderActive, Separator, SeparatorHovered,
+SeparatorActive, ResizeGrip, ResizeGripHovered, ResizeGripActive, Tab, TabHovered, TabActive,
+TabUnfocused, TabUnfocusedActive, DockingPreview, DockingEmptyBg, PlotLines, PlotLinesHovered,
+PlotHistogram, PlotHistogramHovered, TextSelectedBg, DragDropTarget, NavHighlight, NavWindowingHighlight,
+NavWindowingDimBg, ModalWindowDimBg
+```
+All of these variables have to have 4 float values in the range [0.0, 1.0] splitted by the
+delimiter.
+
+To change the actual colors of the text editor, modify these variables in the `[editor]` group:
+```
+Default, Keyword, Number, String, CharLiteral, Punctuation, Preprocessor, Identifier,
+KnownIdentifier, PreprocIdentifier, Comment, MultiLineComment, Background,
+Cursor, Selection, ErrorMarker, Breakpoint, LineNumber, CurrentLineFill, 
+CurrentLineFillInactive, CurrentLineEdge
+```
+These too have to have a 4 float values in the range [0.0, 1.0] splitted with the
+comma.
+
 
 # Converting ShaderToy shaders
 steps

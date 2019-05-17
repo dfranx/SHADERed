@@ -149,8 +149,8 @@ There are also some features that I am looking to implement:
  - audio files
    - audio files would allow you to create music visualization
  - node shader editor that can export to GLSL and HLSL
- - shader "store"
-   - a place where you can upload your shaders and see other peoples creations
+ - shader & theme "store"
+   - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
  - research tesselation and compute shaders and how to implement them
  - built-in antialiasing

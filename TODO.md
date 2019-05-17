@@ -1,4 +1,3 @@
-- [ ] write a tutorial
 - [ ] git submodules (inih, pugixml, TextEditor)
 - [ ] create a release on github (+ test in wine on linux)
 
