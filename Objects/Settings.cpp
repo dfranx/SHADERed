@@ -1,7 +1,7 @@
 #pragma once
 #include "Settings.h"
-#include "../ImGUI/imgui.h"
-#include "INIReader.h"
+#include <imgui/imgui.h>
+#include <inih/INIReader.h>
 
 #include <algorithm>
 #include <fstream>

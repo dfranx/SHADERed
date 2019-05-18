@@ -1,5 +1,5 @@
 #include "ThemeContainer.h"
-#include "../Objects/INIReader.h"
+#include <inih/INIReader.h>
 #include <sstream>
 
 namespace ed

@@ -1,5 +1,5 @@
 #include "GUIManager.h"
-#include "ImGUI/imgui.h"
+#include <imgui/imgui.h>
 #include "ImGUI/imgui_impl_win32.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "InterfaceManager.h"
@@ -125,7 +125,7 @@ namespace ed
 
 		// dockspace
 		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruDockspace | ImGuiDockNodeFlags_None);
+		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
 		// menu
 		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false, m_isAboutOpen = false;

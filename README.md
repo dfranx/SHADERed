@@ -2,7 +2,8 @@
 
 SHADERed is a lightweight tool for creating and testing your HLSL and GLSL shaders. It is easy to use,
 open source and frequently updated with new features. SHADERed is great for fast shader development.
-Hit one key and see your new shader in action immediately. It currently only works on Windows.
+Hit one key and see your new shader in action immediately. It currently only works on Windows (not
+tested on Wine).
 
 SHADERed has many **features** such as: rendering to multiple render textures simultaneously,
 loading WAVEFRONT (.obj) models, loading custom textures, custom themes, 'smart' predictions,
@@ -174,7 +175,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - ctrl + click -> select multiple items
  - bounding box around selected item + possible resize points on the bounding box
  - polished gizmo
- - dont reposition code editor after renaming shader pass
+ - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline after changing anything in the project
  - cubemap preview
  - click on cubemap, texture and render texture preview should open a preview window
  - fix selecting items when user has a skybox in scene
@@ -210,6 +211,7 @@ detailed steps on how to do so.
 ## Dependencies
 This library uses:
  - DirectX 11
+ - DirectXMath
  - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
  - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
  - [pugixml](https://github.com/zeux/pugixml)

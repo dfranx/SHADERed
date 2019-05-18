@@ -1,5 +1,5 @@
 #include "MessageOutputUI.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
 
 namespace ed
 {

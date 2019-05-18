@@ -130,7 +130,6 @@ namespace ed
 		std::vector<PipelineItem> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
-		std::vector<std::string> m_originalContent;
 		std::vector<int> m_shaderTypeId;
 		std::deque<bool> m_editorOpen;
 

@@ -1,5 +1,5 @@
 #include "PinnedUI.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
 #include "CodeEditorUI.h"
 
 namespace ed

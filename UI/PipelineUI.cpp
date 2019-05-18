@@ -5,12 +5,12 @@
 #include "PreviewUI.h"
 #include "../Options.h"
 #include "../GUIManager.h"
-#include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
 #include "../Objects/GLSL2HLSL.h"
 #include "../Objects/SystemVariableManager.h"
-#include "../ImGUI/imgui_internal.h"
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <algorithm>
 
 #define PIPELINE_SHADER_PASS_INDENT 65

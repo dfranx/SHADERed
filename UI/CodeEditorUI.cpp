@@ -1,5 +1,5 @@
 #include "CodeEditorUI.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
 #include "../Objects/GLSL2HLSL.h"
@@ -48,13 +48,17 @@ namespace ed
 		
 		m_selectedItem = -1;
 
-		// dock space
+		// counters for each shader type for window ids
+		int wid[3] = { 0, 0, 0 }; // vs, ps, gs
+
+		// code editor windows
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
-				std::string windowName(std::string(m_items[i].Name) + (m_shaderTypeId[i] == 0 ? " (VS)" : (m_shaderTypeId[i] == 1 ? " (PS)" : " (GS)")));
-
+				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : " GS");
+				std::string windowName(std::string(m_items[i].Name) + " (" + shaderType + ")");
+				
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin((std::string(windowName) + "##code_view").c_str(), &m_editorOpen[i], ImGuiWindowFlags_MenuBar)) {
+				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[m_shaderTypeId[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Editor.Save").c_str())) m_save(i);
@@ -125,13 +129,14 @@ namespace ed
 					}
 				}
 
+				wid[m_shaderTypeId[i]]++;
 				ImGui::End();
 			}
 		}
 
 		// save popup
 		for (int i = 0; i < m_editorOpen.size(); i++)
-			if (!m_editorOpen[i] && m_originalContent[i] != m_editor[i].GetText()) {
+			if (!m_editorOpen[i] && m_editor[i].IsTextChanged()) {
 				ImGui::OpenPopup("Save Changes##code_save");
 				m_savePopupOpen = i;
 				m_editorOpen[i] = true;
@@ -165,7 +170,6 @@ namespace ed
 		}
 
 		// delete not needed editors
-		
 		if (m_savePopupOpen == -1) {
 			for (int i = 0; i < m_editorOpen.size(); i++) {
 				if (!m_editorOpen[i]) {
@@ -173,7 +177,6 @@ namespace ed
 					m_editor.erase(m_editor.begin() + i);
 					m_editorOpen.erase(m_editorOpen.begin() + i);
 					m_stats.erase(m_stats.begin() + i);
-					m_originalContent.erase(m_originalContent.begin() + i);
 					m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 					i--;
 				}
@@ -250,8 +253,7 @@ namespace ed
 		else if (sid == 2)
 			shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 		editor->SetText(shaderContent);
-
-		m_originalContent.push_back(shaderContent);
+		editor->TextChangedReset();
 	}
 	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
@@ -273,7 +275,6 @@ namespace ed
 			m_editor.erase(m_editor.begin() + i);
 			m_editorOpen.erase(m_editorOpen.begin() + i);
 			m_stats.erase(m_stats.begin() + i);
-			m_originalContent.erase(m_originalContent.begin() + i);
 			m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 			i--;
 		}
@@ -294,7 +295,7 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
 
-		m_originalContent[id] = m_editor[id].GetText();
+		m_editor[id].TextChangedReset();
 
 		if (m_shaderTypeId[id] == 0)
 			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());

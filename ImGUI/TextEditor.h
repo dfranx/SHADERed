@@ -9,7 +9,7 @@
 #include <thread>
 #include <map>
 #include <regex>
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 class TextEditor
 {
@@ -192,6 +192,7 @@ public:
 	void SetReadOnly(bool aValue);
 	bool IsReadOnly() const { return mReadOnly; }
 	bool IsTextChanged() const { return mTextChanged; }
+	inline void TextChangedReset() { mTextChanged = false; }
 
 	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
 	void SetCursorPosition(const Coordinates& aPosition);

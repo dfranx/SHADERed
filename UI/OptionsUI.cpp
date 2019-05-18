@@ -1,8 +1,8 @@
 #include "OptionsUI.h"
 #include "CodeEditorUI.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include "../Objects/Settings.h"
-#include "../ImGUI/imgui_internal.h"
 #include "../Objects/ThemeContainer.h"
 #include "../Objects/KeyboardShortcuts.h"
 #include "UIHelper.h"

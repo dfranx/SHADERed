@@ -92,7 +92,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>E:\MoonLight\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\SHADERed\libs;E:\MoonLight\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +128,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>E:\MoonLight\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\SHADERed\libs;E:\MoonLight\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -159,13 +159,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ImGUI\imgui.cpp" />
-    <ClCompile Include="ImGUI\imgui_draw.cpp" />
     <ClCompile Include="ImGUI\imgui_impl_dx11.cpp" />
     <ClCompile Include="ImGUI\imgui_impl_win32.cpp" />
-    <ClCompile Include="ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="ImGUI\TextEditor.cpp" />
     <ClCompile Include="InterfaceManager.cpp" />
+    <ClCompile Include="libs\imgui\imgui.cpp" />
+    <ClCompile Include="libs\imgui\imgui_draw.cpp" />
+    <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="libs\pugixml\src\pugixml.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
@@ -187,7 +188,6 @@
     <ClCompile Include="Objects\ShaderVariableContainer.cpp" />
     <ClCompile Include="Objects\SystemVariableManager.cpp" />
     <ClCompile Include="Objects\ThemeContainer.cpp" />
-    <ClCompile Include="pugixml\pugixml.cpp" />
     <ClCompile Include="UI\CodeEditorUI.cpp" />
     <ClCompile Include="UI\CreateItemUI.cpp" />
     <ClCompile Include="UI\MessageOutputUI.cpp" />
@@ -203,19 +203,22 @@
   <ItemGroup>
     <ClInclude Include="EditorEngine.h" />
     <ClInclude Include="GUIManager.h" />
-    <ClInclude Include="ImGUI\imconfig.h" />
-    <ClInclude Include="ImGUI\imgui.h" />
     <ClInclude Include="ImGUI\imgui_impl_dx11.h" />
     <ClInclude Include="ImGUI\imgui_impl_win32.h" />
-    <ClInclude Include="ImGUI\imgui_internal.h" />
-    <ClInclude Include="ImGUI\imstb_rectpack.h" />
-    <ClInclude Include="ImGUI\imstb_textedit.h" />
-    <ClInclude Include="ImGUI\imstb_truetype.h" />
     <ClInclude Include="ImGUI\stb_rect_pack.h" />
     <ClInclude Include="ImGUI\stb_textedit.h" />
     <ClInclude Include="ImGUI\stb_truetype.h" />
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
+    <ClInclude Include="libs\imgui\imconfig.h" />
+    <ClInclude Include="libs\imgui\imgui.h" />
+    <ClInclude Include="libs\imgui\imgui_internal.h" />
+    <ClInclude Include="libs\imgui\imstb_rectpack.h" />
+    <ClInclude Include="libs\imgui\imstb_textedit.h" />
+    <ClInclude Include="libs\imgui\imstb_truetype.h" />
+    <ClInclude Include="libs\inih\INIReader.h" />
+    <ClInclude Include="libs\pugixml\src\pugiconfig.hpp" />
+    <ClInclude Include="libs\pugixml\src\pugixml.hpp" />
     <ClInclude Include="Objects\ArcBallCamera.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\DefaultState.h" />
@@ -223,7 +226,6 @@
     <ClInclude Include="Objects\FunctionVariableManager.h" />
     <ClInclude Include="Objects\GizmoObject.h" />
     <ClInclude Include="Objects\GLSL2HLSL.h" />
-    <ClInclude Include="Objects\INIReader.h" />
     <ClInclude Include="Objects\KeyboardShortcuts.h" />
     <ClInclude Include="Objects\Logger.h" />
     <ClInclude Include="Objects\MessageStack.h" />
@@ -238,8 +240,6 @@
     <ClInclude Include="Objects\SystemVariableManager.h" />
     <ClInclude Include="Objects\ThemeContainer.h" />
     <ClInclude Include="Options.h" />
-    <ClInclude Include="pugixml\pugiconfig.hpp" />
-    <ClInclude Include="pugixml\pugixml.hpp" />
     <ClInclude Include="UI\CodeEditorUI.h" />
     <ClInclude Include="UI\CreateItemUI.h" />
     <ClInclude Include="UI\MessageOutputUI.h" />

@@ -1,7 +1,9 @@
 #pragma once
 #include "UIView.h"
-#include "../ImGUI/imgui.h"
 #include "../Objects/GizmoObject.h"
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 namespace ed
 {

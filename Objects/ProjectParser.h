@@ -3,7 +3,7 @@
 #include "../GUIManager.h"
 #include "ShaderVariable.h"
 #include "MessageStack.h"
-#include "../pugixml/pugixml.hpp"
+#include <pugixml/src/pugixml.hpp>
 #include <MoonLight/Model/OBJModel.h>
 
 namespace ed

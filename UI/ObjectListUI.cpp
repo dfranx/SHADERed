@@ -1,6 +1,6 @@
 #include "ObjectListUI.h"
 #include "PropertyUI.h"
-#include "../ImGUI/imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 #define IMAGE_CONTEXT_WIDTH 150
 

@@ -1,6 +1,7 @@
 #include "UIHelper.h"
-#include "../ImGUI/imgui.h"
 #include "../Objects/Names.h"
+
+#include <imgui/imgui.h>
 
 namespace ed
 {

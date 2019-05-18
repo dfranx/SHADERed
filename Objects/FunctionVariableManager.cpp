@@ -1,5 +1,5 @@
 #include "FunctionVariableManager.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
 #include <DirectXMath.h>
 
 namespace ed

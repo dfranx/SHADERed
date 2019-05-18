@@ -1,6 +1,6 @@
 #pragma once
 #include "UIView.h"
-#include "../ImGUI/imgui.h"
+#include <imgui/imgui.h>
 
 namespace ed
 {

@@ -1,10 +1,10 @@
 #include "PropertyUI.h"
 #include "UIHelper.h"
 #include "CodeEditorUI.h"
-#include "../ImGUI/imgui.h"
-#include "../ImGUI/imgui_internal.h"
 #include "../Objects/Names.h"
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <Shlwapi.h>
 
 namespace ed

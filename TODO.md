@@ -1,4 +1,4 @@
-- [ ] git submodules (inih, pugixml, TextEditor)
+- [ ] git submodule for ImGuiColorTextEdit
 - [ ] create a release on github (+ test in wine on linux)
 
 - proof read README.md

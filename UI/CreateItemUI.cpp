@@ -1,8 +1,8 @@
 #include "CreateItemUI.h"
 #include "UIHelper.h"
 #include "../Objects/Names.h"
-#include "../ImGUI/imgui.h"
-#include "../ImGUI/imgui_internal.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <MoonLight/Base/GeometryFactory.h>
 #include <MoonLight/Model/OBJModel.h>
 

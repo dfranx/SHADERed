@@ -1,8 +1,8 @@
 #include "VariableValueEdit.h"
 #include "../Objects/FunctionVariableManager.h"
 #include "../Objects/Names.h"
-#include "../ImGUI/imgui.h"
 
+#include <imgui/imgui.h>
 #include <DirectXMath.h>
 
 namespace ed

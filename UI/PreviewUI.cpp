@@ -5,7 +5,7 @@
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/KeyboardShortcuts.h"
-#include "../ImGUI/imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 #define STATUSBAR_HEIGHT 25
 #define FPS_UPDATE_RATE 0.3f

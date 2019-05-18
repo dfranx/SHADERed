@@ -63,7 +63,7 @@ editor (or right click &rightarrow; `Edit Code`). Two windows will probably open
 and not docked. Just grab those windows and dock them anywhere you want.
 You can start writing your shader code. You can just copy and paste this vertex shader
 code:
-```c++
+```HLSL
 cbuffer cbPerFrame : register(b0)
 {
 	float4x4 matVP;
@@ -94,7 +94,7 @@ VSOutput main(VSInput vin)
 ```
 
 You can also copy and paste this pixel shader:
-```c++
+```HLSL
 struct PSInput
 {
 	float4 Position : SV_POSITION;
@@ -136,7 +136,25 @@ After hitting CTRL+F5 you will see your result displayed in preview window:
 You don't have to do anything special to write GLSL shaders. Just make sure that your
 shader files end with the specific extension (.vert for vertex, .frag for fragment and
 .geom for geometry shaders &rightarrow; these can be changed in options and are a located
-under project tab).
+under project tab). GLSL shaders have to have this code at the beginning of each shader:
+```GLSL
+#version 400
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+```
+
+And since we are transcompiling from GLSL to HLSL, it is not enough
+just to write `in vec4 color;` but you have to specify layout for every in/out/uniform/etc...
+variable:
+```
+layout (location = 0) in vec4 color;
+```
+
+Currently it is difficult to know where your GLSL error occured in the code
+since we are still not piping glslangValidator/SPIRV-Cross output to the SHADERed
+output window (or using non precompiled version of those libraries). You can see your
+GLSL errors by manually using glsangValidator.exe or SPIRV-Cross.exe tools. I know it is
+long and annoying process but either that or wait until we implement GLSL errors.
 
 # Build your own theme
 Create an `.ini` file. Under `[general]` write the name of your theme and the version. Also, there is
@@ -179,7 +197,3 @@ CurrentLineFillInactive, CurrentLineEdge
 ```
 These too have to have a 4 float values in the range [0.0, 1.0] splitted with the
 comma.
-
-
-# Converting ShaderToy shaders
-steps

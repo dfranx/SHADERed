@@ -433,7 +433,7 @@ std::string TextEditor::GetWordAt(const Coordinates & aCoords) const
 void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 {
 	mWithinRender = true;
-	mTextChanged = false;
+	//mTextChanged = false;
 
 	ImGuiIO& io = ImGui::GetIO();
 	auto xadv = (ImGui::GetFont()->IndexAdvanceX['X']);
@@ -463,8 +463,8 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 		if (mACOpened) {
 			int keyCount = 0;
 
-			for (size_t i = 0; i < sizeof(io.InputCharacters) / sizeof(io.InputCharacters[0]); i++)
-				if (io.InputCharacters[i] != 0)
+			for (size_t i = 0; i < io.InputQueueCharacters.Size; i++)
+				if (io.InputQueueCharacters[i] != 0)
 					keyCount++;
 			for (size_t i = 0; i < ImGuiKey_COUNT; i++)
 				keyCount+=ImGui::IsKeyPressed(ImGui::GetKeyIndex(i));
@@ -596,9 +596,10 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 		}
 		else if (!IsReadOnly())
 		{
-			for (size_t i = 0; i < sizeof(io.InputCharacters) / sizeof(io.InputCharacters[0]); i++)
+			for (size_t i = 0; i < io.InputQueueCharacters.Size; i++)
 			{
-				auto c = (unsigned char)io.InputCharacters[i];
+				ImWchar wc = io.InputQueueCharacters[i];
+				auto c = (unsigned char)wc; // TODO: hmmm
 				
 				if (c != 0)
 				{
