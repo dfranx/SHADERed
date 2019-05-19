@@ -170,7 +170,6 @@ Except those large features, I am also planning to do some small QoL changes:
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - recompile the shader after we change shader path in a shader pass
  - buffers read from file or built using in-app buffer editor
- - GLSL error markers & error messages
  - right click on an empty objects panel should open a context menu
  - ctrl + click -> select multiple items
  - bounding box around selected item + possible resize points on the bounding box
@@ -181,7 +180,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - fix selecting items when user has a skybox in scene
  - use pointers to RTs in pipe::ShaderPass instead of names
  - remember collapsed items in a project
- - errors in GLSL shader file cause SHADERed to freeze
+ - remember focused window in workspace.dat (worked before updating my imgui/docking clone)
 
 ## Support
 Your support will help me continue the development of this program (and any other program

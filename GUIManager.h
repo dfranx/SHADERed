@@ -65,6 +65,6 @@ namespace ed
 		InterfaceManager* m_data;
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened;
 
-		void m_saveAsProject();
+		bool m_saveAsProject();
 	};
 }

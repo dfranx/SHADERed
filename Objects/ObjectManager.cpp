@@ -46,10 +46,10 @@ namespace ed
 		}
 		
 		m_rts.clear();
-		m_imgs.clear();
-		m_srvs.clear();
-		m_texs.clear();
-		m_binds.clear();
+		if (m_imgs.size() > 0) m_imgs.clear();
+		if (m_srvs.size() > 0) m_srvs.clear();
+		if (m_texs.size() > 0) m_texs.clear();
+		if (m_binds.size() > 0) m_binds.clear(); // crashes here when opening GLSL file (?) TODO 
 		m_items.clear();
 		m_isCube.clear();
 	}

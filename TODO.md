@@ -1,4 +1,5 @@
 - [ ] git submodule for ImGuiColorTextEdit
+- [ ] remove outline from the icon
 - [ ] create a release on github (+ test in wine on linux)
 
 - proof read README.md

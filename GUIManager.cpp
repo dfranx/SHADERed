@@ -358,17 +358,18 @@ namespace ed
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
 			if (ImGui::Button("Yes")) {
-				if (m_selectedTemplate == "?empty") {
-					m_data->Renderer.FlushCache();
-					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-					((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
-					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-					m_data->Pipeline.New(false);
+				std::string oldFile = m_data->Parser.GetOpenedFile();
 
-					SetWindowTextA(m_wnd->GetWindowHandle(), "SHADERed");
-				}
-				else {
+				if (m_selectedTemplate == "?empty") {
+						m_data->Renderer.FlushCache();
+						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+						m_data->Pipeline.New(false);
+
+						SetWindowTextA(m_wnd->GetWindowHandle(), "SHADERed");
+				} else {
 					m_data->Parser.SetTemplate(m_selectedTemplate);
 
 					m_data->Renderer.FlushCache();
@@ -383,7 +384,21 @@ namespace ed
 					SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
 				}
 
-				m_saveAsProject();
+				bool chosen = m_saveAsProject();
+				if (!chosen) {
+					if (oldFile != "") {
+						m_data->Renderer.FlushCache();
+						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+						m_data->Parser.Open(oldFile);
+
+					}
+					else
+						m_data->Parser.OpenTemplate();
+				}
+
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
@@ -600,7 +615,7 @@ namespace ed
 			break;
 		}
 	}
-	void GUIManager::m_saveAsProject()
+	bool GUIManager::m_saveAsProject()
 	{
 		OPENFILENAME dialog;
 		TCHAR filePath[MAX_PATH] = { 0 };
@@ -614,8 +629,9 @@ namespace ed
 		dialog.nFilterIndex = 1;
 		dialog.lpstrDefExt = L".sprj";
 		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+		bool ret = false;
 
-		if (GetSaveFileName(&dialog) == TRUE) {
+		if ((ret = GetSaveFileName(&dialog)) == TRUE) {
 			std::wstring wfile = std::wstring(filePath);
 			std::string file(wfile.begin(), wfile.end());
 
@@ -636,6 +652,8 @@ namespace ed
 
 			SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + projName + ")").c_str());
 		}
+
+		return ret;
 	}
 
 	void GUIManager::m_setupShortcuts()
