@@ -1,6 +1,4 @@
-- [ ] git submodule for ImGuiColorTextEdit
-- [ ] remove outline from the icon
 - [ ] create a release on github (+ test in wine on linux)
-
-- proof read README.md
-- create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes
+- [ ] create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes
+- [ ] git submodule for ImGuiColorTextEdit
+- [ ] proof read README.md and TUTORIAL.md + delete this file
