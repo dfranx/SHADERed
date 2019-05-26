@@ -1,3 +1,4 @@
 - [ ] create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes
 - [ ] git submodule for ImGuiColorTextEdit
+- [ ] use ./libs/imgui/examples/impl_*.h and *.cpp files instead of the ones in the ./imgui folder
 - [ ] proof read README.md and TUTORIAL.md + delete this file
