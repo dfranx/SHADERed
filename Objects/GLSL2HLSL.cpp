@@ -26,13 +26,6 @@ namespace ed
 		std::string spv(tempLoc + stage + ".spv");
 		std::string hlsl(tempLoc + stage + ".hlsl");
 
-		/*
-		
-		test out -d flag (auto #version when there is none)
-		TODO: warnings
-		-e <entry point>
-
-		*/
 		std::string out = m_exec("./GLSL/glslangValidator.exe --source-entrypoint main -e " + entry + " -S " + stage + " -o " + spv + " -V " + filename);
 		if (out.find("ERROR") != std::string::npos)
 			log->Log(out);
@@ -125,7 +118,7 @@ namespace ed
 			NULL,          // process security attributes 
 			NULL,          // primary thread security attributes 
 			TRUE,          // handles are inherited 
-			0,             // creation flags 
+			CREATE_NO_WINDOW,// creation flags 
 			NULL,          // use parent's environment 
 			NULL,          // use parent's current directory 
 			&siStartInfo,  // STARTUPINFO pointer 

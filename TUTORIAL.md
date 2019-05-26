@@ -128,7 +128,11 @@ In this tutorial we will only add two matrices: ViewProjection and GeometryTrans
 ![](./Screenshots/tut5.jpg)
 
 ### Result
-After hitting CTRL+F5 you will see your result displayed in preview window:
+After hitting CTRL+F5 you will see your result displayed in preview window.
+
+**NOTE**: You can drag your cursor around preview window while holding right
+mouse button pressed to rotate the camera around the origin. Or use your scroll wheel
+to zoom in/out. Left click on an object to select it.
 
 ![](./Screenshots/tut6.jpg)
 

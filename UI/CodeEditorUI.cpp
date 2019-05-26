@@ -54,7 +54,7 @@ namespace ed
 		// code editor windows
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
-				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : " GS");
+				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : "GS");
 				std::string windowName(std::string(m_items[i].Name) + " (" + shaderType + ")");
 				
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);

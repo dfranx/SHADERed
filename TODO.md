@@ -1,4 +1,3 @@
-- [ ] create a release on github (+ test in wine on linux)
 - [ ] create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes
 - [ ] git submodule for ImGuiColorTextEdit
 - [ ] proof read README.md and TUTORIAL.md + delete this file
