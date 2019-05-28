@@ -15,6 +15,9 @@ namespace ed
 			m_pick(nullptr),
 			m_pickMode(0),
 			m_gizmo(objects->GetOwner()),
+			m_fpsDelta(0.0f),
+			m_fpsUpdateTime(0.0f),
+			m_pos1(0,0,0), m_pos2(0,0,0),
 			m_lastSize(-1, -1) {
 			m_setupShortcuts();
 			m_fpsLimit = m_elapsedTime = 0;

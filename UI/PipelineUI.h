@@ -9,7 +9,8 @@ namespace ed
 	{
 	public:
 		PipelineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) :
-			UIView(ui, objects, name, visible), 
+			UIView(ui, objects, name, visible), m_VarManagerSID(0), m_isChangeVarsOpened(false),
+			m_isCreateViewOpened(false), m_isLayoutOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
 			m_createUI(ui, objects) {
 		}
 

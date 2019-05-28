@@ -24,6 +24,8 @@ namespace ed
 			bool Ctrl;
 			bool Shift;
 			std::function<void()> Function;
+
+			Shortcut() : Key1(-1), Key2(-1), Alt(false), Ctrl(false), Shift(false), Function(nullptr) { }
 		};
 
 

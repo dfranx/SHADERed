@@ -1,7 +1,7 @@
 #include "GUIManager.h"
 #include <imgui/imgui.h>
-#include "ImGUI/imgui_impl_win32.h"
-#include "ImGUI/imgui_impl_dx11.h"
+#include <imgui/examples/imgui_impl_win32.h>
+#include <imgui/examples/imgui_impl_dx11.h>
 #include "InterfaceManager.h"
 #include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
@@ -31,6 +31,8 @@ namespace ed
 		m_isCreateItemPopupOpened = false;
 		m_previewSaveSize = DirectX::XMINT2(1920, 1080);
 		m_savePreviewPopupOpened = false;
+		m_optGroup = 0;
+		m_optionsOpened = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();

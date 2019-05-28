@@ -41,6 +41,7 @@ namespace ed
 				OldValue = var->Data;
 				NewValue = new ShaderVariable(var->GetType(), var->Name, var->System, var->Slot);
 				NewValue->Function = var->Function;
+				Item = nullptr;
 			}
 			PipelineItem* Item;
 			ed::ShaderVariable* Variable;

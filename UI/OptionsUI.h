@@ -18,7 +18,7 @@ namespace ed
 
 		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
 			UIView(ui, objects, name, visible),
-			m_selectedShortcut(-1) { }
+			m_selectedShortcut(-1), m_page(Page::General) { }
 		//using UIView::UIView;
 
 		virtual void OnEvent(const ml::Event& e);

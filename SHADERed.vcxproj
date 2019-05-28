@@ -163,10 +163,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ImGUI\imgui_impl_dx11.cpp" />
-    <ClCompile Include="ImGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGUI\TextEditor.cpp" />
     <ClCompile Include="InterfaceManager.cpp" />
+    <ClCompile Include="libs\imgui\examples\imgui_impl_dx11.cpp" />
+    <ClCompile Include="libs\imgui\examples\imgui_impl_win32.cpp" />
     <ClCompile Include="libs\imgui\imgui.cpp" />
     <ClCompile Include="libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
@@ -207,13 +207,13 @@
   <ItemGroup>
     <ClInclude Include="EditorEngine.h" />
     <ClInclude Include="GUIManager.h" />
-    <ClInclude Include="ImGUI\imgui_impl_dx11.h" />
-    <ClInclude Include="ImGUI\imgui_impl_win32.h" />
     <ClInclude Include="ImGUI\stb_rect_pack.h" />
     <ClInclude Include="ImGUI\stb_textedit.h" />
     <ClInclude Include="ImGUI\stb_truetype.h" />
     <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
+    <ClInclude Include="libs\imgui\examples\imgui_impl_dx11.h" />
+    <ClInclude Include="libs\imgui\examples\imgui_impl_win32.h" />
     <ClInclude Include="libs\imgui\imconfig.h" />
     <ClInclude Include="libs\imgui\imgui.h" />
     <ClInclude Include="libs\imgui\imgui_internal.h" />

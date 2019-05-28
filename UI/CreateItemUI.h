@@ -10,6 +10,8 @@ namespace ed
 		CreateItemUI(GUIManager* ui, InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible) {
 			SetOwner(nullptr);
 			m_item.Data = nullptr;
+			m_selectedGroup = 0;
+			memset(m_owner, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char));
 		}
 
 		virtual void OnEvent(const ml::Event& e);

@@ -62,6 +62,8 @@ namespace ed
 				Rotation = DirectX::XMFLOAT3(0, 0, 0);
 				Scale = DirectX::XMFLOAT3(1, 1, 1);
 				Size = DirectX::XMFLOAT3(1, 1, 1);
+				Topology = ml::Topology::TriangleList;
+				Type = GeometryType::Cube;
 			}
 			enum GeometryType {
 				Cube,

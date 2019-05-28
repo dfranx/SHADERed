@@ -7,7 +7,7 @@ namespace ed
 	class FirstPersonCamera : public Camera
 	{
 	public:
-		FirstPersonCamera() { Reset(); }
+		FirstPersonCamera() : m_yaw(0.0f), m_pitch(0.0f) { Reset(); }
 
 		virtual void Reset();
 		
@@ -30,7 +30,7 @@ namespace ed
 	private:
 		DirectX::XMFLOAT3 m_pos;
 
-		float m_yaw = 0.0f;
-		float m_pitch = 0.0f;
+		float m_yaw;
+		float m_pitch;
 	};
 }

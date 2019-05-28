@@ -3,8 +3,8 @@
 #include "../ImGUI/TextEditor.h"
 #include "../Objects/PipelineItem.h"
 #include "../Objects/Settings.h"
-#include "../ImGUI/imgui_impl_win32.h"
-#include "../ImGUI/imgui_impl_dx11.h"
+#include <imgui/examples/imgui_impl_win32.h>
+#include <imgui/examples/imgui_impl_dx11.h>
 #include <d3d11.h>
 #include <deque>
 
@@ -19,6 +19,8 @@ namespace ed
 			m_fontSize = Settings::Instance().Editor.FontSize;
 			m_fontNeedsUpdate = false;
 			m_savePopupOpen = -1;
+			m_focusSID = 0;
+			m_focusWindow = false;
 
 			m_setupShortcuts();
 		}

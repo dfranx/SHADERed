@@ -19,6 +19,14 @@ namespace ed
 			return ret;
 		}
 
+		SystemVariableManager() : 
+			m_deltaTime(0.0f),
+			m_viewport(0,0), m_mouse(0,0),
+			m_isPicked(false), m_camPos(0,0,0),
+			m_wasd(0,0,0,0) {
+			m_geometryTransform = DirectX::XMMatrixIdentity();
+		}
+
 		static inline ed::ShaderVariable::ValueType GetType(ed::SystemShaderVariable sysVar)
 		{
 			switch (sysVar) {
