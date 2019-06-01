@@ -109,6 +109,8 @@ namespace ed
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
+		//ImGui::ShowDemoWindow();
+
 		// window flags
 		const ImGuiWindowFlags window_flags = (ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
@@ -119,15 +121,18 @@ namespace ed
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::SetNextWindowBgAlpha(0.0f);
 
 		// create window
-		ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+		ImGui::Begin("DockSpace", nullptr, window_flags);
 		ImGui::PopStyleVar(3);
 
 
 		// dockspace
-		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+		}
 
 		// menu
 		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false, m_isAboutOpen = false;
@@ -251,11 +256,11 @@ namespace ed
 			ImGui::EndMainMenuBar();
 		}
 
+		ImGui::End();
 
 		for (auto view : m_views)
 			if (view->Visible) {
-				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
+				ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
 				if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 				ImGui::End();
 			}
@@ -464,9 +469,7 @@ namespace ed
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
-
-		ImGui::End();
-
+		
 		// render ImGUI
 		ImGui::Render();
 	}

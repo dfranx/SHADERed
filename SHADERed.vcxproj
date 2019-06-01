@@ -168,6 +168,7 @@
     <ClCompile Include="libs\imgui\examples\imgui_impl_dx11.cpp" />
     <ClCompile Include="libs\imgui\examples\imgui_impl_win32.cpp" />
     <ClCompile Include="libs\imgui\imgui.cpp" />
+    <ClCompile Include="libs\imgui\imgui_demo.cpp" />
     <ClCompile Include="libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="libs\pugixml\src\pugixml.cpp" />

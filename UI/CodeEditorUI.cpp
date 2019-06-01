@@ -253,7 +253,7 @@ namespace ed
 		else if (sid == 2)
 			shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 		editor->SetText(shaderContent);
-		editor->TextChangedReset();
+		editor->ResetTextChanged();
 	}
 	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
@@ -295,7 +295,7 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
 
-		m_editor[id].TextChangedReset();
+		m_editor[id].ResetTextChanged();
 
 		if (m_shaderTypeId[id] == 0)
 			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
