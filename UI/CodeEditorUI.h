@@ -1,6 +1,6 @@
 #pragma once
 #include "UIView.h"
-#include "../ImGUI/TextEditor.h"
+#include <ImGuiColorTextEdit/TextEditor.h>
 #include "../Objects/PipelineItem.h"
 #include "../Objects/Settings.h"
 #include <imgui/examples/imgui_impl_win32.h>
@@ -80,13 +80,14 @@ namespace ed
 		}
 		inline void UpdateFont() {
 			if (m_fontNeedsUpdate) {
-				ImGui::GetIO().Fonts->Clear();
-				ImGui::GetIO().Fonts->AddFontDefault();
-				m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(m_fontFilename.c_str(), m_fontSize);
+				ImFontAtlas* fonts = ImGui::GetIO().Fonts;
+				fonts->Clear();
+				fonts->AddFontDefault();
+				m_font = fonts->AddFontFromFileTTF(m_fontFilename.c_str(), m_fontSize);
 				
-				unsigned char* out = nullptr;
-				int wid, heig;
-				ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&out, &wid, &heig);
+				fonts->Build();
+
+				ImGui_ImplDX11_InvalidateDeviceObjects();
 
 				m_fontNeedsUpdate = false;
 

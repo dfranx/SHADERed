@@ -163,8 +163,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ImGUI\TextEditor.cpp" />
     <ClCompile Include="InterfaceManager.cpp" />
+    <ClCompile Include="libs\ImGuiColorTextEdit\TextEditor.cpp" />
     <ClCompile Include="libs\imgui\examples\imgui_impl_dx11.cpp" />
     <ClCompile Include="libs\imgui\examples\imgui_impl_win32.cpp" />
     <ClCompile Include="libs\imgui\imgui.cpp" />
@@ -211,8 +211,8 @@
     <ClInclude Include="ImGUI\stb_rect_pack.h" />
     <ClInclude Include="ImGUI\stb_textedit.h" />
     <ClInclude Include="ImGUI\stb_truetype.h" />
-    <ClInclude Include="ImGUI\TextEditor.h" />
     <ClInclude Include="InterfaceManager.h" />
+    <ClInclude Include="libs\ImGuiColorTextEdit\TextEditor.h" />
     <ClInclude Include="libs\imgui\examples\imgui_impl_dx11.h" />
     <ClInclude Include="libs\imgui\examples\imgui_impl_win32.h" />
     <ClInclude Include="libs\imgui\imconfig.h" />

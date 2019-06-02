@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../ImGUI/TextEditor.h"
+#include <ImGuiColorTextEdit/TextEditor.h>
 
 namespace ed
 {

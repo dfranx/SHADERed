@@ -1,4 +1,1 @@
-- [ ] create a pull request on ImGuiColorTextEdit with my improvements + update my version of ImGuiColorTextEdit with all the fixes
-- [ ] git submodule for ImGuiColorTextEdit
-- [ ] fix Font in options
 - [ ] proof read README.md and TUTORIAL.md + delete this file

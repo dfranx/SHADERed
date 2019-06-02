@@ -1,6 +1,6 @@
-[Window][DockSpace Demo]
-Pos=0,-23
-Size=1920,1017
+[Window][DockSpace]
+Pos=0,0
+Size=32,32
 Collapsed=0
 
 [Window][Debug##Default]
@@ -12,10 +12,10 @@ Collapsed=0
 Pos=0,19
 Size=80,80
 Collapsed=0
-DockId=0x00000005,1
+DockId=0x00000003,1
 
 [Window][Preview]
-Pos=17,19
+Pos=25,19
 Size=80,80
 Collapsed=0
 DockId=0x00000009,0
@@ -24,91 +24,48 @@ DockId=0x00000009,0
 Pos=0,27
 Size=80,80
 Collapsed=0
-DockId=0x00000006,0
+DockId=0x00000004,0
 
 [Window][Pinned]
 Pos=0,27
 Size=80,80
 Collapsed=0
-DockId=0x00000006,1
+DockId=0x00000004,1
 
 [Window][Output]
-Pos=17,31
+Pos=25,27
 Size=80,80
 Collapsed=0
 DockId=0x0000000A,0
-
-[Window][###code_viewPS0]
-Pos=8,26
-Size=7,6
-Collapsed=0
-DockId=0x00000002,0
-
-[Window][###code_viewVS0]
-Pos=8,19
-Size=7,5
-Collapsed=0
-DockId=0x00000001,0
 
 [Window][Objects]
 Pos=0,19
 Size=80,80
 Collapsed=0
-DockId=0x00000005,0
+DockId=0x00000003,0
 
-[Window][###code_viewVS1]
+[Window][###code_viewPS0]
+Pos=17,28
+Size=6,4
+Collapsed=0
+DockId=0x00000008,0
+
+[Window][###code_viewVS0]
 Pos=17,19
-Size=32,32
+Size=6,7
 Collapsed=0
-
-[Window][###code_viewPS1]
-Pos=17,26
-Size=32,32
-Collapsed=0
-
-[Window][Options]
-Pos=659,187
-Size=662,467
-Collapsed=0
-
-[Window][DockSpace]
-Pos=0,0
-Size=32,32
-Collapsed=0
-
-[Window][Example: Console]
-ViewportPos=0,728
-ViewportId=0xA4D966FE
-Size=1920,289
-Collapsed=0
-
-[Window][Dear ImGui Demo]
-ViewportPos=0,19
-ViewportId=0xE927CF2F
-Size=1920,998
-Collapsed=0
-
-[Window][Example: Log]
-ViewportPos=1147,19
-ViewportId=0x3DD03744
-Size=773,707
-Collapsed=0
-
-[Window][Example: Simple layout]
-Pos=0,19
-Size=32,32
-Collapsed=0
+DockId=0x00000007,0
 
 [Docking][Data]
 DockSpace       ID=0xC82E6A9B Pos=0,19 Size=32,13 Split=X
-  DockNode      ID=0x00000007 Parent=0xC82E6A9B SizeRef=963,998 Split=X
-    DockNode    ID=0x00000003 Parent=0x00000007 SizeRef=244,998 Split=Y SelectedTab=0x7DA7F56F
-      DockNode  ID=0x00000005 Parent=0x00000003 SizeRef=423,502 SelectedTab=0x7DA7F56F
-      DockNode  ID=0x00000006 Parent=0x00000003 SizeRef=423,494 SelectedTab=0xE28BE0D1
-    DockNode    ID=0x00000004 Parent=0x00000007 SizeRef=717,998 Split=Y
-      DockNode  ID=0x00000001 Parent=0x00000004 SizeRef=1920,619 CentralNode=1 SelectedTab=0xF7C3C717
-      DockNode  ID=0x00000002 Parent=0x00000004 SizeRef=1920,377 SelectedTab=0xF34EBBA5
-  DockNode      ID=0x00000008 Parent=0xC82E6A9B SizeRef=955,998 Split=Y SelectedTab=0x763816AC
-    DockNode    ID=0x00000009 Parent=0x00000008 SizeRef=936,883 SelectedTab=0x763816AC
-    DockNode    ID=0x0000000A Parent=0x00000008 SizeRef=936,113 SelectedTab=0xCB7211A8
+  DockNode      ID=0x00000001 Parent=0xC82E6A9B SizeRef=259,998 Split=Y SelectedTab=0x7DA7F56F
+    DockNode    ID=0x00000003 Parent=0x00000001 SizeRef=310,529 SelectedTab=0x848ABB8F
+    DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=310,467 SelectedTab=0xC89E3217
+  DockNode      ID=0x00000002 Parent=0xC82E6A9B SizeRef=1659,998 Split=X
+    DockNode    ID=0x00000005 Parent=0x00000002 SizeRef=720,998 Split=Y SelectedTab=0xF34EBBA5
+      DockNode  ID=0x00000007 Parent=0x00000005 SizeRef=399,593 SelectedTab=0xF7C3C717
+      DockNode  ID=0x00000008 Parent=0x00000005 SizeRef=399,403 SelectedTab=0xF34EBBA5
+    DockNode    ID=0x00000006 Parent=0x00000002 SizeRef=937,998 Split=Y
+      DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=937,876 SelectedTab=0x763816AC
+      DockNode  ID=0x0000000A Parent=0x00000006 SizeRef=937,120 CentralNode=1 SelectedTab=0xCB7211A8
 
