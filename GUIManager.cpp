@@ -46,18 +46,21 @@ namespace ed
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigDockingWithShift = false;
 
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.WindowMenuButtonPosition = ImGuiDir_Right;
+
 		ImGui_ImplWin32_Init(m_wnd->GetWindowHandle());
 		ImGui_ImplDX11_Init(m_wnd->GetDevice(), m_wnd->GetDeviceContext());
 		
 		ImGui::StyleColorsDark();
 
-		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
-		m_views.push_back(new PreviewUI(this, objects, "Preview"));
-		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
+		m_views.push_back(new PreviewUI(this, objects, "Preview"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 		m_views.push_back(new MessageOutputUI(this, objects, "Output"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
+		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
+		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 
 		KeyboardShortcuts::Instance().Load();
 		m_setupShortcuts();
@@ -109,11 +112,9 @@ namespace ed
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		//ImGui::ShowDemoWindow();
-
-		// window flags
-		const ImGuiWindowFlags window_flags = (ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
@@ -121,16 +122,13 @@ namespace ed
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::SetNextWindowBgAlpha(0.0f);
-
-		// create window
-		ImGui::Begin("DockSpace", nullptr, window_flags);
+		ImGui::Begin("DockSpaceWnd", 0, window_flags);
 		ImGui::PopStyleVar(3);
 
-
-		// dockspace
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+		// DockSpace
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
 
@@ -267,7 +265,7 @@ namespace ed
 
 		Get(ViewID::Code)->Update(delta);
 
-		// handle the build occured event
+		// handle the "build occured" event
 		if (Settings::Instance().General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
 			size_t errors = m_data->Messages.GetMessages().size();
 			if (errors > 0 && !Get(ViewID::Output)->Visible)

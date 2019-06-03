@@ -12,13 +12,13 @@ namespace ed
 
 	enum class ViewID
 	{
-		Pipeline, 
-		Preview,
-		Properties,
 		Pinned,
+		Preview,
 		Code,
 		Output,
 		Objects,
+		Pipeline,
+		Properties,
 		Options
 	};
 

@@ -58,6 +58,8 @@ int main()
 		maximized = preload.get();
 		preload.close();
 	}
+	else
+		DeleteFileA("workspace.dat"); // prevent from crashing
 
 	// open window
 	ml::Window wnd;
@@ -88,7 +90,7 @@ int main()
 	while (wnd.IsOpen()) {
 		while (wnd.GetEvent(e)) {
 			if (e.Type == ml::EventType::WindowResize) {
-				WINDOWPLACEMENT wndPlace;
+				WINDOWPLACEMENT wndPlace = { 0 };
 				GetWindowPlacement(wnd.GetWindowHandle(), &wndPlace);
 				maximized = (wndPlace.showCmd == SW_SHOWMAXIMIZED);
 

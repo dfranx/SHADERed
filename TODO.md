@@ -1,1 +1,2 @@
+- [ ] add workspace font option
 - [ ] proof read README.md and TUTORIAL.md + delete this file

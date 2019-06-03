@@ -157,11 +157,6 @@ namespace ed
 					palette[i] = (a << 24) | (b << 16) | (g << 8) | r;
 				}
 			}
-
-			defaultPalette = TextEditor::GetRetroBluePalette();
-			for (int i = 0; i < (int)TextEditor::PaletteIndex::Max; i++) {
-				printf("%d %d\n", palette[i], defaultPalette[i]);
-			}
 		}
 		else if (editorTheme == "Light" || editorTheme == "Dark")
 			m_editor[name] = GetTextEditorStyle(editorTheme);
