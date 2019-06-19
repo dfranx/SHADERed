@@ -23,6 +23,9 @@ namespace ed
 			bool ReopenShaders;
 			bool OpenShadersOnDblClk;
 			std::string StartUpTemplate;
+			bool CustomFont;
+			char Font[256];
+			int FontSize;
 		} General;
 
 		struct strEditor {

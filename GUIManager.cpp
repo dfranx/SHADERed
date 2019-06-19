@@ -33,6 +33,9 @@ namespace ed
 		m_savePreviewPopupOpened = false;
 		m_optGroup = 0;
 		m_optionsOpened = false;
+		m_cachedFont = "null";
+		m_cachedCustomFont = false;
+		m_cachedFontSize = 15;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -104,8 +107,38 @@ namespace ed
 	}
 	void GUIManager::Update(float delta)
 	{
-		// update fonts
-		((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
+		Settings& settings = Settings::Instance();
+
+		// update editor & workspace font
+		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||
+			((m_cachedCustomFont != settings.General.CustomFont ||
+				m_cachedFont != settings.General.Font ||
+				m_cachedFontSize != settings.General.FontSize) &&
+				strcmp(settings.General.Font, "null") != 0))
+		{
+			std::pair<std::string, int> edFont = ((CodeEditorUI*)Get(ViewID::Code))->GetFont();
+
+			m_cachedCustomFont = settings.General.CustomFont;
+			m_cachedFont = settings.General.Font;
+			m_cachedFontSize = settings.General.FontSize;
+
+			ImFontAtlas* fonts = ImGui::GetIO().Fonts;
+			fonts->Clear();
+
+			ImFont* font = nullptr;
+			if (!m_cachedCustomFont)
+				font = fonts->AddFontDefault();
+			else font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize);
+
+			fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second);
+
+			ImGui::GetIO().FontDefault = font;
+			fonts->Build();
+
+			ImGui_ImplDX11_InvalidateDeviceObjects();
+
+			((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
+		}
 
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
@@ -232,7 +265,7 @@ namespace ed
 				ImGui::Separator();
 				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
-					*m_settingsBkp = Settings::Instance();
+					*m_settingsBkp = settings;
 					m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
 				}
 
@@ -266,7 +299,7 @@ namespace ed
 		Get(ViewID::Code)->Update(delta);
 
 		// handle the "build occured" event
-		if (Settings::Instance().General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
+		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
 			size_t errors = m_data->Messages.GetMessages().size();
 			if (errors > 0 && !Get(ViewID::Output)->Visible)
 				Get(ViewID::Output)->Visible = true;
@@ -384,7 +417,7 @@ namespace ed
 					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 					m_data->Pipeline.New();
 
-					m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
+					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
 
 					SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
 				}

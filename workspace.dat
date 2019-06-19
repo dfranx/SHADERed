@@ -56,6 +56,11 @@ Size=80,80
 Collapsed=0
 DockId=0x00000004,0
 
+[Window][Options]
+Pos=653,253
+Size=857,594
+Collapsed=0
+
 [Docking][Data]
 DockSpace       ID=0x160B189F Pos=0,19 Size=32,13 Split=X
   DockNode      ID=0x00000001 Parent=0x160B189F SizeRef=257,998 Split=Y SelectedTab=0xC89E3217

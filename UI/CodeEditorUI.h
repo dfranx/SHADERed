@@ -78,21 +78,9 @@ namespace ed
 			m_fontFilename = filename;
 			m_fontSize = size;
 		}
-		inline void UpdateFont() {
-			if (m_fontNeedsUpdate) {
-				ImFontAtlas* fonts = ImGui::GetIO().Fonts;
-				fonts->Clear();
-				fonts->AddFontDefault();
-				m_font = fonts->AddFontFromFileTTF(m_fontFilename.c_str(), m_fontSize);
-				
-				fonts->Build();
-
-				ImGui_ImplDX11_InvalidateDeviceObjects();
-
-				m_fontNeedsUpdate = false;
-
-			}
-		}
+		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
+		inline std::pair<std::string, int> GetFont() { return std::make_pair(m_fontFilename, m_fontSize); }
+		inline void UpdateFont() { m_fontNeedsUpdate = false; m_font = ImGui::GetIO().Fonts->Fonts[1]; }
 
 		void CloseAll();
 

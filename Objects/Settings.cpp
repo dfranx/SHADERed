@@ -29,6 +29,9 @@ namespace ed
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
+		General.CustomFont = ini.GetBoolean("general", "customfont", false);
+		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
+		General.FontSize = ini.GetInteger("general", "fontsize", 15);
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "inconsolata.ttf").c_str());
@@ -62,6 +65,9 @@ namespace ed
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
+		ini << "customfont=" << General.CustomFont << std::endl;
+		ini << "font=" << General.Font << std::endl;
+		ini << "fontsize=" << General.FontSize << std::endl;
 
 		ini << "[preview]" << std::endl;
 		ini << "gizmo=" << Preview.Gizmo << std::endl;

@@ -227,6 +227,36 @@ namespace ed
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
+
+
+		/* WORKSPACE STUFF*/
+		ImGui::Separator();
+
+		/* USE CUSTOM FONT: */
+		ImGui::Text("Custom font: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optw_customfont", &settings->General.CustomFont);
+
+		/* FONT: */
+		ImGui::Text("Font: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-80);
+		ImGui::InputText("##optw_font", settings->General.Font, 256);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("...", ImVec2(-1, 0))) {
+			std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"Font\0*.ttf;*.otf\0");
+			if (file.size() != 0)
+				strcpy(settings->General.Font, file.c_str());
+		}
+
+
+		/* FONT SIZE: */
+		ImGui::Text("Font size: ");
+		ImGui::SameLine();
+		if (ImGui::InputInt("##optw_fontsize", &settings->General.FontSize, 1, 5))
+			settings->General.FontSize = std::max<int>(std::min<int>(settings->General.FontSize, 72), 9);
+
 	}
 	void OptionsUI::m_renderEditor()
 	{

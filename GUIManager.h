@@ -47,6 +47,10 @@ namespace ed
 		int m_optGroup;
 		UIView* m_options;
 
+		std::string m_cachedFont;
+		int m_cachedFontSize;
+		bool m_cachedCustomFont;
+
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
