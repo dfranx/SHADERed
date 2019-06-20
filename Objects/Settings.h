@@ -19,7 +19,7 @@ namespace ed
 			bool AutoOpenErrorWindow;
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;			// [TODO] Not implemented
-			bool SupportGLSL;
+			bool SupportGLSL;			// [TODO] Not implemented (forgot what it was supposed to do hahah)
 			bool ReopenShaders;
 			bool OpenShadersOnDblClk;
 			std::string StartUpTemplate;

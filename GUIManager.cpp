@@ -557,6 +557,7 @@ namespace ed
 		if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
 			Settings::Instance() = *m_settingsBkp;
 			KeyboardShortcuts::Instance().SetMap(m_shortcutsBkp);
+			((OptionsUI*)m_options)->ApplyTheme();
 			m_optionsOpened = false;
 		}
 

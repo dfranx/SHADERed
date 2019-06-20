@@ -185,13 +185,13 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_checkupdates", &settings->General.CheckUpdates);
 
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
-
 		/* GLSL: */
 		ImGui::Text("Allow GLSL shaders: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_glsl", &settings->General.SupportGLSL);
+
+		ImGui::PopStyleVar();
+		ImGui::PopItemFlag();
 
 		/* REOPEN: */
 		ImGui::Text("Reopen shaders after openning a project: ");
