@@ -1,6 +1,6 @@
 # SHADERed
 
-SHADERed is a lightweight tool for creating and testing your HLSL and GLSL shaders. It is easy to use,
+SHADERed is a lightweight tool for creating and testing your **HLSL and GLSL shaders**. It is easy to use,
 open source and frequently updated with new features. SHADERed is great for fast shader development.
 Hit one key and see your new shader in action immediately. It currently only works on Windows (not
 tested on Wine).
@@ -15,6 +15,8 @@ Feel free to contact me and suggest some missing feature you would like me to im
 <img src="./Screenshots/IMG2.png"/>
 
 ## Features
+SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except editing, it has
+plenty of other features.
 
 ### Dynamic workspace
 You can modify SHADERed workspace to your own needs thanks to Omar Cornut's great work on
