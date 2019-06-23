@@ -91,5 +91,7 @@ float4 main(PINPUT pin) : SV_Target
 	
 	occ = 1-occ / sampleCount;
 	
-	return saturate(occ +base) * float4(1,0, 0, 1);// *tex.Sample(smp, In.UV);
+	float4 ret = saturate(occ +base) * float4(1,0, 0, 1);// *tex.Sample(smp, In.UV);
+	ret.a = 1;
+	return ret;
 }

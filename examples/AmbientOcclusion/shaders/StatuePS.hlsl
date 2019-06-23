@@ -13,5 +13,7 @@ float4 main(PSInput pin) : SV_TARGET
 {
 	float amb = ao.Sample(smp, pin.UV);
 	float dif = diffuse.Sample(smp, pin.Normal);
-	return dif * amb;
+	float4 ret = amb*dif;
+	ret.a = 1;
+	return ret;
 }

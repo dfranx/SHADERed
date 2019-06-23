@@ -31,9 +31,9 @@
 				<item name="Teapot" type="model">
 					<filepath>..\Common\Teapot.obj</filepath>
 					<grouponly>false</grouponly>
-					<scaleX>0.100000001</scaleX>
-					<scaleY>0.100000001</scaleY>
-					<scaleZ>0.100000001</scaleZ>
+					<scaleX>0.200000003</scaleX>
+					<scaleY>0.200000003</scaleY>
+					<scaleZ>0.200000003</scaleZ>
 				</item>
 			</items>
 			<itemvalues />
@@ -45,12 +45,13 @@
 		</object>
 	</objects>
 	<settings>
+		<entry type="property" name="Teapot" />
 		<entry type="file" name="Simple" shader="vs" />
 		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
-			<distance>23</distance>
-			<rotationX>186</rotationX>
-			<rotationY>32</rotationY>
+			<distance>2</distance>
+			<rotationX>320</rotationX>
+			<rotationY>14</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>
