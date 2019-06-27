@@ -1,5 +1,5 @@
 # Tutorial
-In this tutorial I will show you the basics of SHADERed while creating a sobel shader. As I am still learning about
+In this tutorial I will show you the basics of SHADERed while creating a basic shader. As I am still learning about
 shaders, the limits of this tool havent been pushed so feel free to post and send your creations to me.
 
 ### Project creation
@@ -20,7 +20,7 @@ a name of the function in which your shader program starts.
 ![](./Screenshots/tut1.jpg)
 
 You can change those values later by right clicking on your shader pass and clicking on
-the `Properties` button. The shader pass will be opened in your property viewer window.
+the `Properties` button. The shader pass will open in your property viewer window.
 
 ![](./Screenshots/tut2.jpg)
 
@@ -29,9 +29,9 @@ creating the shader pass. That option is called "RT". It allows binding multiple
 textures to one shader pass.
 
 ### 3D objects
-Anyway, after we have set the shader pass properties we can add 3D objects to the scene.
+After we have set the shader pass properties we can add 3D objects to the scene.
 We do that by selecting the shader pass which will be used for rendering our 3D object
-and right clicking on it. Select `Add `&rightarrow;` Geometry` (NOTE: there are plenty
+and right click on it. Select `Add `&rightarrow;` Geometry` (NOTE: there are plenty
 of other options such as: WAVEFRONT/.obj model and various render states). A popup window
 will ask you to enter item name, geometry type and the size of your geometry item. You can
 enter anything as the item name (there mustn't exist an item with the same name though).
@@ -42,8 +42,8 @@ the cube. Leave the size at (1,1,1).
 
 Since SHADERed is still a fairly new program it may crash unexpectedly so you should
 probably save your project every now and then so that you don't lose your progress (it
-doesn't crash often but it sometimes does unexpectedly - please report any crashes/bugs
-that happen to you). You can save your project using `File` &rightarrow; `Save` option
+doesn't crash often/it doesn't crash at all but please report any crashes/bugs
+that occur). You can save your project using `File` &rightarrow; `Save` option
 or pressing the shortcut (that you can change in the options) `CTRL+P+S`.
 
 Notice that nothing is being rendered even though we have added a 3D model to the scene.
@@ -59,8 +59,7 @@ Here is the input layout for geometry's and .obj model's vertex buffers:
 
 ### Shader code
 After setting up the scene, double click on the shader pass to open the shader code
-editor (or right click &rightarrow; `Edit Code`). Two windows will probably open separately
-and not docked. Just grab those windows and dock them anywhere you want.
+editor (or right click &rightarrow; `Edit Code`).
 You can start writing your shader code. You can just copy and paste this vertex shader
 code:
 ```HLSL
@@ -109,7 +108,7 @@ float4 main(PSInput pin) : SV_TARGET
 
 Hit `CTRL+F5` (recompile the whole project) or `F5` (recompile the shader). Notice that
 there is still nothing being displayed on the preview window. That is because the
-vertex shader is using variables in constant buffer (cbuffer) that we haven't set.
+vertex shader is using variables in the constant buffer (cbuffer) that we haven't set.
 
 ### Variables
 You can send custom variables to the shader. Edit them and see the results in real time
@@ -117,8 +116,8 @@ without needing to recompile your shaders.
 
 Right click on your shader pass &rightarrow; `Variables` and then select the stage to
 which you want to bind your variables. A window will open for creating variables.
-Choose the type of your variable and enter its name (NOTE: variable name doesn't have
-effect on anythings - it is there only so that you and the user know what it does).
+Choose the type of your variable and enter its name (NOTE: variable name doesn't have an
+effect on anything - it is there only so that you and the user know what it does).
 The system column allows you to choose some type of value that the SHADERed will
 automatically update (time elapsed, cursor position, view matrix, etc...). If it is 
 set to `--NONE--` you can enter your own variable value.
@@ -132,7 +131,8 @@ After hitting CTRL+F5 you will see your result displayed in preview window.
 
 **NOTE**: You can drag your cursor around preview window while holding right
 mouse button pressed to rotate the camera around the origin. Or use your scroll wheel
-to zoom in/out. Left click on an object to select it.
+to move forward/backward. Left click on an object to select it. Left click on an empty 
+part of a preview window or use shortcut to deselect an item.
 
 ![](./Screenshots/tut6.jpg)
 
@@ -153,12 +153,6 @@ variable:
 ```
 layout (location = 0) in vec4 color;
 ```
-
-Currently it is difficult to know where your GLSL error occured in the code
-since we are still not piping glslangValidator/SPIRV-Cross output to the SHADERed
-output window (or using non precompiled version of those libraries). You can see your
-GLSL errors by manually using glsangValidator.exe or SPIRV-Cross.exe tools. I know it is
-long and annoying process but either that or wait until we implement GLSL errors.
 
 # Build your own theme
 Create an `.ini` file. Under `[general]` write the name of your theme and the version. Also, there is
@@ -189,10 +183,10 @@ TabUnfocused, TabUnfocusedActive, DockingPreview, DockingEmptyBg, PlotLines, Plo
 PlotHistogram, PlotHistogramHovered, TextSelectedBg, DragDropTarget, NavHighlight, NavWindowingHighlight,
 NavWindowingDimBg, ModalWindowDimBg
 ```
-All of these variables have to have 4 float values in the range [0.0, 1.0] splitted by the
+All of these variables under the `[colors]` have to have 4 float values in the range [0.0, 1.0] splitted by the
 delimiter.
 
-To change the actual colors of the text editor, modify these variables in the `[editor]` group:
+To change the actual colors of the text editor (if you have set variable `editor` to `Custom`), modify these variables in the `[editor]` group:
 ```
 Default, Keyword, Number, String, CharLiteral, Punctuation, Preprocessor, Identifier,
 KnownIdentifier, PreprocIdentifier, Comment, MultiLineComment, Background,

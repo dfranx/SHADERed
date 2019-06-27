@@ -1,2 +1,0 @@
-- [ ] fork imgui and delete old submodule and add submodule that links to the new imgui
-- [ ] proof read README.md and TUTORIAL.md + delete this file

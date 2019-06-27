@@ -262,7 +262,6 @@
   <ItemGroup>
     <None Include="README.md" />
     <None Include="shortcuts.kb" />
-    <None Include="TODO.md" />
     <None Include="TUTORIAL.md" />
   </ItemGroup>
   <ItemGroup>

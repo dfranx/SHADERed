@@ -14,14 +14,28 @@ Feel free to contact me and suggest some missing feature you would like me to im
 
 <img src="./Screenshots/IMG2.png"/>
 
+
+## Support
+Before we deep dive into all the features you should know that your support will help me
+continue the development of this program (and any other program that I plan to develop in
+future). I will be a student in a few months so any support is welcome and helps me dedicate
+my limited time to these projects instead of having a part-time job.
+
+You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
+
+You can also support me via PayPal: [PayPal link](https://paypal.me/dfranx) 
+
+This is my e-mail address for businesses or if you just want to contact me:
+dfranx00 at gmail dot com
+
 ## Features
-SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except editing, it has
+SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except code editing, it has
 plenty of other features.
 
 ### Dynamic workspace
 You can modify SHADERed workspace to your own needs thanks to Omar Cornut's great work on
-Dear IMGUI's docking branch, which implements window docking. Your workspace configuration
-will be saved to a file so that on next startup it looks just like you made it to look.
+[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking. Your workspace configuration
+will be saved to a file so that it can be loaded on next startup.
 <p align="center">
     <img width="400" src="./Screenshots/workspace.gif">
 </p>
@@ -39,7 +53,7 @@ passes and 3D objects are part of a pipeline.
 
 ### Render states
 You can modify rasterizer, blend and depth-stencil state. Using these states you can: turn on wireframe mode,
-disable depth test, use stencil buffer, disable cull, custom blending, etc... All those things help you achieve even more advanced effects.
+disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
 
 Heres an example of rasterizer state properties:
 <p align="center">
@@ -47,14 +61,14 @@ Heres an example of rasterizer state properties:
 </p>
 
 ### See changes instantly
-Modified your shader? Just hit F5 key (or whatever shortcut you have set) and see your results almost
+Modified your shader? Just hit F5 key (or whatever shortcut you have set up in the options) and see your results almost
 immediately! There is no need to restart your application.
 <img src="./Screenshots/instantresult.gif">
 
 ### Geometry shaders
 You are not limited to vertex and pixel shaders. SHADERed also has support for geometry
 shaders. Just enable GS in your shader pass and set the path to your shader. Create advanced
-animations and effects for your 3D models using geometry shaders.
+animations and effects using geometry shaders.
 <p align="center">
     <img width="200" src="./Screenshots/geometryshader.gif">
 </p>
@@ -62,15 +76,15 @@ animations and effects for your 3D models using geometry shaders.
 ### Code editor
 SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
 It is called Smart predictions and it will be updated and improved over time. It also has very basic version
-of autocompletion (inserts/removes a bracket) and automatic indenting. All of these features can be turned on/off
+of autocompletion (inserts/removes brackets) and automatic indenting. All of these features can be turned on/off
 in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
 
-You are not forced to use our code editor. You can run seperately your favourite code editor and SHADERed. 
-Modify your shaders in editor of your choice and just hit "Rebuild" in SHADERed.
+You are not forced to use the built-in code editor. You can run seperately your favourite code editor and SHADERed. 
+Modify your shaders in editor of your choice and just hit "Rebuild" (or a key - F5) in SHADERed.
 
 ### Loading .obj models
 You can easily add your custom complex 3D models to scene. Only Wavefront .obj models are currently supported, but
-you can expect formats to be supported in near future. You can also add built-in geometry (cubes, spheres, planes,
+you can expect more formats to be supported in near future. You can also add built-in geometry objects (cubes, spheres, planes,
 full screen quads, etc...).
 
 ### Textures
@@ -103,7 +117,7 @@ one window. You can edit them there easily and see your results in real time.
 
 You can change a shader variable value only for a specific 3D model/geometry item. No programming is required.
 Imagine passing a variable objColor with value (1,1,1,1) to a shader in a constant buffer. You can change that
-variable's value before rendering an item:
+variable's value before rendering a specific item:
 <p align="center">
     <img width="400" src="./Screenshots/itemvarvalue.gif">
 </p>
@@ -111,8 +125,7 @@ variable's value before rendering an item:
 
 ### Error markers
 Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
-to see the message or just check it in the "Output" window. Error markers are currently only supported for 
-HLSL but I am looking into implementing them for GLSL too (I just have to pipe the process output in GLSL2HLSL.cpp).
+to see the message or just check it in the "Output" window.
 <p align="center">
     <img width="370" src="./Screenshots/error.jpg">
 </p>
@@ -120,24 +133,24 @@ HLSL but I am looking into implementing them for GLSL too (I just have to pipe t
 ### Shader stats
 Don't know if your new shader has less instructions and is more optimized? Just check the stats page for your shader
 in SHADERed. It shows you total number of instructions and number of specific instructions. This way you can see if your shader
-really became more optimized or not:
+really became more optimized:
 <p align="center">
     <img width="250" src="./Screenshots/stats.jpg">
 </p>
 
 ### Custom themes
-You can create your own theme SHADERed theme. Modify ImGuiStyle members from an *.ini file. SHADERed themes allow you to
+You can create your own theme SHADERed theme. Modify ImGuiStyle members in an *.ini file. SHADERed themes allow you to
 customize everything including text editor color palette. SHADERed comes with a few built-in themes. I am bad at designing 
-so please submit your themes!
+so please submit your own themes!
 
-Want to create your own theme? Visit [TUTORIAL.md](./TUTORIAL.md) and see how to do so.
+Want to create your own theme but don't know how? Visit [TUTORIAL.md](./TUTORIAL.md).
 
 ### Custom template
 You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
-Templates help you start with already built base for your new project. To create your own project template, paste your project
+Templates help you start with an already built base for your new project. To create your own project template, paste your project
 directory in /templates directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
 already running to see the template under `File -> New`. A menu item for creating a template will
-have same text as the parent directory of the template.
+have the same text as the parent directory of the template.
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -184,33 +197,20 @@ Except those large features, I am also planning to do some small QoL changes:
  - remember collapsed items in a project
  - remember focused window in workspace.dat (worked before updating my imgui/docking clone)
 
-## Support
-Your support will help me continue the development of this program (and any other program
-that I plan to develop in future). I will be a student in few months so any support is welcome
-and helps me dedicate my time to these projects instead of having a part-time job.
-
-You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
-
-But you can also support via PayPal: [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/dfranx)
-
-
-This is my e-mail address for businesses or if you just want to contact me:
-**e-mail**
-
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
 latest stable binary release. If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
 or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have
 a C++ package manager, download and compile [DirectXTex](https://github.com/Microsoft/directxtex) library manually. 
 You also have to download, compile and link [MoonLight](https://github.com/dfranx/MoonLight) - a Direct3D 11 wrapper.
-Tutorial is written in the [README.md](https://github.com/dfranx/MoonLight/README.md) file of the MoonLight repo.
+Tutorial on building MoonLight is written in the [README.md](https://github.com/dfranx/MoonLight/README.md) file of the MoonLight repo.
 
 ## Usage
-Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md]() to see
+Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
 detailed steps on how to do so.
 
 ## Dependencies
-This library uses:
+This project uses:
  - DirectX 11
  - DirectXMath
  - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
@@ -222,18 +222,18 @@ This library uses:
  - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
 
-Some of the examples were taken from AMDs Render Monkey, credits to AMD!
+Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)
 ![](./Screenshots/screen2.jpg)
 
-Send your best screenshots!
+Send your own screenshots!
 
 ## Credits
 Huge thanks to Omar Cornut, go follow him on [twitter](https://twitter.com/ocornut) or support him on [patreon](https://www.patreon.com/imgui).
 I dont think SHADERed would exist without his awesome library [Dear ImGUI](https://github.com/ocornut/).
-list of all the library creators. I came up with the shader editor idea when I stubmled upon a [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit).
+I came up with the shader editor idea when I stubmled upon a [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit).
 So big thanks to BalazsJako for his amazing creation. Also, thanks to Raph Levien for the [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font.
 
 Thanks to Khronos for creating [glslangValidator](https://github.com/KhronosGroup/glslang) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) tools.

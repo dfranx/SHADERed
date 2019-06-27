@@ -8,3 +8,7 @@
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
 	url = https://github.com/dfranx/ImGuiColorTextEdit
+[submodule "libs/imgui"]
+	path = libs/imgui
+	url = https://github.com/dfranx/imgui.git
+	branch = docking
