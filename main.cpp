@@ -57,6 +57,11 @@ int main()
 		fullscreen = preload.get();
 		maximized = preload.get();
 		preload.close();
+
+		if (wndWidth > GetSystemMetrics(SM_CXVIRTUALSCREEN))
+			wndWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		if (wndHeight > GetSystemMetrics(SM_CYVIRTUALSCREEN))
+			wndHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	}
 	else
 		DeleteFileA("workspace.dat"); // prevent from crashing

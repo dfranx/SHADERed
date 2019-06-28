@@ -130,7 +130,13 @@ namespace ed
 				font = fonts->AddFontDefault();
 			else font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize);
 
-			fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second);
+			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second);
+
+			if (font == nullptr || edFontPtr == nullptr) {
+				fonts->Clear();
+				font = fonts->AddFontDefault();
+				font = fonts->AddFontDefault();
+			}
 
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();
