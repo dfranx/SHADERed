@@ -145,7 +145,7 @@ so please submit your own themes!
 
 Want to create your own theme but don't know how? Visit [TUTORIAL.md](./TUTORIAL.md).
 
-### Custom template
+### Custom templates
 You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
 Templates help you start with an already built base for your new project. To create your own project template, paste your project
 directory in /templates directory and name your project file `template.sprj`. You have to reopen SHADERed if it was

@@ -50,6 +50,7 @@ namespace ed
 		strcpy(Settings::Instance().Project.GLSLPS_Extenstion, "frag");
 		strcpy(Settings::Instance().Project.GLSLGS_Extenstion, "geom");
 		Settings::Instance().Project.FPCamera = false;
+		Settings::Instance().Project.ClearColor = ml::Color(0, 0, 0, 0);
 
 		// shader passes
 		for (pugi::xml_node passNode : doc.child("project").child("pipeline").children("pass")) {
@@ -641,6 +642,16 @@ namespace ed
 					if (stage == "geometry")
 						strcpy(Settings::Instance().Project.GLSLGS_Extenstion, settingItem.text().get());
 				}
+				else if (type == "clearcolor") {
+					if (!settingItem.attribute("r").empty())
+						Settings::Instance().Project.ClearColor.R = settingItem.attribute("r").as_uint();
+					if (!settingItem.attribute("g").empty())
+						Settings::Instance().Project.ClearColor.G = settingItem.attribute("g").as_uint();
+					if (!settingItem.attribute("b").empty())
+						Settings::Instance().Project.ClearColor.B = settingItem.attribute("b").as_uint();
+					if (!settingItem.attribute("a").empty())
+						Settings::Instance().Project.ClearColor.A = settingItem.attribute("a").as_uint();
+				}
 			}
 		}
 	}
@@ -1063,6 +1074,16 @@ namespace ed
 				pugi::xml_node extNodeGS = settingsNode.append_child("extension");
 				extNodeGS.append_attribute("stage").set_value("geometry");
 				extNodeGS.text().set(Settings::Instance().Project.GLSLGS_Extenstion);
+			}
+
+			// clear color
+			{
+				pugi::xml_node colorNode = settingsNode.append_child("entry");
+				colorNode.append_attribute("type").set_value("clearcolor");
+				colorNode.append_attribute("r").set_value(Settings::Instance().Project.ClearColor.R);
+				colorNode.append_attribute("g").set_value(Settings::Instance().Project.ClearColor.G);
+				colorNode.append_attribute("b").set_value(Settings::Instance().Project.ClearColor.B);
+				colorNode.append_attribute("a").set_value(Settings::Instance().Project.ClearColor.A);
 			}
 		}
 

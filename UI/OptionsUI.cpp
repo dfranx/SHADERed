@@ -429,5 +429,15 @@ namespace ed
 		ImGui::Text("First person camera: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera);
+
+		/* CLEAR COLOR: */
+		ImVec4 clearColor(settings->Project.ClearColor.R / 255.0f, settings->Project.ClearColor.G / 255.0f, settings->Project.ClearColor.B / 255.0f, settings->Project.ClearColor.A / 255.0f);
+		ImGui::Text("Preview window clear color: ");
+		ImGui::SameLine();
+		ImGui::ColorEdit4("##optpr_clrclr", (float*)&clearColor);
+		settings->Project.ClearColor.R = clearColor.x * 255;
+		settings->Project.ClearColor.G = clearColor.y * 255;
+		settings->Project.ClearColor.B = clearColor.z * 255;
+		settings->Project.ClearColor.A = clearColor.w * 255;
 	}
 }

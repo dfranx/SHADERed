@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <ImGuiColorTextEdit/TextEditor.h>
+#include <MoonLight/Base/Color.h>
 
 namespace ed
 {
@@ -55,6 +56,7 @@ namespace ed
 			char GLSLVS_Extenstion[12];
 			char GLSLPS_Extenstion[12];
 			char GLSLGS_Extenstion[12];
+			ml::Color ClearColor;
 		} Project;
 
 		static inline Settings& Instance()

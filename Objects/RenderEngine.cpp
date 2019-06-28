@@ -46,8 +46,11 @@ namespace ed
 		}
 
 		// clear main rt only once
+		ml::Color oldWndClrColor = m_wnd->GetClearColor();
+		m_wnd->SetClearColor(Settings::Instance().Project.ClearColor);
 		m_rt.Clear();
 		m_rt.ClearDepthStencil(1.0f, 0);
+		m_wnd->SetClearColor(oldWndClrColor);
 
 		// bind default sampler state
 		m_sampler.BindVS(0);
