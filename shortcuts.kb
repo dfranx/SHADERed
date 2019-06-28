@@ -2,6 +2,24 @@ Editor.Compile F5
 Editor.Save CTRL S
 Editor.SwitchView ALT F2
 Editor.ToggleStatusbar CTRL ALT F2
+Editor.Undo CTRL Z
+Editor.Redo CTRL Y
+Editor.MoveTop CTRL HOME
+Editor.MoveBottom CTRL END
+Editor.MoveUpBlock PRIOR
+Editor.MoveDownBlock NEXT
+Editor.MoveStartLine HOME
+Editor.MoveEndLine END
+Editor.OverwriteCursor INSERT
+Editor.Copy CTRL C
+Editor.Paste CTRL V
+Editor.Cut CTRL X
+Editor.SelectAll CTRL A
+Editor.AutocompleteOpen CTRL SPACE
+Editor.AutocompleteSelect TAB
+Editor.AutocompleteSelectActive RETURN
+Editor.AutocompleteUp UP
+Editor.AutocompleteDown DOWN
 Gizmo.Position CTRL G P
 Gizmo.Rotation CTRL G R
 Gizmo.Scale CTRL G S

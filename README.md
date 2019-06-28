@@ -14,28 +14,13 @@ Feel free to contact me and suggest some missing feature you would like me to im
 
 <img src="./Screenshots/IMG2.png"/>
 
-
-## Support
-Before we deep dive into all the features you should know that your support will help me
-continue the development of this program (and any other program that I plan to develop in
-future). I will be a student in a few months so any support is welcome and helps me dedicate
-my limited time to these projects instead of having a part-time job.
-
-You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
-
-You can also support me via PayPal: [PayPal link](https://paypal.me/dfranx) 
-
-This is my e-mail address for businesses or if you just want to contact me:
-dfranx00 at gmail dot com
-
 ## Features
 SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except code editing, it has
 plenty of other features.
 
 ### Dynamic workspace
 You can modify SHADERed workspace to your own needs thanks to Omar Cornut's great work on
-[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking. Your workspace configuration
-will be saved to a file so that it can be loaded on next startup.
+[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
 <p align="center">
     <img width="400" src="./Screenshots/workspace.gif">
 </p>
@@ -62,7 +47,7 @@ Heres an example of rasterizer state properties:
 
 ### See changes instantly
 Modified your shader? Just hit F5 key (or whatever shortcut you have set up in the options) and see your results almost
-immediately! There is no need to restart your application.
+immediately!
 <img src="./Screenshots/instantresult.gif">
 
 ### Geometry shaders
@@ -152,6 +137,14 @@ directory in /templates directory and name your project file `template.sprj`. Yo
 already running to see the template under `File -> New`. A menu item for creating a template will
 have the same text as the parent directory of the template.
 
+## Support
+You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
+
+You can also support me via PayPal: [PayPal link](https://paypal.me/dfranx) 
+
+This is my e-mail address for businesses or if you just want to contact me:
+dfranx00 at gmail dot com
+
 ## TODO
 There are also some features that I am looking to implement:
  - custom sampler states
@@ -181,7 +174,7 @@ There are also some features that I am looking to implement:
 Except those large features, I am also planning to do some small QoL changes:
  - find and replace in code editor
  - right click in code editor
- - when adding a shader pass decompile the shader and detect the input layout + input variables
+ - when adding a shader pass, decompile the shader and detect the input layout + input variables
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - recompile the shader after we change shader path in a shader pass
  - buffers read from file or built using in-app buffer editor

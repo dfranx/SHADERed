@@ -6,10 +6,41 @@
 #include "../Objects/ThemeContainer.h"
 #include "../Objects/KeyboardShortcuts.h"
 
+#include <iostream>
 #include <fstream>
 #include <d3dcompiler.h>
 
 #define STATUSBAR_HEIGHT 18
+
+const std::string EDITOR_SHORTCUT_NAMES[] =
+{
+	"Undo",
+	"Redo",
+	"MoveUp",
+	"MoveDown",
+	"MoveLeft",
+	"MoveRight",
+	"MoveTop",
+	"MoveBottom",
+	"MoveUpBlock",
+	"MoveDownBlock",
+	"MoveEndLine",
+	"MoveStartLine",
+	"ForwardDelete",
+	"BackwardDelete",
+	"OverwriteCursor",
+	"Copy",
+	"Paste",
+	"Cut",
+	"SelectAll",
+	"AutocompleteOpen",
+	"AutocompleteSelect",
+	"AutocompleteSelectActive",
+	"AutocompleteUp",
+	"AutocompleteDown",
+	"NewLine",
+	"IndentShift"
+};
 
 namespace ed
 {
@@ -233,6 +264,7 @@ namespace ed
 		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+		m_loadEditorShortcuts(editor);
 
 		bool isGLSL = false;
 		if (sid == 0)
@@ -310,7 +342,31 @@ namespace ed
 
 		m_data->Renderer.Recompile(m_items[id].Name);
 	}
-	
+	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
+	{
+		auto sMap = KeyboardShortcuts::Instance().GetMap();
+
+		for (auto it = sMap.begin(); it != sMap.end(); it++)
+		{
+			std::string id = it->first;
+
+			if (id.substr(0, 6) == "Editor") {
+				std::string name = id.substr(7);
+
+				TextEditor::ShortcutID sID = TextEditor::ShortcutID::Count;
+				for (int i = 0; i < (int)TextEditor::ShortcutID::Count; i++) {
+					if (EDITOR_SHORTCUT_NAMES[i] == name) {
+						sID = (TextEditor::ShortcutID)i;
+						break;
+					}
+				}
+
+				if (sID != TextEditor::ShortcutID::Count)
+					ed->SetShortcut(sID, TextEditor::Shortcut(it->second.Key1, it->second.Key2, it->second.Alt, it->second.Ctrl, it->second.Shift));
+			}
+		}
+	}
+
 	void CodeEditorUI::StatsPage::Fetch(ed::PipelineItem* item, const std::string& code, int typeId)
 	{
 		IsActive = true;

@@ -81,6 +81,10 @@ namespace ed
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
 		inline std::pair<std::string, int> GetFont() { return std::make_pair(m_fontFilename, m_fontSize); }
 		inline void UpdateFont() { m_fontNeedsUpdate = false; m_font = ImGui::GetIO().Fonts->Fonts[1]; }
+		inline void UpdateShortcuts() {
+			for (auto& editor : m_editor)
+				m_loadEditorShortcuts(&editor);
+		}
 
 		void CloseAll();
 
@@ -108,6 +112,8 @@ namespace ed
 	private:
 		void m_open(PipelineItem item, int shaderTypeID);
 		void m_setupShortcuts();
+
+		void m_loadEditorShortcuts(TextEditor* editor);
 
 		// font for code editor
 		ImFont *m_font;

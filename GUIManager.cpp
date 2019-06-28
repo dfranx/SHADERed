@@ -559,6 +559,7 @@ namespace ed
 			code->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
 			code->SetHorizontalScrollbar(Settings::Instance().Editor.HorizontalScroll);
 			code->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			code->UpdateShortcuts();
 
 			m_optionsOpened = false;
 		}

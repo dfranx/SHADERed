@@ -1,0 +1,2 @@
+[v1.0.1]
++ add more editor shortcuts to the options
