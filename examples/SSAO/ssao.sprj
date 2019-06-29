@@ -93,7 +93,7 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="rendertexture" name="depthRT" fsize="800,600">
+		<object type="rendertexture" name="depthRT" rsize="1.000000,1.000000">
 			<bind slot="0" name="SSAO" />
 		</object>
 		<object type="texture" path="..\Common\noise.png">
@@ -101,21 +101,18 @@
 		</object>
 	</objects>
 	<settings>
-		<entry type="file" name="Simple" shader="vs" />
-		<entry type="file" name="Simple" shader="ps" />
-		<entry type="file" name="SSAO" shader="vs" />
-		<entry type="file" name="SSAO" shader="ps" />
 		<entry type="pinned" name="radius" from="ps" owner="SSAO" />
 		<entry type="pinned" name="falloff" from="ps" owner="SSAO" />
 		<entry type="pinned" name="base" from="ps" owner="SSAO" />
 		<entry type="camera" fp="false">
 			<distance>15</distance>
-			<rotationX>125</rotationX>
-			<rotationY>30</rotationY>
+			<rotationX>122</rotationX>
+			<rotationY>44</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>
 		<extension stage="pixel">frag</extension>
 		<extension stage="geometry">geom</extension>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
 	</settings>
 </project>

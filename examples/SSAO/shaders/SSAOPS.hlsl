@@ -1,4 +1,3 @@
-// constant buffer for projection and view matrix
 cbuffer cbStatic : register(b0)
 {
 	float base;
@@ -16,11 +15,6 @@ Texture2D tex : register(t0);
 Texture2D noiseTex : register(t1);
 SamplerState smp : register(s0);
 
-//static const float base = 0.4;				// brightness
-//static const float falloff = (0.00001 + 0.000001) / 6;		// allowed difference in depths
-//static const float radius = 0.01;			// hemisphere radius
-
-// samples for random vectors
 static const int sampleCount = 64;
 static const float3 samples[64] = {
 		float3(-0.539896, -0.292773, 0.026356),         float3(0.065046, -0.170591, 0.127994),  float3(0.179425, -0.375964, 0.334838),  float3(0.239261, -0.220701, 0.286647),
@@ -72,7 +66,6 @@ float4 main(PINPUT pin) : SV_Target
 	clip((depth != 0) - 1);
 
 	float3 random = normalize(noiseTex.Sample(smp, pin.UV).xyz);
-	//random.z = 0;
 
 	float3 position = float3(pin.UV, depth);
 	
@@ -91,7 +84,7 @@ float4 main(PINPUT pin) : SV_Target
 	
 	occ = 1-occ / sampleCount;
 	
-	float4 ret = saturate(occ +base) * float4(1,0, 0, 1);// *tex.Sample(smp, In.UV);
+	float4 ret = saturate(occ +base) * float4(1,0, 0, 1);
 	ret.a = 1;
 	return ret;
 }

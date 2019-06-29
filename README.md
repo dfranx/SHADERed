@@ -43,7 +43,7 @@ You can press F5 (or whatever shortcut you have set in the options) to see you c
 
 Don't want to press F5 constantly? Using external editor and not the built-in one? Turn on
 the `"Recompile shader on file change"` flag in the options and once you make changes to the
-file SHADERed will instantly detect that and recompile your shaders:
+file, SHADERed will instantly detect that and recompile your shaders:
 <img src="./Screenshots/detectfilechange.gif">
 
 Want to see how environment affects your scene? Grab the object and scale, rotate and move it
