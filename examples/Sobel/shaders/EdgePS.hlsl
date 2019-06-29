@@ -32,6 +32,7 @@ float4 main(PSInput pin) : SV_TARGET {
 	float sobelY = s00 + 2 * s01 + s02 - s20 - 2 * s21 - s22;
 
 	float edgeSqr = (sobelX * sobelX + sobelY * sobelY);
-	
-	return (edgeSqr > 0.07 * 0.07);
+	float4 clr = (edgeSqr > 0.07 * 0.07);
+	clr.a = 1;
+	return clr;
 }

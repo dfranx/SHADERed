@@ -11,7 +11,7 @@ namespace ed
 	}
 	void KeyboardShortcuts::Load()
 	{
-		std::ifstream file("shortcuts.kb");
+		std::ifstream file("data/shortcuts.kb");
 		std::string str;
 
 		while (std::getline(file, str)) {
@@ -50,9 +50,9 @@ namespace ed
 	}
 	void KeyboardShortcuts::Save()
 	{
-		std::ofstream file("shortcuts.kb");
+		std::ofstream file("data/shortcuts.kb");
 		std::string str;
-
+		
 		for (auto& s : m_data) {
 			if (s.second.Key1 == -1)
 				continue;

@@ -193,6 +193,11 @@ namespace ed
 		ImGui::PopStyleVar();
 		ImGui::PopItemFlag();
 
+		/* TRACK FILE CHANGES: */
+		ImGui::Text("Recompile shader on file change: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_trackfilechange", &settings->General.RecompileOnFileChange);
+
 		/* REOPEN: */
 		ImGui::Text("Reopen shaders after openning a project: ");
 		ImGui::SameLine();
@@ -385,6 +390,22 @@ namespace ed
 	void OptionsUI::m_renderPreview()
 	{
 		Settings* settings = &Settings::Instance();
+
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+
+		/* FXAA: */
+		ImGui::Text("FXAA: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_fxaa", &settings->Preview.FXAA);
+
+		ImGui::PopStyleVar();
+		ImGui::PopItemFlag();
+
+		/* SWITCH LEFT AND RIGHT: */
+		ImGui::Text("Switch what left and right clicks do: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_switchlrclick", &settings->Preview.SwitchLeftRightClick);
 
 		/* STATUS BAR: */
 		ImGui::Text("Status bar: ");

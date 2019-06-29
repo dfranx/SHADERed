@@ -14,6 +14,9 @@ Feel free to contact me and suggest some missing feature you would like me to im
 
 <img src="./Screenshots/IMG2.png"/>
 
+**NOTE**: SHADERed has a built-in text editor but I would suggest using some external text editor
+as currently the one that is built-in is slow, buggy and doesn't have some basic features.
+
 ## Features
 SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except code editing, it has
 plenty of other features.
@@ -23,17 +26,6 @@ You can modify SHADERed workspace to your own needs thanks to Omar Cornut's grea
 [Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
 <p align="center">
     <img width="400" src="./Screenshots/workspace.gif">
-</p>
-
-### Shader Pass
-You need to create a shader pass to apply an effect to a 3D model or a texture. A shader pass
-is just a set of shaders. A shader pass can only have one pixel, vertex and geometry shader but
-you can have multiple shader passes.
-You can have as many 3D objects or render states that you want to in a single shader pass. All shader
-passes and 3D objects are part of a pipeline.
-<p align="center">
-    <img width="200" src="./Screenshots/shaderpass.jpg">
-    <img width="200" src="./Screenshots/pipeline.jpg">
 </p>
 
 ### Render states
@@ -46,9 +38,17 @@ Heres an example of rasterizer state properties:
 </p>
 
 ### See changes instantly
-Modified your shader? Just hit F5 key (or whatever shortcut you have set up in the options) and see your results almost
-immediately!
+You can press F5 (or whatever shortcut you have set in the options) to see you changes:
 <img src="./Screenshots/instantresult.gif">
+
+Don't want to press F5 constantly? Using external editor and not the built-in one? Turn on
+the `"Recompile shader on file change"` flag in the options and once you make changes to the
+file SHADERed will instantly detect that and recompile your shaders:
+<img src="./Screenshots/detectfilechange.gif">
+
+Want to see how environment affects your scene? Grab the object and scale, rotate and move it
+around the scene:
+<img src="./Screenshots/gizmo.gif">
 
 ### Geometry shaders
 You are not limited to vertex and pixel shaders. SHADERed also has support for geometry
@@ -64,8 +64,10 @@ It is called Smart predictions and it will be updated and improved over time. It
 of autocompletion (inserts/removes brackets) and automatic indenting. All of these features can be turned on/off
 in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
 
-You are not forced to use the built-in code editor. You can run seperately your favourite code editor and SHADERed. 
-Modify your shaders in editor of your choice and just hit "Rebuild" (or a key - F5) in SHADERed.
+**You are not forced to use the built-in code editor (and you probably shouldn't use it right now to avoid some
+annoying bugs)**. You can seperately run your favourite code editor and SHADERed. 
+**Modify your shaders in the code editor of your choice and just save the file - SHADERed will automatically
+recompile the shaders for you**.
 
 ### Loading .obj models
 You can easily add your custom complex 3D models to scene. Only Wavefront .obj models are currently supported, but
@@ -108,19 +110,19 @@ variable's value before rendering a specific item:
 </p>
 
 
-### Error markers
-Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
-to see the message or just check it in the "Output" window.
-<p align="center">
-    <img width="370" src="./Screenshots/error.jpg">
-</p>
-
 ### Shader stats
 Don't know if your new shader has less instructions and is more optimized? Just check the stats page for your shader
 in SHADERed. It shows you total number of instructions and number of specific instructions. This way you can see if your shader
 really became more optimized:
 <p align="center">
     <img width="250" src="./Screenshots/stats.jpg">
+</p>
+
+### Error markers
+Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
+to see the message or just check it in the "Output" window.
+<p align="center">
+    <img width="370" src="./Screenshots/error.jpg">
 </p>
 
 ### Custom themes
@@ -138,12 +140,12 @@ already running to see the template under `File -> New`. A menu item for creatin
 have the same text as the parent directory of the template.
 
 ## Support
-You can support me on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
+Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
 
-You can also support me via PayPal: [PayPal link](https://paypal.me/dfranx) 
+You can support the development of this project via PayPal: [PayPal link](https://paypal.me/dfranx) 
 
 This is my e-mail address for businesses or if you just want to contact me:
-dfranx00 at gmail dot com
+**dfranx00 at gmail dot com**
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -162,10 +164,8 @@ There are also some features that I am looking to implement:
    - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
  - research tesselation and compute shaders and how to implement them
- - built-in antialiasing
  - render your shader to a video file
  - support #include and macros
- - hot reloading 
    - compile shaders every X seconds in background - discard if any error occured
  - performance mode (render only preview - hide UI)
  - inspect render target output pixels (show RGB values on hover over pixel)

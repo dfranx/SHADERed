@@ -58,6 +58,8 @@ namespace ed
 		std::string m_previewSavePath;
 		DirectX::XMINT2 m_previewSaveSize;
 
+		bool m_performanceMode, m_perfModeFake;
+
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;
 		void m_loadTemplateList();

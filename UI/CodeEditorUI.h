@@ -7,6 +7,7 @@
 #include <imgui/examples/imgui_impl_dx11.h>
 #include <d3d11.h>
 #include <deque>
+#include <future>
 
 namespace ed
 {
@@ -21,6 +22,8 @@ namespace ed
 			m_savePopupOpen = -1;
 			m_focusSID = 0;
 			m_focusWindow = false;
+			m_trackFileChanges = false;
+			m_trackThread = nullptr;
 
 			m_setupShortcuts();
 		}
@@ -86,6 +89,11 @@ namespace ed
 				m_loadEditorShortcuts(&editor);
 		}
 
+		void SetTrackFileChanges(bool track);
+		inline bool TrackedFilesNeedUpdate() { return m_trackedShaderPasses.size() > 0; }
+		inline void EmptyTrackedFiles() { m_trackedShaderPasses.clear(); }
+		inline std::vector<std::string> TrackedFiles() { return m_trackedShaderPasses; }
+
 		void CloseAll();
 
 		std::vector<std::pair<std::string, int>> GetOpenedFiles();
@@ -140,5 +148,13 @@ namespace ed
 		std::string m_focusItem;
 
 		int m_selectedItem;
+
+		// all the variables needed for the file change notifications
+		bool m_trackFileChanges;
+		std::atomic<bool> m_trackerRunning;
+		std::thread* m_trackThread;
+		std::vector<std::string> m_trackedShaderPasses;
+		std::mutex m_trackFilesMutex;
+		void m_trackWorker();
 	};
 }

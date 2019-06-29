@@ -348,8 +348,9 @@ namespace ed
 					gsCompiled = m_gs[i]->LoadFromMemory(*m_wnd, gsContent.c_str(), gsContent.size(), gsEntry);
 				}
 
-				if (!vsCompiled || !psCompiled || !gsCompiled)
+				if (!vsCompiled || !psCompiled || !gsCompiled) {
 					m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+				}
 				else
 					m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
 			}

@@ -1,2 +1,10 @@
+[v1.0.2]
+
 [v1.0.1]
 + add more editor shortcuts to the options
++ add an option to automatically recompile shader on file change 
++ add performance mode (hide everything except preview window)
++ add FXAA
++ add "Open project directory" option
++ add ability to switch what left and right click do
++ fix TextEditor ctrl+backspace/delete

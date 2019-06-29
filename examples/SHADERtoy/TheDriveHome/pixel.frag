@@ -91,7 +91,7 @@ float BokehMask(vec3 ro, vec3 rd, vec3 p, float size, float blur) {
     float m = S(size, size*(1.-blur), d);
     
     #ifdef HIGH_QUALITY
-    m *= mix(.7, 1., S(.8*size, size, d));
+    m *= mix(0.7, 1., S(.8*size, size, d));
     #endif
     
     return m;

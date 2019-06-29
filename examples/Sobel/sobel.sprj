@@ -75,12 +75,13 @@
 		<entry type="file" name="Edge" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>9</distance>
-			<rotationX>231</rotationX>
-			<rotationY>18</rotationY>
+			<rotationX>225</rotationX>
+			<rotationY>17</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
 		<extension stage="vertex">vert</extension>
 		<extension stage="pixel">frag</extension>
 		<extension stage="geometry">geom</extension>
+		<entry type="clearcolor" r="0" g="0" b="0" a="255" />
 	</settings>
 </project>

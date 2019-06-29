@@ -21,6 +21,7 @@ namespace ed
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;			// [TODO] Not implemented
 			bool SupportGLSL;			// [TODO] Not implemented (forgot what it was supposed to do hahah)
+			bool RecompileOnFileChange;
 			bool ReopenShaders;
 			bool OpenShadersOnDblClk;
 			std::string StartUpTemplate;
@@ -45,6 +46,8 @@ namespace ed
 		} Editor;
 
 		struct strPreview {
+			bool FXAA;
+			bool SwitchLeftRightClick;
 			bool Gizmo;
 			bool PropertyPick;
 			bool StatusBar;

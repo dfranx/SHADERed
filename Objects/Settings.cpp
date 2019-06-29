@@ -15,7 +15,7 @@ namespace ed
 	}
 	void Settings::Load()
 	{
-		INIReader ini("settings.ini");
+		INIReader ini("data/settings.ini");
 
 		if (ini.ParseError() != 0) return;
 
@@ -28,6 +28,7 @@ namespace ed
 		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
+		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
 		General.CustomFont = ini.GetBoolean("general", "customfont", false);
 		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
@@ -46,6 +47,8 @@ namespace ed
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 
+		Preview.FXAA = ini.GetBoolean("preview", "fxaa", false);
+		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
 		Preview.Gizmo = ini.GetBoolean("preview", "gizmo", true);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
 		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
@@ -53,7 +56,7 @@ namespace ed
 	}
 	void Settings::Save()
 	{
-		std::ofstream ini("settings.ini");
+		std::ofstream ini("data/settings.ini");
 
 		ini << "[general]" << std::endl;
 		ini << "theme=" << Theme << std::endl;
@@ -64,12 +67,15 @@ namespace ed
 		ini << "glsl=" << General.SupportGLSL << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
+		ini << "trackfilechange=" << General.RecompileOnFileChange << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
 		ini << "customfont=" << General.CustomFont << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;
 
 		ini << "[preview]" << std::endl;
+		ini << "fxaa=" << Preview.FXAA << std::endl;
+		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
 		ini << "gizmo=" << Preview.Gizmo << std::endl;
 		ini << "propertypick=" << Preview.PropertyPick << std::endl;
 		ini << "statusbar=" << Preview.StatusBar << std::endl;

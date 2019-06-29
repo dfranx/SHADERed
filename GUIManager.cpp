@@ -36,6 +36,8 @@ namespace ed
 		m_cachedFont = "null";
 		m_cachedCustomFont = false;
 		m_cachedFontSize = 15;
+		m_performanceMode = false;
+		m_perfModeFake = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -71,7 +73,8 @@ namespace ed
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
 
-		
+		// turn on the tracker on startup
+		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 	}
@@ -108,6 +111,7 @@ namespace ed
 	void GUIManager::Update(float delta)
 	{
 		Settings& settings = Settings::Instance();
+		m_performanceMode = m_perfModeFake;
 
 		// update editor & workspace font
 		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||
@@ -165,11 +169,20 @@ namespace ed
 		ImGui::PopStyleVar(3);
 
 		// DockSpace
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
+
+		// rebuild
+		if (((CodeEditorUI*)Get(ViewID::Code))->TrackedFilesNeedUpdate()) {
+			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+			for (PipelineItem*& pass : passes)
+				m_data->Renderer.Recompile(pass->Name);
+			((CodeEditorUI*)Get(ViewID::Code))->EmptyTrackedFiles();
+		}
+
 
 		// menu
 		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false, m_isAboutOpen = false;
@@ -206,7 +219,7 @@ namespace ed
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 
 						m_data->Parser.Open(file);
-
+						
 						std::string projName = m_data->Parser.GetOpenedFile();
 						projName = projName.substr(projName.find_last_of("/\\") + 1);
 
@@ -223,6 +236,8 @@ namespace ed
 					m_saveAsProject();
 				if (ImGui::MenuItem("Save Preview as Image", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
 					m_savePreviewPopupOpened = true;
+				if (ImGui::MenuItem("Open project directory"))
+					ShellExecuteA(NULL, "open", m_data->Parser.GetProjectPath("").c_str(), NULL, NULL, SW_SHOWNORMAL);
 
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
@@ -269,6 +284,9 @@ namespace ed
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
 				ImGui::Separator();
+				
+				ImGui::MenuItem("Performance Mode", KeyboardShortcuts::Instance().GetString("Workspace.PerformanceMode").c_str(), &m_perfModeFake);
+
 				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
 					*m_settingsBkp = settings;
@@ -280,7 +298,7 @@ namespace ed
 			if (ImGui::BeginMenu("Help")) {
 				if (ImGui::BeginMenu("Support Us")) {
 					if (ImGui::MenuItem("Patreon")) { ShellExecute(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL); }
-					if (ImGui::MenuItem("PayPal")) { ShellExecute(NULL, L"open", L"https://www.paypal.com/dfranx", NULL, NULL, SW_SHOWNORMAL); }
+					if (ImGui::MenuItem("PayPal")) { ShellExecute(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL); }
 					ImGui::EndMenu();
 				}
 				ImGui::Separator();
@@ -293,16 +311,21 @@ namespace ed
 			ImGui::EndMainMenuBar();
 		}
 
+		if (m_performanceMode)
+			((PreviewUI*)Get(ViewID::Preview))->Update(delta);
+
 		ImGui::End();
 
-		for (auto view : m_views)
-			if (view->Visible) {
-				ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
-				if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
-				ImGui::End();
-			}
+		if (!m_performanceMode) {
+			for (auto view : m_views)
+				if (view->Visible) {
+					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
+					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
+					ImGui::End();
+				}
 
-		Get(ViewID::Code)->Update(delta);
+			Get(ViewID::Code)->Update(delta);
+		}
 
 		// handle the "build occured" event
 		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
@@ -512,7 +535,7 @@ namespace ed
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
-		
+
 		// render ImGUI
 		ImGui::Render();
 	}
@@ -559,6 +582,7 @@ namespace ed
 			code->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
 			code->SetHorizontalScrollbar(Settings::Instance().Editor.HorizontalScroll);
 			code->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			code->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 			code->UpdateShortcuts();
 
 			m_optionsOpened = false;
@@ -595,7 +619,7 @@ namespace ed
 	}
 	void GUIManager::SaveSettings()
 	{
-		std::ofstream data("gui.dat");
+		std::ofstream data("data/gui.dat");
 
 		for (auto view : m_views)
 			data.put(view->Visible);
@@ -604,7 +628,7 @@ namespace ed
 	}
 	void GUIManager::LoadSettings()
 	{
-		std::ifstream data("gui.dat");
+		std::ifstream data("data/gui.dat");
 
 		if (data.is_open()) {
 			for (auto view : m_views)
@@ -774,6 +798,10 @@ namespace ed
 		});
 
 		// WORKSPACE
+		KeyboardShortcuts::Instance().SetCallback("Workspace.PerformanceMode", [=]() {
+			m_performanceMode = !m_performanceMode;
+			m_perfModeFake = m_performanceMode;
+		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideOutput", [=]() {
 			Get(ViewID::Output)->Visible = !Get(ViewID::Output)->Visible;
 		});

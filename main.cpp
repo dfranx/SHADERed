@@ -48,7 +48,7 @@ int main()
 	// load window size
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
 	BOOL fullscreen = FALSE, maximized = FALSE;
-	std::ifstream preload("preload.dat");
+	std::ifstream preload("data/preload.dat");
 	if (preload.is_open()) {
 		preload.read(reinterpret_cast<char*>(&wndWidth), 2);
 		preload.read(reinterpret_cast<char*>(&wndHeight), 2);
@@ -64,7 +64,7 @@ int main()
 			wndHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	}
 	else
-		DeleteFileA("workspace.dat"); // prevent from crashing
+		DeleteFileA("data/workspace.dat"); // prevent from crashing
 
 	// open window
 	ml::Window wnd;
@@ -135,7 +135,7 @@ int main()
 	} converter;
 
 	// save window size
-	std::ofstream save("preload.dat");
+	std::ofstream save("data/preload.dat");
 	converter.size = wndWidth;				// write window width
 	save.write(converter.data, 2);
 	converter.size = wndHeight;				// write window height

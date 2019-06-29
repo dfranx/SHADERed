@@ -1093,6 +1093,8 @@ namespace ed
 	{
 		std::ifstream in(m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '\\') ? "" : "\\") + file);
 		if (in.is_open()) {
+			in.seekg(0, std::ios::beg);
+
 			std::string content((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
 			in.close();
 			return content;

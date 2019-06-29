@@ -12,6 +12,68 @@
 
 namespace ed
 {
+	void PreviewUI::m_setupFXAA()
+	{
+		ml::Window* wnd = m_data->GetOwner();
+
+		// input layout
+		m_fxaaInput.Add("POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0);
+		m_fxaaInput.Add("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 16);
+
+		// load shaders
+		m_fxaaVS.InputSignature = &m_fxaaInput;
+		m_fxaaVS.LoadFromFile(*wnd, "data/FXAA.hlsl", "FxaaVS");
+		m_fxaaPS.LoadFromFile(*wnd, "data/FXAA.hlsl", "FxaaPS");
+
+		// create vertex buffer
+		m_vbQuad.Create(*wnd, 4);
+
+		// constant buffer
+		m_fxaaCB.Create(*wnd, 16);
+	}
+	void PreviewUI::m_fxaaCreateQuad(DirectX::XMFLOAT2 size)
+	{
+		// create vertex buffer
+		QuadVertex2D verts[4];
+		verts[0].Position = DirectX::XMFLOAT4(-size.x / 2, size.y / 2, 1.0f, 1.0f);
+		verts[1].Position = DirectX::XMFLOAT4(size.x / 2, size.y / 2, 1.0f, 1.0f);
+		verts[2].Position = DirectX::XMFLOAT4(-size.x / 2, -size.y / 2, 1.0f, 1.0f);
+		verts[3].Position = DirectX::XMFLOAT4(size.x / 2, -size.y / 2, 1.0f, 1.0f);
+
+		verts[0].UV = DirectX::XMFLOAT2(0.0f, 0.0f);
+		verts[1].UV = DirectX::XMFLOAT2(1.0f, 0.0f);
+		verts[2].UV = DirectX::XMFLOAT2(0.0f, 1.0f);
+		verts[3].UV = DirectX::XMFLOAT2(1.0f, 1.0f);
+
+		m_vbQuad.Update(verts);
+	}
+	void PreviewUI::m_fxaaRenderQuad()
+	{
+		// set SRV and CB
+		m_fxaaRT.Bind();
+		m_fxaaRT.Clear();
+		m_fxaaRT.ClearDepthStencil(1.0f, 0);
+
+		// render
+		ml::Window* wnd = m_data->GetOwner();
+
+		m_fxaaVS.Bind();
+		m_fxaaPS.Bind();
+		wnd->SetInputLayout(*m_fxaaVS.InputSignature);
+
+		m_fxaaCB.BindVS(0);
+		m_fxaaCB.BindPS(0);
+
+		// render the quad
+		D3D11_PRIMITIVE_TOPOLOGY topology;
+		wnd->GetDeviceContext()->IAGetPrimitiveTopology(&topology);
+
+		wnd->SetTopology(ml::Topology::TriangleStrip);
+		m_vbQuad.Bind();
+		wnd->Draw(4, 0);
+
+		wnd->GetDeviceContext()->IASetPrimitiveTopology(topology);
+	}
 	void PreviewUI::m_setupShortcuts()
 	{
 		KeyboardShortcuts::Instance().SetCallback("Gizmo.Position", [=]() {
@@ -52,8 +114,10 @@ namespace ed
 			return;
 		}
 
-		bool statusbar = Settings::Instance().Preview.StatusBar;
-		float fpsLimit = Settings::Instance().Preview.FPSLimit;
+		ed::Settings& settings = Settings::Instance();
+
+		bool statusbar = settings.Preview.StatusBar;
+		float fpsLimit = settings.Preview.FPSLimit;
 		if (fpsLimit != m_fpsLimit) {
 			m_elapsedTime = 0;
 			m_fpsLimit = fpsLimit;
@@ -76,15 +140,41 @@ namespace ed
 			m_elapsedTime -= 1 / m_fpsLimit;
 		}
 
+		// change fxaa content size
+		if (settings.Preview.FXAA && (m_fxaaLastSize.x != imageSize.x || m_fxaaLastSize.y != imageSize.y)) {
+			m_cbData.wndX = 1.0f / imageSize.x;
+			m_cbData.wndY = 1.0f / imageSize.y;
+			m_fxaaLastSize.x = imageSize.x;
+			m_fxaaLastSize.y = imageSize.y;
+
+			m_fxaaCB.Update(&m_cbData);
+
+			ml::Window* wnd = m_data->GetOwner();
+
+			m_fxaaCreateQuad(m_fxaaLastSize);
+			m_fxaaRT.Create(*wnd, DirectX::XMINT2(m_fxaaLastSize.x, m_fxaaLastSize.y), ml::Resource::ShaderResource, true);
+			m_fxaaContent.Create(*m_data->GetOwner(), m_fxaaRT);
+		}
+
+		ID3D11ShaderResourceView* rtView = renderer->GetTexture().GetView();
+		ID3D11ShaderResourceView* view = rtView;
+
+		// apply fxaa
+		if (settings.Preview.FXAA) {
+			ml::Window* wnd = m_data->GetOwner();
+			wnd->GetDeviceContext()->PSSetShaderResources(0, 1, &rtView);
+			m_fxaaRenderQuad();
+			wnd->RemoveShaderResource(0);
+			view = m_fxaaContent.GetView();
+		}
 
 		// display the image on the imgui window
-		ID3D11ShaderResourceView* view = renderer->GetTexture().GetView();
 		ImGui::Image(view, imageSize);
 
 		m_hasFocus = ImGui::IsWindowFocused();
 
 		// render the gizmo if necessary
-		if (m_pick != nullptr && Settings::Instance().Preview.Gizmo) {
+		if (m_pick != nullptr && settings.Preview.Gizmo) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != imageSize.x || m_lastSize.y != imageSize.y) {
 				m_lastSize = DirectX::XMINT2(imageSize.x, imageSize.y);
@@ -114,14 +204,17 @@ namespace ed
 
 		// mouse controls for preview window
 		if (ImGui::IsItemHovered()) {
-			bool fp = Settings::Instance().Project.FPCamera;
+			bool fp = settings.Project.FPCamera;
 
 			// zoom in/out if needed
 			if (!fp)
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
-			if (ImGui::IsMouseClicked(0) && Settings::Instance().Preview.Gizmo) {
+			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
+				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
+				settings.Preview.Gizmo)
+			{
 				// screen space position
 				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
 				s.x *= imageSize.x;
@@ -129,7 +222,7 @@ namespace ed
 
 				if ((m_pick != nullptr && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) || m_pick == nullptr) {
 					renderer->Pick(s.x, s.y, [&](PipelineItem* item) {
-						if (Settings::Instance().Preview.PropertyPick)
+						if (settings.Preview.PropertyPick)
 							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
 						m_pick = item;
 
@@ -147,7 +240,9 @@ namespace ed
 			}
 
 			// handle right mouse dragging - camera
-			if (ImGui::IsMouseDown(1)) {
+			if (((ImGui::IsMouseDown(0) && settings.Preview.SwitchLeftRightClick) ||
+				(ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick)))
+			{
 				POINT point;
 				GetCursorPos(&point);
 				ScreenToClient(m_data->GetOwner()->GetWindowHandle(), &point);
@@ -200,8 +295,12 @@ namespace ed
 					cam->Pitch(-dY * 0.005f);
 				}
 			}
+			
 			// handle left mouse dragging - moving objects if selected
-			else if (ImGui::IsMouseDown(0) && Settings::Instance().Preview.Gizmo) {
+			else if (((ImGui::IsMouseDown(0) && !settings.Preview.SwitchLeftRightClick) ||
+				(ImGui::IsMouseDown(1) && settings.Preview.SwitchLeftRightClick)) &&
+				settings.Preview.Gizmo)
+			{
 				// screen space position
 				DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
 				s.x *= imageSize.x;

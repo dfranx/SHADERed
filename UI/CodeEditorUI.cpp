@@ -367,6 +367,232 @@ namespace ed
 		}
 	}
 
+	void CodeEditorUI::SetTrackFileChanges(bool track)
+	{
+		if (m_trackFileChanges == track)
+			return;
+
+		m_trackFileChanges = track;
+
+		if (track) {
+			if (m_trackThread != nullptr) {
+				delete m_trackThread;
+				m_trackThread = nullptr;
+			}
+
+			m_trackerRunning = true;
+
+			m_trackThread = new std::thread(&CodeEditorUI::m_trackWorker, this);
+		}
+		else {
+			m_trackerRunning = false;
+
+			m_trackThread->join();
+			delete m_trackThread;
+			m_trackThread = nullptr;
+		}
+	}
+	void CodeEditorUI::m_trackWorker()
+	{
+		std::string curProject = m_data->Parser.GetOpenedFile();
+
+		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+		std::vector<std::string> allFiles;		// list of all files we care for
+		std::vector<std::string> allPasses;		// list of shader pass names that correspond to the file name
+		std::vector<std::string> paths;			// list of all paths that we should have "notifications turned on"
+
+		// variables for storing all the handles
+		std::vector<HANDLE> events(paths.size());
+		std::vector<HANDLE> hDirs(paths.size());
+		std::vector<OVERLAPPED> pOverlap(paths.size());
+
+		// buffer data
+		const int bufferLen = 2048;
+		char buffer[bufferLen];
+		DWORD bytesReturned;
+		char filename[MAX_PATH];
+
+		// run this loop until we close the thread
+		while (m_trackerRunning)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+			// check if user added/changed shader paths
+			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
+			bool needsUpdate = false;
+			for (auto pass : nPasses) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+
+				bool foundVS = false, foundPS = false, foundGS = false;
+
+				std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+				std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+
+				for (auto& f : allFiles) {
+					if (f == vsPath) {
+						foundVS = true;
+						if (foundPS) break;
+					} else if (f == psPath) {
+						foundPS = true;
+						if (foundVS) break;
+					}
+				}
+
+				if (data->GSUsed) {
+					std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+					for (auto& f : allFiles)
+						if (f == gsPath) {
+							foundGS = true;
+							break;
+						}
+				}
+				else foundGS = true;
+
+				if (!foundGS || !foundVS || !foundPS) {
+					needsUpdate = true;
+					break;
+				}
+			}
+
+			// update our file collection if needed
+			if (nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
+				for (int i = 0; i < paths.size(); i++) {
+					CloseHandle(hDirs[i]);
+					CloseHandle(events[i]);
+				}
+
+				allFiles.clear();
+				allPasses.clear();
+				paths.clear();
+				events.clear();
+				hDirs.clear();
+				pOverlap.clear();
+				curProject = m_data->Parser.GetOpenedFile();
+				
+				// get all paths to all shaders
+				passes = nPasses;
+				for (auto pass : passes) {
+					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+
+					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+
+					allFiles.push_back(vsPath);
+					paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
+					allPasses.push_back(pass->Name);
+
+					allFiles.push_back(psPath);
+					paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
+					allPasses.push_back(pass->Name);
+
+					if (data->GSUsed) {
+						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+
+						allFiles.push_back(gsPath);
+						paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
+					}
+				}
+
+				// delete directories that appear twice or that are subdirectories
+				{
+					std::vector<bool> toDelete(paths.size(), false);
+
+					for (int i = 0; i < paths.size(); i++) {
+						if (toDelete[i]) continue;
+
+						for (int j = 0; j < paths.size(); j++) {
+							if (j == i || toDelete[j]) continue;
+
+							if (paths[j].find(paths[i]) != std::string::npos)
+								toDelete[j] = true;
+						}
+					}
+
+					for (int i = 0; i < paths.size(); i++)
+						if (toDelete[i]) {
+							paths.erase(paths.begin() + i);
+							toDelete.erase(toDelete.begin() + i);
+							i--;
+						}
+				}
+
+
+				events.resize(paths.size());
+				hDirs.resize(paths.size());
+				pOverlap.resize(paths.size());
+
+				// create HANDLE to all tracked directories
+				for (int i = 0; i < paths.size(); i++) {
+					hDirs[i] = CreateFileA(paths[i].c_str(), GENERIC_READ | FILE_LIST_DIRECTORY,
+						FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+						NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+						NULL);
+
+					if (hDirs[i] == INVALID_HANDLE_VALUE)
+						return;
+
+					pOverlap[i].OffsetHigh = 0;
+					pOverlap[i].hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+					events[i] = pOverlap[i].hEvent;
+				}
+			}
+
+			if (paths.size() == 0) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				continue;
+			}
+
+			// notification data
+			FILE_NOTIFY_INFORMATION* notif;
+			int bufferOffset;
+
+			// check for changes
+			for (int i = 0; i < paths.size(); i++) {
+				ReadDirectoryChangesW(
+					hDirs[i],
+					&buffer,
+					bufferLen * sizeof(char),
+					TRUE,
+					FILE_NOTIFY_CHANGE_SIZE |
+					FILE_NOTIFY_CHANGE_LAST_WRITE,
+					&bytesReturned,
+					&pOverlap[i],
+					NULL);
+			}
+
+			DWORD dwWaitStatus = WaitForMultipleObjects(paths.size(), events.data(), false, 1000);
+
+			// check if we got any info
+			if (dwWaitStatus != WAIT_TIMEOUT) {
+				bufferOffset = 0;
+				do
+				{
+					// get notification data
+					notif = (FILE_NOTIFY_INFORMATION*)((char*)buffer + bufferOffset);
+					strcpy_s(filename, "");
+					int filenamelen = WideCharToMultiByte(CP_ACP, 0, notif->FileName, notif->FileNameLength / 2, filename, sizeof(filename), NULL, NULL);
+					if (filenamelen == 0)
+						continue;
+					filename[notif->FileNameLength / 2] = 0;
+
+					if (notif->Action == FILE_ACTION_MODIFIED) {
+						std::lock_guard<std::mutex> lock(m_trackFilesMutex);
+
+						std::string updatedFile(paths[dwWaitStatus - WAIT_OBJECT_0] + std::string(filename));
+
+						for (int i = 0; i < allFiles.size(); i++)
+							if (allFiles[i] == updatedFile)
+								m_trackedShaderPasses.push_back(allPasses[i]);
+					}
+
+					bufferOffset += notif->NextEntryOffset;
+				} while (notif->NextEntryOffset);
+			}
+		}
+	}
+
 	void CodeEditorUI::StatsPage::Fetch(ed::PipelineItem* item, const std::string& code, int typeId)
 	{
 		IsActive = true;
