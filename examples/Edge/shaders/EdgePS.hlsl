@@ -1,7 +1,6 @@
 cbuffer cbPerFrame : register(b0)
 {
 	float2 wndSize;
-	float time;
 };
 
 struct PSInput
@@ -69,5 +68,5 @@ float4 main(PSInput pin) : SV_TARGET {
 	float clr = sobelNormal(pin.UV)*sobelColor(pin.UV);
 	clip((clr != 1) - 1);
 
-	return abs(sin(time));
+	return 1-clr;
 }
