@@ -1,16 +1,8 @@
 # SHADERed
 
-SHADERed is a lightweight tool for creating and testing your **HLSL and GLSL shaders**. It is easy to use,
-open source and frequently updated with new features. SHADERed is great for fast shader development.
-Hit one key and see your new shader in action immediately. It currently only works on Windows (not
-tested on Wine).
-
-SHADERed has many **features** such as: rendering to multiple render textures simultaneously,
-loading WAVEFRONT (.obj) models, loading custom textures, custom themes, 'smart' predictions,
-geometry shaders, create your own shader input variables and pin them to a window to edit
-them easily, and many more great features...
-
-Feel free to contact me and suggest some missing feature you would like me to implement.
+SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
+open source and frequently updated with new features. It has many **features** that the competition
+is lacking.
 
 <img src="./Screenshots/IMG2.png"/>
 
@@ -18,35 +10,17 @@ Feel free to contact me and suggest some missing feature you would like me to im
 as currently the one that is built-in is slow, buggy and doesn't have some basic features.
 
 ## Features
-SHADERed allows you to create and test your **HLSL and GLSL shaders**. Except code editing, it has
-plenty of other features.
-
-### Dynamic workspace
-You can modify SHADERed workspace to your own needs thanks to Omar Cornut's great work on
-[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
-<p align="center">
-    <img width="400" src="./Screenshots/workspace.gif">
-</p>
-
-### Render states
-You can modify rasterizer, blend and depth-stencil state. Using these states you can: turn on wireframe mode,
-disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
-
-Heres an example of rasterizer state properties:
-<p align="center">
-    <img width="300" src="./Screenshots/rasterizerstate.jpg">
-</p>
 
 ### See changes instantly
 You can press F5 (or whatever shortcut you have set in the options) to see you changes:
 <img src="./Screenshots/instantresult.gif">
 
-Don't want to press F5 constantly? Using external editor and not the built-in one? Turn on
+Don't want to press F5 constantly? Using an external editor and not the built-in one? Turn on
 the `"Recompile shader on file change"` flag in the options and once you make changes to the
 file, SHADERed will instantly detect that and recompile your shaders:
 <img src="./Screenshots/detectfilechange.gif">
 
-Want to see how environment affects your scene? Grab the object and scale, rotate and move it
+Want to see how a certain object affects your scene? Grab the object and scale, rotate and move it
 around the scene:
 <img src="./Screenshots/gizmo.gif">
 
@@ -58,19 +32,17 @@ animations and effects using geometry shaders.
     <img width="200" src="./Screenshots/geometryshader.gif">
 </p>
 
-### Code editor
-SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
-It is called Smart predictions and it will be updated and improved over time. It also has very basic version
-of autocompletion (inserts/removes brackets) and automatic indenting. All of these features can be turned on/off
-in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
+### Render states
+You can modify rasterizer, blend and depth-stencil state. Using these states you can: turn on wireframe mode,
+disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
 
-**You are not forced to use the built-in code editor (and you probably shouldn't use it right now to avoid some
-annoying bugs)**. You can seperately run your favourite code editor and SHADERed. 
-**Modify your shaders in the code editor of your choice and just save the file - SHADERed will automatically
-recompile the shaders for you**.
+Heres an example of rasterizer state properties:
+<p align="center">
+    <img width="300" src="./Screenshots/rasterizerstate.jpg">
+</p>
 
 ### Loading .obj models
-You can easily add your custom complex 3D models to scene. Only Wavefront .obj models are currently supported, but
+You can easily add your custom 3D models to the scene. Only Wavefront .obj models are currently supported, but
 you can expect more formats to be supported in near future. You can also add built-in geometry objects (cubes, spheres, planes,
 full screen quads, etc...).
 
@@ -118,6 +90,24 @@ really became more optimized:
     <img width="250" src="./Screenshots/stats.jpg">
 </p>
 
+### Workspace
+You can modify SHADERed workspace however you want to thanks to Omar Cornut's great work on
+[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
+<p align="center">
+    <img width="400" src="./Screenshots/workspace.gif">
+</p>
+
+### Code editor
+SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
+It is called Smart predictions and it will be updated and improved over time. It also has very basic version
+of autocompletion (inserts/removes brackets) and automatic indenting. All of these features can be turned on/off
+in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
+
+**You are not forced to use the built-in code editor (and you probably shouldn't use it right now to avoid some
+annoying bugs)**. You can seperately run your favourite code editor and SHADERed. 
+**Modify your shaders in the code editor of your choice and just save the file - SHADERed will automatically
+recompile the shaders for you**.
+
 ### Error markers
 Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
 to see the message or just check it in the "Output" window.
@@ -142,10 +132,12 @@ have the same text as the parent directory of the template.
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
 
-You can support the development of this project via PayPal: [PayPal link](https://paypal.me/dfranx) 
+You can support the development of this project via **PayPal**: [PayPal link](https://paypal.me/dfranx) 
 
 This is my e-mail address for businesses or if you just want to contact me:
 **dfranx00 at gmail dot com**
+
+Also feel free to contact me and suggest some missing feature you would like me to implement.
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -154,7 +146,7 @@ There are also some features that I am looking to implement:
  - multiple cameras
    - this feature would allow you to render same scene from multiple angles
  - shader variable pointers
-   - currently if you want to have same value in two shader passes you will have to enter it manually
+   - currently if you want to have same value in two shader passes you will have to enter the values manually
  - shader flags
    - custom flags when compiling the shader
  - audio files
@@ -166,9 +158,8 @@ There are also some features that I am looking to implement:
  - research tesselation and compute shaders and how to implement them
  - render your shader to a video file
  - support #include and macros
-   - compile shaders every X seconds in background - discard if any error occured
- - performance mode (render only preview - hide UI)
  - inspect render target output pixels (show RGB values on hover over pixel)
+ - buffers read from file or built using in-app buffer editor
 
 
 Except those large features, I am also planning to do some small QoL changes:
@@ -177,7 +168,6 @@ Except those large features, I am also planning to do some small QoL changes:
  - when adding a shader pass, decompile the shader and detect the input layout + input variables
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - recompile the shader after we change shader path in a shader pass
- - buffers read from file or built using in-app buffer editor
  - right click on an empty objects panel should open a context menu
  - ctrl + click -> select multiple items
  - bounding box around selected item + possible resize points on the bounding box
@@ -192,13 +182,15 @@ Except those large features, I am also planning to do some small QoL changes:
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
-latest stable binary release. If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
-or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have
+latest stable binary release.
+
+If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
+or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have/want to use
 a C++ package manager, download and compile [DirectXTex](https://github.com/Microsoft/directxtex) library manually. 
 You also have to download, compile and link [MoonLight](https://github.com/dfranx/MoonLight) - a Direct3D 11 wrapper.
 Tutorial on building MoonLight is written in the [README.md](https://github.com/dfranx/MoonLight/README.md) file of the MoonLight repo.
 
-## Usage
+## Tutorial
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
 detailed steps on how to do so.
 

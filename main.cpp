@@ -8,12 +8,6 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-extern "C"
-{
-	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
-	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
-}
-
 HICON hWindowIcon = NULL;
 HICON hWindowIconBig = NULL;
 void SetIcon(HWND hwnd, std::string stricon)
@@ -87,7 +81,7 @@ int main()
 	engine.Create();
 
 	log->Stack = &engine.Interface().Messages;
-
+	
 	// timer for time delta
 	ml::Timer timer;
 
