@@ -19,9 +19,9 @@
 				<path>pixel.frag</path>
 				<entry>main</entry>
 				<variables>
-					<variable type="float" name="iTime" system="Time" slot="0" />
 					<variable type="float2" name="iResolution" system="ViewportSize" slot="0" />
 					<variable type="float2" name="iMouse" system="MousePosition" slot="0" />
+					<variable type="float" name="iTime" system="Time" slot="0" />
 				</variables>
 			</shader>
 			<items>
@@ -39,7 +39,6 @@
 	<objects />
 	<settings>
 		<entry type="property" name="Simple" />
-		<entry type="file" name="Simple" shader="vs" />
 		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>19</distance>
@@ -50,5 +49,6 @@
 		<extension stage="vertex">vert</extension>
 		<extension stage="pixel">frag</extension>
 		<extension stage="geometry">geom</extension>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
 	</settings>
 </project>

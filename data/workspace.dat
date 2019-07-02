@@ -39,14 +39,14 @@ Collapsed=0
 DockId=0x00000004,0
 
 [Window][###code_viewPS0]
-Pos=217,19
-Size=352,989
+Pos=228,594
+Size=806,400
 Collapsed=0
 DockId=0x00000008,0
 
 [Window][###code_viewVS0]
-Pos=255,19
-Size=793,998
+Pos=228,-4
+Size=806,596
 Collapsed=0
 DockId=0x00000007,0
 

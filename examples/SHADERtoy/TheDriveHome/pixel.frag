@@ -7,12 +7,9 @@ layout (location = 0) in vec4 coord;
 layout (location = 0) out vec4 outColor;
 
 layout (binding = 0) uniform bufferVals {
-	vec3 data;
+	vec2 resolution;
+	float time;
 };
-
-float time = data.x;
-vec2 resolution = data.yz;
-
 
 // "The Drive Home" by Martijn Steinrucken aka BigWings - 2017
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.

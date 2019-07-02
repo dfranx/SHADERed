@@ -7,15 +7,10 @@ layout (location = 0) in vec4 coord;
 layout (location = 0) out vec4 outColor;
 
 layout (binding = 0) uniform bufferVals {
-	vec4 data;
-	float mouseY;
+  vec2 resolution;
+  vec2 mouse;
+  float time;
 };
-
-float time = data.x;
-vec2 resolution = data.yz;
-vec2 mouse = vec2(data.w, mouseY);
-
-
 
 #define ROTATE true
 #define flag true

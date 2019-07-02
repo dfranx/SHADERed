@@ -20,7 +20,9 @@
 				<entry>main</entry>
 				<variables>
 					<variable type="float2" name="iResolution" system="ViewportSize" slot="0" />
+					<variable type="float2" name="iMouse" system="MousePosition" slot="0" />
 					<variable type="float" name="iTime" system="Time" slot="0" />
+					<variable type="float" name="iTimeDelta" system="TimeDelta" slot="0" />
 				</variables>
 			</shader>
 			<items>
@@ -39,9 +41,10 @@
 	<settings>
 		<entry type="property" name="Simple" />
 		<entry type="file" name="Simple" shader="ps" />
+		<entry type="file" name="Simple" shader="vs" />
 		<entry type="camera" fp="false">
 			<distance>15</distance>
-			<rotationX>182</rotationX>
+			<rotationX>37</rotationX>
 			<rotationY>89</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
