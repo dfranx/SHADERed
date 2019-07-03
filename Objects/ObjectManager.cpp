@@ -37,19 +37,32 @@ namespace ed
 	void ObjectManager::Clear()
 	{
 		for (auto str : m_items) {
-			if (m_imgs.count(str) > 0) {
-				delete m_imgs[str];
+			if (!IsRenderTexture(str) && !IsAudio(str)) {
 				delete m_texs[str];
-			} else
+				delete m_imgs[str];
+			}
+			else if (IsAudio(str)) {
+				if (m_audioPlayer[str]->IsPlaying())
+					m_audioPlayer[str]->Stop();
+
+				delete m_audioData[str];
+				delete m_audioPlayer[str];
+				delete m_texs[str];
+			}
+			else
 				delete m_rts[str];
 			delete m_srvs[str];
 		}
 		
-		m_rts.clear();
+		if (m_rts.size() > 0) m_rts.clear();
 		if (m_imgs.size() > 0) m_imgs.clear();
 		if (m_srvs.size() > 0) m_srvs.clear();
 		if (m_texs.size() > 0) m_texs.clear();
 		if (m_binds.size() > 0) m_binds.clear(); // crashes here when opening GLSL file (?) TODO 
+		if (m_audioData.size() > 0) m_audioData.clear();
+		if (m_audioPlayer.size() > 0) m_audioPlayer.clear();
+
+		m_audioExclude.clear();
 		m_items.clear();
 		m_isCube.clear();
 	}
@@ -94,6 +107,59 @@ namespace ed
 		}
 		free(imgData);
 	}
+	bool ObjectManager::CreateAudio(const std::string& file)
+	{
+		if (!m_audioEngine.IsInitialized())
+			return false;
+
+		m_items.push_back(file);
+
+		m_audioData[file] = new ml::AudioFile();
+		m_audioData[file]->Load(m_parser->GetProjectPath(file), m_audioEngine);
+		m_audioPlayer[file] = new ml::AudioPlayer();
+		m_audioExclude[file] = 0;
+
+		m_texs[file] = new ml::Texture();
+		m_texs[file]->Create(*m_wnd, 512, 2, ml::Resource::ShaderResource | ml::Resource::Usage::Default, DXGI_FORMAT_R32_FLOAT);
+		
+		m_srvs[file] = new ml::ShaderResourceView();
+		m_srvs[file]->Create(*m_wnd, *m_texs[file]);
+
+		return true;
+	}
+	void ObjectManager::Update(float delta)
+	{
+		for (auto& it : m_audioData) {
+			if (!it.second->IsLoading() && !m_audioPlayer[it.first]->IsPlaying()) {
+				it.second->Finalize();
+				if (!it.second->HasFailed())
+					m_audioPlayer[it.first]->Play(*it.second, true);
+			} else if (!it.second->IsLoading() && !it.second->HasFailed()) {
+				// get samples and fft data
+				ml::AudioPlayer* player = m_audioPlayer[it.first];
+				int channels = it.second->GetInfo()->nChannels;
+				int perChannel = it.second->GetTotalSamplesPerChannel();
+				int curSample = player->SamplesPlayedCount() - m_audioExclude[it.first];
+
+				if (curSample >= perChannel - 1) {
+					m_audioExclude[it.first] += perChannel;
+					curSample -= perChannel;
+				}
+
+				double* fftData = m_audioAnalyzer.FFT(*it.second, curSample);
+				
+				for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
+					m_audioTempTexData[i] = fftData[i/2];
+					
+					int16_t s = it.second->GetSample(std::min<int>(i + curSample, perChannel), false);
+					float sf = (float)s / (float)INT16_MAX;
+					m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf * 0.5f + 0.5f;
+				}
+
+				m_texs[it.first]->Update(m_audioTempTexData, ed::AudioAnalyzer::SampleCount * sizeof(float));
+			}
+		}
+	}
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{
 		if (IsBound(file, pass) == -1)
@@ -121,9 +187,20 @@ namespace ed
 
 		delete m_srvs[file];
 
-		if (!IsRenderTexture(file)) {
+		if (!IsRenderTexture(file) && !IsAudio(file)) {
 			delete m_texs[file];
 			delete m_imgs[file];
+		}
+		else if (IsAudio(file)) {
+			if (m_audioPlayer[file]->IsPlaying())
+				m_audioPlayer[file]->Stop();
+
+			delete m_audioData[file];
+			delete m_audioPlayer[file];
+			delete m_texs[file];
+			m_audioData.erase(file);
+			m_audioPlayer.erase(file);
+			m_audioExclude.erase(file);
 		}
 		else {
 			delete m_rts[file];

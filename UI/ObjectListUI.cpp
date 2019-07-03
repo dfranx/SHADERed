@@ -25,22 +25,27 @@ namespace ed
 			if (m_data->Objects.IsRenderTexture(items[i])) {
 				DirectX::XMINT2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
 				imgWH = (float)rtSize.y / rtSize.x;
+			} else if (m_data->Objects.IsAudio(items[i])) {
+				imgWH = 2.0f / 512.0f;
 			} else {
 				ml::Image* img = m_data->Objects.GetImage(items[i]);
 				DirectX::Image imgData = img->GetImage()->GetImages()[0];
 				imgWH = (float)imgData.height / imgData.width;
 			}
 
-			size_t lastBSlash = items[i].find_last_of('\\');
-			size_t lastFSlash = items[i].find_last_of('/');
+			size_t lastSlash = items[i].find_last_of("/\\");
 			std::string itemText = items[i];
 
-			if (lastBSlash != std::string::npos)
-				itemText = itemText.substr(lastBSlash + 1);
-			else if (lastFSlash != std::string::npos)
-				itemText = itemText.substr(lastFSlash + 1);
+			if (lastSlash != std::string::npos)
+				itemText = itemText.substr(lastSlash + 1);
+
+			if (m_data->Objects.IsLoading(items[i]))
+				ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WARNING_COLOR);
 
 			ImGui::Selectable(itemText.c_str());
+
+			if (m_data->Objects.IsLoading(items[i]))
+				ImGui::PopStyleColor();
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
@@ -114,6 +119,7 @@ namespace ed
 		ImGui::EndChild();
 
 		/*
+		TODO:
 		if (!itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_objects")) {
 			if (ImGui::Selectable("Create Texture")) { }
 			if (ImGui::Selectable("Create Cube Map")) {}

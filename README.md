@@ -179,6 +179,13 @@ Except those large features, I am also planning to do some small QoL changes:
  - use pointers to RTs in pipe::ShaderPass instead of names
  - remember collapsed items in a project
  - remember focused window in workspace.dat (worked before updating my imgui/docking clone)
+ - add mute button to audio objects
+ - ability to change warning, message and error colors
+ - program crashes on invalid input layout
+ - ability to set SHADERed as a defult program for a *.sprj extension
+ - right click on shortcut -> delete the shortcut
+ - improve the code
+ - when loading a texture it might be loaded several times if bound to several shader passes (????)
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download

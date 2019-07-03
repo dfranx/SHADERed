@@ -2,7 +2,6 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 matVP;
 	float4x4 matGeo;
-	float4 objColor;
 };
 
 struct VSInput

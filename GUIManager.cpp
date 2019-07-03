@@ -80,6 +80,9 @@ namespace ed
 	}
 	GUIManager::~GUIManager()
 	{
+		// turn off the tracker on startup
+		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
+
 		for (auto view : m_views)
 			delete view;
 
@@ -112,6 +115,9 @@ namespace ed
 	{
 		Settings& settings = Settings::Instance();
 		m_performanceMode = m_perfModeFake;
+
+		// update audio textures
+		m_data->Objects.Update(delta);
 
 		// update editor & workspace font
 		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||
@@ -271,6 +277,11 @@ namespace ed
 						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
 						if (!file.empty())
 							m_data->Objects.CreateTexture(file, true);
+					}
+					if (ImGui::MenuItem("Audio", KeyboardShortcuts::Instance().GetString("Project.NewAudio").c_str())) {
+						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
+						if (!file.empty())
+							m_data->Objects.CreateAudio(file);
 					}
 					if (ImGui::MenuItem("Render Texture", KeyboardShortcuts::Instance().GetString("Project.NewRenderTexture").c_str()))
 						m_isCreateRTOpened = true;
@@ -782,6 +793,11 @@ namespace ed
 			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
 			if (!file.empty())
 				m_data->Objects.CreateTexture(file);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewAudio", [=]() {
+			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
+			if (!file.empty())
+				m_data->Objects.CreateAudio(file);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewShaderPass", [=]() {
 			m_createUI->SetType(PipelineItem::ItemType::ShaderPass);

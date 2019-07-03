@@ -492,7 +492,8 @@ namespace ed
 						}
 					}
 				}
-			} else if (strcmp(objType, "rendertexture") == 0) {
+			}
+			else if (strcmp(objType, "rendertexture") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateRenderTexture(objName);
@@ -539,6 +540,25 @@ namespace ed
 								boundTextures[pass].resize(slot + 1);
 
 							boundTextures[pass][slot] = objName;
+							break;
+						}
+					}
+				}
+			}
+			else if (strcmp(objType, "audio") == 0) {
+				const pugi::char_t* objPath = objectNode.attribute("path").as_string();
+				m_objects->CreateAudio(std::string(objPath));
+
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+
+					for (auto pass : passes) {
+						if (strcmp(pass->Name, passBindName) == 0) {
+							if (boundTextures[pass].size() <= slot)
+								boundTextures[pass].resize(slot + 1);
+
+							boundTextures[pass][slot] = objPath;
 							break;
 						}
 					}
@@ -923,12 +943,13 @@ namespace ed
 			std::vector<std::string> texs = m_objects->GetObjects();
 			for (int i = 0; i < texs.size(); i++) {
 				bool isRT = m_objects->IsRenderTexture(texs[i]);
+				bool isAudio = m_objects->IsAudio(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isRT ? "rendertexture" : "texture");
+				textureNode.append_attribute("type").set_value(isRT ? "rendertexture" : (isAudio ? "audio" : "texture"));
 				textureNode.append_attribute(isRT ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT) {
+				if (!isRT && !isAudio) {
 					bool isCube = m_objects->IsCubeMap(texs[i]);
 					if (isCube)
 						textureNode.append_attribute("cube").set_value(isCube);

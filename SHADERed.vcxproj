@@ -177,6 +177,7 @@
     <ClCompile Include="EditorEngine.cpp" />
     <ClCompile Include="GUIManager.cpp" />
     <ClCompile Include="Objects\ArcBallCamera.cpp" />
+    <ClCompile Include="Objects\AudioAnalyzer.cpp" />
     <ClCompile Include="Objects\DefaultState.cpp" />
     <ClCompile Include="Objects\FirstPersonCamera.cpp" />
     <ClCompile Include="Objects\FunctionVariableManager.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="libs\pugixml\src\pugiconfig.hpp" />
     <ClInclude Include="libs\pugixml\src\pugixml.hpp" />
     <ClInclude Include="Objects\ArcBallCamera.h" />
+    <ClInclude Include="Objects\AudioAnalyzer.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\DefaultState.h" />
     <ClInclude Include="Objects\FirstPersonCamera.h" />

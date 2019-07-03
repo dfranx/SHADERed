@@ -195,3 +195,13 @@ CurrentLineFillInactive, CurrentLineEdge
 ```
 These too have to have a 4 float values in the range [0.0, 1.0] splitted with the
 comma.
+
+# FAQ
+## Why is my audio file yellow in the "Objects" window?
+The yellow color means that your audio file is still loading. Once
+it loads it will become white and start playing the audio on loop.
+
+## What are "U", "D" and "X" buttons?
+- "U" button is for moving an item up for one position
+- "D" button if for moving an item down for one position
+- "X" is for deleting an item
