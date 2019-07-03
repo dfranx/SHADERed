@@ -16,11 +16,38 @@ namespace ed
 	AudioAnalyzer::AudioAnalyzer()
 	{
 		m_sensitivity = 1.0;
+		m_isSetup = 0;
 	}
 
 	AudioAnalyzer::~AudioAnalyzer()
 	{
 
+	}
+	void AudioAnalyzer::m_setup(int rate)
+	{
+		// set up
+		double freqconst = log(HighFrequency - LowFrequency) / log(pow(BufferOutSize, LogScale));
+		float x;
+
+		// Calc freq range for each bar
+		for (int i = 0; i < BufferOutSize; i++) {
+			m_fc[i] = pow(powf(i, (LogScale - 1.0) * ((double)i + 1.0) / ((double)BufferOutSize) + 1.0), freqconst) + LowFrequency;
+			x = m_fc[i] / (rate / 2);
+			m_lcf[i] = x * (SampleCount / 2);
+			if (i != 0)
+				m_hcf[i - 1] = m_lcf[i] - 1 > m_lcf[i - 1] ? m_lcf[i] - 1 : m_lcf[i - 1];
+		}
+		m_hcf[BufferOutSize - 1] = HighFrequency * SampleCount / rate;
+
+		// Calc smoothing
+		for (int i = 0; i < BufferOutSize; i++) {
+			m_smoothing[i] = pow(m_fc[i], 0.64); // TODO: Add smoothing factor to config
+			m_smoothing[i] *= Smooth[(int)(i / BufferOutSize * sizeof(Smooth) / sizeof(*Smooth))];
+		}
+
+		// Clear arrays
+		for (int i = 0; i < BufferOutSize; i++)
+			m_fall[i] = m_fpeak[i] = m_flast[i] = m_fmem[i] = 0;
 	}
 	double* AudioAnalyzer::FFT(ml::AudioFile& file, int curSample)
 	{
@@ -28,42 +55,13 @@ namespace ed
 		int channels = file.GetInfo()->nChannels;
 		curSample *= channels;
 
-		float smoothing[BufferOutSize];
-		double freqconst = log(HighFrequency - LowFrequency) / log(pow(BufferOutSize, LogScale));
-
-		int fall[BufferOutSize];
-		float fpeak[BufferOutSize], flast[BufferOutSize], fmem[BufferOutSize];
-
-		float fc[BufferOutSize], x;
-		int lcf[BufferOutSize], hcf[BufferOutSize];
-
-		// Calc freq range for each bar
-		for (int i = 0; i < BufferOutSize; i++) {
-			fc[i] = pow(powf(i, (LogScale - 1.0) * ((double)i + 1.0) / ((double)BufferOutSize) + 1.0), freqconst) + LowFrequency;
-			x = fc[i] / (rate / 2);
-			lcf[i] = x * (SampleCount / 2);
-			if (i != 0)
-				hcf[i - 1] = lcf[i] - 1 > lcf[i - 1] ? lcf[i] - 1 : lcf[i - 1];
+		if (m_isSetup != rate) {
+			m_setup(rate);
+			m_isSetup = rate;
 		}
-		hcf[BufferOutSize - 1] = HighFrequency * SampleCount / rate;
-
-		// Calc smoothing
-		for (int i = 0; i < BufferOutSize; i++) {
-			smoothing[i] = pow(fc[i], 0.64); // TODO: Add smoothing factor to config
-			smoothing[i] *= Smooth[(int)(i / BufferOutSize * sizeof(Smooth) / sizeof(*Smooth))];
-		}
-
-		int n = 0;
-		int16_t buf[SampleCount];
-
-		// Clear arrays
-		for (int i = 0; i < BufferOutSize; i++)
-			buf[i] = fall[i] = fpeak[i] = flast[i] = fmem[i] = 0;
-
-
-
 
 		// Spliting channels
+		int n = 0;
 		std::valarray<std::complex<double>> fftIn(SampleCount);
 		for (int i = 0; i < SampleCount / 2; i += 2) {
 			if (curSample + i > file.GetTotalSamplesPerChannel()*channels || curSample + i + 1 > file.GetTotalSamplesPerChannel() * channels)
@@ -74,14 +72,11 @@ namespace ed
 			if (n == SampleCount - 1) n = 0;
 		}
 
-
-
-
 		// Run fftw
 		m_fftAlgorithm(fftIn);
 
 		// Separate fftw output
-		m_seperateFreqBands(&fftIn[0], BufferOutSize, lcf, hcf, smoothing, m_sensitivity, BufferOutSize);
+		m_seperateFreqBands(&fftIn[0], BufferOutSize, m_lcf, m_hcf, m_smoothing, m_sensitivity, BufferOutSize);
 
 		/* Processing */
 		// Waves
@@ -98,28 +93,28 @@ namespace ed
 
 		// Gravity
 		for (int i = 0; i < BufferOutSize; i++) {
-			if (m_fftOut[i] < flast[i]) {
-				m_fftOut[i] = fpeak[i] - (Gravity * fall[i] * fall[i]);
-				fall[i]++;
+			if (m_fftOut[i] < m_flast[i]) {
+				m_fftOut[i] = m_fpeak[i] - (Gravity * m_fall[i] * m_fall[i]);
+				m_fall[i]++;
 			}
 			else {
-				fpeak[i] = m_fftOut[i];
-				fall[i] = 0;
+				m_fpeak[i] = m_fftOut[i];
+				m_fall[i] = 0;
 			}
 
-			flast[i] = m_fftOut[i];
+			m_flast[i] = m_fftOut[i];
 		}
 
 		// Integral
 		for (int i = 0; i < BufferOutSize; i++) {
 			m_fftOut[i] = (int)(m_fftOut[i] * 100);
-			m_fftOut[i] += fmem[i] * 0.9; // TODO: Add integral to config
-			fmem[i] = m_fftOut[i];
+			m_fftOut[i] += m_fmem[i] * 0.9; // TODO: Add integral to config
+			m_fmem[i] = m_fftOut[i];
 
 			int diff = 100 - m_fftOut[i];
 			if (diff < 0) diff = 0;
 			double div = 1 / (diff + 1);
-			fmem[i] *= 1 - div / 20;
+			m_fmem[i] *= 1 - div / 20;
 			m_fftOut[i] /= 100.0;
 		}
 

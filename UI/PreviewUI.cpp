@@ -7,7 +7,8 @@
 #include "../Objects/KeyboardShortcuts.h"
 #include <imgui/imgui_internal.h>
 
-#define STATUSBAR_HEIGHT 25
+#define STATUSBAR_HEIGHT 25 * Settings::Instance().DPIScale
+#define BUTTON_SIZE 17 * Settings::Instance().DPIScale
 #define FPS_UPDATE_RATE 0.3f
 
 namespace ed
@@ -326,7 +327,7 @@ namespace ed
 			ImGui::SameLine();
 
 			if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("P##pickModePos", ImVec2(17, 17)) && m_pickMode != 0) {
+			if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
 				m_pickMode = 0;
 				m_gizmo.SetMode(m_pickMode);
 			}
@@ -334,7 +335,7 @@ namespace ed
 			ImGui::SameLine();
 
 			if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("S##pickModeScl", ImVec2(17, 17)) && m_pickMode != 1) {
+			if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
 				m_pickMode = 1;
 				m_gizmo.SetMode(m_pickMode);
 			}
@@ -342,7 +343,7 @@ namespace ed
 			ImGui::SameLine();
 
 			if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("R##pickModeRot", ImVec2(17, 17)) && m_pickMode != 2) {
+			if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
 				m_pickMode = 2;
 				m_gizmo.SetMode(m_pickMode);
 			}

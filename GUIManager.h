@@ -50,6 +50,8 @@ namespace ed
 		std::string m_cachedFont;
 		int m_cachedFontSize;
 		bool m_cachedCustomFont;
+		bool m_fontNeedsUpdate;
+		float m_cacheUIScale;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;

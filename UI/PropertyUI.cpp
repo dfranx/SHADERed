@@ -7,6 +7,8 @@
 #include <imgui/imgui_internal.h>
 #include <Shlwapi.h>
 
+#define BUTTON_SPACE_LEFT -40 * Settings::Instance().DPIScale
+
 namespace ed
 {
 	void PropertyUI::OnEvent(const ml::Event & e)
@@ -129,7 +131,7 @@ namespace ed
 					ImGui::Text("VS Path:");
 					ImGui::NextColumn();
 
-					ImGui::PushItemWidth(-40);
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::InputText("##pui_vspath", item->VSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -164,7 +166,7 @@ namespace ed
 					ImGui::Text("PS Path:");
 					ImGui::NextColumn();
 
-					ImGui::PushItemWidth(-40);
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -208,7 +210,7 @@ namespace ed
 					// gs path
 					ImGui::Text("GS path:");
 					ImGui::NextColumn();
-					ImGui::PushItemWidth(-40);
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::InputText("##pui_gspath", item->GSPath, MAX_PATH);
 					ImGui::PopItemWidth();
 					ImGui::SameLine();

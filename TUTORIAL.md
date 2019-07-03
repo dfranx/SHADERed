@@ -205,3 +205,7 @@ it loads it will become white and start playing the audio on loop.
 - "U" button is for moving an item up for one position
 - "D" button if for moving an item down for one position
 - "X" is for deleting an item
+
+## How do audio files send data to shaders?
+Each audio file has a 512x2 texture. First row has frequency values
+while second row has sample values.

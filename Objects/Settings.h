@@ -12,6 +12,8 @@ namespace ed
 		void Load();
 		void Save();
 
+		float DPIScale;		// shouldn't be changed by users
+		float TempScale;	// copy this value to DPIScale on "Ok" button press
 		std::string Theme;
 
 		struct strGeneral {
@@ -28,6 +30,7 @@ namespace ed
 			bool CustomFont;
 			char Font[256];
 			int FontSize;
+			bool AutoScale;
 		} General;
 
 		struct strEditor {

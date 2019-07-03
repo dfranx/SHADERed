@@ -38,6 +38,7 @@ namespace ed
 		m_cachedFontSize = 15;
 		m_performanceMode = false;
 		m_perfModeFake = false;
+		m_fontNeedsUpdate = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -47,7 +48,7 @@ namespace ed
 
 		// Initialize imgui
 		ImGui::CreateContext();
-		
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->AddFontDefault();
 		io.IniFilename = IMGUI_INI_FILE;
@@ -80,6 +81,15 @@ namespace ed
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
+
+		// enable dpi awareness
+		ImGui_ImplWin32_EnableDpiAwareness();
+		
+		if (Settings::Instance().General.AutoScale)
+			Settings::Instance().DPIScale = ImGui_ImplWin32_GetDpiScaleForHwnd((void*)m_wnd->GetWindowHandle());
+		m_cacheUIScale = Settings::Instance().TempScale = Settings::Instance().DPIScale;
+
+		ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
 	}
 	GUIManager::~GUIManager()
 	{
@@ -127,13 +137,15 @@ namespace ed
 			((m_cachedCustomFont != settings.General.CustomFont ||
 				m_cachedFont != settings.General.Font ||
 				m_cachedFontSize != settings.General.FontSize) &&
-				strcmp(settings.General.Font, "null") != 0))
+				strcmp(settings.General.Font, "null") != 0) ||
+			m_fontNeedsUpdate)
 		{
 			std::pair<std::string, int> edFont = ((CodeEditorUI*)Get(ViewID::Code))->GetFont();
 
 			m_cachedCustomFont = settings.General.CustomFont;
 			m_cachedFont = settings.General.Font;
 			m_cachedFontSize = settings.General.FontSize;
+			m_fontNeedsUpdate = false;
 
 			ImFontAtlas* fonts = ImGui::GetIO().Fonts;
 			fonts->Clear();
@@ -141,9 +153,9 @@ namespace ed
 			ImFont* font = nullptr;
 			if (!m_cachedCustomFont)
 				font = fonts->AddFontDefault();
-			else font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize);
+			else font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
 
-			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second);
+			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
 
 			if (font == nullptr || edFontPtr == nullptr) {
 				fonts->Clear();
@@ -388,7 +400,7 @@ namespace ed
 		}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
 			m_createUI->Update(delta);
 
@@ -403,7 +415,7 @@ namespace ed
 		}
 
 		// Create RT popup
-		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create RT##main_create_rt")) {
 			static char buf[65] = { 0 };
 			ImGui::InputText("Name", buf, 64);
@@ -418,7 +430,7 @@ namespace ed
 		}
 
 		// Create about popup
-		ImGui::SetNextWindowSize(ImVec2(250, 145), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(250 * Settings::Instance().DPIScale, 145 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
 			ImGui::Text("(C) 2019 dfranx");
 			ImGui::Text("Version 1.0");
@@ -435,7 +447,7 @@ namespace ed
 		}
 
 		// Create new project
-		ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(300 * Settings::Instance().DPIScale, 100 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
 			if (ImGui::Button("Yes")) {
@@ -565,11 +577,11 @@ namespace ed
 		};
 
 		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y*2) / ImGui::GetTextLineHeightWithSpacing() - 1;
-
+		
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, 100 + ImGui::GetStyle().WindowPadding.x * 2);
+		ImGui::SetColumnWidth(0, 100 * Settings::Instance().DPIScale + ImGui::GetStyle().WindowPadding.x * 2);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-		ImGui::PushItemWidth(100);
+		ImGui::PushItemWidth(100 * Settings::Instance().DPIScale);
 		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, _ARRAYSIZE(optGroups), height))
 			options->SetGroup((OptionsUI::Page)m_optGroup);
 		ImGui::PopStyleColor();
@@ -580,8 +592,8 @@ namespace ed
 
 		ImGui::Columns();
 
-		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160);
-		if (ImGui::Button("OK", ImVec2(70, 0))) {
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160 * Settings::Instance().DPIScale);
+		if (ImGui::Button("OK", ImVec2(70 * Settings::Instance().DPIScale, 0))) {
 			Settings::Instance().Save();
 			KeyboardShortcuts::Instance().Save();
 
@@ -599,12 +611,19 @@ namespace ed
 			code->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 			code->UpdateShortcuts();
 
+			if (Settings::Instance().TempScale != m_cacheUIScale) {
+				Settings::Instance().DPIScale = Settings::Instance().TempScale;
+				ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale / m_cacheUIScale);
+				m_cacheUIScale = Settings::Instance().DPIScale;
+				m_fontNeedsUpdate = true;
+			}
+
 			m_optionsOpened = false;
 		}
 
 		ImGui::SameLine();
 
-		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80);
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80 * Settings::Instance().DPIScale);
 		if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
 			Settings::Instance() = *m_settingsBkp;
 			KeyboardShortcuts::Instance().SetMap(m_shortcutsBkp);

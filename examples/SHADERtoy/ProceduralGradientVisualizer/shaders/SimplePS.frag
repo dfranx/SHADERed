@@ -2,6 +2,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
+/************************************************
+ * This shader was created by:
+ * https://www.shadertoy.com/view/tdfGzB
+ ************************************************/
+
 layout (location = 0) in vec4 coord;
 
 layout (location = 0) out vec4 outColor;

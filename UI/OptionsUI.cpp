@@ -9,6 +9,8 @@
 
 #include <algorithm>
 
+#define REFRESH_BUTTON_SPACE -80 * Settings::Instance().DPIScale
+
 namespace ed
 {
 	void OptionsUI::OnEvent(const ml::Event& e)
@@ -141,7 +143,7 @@ namespace ed
 
 		/* THEME */
 		ImGui::Text("Theme: "); ImGui::SameLine();
-		ImGui::PushItemWidth(-80);
+		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
 		if (ImGui::BeginCombo("##optg_theme", settings->Theme.c_str())) {
 			for (int i = 0; i < 2; i++)
 				if (ImGui::Selectable(m_themes[i].c_str(), m_themes[i] == settings->Theme)) {
@@ -211,7 +213,7 @@ namespace ed
 		/* STARTUP TEMPLATE: */
 		ImGui::Text("Default template: ");
 		ImGui::SameLine();
-		ImGui::PushItemWidth(-80);
+		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
 		if (ImGui::BeginCombo("##optg_template", settings->General.StartUpTemplate.c_str())) {
 			WIN32_FIND_DATA data;
 			HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
@@ -245,7 +247,7 @@ namespace ed
 		/* FONT: */
 		ImGui::Text("Font: ");
 		ImGui::SameLine();
-		ImGui::PushItemWidth(-80);
+		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
 		ImGui::InputText("##optw_font", settings->General.Font, 256);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
@@ -262,6 +264,22 @@ namespace ed
 		if (ImGui::InputInt("##optw_fontsize", &settings->General.FontSize, 1, 5))
 			settings->General.FontSize = std::max<int>(std::min<int>(settings->General.FontSize, 72), 9);
 
+		/* DPI AWARE: */
+		ImGui::Text("DPI aware: ");
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##optw_autoscale", &settings->General.AutoScale)) {
+			if (settings->General.AutoScale)
+				settings->TempScale = ImGui_ImplWin32_GetDpiScaleForHwnd((void*)m_data->GetOwner()->GetWindowHandle());
+			else
+				settings->TempScale = 1;
+		}
+
+		/* UI SCALE (IF NOT USING DPI AWARENESS) */
+		if (!settings->General.AutoScale) {
+			ImGui::Text("UI scale: ");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##optw_uiscale", &settings->TempScale, 0.1f, 3.0f);
+		}
 	}
 	void OptionsUI::m_renderEditor()
 	{
@@ -287,7 +305,7 @@ namespace ed
 		/* FONT: */
 		ImGui::Text("Font: ");
 		ImGui::SameLine();
-		ImGui::PushItemWidth(-80);
+		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
 		ImGui::InputText("##opte_font", settings->Editor.Font, 256);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();

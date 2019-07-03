@@ -1,4 +1,5 @@
 #include "MessageOutputUI.h"
+#include "../Objects/Settings.h"
 #include <imgui/imgui.h>
 
 namespace ed
@@ -18,7 +19,7 @@ namespace ed
 
 			ImGui::Text(msgs[i].Group.c_str());
 
-			ImGui::SameLine(150);
+			ImGui::SameLine(150*Settings::Instance().DPIScale);
 			ImGui::TextColored(color, msgs[i].Text.c_str());
 		}
 	}

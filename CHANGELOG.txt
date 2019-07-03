@@ -1,5 +1,6 @@
 [v1.0.2]
 + add ability to load audio files
++ add DPI awareness
 + fix for "VSync not being applied on startup"
 
 [v1.0.1]

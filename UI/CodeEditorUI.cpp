@@ -10,7 +10,7 @@
 #include <fstream>
 #include <d3dcompiler.h>
 
-#define STATUSBAR_HEIGHT 18
+#define STATUSBAR_HEIGHT 18 * Settings::Instance().DPIScale
 
 const std::string EDITOR_SHORTCUT_NAMES[] =
 {

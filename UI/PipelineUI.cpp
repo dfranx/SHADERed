@@ -13,8 +13,8 @@
 #include <imgui/imgui_internal.h>
 #include <algorithm>
 
-#define PIPELINE_SHADER_PASS_INDENT 65
-#define PIPELINE_ITEM_INDENT 75
+#define PIPELINE_SHADER_PASS_INDENT 65 * Settings::Instance().DPIScale
+#define PIPELINE_ITEM_INDENT 75 * Settings::Instance().DPIScale
 
 namespace ed
 {
@@ -75,7 +75,7 @@ namespace ed
 		}
 
 		// VS Input Layout
-		ImGui::SetNextWindowSize(ImVec2(600, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(600 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Vertex Input Layout##pui_layout_items")) {
 			m_renderInputLayoutUI();
 
@@ -84,7 +84,7 @@ namespace ed
 		}
 
 		// Shader Variable manager
-		ImGui::SetNextWindowSize(ImVec2(730, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
 			m_renderVariableManagerUI();
 
@@ -93,7 +93,7 @@ namespace ed
 		}
 
 		// Create Item
-		ImGui::SetNextWindowSize(ImVec2(430, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##pui_create_item")) {
 			m_createUI.Update(delta);
 
@@ -107,7 +107,7 @@ namespace ed
 		}
 
 		// variables to change when rendering specific item
-		ImGui::SetNextWindowSize(ImVec2(400, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(400 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Change Variables##pui_render_variables")) {
 			m_renderChangeVariablesUI();
 

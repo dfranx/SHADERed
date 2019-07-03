@@ -1,10 +1,13 @@
 #include "CreateItemUI.h"
 #include "UIHelper.h"
 #include "../Objects/Names.h"
+#include "../Objects/Settings.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <MoonLight/Base/GeometryFactory.h>
 #include <MoonLight/Model/OBJModel.h>
+
+#define PATH_SPACE_LEFT -40 * Settings::Instance().DPIScale
 
 namespace ed
 {
@@ -49,7 +52,7 @@ namespace ed
 			// vs path
 			ImGui::Text("Vertex shader path:");
 			ImGui::NextColumn();
-			ImGui::PushItemWidth(-40);
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::InputText("##cui_spvspath", data->VSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -76,7 +79,7 @@ namespace ed
 			// ps path
 			ImGui::Text("Pixel shader path:");
 			ImGui::NextColumn();
-			ImGui::PushItemWidth(-40);
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::InputText("##cui_sppspath", data->PSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -112,7 +115,7 @@ namespace ed
 			// gs path
 			ImGui::Text("Geometry shader path:");
 			ImGui::NextColumn();
-			ImGui::PushItemWidth(-40);
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::InputText("##cui_spgspath", data->GSPath, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -368,7 +371,7 @@ namespace ed
 			// model filepath
 			ImGui::Text("File:");
 			ImGui::NextColumn();
-			ImGui::PushItemWidth(-40);
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::InputText("##cui_objfile", data->Filename, MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();

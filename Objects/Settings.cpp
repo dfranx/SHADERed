@@ -31,6 +31,8 @@ namespace ed
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
 		General.CustomFont = ini.GetBoolean("general", "customfont", false);
+		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
+		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 15);
 
@@ -72,6 +74,8 @@ namespace ed
 		ini << "customfont=" << General.CustomFont << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;
+		ini << "autoscale=" << General.AutoScale << std::endl;
+		ini << "uiscale=" << DPIScale << std::endl;
 
 		ini << "[preview]" << std::endl;
 		ini << "fxaa=" << Preview.FXAA << std::endl;

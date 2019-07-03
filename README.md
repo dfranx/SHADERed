@@ -41,6 +41,12 @@ Heres an example of rasterizer state properties:
     <img width="300" src="./Screenshots/rasterizerstate.jpg">
 </p>
 
+### Audio files
+Load your song and create amazing music visualizers!
+<p align="center">
+    <img width="200" src="./Screenshots/music.gif">
+</p>
+
 ### Loading .obj models
 You can easily add your custom 3D models to the scene. Only Wavefront .obj models are currently supported, but
 you can expect more formats to be supported in near future. You can also add built-in geometry objects (cubes, spheres, planes,
@@ -149,8 +155,6 @@ There are also some features that I am looking to implement:
    - currently if you want to have same value in two shader passes you will have to enter the values manually
  - shader flags
    - custom flags when compiling the shader
- - audio files
-   - audio files would allow you to create music visualization
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
@@ -160,6 +164,7 @@ There are also some features that I am looking to implement:
  - support #include and macros
  - inspect render target output pixels (show RGB values on hover over pixel)
  - buffers read from file or built using in-app buffer editor
+ - text geometry
 
 
 Except those large features, I am also planning to do some small QoL changes:
@@ -182,10 +187,15 @@ Except those large features, I am also planning to do some small QoL changes:
  - add mute button to audio objects
  - ability to change warning, message and error colors
  - program crashes on invalid input layout
- - ability to set SHADERed as a defult program for a *.sprj extension
+ - ability to set SHADERed as a defult program for a *.sprj extension files
  - right click on shortcut -> delete the shortcut
  - improve the code
  - when loading a texture it might be loaded several times if bound to several shader passes (????)
+ - use an icon font instead of buttons like "U", "D", etc...
+ - add an option to disable certain shader pass
+ - toolbar (a bar with all the important tools)
+ - mouse left and right click
+ - indent controls after fps - bad UX n UI
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
@@ -226,7 +236,8 @@ Send your own screenshots!
 Huge thanks to Omar Cornut, go follow him on [twitter](https://twitter.com/ocornut) or support him on [patreon](https://www.patreon.com/imgui).
 I dont think SHADERed would exist without his awesome library [Dear ImGUI](https://github.com/ocornut/).
 I came up with the shader editor idea when I stubmled upon a [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit).
-So big thanks to BalazsJako for his amazing creation. Also, thanks to Raph Levien for the [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font.
+So big thanks to BalazsJako for his amazing creation. Also, thanks to Raph Levien for the [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font
+and Christian Robertson for [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono?selection.family=Roboto+Mono).
 
 Thanks to Khronos for creating [glslangValidator](https://github.com/KhronosGroup/glslang) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) tools.
 Those programs allowed me to add support for GLSL. Thanks to AMD and their RenderMonkey examples. Credits to creators of the
