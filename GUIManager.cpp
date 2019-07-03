@@ -42,6 +42,9 @@ namespace ed
 		Settings::Instance().Load();
 		m_loadTemplateList();
 
+		// set vsync on startup
+		m_wnd->SetVSync(Settings::Instance().General.VSync);
+
 		// Initialize imgui
 		ImGui::CreateContext();
 		

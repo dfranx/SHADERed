@@ -1,5 +1,6 @@
 [v1.0.2]
-
++ add ability to load audio files
++ fix for "VSync not being applied on startup"
 
 [v1.0.1]
 + add more editor shortcuts to the options
