@@ -59,6 +59,10 @@ namespace ed
 		inline bool IsAudio(const std::string& name) { return m_audioData.count(name) > 0; }
 		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }
 		inline bool IsLoading(const std::string& name) { return m_audioData.count(name) > 0 && (m_audioData[name]->IsLoading() || m_audioData[name]->HasFailed()); }
+		inline bool IsAudioMuted(const std::string& name) { return m_audioMute[name]; }
+
+		void Mute(const std::string& name);
+		void Unmute(const std::string& name);
 		void ResizeRenderTexture(const std::string& name, DirectX::XMINT2 size);
 
 		void Clear();
@@ -94,6 +98,7 @@ namespace ed
 		std::unordered_map<std::string, ml::AudioFile*> m_audioData;
 		std::unordered_map<std::string, ml::AudioPlayer*> m_audioPlayer;
 		std::unordered_map<std::string, int> m_audioExclude; // how many loops have we played already
+		std::unordered_map<std::string, bool> m_audioMute;
 		
 		std::unordered_map<PipelineItem*, std::vector<ml::ShaderResourceView*>> m_binds;
 	};

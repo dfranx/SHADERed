@@ -76,6 +76,16 @@ namespace ed
 					}
 				}
 
+				if (m_data->Objects.IsAudio(items[i])) {
+					bool isMuted = m_data->Objects.IsAudioMuted(items[i]);
+					if (ImGui::MenuItem("Mute", (const char*)0, &isMuted)) {
+						if (isMuted)
+							m_data->Objects.Mute(items[i]);
+						else
+							m_data->Objects.Unmute(items[i]);
+					}
+				}
+
 				if (ImGui::Selectable("Delete")) {
 					if (m_data->Objects.IsRenderTexture(items[i])) {
 						auto& passes = m_data->Pipeline.GetList();

@@ -38,13 +38,11 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="audio" path="..\..\Common\music.mp3">
+		<object type="audio" path="..\..\Common\beat.mp3">
 			<bind slot="0" name="Simple" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Simple" />
-		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>15</distance>
 			<rotationX>37</rotationX>

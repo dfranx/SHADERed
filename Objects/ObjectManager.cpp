@@ -62,6 +62,7 @@ namespace ed
 		if (m_audioData.size() > 0) m_audioData.clear();
 		if (m_audioPlayer.size() > 0) m_audioPlayer.clear();
 
+		m_audioMute.clear();
 		m_audioExclude.clear();
 		m_items.clear();
 		m_isCube.clear();
@@ -118,6 +119,7 @@ namespace ed
 		m_audioData[file]->Load(m_parser->GetProjectPath(file), m_audioEngine);
 		m_audioPlayer[file] = new ml::AudioPlayer();
 		m_audioExclude[file] = 0;
+		m_audioMute[file] = false;
 
 		m_texs[file] = new ml::Texture();
 		m_texs[file]->Create(*m_wnd, 512, 2, ml::Resource::ShaderResource | ml::Resource::Usage::Default, DXGI_FORMAT_R32_FLOAT);
@@ -201,6 +203,7 @@ namespace ed
 			m_audioData.erase(file);
 			m_audioPlayer.erase(file);
 			m_audioExclude.erase(file);
+			m_audioMute.erase(file);
 		}
 		else {
 			delete m_rts[file];
@@ -235,6 +238,16 @@ namespace ed
 	{
 		if (m_rts[name]->FixedSize.x < 0) return DirectX::XMINT2(m_rts[name]->RatioSize.x * m_renderer->GetLastRenderSize().x, m_rts[name]->RatioSize.y * m_renderer->GetLastRenderSize().y);
 		return m_rts[name]->FixedSize;
+	}
+	void ObjectManager::Mute(const std::string& name)
+	{
+		m_audioPlayer[name]->SetVolume(0);
+		m_audioMute[name] = true;
+	}
+	void ObjectManager::Unmute(const std::string& name)
+	{
+		m_audioPlayer[name]->SetVolume(1);
+		m_audioMute[name] = false;
 	}
 	void ObjectManager::ResizeRenderTexture(const std::string & name, DirectX::XMINT2 size)
 	{
