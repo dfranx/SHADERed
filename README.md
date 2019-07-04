@@ -184,7 +184,6 @@ Except those large features, I am also planning to do some small QoL changes:
  - use pointers to RTs in pipe::ShaderPass instead of names
  - remember collapsed items in a project
  - remember focused window in workspace.dat (worked before updating my imgui/docking clone)
- - add mute button to audio objects
  - ability to change warning, message and error colors
  - program crashes on invalid input layout
  - ability to set SHADERed as a defult program for a *.sprj extension files
@@ -193,9 +192,10 @@ Except those large features, I am also planning to do some small QoL changes:
  - when loading a texture it might be loaded several times if bound to several shader passes (????)
  - use an icon font instead of buttons like "U", "D", etc...
  - add an option to disable certain shader pass
- - toolbar (a bar with all the important tools)
- - mouse left and right click
- - indent controls after fps - bad UX n UI
+ - toolbar (a bar with all the important tools (icons))
+ - indent controls after fps in the status bar - bad UX and UI
+ - improve "Properties" window performance
+ - remove glsl file extensions from options (just detect where the shader is being used)
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download

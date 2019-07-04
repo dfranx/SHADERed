@@ -1,5 +1,9 @@
 [v1.0.3]
 + add mute button for audio files
++ write DPI scale in the options
++ wrap text in popup windows
++ minor changes to UI in Options
+...
 
 [v1.0.2]
 + add ability to load audio files

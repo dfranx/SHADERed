@@ -213,7 +213,7 @@ namespace ed
 		/* STARTUP TEMPLATE: */
 		ImGui::Text("Default template: ");
 		ImGui::SameLine();
-		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
+		ImGui::PushItemWidth(-1);
 		if (ImGui::BeginCombo("##optg_template", settings->General.StartUpTemplate.c_str())) {
 			WIN32_FIND_DATA data;
 			HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
@@ -261,8 +261,10 @@ namespace ed
 		/* FONT SIZE: */
 		ImGui::Text("Font size: ");
 		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		if (ImGui::InputInt("##optw_fontsize", &settings->General.FontSize, 1, 5))
 			settings->General.FontSize = std::max<int>(std::min<int>(settings->General.FontSize, 72), 9);
+		ImGui::PopItemWidth();
 
 		/* DPI AWARE: */
 		ImGui::Text("DPI aware: ");
@@ -279,6 +281,9 @@ namespace ed
 			ImGui::Text("UI scale: ");
 			ImGui::SameLine();
 			ImGui::SliderFloat("##optw_uiscale", &settings->TempScale, 0.1f, 3.0f);
+		} else {
+			ImGui::SameLine();
+			ImGui::TextDisabled("   (scale=%.4f)", settings->TempScale);
 		}
 	}
 	void OptionsUI::m_renderEditor()
@@ -319,8 +324,10 @@ namespace ed
 		/* FONT SIZE: */
 		ImGui::Text("Font size: ");
 		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		if (ImGui::InputInt("##opte_fontsize", &settings->Editor.FontSize, 1, 5))
 			settings->Editor.FontSize = std::max<int>(std::min<int>(settings->Editor.FontSize, 72), 9);
+		ImGui::PopItemWidth();
 
 		/* AUTO BRACE COMPLETION: */
 		ImGui::Text("Brace completion: ");
@@ -360,8 +367,10 @@ namespace ed
 		/* TAB SIZE: */
 		ImGui::Text("Tab size: ");
 		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		if (ImGui::InputInt("##opte_tabsize", &settings->Editor.TabSize, 1, 2))
 			settings->Editor.TabSize = std::max<int>(std::min<int>(settings->Editor.TabSize, 12), 1);
+		ImGui::PopItemWidth();
 	}
 	void OptionsUI::m_renderShortcuts()
 	{
@@ -440,10 +449,12 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_prop_pick", &settings->Preview.PropertyPick);
 
-		/* FPS LIMITI: */
+		/* FPS LIMIT: */
 		ImGui::Text("FPS limit: ");
 		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::InputInt("##opte_fpslimit", &settings->Preview.FPSLimit, 1, 10);
+		ImGui::PopItemWidth();
 	}
 	void OptionsUI::m_renderProject()
 	{
@@ -452,17 +463,23 @@ namespace ed
 		/* GLSL VS EXTENSION: */
 		ImGui::Text("GLSL vertex shader extension: ");
 		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::InputText("##optpr_glslvsext", settings->Project.GLSLVS_Extenstion, 12);
+		ImGui::PopItemWidth();
 
 		/* GLSL PS EXTENSION: */
 		ImGui::Text("GLSL pixel shader extension: ");
 		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::InputText("##optpr_glslpsext", settings->Project.GLSLPS_Extenstion, 12);
+		ImGui::PopItemWidth();
 
 		/* GLSL GS EXTENSION: */
 		ImGui::Text("GLSL geometry shader extension: ");
 		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::InputText("##optpr_glslgsext", settings->Project.GLSLGS_Extenstion, 12);
+		ImGui::PopItemWidth();
 
 		/* FPS CAMERA: */
 		ImGui::Text("First person camera: ");
@@ -473,7 +490,9 @@ namespace ed
 		ImVec4 clearColor(settings->Project.ClearColor.R / 255.0f, settings->Project.ClearColor.G / 255.0f, settings->Project.ClearColor.B / 255.0f, settings->Project.ClearColor.A / 255.0f);
 		ImGui::Text("Preview window clear color: ");
 		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::ColorEdit4("##optpr_clrclr", (float*)&clearColor);
+		ImGui::PopItemWidth();
 		settings->Project.ClearColor.R = clearColor.x * 255;
 		settings->Project.ClearColor.G = clearColor.y * 255;
 		settings->Project.ClearColor.B = clearColor.z * 255;

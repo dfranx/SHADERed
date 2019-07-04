@@ -430,12 +430,12 @@ namespace ed
 		}
 
 		// Create about popup
-		ImGui::SetNextWindowSize(ImVec2(250 * Settings::Instance().DPIScale, 145 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
-			ImGui::Text("(C) 2019 dfranx");
-			ImGui::Text("Version 1.0");
+			ImGui::TextWrapped("(C) 2019 dfranx");
+			ImGui::TextWrapped("Version 1.0");
 			ImGui::NewLine();
-			ImGui::Text("This app is open sourced: ");
+			ImGui::TextWrapped("This app is open sourced: ");
 			ImGui::SameLine();
 			if (ImGui::Button("link"))
 				ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
@@ -509,7 +509,7 @@ namespace ed
 		// Save preview
 		ImGui::SetNextWindowSize(ImVec2(400, 125), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
-			ImGui::Text("Path: %s", m_previewSavePath.c_str());
+			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
 				m_previewSavePath = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0DDS\0*.dds\0BMP\0*.bmp\0JPEG\0*.jpg\0TIFF\0*.tiff\0GIF\0*.gif\0ICO\0*.ico\0");

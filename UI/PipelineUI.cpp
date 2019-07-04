@@ -303,7 +303,7 @@ namespace ed
 		};
 		static bool scrollToBottom = false;
 
-		ImGui::Text("Add or remove items from vertex input layout.");
+		ImGui::TextWrapped("Add or remove items from vertex input layout.");
 
 		ImGui::BeginChild("##pui_layout_table", ImVec2(0, -25));
 		ImGui::Columns(5);
@@ -423,7 +423,7 @@ namespace ed
 		
 		ed::pipe::ShaderPass* itemData = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data);
 
-		ImGui::Text("Add or remove variables bound to this shader.");
+		ImGui::TextWrapped("Add or remove variables bound to this shader.");
 
 		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
 		ImGui::Columns(5);
@@ -646,7 +646,7 @@ namespace ed
 		static bool scrollToBottom = false;
 		static int shaderTypeSel = 0, shaderVarSel = 0;
 		
-		ImGui::Text("Add variables that you want to change when rendering this item");
+		ImGui::TextWrapped("Add variables that you want to change when rendering this item");
 
 		ImGui::BeginChild("##pui_cvar_table", ImVec2(0, -25));
 		ImGui::Columns(3);
