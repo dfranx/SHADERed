@@ -187,15 +187,14 @@ Except those large features, I am also planning to do some small QoL changes:
  - ability to change warning, message and error colors
  - program crashes on invalid input layout
  - ability to set SHADERed as a defult program for a *.sprj extension files
- - right click on shortcut -> delete the shortcut
- - improve the code
+ - improve the overall code (enum for shader type, etc...)
  - when loading a texture it might be loaded several times if bound to several shader passes (????)
  - use an icon font instead of buttons like "U", "D", etc...
  - add an option to disable certain shader pass
  - toolbar (a bar with all the important tools (icons))
  - indent controls after fps in the status bar - bad UX and UI
- - improve "Properties" window performance
  - remove glsl file extensions from options (just detect where the shader is being used)
+ - add ability to modify (at least some) system variables while taking screenshot/video
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download

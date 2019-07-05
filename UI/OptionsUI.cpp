@@ -401,9 +401,13 @@ namespace ed
 			}
 			else {
 				if (ImGui::Button(KeyboardShortcuts::Instance().GetString(names[i]).c_str(), ImVec2(-1, 0))) {
-					m_selectedShortcut = i;
-					m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = false;
-					m_newShortcut.Key1 = m_newShortcut.Key2 = -1;
+					if (ImGui::IsKeyDown(VK_CONTROL))
+						KeyboardShortcuts::Instance().Remove(names[i]);
+					else {
+						m_selectedShortcut = i;
+						m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = false;
+						m_newShortcut.Key1 = m_newShortcut.Key2 = -1;
+					}
 				}
 			}
 

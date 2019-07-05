@@ -27,12 +27,10 @@ namespace ed
 
 			while (ss >> token)
 			{
-				if (token == "CTRL")
-					m_data[name].Ctrl = true;
-				else if (token == "ALT")
-					m_data[name].Alt = true;
-				else if (token == "SHIFT")
-					m_data[name].Shift = true;
+				if (token == "CTRL") m_data[name].Ctrl = true;
+				else if (token == "ALT") m_data[name].Alt = true;
+				else if (token == "SHIFT") m_data[name].Shift = true;
+				else if (token == "NONE") break;
 				else {
 					for (int i = 0; i < 0xE8; i++) {
 						if (token == ml::Keyboard::KeyToString(i)) {
@@ -54,8 +52,10 @@ namespace ed
 		std::string str;
 		
 		for (auto& s : m_data) {
-			if (s.second.Key1 == -1)
+			if (s.second.Key1 == -1) {
+				//file << " NONE" << std::endl;
 				continue;
+			}
 
 			file << s.first;
 
@@ -99,7 +99,7 @@ namespace ed
 	std::string KeyboardShortcuts::GetString(const std::string& name)
 	{
 		if (m_data[name].Key1 == -1 || (m_data[name].Key1 == 0 && m_data[name].Key2 == 0))
-			return "";
+			return "NONE";
 
 		std::string ret = "";
 
