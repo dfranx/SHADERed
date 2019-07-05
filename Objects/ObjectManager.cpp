@@ -110,27 +110,31 @@ namespace ed
 	}
 	bool ObjectManager::CreateAudio(const std::string& file)
 	{
-		if (!m_audioEngine.IsInitialized())
-			return false;
-
-		m_items.push_back(file);
-
 		m_audioData[file] = new ml::AudioFile();
-		m_audioData[file]->Load(m_parser->GetProjectPath(file), m_audioEngine);
 		m_audioPlayer[file] = new ml::AudioPlayer();
-		m_audioExclude[file] = 0;
-		m_audioMute[file] = false;
 
 		m_texs[file] = new ml::Texture();
 		m_texs[file]->Create(*m_wnd, 512, 2, ml::Resource::ShaderResource | ml::Resource::Usage::Default, DXGI_FORMAT_R32_FLOAT);
-		
+
 		m_srvs[file] = new ml::ShaderResourceView();
 		m_srvs[file]->Create(*m_wnd, *m_texs[file]);
+
+		m_items.push_back(file);
+
+		if (!m_audioEngine.IsInitialized())
+			return false;
+
+		m_audioData[file]->Load(m_parser->GetProjectPath(file), m_audioEngine);
+		m_audioExclude[file] = 0;
+		m_audioMute[file] = false;
 
 		return true;
 	}
 	void ObjectManager::Update(float delta)
 	{
+		if (!m_audioEngine.IsInitialized())
+			return;
+
 		for (auto& it : m_audioData) {
 			if (!it.second->IsLoading() && !m_audioPlayer[it.first]->IsPlaying()) {
 				it.second->Finalize();
