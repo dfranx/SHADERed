@@ -235,8 +235,47 @@ namespace ed
 		}
 		ImGui::PopItemWidth();
 
+		/* EXTENSIONS: */
+		ImGui::Text("GLSL extensions: ");
+		ImGui::SameLine();
+		ImGui::Indent(150 * settings->DPIScale);
+		static char glslExtEntry[64] = { 0 };
+		if (ImGui::ListBoxHeader("##optg_glslexts",ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale))) {
+			for (auto& ext : settings->General.GLSLExtensions)
+				if (ImGui::Selectable(ext.c_str()))
+					strcpy(glslExtEntry, ext.c_str());
+			ImGui::ListBoxFooter();
+		}
+		ImGui::PushItemWidth(100 * settings->DPIScale);
+		ImGui::InputText("##optg_glslext_inp",glslExtEntry,64);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("ADD##optg_btnaddext")) {
+			int exists = -1;
+			std::string glslExtEntryStr(glslExtEntry);
+			for (int i = 0; i < settings->General.GLSLExtensions.size(); i++)
+				if (settings->General.GLSLExtensions[i] == glslExtEntryStr) {
+					exists = i;
+					break;
+				}
+			if (exists == -1 && glslExtEntryStr.size() >= 1)
+				settings->General.GLSLExtensions.push_back(glslExtEntryStr);
+			else
+				settings->General.GLSLExtensions.erase(settings->General.GLSLExtensions.begin() + exists);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("REMOVE##optg_btnremext")) {
+			std::string glslExtEntryStr(glslExtEntry);
+			for (int i = 0; i < settings->General.GLSLExtensions.size(); i++)
+				if (settings->General.GLSLExtensions[i] == glslExtEntryStr) {
+					settings->General.GLSLExtensions.erase(settings->General.GLSLExtensions.begin() + i);
+					break;
+				}
+		}
+		ImGui::Unindent(150 * settings->DPIScale);
 
-		/* WORKSPACE STUFF*/
+
+		/* WORKSPACE STUFF */
 		ImGui::Separator();
 
 		/* USE CUSTOM FONT: */
@@ -463,27 +502,6 @@ namespace ed
 	void OptionsUI::m_renderProject()
 	{
 		Settings* settings = &Settings::Instance();
-
-		/* GLSL VS EXTENSION: */
-		ImGui::Text("GLSL vertex shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
-		ImGui::InputText("##optpr_glslvsext", settings->Project.GLSLVS_Extenstion, 12);
-		ImGui::PopItemWidth();
-
-		/* GLSL PS EXTENSION: */
-		ImGui::Text("GLSL pixel shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
-		ImGui::InputText("##optpr_glslpsext", settings->Project.GLSLPS_Extenstion, 12);
-		ImGui::PopItemWidth();
-
-		/* GLSL GS EXTENSION: */
-		ImGui::Text("GLSL geometry shader extension: ");
-		ImGui::SameLine(); ImGui::Text("."); ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
-		ImGui::InputText("##optpr_glslgsext", settings->Project.GLSLGS_Extenstion, 12);
-		ImGui::PopItemWidth();
 
 		/* FPS CAMERA: */
 		ImGui::Text("First person camera: ");

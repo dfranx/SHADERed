@@ -10,16 +10,16 @@
 
 namespace ed
 {
-	std::string GLSL2HLSL::Transcompile(const std::string& filename, const std::string& entry, ml::Logger* log)
+	std::string GLSL2HLSL::Transcompile(const std::string& filename, int shaderType, const std::string& entry, ml::Logger* log)
 	{
 		const std::string tempLoc = "./GLSL/temp/";
 
-		int glsl = IsGLSL(filename);
+		int glsl = shaderType;
 
 		std::string stage = "vert";
-		if (glsl == 2)
+		if (glsl == 1)
 			stage = "frag";
-		else if (glsl == 3)
+		else if (glsl == 2)
 			stage = "geom";
 
 
@@ -48,16 +48,13 @@ namespace ed
 
 		return code;
 	}
-	int GLSL2HLSL::IsGLSL(const std::string& file)
+	bool GLSL2HLSL::IsGLSL(const std::string& file)
 	{
-		if (file.find("." + std::string(Settings::Instance().Project.GLSLVS_Extenstion)) != std::string::npos)
-			return 1;
-		if (file.find("." + std::string(Settings::Instance().Project.GLSLPS_Extenstion)) != std::string::npos)
-			return 2;
-		if (file.find("." + std::string(Settings::Instance().Project.GLSLGS_Extenstion)) != std::string::npos)
-			return 3;
+		size_t extLoc = file.find_last_of('.');
+		std::string ext = file.substr(extLoc+1);
 
-		return 0;
+		std::vector<std::string>& exts = Settings::Instance().General.GLSLExtensions;
+		return std::count(exts.begin(), exts.end(), ext) > 0;
 	}
 
 	std::string GLSL2HLSL::m_exec(const std::string& cmd)

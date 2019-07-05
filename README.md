@@ -168,33 +168,30 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - find and replace in code editor
- - right click in code editor
- - when adding a shader pass, decompile the shader and detect the input layout + input variables
- - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
- - recompile the shader after we change shader path in a shader pass
- - right click on an empty objects panel should open a context menu
- - ctrl + click -> select multiple items
- - bounding box around selected item + possible resize points on the bounding box
- - polished gizmo
- - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline after changing anything in the project
- - cubemap preview
- - click on cubemap, texture and render texture preview should open a preview window
- - fix selecting items when user has a skybox in scene
- - use pointers to RTs in pipe::ShaderPass instead of names
  - remember collapsed items in a project
- - remember focused window in workspace.dat (worked before updating my imgui/docking clone)
- - ability to change warning, message and error colors
+ - fix selecting items (when user has a skybox in scene (check the SSAO example too))
+ - right click on an empty objects panel should open a context menu
+ - polished gizmo
+ - bounding box around selected item + possible resize points on the bounding box
+ - ctrl + click -> select multiple items
+ - add "Advanced" menu that allows user to modify (at least some) system variables while taking screenshot/video
  - program crashes on invalid input layout
  - ability to set SHADERed as a defult program for a *.sprj extension files
- - improve the overall code (enum for shader type, etc...)
+ - cubemap preview
+ - click on cubemap, audio, texture and render texture preview should open a preview window
+ - recompile the shader after we change shader path in a shader pass
+ - when adding a shader pass, decompile the shader and detect the input layout + input variables
  - when loading a texture it might be loaded several times if bound to several shader passes (????)
- - use an icon font instead of buttons like "U", "D", etc...
- - add an option to disable certain shader pass
- - toolbar (a bar with all the important tools (icons))
  - indent controls after fps in the status bar - bad UX and UI
- - remove glsl file extensions from options (just detect where the shader is being used)
- - add ability to modify (at least some) system variables while taking screenshot/video
+ - ability to change warning, message and error text colors
+ - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
+ - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
+ - use an icon font instead of buttons like "U", "D", etc...
+ - toolbar (a bar with all the important tools (icons))
+ - add an option to disable certain shader pass
+ - find and replace in code editor
+ - right click in code editor
+ - improve the overall code (enum for shader type, etc...)
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download

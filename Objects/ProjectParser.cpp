@@ -46,9 +46,6 @@ namespace ed
 		m_pipe->Clear();
 		m_objects->Clear();
 
-		strcpy(Settings::Instance().Project.GLSLVS_Extenstion, "vert");
-		strcpy(Settings::Instance().Project.GLSLPS_Extenstion, "frag");
-		strcpy(Settings::Instance().Project.GLSLGS_Extenstion, "geom");
 		Settings::Instance().Project.FPCamera = false;
 		Settings::Instance().Project.ClearColor = ml::Color(0, 0, 0, 0);
 
@@ -652,16 +649,6 @@ namespace ed
 					}
 
 				}
-				else if (type == "extension") {
-					std::string stage = settingItem.attribute("stage").as_string();
-
-					if (stage == "vertex")
-						strcpy(Settings::Instance().Project.GLSLVS_Extenstion, settingItem.text().get());
-					if (stage == "pixel")
-						strcpy(Settings::Instance().Project.GLSLPS_Extenstion, settingItem.text().get());
-					if (stage == "geometry")
-						strcpy(Settings::Instance().Project.GLSLGS_Extenstion, settingItem.text().get());
-				}
 				else if (type == "clearcolor") {
 					if (!settingItem.attribute("r").empty())
 						Settings::Instance().Project.ClearColor.R = settingItem.attribute("r").as_uint();
@@ -709,15 +696,15 @@ namespace ed
 				std::string vs = proj + std::string(passData->VSPath);
 				std::string ps = proj + std::string(passData->PSPath);
 
-				std::string vsExt = ed::GLSL2HLSL::IsGLSL(vs) ? Settings::Instance().Project.GLSLVS_Extenstion : "hlsl";
-				std::string psExt = ed::GLSL2HLSL::IsGLSL(ps) ? Settings::Instance().Project.GLSLPS_Extenstion : "hlsl";
+				std::string vsExt = ed::GLSL2HLSL::IsGLSL(vs) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
+				std::string psExt = ed::GLSL2HLSL::IsGLSL(ps) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
 
 				CopyFileA(vs.c_str(), (shadersDir + "\\" + passItem->Name + "VS." + vsExt).c_str(), false);
 				CopyFileA(ps.c_str(), (shadersDir + "\\" + passItem->Name + "PS." + psExt).c_str(), false);
 
 				if (passData->GSUsed) {
 					std::string gs = proj + std::string(passData->GSPath);
-					std::string gsExt = ed::GLSL2HLSL::IsGLSL(gs) ? Settings::Instance().Project.GLSLGS_Extenstion : "hlsl";
+					std::string gsExt = ed::GLSL2HLSL::IsGLSL(gs) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
 					CopyFileA(gs.c_str(), (shadersDir + "\\" + passItem->Name + "GS." + gsExt).c_str(), false);
 				}
 			}
@@ -747,7 +734,7 @@ namespace ed
 			pugi::xml_node vsNode = passNode.append_child("shader");
 			std::string relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->VSPath));
 			if (copyFiles) {
-				std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->VSPath) ? Settings::Instance().Project.GLSLVS_Extenstion : "hlsl";
+				std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->VSPath) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
 				relativePath = "shaders\\" + std::string(passItem->Name) + "VS." +vsExt;
 			}
 
@@ -773,7 +760,7 @@ namespace ed
 			pugi::xml_node psNode = passNode.append_child("shader");
 			relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->PSPath));
 			if (copyFiles) {
-				std::string psExt = ed::GLSL2HLSL::IsGLSL(passData->PSPath) ? Settings::Instance().Project.GLSLPS_Extenstion : "hlsl";
+				std::string psExt = ed::GLSL2HLSL::IsGLSL(passData->PSPath) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
 				relativePath = "shaders\\" + std::string(passItem->Name) + "PS." + psExt;
 			}
 
@@ -787,7 +774,7 @@ namespace ed
 				pugi::xml_node gsNode = passNode.append_child("shader");
 				relativePath = GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '\\') ? "" : "\\") + std::string(passData->GSPath));
 				if (copyFiles) {
-					std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->GSPath) ? Settings::Instance().Project.GLSLGS_Extenstion : "hlsl";
+					std::string vsExt = ed::GLSL2HLSL::IsGLSL(passData->GSPath) ? Settings::Instance().General.GLSLExtensions[0] : "hlsl";
 					relativePath = "shaders\\" + std::string(passItem->Name) + "GS.hlsl";
 				}
 
@@ -1080,21 +1067,6 @@ namespace ed
 					camNode.append_child("rotationY").text().set(rota.y);
 					camNode.append_child("rotationZ").text().set(rota.z);
 				}
-			}
-
-			// extensions
-			{
-				pugi::xml_node extNodeVS = settingsNode.append_child("extension");
-				extNodeVS.append_attribute("stage").set_value("vertex");
-				extNodeVS.text().set(Settings::Instance().Project.GLSLVS_Extenstion);
-
-				pugi::xml_node extNodePS = settingsNode.append_child("extension");
-				extNodePS.append_attribute("stage").set_value("pixel");
-				extNodePS.text().set(Settings::Instance().Project.GLSLPS_Extenstion);
-
-				pugi::xml_node extNodeGS = settingsNode.append_child("extension");
-				extNodeGS.append_attribute("stage").set_value("geometry");
-				extNodeGS.text().set(Settings::Instance().Project.GLSLGS_Extenstion);
 			}
 
 			// clear color

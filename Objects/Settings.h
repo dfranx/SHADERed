@@ -31,6 +31,7 @@ namespace ed
 			char Font[256];
 			int FontSize;
 			bool AutoScale;
+			std::vector<std::string> GLSLExtensions;
 		} General;
 
 		struct strEditor {
@@ -59,9 +60,6 @@ namespace ed
 
 		struct strProject {
 			bool FPCamera;
-			char GLSLVS_Extenstion[12];
-			char GLSLPS_Extenstion[12];
-			char GLSLGS_Extenstion[12];
 			ml::Color ClearColor;
 		} Project;
 
@@ -70,5 +68,8 @@ namespace ed
 			static Settings ret;
 			return ret;
 		}
+
+	private:
+		void m_parseGLSLExt(const std::string& str);
 	};
 }

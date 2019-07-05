@@ -138,9 +138,9 @@ part of a preview window or use shortcut to deselect an item.
 
 ### GLSL
 You don't have to do anything special to write GLSL shaders. Just make sure that your
-shader files end with the specific extension (.vert for vertex, .frag for fragment and
-.geom for geometry shaders &rightarrow; these can be changed in options and are a located
-under project tab). GLSL shaders have to have this code at the beginning of each shader:
+shader files end with the specific extension (.glsl, .vert, .frag, .geom &rightarrow;
+these can be changed in options and are a located under "general" tab). GLSL shaders
+have to have this code at the beginning of each shader:
 ```GLSL
 #version 400
 #extension GL_ARB_separate_shader_objects : enable

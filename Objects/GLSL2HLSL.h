@@ -7,8 +7,9 @@ namespace ed
 	class GLSL2HLSL
 	{
 	public:
-		static std::string Transcompile(const std::string& filename, const std::string& entry, ml::Logger* log);
-		static int IsGLSL(const std::string& file);
+		/* shaderType = { 0 -> vertex, 1 -> pixel, 2 -> geometry } */
+		static std::string Transcompile(const std::string& filename, int shaderType, const std::string& entry, ml::Logger* log);
+		static bool IsGLSL(const std::string& file);
 
 	private:
 		static std::string m_exec(const std::string& cmd);

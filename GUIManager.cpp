@@ -454,9 +454,6 @@ namespace ed
 				std::string oldFile = m_data->Parser.GetOpenedFile();
 
 				if (m_selectedTemplate == "?empty") {
-						strcpy(Settings::Instance().Project.GLSLVS_Extenstion, "vert");
-						strcpy(Settings::Instance().Project.GLSLPS_Extenstion, "frag");
-						strcpy(Settings::Instance().Project.GLSLGS_Extenstion, "geom");
 						Settings::Instance().Project.FPCamera = false;
 						Settings::Instance().Project.ClearColor = ml::Color(0, 0, 0, 0);
 

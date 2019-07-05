@@ -311,7 +311,7 @@ namespace ed
 				if (!GLSL2HLSL::IsGLSL(shader->PSPath)) // HLSL
 					psContent = m_project->LoadProjectFile(shader->PSPath);
 				else {// GLSL
-					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), shader->PSEntry, m_wnd->GetLogger());
+					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, m_wnd->GetLogger());
 					psEntry = "main";
 				}
 
@@ -322,7 +322,7 @@ namespace ed
 				if (!GLSL2HLSL::IsGLSL(shader->VSPath)) // HLSL
 					vsContent = m_project->LoadProjectFile(shader->VSPath);
 				else { // GLSL
-					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), shader->VSEntry, m_wnd->GetLogger());
+					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, m_wnd->GetLogger());
 					vsEntry = "main";
 				}
 
@@ -341,7 +341,7 @@ namespace ed
 					if (!GLSL2HLSL::IsGLSL(shader->GSPath)) // HLSL
 						gsContent = m_project->LoadProjectFile(shader->GSPath);
 					else { // GLSL
-						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), shader->GSEntry, m_wnd->GetLogger());
+						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, m_wnd->GetLogger());
 						gsEntry = "main";
 					}
 
@@ -554,8 +554,6 @@ namespace ed
 				for (auto ilElement : inputLayoutElements)
 					inputLayout->Add(ilElement.SemanticName, ilElement.SemanticIndex, ilElement.Format, ilElement.AlignedByteOffset, ilElement.InputSlot, ilElement.InputSlotClass, ilElement.InstanceDataStepRate);
 
-				bool isGLSL = GLSL2HLSL::IsGLSL(data->VSPath);
-
 				// bind the input layout
 				data->VSInputLayout.Reset();
 				if (data->VSInputLayout.GetInputElements().size() > 0)
@@ -569,10 +567,10 @@ namespace ed
 
 				// vertex shader
 				m_msgs->CurrentItemType = 0;
-				if (!isGLSL) // HLSL
+				if (!GLSL2HLSL::IsGLSL(data->VSPath)) // HLSL
 					vsContent = m_project->LoadProjectFile(data->VSPath);
 				else { // GLSL
-					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), data->VSEntry, m_wnd->GetLogger());
+					vsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, m_wnd->GetLogger());
 					vsEntry = "main";
 				}
 
@@ -583,7 +581,7 @@ namespace ed
 				if (!GLSL2HLSL::IsGLSL(data->PSPath)) // HLSL
 					psContent = m_project->LoadProjectFile(data->PSPath);
 				else { // GLSL
-					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), data->PSEntry, m_wnd->GetLogger());
+					psContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, m_wnd->GetLogger());
 					psEntry = "main";
 				}
 
@@ -597,7 +595,7 @@ namespace ed
 					if (!GLSL2HLSL::IsGLSL(data->GSPath)) // HLSL
 						gsContent = m_project->LoadProjectFile(data->GSPath);
 					else { // GLSL
-						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), data->GSEntry, m_wnd->GetLogger());
+						gsContent = ed::GLSL2HLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, m_wnd->GetLogger());
 						gsEntry = "main";
 					}
 

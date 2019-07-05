@@ -77,8 +77,5 @@
 			<rotationY>19</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
-		<extension stage="vertex">vert</extension>
-		<extension stage="pixel">frag</extension>
-		<extension stage="geometry">geom</extension>
 	</settings>
 </project>

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 
 namespace ed
@@ -35,6 +36,7 @@ namespace ed
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 15);
+		m_parseGLSLExt(ini.Get("general", "glslext", "glsl vert frag geom"));
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "inconsolata.ttf").c_str());
@@ -76,6 +78,14 @@ namespace ed
 		ini << "fontsize=" << General.FontSize << std::endl;
 		ini << "autoscale=" << General.AutoScale << std::endl;
 		ini << "uiscale=" << DPIScale << std::endl;
+		
+		ini << "glslext=";
+		for (int i = 0; i < General.GLSLExtensions.size(); i++) {
+			ini << General.GLSLExtensions[i];
+			if (i != General.GLSLExtensions.size() - 1)
+				ini << " ";
+		}
+		ini << std::endl;
 
 		ini << "[preview]" << std::endl;
 		ini << "fxaa=" << Preview.FXAA << std::endl;
@@ -99,5 +109,19 @@ namespace ed
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 
+	}
+
+	void Settings::m_parseGLSLExt(const std::string& str)
+	{
+		std::stringstream ss(str);
+		std::string token;
+
+		while (ss >> token)
+		{
+			if (token.size() < 1)
+				break;
+
+			General.GLSLExtensions.push_back(token);
+		}
 	}
 }
