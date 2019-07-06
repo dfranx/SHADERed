@@ -238,6 +238,7 @@ namespace ed
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 
 						m_data->Parser.Open(file);
 						
@@ -462,6 +463,7 @@ namespace ed
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						m_data->Pipeline.New(false);
 
 						SetWindowTextA(m_wnd->GetWindowHandle(), "SHADERed");
@@ -473,6 +475,7 @@ namespace ed
 					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 					((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
 					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 					m_data->Pipeline.New();
 
 					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
@@ -488,6 +491,7 @@ namespace ed
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						m_data->Parser.Open(oldFile);
 
 					}
@@ -748,6 +752,7 @@ namespace ed
 			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 
 			m_data->Parser.Open(file);
 
@@ -788,6 +793,7 @@ namespace ed
 				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 				((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+				((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 
 				m_data->Parser.Open(file);
 			}
@@ -798,6 +804,7 @@ namespace ed
 			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {

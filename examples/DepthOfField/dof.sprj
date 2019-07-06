@@ -347,16 +347,6 @@
 		</object>
 	</objects>
 	<settings>
-		<entry type="file" name="Background" shader="vs" />
-		<entry type="file" name="Background" shader="ps" />
-		<entry type="file" name="Objects" shader="vs" />
-		<entry type="file" name="Objects" shader="ps" />
-		<entry type="file" name="Downsample" shader="vs" />
-		<entry type="file" name="Downsample" shader="ps" />
-		<entry type="file" name="Gaussian1" shader="ps" />
-		<entry type="file" name="Gaussian2" shader="ps" />
-		<entry type="file" name="DOF1" shader="ps" />
-		<entry type="file" name="DOF2" shader="ps" />
 		<entry type="pinned" name="far_clamp" from="ps" owner="Objects" />
 		<entry type="pinned" name="d_focus" from="ps" owner="Objects" />
 		<entry type="pinned" name="d_far" from="ps" owner="Objects" />
@@ -367,5 +357,6 @@
 			<rotationY>19</rotationY>
 			<rotationZ>360</rotationZ>
 		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
 	</settings>
 </project>

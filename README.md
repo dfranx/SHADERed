@@ -168,7 +168,6 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - remember collapsed items in a project
  - fix selecting items (when user has a skybox in scene (check the SSAO example too))
  - right click on an empty objects panel should open a context menu
  - polished gizmo

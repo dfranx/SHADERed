@@ -16,6 +16,11 @@ namespace ed
 
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
+		
+		inline void Reset() { m_expandList.clear(); }
+
+		inline std::vector<pipe::ShaderPass*>& GetCollapsedItems() { return m_expandList; }
+		inline void Collapse(pipe::ShaderPass* data) { m_expandList.push_back(data); }
 
 	private:
 		// for popups

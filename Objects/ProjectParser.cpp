@@ -9,6 +9,7 @@
 
 #include "../UI/PinnedUI.h"
 #include "../UI/PropertyUI.h"
+#include "../UI/PipelineUI.h"
 #include "../UI/CodeEditorUI.h"
 
 #include <fstream>
@@ -62,6 +63,13 @@ namespace ed
 			// get pass name
 			if (!passNode.attribute("name").empty())
 				strcpy(name, passNode.attribute("name").as_string());
+
+			// check if it should be collapsed
+			if (!passNode.attribute("collapsed").empty()) {
+				bool cs = passNode.attribute("collapsed").as_bool();
+				if (cs)
+					((PipelineUI*)m_ui->Get(ViewID::Pipeline))->Collapse(data);
+			}
 
 			// get render textures
 			int rtCur = 0;
@@ -683,6 +691,8 @@ namespace ed
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
 		std::vector<PipelineItem*> passItems = m_pipe->GetList();
+		std::vector<pipe::ShaderPass*> collapsedSP = ((PipelineUI*)m_ui->Get(ViewID::Pipeline))->GetCollapsedItems();
+
 
 		std::string shadersDir = m_projectPath + "\\shaders";
 		if (copyFiles) {
@@ -723,6 +733,14 @@ namespace ed
 			pugi::xml_node passNode = pipelineNode.append_child("pass");
 			passNode.append_attribute("name").set_value(passItem->Name);
 
+			/* collapsed="true" attribute */
+			for (int i = 0; i < collapsedSP.size(); i++)
+				if (collapsedSP[i] == passData) {
+					passNode.append_attribute("collapsed").set_value(true);
+					break;
+				}
+
+			/* render textures */
 			for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
 				if (passData->RenderTexture[i][0] == 0)
 					break;
