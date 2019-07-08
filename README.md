@@ -168,7 +168,6 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - right click on an empty objects/pipeline panel should open a context menu
  - polished gizmo
  - bounding box around selected item + possible resize points on the bounding box
  - ctrl + click -> select multiple items

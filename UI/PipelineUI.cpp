@@ -23,6 +23,9 @@ namespace ed
 	void PipelineUI::Update(float delta)
 	{
 		std::vector<ed::PipelineItem*>& items = m_data->Pipeline.GetList();
+		
+		ImVec2 containerSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
+		ImGui::BeginChild("##object_scroll_container", containerSize);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		for (int i = 0; i < items.size(); i++) {
@@ -55,6 +58,13 @@ namespace ed
 		}
 		ImGui::PopStyleVar();
 
+		ImGui::EndChild();
+
+		if (!m_itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_pipeline")) {
+			if (ImGui::Selectable("Create Shader Pass")) { m_ui->CreateNewShaderPass(); }
+			ImGui::EndPopup();
+		}
+		m_itemMenuOpened = false;
 
 		// various popups
 		if (m_isLayoutOpened) {
@@ -169,6 +179,7 @@ namespace ed
 		bool ret = false; // false == we didnt delete an item
 
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
+			m_itemMenuOpened = true;
 			if (items[index]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);

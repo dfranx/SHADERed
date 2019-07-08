@@ -39,6 +39,10 @@ namespace ed
 		m_performanceMode = false;
 		m_perfModeFake = false;
 		m_fontNeedsUpdate = false;
+		m_isCreateItemPopupOpened = false;
+		m_isCreateRTOpened = false;
+		m_isNewProjectPopupOpened = false;
+		m_isAboutOpen = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -206,7 +210,6 @@ namespace ed
 
 
 		// menu
-		static bool m_isCreateItemPopupOpened = false, m_isCreateRTOpened = false, m_isNewProjectPopupOpened = false, m_isAboutOpen = false;
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::BeginMenu("New")) {
@@ -280,27 +283,16 @@ namespace ed
 				if (ImGui::MenuItem("Render", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
 					m_savePreviewPopupOpened = true;
 				if (ImGui::BeginMenu("Create")) {
-					if (ImGui::MenuItem("Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str())) {
-						m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
-						m_isCreateItemPopupOpened = true;
-					}
-					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str())) {
-						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-						if (!file.empty())
-							m_data->Objects.CreateTexture(file);
-					}
-					if (ImGui::MenuItem("Cube Map", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str())) {
-						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-						if (!file.empty())
-							m_data->Objects.CreateTexture(file, true);
-					}
-					if (ImGui::MenuItem("Audio", KeyboardShortcuts::Instance().GetString("Project.NewAudio").c_str())) {
-						std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
-						if (!file.empty())
-							m_data->Objects.CreateAudio(file);
-					}
+					if (ImGui::MenuItem("Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str()))
+						this->CreateNewShaderPass();
+					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str()))
+						this->CreateNewTexture();
+					if (ImGui::MenuItem("Cubemap", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str()))
+						this->CreateNewCubemap();
+					if (ImGui::MenuItem("Audio", KeyboardShortcuts::Instance().GetString("Project.NewAudio").c_str()))
+						this->CreateNewAudio();
 					if (ImGui::MenuItem("Render Texture", KeyboardShortcuts::Instance().GetString("Project.NewRenderTexture").c_str()))
-						m_isCreateRTOpened = true;
+						this->CreateNewRenderTexture();
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
@@ -765,6 +757,26 @@ namespace ed
 		return ret;
 	}
 
+	void GUIManager::CreateNewShaderPass() {
+		m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
+		m_isCreateItemPopupOpened = true;
+	}
+	void GUIManager::CreateNewTexture() {
+		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+		if (!file.empty())
+			m_data->Objects.CreateTexture(file);
+	}
+	void GUIManager::CreateNewCubemap() {
+		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+		if (!file.empty())
+			m_data->Objects.CreateTexture(file, true);
+	}
+	void GUIManager::CreateNewAudio() {
+		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
+		if (!file.empty())
+			m_data->Objects.CreateAudio(file);
+	}
+
 	void GUIManager::m_setupShortcuts()
 	{
 		// PROJECT
@@ -808,26 +820,19 @@ namespace ed
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {
-			m_isCreateRTOpened = true;
+			CreateNewRenderTexture();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
-			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-			if (!file.empty())
-				m_data->Objects.CreateTexture(file, true);
+			CreateNewCubemap();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewTexture", [=]() {
-			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-			if (!file.empty())
-				m_data->Objects.CreateTexture(file);
+			CreateNewTexture();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewAudio", [=]() {
-			std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
-			if (!file.empty())
-				m_data->Objects.CreateAudio(file);
+			CreateNewAudio();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewShaderPass", [=]() {
-			m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
-			m_isCreateItemPopupOpened = true;
+			CreateNewShaderPass();
 		});
 
 

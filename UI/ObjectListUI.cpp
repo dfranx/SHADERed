@@ -128,15 +128,13 @@ namespace ed
 
 		ImGui::EndChild();
 
-		/*
-		TODO:
 		if (!itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_objects")) {
-			if (ImGui::Selectable("Create Texture")) { }
-			if (ImGui::Selectable("Create Cube Map")) {}
-			if (ImGui::Selectable("Create Render Texture")) { }
+			if (ImGui::Selectable("Create Texture")) { m_ui->CreateNewTexture(); }
+			if (ImGui::Selectable("Create Cubemap")) { m_ui->CreateNewCubemap(); }
+			if (ImGui::Selectable("Create Render Texture")) { m_ui->CreateNewRenderTexture(); }
+			if (ImGui::Selectable("Create Audio")) { m_ui->CreateNewAudio(); }
 
 			ImGui::EndPopup();
 		}
-		*/
 	}
 }

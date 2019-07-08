@@ -37,6 +37,12 @@ namespace ed
 		void SaveSettings();
 		void LoadSettings();
 
+		void CreateNewShaderPass();
+		void CreateNewTexture();
+		void CreateNewCubemap();
+		void CreateNewAudio();
+		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
+
 	private:
 		void m_setupShortcuts();
 
@@ -52,6 +58,8 @@ namespace ed
 		bool m_cachedCustomFont;
 		bool m_fontNeedsUpdate;
 		float m_cacheUIScale;
+
+		bool m_isCreateItemPopupOpened, m_isCreateRTOpened, m_isNewProjectPopupOpened, m_isAboutOpen;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
@@ -71,7 +79,6 @@ namespace ed
 
 		ml::Window* m_wnd;
 		InterfaceManager* m_data;
-		bool m_isCreateItemPopupOpened, m_isCreateRTOpened;
 
 		bool m_saveAsProject();
 	};

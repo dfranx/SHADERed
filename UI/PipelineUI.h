@@ -12,6 +12,7 @@ namespace ed
 			UIView(ui, objects, name, visible), m_VarManagerSID(0), m_isChangeVarsOpened(false),
 			m_isCreateViewOpened(false), m_isLayoutOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
 			m_createUI(ui, objects) {
+			m_itemMenuOpened = false;
 		}
 
 		virtual void OnEvent(const ml::Event& e);
@@ -28,6 +29,7 @@ namespace ed
 		bool m_isVarManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
+		bool m_itemMenuOpened;
 		int m_VarManagerSID; // do we edit the variables for vertex, pixel or geometry shader? (in shader pass)
 
 		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed
