@@ -385,15 +385,13 @@ namespace ed
 			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle)
 				return;
 
-			world = DirectX::XMMatrixScaling(geo->Scale.x, geo->Scale.y, geo->Scale.z) *
-				DirectX::XMMatrixRotationRollPitchYaw(geo->Rotation.x, geo->Rotation.y, geo->Rotation.z) *
+			world = DirectX::XMMatrixRotationRollPitchYaw(geo->Rotation.x, geo->Rotation.y, geo->Rotation.z) *
 				DirectX::XMMatrixTranslation(geo->Position.x, geo->Position.y, geo->Position.z);
 		}
 		else if (item->Type == PipelineItem::ItemType::OBJModel) {
 			pipe::OBJModel* obj = (pipe::OBJModel*)item->Data;
 			
-			world = DirectX::XMMatrixScaling(obj->Scale.x, obj->Scale.y, obj->Scale.z) *
-				DirectX::XMMatrixRotationRollPitchYaw(obj->Rotation.x, obj->Rotation.y, obj->Rotation.z) *
+			world = DirectX::XMMatrixRotationRollPitchYaw(obj->Rotation.x, obj->Rotation.y, obj->Rotation.z) *
 				DirectX::XMMatrixTranslation(obj->Position.x, obj->Position.y, obj->Position.z);
 		}
 		DirectX::XMMATRIX invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(world), world);
@@ -407,13 +405,13 @@ namespace ed
 			if (geo->Type == pipe::GeometryItem::GeometryType::Cube) {
 				DirectX::BoundingBox iBox;
 				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
-				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x / 2, geo->Size.y / 2, geo->Size.z / 2);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x * geo->Scale.x / 2, geo->Size.y * geo->Scale.y / 2, geo->Size.z * geo->Scale.z / 2);
 
 				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
 					myDist = std::numeric_limits<float>::infinity();
 			}
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
-				float size = geo->Size.x;
+				float size = geo->Size.x * geo->Scale.x;
 				float rightOffs = size / tan(DirectX::XMConvertToRadians(30));
 
 				DirectX::XMVECTOR v0 = DirectX::XMVectorSet(0, size, 0, 0);
@@ -425,7 +423,7 @@ namespace ed
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Sphere) {
 				DirectX::BoundingSphere sphere;
 				sphere.Center = DirectX::XMFLOAT3(0, 0, 0);
-				sphere.Radius = geo->Size.x;
+				sphere.Radius = geo->Size.x * geo->Scale.x;
 
 				if (!sphere.Intersects(rayOrigin, rayDir, myDist))
 					myDist = std::numeric_limits<float>::infinity();
@@ -433,7 +431,7 @@ namespace ed
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Plane) {
 				DirectX::BoundingBox iBox;
 				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
-				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x / 2, geo->Size.y / 2, 0.0001f);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x * geo->Scale.x / 2, geo->Size.y * geo->Scale.y / 2, 0.0001f);
 
 				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
 					myDist = std::numeric_limits<float>::infinity();
@@ -441,7 +439,7 @@ namespace ed
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
 				DirectX::BoundingBox iBox;
 				iBox.Center = DirectX::XMFLOAT3(0, 0, 0);
-				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x, geo->Size.y, 0.0001f);
+				iBox.Extents = DirectX::XMFLOAT3(geo->Size.x * geo->Scale.x, geo->Size.y * geo->Scale.y, 0.0001f);
 
 				if (!iBox.Intersects(rayOrigin, rayDir, myDist))
 					myDist = std::numeric_limits<float>::infinity();
@@ -468,9 +466,9 @@ namespace ed
 			DirectX::BoundingBox iBox;
 			iBox.Center = bounds.Center();
 			iBox.Extents = DirectX::XMFLOAT3(
-				std::abs(bounds.Max.x - bounds.Min.x) / 2,
-				std::abs(bounds.Max.y - bounds.Min.y) / 2,
-				std::abs(bounds.Max.z - bounds.Min.z) / 2
+				std::abs(bounds.Max.x - bounds.Min.x) * obj->Scale.x / 2,
+				std::abs(bounds.Max.y - bounds.Min.y) * obj->Scale.y / 2,
+				std::abs(bounds.Max.z - bounds.Min.z) * obj->Scale.z / 2
 			);
 
 			float triDist = std::numeric_limits<float>::infinity();
@@ -487,6 +485,7 @@ namespace ed
 						}
 					}
 				}
+				else myDist = triDist;
 			}
 		}
 

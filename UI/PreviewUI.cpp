@@ -226,7 +226,6 @@ namespace ed
 						if (settings.Preview.PropertyPick)
 							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
 						m_pick = item;
-
 						if (item != nullptr) {
 							if (item->Type == PipelineItem::ItemType::Geometry) {
 								pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
