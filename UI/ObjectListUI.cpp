@@ -18,6 +18,9 @@ namespace ed
 
 		ImGui::BeginChild("##object_scroll_container", containerSize);
 
+		if (items.size() == 0)
+			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
+
 		for (int i = 0; i < items.size(); i++) {
 			ml::ShaderResourceView* srv = m_data->Objects.GetSRV(items[i]);
 

@@ -27,6 +27,9 @@ namespace ed
 		ImVec2 containerSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		ImGui::BeginChild("##object_scroll_container", containerSize);
 
+		if (items.size() == 0)
+			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create a shader pass.");
+
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);

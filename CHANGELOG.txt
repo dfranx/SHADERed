@@ -7,6 +7,8 @@
 + fix an error that occurs when loading audio file on a PC with no audio output device
 + more flexible GLSL extension system
 + add "collapsed" attribute to shader passes in the project file
++ add context menu in ObjectListUI and PipelineUI
++ fix item picking
 ...
 
 [v1.0.2]
