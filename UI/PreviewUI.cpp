@@ -107,6 +107,14 @@ namespace ed
 	{
 		if (e.Type == ml::EventType::MouseButtonPress)
 			m_mouseContact = ImVec2(e.MouseButton.Position.x, e.MouseButton.Position.y);
+		else if (e.Type == ml::EventType::MouseMove && Settings::Instance().Preview.Gizmo && m_pick != nullptr) {
+			DirectX::XMFLOAT2 s = SystemVariableManager::Instance().GetMousePosition();
+			s.x *= m_lastSize.x;
+			s.y *= m_lastSize.y;
+			m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
+		}
+		else if (e.Type == ml::EventType::MouseButtonRelease && Settings::Instance().Preview.Gizmo)
+			m_gizmo.UnselectAxis();
 	}
 	void PreviewUI::Update(float delta)
 	{
@@ -173,7 +181,7 @@ namespace ed
 		ImGui::Image(view, imageSize);
 
 		m_hasFocus = ImGui::IsWindowFocused();
-
+		
 		// render the gizmo if necessary
 		if (m_pick != nullptr && settings.Preview.Gizmo) {
 			// recreate render texture if size is changed

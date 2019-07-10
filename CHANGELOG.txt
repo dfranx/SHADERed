@@ -9,6 +9,7 @@
 + add "collapsed" attribute to shader passes in the project file
 + add context menu in ObjectListUI and PipelineUI
 + fix item picking
++ better gizmo
 ...
 
 [v1.0.2]
