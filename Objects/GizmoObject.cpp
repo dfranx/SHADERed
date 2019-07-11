@@ -100,7 +100,6 @@ namespace ed
 		if (m_axisSelected != -1 && m_mode == 2) {
 			float deg = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2))) - m_clickDegrees;
 			float rad = deg / 180 * DirectX::XM_PI;
-			printf("%.3f %.3f\n", deg, rad);
 			switch (m_axisSelected) {
 			case 0: m_rota->x = rad; break;
 			case 1: m_rota->y = rad; break;

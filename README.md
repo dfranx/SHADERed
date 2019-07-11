@@ -169,6 +169,8 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
+ - show more info about ongoing transformations made by gizmo
+ - an option to snap gizmo transformations
  - bounding box around selected item + resize points on the bounding box
  - ctrl + click -> select multiple items
  - add "Advanced" menu that allows user to modify (at least some) system variables while taking screenshot/video

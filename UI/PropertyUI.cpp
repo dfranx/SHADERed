@@ -265,7 +265,9 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_georota", item->Rotation);
+					DirectX::XMFLOAT3 rotaDeg(DirectX::XMConvertToDegrees(item->Rotation.x), DirectX::XMConvertToDegrees(item->Rotation.y), DirectX::XMConvertToDegrees(item->Rotation.z));
+					UIHelper::CreateInputFloat3("##pui_georota", rotaDeg);
+					item->Rotation = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(rotaDeg.x), DirectX::XMConvertToRadians(rotaDeg.y), DirectX::XMConvertToRadians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -588,7 +590,9 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_georota", item->Rotation);
+					DirectX::XMFLOAT3 rotaDeg(DirectX::XMConvertToDegrees(item->Rotation.x), DirectX::XMConvertToDegrees(item->Rotation.y), DirectX::XMConvertToDegrees(item->Rotation.z));
+					UIHelper::CreateInputFloat3("##pui_georota", rotaDeg);
+					item->Rotation = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(rotaDeg.x), DirectX::XMConvertToRadians(rotaDeg.y), DirectX::XMConvertToRadians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 				}
