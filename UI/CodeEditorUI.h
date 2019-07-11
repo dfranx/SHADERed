@@ -15,6 +15,7 @@ namespace ed
 	{
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_selectedItem(-1) {
+			Settings& sets = Settings::Instance();
 			m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
 			m_fontFilename = Settings::Instance().Editor.Font;
 			m_fontSize = Settings::Instance().Editor.FontSize;

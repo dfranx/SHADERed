@@ -1,5 +1,6 @@
 #include "GizmoObject.h"
 #include "SystemVariableManager.h"
+#include "../Objects/DefaultState.h"
 #include <MoonLight/Base/GeometryFactory.h>
 #include <DirectXCollision.h>
 
@@ -56,6 +57,35 @@ float4 main(PSInput pin) : SV_TARGET
 {
 	return pin.Color;
 })";
+const char* GUI_VS_CODE = R"(
+cbuffer cbPerFrame : register(b0) {
+	float4x4 matWVP;
+};
+
+struct VSInput {
+	float3 Position : POSITION;
+};
+
+struct VSOutput {
+	float4 Position : SV_POSITION;
+};
+
+VSOutput main(VSInput vin) {
+	VSOutput vout = (VSOutput)0;
+	vout.Position = mul(float4(vin.Position, 1.0f), matWVP);
+	return vout;
+})";
+
+const char* GUI_PS_CODE = R"(
+struct PSInput
+{
+	float4 Position : SV_POSITION;
+};
+
+float4 main(PSInput pin) : SV_TARGET
+{
+	return float4(1,0.84313f,0, 0.51f);
+})";
 #define GIZMO_SCALE_FACTOR 7.5f
 #define GIZMO_HEIGHT 1.1f
 #define GIZMO_WIDTH 0.05f
@@ -66,15 +96,91 @@ float4 main(PSInput pin) : SV_TARGET
 
 namespace ed
 {
+	ml::Geometry::Vertex* CreateDegreeInfo(float degreesStart, float degreesEnd, size_t& count, size_t pointCount)
+	{
+		int x = 0, y = 0;
+		float radius = 115;
+
+		count = pointCount * 2 + 1;
+		ml::Geometry::Vertex* ret = new ml::Geometry::Vertex[count];
+
+		float degrees = degreesEnd - degreesStart;
+		if (degrees < 0) degrees += 360;
+
+		float step = DirectX::XMConvertToRadians(degrees) / pointCount;
+		float radStart = DirectX::XMConvertToRadians(degreesStart);
+
+		ret[0].Position = DirectX::XMFLOAT3(x + radius * sin(radStart), y + radius * cos(radStart), 0);
+		ret[1].Position = DirectX::XMFLOAT3(x + radius * sin(radStart+step), y + radius * cos(radStart + step), 0);
+		ret[2].Position = DirectX::XMFLOAT3(x, y, 0);
+
+		ret[0].UV = DirectX::XMFLOAT2(sin(0) * 0.5f + 0.5f, 1 - (cos(0) * 0.5f + 0.5f));
+		ret[1].UV = DirectX::XMFLOAT2(sin(step) * 0.5f + 0.5f, 1 - (cos(step) * 0.5f + 0.5f));
+		ret[2].UV = DirectX::XMFLOAT2(0.5f, 0.5f);
+
+		ret[0].Normal = DirectX::XMFLOAT3(0, 0, -1);
+		ret[1].Normal = DirectX::XMFLOAT3(0, 0, -1);
+		ret[2].Normal = DirectX::XMFLOAT3(0, 0, -1);
+
+		for (int i = 0; i < pointCount - 1; i++) {
+			float xVal = sin(radStart + step * (i + 2));
+			float yVal = cos(radStart + step * (i + 2));
+			ret[i * 2 + 3].Position = DirectX::XMFLOAT3(x + radius * xVal, y + radius * yVal, 0);
+			ret[i * 2 + 4].Position = DirectX::XMFLOAT3(x, y, 0);
+
+			ret[i * 2 + 3].UV = DirectX::XMFLOAT2(xVal * 0.5f + 0.5f, 1 - (yVal * 0.5f + 0.5f));
+			ret[i * 2 + 4].UV = DirectX::XMFLOAT2(0.5f, 0.5f);
+
+			ret[i * 2 + 3].Normal = DirectX::XMFLOAT3(0, 0, -1);
+			ret[i * 2 + 4].Normal = DirectX::XMFLOAT3(0, 0, -1);
+		}
+
+		return ret;
+	}
+	ml::Geometry CreateDegreeInfo(float degreesStart, float degreesEnd, ml::Window& wnd, size_t pointCount)
+	{
+		ml::Geometry ret;
+		size_t vertCount = 0;
+
+		ml::Geometry::Vertex* verts = CreateDegreeInfo(degreesStart, degreesEnd, vertCount, pointCount);
+		ret.Create(wnd, verts, vertCount);
+		delete[] verts;
+
+		return ret;
+	}
+
+
 	GizmoObject::GizmoObject(ml::Window* wnd) :
 		m_wnd(wnd),
-		m_axisSelected(-1),
+		m_axisSelected(-1), m_vw(-1), m_vh(-1),
 		m_mode(0)
 	{
 		m_vlayout.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
 		m_vlayout.Add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12);
 		m_vlayout.Add("COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 24);
 		m_vs.InputSignature = &m_vlayout;
+
+		m_uiInput.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
+		m_uiPS.LoadFromMemory(*wnd, GUI_PS_CODE, strlen(GUI_PS_CODE), "main");
+		m_uiVS.InputSignature = &m_uiInput;
+		m_uiVS.LoadFromMemory(*wnd, GUI_VS_CODE, strlen(GUI_VS_CODE), "main");
+		m_cbUI.Create(*wnd, &m_cbUIData, sizeof(CBDegreeUI));
+
+		m_degreeInfoUI = CreateDegreeInfo(45, 90, *wnd, 24);
+		
+		m_rasterState.Info.DepthClipEnable = false;
+		m_rasterState.Info.CullMode = D3D11_CULL_NONE;
+		m_rasterState.Create(*wnd);
+		m_ignoreDepth.Info.DepthEnable = false;
+		m_ignoreDepth.Info.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		m_ignoreDepth.Create(*wnd);
+		m_transparencyBlend.Info.IndependentBlendEnable = true;
+		m_transparencyBlend.Info.AlphaToCoverageEnable = true;
+		m_transparencyBlend.Info.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		m_transparencyBlend.Info.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		m_transparencyBlend.Info.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
+		m_transparencyBlend.Create(*wnd);
+
 
 		m_vs.LoadFromMemory(*m_wnd, GIZMO_VS_CODE, strlen(GIZMO_VS_CODE), "main");
 		m_ps.LoadFromMemory(*m_wnd, GIZMO_PS_CODE, strlen(GIZMO_PS_CODE), "main");
@@ -98,7 +204,24 @@ namespace ed
 	{
 		// handle dragging rotation controls
 		if (m_axisSelected != -1 && m_mode == 2) {
-			float deg = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2))) - m_clickDegrees;
+			// update UI cb
+			if (Settings::Instance().Preview.GizmoRotationUI) {
+				DirectX::XMMATRIX matProj = DirectX::XMMatrixOrthographicLH(m_vw, m_vh, 0.1f, 1000.0f);
+				DirectX::XMStoreFloat4x4(&m_cbUIData.matWVP, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationZ(DirectX::XM_PI) *
+					DirectX::XMMatrixRotationY(DirectX::XM_PI) *
+					matProj));
+				m_cbUI.Update(&m_cbUIData);
+			}
+
+			// rotate the object
+			float degNow = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2)));
+			float deg = degNow-m_clickDegrees;
+
+			if (Settings::Instance().Preview.GizmoRotationUI)
+				m_degreeInfoUI = CreateDegreeInfo(m_clickDegrees, degNow, *m_wnd, 24);
+
+			if (deg < 0) deg = 360 + deg;
+
 			float rad = deg / 180 * DirectX::XM_PI;
 			switch (m_axisSelected) {
 			case 0: m_rota->x = rad; break;
@@ -228,8 +351,12 @@ namespace ed
 			m_clickDepth = m_hoverDepth;
 			m_clickStart = m_hoverStart;
 
-			if (m_mode == 2)
+			if (m_mode == 2) {
 				m_clickDegrees = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2)));
+
+				if (Settings::Instance().Preview.GizmoRotationUI)
+					m_degreeInfoUI = CreateDegreeInfo(0, 0, *m_wnd, 24);
+			}
 		}
 
 		return m_axisSelected;
@@ -311,6 +438,25 @@ namespace ed
 
 		m_buffer.Bind();
 		m_wnd->Draw(m_verts.size());
+
+
+		// degree info UI
+		if (m_axisSelected != -1 && m_mode == 2 && Settings::Instance().Preview.GizmoRotationUI)
+		{
+			m_cbUI.BindVS(0);
+
+			m_ignoreDepth.Bind();
+			m_transparencyBlend.Bind();
+			m_rasterState.Bind();
+
+			m_wnd->SetTopology(ml::Topology::TriangleStrip);
+			m_wnd->SetInputLayout(m_uiInput);
+			m_uiPS.Bind();
+			m_uiVS.Bind();
+			m_degreeInfoUI.Draw();
+
+			DefaultState::Instance().Bind();
+		}
 	}
 	void GizmoObject::m_buildHandles()
 	{

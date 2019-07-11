@@ -487,6 +487,21 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_gizmo_pick", &settings->Preview.Gizmo);
 
+		if (!settings->Preview.Gizmo) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		/* SHOW GIZMO ROTATION UI: */
+		ImGui::Text("Show gizmo rotation UI: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_gizmo_rota", &settings->Preview.GizmoRotationUI);
+
+		if (!settings->Preview.Gizmo) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
 		/* PROP OPEN PICKED: */
 		ImGui::Text("Open picked item in property window: ");
 		ImGui::SameLine();

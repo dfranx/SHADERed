@@ -54,6 +54,7 @@ namespace ed
 		Preview.FXAA = ini.GetBoolean("preview", "fxaa", false);
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
 		Preview.Gizmo = ini.GetBoolean("preview", "gizmo", true);
+		Preview.GizmoRotationUI = ini.GetBoolean("preview", "gizmorotaui", true);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
 		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
@@ -91,6 +92,7 @@ namespace ed
 		ini << "fxaa=" << Preview.FXAA << std::endl;
 		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
 		ini << "gizmo=" << Preview.Gizmo << std::endl;
+		ini << "gizmorotaui=" << Preview.GizmoRotationUI << std::endl;
 		ini << "propertypick=" << Preview.PropertyPick << std::endl;
 		ini << "statusbar=" << Preview.StatusBar << std::endl;
 		ini << "fpslimit=" << Preview.FPSLimit << std::endl;

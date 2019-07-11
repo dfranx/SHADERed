@@ -1,8 +1,11 @@
 #pragma once
 #include <MoonLight/Base/Geometry.h>
+#include <MoonLight/Base/BlendState.h>
 #include <MoonLight/Base/PixelShader.h>
 #include <MoonLight/Base/VertexShader.h>
 #include <MoonLight/Base/ConstantBuffer.h>
+#include <MoonLight/Base/RasterizerState.h>
+#include <MoonLight/Base/DepthStencilState.h>
 #include <MoonLight/Model/OBJModel.h>
 
 namespace ed
@@ -46,6 +49,14 @@ namespace ed
 		int m_axisHovered;  // ^ same as here
 		int m_mode; // 0 = translation, 1 = scale, 2 = rotation
 
+		ml::Geometry m_degreeInfoUI;
+		ml::VertexInputLayout m_uiInput;
+		ml::PixelShader m_uiPS;
+		ml::VertexShader m_uiVS;
+		ml::DepthStencilState m_ignoreDepth;
+		ml::BlendState m_transparencyBlend;
+		ml::RasterizerState m_rasterState;
+
 		DirectX::XMFLOAT3 m_colors[3];
 		ml::OBJModel m_model;
 		std::vector<Vertex> m_verts;
@@ -53,6 +64,14 @@ namespace ed
 		ml::VertexBuffer<Vertex> m_buffer;
 		void m_buildHandles();
 
+		__declspec(align(16))
+			struct CBDegreeUI
+		{
+			DirectX::XMFLOAT4X4 matWVP;
+		} m_cbUIData;
+		ml::ConstantBuffer<CBDegreeUI> m_cbUI;
+
+		__declspec(align(16))
 		struct CBGizmo
 		{
 			DirectX::XMFLOAT4X4 matVP;

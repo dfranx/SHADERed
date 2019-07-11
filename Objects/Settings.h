@@ -53,6 +53,7 @@ namespace ed
 			bool FXAA;
 			bool SwitchLeftRightClick;
 			bool Gizmo;
+			bool GizmoRotationUI;
 			bool PropertyPick;
 			bool StatusBar;
 			int FPSLimit;

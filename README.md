@@ -148,7 +148,7 @@ Also feel free to contact me and suggest some missing feature you would like me 
 ## TODO
 There are also some features that I am looking to implement:
  - custom sampler states
- - more 3D model file formats (POSTPONED: waiting for OpenGL port)
+ - more 3D model file formats (postponed until OpenGL port)
  - multiple cameras
    - this feature would allow you to render same scene from multiple angles
  - shader variable pointers
@@ -169,9 +169,8 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - show more info about ongoing transformations made by gizmo
  - an option to snap gizmo transformations
- - bounding box around selected item + resize points on the bounding box
+ - bounding box around selected item (can be turned off in options)
  - ctrl + click -> select multiple items
  - add "Advanced" menu that allows user to modify (at least some) system variables while taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)

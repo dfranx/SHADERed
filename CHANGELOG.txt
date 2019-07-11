@@ -9,7 +9,9 @@
 + add "collapsed" attribute to shader passes in the project file
 + add context menu in ObjectListUI and PipelineUI
 + fix item picking
-+ better gizmo
++ better gizmo (different model for scale and rotation transforms, change color on hover, etc...)
++ show degrees (rather than radians) in PropertyUI for OBJModel and Geometry
++ show a wheel when rotating an object using GizmoObject
 ...
 
 [v1.0.2]
