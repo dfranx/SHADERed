@@ -54,6 +54,9 @@ namespace ed
 			bool SwitchLeftRightClick;
 			bool Gizmo;
 			bool GizmoRotationUI;
+			int GizmoSnapTranslation; // < 0 -> turned off, > 0 snap value
+			int GizmoSnapScale;
+			int GizmoSnapRotation;	// in degrees (0 == no snap)
 			bool PropertyPick;
 			bool StatusBar;
 			int FPSLimit;

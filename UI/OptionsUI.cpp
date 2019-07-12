@@ -497,6 +497,27 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_gizmo_rota", &settings->Preview.GizmoRotationUI);
 
+		/* GIZMO TRANSLATION SNAP: */
+		ImGui::Text("Gizmo translation snap: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputInt("##optp_transsnap", &settings->Preview.GizmoSnapTranslation, 1, 10);
+		ImGui::PopItemWidth();
+
+		/* GIZMO SCALE SNAP: */
+		ImGui::Text("Gizmo scale snap: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputInt("##optp_scalesnap", &settings->Preview.GizmoSnapScale, 1, 10);
+		ImGui::PopItemWidth();
+
+		/* GIZMO ROTATION SNAP: */
+		ImGui::Text("Gizmo rotation snap: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputInt("##optp_rotasnap", &settings->Preview.GizmoSnapRotation, 1, 10);
+		ImGui::PopItemWidth();
+
 		if (!settings->Preview.Gizmo) {
 			ImGui::PopStyleVar();
 			ImGui::PopItemFlag();
@@ -511,7 +532,7 @@ namespace ed
 		ImGui::Text("FPS limit: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
-		ImGui::InputInt("##opte_fpslimit", &settings->Preview.FPSLimit, 1, 10);
+		ImGui::InputInt("##optp_fpslimit", &settings->Preview.FPSLimit, 1, 10);
 		ImGui::PopItemWidth();
 	}
 	void OptionsUI::m_renderProject()

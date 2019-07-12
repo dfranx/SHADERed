@@ -162,14 +162,13 @@ There are also some features that I am looking to implement:
  - research tesselation and compute shaders and how to implement them
  - render your shader to a video file
  - support #include and macros
- - inspect render target output pixels (show RGB values on hover over pixel)
  - buffers read from file or built using in-app buffer editor
  - magnifier tool & pixel inspector
+ - duplicate objects
  - text geometry
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - an option to snap gizmo transformations
  - bounding box around selected item (can be turned off in options)
  - ctrl + click -> select multiple items
  - add "Advanced" menu that allows user to modify (at least some) system variables while taking screenshot/video

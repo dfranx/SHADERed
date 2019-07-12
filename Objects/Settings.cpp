@@ -55,6 +55,10 @@ namespace ed
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
 		Preview.Gizmo = ini.GetBoolean("preview", "gizmo", true);
 		Preview.GizmoRotationUI = ini.GetBoolean("preview", "gizmorotaui", true);
+		Preview.GizmoSnapTranslation = ini.GetInteger("preview", "gizmosnaptrans", 0);
+		Preview.GizmoSnapScale = ini.GetInteger("preview", "gizmosnapscale", 0);
+		Preview.GizmoSnapRotation = ini.GetInteger("preview", "gizmosnaprota", 0);
+		Preview.GizmoSnapTranslation = ini.GetInteger("preview", "gizmosnaptrans", 0);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
 		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
@@ -93,6 +97,9 @@ namespace ed
 		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
 		ini << "gizmo=" << Preview.Gizmo << std::endl;
 		ini << "gizmorotaui=" << Preview.GizmoRotationUI << std::endl;
+		ini << "gizmosnaptrans=" << Preview.GizmoSnapTranslation << std::endl;
+		ini << "gizmosnapscale=" << Preview.GizmoSnapScale << std::endl;
+		ini << "gizmosnaprota=" << Preview.GizmoSnapRotation << std::endl;
 		ini << "propertypick=" << Preview.PropertyPick << std::endl;
 		ini << "statusbar=" << Preview.StatusBar << std::endl;
 		ini << "fpslimit=" << Preview.FPSLimit << std::endl;

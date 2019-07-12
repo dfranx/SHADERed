@@ -222,11 +222,30 @@ namespace ed
 
 			if (deg < 0) deg = 360 + deg;
 
-			float rad = deg / 180 * DirectX::XM_PI;
+			int snap = Settings::Instance().Preview.GizmoSnapRotation;
+			if (snap > 0)
+				m_tValue.x = (int)(deg / snap) * snap;
+			else
+				m_tValue.x = deg;
+
+
+			float rad = m_tValue.x / 180 * DirectX::XM_PI;
 			switch (m_axisSelected) {
-			case 0: m_rota->x = rad; break;
-			case 1: m_rota->y = rad; break;
-			case 2: m_rota->z = rad; break;
+			case 0:
+				m_rota->x = m_curValue.x + rad;
+				if (m_rota->x >= DirectX::XM_2PI)
+					m_rota->x -= (int)(m_rota->x / DirectX::XM_2PI) * DirectX::XM_2PI;
+				break;
+			case 1:
+				m_rota->y = m_curValue.y + rad;
+				if (m_rota->y >= DirectX::XM_2PI)
+					m_rota->y -= (int)(m_rota->y / DirectX::XM_2PI) * DirectX::XM_2PI;
+				break;
+			case 2:
+				m_rota->z = m_curValue.z + rad;
+				if (m_rota->z >= DirectX::XM_2PI)
+					m_rota->z -= (int)(m_rota->z / DirectX::XM_2PI) * DirectX::XM_2PI; 
+				break;
 			}
 		}
 
@@ -357,6 +376,13 @@ namespace ed
 				if (Settings::Instance().Preview.GizmoRotationUI)
 					m_degreeInfoUI = CreateDegreeInfo(0, 0, *m_wnd, 24);
 			}
+
+			switch (m_mode) {
+			case 0: m_curValue = *m_trans; break;
+			case 1: m_curValue = *m_scale; break;
+			case 2: m_curValue = *m_rota; break;
+			}
+			m_tValue = DirectX::XMFLOAT3(0, 0, 0);
 		}
 
 		return m_axisSelected;
@@ -401,17 +427,36 @@ namespace ed
 		float moveDist = -length * dotval * scale;
 
 		if (m_mode == 0) {
-			if (m_axisSelected == 0) m_trans->x += moveDist;
-			else if (m_axisSelected == 1) m_trans->y += moveDist;
-			else if (m_axisSelected == 2) m_trans->z += moveDist;
+			if (m_axisSelected == 0) m_tValue.x += moveDist;
+			else if (m_axisSelected == 1) m_tValue.y += moveDist;
+			else if (m_axisSelected == 2) m_tValue.z += moveDist;
+
+			int snap = Settings::Instance().Preview.GizmoSnapTranslation;
+			if (snap <= 0) {
+				m_trans->x = m_curValue.x + m_tValue.x;
+				m_trans->y = m_curValue.y + m_tValue.y;
+				m_trans->z = m_curValue.z + m_tValue.z;
+			} else {
+				m_trans->x = m_curValue.x + ((int)m_tValue.x / snap) * snap;
+				m_trans->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
+				m_trans->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
+			}
 		} else if (m_mode == 1) {
-			if (m_axisSelected == 0) m_scale->x += moveDist;
-			else if (m_axisSelected == 1) m_scale->y += moveDist;
-			else if (m_axisSelected == 2) m_scale->z += moveDist;
-		} else if (m_mode == 2) {
-			if (m_axisSelected == 0) m_rota->x += moveDist;
-			else if (m_axisSelected == 1) m_rota->y += moveDist;
-			else if (m_axisSelected == 2) m_rota->z += moveDist;
+			if (m_axisSelected == 0) m_tValue.x += moveDist;
+			else if (m_axisSelected == 1) m_tValue.y += moveDist;
+			else if (m_axisSelected == 2) m_tValue.z += moveDist;
+
+			int snap = Settings::Instance().Preview.GizmoSnapScale;
+			if (snap <= 0) {
+				m_scale->x = m_curValue.x + m_tValue.x;
+				m_scale->y = m_curValue.y + m_tValue.y;
+				m_scale->z = m_curValue.z + m_tValue.z;
+			}
+			else {
+				m_scale->x = m_curValue.x + ((int)m_tValue.x / snap) * snap;
+				m_scale->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
+				m_scale->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
+			}
 		}
 
 		m_clickStart = mouseVec;
