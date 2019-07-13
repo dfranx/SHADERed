@@ -10,6 +10,42 @@
 #define STATUSBAR_HEIGHT 25 * Settings::Instance().DPIScale
 #define BUTTON_SIZE 17 * Settings::Instance().DPIScale
 #define FPS_UPDATE_RATE 0.3f
+#define BOUNDING_BOX_PADDING 0.01f
+
+
+const char* BOX_VS_CODE = R"(
+cbuffer cbPerFrame : register(b0) {
+	float4x4 matWVP;
+	float3 color;
+};
+
+struct VSInput {
+	float3 Position : POSITION;
+};
+
+struct VSOutput {
+	float4 Position : SV_POSITION;
+	float3 Color : COLOR;
+};
+
+VSOutput main(VSInput vin) {
+	VSOutput vout = (VSOutput)0;
+	vout.Position = mul(float4(vin.Position, 1.0f), matWVP);
+	vout.Color = color;
+	return vout;
+})";
+
+const char* BOX_PS_CODE = R"(
+struct PSInput
+{
+	float4 Position : SV_POSITION;
+	float3 Color : COLOR;
+};
+
+float4 main(PSInput pin) : SV_TARGET
+{
+	return float4(pin.Color, 1.0f);
+})";
 
 namespace ed
 {
@@ -102,6 +138,19 @@ namespace ed
 		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
 			m_pick = nullptr;
 		});
+	}
+	void PreviewUI::m_setupBoundingBox() {
+		ml::Window* wnd = m_data->GetOwner();
+
+		m_boxInput.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
+		m_boxVS.InputSignature = &m_boxInput;
+
+		m_boxVS.LoadFromMemory(*wnd, BOX_VS_CODE, strlen(BOX_VS_CODE), "main");
+		m_boxPS.LoadFromMemory(*wnd, BOX_PS_CODE, strlen(BOX_PS_CODE), "main");
+
+		m_vbBoundingBox.Create(*wnd, 12 * 2);
+
+		m_cbBox.Create(*wnd, sizeof(m_cbBoxData));
 	}
 	void PreviewUI::OnEvent(const ml::Event & e)
 	{
@@ -198,6 +247,9 @@ namespace ed
 			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
 			m_gizmo.Render();
 
+			if (settings.Preview.BoundingBox)
+				m_renderBoundingBox();
+
 			m_data->GetOwner()->Bind();
 
 			ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
@@ -235,6 +287,8 @@ namespace ed
 							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
 						m_pick = item;
 						if (item != nullptr) {
+							if (Settings::Instance().Preview.BoundingBox)
+								m_buildBoundingBox(item);
 							if (item->Type == PipelineItem::ItemType::Geometry) {
 								pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
 								m_gizmo.SetTransform(&geo->Position, &geo->Scale, &geo->Rotation);
@@ -363,5 +417,97 @@ namespace ed
 				ImGui::Text("Pick: %s", m_pick->Name);
 			}
 		}
+	}
+	
+	void PreviewUI::m_buildBoundingBox(ed::PipelineItem* item)
+	{
+		DirectX::XMFLOAT3 minPos, maxPos;
+		if (item->Type == ed::PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* data = (pipe::GeometryItem*)item->Data;
+			DirectX::XMFLOAT3 size(data->Size.x, data->Size.y, data->Size.z);
+			DirectX::XMFLOAT3 pos = data->Position;
+
+			minPos = DirectX::XMFLOAT3(-size.x / 2, -size.y / 2, -size.z / 2);
+			maxPos = DirectX::XMFLOAT3(+size.x / 2, +size.y / 2, +size.z / 2);
+		} else if (item->Type == ed::PipelineItem::ItemType::OBJModel) {
+			pipe::OBJModel* model = (pipe::OBJModel*)item->Data;
+			ml::Bounds3D bounds = model->Mesh.GetBounds();
+			minPos = bounds.Min;
+			maxPos = bounds.Max;
+		}
+
+		minPos.x -= BOUNDING_BOX_PADDING; minPos.y -= BOUNDING_BOX_PADDING; minPos.z -= BOUNDING_BOX_PADDING;
+		maxPos.x += BOUNDING_BOX_PADDING; maxPos.y += BOUNDING_BOX_PADDING; maxPos.z += BOUNDING_BOX_PADDING;
+
+		std::vector<QuadVertex2D> verts = {
+			// back face
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, minPos.z, 0) },
+
+			// front face
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, maxPos.z, 0) },
+
+			// sides
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, minPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(minPos.x, maxPos.y, maxPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, minPos.z, 0) },
+			{ DirectX::XMFLOAT4(maxPos.x, maxPos.y, maxPos.z, 0) },
+		};
+		m_vbBoundingBox.Update(verts.data());
+
+		// calculate color for the bounding box
+		ml::Color clearClr = Settings::Instance().Project.ClearColor;
+		float avgClear = (((float)clearClr.R + clearClr.G + clearClr.B) / 3.0f) / 255.0f;
+		ImVec4 wndBg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+		float avgWndBg = (wndBg.x + wndBg.y + wndBg.z) / 3;
+		float clearAlpha = clearClr.A / 255.0f;
+		float color = avgClear * clearAlpha + avgWndBg * (1 - clearAlpha);
+		if (color >= 0.5f)
+			m_cbBoxData.color = DirectX::XMFLOAT3(0, 0, 0);
+		else
+			m_cbBoxData.color = DirectX::XMFLOAT3(1, 1, 1);
+	}
+	void PreviewUI::m_renderBoundingBox()
+	{
+		DirectX::XMVECTOR trans, scale;
+		if (m_pick->Type == ed::PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* data = (pipe::GeometryItem*)m_pick->Data;
+			scale = DirectX::XMLoadFloat3(&data->Scale);
+			trans = DirectX::XMLoadFloat3(&data->Position);
+		} else if (m_pick->Type == ed::PipelineItem::ItemType::OBJModel) {
+			pipe::OBJModel* data = (pipe::OBJModel*)m_pick->Data;
+			scale = DirectX::XMLoadFloat3(&data->Scale);
+			trans = DirectX::XMLoadFloat3(&data->Position);
+		}
+
+		DirectX::XMMATRIX matWorld = DirectX::XMMatrixScalingFromVector(scale) * DirectX::XMMatrixTranslationFromVector(trans);
+		DirectX::XMMATRIX matProj = matWorld * SystemVariableManager::Instance().GetViewMatrix() * SystemVariableManager::Instance().GetProjectionMatrix();
+		DirectX::XMStoreFloat4x4(&m_cbBoxData.matWVP, DirectX::XMMatrixTranspose(matProj));
+		m_cbBox.Update(&m_cbBoxData);
+
+		m_data->GetOwner()->SetTopology(ml::Topology::LineList);
+		m_boxVS.Bind();
+		m_boxPS.Bind();
+		m_data->GetOwner()->SetInputLayout(m_boxInput);
+		m_vbBoundingBox.Bind();
+		m_cbBox.BindVS();
+		m_data->GetOwner()->Draw(24);
 	}
 }

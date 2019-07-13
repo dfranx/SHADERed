@@ -13,6 +13,7 @@
 + show degrees (rather than radians) in PropertyUI for OBJModel and Geometry
 + show a wheel UI when rotating an object using GizmoObject
 + snap transformations with gizmo
++ bounding box
 ...
 
 [v1.0.2]

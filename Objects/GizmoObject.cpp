@@ -484,7 +484,6 @@ namespace ed
 		m_buffer.Bind();
 		m_wnd->Draw(m_verts.size());
 
-
 		// degree info UI
 		if (m_axisSelected != -1 && m_mode == 2 && Settings::Instance().Preview.GizmoRotationUI)
 		{

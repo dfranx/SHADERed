@@ -482,6 +482,11 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_status_bar", &settings->Preview.StatusBar);
 
+		/* SHOW BOUNDING BOX: */
+		ImGui::Text("Show bounding box: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_bbox", &settings->Preview.BoundingBox);
+
 		/* SHOW GIZMO: */
 		ImGui::Text("Show gizmo/3d manipulators: ");
 		ImGui::SameLine();

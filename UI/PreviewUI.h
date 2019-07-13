@@ -21,6 +21,7 @@ namespace ed
 			m_lastSize(-1, -1) {
 			m_setupShortcuts();
 			m_setupFXAA();
+			m_setupBoundingBox();
 			m_fpsLimit = m_elapsedTime = 0;
 			m_hasFocus = false;
 		}
@@ -36,6 +37,10 @@ namespace ed
 		void m_setupFXAA();
 		void m_fxaaCreateQuad(DirectX::XMFLOAT2 size);
 		void m_fxaaRenderQuad();
+
+		void m_setupBoundingBox();
+		void m_buildBoundingBox(ed::PipelineItem* item);
+		void m_renderBoundingBox();
 
 		ImVec2 m_mouseContact;
 		GizmoObject m_gizmo;
@@ -77,5 +82,18 @@ namespace ed
 
 		PipelineItem* m_pick;
 		int m_pickMode; // 0 = position, 1 = scale, 2 = rotation
+
+		// bounding box
+		ml::VertexShader m_boxVS;
+		ml::PixelShader m_boxPS;
+		ml::VertexInputLayout m_boxInput;
+		ml::VertexBuffer<QuadVertex2D> m_vbBoundingBox;
+		__declspec(align(16))
+			struct CBBoundingBox
+		{
+			DirectX::XMFLOAT4X4 matWVP;
+			DirectX::XMFLOAT3 color;
+		} m_cbBoxData;
+		ml::ConstantBuffer<CBBoundingBox> m_cbBox;
 	};
 }

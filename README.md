@@ -169,9 +169,8 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - bounding box around selected item (can be turned off in options)
  - ctrl + click -> select multiple items
- - add "Advanced" menu that allows user to modify (at least some) system variables while taking screenshot/video
+ - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)
  - ability to set SHADERed as a defult program for a *.sprj extension files
  - cubemap preview

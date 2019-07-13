@@ -52,6 +52,7 @@ namespace ed
 		struct strPreview {
 			bool FXAA;
 			bool SwitchLeftRightClick;
+			bool BoundingBox;
 			bool Gizmo;
 			bool GizmoRotationUI;
 			int GizmoSnapTranslation; // < 0 -> turned off, > 0 snap value
