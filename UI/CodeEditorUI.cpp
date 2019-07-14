@@ -224,6 +224,22 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
 
+		if (Settings::Instance().General.UseExternalEditor) {
+			std::string path = "";
+			if (sid == 0)
+				path = m_data->Parser.GetProjectPath(shader->VSPath);
+			else if (sid == 1)
+				path = m_data->Parser.GetProjectPath(shader->PSPath);
+			else if (sid == 2)
+				path = m_data->Parser.GetProjectPath(shader->GSPath);
+
+			std::wstring wpath(path.begin(), path.end());
+
+			ShellExecute(0, 0, wpath.c_str(), 0, 0, SW_SHOW);
+
+			return;
+		}
+
 		// check if already opened
 		for (int i = 0; i < m_items.size(); i++) {
 			if (m_shaderTypeId[i] == sid) {

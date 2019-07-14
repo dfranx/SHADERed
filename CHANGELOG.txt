@@ -1,22 +1,23 @@
 [v1.0.3]
 + add mute button for audio files
-+ write DPI scale in the options
-+ wrapped text in popup windows
-+ minor changes to UI in Options
-+ CTRL+click to delete the shortcut in the options
++ add DPI scale text in the options
++ add wrapped text in popup windows
++ add minor changes to UI design in Options
++ add CTRL+click shortcut to delete the shortcut in the options
 + fix an error that occurs when loading audio file on a PC with no audio output device
-+ more flexible GLSL extension system
++ add a more flexible GLSL extension system
 + add "collapsed" attribute to shader passes in the project file
 + add context menu in ObjectListUI and PipelineUI
 + fix item picking
-+ better gizmo (different model for scale and rotation transforms, change color on hover, etc...)
++ fix gizmo (different model for scale and rotation transforms, change color on hover, etc...)
 + show degrees (rather than radians) in PropertyUI for OBJModel and Geometry
-+ show a wheel UI when rotating an object using GizmoObject
-+ snap transformations with gizmo
-+ bounding box
++ add a wheel UI when rotating an object using GizmoObject
++ add option to snap transformations with gizmo
++ add bounding box
 + add shift+click to select multiple items
-+ "Double click on an item selects it" option
-+ "Double click on an item opens it in properties window" option
++ add "Double click on an item selects it" option
++ add "Double click on an item opens it in properties window" option
++ add option to open shaders in an external text editor
 ...
 
 [v1.0.2]

@@ -28,6 +28,7 @@ namespace ed
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", false);
 		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
+		General.UseExternalEditor = ini.GetBoolean("general", "useexternaleditor", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
 		General.ItemPropsOnDblCLk = ini.GetBoolean("general", "itempropsdblclk", true);
 		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
@@ -78,6 +79,7 @@ namespace ed
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
 		ini << "glsl=" << General.SupportGLSL << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
+		ini << "useexternaleditor=" << General.UseExternalEditor << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
 		ini << "itempropsdblclk=" << General.ItemPropsOnDblCLk << std::endl;
 		ini << "selectitemdblclk=" << General.SelectItemOnDblClk << std::endl;

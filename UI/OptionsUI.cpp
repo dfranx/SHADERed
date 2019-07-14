@@ -205,6 +205,11 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
 
+		/* USE EXTERNAL EDITOR: */
+		ImGui::Text("Open shaders in an external editor: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_useexternaleditor", &settings->General.UseExternalEditor);
+
 		/* SHADER PASS DOUBLE CLICK: */
 		ImGui::Text("Double click on shader pass opens the shaders: ");
 		ImGui::SameLine();

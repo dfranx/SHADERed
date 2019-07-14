@@ -25,6 +25,7 @@ namespace ed
 			bool SupportGLSL;			// [TODO] Not implemented (forgot what it was supposed to do hahah)
 			bool RecompileOnFileChange;
 			bool ReopenShaders;
+			bool UseExternalEditor;
 			bool OpenShadersOnDblClk;
 			bool ItemPropsOnDblCLk;
 			bool SelectItemOnDblClk;
