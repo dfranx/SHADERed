@@ -1,24 +1,26 @@
+[v1.1.0]
+... working on OpenGL port ...
+
 [v1.0.3]
++ add ability to duplicate selected items
++ add shift+click to select multiple items
++ add bounding box
++ add option to open shaders in an external text editor
++ add a more flexible GLSL file extension system
 + add mute button for audio files
-+ add DPI scale text in the options
-+ add wrapped text in popup windows
-+ add minor changes to UI design in Options
-+ add CTRL+click shortcut to delete the shortcut in the options
-+ fix an error that occurs when loading audio file on a PC with no audio output device
-+ add a more flexible GLSL extension system
-+ add "collapsed" attribute to shader passes in the project file
 + add context menu in ObjectListUI and PipelineUI
-+ fix item picking
-+ fix gizmo (different model for scale and rotation transforms, change color on hover, etc...)
-+ show degrees (rather than radians) in PropertyUI for OBJModel and Geometry
++ add "collapsed" attribute to shader passes in the project file
 + add a wheel UI when rotating an object using GizmoObject
 + add option to snap transformations with gizmo
-+ add bounding box
-+ add shift+click to select multiple items
-+ add "Double click on an item selects it" option
-+ add "Double click on an item opens it in properties window" option
-+ add option to open shaders in an external text editor
-...
++ add minor changes to UI design in Options
++ add CTRL+click shortcut to delete the shortcut in the options
++ add DPI scale text in the options
++ add wrapped text in popup windows
++ show degrees (rather than radians) in PropertyUI for OBJModel and Geometry
++ fix gizmo (different model for scale and rotation transforms, change color on hover, etc...)
++ fix item picking
++ fix an error that occurs when loading audio file on a PC with no audio output device
++ fix PipelineManager::Has -> it was possible to have two or more items with the same name
 
 [v1.0.2]
 + add ability to load audio files

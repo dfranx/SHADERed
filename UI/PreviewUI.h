@@ -28,6 +28,7 @@ namespace ed
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
+		void Duplicate();
 		void Pick(PipelineItem* item, bool add = false);
 		inline bool IsPicked(PipelineItem* item) { return std::count(m_picks.begin(), m_picks.end(), item) > 0; }
 

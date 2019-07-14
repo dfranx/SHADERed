@@ -4,10 +4,10 @@ SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders*
 open source and frequently updated with new features. It has many **features** that the competition
 is lacking.
 
-<img src="./Screenshots/IMG2.png"/>
+**NOTE**: There will be a lack of commits on this repo in the next couple of weeks - I am working on
+an OpenGL port.
 
-**NOTE**: SHADERed has a built-in text editor but I would suggest using some external text editor
-as currently the one that is built-in is slow, buggy and doesn't have some basic features.
+<img src="./Screenshots/IMG2.png"/>
 
 ## Features
 
@@ -164,7 +164,6 @@ There are also some features that I am looking to implement:
  - support #include and macros
  - buffers read from file or built using in-app buffer editor
  - magnifier tool & pixel inspector
- - duplicate objects
  - text geometry
 
 

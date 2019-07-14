@@ -5,6 +5,7 @@
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/KeyboardShortcuts.h"
+#include <MoonLight/Base/GeometryFactory.h>
 #include <imgui/imgui_internal.h>
 
 #define STATUSBAR_HEIGHT 25 * Settings::Instance().DPIScale
@@ -151,6 +152,24 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
 			m_picks.clear();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.Duplicate", [=]() {
+			Duplicate();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.SelectAll", [=]() {
+			// clear the list
+			Pick(nullptr);
+
+			// select all geometry and mesh items
+			std::vector<PipelineItem*>& pass = m_data->Pipeline.GetList();
+			for (int i = 0; i < pass.size(); i++) {
+				ed::pipe::ShaderPass* pdata = (ed::pipe::ShaderPass*)pass[i]->Data;
+				for (int j = 0; j < pdata->Items.size(); j++) {
+					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry ||
+						pdata->Items[j]->Type == PipelineItem::ItemType::OBJModel)
+						Pick(pdata->Items[j], true);
+				}
+			}
 		});
 	}
 	void PreviewUI::m_setupBoundingBox() {
@@ -540,6 +559,132 @@ namespace ed
 				}
 			}
 		}
+	}
+	void PreviewUI::Duplicate()
+	{
+		if (m_picks.size() == 0)
+			return;
+
+		// store pointers to these objects as we will select them after duplication
+		std::vector<PipelineItem*> duplicated;
+
+		// duplicate each item
+		for (int i = 0; i < m_picks.size(); i++) {
+			ed::PipelineItem* item = m_picks[i];
+
+			// first find a name that is not used
+			std::string name = std::string(item->Name);
+		
+			// remove numbers at the end of the string
+			size_t lastOfLetter = std::string::npos;
+			for (size_t j = name.size()-1; j > 0; j--)
+				if (!std::isdigit(name[j])) {
+					lastOfLetter = j + 1;
+					break;
+				}
+			if (lastOfLetter != std::string::npos)
+				name = name.substr(0, lastOfLetter);
+
+			// add number to the string and check if it already exists
+			for (size_t j = 2; /*WE WILL BRAKE FROM INSIDE ONCE WE FIND THE NAME*/;j++) {
+				std::string newName = name + std::to_string(j);
+				bool has = m_data->Pipeline.Has(newName.c_str());
+
+				if (!has) {
+					name = newName;
+					break;
+				}
+			}
+
+			// get item owner
+			char* owner = m_data->Pipeline.GetItemOwner(item->Name);
+
+			// once we found a name, duplicate the properties:
+			// duplicate geometry object:
+			if (item->Type == PipelineItem::ItemType::Geometry) {
+				pipe::GeometryItem* data = new pipe::GeometryItem();
+				pipe::GeometryItem* origData = (pipe::GeometryItem*)item->Data;
+
+				data->Position = origData->Position;
+				data->Rotation = origData->Rotation;
+				data->Scale = origData->Scale;
+				data->Size = origData->Size;
+				data->Topology = origData->Topology;
+				data->Type = origData->Type;
+
+				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
+					data->Geometry = ml::GeometryFactory::CreateCube(data->Size.x, data->Size.y, data->Size.z, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Circle) {
+					data->Geometry = ml::GeometryFactory::CreateCircle(0, 0, data->Size.x, data->Size.y, *m_data->GetOwner());
+					data->Topology = ml::Topology::TriangleStrip;
+				}
+				else if (data->Type == pipe::GeometryItem::Plane)
+					data->Geometry = ml::GeometryFactory::CreatePlane(data->Size.x, data->Size.y, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Rectangle)
+					data->Geometry = ml::GeometryFactory::CreatePlane(1, 1, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Sphere)
+					data->Geometry = ml::GeometryFactory::CreateSphere(data->Size.x, *m_data->GetOwner());
+				else if (data->Type == pipe::GeometryItem::Triangle)
+					data->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, data->Size.x, *m_data->GetOwner());
+
+				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
+			}
+
+			// duplicate OBJModel:
+			else if (item->Type == PipelineItem::ItemType::OBJModel) {
+				pipe::OBJModel* data = new pipe::OBJModel();
+				pipe::OBJModel* origData = (pipe::OBJModel*)item->Data;
+
+				strcpy(data->Filename, origData->Filename);
+				strcpy(data->GroupName, origData->GroupName);
+				data->OnlyGroup = origData->OnlyGroup;
+				data->Scale = origData->Scale;
+				data->Position = origData->Position;
+				data->Rotation = origData->Rotation;
+
+
+				if (strlen(data->Filename) > 0) {
+					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
+					ml::OBJModel* mdl = m_data->Parser.LoadModel(data->Filename);
+
+					bool loaded = mdl != nullptr;
+					if (loaded)
+						data->Mesh = *mdl;
+					else m_data->Messages.Add(ed::MessageStack::Type::Error, owner, "Failed to create .obj model " + std::string(item->Name));
+
+					// TODO: if (!loaded) error "Failed to load a mesh"
+
+					if (loaded) {
+						ml::OBJModel::Vertex* verts = data->Mesh.GetVertexData();
+						ml::UInt32 vertCount = data->Mesh.GetVertexCount();
+
+						if (data->OnlyGroup) {
+							verts = data->Mesh.GetGroupVertices(data->GroupName);
+							vertCount = data->Mesh.GetGroupVertexCount(data->GroupName);
+
+							if (verts == nullptr) {
+								verts = data->Mesh.GetObjectVertices(data->GroupName);
+								vertCount = data->Mesh.GetObjectVertexCount(data->GroupName);
+
+								// TODO: if (verts == nullptr) error "failed to find a group with that name"
+							}
+						}
+
+						data->VertCount = vertCount;
+						data->Vertices.Create(*m_data->GetOwner(), verts, vertCount, ml::Resource::Immutable);
+					}
+					// TODO: else error "failed to load"
+				}
+
+				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
+			}
+
+
+			duplicated.push_back(m_data->Pipeline.Get(name.c_str()));
+		}
+
+		// select the newly created items
+		m_picks = duplicated;
 	}
 	
 	void PreviewUI::m_buildBoundingBox()

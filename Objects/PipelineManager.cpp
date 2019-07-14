@@ -92,16 +92,42 @@ namespace ed
 	}
 	bool PipelineManager::Has(const char * name)
 	{
-		for (int i = 0; i < m_items.size(); i++)
+		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmp(m_items[i]->Name, name) == 0)
 				return true;
+			else {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
+				for (int j = 0; j < data->Items.size(); j++)
+					if (strcmp(data->Items[j]->Name, name) == 0)
+						return true;
+			}
+		}
 		return false;
+	}
+	char* PipelineManager::GetItemOwner(const char* name)
+	{
+		for (int i = 0; i < m_items.size(); i++) {
+			pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
+			for (int j = 0; j < data->Items.size(); j++) {
+				if (strcmp(data->Items[j]->Name, name) == 0) {
+					return m_items[i]->Name;
+				}
+			}
+		}
+		return nullptr;
 	}
 	PipelineItem* PipelineManager::Get(const char* name)
 	{
-		for (int i = 0; i < m_items.size(); i++)
+		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmp(m_items[i]->Name, name) == 0)
 				return m_items[i];
+			else {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
+				for (int j = 0; j < data->Items.size(); j++)
+					if (strcmp(data->Items[j]->Name, name) == 0)
+						return data->Items[j];
+			}
+		}
 		return nullptr;
 	}
 	void PipelineManager::New(bool openTemplate)

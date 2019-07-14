@@ -21,6 +21,7 @@ namespace ed
 		void Remove(const char* name);
 		bool Has(const char* name);
 		PipelineItem* Get(const char* name);
+		char* GetItemOwner(const char* name);
 		inline std::vector<PipelineItem*>& GetList() { return m_items; }
 
 		void New(bool openTemplate = true);
