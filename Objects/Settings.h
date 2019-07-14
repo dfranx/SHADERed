@@ -26,6 +26,8 @@ namespace ed
 			bool RecompileOnFileChange;
 			bool ReopenShaders;
 			bool OpenShadersOnDblClk;
+			bool ItemPropsOnDblCLk;
+			bool SelectItemOnDblClk;
 			std::string StartUpTemplate;
 			bool CustomFont;
 			char Font[256];

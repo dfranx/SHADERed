@@ -849,7 +849,9 @@ namespace ed
 
 					if (data->GSUsed && m_data->Parser.FileExists(data->GSPath))
 						editor->OpenGS(*item);
-				} else {
+				}
+				
+				if (Settings::Instance().General.ItemPropsOnDblCLk) {
 					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
@@ -861,8 +863,15 @@ namespace ed
 		ImGui::Indent(PIPELINE_ITEM_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0)) {
-				PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
-				props->Open(item);
+				if (Settings::Instance().General.ItemPropsOnDblCLk) {
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
+					props->Open(item);
+				}
+
+				if (Settings::Instance().General.SelectItemOnDblClk) {
+					PreviewUI* props = reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview));
+					props->Pick(item);
+				}
 			}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}

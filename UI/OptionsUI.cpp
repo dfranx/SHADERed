@@ -210,6 +210,16 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_opensdblclk", &settings->General.OpenShadersOnDblClk);
 
+		/* PROPERTIES DOUBLE CLICK: */
+		ImGui::Text("Open the double clicked item in properties: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_propsdblclk", &settings->General.ItemPropsOnDblCLk);
+
+		/* SELECT DOUBLE CLICK: */
+		ImGui::Text("Select the double clicked item: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_selectdblclk", &settings->General.SelectItemOnDblClk);
+
 		/* STARTUP TEMPLATE: */
 		ImGui::Text("Default template: ");
 		ImGui::SameLine();

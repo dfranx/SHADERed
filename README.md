@@ -169,7 +169,6 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - "double click on an item selects it" option
  - "open shaders in an external text editor" option
  - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)

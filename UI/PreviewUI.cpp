@@ -231,6 +231,14 @@ namespace ed
 			m_prevTrans.z /= m_picks.size();
 		}
 		m_tempTrans = m_prevTrans;
+
+
+		if (m_picks.size() != 0) {
+			if (Settings::Instance().Preview.BoundingBox)
+				m_buildBoundingBox();
+
+			m_gizmo.SetTransform(&m_tempTrans, &m_tempScale, &m_tempRota);
+		}
 	}
 	void PreviewUI::Update(float delta)
 	{
@@ -403,13 +411,6 @@ namespace ed
 
 						auto shift = ImGui::GetIO().KeyShift;
 						Pick(item, shift);
-
-						if (item != nullptr) {
-							if (Settings::Instance().Preview.BoundingBox)
-								m_buildBoundingBox();
-
-							m_gizmo.SetTransform(&m_tempTrans, &m_tempScale, &m_tempRota);
-						}
 					});
 				}
 			}

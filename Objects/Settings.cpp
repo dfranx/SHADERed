@@ -25,10 +25,12 @@ namespace ed
 		General.VSync = ini.GetBoolean("general", "vsync", false);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
-		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
+		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", false);
 		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
+		General.ItemPropsOnDblCLk = ini.GetBoolean("general", "itempropsdblclk", true);
+		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
 		General.CustomFont = ini.GetBoolean("general", "customfont", false);
@@ -77,6 +79,8 @@ namespace ed
 		ini << "glsl=" << General.SupportGLSL << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
+		ini << "itempropsdblclk=" << General.ItemPropsOnDblCLk << std::endl;
+		ini << "selectitemdblclk=" << General.SelectItemOnDblClk << std::endl;
 		ini << "trackfilechange=" << General.RecompileOnFileChange << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
 		ini << "customfont=" << General.CustomFont << std::endl;
