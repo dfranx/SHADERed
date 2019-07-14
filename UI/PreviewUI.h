@@ -12,7 +12,6 @@ namespace ed
 	public:
 		PreviewUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
 			UIView(ui, objects, name, visible),
-			m_pick(nullptr),
 			m_pickMode(0),
 			m_gizmo(objects->GetOwner()),
 			m_fpsDelta(0.0f),
@@ -29,8 +28,8 @@ namespace ed
 		virtual void OnEvent(const ml::Event& e);
 		virtual void Update(float delta);
 
-		inline void Pick(PipelineItem* item) { m_pick = item; }
-		inline PipelineItem* GetPicked() { return m_pick; }
+		void Pick(PipelineItem* item, bool add = false);
+		inline bool IsPicked(PipelineItem* item) { return std::count(m_picks.begin(), m_picks.end(), item) > 0; }
 
 	private:
 		void m_setupShortcuts();
@@ -39,10 +38,12 @@ namespace ed
 		void m_fxaaRenderQuad();
 
 		void m_setupBoundingBox();
-		void m_buildBoundingBox(ed::PipelineItem* item);
+		void m_buildBoundingBox();
 		void m_renderBoundingBox();
 
 		ImVec2 m_mouseContact;
+		DirectX::XMFLOAT3 m_tempTrans, m_tempScale, m_tempRota, 
+			m_prevTrans, m_prevScale, m_prevRota;
 		GizmoObject m_gizmo;
 
 		DirectX::XMFLOAT3 m_pos1, m_pos2;
@@ -80,7 +81,7 @@ namespace ed
 		float m_elapsedTime;
 		float m_fpsLimit;
 
-		PipelineItem* m_pick;
+		std::vector<PipelineItem*> m_picks;
 		int m_pickMode; // 0 = position, 1 = scale, 2 = rotation
 
 		// bounding box

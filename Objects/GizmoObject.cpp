@@ -424,7 +424,7 @@ namespace ed
 				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
 				))) / GIZMO_SCALE_FACTOR;
 
-		float moveDist = -length * dotval * scale;
+		float moveDist = -length * dotval;
 
 		if (m_mode == 0) {
 			if (m_axisSelected == 0) m_tValue.x += moveDist;

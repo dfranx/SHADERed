@@ -285,7 +285,7 @@ namespace ed
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
 					props->Open(nullptr);
 
-				if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->GetPicked() == items[index])
+				if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->IsPicked(items[index]))
 					(reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->Pick(nullptr);
 
 				// tell pipeline to remove this item

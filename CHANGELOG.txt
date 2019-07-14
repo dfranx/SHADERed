@@ -14,6 +14,7 @@
 + show a wheel UI when rotating an object using GizmoObject
 + snap transformations with gizmo
 + bounding box
++ add shift+click to select multiple items
 ...
 
 [v1.0.2]

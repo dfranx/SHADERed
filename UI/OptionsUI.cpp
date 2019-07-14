@@ -206,7 +206,7 @@ namespace ed
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
 
 		/* SHADER PASS DOUBLE CLICK: */
-		ImGui::Text("Open shaders on double click on shader pass: ");
+		ImGui::Text("Double click on shader pass opens the shaders: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_opensdblclk", &settings->General.OpenShadersOnDblClk);
 

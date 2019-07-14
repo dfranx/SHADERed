@@ -169,7 +169,8 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - ctrl + click -> select multiple items
+ - "double click on an item selects it" option
+ - "open shaders in an external text editor" option
  - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)
  - ability to set SHADERed as a defult program for a *.sprj extension files
@@ -184,6 +185,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - use an icon font instead of buttons like "U", "D", etc...
  - toolbar (a bar with all the important tools (icons))
+ - shift+drag with right click to move ArcBallCamera focus point
  - add an option to disable certain shader pass
  - find and replace in code editor
  - right click in code editor
