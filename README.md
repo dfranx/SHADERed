@@ -5,7 +5,7 @@ open source and frequently updated with new features. It has many **features** t
 is lacking.
 
 **NOTE**: There will be a lack of commits on this repo in the next couple of weeks - I am working on
-an OpenGL port.
+an OpenGL & SDL port.
 
 <img src="./Screenshots/IMG2.png"/>
 
@@ -190,7 +190,7 @@ Except those large features, I am also planning to do some small QoL changes:
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
-latest stable binary release.
+latest stable binary release (v1.0.3).
 
 If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
 or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have/want to use
