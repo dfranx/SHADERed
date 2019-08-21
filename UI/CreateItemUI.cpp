@@ -1,23 +1,29 @@
 #include "CreateItemUI.h"
 #include "UIHelper.h"
+#include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Engine/Model.h"
+
+#include <glm/gtc/type_ptr.hpp>
+#include <string.h>
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <MoonLight/Base/GeometryFactory.h>
-#include <MoonLight/Model/OBJModel.h>
 
+#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 #define PATH_SPACE_LEFT -40 * Settings::Instance().DPIScale
 
 namespace ed
 {
-	void CreateItemUI::OnEvent(const ml::Event & e)
+	void CreateItemUI::OnEvent(const SDL_Event& e)
 	{
 	}
 	void CreateItemUI::Update(float delta)
 	{
 		int colWidth = 150;
-		if (m_item.Type == PipelineItem::ItemType::DepthStencilState || m_item.Type == PipelineItem::ItemType::BlendState)
+		if (m_item.Type == PipelineItem::ItemType::RenderState)
 			colWidth = 200;
 
 		ImGui::Columns(2, 0, false);
@@ -36,15 +42,45 @@ namespace ed
 			ImGui::Text("Geometry type:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Combo("##cui_geotype", reinterpret_cast<int*>(&data->Type), GEOMETRY_NAMES, ARRAYSIZE(GEOMETRY_NAMES));
+			ImGui::Combo("##cui_geotype", reinterpret_cast<int*>(&data->Type), GEOMETRY_NAMES, HARRAYSIZE(GEOMETRY_NAMES));
 			ImGui::NextColumn();
 
 			//size
-			ImGui::Text("Size:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateInputFloat3("##cui_geosize", data->Size);
-			ImGui::NextColumn();
+			if (data->Type == pipe::GeometryItem::GeometryType::Cube) {
+				ImGui::Text("Size:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat3("##cui_geosize", glm::value_ptr(data->Size));
+				ImGui::NextColumn();
+			}
+			else if (data->Type == pipe::GeometryItem::GeometryType::Circle) {
+				ImGui::Text("Radius:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat2("##cui_geosize", glm::value_ptr(data->Size));
+				ImGui::NextColumn();
+			}
+			else if (data->Type == pipe::GeometryItem::GeometryType::Plane) {
+				ImGui::Text("Size:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat2("##cui_geosize", glm::value_ptr(data->Size));
+				ImGui::NextColumn();
+			}
+			else if (data->Type == pipe::GeometryItem::GeometryType::Sphere) {
+				ImGui::Text("Radius:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##cui_geosize", &data->Size.x);
+				ImGui::NextColumn();
+			}
+			else if (data->Type == pipe::GeometryItem::GeometryType::Triangle) {
+				ImGui::Text("Size:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##cui_geosize", &data->Size.x);
+				ImGui::NextColumn();
+			}
 		}
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
@@ -57,8 +93,10 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spvspath", ImVec2(-1, 0))) {
-				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0) {
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success) {
+					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->VSPath, file.c_str());
 
 					if (m_data->Parser.FileExists(file))
@@ -84,8 +122,10 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_sppspath", ImVec2(-1, 0))) {
-				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0) {
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success) {
+					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->PSPath, file.c_str());
 
 					if (m_data->Parser.FileExists(file))
@@ -120,8 +160,10 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spgspath", ImVec2(-1, 0))) {
-				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle()));
-				if (file.size() != 0) {
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success) {
+					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->GSPath, file.c_str());
 
 					if (m_data->Parser.FileExists(file))
@@ -141,85 +183,78 @@ namespace ed
 
 			if (!data->GSUsed) ImGui::PopItemFlag();
 		}
-		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
-			pipe::BlendState* data = (pipe::BlendState*)m_item.Data;
-			D3D11_BLEND_DESC* desc = &data->State.Info;
+		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+			pipe::RenderState* data = (pipe::RenderState*)m_item.Data;
 
-			// alpha to coverage
-			ImGui::Text("Alpha to coverage:");
+			// enable/disable wireframe rendering
+			bool isWireframe = data->PolygonMode == GL_LINE;
+			ImGui::Text("Wireframe:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_alphacov", (bool*)(&desc->AlphaToCoverageEnable));
+			ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+			data->PolygonMode = isWireframe ? GL_LINE : GL_FILL;
+
+			// cull
+			ImGui::Text("Cull:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_cullm", &data->CullFace);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// source blend factor
-			ImGui::Text("Source blend factor:");
+			// cull mode
+			ImGui::Text("Cull mode:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend);
+			UIHelper::CreateCullModeCombo("##cui_culltype", data->CullFaceType);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// operator
-			ImGui::Text("Blend operator:");
+			// front face == counter clockwise order
+			bool isCCW = data->FrontFace == GL_CCW;
+			ImGui::Text("Counter clockwise:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp);
+			ImGui::Checkbox("##cui_ccw", &isCCW);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
+			data->FrontFace = isCCW ? GL_CCW : GL_CW;
 
-			// destination blend factor
-			ImGui::Text("Destination blend factor:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
 
-			// source alpha blend factor
-			ImGui::Text("Source alpha blend factor:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
 
-			// operator
-			ImGui::Text("Blend operator:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
+			ImGui::Separator();
 
-			// destination alpha blend factor
-			ImGui::Text("Destination blend factor:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
 
-			// blend factor
-			ml::Color blendFactor = data->State.GetBlendFactor();
-			ImGui::Text("Custom blend factor:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateInputColor("##cui_blendfactor", blendFactor);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-			data->State.SetBlendFactor(blendFactor);
-		}
-		else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
-			pipe::DepthStencilState* data = (pipe::DepthStencilState*)m_item.Data;
-			D3D11_DEPTH_STENCIL_DESC* desc = &data->State.Info;
 
 			// depth enable
 			ImGui::Text("Depth test:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_depth", (bool*)(&desc->DepthEnable));
+			ImGui::Checkbox("##cui_depth", &data->DepthTest);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (!data->DepthTest)
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+
+			// depth clip
+			ImGui::Text("Depth clip:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_depthclip", &data->DepthClamp);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// depth mask
+			ImGui::Text("Depth mask:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_depthmask", &data->DepthMask);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -227,101 +262,7 @@ namespace ed
 			ImGui::Text("Depth function:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			UIHelper::CreateComparisonFunctionCombo("##cui_depthop", desc->DepthFunc);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// stencil enable
-			ImGui::Text("Stencil test:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_stencil", (bool*)(&desc->StencilEnable));
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// front face function
-			ImGui::Text("Stencil front face function:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", desc->FrontFace.StencilFunc);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// front face pass operation
-			ImGui::Text("Stencil front face pass:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateStencilOperationCombo("##cui_fpass", desc->FrontFace.StencilPassOp);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// front face fail operation
-			ImGui::Text("Stencil front face fail:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateStencilOperationCombo("##cui_ffail", desc->FrontFace.StencilFailOp);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// back face function
-			ImGui::Text("Stencil back face function:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", desc->BackFace.StencilFunc);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// back face pass operation
-			ImGui::Text("Stencil back face pass:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateStencilOperationCombo("##cui_bpass", desc->BackFace.StencilPassOp);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// back face fail operation
-			ImGui::Text("Stencil back face fail:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateStencilOperationCombo("##cui_bfail", desc->BackFace.StencilFailOp);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// stencil reference
-			ImGui::Text("Stencil reference:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // imgui uint input??
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-		}
-		else if (m_item.Type == PipelineItem::ItemType::RasterizerState) {
-			pipe::RasterizerState* data = (pipe::RasterizerState*)m_item.Data;
-			D3D11_RASTERIZER_DESC* desc = &data->State.Info;
-
-			// enable/disable wireframe rendering
-			bool isWireframe = desc->FillMode == D3D11_FILL_WIREFRAME;
-			ImGui::Text("Wireframe:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe));
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-			desc->FillMode = isWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-
-			// cull mode
-			ImGui::Text("Cull mode:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			UIHelper::CreateCullModeCombo("##cui_cull", desc->CullMode);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			// front face == counter clockwise order
-			ImGui::Text("Counter clockwise:");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_ccw", (bool*)(&desc->FrontCounterClockwise));
+			UIHelper::CreateComparisonFunctionCombo("##cui_depthop", data->DepthFunction);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -329,44 +270,223 @@ namespace ed
 			ImGui::Text("Depth bias:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragInt("##cui_depthbias", &desc->DepthBias);
+			ImGui::DragFloat("##cui_depthbias", &data->DepthBias);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// depth bias clamp
-			ImGui::Text("Depth bias clamp:");
+			if (!data->DepthTest)
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+
+
+
+			ImGui::Separator();
+
+
+
+			// blending
+			ImGui::Text("Blending:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##cui_depthbiasclamp", &desc->DepthBiasClamp);
+			ImGui::Checkbox("##cui_blend", &data->Blend);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// slope scaled depth bias
-			ImGui::Text("Slope scaled depth bias:");
+			if (!data->Blend)
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+
+			// alpha to coverage
+			ImGui::Text("Alpha to coverage:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##cui_slopebias", &desc->SlopeScaledDepthBias);
+			ImGui::Checkbox("##cui_alphacov", &data->AlphaToCoverage);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// depth clip
-			ImGui::Text("Depth clip:");
+			// source blend factor
+			ImGui::Text("Source blend factor:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_depthclip", (bool*)(&desc->DepthClipEnable));
+			UIHelper::CreateBlendCombo("##cui_srcblend", data->BlendSourceFactorRGB);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			// antialiasing
-			ImGui::Text("Antialiasing:");
+			// operator
+			ImGui::Text("Blend operator:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_aa", (bool*)(&desc->AntialiasedLineEnable));
+			UIHelper::CreateBlendOperatorCombo("##cui_blendop", data->BlendFunctionColor);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
+
+			// destination blend factor
+			ImGui::Text("Destination blend factor:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateBlendCombo("##cui_destblend", data->BlendDestinationFactorRGB);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// source alpha blend factor
+			ImGui::Text("Source alpha blend factor:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateBlendCombo("##cui_srcalphablend", data->BlendSourceFactorAlpha);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// operator
+			ImGui::Text("Alpha blend operator:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", data->BlendFunctionAlpha);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// destination alpha blend factor
+			ImGui::Text("Destination alpha blend factor:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateBlendCombo("##cui_destalphablend", data->BlendDestinationFactorAlpha);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// blend factor
+			ImGui::Text("Custom blend factor:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::ColorEdit4("##cui_blendfactor", glm::value_ptr(data->BlendFactor));
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (!data->Blend)
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+
+
+			ImGui::Separator();
+
+
+
+			// stencil enable
+			ImGui::Text("Stencil test:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Checkbox("##cui_stencil", &data->StencilTest);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (!data->StencilTest)
+			{
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+
+			// stencil mask
+			ImGui::Text("Stencil mask:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputInt("##cui_stencilmask", (int*)&data->StencilMask);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (data->StencilMask < 0)
+				data->StencilMask = 0;
+			if (data->StencilMask > 255)
+				data->StencilMask = 255;
+
+			// stencil reference
+			ImGui::Text("Stencil reference:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputInt("##cui_sref", (int*)& data->StencilReference); // TODO: imgui uint input??
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (data->StencilReference < 0)
+				data->StencilReference = 0;
+			if (data->StencilReference > 255)
+				data->StencilReference = 255;
+
+			// front face function
+			ImGui::Text("Stencil front face function:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", data->StencilFrontFaceFunction);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face pass operation
+			ImGui::Text("Stencil front face pass:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_fpass", data->StencilFrontFaceOpPass);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face stencil fail operation
+			ImGui::Text("Stencil front face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_ffail", data->StencilFrontFaceOpStencilFail);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// front face depth fail operation
+			ImGui::Text("Depth front face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_fdfail", data->StencilFrontFaceOpDepthFail);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face function
+			ImGui::Text("Stencil back face function:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", data->StencilBackFaceFunction);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face pass operation
+			ImGui::Text("Stencil back face pass:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_bpass", data->StencilBackFaceOpPass);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face stencil fail operation
+			ImGui::Text("Stencil back face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_bfail", data->StencilBackFaceOpStencilFail);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			// back face depth fail operation
+			ImGui::Text("Depth back face fail:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			UIHelper::CreateStencilOperationCombo("##cui_bdfail", data->StencilBackFaceOpDepthFail);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (!data->StencilTest)
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
 		}
-		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
-			pipe::OBJModel* data = (pipe::OBJModel*)m_item.Data;
+		else if (m_item.Type == PipelineItem::ItemType::Model) {
+			pipe::Model* data = (pipe::Model*)m_item.Data;
 
 			// model filepath
 			ImGui::Text("File:");
@@ -376,19 +496,14 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {
-				std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"OBJ\0*.obj\0"));
-				strcpy(data->Filename, file.c_str());
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success) {
+					file = m_data->Parser.GetRelativePath(file);
+					strcpy(data->Filename, file.c_str());
 
-				if (file.size() > 0) {
-					ml::OBJModel mdl;
-					mdl.LoadFromFile(file);
-					m_groups = mdl.GetObjects();
-
-
-					std::vector<std::string> grps = mdl.GetGroups();
-					for (std::string& str : grps)
-						if (std::count(m_groups.begin(), m_groups.end(), str) == 0)
-							m_groups.push_back(str);
+					eng::Model* mdl = m_data->Parser.LoadModel(data->Filename);
+					m_groups = mdl->GetMeshNames();
 				}
 			}
 			ImGui::NextColumn();
@@ -415,7 +530,6 @@ namespace ed
 						ImGui::EndCombo();
 					}
 
-					//ImGui::InputText("##cui_meshgroupname", data->GroupName, MODEL_GROUP_NAME_LENGTH);
 					ImGui::NextColumn();
 				}
 			}
@@ -438,43 +552,47 @@ namespace ed
 			delete m_item.Data;
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
+			Logger::Get().Log("Opening a CreateItemUI for creating Geometry object...");
+
 			pipe::GeometryItem* allocatedData = new pipe::GeometryItem();
 			allocatedData->Type = pipe::GeometryItem::GeometryType::Cube;
-			allocatedData->Size = allocatedData->Scale = DirectX::XMFLOAT3(1,1,1);
+			allocatedData->Size = allocatedData->Scale = glm::vec3(1,1,1);
 			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+			Logger::Get().Log("Opening a CreateItemUI for creating ShaderPass object...");
+
 			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
 			m_item.Data = allocatedData;
-			strcpy(allocatedData->RenderTexture[0], "Window");			
+			
+			allocatedData->RenderTextures[0] = m_data->Renderer.GetTexture();		
 		}
-		else if (m_item.Type == PipelineItem::ItemType::BlendState) {
-			pipe::BlendState* allocatedData = new pipe::BlendState();
-			allocatedData->State.Info.IndependentBlendEnable = false;
-			allocatedData->State.Info.RenderTarget[0].BlendEnable = true;
+		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+			Logger::Get().Log("Opening a CreateItemUI for creating RenderState object...");
+
+			pipe::RenderState* allocatedData = new pipe::RenderState();
 			m_item.Data = allocatedData;
 		}
-		else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
-			pipe::DepthStencilState* allocatedData = new pipe::DepthStencilState();
-			allocatedData->State.Info.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			m_item.Data = allocatedData;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::RasterizerState)
-			m_item.Data = new pipe::RasterizerState();
-		else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
+		else if (m_item.Type == PipelineItem::ItemType::Model) {
+			Logger::Get().Log("Opening a CreateItemUI for creating Model object...");
+
 			m_selectedGroup = 0;
 			m_groups.clear();
 
-			pipe::OBJModel* allocatedData = new pipe::OBJModel();
+			pipe::Model* allocatedData = new pipe::Model();
 			allocatedData->OnlyGroup = false;
-			allocatedData->Scale = DirectX::XMFLOAT3(1, 1, 1);
+			allocatedData->Scale = glm::vec3(1, 1, 1);
 			m_item.Data = allocatedData;
 		}
 	}
 	bool CreateItemUI::Create()
 	{
-		if (strlen(m_item.Name) < 2)
+		if (strlen(m_item.Name) < 2) {
+			Logger::Get().Log("CreateItemUI item name is less than 2 characters", true);
 			return false;
+		}
+
+		Logger::Get().Log("Executing CreateItemUI::Create()");
 
 		if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = new pipe::ShaderPass();
@@ -484,70 +602,50 @@ namespace ed
 			strcpy(data->PSPath, origData->PSPath);
 			strcpy(data->VSEntry, origData->VSEntry);
 			strcpy(data->VSPath, origData->VSPath);
-			strcpy(data->RenderTexture[0], origData->RenderTexture[0]);
+			data->RenderTextures[0] = origData->RenderTextures[0];
 
 			return m_data->Pipeline.AddPass(m_item.Name, data);
-		} else if (m_owner[0] != 0) {
+		}
+		else if (m_owner[0] != 0) {
 			if (m_item.Type == PipelineItem::ItemType::Geometry) {
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)m_item.Data;
 
-				data->Position = DirectX::XMFLOAT3(0, 0, 0);
-				data->Rotation = DirectX::XMFLOAT3(0, 0, 0);
-				data->Scale = DirectX::XMFLOAT3(1, 1, 1);
+				data->Position = glm::vec3(0, 0, 0);
+				data->Rotation = glm::vec3(0, 0, 0);
+				data->Scale = glm::vec3(1, 1, 1);
 				data->Size = origData->Size;
-				data->Topology = ml::Topology::TriangleList;
+				data->Topology = GL_TRIANGLES;
 				data->Type = origData->Type;
 
 				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
-					data->Geometry = ml::GeometryFactory::CreateCube(data->Size.x, data->Size.y, data->Size.z, *m_data->GetOwner());
+					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z);
 				else if (data->Type == pipe::GeometryItem::Circle) {
-					data->Geometry = ml::GeometryFactory::CreateCircle(0, 0, data->Size.x, data->Size.y, *m_data->GetOwner());
-					data->Topology = ml::Topology::TriangleStrip;
+					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y);
+					data->Topology = GL_TRIANGLE_STRIP;
 				}
 				else if (data->Type == pipe::GeometryItem::Plane)
-					data->Geometry = ml::GeometryFactory::CreatePlane(data->Size.x, data->Size.y, *m_data->GetOwner());
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO,data->Size.x, data->Size.y);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
-					data->Geometry = ml::GeometryFactory::CreatePlane(1, 1, *m_data->GetOwner());
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1);
 				else if (data->Type == pipe::GeometryItem::Sphere)
-					data->Geometry = ml::GeometryFactory::CreateSphere(data->Size.x, *m_data->GetOwner());
+					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x);
 				else if (data->Type == pipe::GeometryItem::Triangle)
-					data->Geometry = ml::GeometryFactory::CreateTriangle(0, 0, data->Size.x, *m_data->GetOwner());
+					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO, data->Size.x);
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 			}
-			else if (m_item.Type == PipelineItem::ItemType::BlendState) {
-				pipe::BlendState* data = new pipe::BlendState();
-				pipe::BlendState* origData = (pipe::BlendState*)m_item.Data;
+			else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+				pipe::RenderState* data = new pipe::RenderState();
+				pipe::RenderState* origData = (pipe::RenderState*)m_item.Data;
 
-				data->State.Info = origData->State.Info;
-				data->State.SetBlendFactor(origData->State.GetBlendFactor());
-				data->State.Create(*m_data->GetOwner());
+				memcpy(data, origData, sizeof(pipe::RenderState));
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 			}
-			else if (m_item.Type == PipelineItem::ItemType::DepthStencilState) {
-				pipe::DepthStencilState* data = new pipe::DepthStencilState();
-				pipe::DepthStencilState* origData = (pipe::DepthStencilState*)m_item.Data;
-
-				data->State.Info = origData->State.Info;
-				data->StencilReference = origData->StencilReference;
-				data->State.Create(*m_data->GetOwner());
-
-				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
-			}
-			else if (m_item.Type == PipelineItem::ItemType::RasterizerState) {
-				pipe::RasterizerState* data = new pipe::RasterizerState();
-				pipe::RasterizerState* origData = (pipe::RasterizerState*)m_item.Data;
-
-				data->State.Info = origData->State.Info;
-				data->State.Create(*m_data->GetOwner());
-
-				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
-			}
-			else if (m_item.Type == PipelineItem::ItemType::OBJModel) {
-				pipe::OBJModel* data = new pipe::OBJModel();
-				pipe::OBJModel* origData = (pipe::OBJModel*)m_item.Data;
+			else if (m_item.Type == PipelineItem::ItemType::Model) {
+				pipe::Model* data = new pipe::Model();
+				pipe::Model* origData = (pipe::Model*)m_item.Data;
 
 				strcpy(data->Filename, origData->Filename);
 				strcpy(data->GroupName, origData->GroupName);
@@ -558,37 +656,12 @@ namespace ed
 			
 
 				if (strlen(data->Filename) > 0) {
-					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
-					ml::OBJModel* mdl = m_data->Parser.LoadModel(data->Filename);
+					eng::Model* mdl = m_data->Parser.LoadModel(data->Filename);
 
 					bool loaded = mdl != nullptr;
 					if (loaded)
-						data->Mesh = *mdl;
-					else m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create .obj model " + std::string(m_item.Name));
-
-					// TODO: if (!loaded) error "Failed to load a mesh"
-
-					if (loaded) {
-						ml::OBJModel::Vertex* verts = data->Mesh.GetVertexData();
-						ml::UInt32 vertCount = data->Mesh.GetVertexCount();
-
-						if (data->OnlyGroup) {
-							verts = data->Mesh.GetGroupVertices(data->GroupName);
-							vertCount = data->Mesh.GetGroupVertexCount(data->GroupName);
-
-							if (verts == nullptr) {
-								verts = data->Mesh.GetObjectVertices(data->GroupName);
-								vertCount = data->Mesh.GetObjectVertexCount(data->GroupName);
-
-								// TODO: if (verts == nullptr) error "failed to find a group with that name"
-								if (verts == nullptr) return false;
-							}
-						}
-
-						data->VertCount = vertCount;
-						data->Vertices.Create(*m_data->GetOwner(), verts, vertCount, ml::Resource::Immutable);
-					}
-					else return false;
+						data->Data = mdl;
+					else m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create a 3D model " + std::string(m_item.Name));
 				}
 
 				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);

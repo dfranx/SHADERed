@@ -1,8 +1,9 @@
 #pragma once
-#include <MoonLight/Base/Timer.h>
-#include <DirectXMath.h>
+#include "../Engine/Timer.h"
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
 #include "ShaderVariable.h"
-#include "PipelineItem.h"
 #include "ArcBallCamera.h"
 #include "FirstPersonCamera.h"
 #include "Settings.h"
@@ -22,9 +23,9 @@ namespace ed
 		SystemVariableManager() : 
 			m_deltaTime(0.0f),
 			m_viewport(0,0), m_mouse(0,0),
-			m_isPicked(false), m_camPos(0,0,0),
+			m_isPicked(false),
 			m_wasd(0,0,0,0) {
-			m_geometryTransform = DirectX::XMMatrixIdentity();
+			m_geometryTransform = glm::identity<glm::mat4>();
 		}
 
 		static inline ed::ShaderVariable::ValueType GetType(ed::SystemShaderVariable sysVar)
@@ -51,41 +52,40 @@ namespace ed
 		void Update(ed::ShaderVariable* var);
 
 		inline Camera* GetCamera() { return Settings::Instance().Project.FPCamera ? (Camera*)&m_fpCam : (Camera*)&m_abCam; }
-		inline DirectX::XMMATRIX GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_fpCam.GetMatrix() : m_abCam.GetMatrix(); }
-		inline DirectX::XMMATRIX GetProjectionMatrix() { return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(45), (float)m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
-		inline DirectX::XMMATRIX GetOrthographicMatrix() { return DirectX::XMMatrixOrthographicLH(m_viewport.x, m_viewport.y, 0.1f, 1000.0f); }
-		inline DirectX::XMMATRIX GetViewProjectionMatrix() { return GetViewMatrix() * GetProjectionMatrix(); }
-		inline DirectX::XMMATRIX GetViewOrthographicMatrix() { return GetViewMatrix() * GetOrthographicMatrix(); }
-		inline DirectX::XMMATRIX GetGeometryTransform() { return m_geometryTransform; }
-		inline DirectX::XMFLOAT2 GetViewportSize() { return m_viewport; }
-		inline DirectX::XMINT4 GetKeysWASD() { return m_wasd; }
-		inline DirectX::XMFLOAT2 GetMousePosition() { return m_mouse; }
+		inline glm::mat4 GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_fpCam.GetMatrix() : m_abCam.GetMatrix(); }
+		inline glm::mat4 GetProjectionMatrix() { return glm::perspective(glm::radians(45.0f), m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
+		inline glm::mat4 GetOrthographicMatrix() { return glm::ortho(0.0f, m_viewport.x, m_viewport.y, 0.0f, 0.1f, 1000.0f); }
+		inline glm::mat4 GetViewProjectionMatrix() { return GetProjectionMatrix() * GetViewMatrix(); }
+		inline glm::mat4 GetViewOrthographicMatrix() { return GetOrthographicMatrix() * GetViewMatrix(); }
+		inline glm::mat4 GetGeometryTransform() { return m_geometryTransform; }
+		inline glm::vec2 GetViewportSize() { return m_viewport; }
+		inline glm::ivec4  GetKeysWASD() { return m_wasd; }
+		inline glm::vec2 GetMousePosition() { return m_mouse; }
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
 		inline float GetTimeDelta() { return m_deltaTime; }
 		inline bool IsPicked() { return m_isPicked; }
 
-		inline void SetGeometryTransform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rota, const DirectX::XMFLOAT3& pos)
+		inline void SetGeometryTransform(const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
 		{
-			m_geometryTransform = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z) *
-				DirectX::XMMatrixRotationRollPitchYaw(rota.x, rota.y, rota.z) *
-				DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
+			m_geometryTransform = glm::translate(glm::mat4(1), pos) *
+				glm::yawPitchRoll(rota.y, rota.x, rota.z) * 
+				glm::scale(glm::mat4(1.0f), scale);
 		}
-		inline void SetViewportSize(float x, float y) { m_viewport = DirectX::XMFLOAT2(x, y); }
-		inline void SetMousePosition(float x, float y) { m_mouse = DirectX::XMFLOAT2(x, y); }
+		inline void SetViewportSize(float x, float y) { m_viewport = glm::vec2(x, y); }
+		inline void SetMousePosition(float x, float y) { m_mouse = glm::vec2(x, y); }
 		inline void SetTimeDelta(float x) { m_deltaTime = x; }
 		inline void SetPicked(bool picked) { m_isPicked = picked; }
-		inline void SetKeysWASD(int w, int a, int s, int d) { m_wasd = DirectX::XMINT4(w, a, s, d); }
+		inline void SetKeysWASD(int w, int a, int s, int d) { m_wasd = glm::ivec4(w, a, s, d); }
 
 	private:
-		ml::Timer m_timer;
+		eng::Timer m_timer;
 		float m_deltaTime;
 		ArcBallCamera m_abCam;
 		FirstPersonCamera m_fpCam;
-		DirectX::XMFLOAT2 m_viewport, m_mouse;
-		DirectX::XMMATRIX m_geometryTransform;
+		glm::vec2 m_viewport, m_mouse;
+		glm::mat4 m_geometryTransform;
 		bool m_isPicked;
 
-		DirectX::XMFLOAT3 m_camPos;
-		DirectX::XMINT4 m_wasd;
+		glm::ivec4 m_wasd;
 	};
 }

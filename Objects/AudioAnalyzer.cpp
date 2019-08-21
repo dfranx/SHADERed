@@ -49,10 +49,12 @@ namespace ed
 		for (int i = 0; i < BufferOutSize; i++)
 			m_fall[i] = m_fpeak[i] = m_flast[i] = m_fmem[i] = 0;
 	}
-	double* AudioAnalyzer::FFT(ml::AudioFile& file, int curSample)
+	double* AudioAnalyzer::FFT(sf::SoundBuffer& file, int curSample)
 	{
-		int rate = file.GetInfo()->nSamplesPerSec;
-		int channels = file.GetInfo()->nChannels;
+		int rate = file.getSampleRate();
+		int channels = file.getChannelCount();
+		int samplersPerChannel = file.getSampleCount() / channels;
+		const sf::Int16* samples = file.getSamples();
 		curSample *= channels;
 
 		if (m_isSetup != rate) {
@@ -64,10 +66,10 @@ namespace ed
 		int n = 0;
 		std::valarray<std::complex<double>> fftIn(SampleCount);
 		for (int i = 0; i < SampleCount / 2; i += 2) {
-			if (curSample + i > file.GetTotalSamplesPerChannel()*channels || curSample + i + 1 > file.GetTotalSamplesPerChannel() * channels)
+			if (curSample + i > samplersPerChannel*channels || curSample + i + 1 > samplersPerChannel * channels)
 				continue;
 
-			fftIn[n] = (file.GetSample(curSample + i, false) + file.GetSample(curSample + i + 1, false)) / 2; // TODO: Add stereo option
+			fftIn[n] = (samples[curSample + i] + samples[curSample + i + 1]) / 2; // TODO: Add stereo option
 			n++;
 			if (n == SampleCount - 1) n = 0;
 		}

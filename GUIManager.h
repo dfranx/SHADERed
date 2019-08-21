@@ -1,6 +1,11 @@
 #pragma once
-#include <MoonLight/Base/Window.h>
 #include "Objects/KeyboardShortcuts.h"
+
+#include <SDL2/SDL_video.h>
+#include <SDL2/SDL_events.h>
+#include <glm/glm.hpp>
+#include <vector>
+#include <string>
 #include <map>
 
 namespace ed
@@ -25,28 +30,32 @@ namespace ed
 	class GUIManager
 	{
 	public:
-		GUIManager(ed::InterfaceManager* objects, ml::Window* wnd);
+		GUIManager(ed::InterfaceManager* objs, SDL_Window* wnd, SDL_GLContext* gl);
 		~GUIManager();
 
-		void OnEvent(const ml::Event& e);
+		void OnEvent(const SDL_Event& e);
 		void Update(float delta);
 		void Render();
 
 		UIView* Get(ViewID view);
+		inline SDL_Window* GetSDLWindow() { return m_wnd; }
 
 		void SaveSettings();
 		void LoadSettings();
 
 		void CreateNewShaderPass();
 		void CreateNewTexture();
-		void CreateNewCubemap();
+		inline void CreateNewCubemap() { m_isCreateCubemapOpened = true; }
 		void CreateNewAudio();
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
+
+		bool SaveAsProject(bool restoreCached = false);
+		void Open(const std::string& file);
 
 	private:
 		void m_setupShortcuts();
 
-		void m_imguiHandleEvent(const ml::Event& e);
+		void m_imguiHandleEvent(const SDL_Event& e);
 
 		void m_renderOptions();
 		bool m_optionsOpened;
@@ -55,18 +64,17 @@ namespace ed
 
 		std::string m_cachedFont;
 		int m_cachedFontSize;
-		bool m_cachedCustomFont;
 		bool m_fontNeedsUpdate;
 		float m_cacheUIScale;
 
-		bool m_isCreateItemPopupOpened, m_isCreateRTOpened, m_isNewProjectPopupOpened, m_isAboutOpen;
+		bool m_isCreateItemPopupOpened, m_isCreateRTOpened, m_isCreateCubemapOpened, m_isNewProjectPopupOpened, m_isAboutOpen;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
 		bool m_savePreviewPopupOpened;
 		std::string m_previewSavePath;
-		DirectX::XMINT2 m_previewSaveSize;
+		glm::ivec2 m_previewSaveSize;
 
 		bool m_performanceMode, m_perfModeFake;
 
@@ -77,9 +85,8 @@ namespace ed
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
 
-		ml::Window* m_wnd;
 		InterfaceManager* m_data;
-
-		bool m_saveAsProject();
+		SDL_Window* m_wnd;
+		SDL_GLContext* m_gl;
 	};
 }

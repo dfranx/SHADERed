@@ -1,17 +1,20 @@
 #include "PropertyUI.h"
 #include "UIHelper.h"
 #include "CodeEditorUI.h"
+#include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <Shlwapi.h>
 
 #define BUTTON_SPACE_LEFT -40 * Settings::Instance().DPIScale
+#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 
 namespace ed
 {
-	void PropertyUI::OnEvent(const ml::Event & e)
+	void PropertyUI::OnEvent(const SDL_Event& e)
 	{}
 	void PropertyUI::Update(float delta)
 	{
@@ -76,50 +79,54 @@ namespace ed
 					ImGui::PushItemWidth(-1);
 					std::vector<std::string> rts = m_data->Objects.GetObjects();
 					bool windowAlreadyBound = false;
-					for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
-						if (item->RenderTexture[i][0] == 0)
+					for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+						if (item->RenderTextures[i] == 0)
 							continue;
 						
-						if (!windowAlreadyBound && strcmp(item->RenderTexture[i], "Window") == 0) {
+						if (!windowAlreadyBound && item->RenderTextures[i] == m_data->Renderer.GetTexture()) {
 							windowAlreadyBound = true;
 							continue;
 						}
 
 						for (int j = 0; j < rts.size(); j++) {
-							if (!m_data->Objects.IsRenderTexture(rts[j]) || (m_data->Objects.IsRenderTexture(rts[j]) && strcmp(item->RenderTexture[i], rts[j].c_str()) == 0)) {
+							if (!m_data->Objects.IsRenderTexture(rts[j]) || (m_data->Objects.IsRenderTexture(rts[j]) && item->RenderTextures[i] == m_data->Objects.GetTexture(rts[j]))) {
 								rts.erase(rts.begin() + j);
 								j--;
 							}
 						}
 					}
-					for (int i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
-						char firstChar = item->RenderTexture[i][0];
-						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), firstChar == 0 ? "NULL" : item->RenderTexture[i])) {
+					for (item->RTCount = 0; item->RTCount < MAX_RENDER_TEXTURES; item->RTCount++) {
+						int i = item->RTCount;
+						GLuint rtID = item->RenderTextures[i];
+						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetRenderTexture(rtID)->Name);
+						
+						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), name.c_str())) {
 							// null element
-							if (i != 0 && firstChar != 0) {
-								if (ImGui::Selectable("NULL", firstChar == 0)) {
-									item->RenderTexture[i][0] = 0;
-									for (int j = i + 1; j < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; j++)
-										item->RenderTexture[j][0] = 0;
+							if (i != 0 && rtID != 0) {
+								if (ImGui::Selectable("NULL", rtID == 0)) {
+									item->RenderTextures[i] = 0;
+									for (int j = i + 1; j < MAX_RENDER_TEXTURES; j++)
+										item->RenderTextures[j] = 0;
 								}
 							}
 
 							// window element
 							if (!windowAlreadyBound)
-								if (ImGui::Selectable("Window", strcmp(item->RenderTexture[i], "Window") == 0))
-									strcpy(item->RenderTexture[i], "Window");
+								if (ImGui::Selectable("Window", rtID == m_data->Renderer.GetTexture()))
+									item->RenderTextures[i] = m_data->Renderer.GetTexture();
 
 							// users RTs
 							for (int j = 0; j < rts.size(); j++)
 								if (m_data->Objects.IsRenderTexture(rts[j])) {
-									if (ImGui::Selectable(rts[j].c_str(), strcmp(item->RenderTexture[i], rts[j].c_str()) == 0))
-										strcpy(item->RenderTexture[i], rts[j].c_str());
+									GLuint texID = m_data->Objects.GetTexture(rts[j]);
+									if (ImGui::Selectable(rts[j].c_str(), rtID == texID))
+										item->RenderTextures[i] = texID;
 								}
 
 							ImGui::EndCombo();
 						}
 
-						if (item->RenderTexture[i][0] == 0)
+						if (item->RenderTextures[i] == 0)
 							break;
 					}
 					ImGui::PopItemWidth();
@@ -136,8 +143,9 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_vsbtn", ImVec2(-1, 0))) {
-						std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
-						if (file.size() != 0) {
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file);
+						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->VSPath, file.c_str());
 
@@ -171,8 +179,9 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_psbtn", ImVec2(-1, 0))) {
-						std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
-						if (file.size() != 0) {
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file);
+						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->PSPath, file.c_str());
 
@@ -215,8 +224,9 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_gsbtn", ImVec2(-1, 0))) {
-						std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle());
-						if (file.size() != 0) {
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file);
+						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->GSPath, file.c_str());
 
@@ -245,7 +255,7 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_geopos", item->Position);
+					ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f);
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -255,332 +265,7 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_geoscale", item->Scale);
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-					ImGui::Separator();
-
-					/* scale */
-					ImGui::Text("Rotation:");
-					ImGui::NextColumn();
-
-					ImGui::PushItemWidth(-1);
-					DirectX::XMFLOAT3 rotaDeg(DirectX::XMConvertToDegrees(item->Rotation.x), DirectX::XMConvertToDegrees(item->Rotation.y), DirectX::XMConvertToDegrees(item->Rotation.z));
-					UIHelper::CreateInputFloat3("##pui_georota", rotaDeg);
-					item->Rotation = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(rotaDeg.x), DirectX::XMConvertToRadians(rotaDeg.y), DirectX::XMConvertToRadians(rotaDeg.z));
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-					ImGui::Separator();
-
-					/* topology type */
-					ImGui::Text("Topology:");
-					ImGui::NextColumn();
-
-					ImGui::PushItemWidth(-1);
-					ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, _ARRAYSIZE(TOPOLOGY_ITEM_NAMES));
-					ImGui::PopItemWidth();
-				}
-				else if (m_current->Type == PipelineItem::ItemType::BlendState) {
-					pipe::BlendState* data = (pipe::BlendState*)m_current->Data;
-					D3D11_BLEND_DESC* desc = &data->State.Info;
-					bool changed = false;
-
-					// alpha to coverage
-					ImGui::Text("Alpha to coverage:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_alphacov", (bool*)(&desc->AlphaToCoverageEnable))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// source blend factor
-					ImGui::Text("Source blend factor:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendCombo("##cui_srcblend", desc->RenderTarget[0].SrcBlend)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// operator
-					ImGui::Text("Blend operator:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendOperatorCombo("##cui_blendop", desc->RenderTarget[0].BlendOp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// destination blend factor
-					ImGui::Text("Destination blend factor:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendCombo("##cui_destblend", desc->RenderTarget[0].DestBlend)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// source alpha blend factor
-					ImGui::Text("Source alpha blend factor:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendCombo("##cui_srcalphablend", desc->RenderTarget[0].SrcBlendAlpha)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// operator
-					ImGui::Text("Blend operator:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", desc->RenderTarget[0].BlendOpAlpha)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// destination alpha blend factor
-					ImGui::Text("Destination blend factor:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateBlendCombo("##cui_destalphablend", desc->RenderTarget[0].DestBlendAlpha)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// blend factor
-					ml::Color blendFactor = data->State.GetBlendFactor();
-					ImGui::Text("Custom blend factor:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputColor("##cui_blendfactor", blendFactor);
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-					data->State.SetBlendFactor(blendFactor);
-
-					if (changed)
-						data->State.Create(*m_data->GetOwner());
-				}
-				else if (m_current->Type == PipelineItem::ItemType::DepthStencilState) {
-					pipe::DepthStencilState* data = (pipe::DepthStencilState*)m_current->Data;
-					D3D11_DEPTH_STENCIL_DESC* desc = &data->State.Info;
-					bool changed = false;
-
-					// depth enable
-					ImGui::Text("Depth test:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_depth", (bool*)(&desc->DepthEnable))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// depth function
-					ImGui::Text("Depth function:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateComparisonFunctionCombo("##cui_depthop", desc->DepthFunc)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// stencil enable
-					ImGui::Text("Stencil test:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_stencil", (bool*)(&desc->StencilEnable))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// front face function
-					ImGui::Text("Stencil front face function:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", desc->FrontFace.StencilFunc)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// front face pass operation
-					ImGui::Text("Stencil front face pass:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateStencilOperationCombo("##cui_fpass", desc->FrontFace.StencilPassOp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// front face fail operation
-					ImGui::Text("Stencil front face fail:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateStencilOperationCombo("##cui_ffail", desc->FrontFace.StencilFailOp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// back face function
-					ImGui::Text("Stencil back face function:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", desc->BackFace.StencilFunc)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// back face pass operation
-					ImGui::Text("Stencil back face pass:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateStencilOperationCombo("##cui_bpass", desc->BackFace.StencilPassOp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// back face fail operation
-					ImGui::Text("Stencil back face fail:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateStencilOperationCombo("##cui_bfail", desc->BackFace.StencilFailOp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// stencil reference
-					ImGui::Text("Stencil reference:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // imgui uint input??
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					if (changed)
-						data->State.Create(*m_data->GetOwner());
-				}
-				else if (m_current->Type == PipelineItem::ItemType::RasterizerState) {
-					pipe::RasterizerState* data = (pipe::RasterizerState*)m_current->Data;
-					D3D11_RASTERIZER_DESC* desc = &data->State.Info;
-					bool changed = false;
-
-					// enable/disable wireframe rendering
-					bool isWireframe = desc->FillMode == D3D11_FILL_WIREFRAME;
-					ImGui::Text("Wireframe:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-					desc->FillMode = isWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-
-					ImGui::Separator();
-
-					// cull mode
-					ImGui::Text("Cull mode:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (UIHelper::CreateCullModeCombo("##cui_cull", desc->CullMode)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// front face == counter clockwise order
-					ImGui::Text("Counter clockwise:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_ccw", (bool*)(&desc->FrontCounterClockwise))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// depth bias
-					ImGui::Text("Depth bias:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::DragInt("##cui_depthbias", &desc->DepthBias)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// depth bias clamp
-					ImGui::Text("Depth bias clamp:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::DragFloat("##cui_depthbiasclamp", &desc->DepthBiasClamp)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// slope scaled depth bias
-					ImGui::Text("Slope scaled depth bias:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::DragFloat("##cui_slopebias", &desc->SlopeScaledDepthBias)) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// depth clip
-					ImGui::Text("Depth clip:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_depthclip", (bool*)(&desc->DepthClipEnable))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					ImGui::Separator();
-
-					// antialiasing
-					ImGui::Text("Antialiasing:");
-					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					if (ImGui::Checkbox("##cui_aa", (bool*)(&desc->AntialiasedLineEnable))) changed = true;
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-
-					if (changed)
-						data->State.Create(*m_data->GetOwner());
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::OBJModel) {
-					ed::pipe::OBJModel* item = reinterpret_cast<ed::pipe::OBJModel*>(m_current->Data);
-
-					/* position */
-					ImGui::Text("Position:");
-					ImGui::NextColumn();
-
-					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_geopos", item->Position);
-					ImGui::PopItemWidth();
-					ImGui::NextColumn();
-					ImGui::Separator();
-
-					/* scale */
-					ImGui::Text("Scale:");
-					ImGui::NextColumn();
-
-					ImGui::PushItemWidth(-1);
-					UIHelper::CreateInputFloat3("##pui_geoscale", item->Scale);
+					ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f);
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -590,9 +275,386 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					DirectX::XMFLOAT3 rotaDeg(DirectX::XMConvertToDegrees(item->Rotation.x), DirectX::XMConvertToDegrees(item->Rotation.y), DirectX::XMConvertToDegrees(item->Rotation.z));
-					UIHelper::CreateInputFloat3("##pui_georota", rotaDeg);
-					item->Rotation = DirectX::XMFLOAT3(DirectX::XMConvertToRadians(rotaDeg.x), DirectX::XMConvertToRadians(rotaDeg.y), DirectX::XMConvertToRadians(rotaDeg.z));
+					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
+					ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f);
+					if (rotaDeg.x > 360)
+						rotaDeg.x = 0;
+					if (rotaDeg.x < 0)
+						rotaDeg.x = 360;
+					if (rotaDeg.y > 360)
+						rotaDeg.y = 0;
+					if (rotaDeg.y < 0)
+						rotaDeg.y = 360;
+					if (rotaDeg.z > 360)
+						rotaDeg.z = 0;
+					if (rotaDeg.z < 0)
+						rotaDeg.z = 360;
+					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+					
+					/* topology type */
+					ImGui::Text("Topology:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES));
+					ImGui::PopItemWidth();
+				}
+				else if (m_current->Type == PipelineItem::ItemType::RenderState) {
+					pipe::RenderState* data = (pipe::RenderState*)m_current->Data;
+
+					// enable/disable wireframe rendering
+					bool isWireframe = data->PolygonMode == GL_LINE;
+					ImGui::Text("Wireframe:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe));
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+					data->PolygonMode = isWireframe ? GL_LINE : GL_FILL;
+
+					// cull
+					ImGui::Text("Cull:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_cullm", &data->CullFace);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// cull mode
+					ImGui::Text("Cull mode:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateCullModeCombo("##cui_culltype", data->CullFaceType);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// front face == counter clockwise order
+					bool isCCW = data->FrontFace == GL_CCW;
+					ImGui::Text("Counter clockwise:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_ccw", &isCCW);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+					data->FrontFace = isCCW ? GL_CCW : GL_CW;
+
+
+
+
+					// depth enable
+					ImGui::Text("Depth test:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_depth", &data->DepthTest);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!data->DepthTest)
+					{
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+
+					// depth clip
+					ImGui::Text("Depth clip:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_depthclip", &data->DepthClamp);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// depth mask
+					ImGui::Text("Depth mask:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_depthmask", &data->DepthMask);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// depth function
+					ImGui::Text("Depth function:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateComparisonFunctionCombo("##cui_depthop", data->DepthFunction);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// depth bias
+					ImGui::Text("Depth bias:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::DragFloat("##cui_depthbias", &data->DepthBias);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!data->DepthTest)
+					{
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+					}
+
+
+
+
+					// blending
+					ImGui::Text("Blending:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_blend", &data->Blend);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!data->Blend)
+					{
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+
+					// alpha to coverage
+					ImGui::Text("Alpha to coverage:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_alphacov", &data->AlphaToCoverage);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// source blend factor
+					ImGui::Text("Source blend factor:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendCombo("##cui_srcblend", data->BlendSourceFactorRGB);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// operator
+					ImGui::Text("Blend operator:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendOperatorCombo("##cui_blendop", data->BlendFunctionColor);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// destination blend factor
+					ImGui::Text("Destination blend factor:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendCombo("##cui_destblend", data->BlendDestinationFactorRGB);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// source alpha blend factor
+					ImGui::Text("Source alpha blend factor:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendCombo("##cui_srcalphablend", data->BlendSourceFactorAlpha);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// operator
+					ImGui::Text("Alpha blend operator:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", data->BlendFunctionAlpha);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// destination alpha blend factor
+					ImGui::Text("Destination alpha blend factor:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateBlendCombo("##cui_destalphablend", data->BlendDestinationFactorAlpha);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// blend factor
+					ImGui::Text("Custom blend factor:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::ColorEdit4("##cui_blendfactor", glm::value_ptr(data->BlendFactor));
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!data->Blend)
+					{
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+					}
+
+
+
+
+					// stencil enable
+					ImGui::Text("Stencil test:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::Checkbox("##cui_stencil", &data->StencilTest);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!data->StencilTest)
+					{
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+
+					// stencil mask
+					ImGui::Text("Stencil mask:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::InputInt("##cui_stencilmask", (int*)& data->StencilMask);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (data->StencilMask < 0)
+						data->StencilMask = 0;
+					if (data->StencilMask > 255)
+						data->StencilMask = 255;
+
+					// stencil reference
+					ImGui::Text("Stencil reference:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					ImGui::InputInt("##cui_sref", (int*)& data->StencilReference); // TODO: imgui uint input??
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (data->StencilReference < 0)
+						data->StencilReference = 0;
+					if (data->StencilReference > 255)
+						data->StencilReference = 255;
+
+					// front face function
+					ImGui::Text("Stencil front face function:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", data->StencilFrontFaceFunction);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// front face pass operation
+					ImGui::Text("Stencil front face pass:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_fpass", data->StencilFrontFaceOpPass);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// front face stencil fail operation
+					ImGui::Text("Stencil front face fail:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_ffail", data->StencilFrontFaceOpStencilFail);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// front face depth fail operation
+					ImGui::Text("Depth front face fail:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_fdfail", data->StencilFrontFaceOpDepthFail);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// back face function
+					ImGui::Text("Stencil back face function:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", data->StencilBackFaceFunction);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// back face pass operation
+					ImGui::Text("Stencil back face pass:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_bpass", data->StencilBackFaceOpPass);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// back face stencil fail operation
+					ImGui::Text("Stencil back face fail:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_bfail", data->StencilBackFaceOpStencilFail);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// back face depth fail operation
+					ImGui::Text("Depth back face fail:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					UIHelper::CreateStencilOperationCombo("##cui_bdfail", data->StencilBackFaceOpDepthFail);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+
+					if (!data->StencilTest)
+					{
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+					}
+				}
+				else if (m_current->Type == ed::PipelineItem::ItemType::Model) {
+					ed::pipe::Model* item = reinterpret_cast<ed::pipe::Model*>(m_current->Data);
+
+					/* position */
+					ImGui::Text("Position:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* scale */
+					ImGui::Text("Scale:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* rotation */
+					ImGui::Text("Rotation:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
+					ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f);
+					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 				}
@@ -602,8 +664,8 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateInputInt2("##prop_rt_fsize", m_currentRT->FixedSize)) {
-					m_currentRT->RatioSize = DirectX::XMFLOAT2(-1, -1);
+				if (ImGui::DragInt2("##prop_rt_fsize", glm::value_ptr(m_currentRT->FixedSize), 1)) {
+					m_currentRT->RatioSize = glm::vec2(-1, -1);
 					if (m_currentRT->FixedSize.x <= 0)
 						m_currentRT->FixedSize.x = 10;
 					if (m_currentRT->FixedSize.y <= 0)
@@ -620,14 +682,14 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateInputFloat2("##prop_rt_rsize", m_currentRT->RatioSize)) {
-					m_currentRT->FixedSize = DirectX::XMINT2(-1, -1);
+				if (ImGui::DragFloat2("##prop_rt_rsize", glm::value_ptr(m_currentRT->RatioSize), 0.01f)) {
+					m_currentRT->FixedSize = glm::ivec2(-1, -1);
 					if (m_currentRT->RatioSize.x <= 0)
 						m_currentRT->RatioSize.x = 0.01f;
 					if (m_currentRT->RatioSize.y <= 0)
 						m_currentRT->RatioSize.y = 0.01f;
 
-					DirectX::XMINT2 newSize(m_currentRT->RatioSize.x * m_data->Renderer.GetLastRenderSize().x,
+					glm::ivec2 newSize(m_currentRT->RatioSize.x * m_data->Renderer.GetLastRenderSize().x,
 						m_currentRT->RatioSize.y * m_data->Renderer.GetLastRenderSize().y);
 
 					m_data->Objects.ResizeRenderTexture(std::string(m_itemName), newSize);
@@ -641,7 +703,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				UIHelper::CreateInputColor("##prop_rt_color", m_currentRT->ClearColor);
+				ImGui::ColorEdit4("##prop_rt_color", glm::value_ptr(m_currentRT->ClearColor));
 				ImGui::PopItemWidth();
 			}
 			
@@ -656,11 +718,15 @@ namespace ed
 	{
 		if (item != nullptr) memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
 
+		Logger::Get().Log("Openning a pipeline item in the PropertyUI");
+
 		m_currentRT = nullptr;
 		m_current = item;
 	}
 	void PropertyUI::Open(const std::string& name, ed::RenderTextureObject * obj)
 	{
+		Logger::Get().Log("Openning a render texutre in the PropertyUI");
+
 		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
 		memcpy(m_itemName, name.c_str(), name.size());
 

@@ -1,5 +1,41 @@
 [v1.1.0]
-... working on OpenGL port ...
++ port from DirectX to OpenGL & SDL (works on linux now)
++ add CMakeLists.txt
++ use assimp - supports more 3D model file formats
++ link glslang and SPIRV-Cross (rather than using external processes)
++ only one variable manager for all stages (variable names now matter though)
++ write actual error messages in the Output window
++ add line number and shader type (source) in the Output Window
++ support single key shortcuts (example: press F to go into Performance mode)
++ KeyboardShortcuts doesnt listen to repeated events anymore
++ merge DepthStencilState, RasterizerState, BlendState into one state called RenderState
++ HLSL to GLSL transcompiler
++ cubemaps now require path to 6 separate textures
++ append version to project files (+ backwards compatibility)
++ implement version #2 of SHADERed project files
++ SHIFT+drag gizmo for faster dragging
++ slow down the application when minimized
++ add "Apply the FPS limit to the whole application" option
++ add "Limit application to 60FPS when it is not focused" option
++ limit rotation value between [0, 360] in PropertyUI
++ duplicated object now appears in PropertyUI if "PropertyPick" option is turned on
++ IsPicked variable now works with multiple items selected
++ prompt user to save project when user tries to save changes to a shader file in a template
++ prompt user to save project when user tries to open template shaders in an external editor
++ add an actual logger -> outputs high amount of stuff in log.txt
++ fix mouse cursor capture when rotating camera
++ fix bounding boxes for other geometry types
++ fix for "app wont gain focus when clicking on anything but the titlebar"
++ fix a bug where the app would crash if when set as a default app for ".sprj" files
++ fix a bug where gizmo wont move with the selected object when the object is moved using PropertyUI
++ fix a bug where user couldnt write {} (and other characters using alt and ctrl) in the text editor
++ fix a bug where user could pick a render state item by double clicking it in PipelineUI
++ fix a bug where two items could exist with names "Box", "BoX", etc...
++ fix a bug where where SHADERed wouldnt check for file updates on a recently added geometry shader
+- remove FXAA
+- remove stats page
+- remove input layout manager
+- remove glslangValidator.exe & SPIRVCross.exe
 
 [v1.0.3]
 + add ability to duplicate selected items

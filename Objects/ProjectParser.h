@@ -1,10 +1,16 @@
 #pragma once
-#include <string>
 #include "../GUIManager.h"
 #include "ShaderVariable.h"
 #include "MessageStack.h"
+#include "../Engine/Model.h"
+
+#include <string>
 #include <pugixml/src/pugixml.hpp>
-#include <MoonLight/Model/OBJModel.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 namespace ed
 {
@@ -27,7 +33,7 @@ namespace ed
 
 		std::string LoadProjectFile(const std::string& file);
 		char* LoadProjectFile(const std::string& file, size_t& len);
-		ml::OBJModel* LoadModel(const std::string& file);
+		eng::Model* LoadModel(const std::string& file);
 
 		void SaveProjectFile(const std::string& file, const std::string& data);
 
@@ -42,14 +48,17 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 
 	private:
+		void m_parseV1(pugi::xml_node& projectNode); // old
+		void m_parseV2(pugi::xml_node& projectNode); // current -> merge blend, rasterizer and depth states into one "render state" ||| remove input layout parsing ||| ignore shader entry property
+
 		void m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var);
 		void m_exportVariableValue(pugi::xml_node& node, ShaderVariable* vars);
 		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars);
-		D3D11_BLEND m_toBlend(const char* str);
-		D3D11_BLEND_OP m_toBlendOp(const char* str);
-		D3D11_COMPARISON_FUNC m_toComparisonFunc(const char* str);
-		D3D11_STENCIL_OP m_toStencilOp(const char* str);
-		D3D11_CULL_MODE m_toCullMode(const char* str);
+		GLenum m_toBlend(const char* str);
+		GLenum m_toBlendOp(const char* str);
+		GLenum m_toComparisonFunc(const char* str);
+		GLenum m_toStencilOp(const char* str);
+		GLenum m_toCullMode(const char* str);
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;
@@ -60,6 +69,6 @@ namespace ed
 		std::string m_projectPath;
 		std::string m_template;
 
-		std::vector<std::pair<std::string, ml::OBJModel*>> m_models;
+		std::vector<std::pair<std::string, eng::Model>> m_models;
 	};
 }

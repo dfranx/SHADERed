@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float2" name="iResolution" system="ViewportSize" />
+				<variable type="float2" name="iMouse" system="MousePosition" />
+				<variable type="float" name="iTime" system="Time" />
+				<variable type="float" name="iTimeDelta" system="TimeDelta" />
+			</variables>
+			<items>
+				<item name="FS" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="audio" path="../../Common/beat.ogg">
+			<bind slot="0" name="Simple" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="camera" fp="false">
+			<distance>15</distance>
+			<pitch>89</pitch>
+			<yaw>37</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

@@ -1,74 +1,89 @@
 #include "ArcBallCamera.h"
 #include <algorithm>
 
-using namespace DirectX;
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
 
 namespace ed
 {
+	const float ArcBallCamera::MaxDistance = 50.0f;
+	const float ArcBallCamera::MinDistance = 2.0f;
+	const float ArcBallCamera::MaxRotationY = 89.0f;
+
 	void ArcBallCamera::Reset()
 	{
-		distance = 7;
-		rotaX = 0;
-		rotaY = 0;
-		rotaZ = 0;
+		m_distance = 7;
+		m_pitch = 0;
+		m_yaw = 0;
+		m_roll = 0;
 	}
 	void ArcBallCamera::SetDistance(float d)
 	{
-		distance = std::max(minDistance, std::min(maxDistance, d));
+		m_distance = std::max(ArcBallCamera::MinDistance, std::min(ArcBallCamera::MaxDistance, d));
 	}
 	void ArcBallCamera::Move(float d)
 	{
-		distance = std::max(minDistance, std::min(maxDistance, distance + d));
+		m_distance = std::max(ArcBallCamera::MinDistance, std::min(ArcBallCamera::MaxDistance, m_distance + d));
 	}
-	void ArcBallCamera::RotateX(float rx)
+	void ArcBallCamera::Yaw(float rx)
 	{
-		rotaX += rx;
-		if (rotaX >= 360)
-			rotaX -= 360;
-		if (rotaX <= 0)
-			rotaX += 360;
+		m_yaw -= rx;
+		if (m_yaw >= 360)
+			m_yaw -= 360;
+		if (m_yaw <= 0)
+			m_yaw += 360;
 	}
-	void ArcBallCamera::RotateY(float ry)
+	void ArcBallCamera::Pitch(float ry)
 	{
-		rotaY = std::max(-maxRotaY, std::min(maxRotaY, rotaY + ry));
+		m_pitch = std::max(-ArcBallCamera::MaxRotationY, std::min(ArcBallCamera::MaxRotationY, m_pitch + ry));
 	}
-	void ArcBallCamera::RotateZ(float rz)
+	void ArcBallCamera::Roll(float rz)
 	{
-		rotaZ += rz;
-		if (rotaZ >= 360)
-			rotaZ -= 360;
-		if (rotaZ <= 0)
-			rotaZ += 360;
+		m_roll += rz;
+		if (m_roll >= 360)
+			m_roll -= 360;
+		if (m_roll <= 0)
+			m_roll += 360;
 	}
-	DirectX::XMVECTOR ArcBallCamera::GetPosition()
+	void ArcBallCamera::SetYaw(float r)
 	{
-		XMVECTOR pos = XMVectorSet(0, 0, -distance, 0);
-		XMMATRIX rotaMat = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotaY), XMConvertToRadians(rotaX), XMConvertToRadians(rotaZ));
+		m_yaw = r;
+	}
+	void ArcBallCamera::SetPitch(float r)
+	{
+		m_pitch = r;
+	}
+	void ArcBallCamera::SetRoll(float r)
+	{
+		m_roll = r;
+	}
+	glm::vec4 ArcBallCamera::GetPosition()
+	{
+		glm::vec4 pos(0, 0, -m_distance, 0);
+		glm::mat4 rotaMat = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), glm::radians(m_roll));
 
-		pos = XMVector3Transform(pos, rotaMat);
+		pos = rotaMat * pos;
 
 		return pos;
 	}
-	DirectX::XMVECTOR ArcBallCamera::GetUpVector()
+	glm::vec4 ArcBallCamera::GetUpVector()
 	{
-		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-		XMMATRIX rotaMat = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotaY), XMConvertToRadians(rotaX), XMConvertToRadians(rotaZ));
+		glm::vec4 up(0, 1, 0, 0);
+		glm::mat4 rotaMat = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), glm::radians(m_roll));
 
-		up = XMVector3Transform(up, rotaMat);
+		up = rotaMat * up;
 
-		return XMVector3Normalize(up);
+		return glm::normalize(up);
 	}
-	XMMATRIX ArcBallCamera::GetMatrix()
+	glm::mat4 ArcBallCamera::GetMatrix()
 	{
-		XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-		XMVECTOR pos = XMVectorSet(0, 0, -distance, 0);
-		XMMATRIX rotaMat = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotaY), XMConvertToRadians(rotaX), XMConvertToRadians(rotaZ));
+		glm::vec4 pos(0, 0, -m_distance, 0);
+		glm::vec4 up(0, 1, 0, 0);
+		glm::mat4 rotaMat = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), glm::radians(m_roll));
 
-		up = XMVector3Transform(up, rotaMat);
-		pos = XMVector3Transform(pos, rotaMat);
+		up = rotaMat * up;
+		pos = rotaMat * pos;
 
-		XMMATRIX ret = XMMatrixLookAtLH(pos, XMVectorSet(0, 0, 0, 0), up);
-
-		return ret;
+		return glm::lookAt(glm::vec3(pos), glm::vec3(0, 0, 0), glm::vec3(up));
 	}
 }

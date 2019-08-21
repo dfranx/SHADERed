@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Depth">
+			<shader type="vs" path="shaders\DepthVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\DepthPS.hlsl" entry="main" />
+			<rendertexture name="depthRT" />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+		<pass name="Edge">
+			<shader type="vs" path="shaders\EdgeVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\EdgePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float2" name="wndSize" system="ViewportSize" />
+			</variables>
+			<items>
+				<item name="Fullscreen" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="rendertexture" name="depthRT" rsize="1.000000,1.000000">
+			<bind slot="0" name="Edge" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="file" name="Depth" shader="vs" />
+		<entry type="file" name="Depth" shader="ps" />
+		<entry type="file" name="Edge" shader="vs" />
+		<entry type="file" name="Edge" shader="ps" />
+		<entry type="camera" fp="false">
+			<distance>3</distance>
+			<pitch>15</pitch>
+			<yaw>327</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="1" />
+	</settings>
+</project>

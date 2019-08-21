@@ -1,0 +1,53 @@
+CodeUI.SwitchView ALT F2
+CodeUI.ToggleStatusbar CTRL ALT F2
+Editor.AutocompleteDown Down
+Editor.AutocompleteOpen CTRL Space
+Editor.AutocompleteSelect Tab
+Editor.AutocompleteSelectActive Return
+Editor.AutocompleteUp Up
+Editor.Compile F5
+Editor.Copy CTRL C
+Editor.Cut CTRL X
+Editor.MoveBottom CTRL End
+Editor.MoveDownBlock PageDown
+Editor.MoveEndLine End
+Editor.MoveStartLine Home
+Editor.MoveTop CTRL Home
+Editor.MoveUpBlock PageUp
+Editor.OverwriteCursor Insert
+Editor.Paste CTRL V
+Editor.Redo CTRL Y
+Editor.Save CTRL S
+Editor.SelectAll CTRL A
+Editor.Undo CTRL Z
+Gizmo.Position CTRL G P
+Gizmo.Rotation CTRL G R
+Gizmo.Scale CTRL G S
+Preview.Delete CTRL Delete
+Preview.Duplicate SHIFT D
+Preview.SaveImage CTRL R
+Preview.SelectAll SHIFT A
+Preview.ToggleStatusbar CTRL ALT F3
+Preview.Unselect CTRL SHIFT Delete
+Project.New CTRL N N
+Project.NewAudio CTRL N A
+Project.NewCubeMap CTRL N C
+Project.NewRenderTexture CTRL N R
+Project.NewShaderPass CTRL N P
+Project.NewTexture CTRL N T
+Project.Open CTRL O
+Project.Rebuild CTRL F5
+Project.Save CTRL P S
+Project.SaveAs CTRL P A
+Window.Exit ALT F4
+Workspace.ChangeThemeDown CTRL Down
+Workspace.ChangeThemeUp CTRL Up
+Workspace.Help CTRL H
+Workspace.HideEditor CTRL W E
+Workspace.HideOutput CTRL W O
+Workspace.HidePinned CTRL W N
+Workspace.HidePipeline CTRL W L
+Workspace.HidePreview CTRL W P
+Workspace.HideProperties CTRL W R
+Workspace.Options CTRL W O
+Workspace.PerformanceMode F

@@ -1,7 +1,9 @@
 #include "KeyboardShortcuts.h"
-#include <Windows.h>
+#include "Logger.h"
 #include <fstream>
 #include <sstream>
+
+#include <SDL2/SDL_keyboard.h>
 
 namespace ed
 {
@@ -11,6 +13,8 @@ namespace ed
 	}
 	void KeyboardShortcuts::Load()
 	{
+		ed::Logger::Get().Log("Loading shortcut information");
+
 		std::ifstream file("data/shortcuts.kb");
 		std::string str;
 
@@ -24,7 +28,6 @@ namespace ed
 
 			m_data[name].Key1 = -1;
 			m_data[name].Key2 = -1;
-
 			while (ss >> token)
 			{
 				if (token == "CTRL") m_data[name].Ctrl = true;
@@ -32,19 +35,15 @@ namespace ed
 				else if (token == "SHIFT") m_data[name].Shift = true;
 				else if (token == "NONE") break;
 				else {
-					for (int i = 0; i < 0xE8; i++) {
-						if (token == ml::Keyboard::KeyToString(i)) {
-							if (m_data[name].Key1 == -1)
-								m_data[name].Key1 = i;
-							else if (m_data[name].Key2 == -1)
-								m_data[name].Key2 = i;
-						}
-					}
+					if (m_data[name].Key1 == -1)
+						m_data[name].Key1 = SDL_GetKeyFromName(token.c_str());
+					else if (m_data[name].Key2 == -1)
+						m_data[name].Key2 = SDL_GetKeyFromName(token.c_str());
 				}				
 			}
 		}
 
-		return;
+		ed::Logger::Get().Log("Loaded shortcut information");
 	}
 	void KeyboardShortcuts::Save()
 	{
@@ -65,20 +64,25 @@ namespace ed
 				file << " ALT";
 			if (s.second.Shift)
 				file << " SHIFT";
-			file << " " << ml::Keyboard::KeyToString(s.second.Key1);
+			file << " " << SDL_GetKeyName(s.second.Key1);
 			if (s.second.Key2 != -1)
-				file << " " << ml::Keyboard::KeyToString(s.second.Key2);
+				file << " " << SDL_GetKeyName(s.second.Key2);
 
 			file << std::endl;
 		}
+
+		ed::Logger::Get().Log("Saved shortcut information");
 
 		return;
 	}
 	bool KeyboardShortcuts::Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift)
 	{
-		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && !m_canSolo(VK1)))
+		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && !m_canSolo(name, VK1)))
 			return false;
-		
+
+		// TODO: maybe this log is too much?
+		Logger::Get().Log("Set keyboard shortcut (" + name + ")");
+
 		for (auto& i : m_data)
 			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
 				i.second.Ctrl = i.second.Alt = i.second.Shift = false;
@@ -109,9 +113,9 @@ namespace ed
 			ret += "ALT+";
 		if (m_data[name].Shift)
 			ret += "SHIFT+";
-		ret += ml::Keyboard::KeyToString(m_data[name].Key1) + "+";
+		ret += std::string(SDL_GetKeyName(m_data[name].Key1)) + "+";
 		if (m_data[name].Key2 != -1)
-			ret += ml::Keyboard::KeyToString(m_data[name].Key2) + "+";
+			ret += std::string(SDL_GetKeyName(m_data[name].Key2)) + "+";
 
 		return ret.substr(0, ret.size() - 1);
 	}
@@ -122,14 +126,25 @@ namespace ed
 			ret.push_back(i.first);
 		return ret;
 	}
-	void KeyboardShortcuts::Check(const ml::Event& e)
+	void KeyboardShortcuts::Check(const SDL_Event& e, bool codeHasFocus)
 	{
+		// dont process key repeats
+		if (e.key.repeat != 0)
+			return;
+
 		m_keys[0] = m_keys[1];
-		m_keys[1] = e.Keyboard.VK;
+		m_keys[1] = e.key.keysym.sym;
+
+		bool alt = e.key.keysym.mod & KMOD_ALT;
+		bool ctrl = e.key.keysym.mod & KMOD_CTRL;
+		bool shift = e.key.keysym.mod & KMOD_SHIFT;
 
 		for (auto hotkey : m_data) {
+			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos))
+				continue;
+
 			Shortcut s = hotkey.second;
-			if (s.Alt == e.Keyboard.Alt && s.Ctrl == e.Keyboard.Control && s.Shift == e.Keyboard.Shift) {
+			if (s.Alt == alt && s.Ctrl == ctrl && s.Shift == shift) {
 				int key2 = m_keys[1];
 				if (s.Key2 == -1 && s.Key1 == key2 && s.Function != nullptr) {
 
@@ -141,7 +156,7 @@ namespace ed
 					int key1 = m_keys[0];
 					if (key1 != -1)
 						for (auto clone : m_data)
-							if (clone.second.Alt == e.Keyboard.Alt && clone.second.Ctrl == e.Keyboard.Control && clone.second.Shift == e.Keyboard.Shift &&
+							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift &&
 								clone.second.Key1 == key1 && clone.second.Key2 == key2)
 							{
 								found = true;
@@ -168,8 +183,8 @@ namespace ed
 			}
 		}
 	}
-	bool KeyboardShortcuts::m_canSolo(int k)
+	bool KeyboardShortcuts::m_canSolo(const std::string& name, int k)
 	{
-		return (k >= VK_F1 && k <= VK_F24);
+		return (k >= SDLK_F1 && k <= SDLK_F12) || (k >= SDLK_F13 && k <= SDLK_F24) || (name.find("Editor") == std::string::npos);
 	}
 }

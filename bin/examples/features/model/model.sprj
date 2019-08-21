@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="Teapot" type="model">
+					<filepath>..\..\Common\Teapot.obj</filepath>
+					<grouponly>false</grouponly>
+					<scaleX>0.300000012</scaleX>
+					<scaleY>0.300000012</scaleY>
+					<scaleZ>0.300000012</scaleZ>
+					<y>-0.349999994</y>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="property" name="Teapot" />
+		<entry type="camera" fp="false">
+			<distance>2</distance>
+			<pitch>31</pitch>
+			<yaw>29</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

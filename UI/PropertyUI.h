@@ -11,7 +11,7 @@ namespace ed
 			memset(m_itemName, 0, 64 * sizeof(char));
 		}
 
-		virtual void OnEvent(const ml::Event& e);
+		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 		
 		void Open(ed::PipelineItem* item);

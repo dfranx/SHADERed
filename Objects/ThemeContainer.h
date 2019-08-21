@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <ImGuiColorTextEdit/TextEditor.h>
+#include <imgui/imgui.h>
+#include <map>
 
 namespace ed
 {

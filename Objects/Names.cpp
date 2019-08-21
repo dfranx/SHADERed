@@ -1,4 +1,9 @@
-#pragma once
+#include "Names.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 const char* TOPOLOGY_ITEM_NAMES[] =
 {
@@ -20,127 +25,6 @@ const char* SHADER_TYPE_NAMES[] =
 	"Vertex"
 };
 
-const char* FORMAT_NAMES[] = {
-	"UNKNOWN\0",
-	"R32G32B32A32_TYPELESS\0",
-	"R32G32B32A32_FLOAT\0",
-	"R32G32B32A32_UINT\0",
-	"R32G32B32A32_SINT\0",
-	"R32G32B32_TYPELESS\0",
-	"R32G32B32_FLOAT\0",
-	"R32G32B32_UINT\0",
-	"R32G32B32_SINT\0",
-	"R16G16B16A16_TYPELESS\0",
-	"R16G16B16A16_FLOAT\0",
-	"R16G16B16A16_UNORM\0",
-	"R16G16B16A16_UINT\0",
-	"R16G16B16A16_SNORM\0",
-	"R16G16B16A16_SINT\0",
-	"R32G32_TYPELESS\0",
-	"R32G32_FLOAT\0",
-	"R32G32_UINT\0",
-	"R32G32_SINT\0",
-	"R32G8X24_TYPELESS\0",
-	"D32_FLOAT_S8X24_UINT\0",
-	"R32_FLOAT_X8X24_TYPELESS\0",
-	"X32_TYPELESS_G8X24_UINT\0",
-	"R10G10B10A2_TYPELESS\0",
-	"R10G10B10A2_UNORM\0",
-	"R10G10B10A2_UINT\0",
-	"R11G11B10_FLOAT\0",
-	"R8G8B8A8_TYPELESS\0",
-	"R8G8B8A8_UNORM\0",
-	"R8G8B8A8_UNORM_SRGB\0",
-	"R8G8B8A8_UINT\0",
-	"R8G8B8A8_SNORM\0",
-	"R8G8B8A8_SINT\0",
-	"R16G16_TYPELESS\0",
-	"R16G16_FLOAT\0",
-	"R16G16_UNORM\0",
-	"R16G16_UINT\0",
-	"R16G16_SNORM\0",
-	"R16G16_SINT\0",
-	"R32_TYPELESS\0",
-	"D32_FLOAT\0",
-	"R32_FLOAT\0",
-	"R32_UINT\0",
-	"R32_SINT\0",
-	"R24G8_TYPELESS\0",
-	"D24_UNORM_S8_UINT\0",
-	"R24_UNORM_X8_TYPELESS\0",
-	"X24_TYPELESS_G8_UINT\0",
-	"R8G8_TYPELESS\0",
-	"R8G8_UNORM\0",
-	"R8G8_UINT\0",
-	"R8G8_SNORM\0",
-	"R8G8_SINT\0",
-	"R16_TYPELESS\0",
-	"R16_FLOAT\0",
-	"D16_UNORM\0",
-	"R16_UNORM\0",
-	"R16_UINT\0",
-	"R16_SNORM\0",
-	"R16_SINT\0",
-	"R8_TYPELESS\0",
-	"R8_UNORM\0",
-	"R8_UINT\0",
-	"R8_SNORM\0",
-	"R8_SINT\0",
-	"A8_UNORM\0",
-	"R1_UNORM\0",
-	"R9G9B9E5_SHAREDEXP\0",
-	"R8G8_B8G8_UNORM\0",
-	"G8R8_G8B8_UNORM\0",
-	"BC1_TYPELESS\0",
-	"BC1_UNORM\0",
-	"BC1_UNORM_SRGB\0",
-	"BC2_TYPELESS\0",
-	"BC2_UNORM\0",
-	"BC2_UNORM_SRGB\0",
-	"BC3_TYPELESS\0",
-	"BC3_UNORM\0",
-	"BC3_UNORM_SRGB\0",
-	"BC4_TYPELESS\0",
-	"BC4_UNORM\0",
-	"BC4_SNORM\0",
-	"BC5_TYPELESS\0",
-	"BC5_UNORM\0",
-	"BC5_SNORM\0",
-	"B5G6R5_UNORM\0",
-	"B5G5R5A1_UNORM\0",
-	"B8G8R8A8_UNORM\0",
-	"B8G8R8X8_UNORM\0",
-	"R10G10B10_XR_BIAS_A2_UNORM\0",
-	"B8G8R8A8_TYPELESS\0",
-	"B8G8R8A8_UNORM_SRGB\0",
-	"B8G8R8X8_TYPELESS\0",
-	"B8G8R8X8_UNORM_SRGB\0",
-	"BC6H_TYPELESS\0",
-	"BC6H_UF16\0",
-	"BC6H_SF16\0",
-	"BC7_TYPELESS\0",
-	"BC7_UNORM\0",
-	"BC7_UNORM_SRGB\0",
-	"AYUV\0",
-	"Y410\0",
-	"Y416\0",
-	"NV12\0",
-	"P010\0",
-	"P016\0",
-	"420_OPAQUE\0",
-	"YUY2\0",
-	"Y210\0",
-	"Y216\0",
-	"NV11\0",
-	"AI44\0",
-	"IA44\0",
-	"P8\0",
-	"A8P8\0",
-	"B4G4R4A4_UNORM\0",
-	"P208\0",
-	"V208\0",
-	"V408\0"
-};
 const char* SYSTEM_VARIABLE_NAMES[] = {
 	"--NONE--",
 	"Time",
@@ -270,3 +154,117 @@ const char* CULL_MODE_NAMES[] = {
 	"Front",
 	"Back"
 };
+
+
+
+const unsigned int BLEND_VALUES[] = {
+	-1,
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
+	GL_ONE_MINUS_SRC_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_SRC_ALPHA_SATURATE,  // 11
+	-1, -1,
+	GL_CONSTANT_COLOR,
+	GL_ONE_MINUS_CONSTANT_COLOR,
+	-1, -1,
+	-1, -1,
+};
+const unsigned int BLEND_OPERATOR_VALUES[] = {
+	-1,
+	GL_FUNC_ADD,
+	GL_FUNC_SUBTRACT,
+	GL_FUNC_REVERSE_SUBTRACT,
+	GL_MIN,
+	GL_MAX
+};
+const unsigned int COMPARISON_FUNCTION_VALUES[] = {
+	-1,
+	GL_NEVER,
+	GL_LESS,
+	GL_EQUAL,
+	GL_LEQUAL,
+	GL_GREATER,
+	GL_NOTEQUAL,
+	GL_GEQUAL,
+	GL_ALWAYS
+};
+const unsigned int STENCIL_OPERATION_VALUES[] = {
+	GL_ZERO,
+	GL_KEEP,
+	GL_ZERO,
+	GL_REPLACE,
+	GL_INCR_WRAP,
+	GL_DECR_WRAP,
+	GL_INVERT,
+	GL_INCR,
+	GL_DECR
+};
+const unsigned int CULL_MODE_VALUES[] = {
+	-1,
+	GL_ZERO,
+	GL_FRONT,
+	GL_BACK
+};
+const unsigned int TOPOLOGY_ITEM_VALUES[] =
+{
+	-1, // "Undefined"
+	GL_POINTS,
+	GL_LINES,
+	GL_LINE_STRIP,
+	GL_TRIANGLES,
+	GL_TRIANGLE_STRIP,
+	GL_LINES_ADJACENCY,
+	GL_LINE_STRIP_ADJACENCY,
+	GL_TRIANGLES_ADJACENCY,
+	GL_TRIANGLE_STRIP_ADJACENCY
+};
+
+namespace ed
+{
+	namespace gl
+	{
+		const char* String::BlendFactor(unsigned int val)
+		{
+			int len = (sizeof(BLEND_VALUES) / sizeof(*BLEND_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == BLEND_VALUES[i])
+					return BLEND_NAMES[i];
+			return BLEND_NAMES[0];
+		}
+		const char* String::BlendFunction(unsigned int val)
+		{
+			int len = (sizeof(BLEND_OPERATOR_VALUES) / sizeof(*BLEND_OPERATOR_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == BLEND_OPERATOR_VALUES[i])
+					return BLEND_OPERATOR_NAMES[i];
+			return BLEND_OPERATOR_NAMES[0];
+		}
+		const char* String::ComparisonFunction(unsigned int val)
+		{
+			int len = (sizeof(COMPARISON_FUNCTION_VALUES) / sizeof(*COMPARISON_FUNCTION_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == COMPARISON_FUNCTION_VALUES[i])
+					return COMPARISON_FUNCTION_NAMES[i];
+			return COMPARISON_FUNCTION_NAMES[0];
+		}
+		const char* String::StencilOperation(unsigned int val)
+		{
+			int len = (sizeof(STENCIL_OPERATION_VALUES) / sizeof(*STENCIL_OPERATION_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == STENCIL_OPERATION_VALUES[i])
+					return STENCIL_OPERATION_NAMES[i];
+			return STENCIL_OPERATION_NAMES[0];
+		}
+	}
+}

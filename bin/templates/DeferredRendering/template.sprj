@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="GBuffer">
+			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
+			<rendertexture name="positionRT" />
+			<rendertexture name="normalRT" />
+			<rendertexture name="diffuseRT" />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float3" name="objColor">
+					<row>
+						<value>1</value>
+						<value>0</value>
+						<value>0</value>
+					</row>
+				</variable>
+			</variables>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>-1.08666778</x>
+					<z>1.13926589</z>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Sphere" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>-0.649654806</x>
+					<z>-1.69406605</z>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues>
+				<value variable="objColor" for="Sphere">
+					<row>
+						<value>1</value>
+						<value>1</value>
+						<value>1</value>
+					</row>
+				</value>
+			</itemvalues>
+		</pass>
+		<pass name="Processing">
+			<shader type="vs" path="shaders\ProcessingVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\ProcessingPS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float3" name="lightPos">
+					<row>
+						<value>-300</value>
+						<value>400</value>
+						<value>-200</value>
+					</row>
+				</variable>
+			</variables>
+			<items>
+				<item name="Fullscreen" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="rendertexture" name="normalRT" rsize="1.000000,1.000000">
+			<bind slot="1" name="Processing" />
+		</object>
+		<object type="rendertexture" name="positionRT" rsize="1.000000,1.000000">
+			<bind slot="0" name="Processing" />
+		</object>
+		<object type="rendertexture" name="diffuseRT" rsize="1.000000,1.000000">
+			<bind slot="2" name="Processing" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="property" name="Processing" />
+		<entry type="pinned" name="lightPos" owner="Processing" />
+		<entry type="camera" fp="false">
+			<distance>10</distance>
+			<pitch>30</pitch>
+			<yaw>48</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

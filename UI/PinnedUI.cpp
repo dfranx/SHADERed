@@ -2,9 +2,11 @@
 #include <imgui/imgui.h>
 #include "CodeEditorUI.h"
 
+#include "../Objects/Logger.h"
+
 namespace ed
 {
-	void PinnedUI::OnEvent(const ml::Event & e)
+	void PinnedUI::OnEvent(const SDL_Event& e)
 	{
 	}
 	void PinnedUI::Update(float delta)
@@ -27,7 +29,12 @@ namespace ed
 	}
 	void PinnedUI::Add(ed::ShaderVariable* inp)
 	{
-		if (Contains(inp->Name)) return;
+		if (Contains(inp->Name)) {
+			Logger::Get().Log("Cannot pin variable " + std::string(inp->Name) + " - it is already pinned", true);
+			return;
+		}
+
+		Logger::Get().Log("Pinning variable " + std::string(inp->Name));
 
 		m_pinnedVars.push_back(inp);
 	}
@@ -35,10 +42,13 @@ namespace ed
 	{
 		for (int i = 0; i < m_pinnedVars.size(); i++) {
 			if (strcmp(name, m_pinnedVars[i]->Name) == 0) {
+				Logger::Get().Log("Unpinned variable " + std::string(name), true);
 				m_pinnedVars.erase(m_pinnedVars.begin() + i);
 				return;
 			}
 		}
+
+		Logger::Get().Log("Failed to unpin variable " + std::string(name) + " - not pinned", true);
 	}
 	bool PinnedUI::Contains(const char* data)
 	{

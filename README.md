@@ -4,9 +4,6 @@ SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders*
 open source and frequently updated with new features. It has many **features** that the competition
 is lacking.
 
-**NOTE**: There will be a lack of commits on this repo in the next couple of weeks - I am working on
-an OpenGL & SDL port.
-
 <img src="./Screenshots/IMG2.png"/>
 
 ## Features
@@ -42,21 +39,17 @@ Heres an example of rasterizer state properties:
 </p>
 
 ### Audio files
-Load your song and create amazing music visualizers!
+Load a song and create amazing music visualizers!
 <p align="center">
     <img width="200" src="./Screenshots/music.gif">
 </p>
 
-### Loading .obj models
-You can easily add your custom 3D models to the scene. Only Wavefront .obj models are currently supported, but
-you can expect more formats to be supported in near future. You can also add built-in geometry objects (cubes, spheres, planes,
-full screen quads, etc...).
+### Loading 3D models
+You can easily add your custom 3D models to the scene. You can also add built-in geometry objects such as cubes, spheres, planes,
+full screen quads, etc...
 
 ### Textures
-Load textures from files and bind them to your shader. SHADERed supports JPG, PNG,
-DDS and BMP file format. Currently there is only a built-in sampler state. I plan to add customizable
-sampler states in future. The sampler state is always bound to s0 register (in a shader pass which is
-using a texture). SHADERed also supports cubemaps.
+Load textures from files and bind them to your shader. SHADERed also supports cubemaps.
 <p align="center">
     <img width="260" src="./Screenshots/texture.jpg">
 </p>
@@ -75,7 +68,7 @@ view matrices, etc...).
 <img src="./Screenshots/varmanager.jpg">
 
 You can also pin those variables. All pinned variables (from different shader passes) will be visible on
-one window. You can edit them there easily and see your results in real time.
+a single window. You can edit them there easily and see your results in real time.
 <p align="center">
     <img width="230" src="./Screenshots/pinned.jpg">
 </p>
@@ -85,15 +78,6 @@ Imagine passing a variable objColor with value (1,1,1,1) to a shader in a consta
 variable's value before rendering a specific item:
 <p align="center">
     <img width="400" src="./Screenshots/itemvarvalue.gif">
-</p>
-
-
-### Shader stats
-Don't know if your new shader has less instructions and is more optimized? Just check the stats page for your shader
-in SHADERed. It shows you total number of instructions and number of specific instructions. This way you can see if your shader
-really became more optimized:
-<p align="center">
-    <img width="250" src="./Screenshots/stats.jpg">
 </p>
 
 ### Workspace
@@ -130,7 +114,7 @@ Want to create your own theme but don't know how? Visit [TUTORIAL.md](./TUTORIAL
 
 ### Custom templates
 You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
-Templates help you start with an already built base for your new project. To create your own project template, paste your project
+Templates help you start developing shaders quickly. To create your own project template, paste your project
 directory in /templates directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
 already running to see the template under `File -> New`. A menu item for creating a template will
 have the same text as the parent directory of the template.
@@ -147,35 +131,40 @@ Also feel free to contact me and suggest some missing feature you would like me 
 
 ## TODO
 There are also some features that I am looking to implement:
- - custom sampler states
- - more 3D model file formats (postponed until OpenGL port)
  - multiple cameras
    - this feature would allow you to render same scene from multiple angles
  - shader variable pointers
    - currently if you want to have same value in two shader passes you will have to enter the values manually
- - shader flags
-   - custom flags when compiling the shader
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
- - research tesselation and compute shaders and how to implement them
+-  compute and tesselation shaders
  - render your shader to a video file
  - support #include and macros
  - buffers read from file or built using in-app buffer editor
  - magnifier tool & pixel inspector
  - text geometry
+ - debugger
+ - built-in FXAA
 
 
 Except those large features, I am also planning to do some small QoL changes:
+ - logs from GUIManager and InterfaceManager
+ - reimplement Entry (disable if IsGLSL)
+ - convert paths in ProjectParser
+ - test 2 bound textures in a glsl shader
+ - test when there are no templates (should create fully empty project and not crash)
+ - implement inotify on linux
+
+ - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
  - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)
- - ability to set SHADERed as a defult program for a *.sprj extension files
  - cubemap preview
- - click on cubemap, audio, texture and render texture preview should open a preview window
+ - click on cubemap, audio, 3d model, texture and render texture preview should open a preview window
  - recompile the shader after we change shader path in a shader pass
  - when adding a shader pass, decompile the shader and detect the input layout + input variables
- - when loading a texture it might be loaded several times if bound to several shader passes (????)
+ - when loading a texture it might not be loaded if not bound to any shader pass
  - indent controls after fps in the status bar - bad UX and UI
  - ability to change warning, message and error text colors
  - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
@@ -187,16 +176,37 @@ Except those large features, I am also planning to do some small QoL changes:
  - find and replace in code editor
  - right click in code editor
  - improve the overall code (enum for shader type, etc...)
+ - fix memory leaks
+ - undo/redo adding shader items
+ - languages (english, croatian, etc...)
+ - switch from sdl to sfml (?)
+ - dragging items from one pass to another, duplicating them, etc...
 
 ## Binaries
 To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
-latest stable binary release (v1.0.3).
+latest stable binary release.
 
-If you want to compile the program yourself, install [vcpkg](https://github.com/Microsoft/vcpkg)
-or any package manager. Then run following command: ```vcpkg install directxtex```. If you don't have/want to use
-a C++ package manager, download and compile [DirectXTex](https://github.com/Microsoft/directxtex) library manually. 
-You also have to download, compile and link [MoonLight](https://github.com/dfranx/MoonLight) - a Direct3D 11 wrapper.
-Tutorial on building MoonLight is written in the [README.md](https://github.com/dfranx/MoonLight/README.md) file of the MoonLight repo.
+## Building
+First clone the project:
+`git clone https://github.com/dfranx/SHADERed.git`
+
+### Linux
+Install all the libraries that are needed:
+`sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev`
+
+Build:
+```
+cmake .
+make
+```
+
+Run:
+```
+./bin/SHADERed
+```
+
+### Windows
+TODO
 
 ## Tutorial
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
@@ -204,16 +214,15 @@ detailed steps on how to do so.
 
 ## Dependencies
 This project uses:
- - DirectX 11
- - DirectXMath
  - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
  - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
  - [pugixml](https://github.com/zeux/pugixml)
- - [MoonLight](https://github.com/dfranx/MoonLight)
  - [inih](https://github.com/benhoyt/inih)
- - [DirectXTex](https://github.com/microsoft/DirectXTex)
  - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
+ - [gulrak/filesystem](https://github.com/gulrak/filesystem)
+ - [nothings/stb](https://github.com/nothings/stb)
+ - [mlabbe/nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 
 Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
 

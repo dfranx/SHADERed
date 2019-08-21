@@ -1,11 +1,10 @@
 #pragma once
 #include "MessageStack.h"
-#include <MoonLight/Base/Logger.h>
 #include <string>
 
 namespace ed
 {
-	class Logger : public ml::Logger
+	class Logger
 	{
 	public:
 		MessageStack* Stack;
@@ -14,6 +13,15 @@ namespace ed
 			Stack = nullptr;
 		}
 
-		virtual void Log(const std::string& str);
+		static Logger& Get() {
+			static Logger ret;
+			return ret;
+		}
+
+		void Log(const std::string& msg, bool error = false, const std::string& file = "", int line = -1);
+		void Save();
+
+	private:
+		std::vector<std::string> m_msgs;
 	};
 }

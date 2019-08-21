@@ -1,7 +1,13 @@
 #pragma once
 #include "ShaderVariable.h"
-#include <MoonLight/Base/ConstantBuffer.h>
 #include <vector>
+#include <map>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 namespace ed
 {
@@ -15,23 +21,13 @@ namespace ed
 		void AddCopy(ShaderVariable var);
 		void Remove(const char* name);
 
-		void UpdateBuffers(ml::Window* wnd);
-
-		inline ml::ConstantBuffer<char>& GetSlot(int i) { return m_cb[i]; }
-		inline void BindVS(int slot) { m_cb[slot].BindVS(slot); }
-		inline bool IsSlotUsed(int slot) { assert(slot < CONSTANT_BUFFER_SLOTS); return m_cachedSize[slot] > 0; }
+		bool ContainsVariable(const char* name);
+		void UpdateUniformInfo(GLuint pass);
+		void Bind();
 		inline std::vector<ShaderVariable*>& GetVariables() { return m_vars; }
 
 	private:
-		char* m_updateData();
-		size_t m_getDataSize();
-
-		char* m_dataBlock;
-		size_t m_dataBlockSize;
-
-		ml::ConstantBuffer<char> m_cb[CONSTANT_BUFFER_SLOTS];
-		int m_cachedSize[CONSTANT_BUFFER_SLOTS];					// last cb size
-
 		std::vector<ShaderVariable*> m_vars;
+		std::map<std::string, GLint> m_uLocs;
 	};
 }

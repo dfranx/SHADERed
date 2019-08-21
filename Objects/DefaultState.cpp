@@ -1,30 +1,30 @@
 #include "DefaultState.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 namespace ed
 {
-	void DefaultState::Create(ml::Window & wnd)
-	{
-		// create default blend state
-		D3D11_RENDER_TARGET_BLEND_DESC* desc = &Blend.Info.RenderTarget[0];
-		Blend.Info.AlphaToCoverageEnable = false;
-		Blend.Info.IndependentBlendEnable = false;
-		desc->BlendEnable = false;
-		desc->SrcBlend = D3D11_BLEND_ONE;
-		desc->DestBlend = D3D11_BLEND_ZERO;
-		desc->BlendOp = D3D11_BLEND_OP_ADD;
-		desc->SrcBlendAlpha = D3D11_BLEND_ONE;
-		desc->DestBlendAlpha = D3D11_BLEND_ZERO;
-		desc->BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		desc->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-		Blend.Create(wnd);
-
-		DepthStencil.Create(wnd);
-		Rasterizer.Create(wnd);
-	}
 	void DefaultState::Bind()
 	{
-		Blend.Bind();
-		DepthStencil.Bind();
-		Rasterizer.Bind();
+		// render states
+		glDisable(GL_DEPTH_CLAMP);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+
+		// disable blending
+		glDisable(GL_BLEND);
+
+		// depth state
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+
+		// stencil
+		glDisable(GL_STENCIL_TEST);
 	}
 }

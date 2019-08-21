@@ -2,15 +2,17 @@
 #include "PipelineManager.h"
 #include "ProjectParser.h"
 #include "MessageStack.h"
+#include "../Engine/Timer.h"
 
-#include <MoonLight/Base/ShaderResourceView.h>
-#include <MoonLight/Base/RenderTexture.h>
-#include <MoonLight/Base/GeometryShader.h>
-#include <MoonLight/Base/VertexShader.h>
-#include <MoonLight/Base/SamplerState.h>
-#include <MoonLight/Base/PixelShader.h>
-#include <MoonLight/Base/Timer.h>
 #include <unordered_map>
+#include <functional>
+
+#include <glm/glm.hpp>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 namespace ed
 {
@@ -19,19 +21,18 @@ namespace ed
 	class RenderEngine
 	{
 	public:
-		RenderEngine(ml::Window* wnd, PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages);
+		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages);
 		~RenderEngine();
 
 		void Render(int width, int height);
 		void Recompile(const char* name);
-		void Pick(float sx, float sy, std::function<void(PipelineItem*)> func = nullptr);
+		void Pick(float sx, float sy, bool multiPick, std::function<void(PipelineItem*)> func = nullptr);
 
 		void FlushCache();
+		void AddPickedItem(PipelineItem* pipe, bool multiPick = false);
 
-		inline ml::ShaderResourceView& GetTexture() { return m_rtView; }
-		inline ml::RenderTexture& GetRenderTexture() { return m_rt; }
-
-		DirectX::XMINT2 GetLastRenderSize() { return m_lastSize; }
+		inline GLuint GetTexture() { return m_rtColor; }
+		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
 
 	public:
 		struct ItemVariableValue
@@ -39,7 +40,7 @@ namespace ed
 			ItemVariableValue(ed::ShaderVariable* var) { 
 				Variable = var;
 				OldValue = var->Data;
-				NewValue = new ShaderVariable(var->GetType(), var->Name, var->System, var->Slot);
+				NewValue = new ShaderVariable(var->GetType(), var->Name, var->System);
 				NewValue->Function = var->Function;
 				Item = nullptr;
 			}
@@ -71,35 +72,31 @@ namespace ed
 		ObjectManager* m_objects;
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
-		ml::Window* m_wnd;
-
-		// multiple render targets
-		ID3D11RenderTargetView* m_views[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
 
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;
 		std::function<void(PipelineItem*)> m_pickHandle;
-		DirectX::XMVECTOR m_pickOrigin; // view space
-		DirectX::XMVECTOR m_pickDir;
-		PipelineItem* m_pick;
-		void m_pickItem(PipelineItem* item);
+		glm::vec3 m_pickOrigin; // view space
+		glm::vec3 m_pickDir;
+		std::vector<PipelineItem*> m_pick;
+		bool m_wasMultiPick;
+		void m_pickItem(PipelineItem* item, bool multiPick);
 
-		DirectX::XMINT2 m_lastSize;
-		ml::RenderTexture m_rt;
-		ml::ShaderResourceView m_rtView;
+		glm::ivec2 m_lastSize;
+		GLuint m_rtColor, m_rtDepth;
+		bool m_fbosNeedUpdate;
+		
+		std::vector<PipelineItem*> m_items;
+		std::vector<GLuint> m_shaders;
+		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
+		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
 
-		ml::SamplerState m_sampler;
-
-		std::vector<ed::PipelineItem*> m_items;
-		std::vector<ml::VertexShader*> m_vs;
-		std::vector<ml::VertexInputLayout*> m_vsLayout;
-		std::vector<ml::PixelShader*> m_ps;
-		std::vector<ml::GeometryShader*> m_gs;
+		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 
 		std::vector<ItemVariableValue> m_itemValues; // list of all values to apply once we start rendering 
 
-		ml::Timer m_cacheTimer;
+		eng::Timer m_cacheTimer;
 		void m_cache();
 	};
 }

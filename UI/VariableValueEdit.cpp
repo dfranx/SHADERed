@@ -3,7 +3,7 @@
 #include "../Objects/Names.h"
 
 #include <imgui/imgui.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 
 namespace ed
 {
@@ -209,9 +209,9 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				float fov = DirectX::XMConvertToDegrees(*FunctionVariableManager::LoadFloat(m_var->Arguments, 0));
+				float fov = glm::degrees(*FunctionVariableManager::LoadFloat(m_var->Arguments, 0));
 				ImGui::SliderAngle(("##fovAngle" + std::string(m_var->Name)).c_str(), &fov, 0, 180);
-				*FunctionVariableManager::LoadFloat(m_var->Arguments, 0) = DirectX::XMConvertToRadians(fov);
+				*FunctionVariableManager::LoadFloat(m_var->Arguments, 0) = glm::radians(fov);
 				ImGui::NextColumn();
 
 				ImGui::Text("Aspect ratio:");

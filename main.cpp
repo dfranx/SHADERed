@@ -1,49 +1,106 @@
-#include <MoonLight/Base/Window.h>
-#include <MoonLight/Base/Event.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <SDL2/SDL.h>
+#include <glslang/Public/ShaderLang.h>
+#include "Objects/Settings.h"
 #include "Objects/Logger.h"
 #include "EditorEngine.h"
-#include <fstream>
+#include "Engine/GeometryFactory.h"
 
-#ifdef NDEBUG
+#include <thread>
+#include <chrono>
+#include <fstream>
+#include <ghc/filesystem.hpp>
+
+#include <stb/stb_image_write.h>
+#include <stb/stb_image.h>
+
+#if defined(NDEBUG) && defined(_WIN32)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-HICON hWindowIcon = NULL;
-HICON hWindowIconBig = NULL;
-void SetIcon(HWND hwnd, std::string stricon)
+// SDL defines main
+#undef main
+
+void setIcon(SDL_Window* wnd)
 {
-	if (hWindowIcon != NULL)
-		DestroyIcon(hWindowIcon);
-	if (hWindowIconBig != NULL)
-		DestroyIcon(hWindowIconBig);
-	if (stricon == "")
-	{
-		SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)NULL);
-		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)NULL);
-	}
-	else
-	{
-		hWindowIcon = (HICON)LoadImageA(NULL, stricon.c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
-		hWindowIconBig = (HICON)LoadImageA(NULL, stricon.c_str(), IMAGE_ICON, 256, 256, LR_LOADFROMFILE);
-		SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
-		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+	stbi_set_flip_vertically_on_load(0);
+
+	int req_format = STBI_rgb_alpha;
+	int width, height, orig_format;
+	unsigned char* data = stbi_load("./icon.png", &width, &height, &orig_format, req_format);
+	if (data == NULL) {
+		ed::Logger::Get().Log("Failed to set window icon", true);
+		return;
 	}
 
+	int depth, pitch;
+	Uint32 pixel_format;
+	if (req_format == STBI_rgb) {
+		depth = 24;
+		pitch = 3*width; // 3 bytes per pixel * pixels per row
+		pixel_format = SDL_PIXELFORMAT_RGB24;
+	} else { // STBI_rgb_alpha (RGBA)
+		depth = 32;
+		pitch = 4*width;
+		pixel_format = SDL_PIXELFORMAT_RGBA32;
+	}
+
+	SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormatFrom((void*)data, width, height,
+														depth, pitch, pixel_format);
+
+	if (surf == NULL) {
+		ed::Logger::Get().Log("Failed to create icon SDL_Surface", true);
+		stbi_image_free(data);
+		return;
+	}
+
+	SDL_SetWindowIcon(wnd, surf);
+
+	SDL_FreeSurface(surf);
+	stbi_image_free(data);
+
+	stbi_set_flip_vertically_on_load(1);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	// window configuration
-	ml::Window::Config wndConfig;
-	wndConfig.Fullscreen = false;
-	wndConfig.Sample.Count = 1;
-	wndConfig.Sample.Quality = 0;
+	if (argc > 0) {
+		ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
+		ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
+	}
+
+	// set stb_image flags
+	stbi_flip_vertically_on_write(1);
+	stbi_set_flip_vertically_on_load(1);
+
+	// start glslang process
+	bool glslangInit = glslang::InitializeProcess();
+	ed::Logger::Get().Log("Initializing glslang...");
+
+	if (glslangInit)
+		ed::Logger::Get().Log("Finished glslang initialization");
+	else
+		ed::Logger::Get().Log("Failed to initialize glslang", true);
+
+	
+	// init sdl2
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
+		ed::Logger::Get().Log("Failed to initialize SDL2", true);
+		ed::Logger::Get().Save();
+		return 0;
+	} else
+		ed::Logger::Get().Log("Initialized SDL2");
 
 	// load window size
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
-	BOOL fullscreen = FALSE, maximized = FALSE;
+	bool fullscreen = false, maximized = false;
 	std::ifstream preload("data/preload.dat");
 	if (preload.is_open()) {
+		ed::Logger::Get().Log("Loading window information from data/preload.dat");
+
 		preload.read(reinterpret_cast<char*>(&wndWidth), 2);
 		preload.read(reinterpret_cast<char*>(&wndHeight), 2);
 		preload.read(reinterpret_cast<char*>(&wndPosX), 2);
@@ -52,73 +109,121 @@ int main()
 		maximized = preload.get();
 		preload.close();
 
-		if (wndWidth > GetSystemMetrics(SM_CXVIRTUALSCREEN))
-			wndWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		if (wndHeight > GetSystemMetrics(SM_CYVIRTUALSCREEN))
-			wndHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+		// clamp to desktop size
+		SDL_DisplayMode desk;
+		SDL_GetCurrentDisplayMode(0, &desk);
+		if (wndWidth > desk.w)
+			wndWidth = desk.w;
+		if (wndHeight > desk.h)
+			wndHeight = desk.h;
 	}
-	else
-		DeleteFileA("data/workspace.dat"); // prevent from crashing
+	else {
+		ed::Logger::Get().Log("File data/preload.dat doesnt exist", true);
+		ed::Logger::Get().Log("Deleting data/workspace.dat", true);
+
+		std::error_code errCode;
+		ghc::filesystem::remove("./data/workspace.dat", errCode);
+	}
 
 	// open window
-	ml::Window wnd;
-	wnd.Create(DirectX::XMINT2(wndWidth, wndHeight), "SHADERed", ml::Window::Style::Resizable, wndConfig);
-	if (wndPosX != -1 && wndPosY != -1)
-		wnd.SetPosition(DirectX::XMINT2(wndPosX, wndPosY));
+	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_SetWindowMinimumSize(wnd, 200, 200);
 
-	SetIcon(wnd.GetWindowHandle(), "icon.ico");
+	// set window icon:
+	setIcon(wnd);
 
 	if (maximized)
-		SendMessage(wnd.GetWindowHandle(), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+		SDL_MaximizeWindow(wnd);
 	if (fullscreen)
-		wnd.GetSwapChain()->SetFullscreenState(true, nullptr);
+		SDL_SetWindowFullscreen(wnd, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-	ed::Logger* log = new ed::Logger();
-	wnd.SetLogger(log);
+	// create GL context
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
+	SDL_GLContext glContext = SDL_GL_CreateContext(wnd);
+	SDL_GL_MakeCurrent(wnd, glContext);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+
+	// init glew
+	glewExperimental = true;
+	if (glewInit() != GLEW_OK) {
+		ed::Logger::Get().Log("Failed to initialize GLEW", true);
+		ed::Logger::Get().Save();
+		return 0;
+	} else
+		ed::Logger::Get().Log("Initialized GLEW");
 
 	// create engine
-	ed::EditorEngine engine(&wnd);
+	ed::EditorEngine engine(wnd, &glContext);
+	ed::Logger::Get().Log("Creating EditorEngine...");
 	engine.Create();
+	ed::Logger::Get().Log("Created EditorEngine");
 
-	log->Stack = &engine.Interface().Messages;
-	
+	// open an item if given in arguments
+	if (argc == 2) {
+		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
+		engine.UI().Open(argv[1]);
+	}
+
 	// timer for time delta
-	ml::Timer timer;
-
-	ml::Event e;
-	while (wnd.IsOpen()) {
-		while (wnd.GetEvent(e)) {
-			if (e.Type == ml::EventType::WindowResize) {
-				WINDOWPLACEMENT wndPlace = { 0 };
-				GetWindowPlacement(wnd.GetWindowHandle(), &wndPlace);
-				maximized = (wndPlace.showCmd == SW_SHOWMAXIMIZED);
-
-				// save fullscreen state
-				wnd.GetSwapChain()->GetFullscreenState(&fullscreen, nullptr);
-
-				if (!maximized) {
-					// cache window size and position
-					wndWidth = wnd.GetSize().x;
-					wndHeight = wnd.GetSize().y;
-					wndPosX = wnd.GetPosition().x;
-					wndPosY = wnd.GetPosition().y;
-				}
+	ed::eng::Timer timer;
+	SDL_Event event;
+	bool run = true;
+	bool minimized = true;
+	bool hasFocus = true;
+	while (run) {
+		while (SDL_PollEvent(&event))
+		{
+			if (event.type == SDL_QUIT) {
+				run = false;
+				ed::Logger::Get().Log("Received SDL_QUIT event -> quitting");
 			}
-			engine.OnEvent(e);
+			else if (event.type == SDL_WINDOWEVENT) {
+				if (event.window.event == SDL_WINDOWEVENT_MOVED ||
+					event.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
+					event.window.event == SDL_WINDOWEVENT_RESIZED) {
+					Uint32 wndFlags = SDL_GetWindowFlags(wnd);
+
+					maximized = wndFlags & SDL_WINDOW_MAXIMIZED;
+					fullscreen = wndFlags & SDL_WINDOW_FULLSCREEN_DESKTOP;
+					minimized = false;
+
+					// cache window size and position
+					if (!maximized) {
+						int tempX = 0, tempY = 0;
+						SDL_GetWindowPosition(wnd, &tempX, &tempY);
+						wndPosX = tempX; wndPosY = tempY;
+
+						SDL_GetWindowSize(wnd, &tempX, &tempY);
+						wndWidth = tempX; wndHeight = tempY;
+					}
+				}
+				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+					minimized = true;
+				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+					hasFocus = false;
+				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+					hasFocus = true;
+			}
+			engine.OnEvent(event);
 		}
 
 		float delta = timer.Restart();
 		engine.Update(delta);
-		if (!wnd.IsOpen())
-			break;
 
-		wnd.Bind();
-		wnd.Clear();
-		wnd.ClearDepthStencil(1.0f, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		engine.Render();
 
-		wnd.Render();
+		SDL_GL_SwapWindow(wnd);
+
+		if (minimized && delta * 1000 < 33)
+			std::this_thread::sleep_for(std::chrono::milliseconds(33 - (int)(delta * 1000)));
+		else if (!hasFocus && ed::Settings::Instance().Preview.LostFocusLimitFPS && delta * 1000 < 16)
+			std::this_thread::sleep_for(std::chrono::milliseconds(16 - (int)(delta * 1000)));
 	}
 
 	// union for converting short to bytes
@@ -130,6 +235,10 @@ int main()
 
 	// save window size
 	std::ofstream save("data/preload.dat");
+	
+
+	ed::Logger::Get().Log("Saving window information");
+
 	converter.size = wndWidth;				// write window width
 	save.write(converter.data, 2);
 	converter.size = wndHeight;				// write window height
@@ -145,8 +254,15 @@ int main()
 
 	// close and free the memory
 	engine.Destroy();
-	wnd.Destroy();
 
+	// sdl2
+	SDL_GL_DeleteContext(glContext);
+	SDL_DestroyWindow(wnd);
+	SDL_Quit();
+
+	ed::Logger::Get().Log("Destroyed EditorEngine and SDL2");
+
+	ed::Logger::Get().Save();
 
 	return 0;
 }

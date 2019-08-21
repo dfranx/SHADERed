@@ -1,62 +1,53 @@
 #include "FirstPersonCamera.h"
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
 #include <algorithm>
+#include <stdio.h>
 
-using namespace DirectX;
-
-#define FORWARD_VECTOR DirectX::XMVectorSet(0, 0, 1, 0)
-#define RIGHT_VECTOR DirectX::XMVectorSet(1, 0, 0, 0)
-#define UP_VECTOR DirectX::XMVectorSet(0, 1, 0, 0)
+#define FORWARD_VECTOR glm::vec4(0, 0, 1, 0)
+#define RIGHT_VECTOR glm::vec4(1, 0, 0, 0)
+#define UP_VECTOR glm::vec4(0, 1, 0, 0)
 
 namespace ed
 {
 	void FirstPersonCamera::Reset()
 	{
-		m_pos = DirectX::XMFLOAT3(0.0f, 0.0f, 7.0f);
+		m_pos = glm::vec3(0.0f, 0.0f, 7.0f);
 	}
 	void FirstPersonCamera::MoveLeftRight(float d)
 	{
-		DirectX::XMMATRIX rotaMatrix;
-		rotaMatrix = XMMatrixRotationY(m_yaw);
-		
-		DirectX::XMVECTOR right = XMVector3TransformCoord(RIGHT_VECTOR, rotaMatrix);
+		glm::mat4 rotaMatrix = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), 0.0f);
+		glm::vec4 right = rotaMatrix * RIGHT_VECTOR;
 
-		auto pos = DirectX::XMLoadFloat3(&m_pos);
-
-		pos += right * d;
-		DirectX::XMStoreFloat3(&m_pos, pos);
+		m_pos = glm::vec4(m_pos,0) + right * d;
 	}
 	void FirstPersonCamera::MoveUpDown(float d)
 	{
-		DirectX::XMMATRIX rotaMatrix;
-		rotaMatrix = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0);
+		glm::mat4 rotaMatrix = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), 0.0f);
+		glm::vec4 forward = rotaMatrix * FORWARD_VECTOR;
 
-		DirectX::XMVECTOR forward = XMVector3TransformCoord(FORWARD_VECTOR, rotaMatrix);
-		auto pos = DirectX::XMLoadFloat3(&m_pos);
-
-		pos += forward * d;
-		DirectX::XMStoreFloat3(&m_pos, pos);
+		m_pos = glm::vec4(m_pos,0) + forward * d;
 	}
-	DirectX::XMVECTOR FirstPersonCamera::GetUpVector()
+	glm::vec4 FirstPersonCamera::GetUpVector()
 	{
-		XMMATRIX yawMatrix;
-		yawMatrix = XMMatrixRotationY(m_yaw);
+		glm::mat4 yawMatrix = glm::rotate(glm::mat4(1), m_yaw, glm::vec3(0, 1, 0));
 
-		return XMVector3TransformCoord(DirectX::XMVectorSet(0,1,0,1), yawMatrix);
+		return yawMatrix * glm::vec4(0,1,0,1);
 	}
-	XMMATRIX FirstPersonCamera::GetMatrix()
+	glm::mat4 FirstPersonCamera::GetMatrix()
 	{
-		DirectX::XMMATRIX rota = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0);
+		glm::mat4 rota = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), 0.0f);
 
-		DirectX::XMVECTOR target = XMVector3TransformCoord(FORWARD_VECTOR, rota);
-		target = DirectX::XMLoadFloat3(&m_pos) - XMVector3Normalize(target);
+		glm::vec4 target = rota * FORWARD_VECTOR;
+		target = glm::vec4(m_pos,0) - glm::normalize(target);
 
-		DirectX::XMMATRIX yawMatrix;
-		yawMatrix = XMMatrixRotationY(m_yaw);
+		glm::mat4 yawMatrix = glm::rotate(glm::mat4(1), m_yaw, glm::vec3(0, 1, 0));
 
-		DirectX::XMVECTOR right = XMVector3TransformCoord(RIGHT_VECTOR, yawMatrix);
-		DirectX::XMVECTOR up = XMVector3TransformCoord(UP_VECTOR, yawMatrix);
-		DirectX::XMVECTOR forward = XMVector3TransformCoord(FORWARD_VECTOR, yawMatrix);
+		glm::vec4 right = yawMatrix * RIGHT_VECTOR;
+		glm::vec4 up =  yawMatrix * UP_VECTOR;
+		glm::vec4 forward = yawMatrix * FORWARD_VECTOR;
 
-		return XMMatrixLookAtLH(DirectX::XMLoadFloat3(&m_pos), target, up);
+		return glm::lookAt(m_pos, glm::vec3(target), glm::vec3(up));
 	}
 }

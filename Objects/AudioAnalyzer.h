@@ -3,7 +3,7 @@
 #include <valarray>
 #include <complex>
 
-#include <MoonLight/Audio/AudioFile.h>
+#include <SFML/Audio/SoundBuffer.hpp>
 
 namespace ed
 {
@@ -22,7 +22,7 @@ namespace ed
 		AudioAnalyzer();
 		~AudioAnalyzer();
 
-		double* FFT(ml::AudioFile& file, int curSample);
+		double* FFT(sf::SoundBuffer& file, int curSample);
 
 	private:
 		void m_fftAlgorithm(std::valarray<std::complex<double>>& x);

@@ -1,5 +1,5 @@
 #pragma once
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 #include "Camera.h"
 
 namespace ed
@@ -11,24 +11,24 @@ namespace ed
 
 		virtual void Reset();
 		
-		inline void SetPosition(float x, float y, float z) { m_pos = DirectX::XMFLOAT3(x, y, z); }
+		inline void SetPosition(float x, float y, float z) { m_pos = glm::vec3(x, y, z); }
 
 		void MoveLeftRight(float d);
 		void MoveUpDown(float d);
-		inline void Yaw(float y) { m_yaw += y; }
-		inline void Pitch(float p) { m_pitch += p; }
+		inline void Yaw(float y) { m_yaw -= y; }
+		inline void Pitch(float p) { m_pitch -= p; }
 		inline void SetYaw(float y) { m_yaw = y; }
 		inline void SetPitch(float p) { m_pitch = p; }
 
-		virtual inline DirectX::XMFLOAT3 GetRotation() { return DirectX::XMFLOAT3(m_yaw, m_pitch, 0); }
+		virtual inline glm::vec3 GetRotation() { return glm::vec3(m_yaw, m_pitch, 0); }
 
-		virtual inline DirectX::XMVECTOR GetPosition() { return DirectX::XMLoadFloat3(&m_pos); }
-		virtual DirectX::XMVECTOR GetUpVector();
+		virtual inline glm::vec4 GetPosition() { return glm::vec4(m_pos, 0.0f); }
+		virtual glm::vec4 GetUpVector();
 
-		virtual DirectX::XMMATRIX GetMatrix();
+		virtual glm::mat4 GetMatrix();
 
 	private:
-		DirectX::XMFLOAT3 m_pos;
+		glm::vec3 m_pos;
 
 		float m_yaw;
 		float m_pitch;

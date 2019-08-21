@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture name="rt" />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="Sphere" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+		<pass name="RenderTxt">
+			<shader type="vs" path="shaders/RenderTxtVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/RenderTxtPS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float2" name="mPos" system="MousePosition" />
+			</variables>
+			<items>
+				<item name="Rect" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="rendertexture" name="rt" rsize="0.540000,0.540000" r="255" g="255" b="255" a="255">
+			<bind slot="0" name="RenderTxt" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="property" name="Sphere" />
+		<entry type="camera" fp="false">
+			<distance>6</distance>
+			<pitch>43</pitch>
+			<yaw>114</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

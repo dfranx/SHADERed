@@ -9,13 +9,13 @@ namespace ed
 	{
 	public:
 		PipelineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) :
-			UIView(ui, objects, name, visible), m_VarManagerSID(0), m_isChangeVarsOpened(false),
-			m_isCreateViewOpened(false), m_isLayoutOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
+			UIView(ui, objects, name, visible), m_isChangeVarsOpened(false),
+			m_isCreateViewOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
 			m_createUI(ui, objects) {
 			m_itemMenuOpened = false;
 		}
 
-		virtual void OnEvent(const ml::Event& e);
+		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 		
 		inline void Reset() { m_expandList.clear(); }
@@ -25,12 +25,10 @@ namespace ed
 
 	private:
 		// for popups
-		bool m_isLayoutOpened;
 		bool m_isVarManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
 		bool m_itemMenuOpened;
-		int m_VarManagerSID; // do we edit the variables for vertex, pixel or geometry shader? (in shader pass)
 
 		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed
 
@@ -44,7 +42,6 @@ namespace ed
 		// various small components
 		void m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index);
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
-		void m_renderInputLayoutUI();
 		void m_renderVariableManagerUI();
 		void m_renderChangeVariablesUI();
 

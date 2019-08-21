@@ -2,32 +2,37 @@
 #include "CodeEditorUI.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ThemeContainer.h"
 #include "../Objects/KeyboardShortcuts.h"
 #include "UIHelper.h"
 
 #include <algorithm>
+#include <ghc/filesystem.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define REFRESH_BUTTON_SPACE -80 * Settings::Instance().DPIScale
 
 namespace ed
 {
-	void OptionsUI::OnEvent(const ml::Event& e)
+	void OptionsUI::OnEvent(const SDL_Event& e)
 	{
 		if (m_page == Page::Shortcuts && m_selectedShortcut != -1) {
-			if (e.Type == ml::EventType::KeyPress) {
-				m_newShortcut.Alt = e.Keyboard.Alt;
-				m_newShortcut.Ctrl = e.Keyboard.Control;
-				m_newShortcut.Shift = e.Keyboard.Shift;
-				if (e.Keyboard.VK != VK_CONTROL && e.Keyboard.VK != VK_SHIFT && e.Keyboard.VK != VK_MENU) {
-					if (m_newShortcut.Alt == true || m_newShortcut.Ctrl == true || m_newShortcut.Shift == true) {
+			if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+				m_newShortcut.Alt = e.key.keysym.mod & KMOD_ALT;
+				m_newShortcut.Ctrl = e.key.keysym.mod & KMOD_CTRL;
+				m_newShortcut.Shift = e.key.keysym.mod & KMOD_SHIFT;
+
+				if (e.key.keysym.sym != SDLK_LALT && e.key.keysym.sym != SDLK_LSHIFT && e.key.keysym.sym != SDLK_LCTRL && e.key.keysym.sym != SDLK_RALT && e.key.keysym.sym != SDLK_RSHIFT && e.key.keysym.sym != SDLK_RCTRL) {
+					std::string name = KeyboardShortcuts::Instance().GetNameList()[m_selectedShortcut];
+					if (name.find("Editor") == std::string::npos || m_newShortcut.Alt == true || m_newShortcut.Ctrl == true || m_newShortcut.Shift == true) {
 						if (m_newShortcut.Key1 == -1)
-							m_newShortcut.Key1 = e.Keyboard.VK;
+							m_newShortcut.Key1 = e.key.keysym.sym;
 						else if (m_newShortcut.Key2 == -1)
-							m_newShortcut.Key2 = e.Keyboard.VK;
+							m_newShortcut.Key2 = e.key.keysym.sym;
 						else {
-							m_newShortcut.Key1 = e.Keyboard.VK;
+							m_newShortcut.Key1 = e.key.keysym.sym;
 							m_newShortcut.Key2 = -1;
 						}
 					}
@@ -64,6 +69,8 @@ namespace ed
 
 	void OptionsUI::ApplyTheme()
 	{
+		Logger::Get().Log("Applying a UI theme to SHADERed...");
+
 		std::string theme = Settings::Instance().Theme;
 		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 
@@ -98,9 +105,9 @@ namespace ed
 		if (m_newShortcut.Shift)
 			ret += "SHIFT+";
 		if (m_newShortcut.Key1 != -1)
-			ret += ml::Keyboard::KeyToString(m_newShortcut.Key1) + "+";
+			ret += std::string(SDL_GetKeyName(m_newShortcut.Key1)) + "+";
 		if (m_newShortcut.Key2 != -1)
-			ret += ml::Keyboard::KeyToString(m_newShortcut.Key2) + "+";
+			ret += std::string(SDL_GetKeyName(m_newShortcut.Key2)) + "+";
 
 		if (ret.size() == 0)
 			return "";
@@ -110,24 +117,15 @@ namespace ed
 
 	void OptionsUI::m_loadThemeList()
 	{
+		Logger::Get().Log("Loading a theme list...");
+
 		m_themes.clear();
 		m_themes.push_back("Dark");
 		m_themes.push_back("Light");
 
-		WIN32_FIND_DATA data;
-		HANDLE hFind = FindFirstFile(L".\\themes\\*", &data);      // DIRECTORY
-
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do {
-				if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {}
-				else {
-					std::wstring wfile(data.cFileName);
-					std::string file(wfile.begin(), wfile.end());
-
-					m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
-				}
-			} while (FindNextFile(hFind, &data));
-			FindClose(hFind);
+		for (const auto & entry : ghc::filesystem::directory_iterator("./themes/")) {
+			std::string file = entry.path().filename().native();
+			m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
 		}
 	}
 
@@ -139,7 +137,7 @@ namespace ed
 		ImGui::Text("VSync: ");
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##optg_vsync", &settings->General.VSync))
-			m_data->GetOwner()->SetVSync(settings->General.VSync);
+			SDL_GL_SetSwapInterval(settings->General.VSync);
 
 		/* THEME */
 		ImGui::Text("Theme: "); ImGui::SameLine();
@@ -187,11 +185,6 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_checkupdates", &settings->General.CheckUpdates);
 
-		/* GLSL: */
-		ImGui::Text("Allow GLSL shaders: ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##optg_glsl", &settings->General.SupportGLSL);
-
 		ImGui::PopStyleVar();
 		ImGui::PopItemFlag();
 
@@ -230,60 +223,49 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::BeginCombo("##optg_template", settings->General.StartUpTemplate.c_str())) {
-			WIN32_FIND_DATA data;
-			HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
-
-			if (hFind != INVALID_HANDLE_VALUE) {
-				do {
-					if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-						std::wstring wfile(data.cFileName);
-						std::string file(wfile.begin(), wfile.end());
-
-						if (file[0] != '.' && ImGui::Selectable(file.c_str(), file == settings->General.StartUpTemplate))
-							settings->General.StartUpTemplate = file;
-					}
-				} while (FindNextFile(hFind, &data));
-				FindClose(hFind);
+			for (const auto & entry : ghc::filesystem::directory_iterator("./templates")) {
+				std::string file = entry.path().filename().native();
+				if (file[0] != '.' && ImGui::Selectable(file.c_str(), file == settings->General.StartUpTemplate))
+					settings->General.StartUpTemplate = file;
 			}
-
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
 
 		/* EXTENSIONS: */
-		ImGui::Text("GLSL extensions: ");
+		ImGui::Text("HLSL extensions: ");
 		ImGui::SameLine();
 		ImGui::Indent(150 * settings->DPIScale);
-		static char glslExtEntry[64] = { 0 };
-		if (ImGui::ListBoxHeader("##optg_glslexts",ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale))) {
-			for (auto& ext : settings->General.GLSLExtensions)
+		static char hlslExtEntry[64] = { 0 };
+		if (ImGui::ListBoxHeader("##optg_hlslexts",ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale))) {
+			for (auto& ext : settings->General.HLSLExtensions)
 				if (ImGui::Selectable(ext.c_str()))
-					strcpy(glslExtEntry, ext.c_str());
+					strcpy(hlslExtEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
 		ImGui::PushItemWidth(100 * settings->DPIScale);
-		ImGui::InputText("##optg_glslext_inp",glslExtEntry,64);
+		ImGui::InputText("##optg_glslext_inp",hlslExtEntry,64);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("ADD##optg_btnaddext")) {
 			int exists = -1;
-			std::string glslExtEntryStr(glslExtEntry);
-			for (int i = 0; i < settings->General.GLSLExtensions.size(); i++)
-				if (settings->General.GLSLExtensions[i] == glslExtEntryStr) {
+			std::string hlslExtEntryStr(hlslExtEntry);
+			for (int i = 0; i < settings->General.HLSLExtensions.size(); i++)
+				if (settings->General.HLSLExtensions[i] == hlslExtEntryStr) {
 					exists = i;
 					break;
 				}
-			if (exists == -1 && glslExtEntryStr.size() >= 1)
-				settings->General.GLSLExtensions.push_back(glslExtEntryStr);
+			if (exists == -1 && hlslExtEntryStr.size() >= 1)
+				settings->General.HLSLExtensions.push_back(hlslExtEntryStr);
 			else
-				settings->General.GLSLExtensions.erase(settings->General.GLSLExtensions.begin() + exists);
+				settings->General.HLSLExtensions.erase(settings->General.HLSLExtensions.begin() + exists);
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("REMOVE##optg_btnremext")) {
-			std::string glslExtEntryStr(glslExtEntry);
-			for (int i = 0; i < settings->General.GLSLExtensions.size(); i++)
-				if (settings->General.GLSLExtensions[i] == glslExtEntryStr) {
-					settings->General.GLSLExtensions.erase(settings->General.GLSLExtensions.begin() + i);
+			std::string glslExtEntryStr(hlslExtEntry);
+			for (int i = 0; i < settings->General.HLSLExtensions.size(); i++)
+				if (settings->General.HLSLExtensions[i] == glslExtEntryStr) {
+					settings->General.HLSLExtensions.erase(settings->General.HLSLExtensions.begin() + i);
 					break;
 				}
 		}
@@ -291,24 +273,26 @@ namespace ed
 
 
 		/* WORKSPACE STUFF */
+		ImGui::NewLine();
 		ImGui::Separator();
-
-		/* USE CUSTOM FONT: */
-		ImGui::Text("Custom font: ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##optw_customfont", &settings->General.CustomFont);
+		ImGui::NewLine();
 
 		/* FONT: */
 		ImGui::Text("Font: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::InputText("##optw_font", settings->General.Font, 256);
+		ImGui::PopItemFlag();
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
-			std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"Font\0*.ttf;*.otf\0");
-			if (file.size() != 0)
+			std::string file;
+			bool success = UIHelper::GetOpenFileDialog(file, "ttf;otf");
+			if (success) {
+				file = ghc::filesystem::relative(file).generic_string();
 				strcpy(settings->General.Font, file.c_str());
+			}
 		}
 
 
@@ -324,9 +308,15 @@ namespace ed
 		ImGui::Text("DPI aware: ");
 		ImGui::SameLine();
 		if (ImGui::Checkbox("##optw_autoscale", &settings->General.AutoScale)) {
-			if (settings->General.AutoScale)
-				settings->TempScale = ImGui_ImplWin32_GetDpiScaleForHwnd((void*)m_data->GetOwner()->GetWindowHandle());
-			else
+			if (settings->General.AutoScale) {
+				// get dpi
+				float dpi;
+				int wndDisplayIndex = SDL_GetWindowDisplayIndex(m_ui->GetSDLWindow());
+				SDL_GetDisplayDPI(wndDisplayIndex, NULL, &dpi, NULL);
+				dpi /= 96.0f;
+				
+				settings->TempScale = dpi;
+			} else
 				settings->TempScale = 1;
 		}
 
@@ -338,6 +328,31 @@ namespace ed
 		} else {
 			ImGui::SameLine();
 			ImGui::TextDisabled("   (scale=%.4f)", settings->TempScale);
+		}
+
+		/* LOGGER STUFF */
+		ImGui::NewLine();
+		ImGui::Separator();
+		ImGui::NewLine();
+
+		/* LOG: */
+		ImGui::Text("Log: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_logs", &settings->General.Log);
+
+		if (!settings->General.Log) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		/* PIPE LOGS: */
+		ImGui::Text("Write log messages to console window: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_terminallogs", &settings->General.PipeLogsToTerminal);
+
+		if (!settings->General.Log) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
 		}
 	}
 	void OptionsUI::m_renderEditor()
@@ -369,8 +384,9 @@ namespace ed
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
-			std::string file = UIHelper::GetOpenFileDialog(m_data->GetOwner()->GetWindowHandle(), L"Font\0*.ttf;*.otf\0");
-			if (file.size() != 0)
+			std::string file;
+			bool success = UIHelper::GetOpenFileDialog(file, "ttf;otf");
+			if (success)
 				strcpy(settings->Editor.Font, file.c_str());
 		}
 
@@ -455,7 +471,7 @@ namespace ed
 			}
 			else {
 				if (ImGui::Button(KeyboardShortcuts::Instance().GetString(names[i]).c_str(), ImVec2(-1, 0))) {
-					if (ImGui::IsKeyDown(VK_CONTROL))
+					if (ImGui::IsKeyDown(SDL_SCANCODE_LCTRL) || ImGui::IsKeyDown(SDL_SCANCODE_RCTRL))
 						KeyboardShortcuts::Instance().Remove(names[i]);
 					else {
 						m_selectedShortcut = i;
@@ -554,6 +570,29 @@ namespace ed
 		ImGui::PushItemWidth(-1);
 		ImGui::InputInt("##optp_fpslimit", &settings->Preview.FPSLimit, 1, 10);
 		ImGui::PopItemWidth();
+
+		/* APPLY THE FPS LIMIT TO WHOLE APP: */
+		ImGui::Text("Apply the FPS limit to the whole application: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_fps_wholeapp", &settings->Preview.ApplyFPSLimitToApp);
+
+		if (settings->Preview.ApplyFPSLimitToApp) {
+			settings->Preview.LostFocusLimitFPS = false;
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		/* LIMIT TO 60FPS WHEN APP IS NOT FOCUSED: */
+		ImGui::Text("Limit application to 60FPS when it is not focused: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_fps_notfocus", &settings->Preview.LostFocusLimitFPS);
+
+		if (settings->Preview.ApplyFPSLimitToApp) {
+			settings->Preview.LostFocusLimitFPS = false;
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
 	}
 	void OptionsUI::m_renderProject()
 	{
@@ -565,15 +604,10 @@ namespace ed
 		ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera);
 
 		/* CLEAR COLOR: */
-		ImVec4 clearColor(settings->Project.ClearColor.R / 255.0f, settings->Project.ClearColor.G / 255.0f, settings->Project.ClearColor.B / 255.0f, settings->Project.ClearColor.A / 255.0f);
 		ImGui::Text("Preview window clear color: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
-		ImGui::ColorEdit4("##optpr_clrclr", (float*)&clearColor);
+		ImGui::ColorEdit4("##optpr_clrclr", glm::value_ptr(settings->Project.ClearColor));
 		ImGui::PopItemWidth();
-		settings->Project.ClearColor.R = clearColor.x * 255;
-		settings->Project.ClearColor.G = clearColor.y * 255;
-		settings->Project.ClearColor.B = clearColor.z * 255;
-		settings->Project.ClearColor.A = clearColor.w * 255;
 	}
 }

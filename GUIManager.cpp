@@ -1,8 +1,8 @@
 #include "GUIManager.h"
-#include <imgui/imgui.h>
-#include <imgui/examples/imgui_impl_win32.h>
-#include <imgui/examples/imgui_impl_dx11.h>
 #include "InterfaceManager.h"
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/examples/imgui_impl_sdl.h>
 #include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
 #include "UI/ObjectListUI.h"
@@ -13,33 +13,48 @@
 #include "UI/OptionsUI.h"
 #include "UI/PinnedUI.h"
 #include "UI/UIHelper.h"
+#include "Objects/Logger.h"
 #include "Objects/Names.h"
 #include "Objects/Settings.h"
+#include "Objects/ThemeContainer.h"
 #include "Objects/KeyboardShortcuts.h"
 
-#include <Windows.h>
 #include <fstream>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+#include <ghc/filesystem.hpp>
+
+#if defined(__APPLE__)
+	// no includes on mac os
+#elif defined(__linux__) || defined(__unix__)
+	// no includes on linux
+#elif defined(_WIN32)
+	#include <windows.h>
+#endif
+
+#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 
 namespace ed
 {
-	GUIManager::GUIManager(ed::InterfaceManager* objects, ml::Window* wnd)
+	GUIManager::GUIManager(ed::InterfaceManager* objects, SDL_Window* wnd, SDL_GLContext* gl)
 	{
 		m_data = objects;
 		m_wnd = wnd;
+		m_gl  = gl;
 		m_settingsBkp = new Settings();
 		m_isCreateRTOpened = false;
 		m_isCreateItemPopupOpened = false;
-		m_previewSaveSize = DirectX::XMINT2(1920, 1080);
+		m_previewSaveSize = glm::ivec2(1920, 1080);
 		m_savePreviewPopupOpened = false;
 		m_optGroup = 0;
 		m_optionsOpened = false;
 		m_cachedFont = "null";
-		m_cachedCustomFont = false;
 		m_cachedFontSize = 15;
 		m_performanceMode = false;
 		m_perfModeFake = false;
 		m_fontNeedsUpdate = false;
 		m_isCreateItemPopupOpened = false;
+		m_isCreateCubemapOpened = false;
 		m_isCreateRTOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isAboutOpen = false;
@@ -48,23 +63,23 @@ namespace ed
 		m_loadTemplateList();
 
 		// set vsync on startup
-		m_wnd->SetVSync(Settings::Instance().General.VSync);
+		SDL_GL_SetSwapInterval(Settings::Instance().General.VSync);
 
 		// Initialize imgui
 		ImGui::CreateContext();
-
+		
 		ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->AddFontDefault();
 		io.IniFilename = IMGUI_INI_FILE;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable /*| ImGuiConfigFlags_ViewportsEnable TODO: allow this on windows? test on linux?*/;
 		io.ConfigDockingWithShift = false;
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowMenuButtonPosition = ImGuiDir_Right;
 
-		ImGui_ImplWin32_Init(m_wnd->GetWindowHandle());
-		ImGui_ImplDX11_Init(m_wnd->GetDevice(), m_wnd->GetDeviceContext());
-		
+		ImGui_ImplOpenGL3_Init(SDL_GLSL_VERSION);
+		ImGui_ImplSDL2_InitForOpenGL(m_wnd, *m_gl);
+
 		ImGui::StyleColorsDark();
 
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
@@ -86,11 +101,18 @@ namespace ed
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
-		// enable dpi awareness
-		ImGui_ImplWin32_EnableDpiAwareness();
+
+		// get dpi
+		float dpi;
+		int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
+		SDL_GetDisplayDPI(wndDisplayIndex, NULL, &dpi, NULL);
+		dpi /= 96.0f;
 		
-		if (Settings::Instance().General.AutoScale)
-			Settings::Instance().DPIScale = ImGui_ImplWin32_GetDpiScaleForHwnd((void*)m_wnd->GetWindowHandle());
+		// enable dpi awareness		
+		if (Settings::Instance().General.AutoScale) {
+			Settings::Instance().DPIScale = dpi;
+			Logger::Get().Log("Setting DPI to " + std::to_string(dpi));
+		}
 		m_cacheUIScale = Settings::Instance().TempScale = Settings::Instance().DPIScale;
 
 		ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
@@ -106,20 +128,23 @@ namespace ed
 		delete m_createUI;
 		delete m_settingsBkp;
 
-		// release memory
-		ImGui_ImplDX11_Shutdown();
-		ImGui_ImplWin32_Shutdown();
+		ImGui_ImplSDL2_Shutdown();
+		ImGui_ImplOpenGL3_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void GUIManager::OnEvent(const ml::Event& e)
+	void GUIManager::OnEvent(const SDL_Event& e)
 	{
 		m_imguiHandleEvent(e);
 
 		// check for shortcut presses
-		if (e.Type == ml::EventType::KeyPress) {
-			if (!(m_optionsOpened && ((OptionsUI*)m_options)->IsListening()))
-				KeyboardShortcuts::Instance().Check(e);
+		if (e.type == SDL_KEYDOWN) {
+			if (!(m_optionsOpened && ((OptionsUI*)m_options)->IsListening())) {
+				bool codeHasFocus = ((CodeEditorUI*)Get(ViewID::Code))->HasFocus();
+
+				if (!(!codeHasFocus && ImGui::GetIO().WantTextInput))
+					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
+			}
 		}
 
 		if (m_optionsOpened)
@@ -138,15 +163,13 @@ namespace ed
 
 		// update editor & workspace font
 		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||
-			((m_cachedCustomFont != settings.General.CustomFont ||
-				m_cachedFont != settings.General.Font ||
+			((m_cachedFont != settings.General.Font ||
 				m_cachedFontSize != settings.General.FontSize) &&
 				strcmp(settings.General.Font, "null") != 0) ||
 			m_fontNeedsUpdate)
 		{
 			std::pair<std::string, int> edFont = ((CodeEditorUI*)Get(ViewID::Code))->GetFont();
 
-			m_cachedCustomFont = settings.General.CustomFont;
 			m_cachedFont = settings.General.Font;
 			m_cachedFontSize = settings.General.FontSize;
 			m_fontNeedsUpdate = false;
@@ -155,9 +178,7 @@ namespace ed
 			fonts->Clear();
 
 			ImFont* font = nullptr;
-			if (!m_cachedCustomFont)
-				font = fonts->AddFontDefault();
-			else font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
+			font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
 
 			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
 
@@ -165,23 +186,24 @@ namespace ed
 				fonts->Clear();
 				font = fonts->AddFontDefault();
 				font = fonts->AddFontDefault();
+
+				Logger::Get().Log("Failed to load fonts", true);
 			}
 
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();
 
-			ImGui_ImplDX11_InvalidateDeviceObjects();
+			ImGui_ImplOpenGL3_DestroyFontsTexture();
 
 			((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
 		}
 
 		// Start the Dear ImGui frame
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplWin32_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplSDL2_NewFrame(m_wnd);
 		ImGui::NewFrame();
 
-		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-		// because it would be confusing to have two docking targets within each others.
+		// create a fullscreen imgui panel that will host a dockspace
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
@@ -226,47 +248,48 @@ namespace ed
 						}
 					ImGui::EndMenu();
 				}
-				if (ImGui::MenuItem("New Shader")) {
-					std::string file = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"HLSL\0*.hlsl\0GLSL Vertex\0*.vert\0GLSL Pixel\0*.frag\0GLSL Geometry\0*.geom\0");
-					HANDLE fileHandle = CreateFileA(file.c_str(), GENERIC_READ, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-					CloseHandle(fileHandle);
+				if (ImGui::MenuItem("Create shader file")) {
+					std::string file;
+					bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
+					
+					if (success) {
+						// create a file (cross platform)
+						std::ofstream ofs(file);
+						ofs << "// empty shader file\n"; 
+						ofs.close();
+					}
 				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
-					std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
+					std::string file;
+					bool success = UIHelper::GetOpenFileDialog(file, "sprj");
 
-					if (file.size() > 0) {
-						m_data->Renderer.FlushCache();
-
-						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-
-						m_data->Parser.Open(file);
-						
-						std::string projName = m_data->Parser.GetOpenedFile();
-						projName = projName.substr(projName.find_last_of("/\\") + 1);
-
-						SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + projName + ")").c_str());
-					}
+					if (success)
+						Open(file);
 				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str())) {
 					if (m_data->Parser.GetOpenedFile() == "")
-						m_saveAsProject();
+						SaveAsProject();
 					else
 						m_data->Parser.Save();
 				}
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
-					m_saveAsProject();
+					SaveAsProject();
 				if (ImGui::MenuItem("Save Preview as Image", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
 					m_savePreviewPopupOpened = true;
-				if (ImGui::MenuItem("Open project directory"))
-					ShellExecuteA(NULL, "open", m_data->Parser.GetProjectPath("").c_str(), NULL, NULL, SW_SHOWNORMAL);
+				if (ImGui::MenuItem("Open project directory")) {
+					std::string prpath = m_data->Parser.GetProjectPath("");
+					#if defined(__APPLE__)
+						system(("open " + prpath).c_str()); // [MACOS]
+					#elif defined(__linux__) || defined(__unix__)
+						system(("xdg-open " + prpath).c_str());
+					#elif defined(_WIN32)
+						ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+					#endif
+				}
 
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
-					m_wnd->Destroy();
+					SDL_DestroyWindow(m_wnd);
 					return;
 				}
 
@@ -316,13 +339,45 @@ namespace ed
 			}
 			if (ImGui::BeginMenu("Help")) {
 				if (ImGui::BeginMenu("Support Us")) {
-					if (ImGui::MenuItem("Patreon")) { ShellExecute(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL); }
-					if (ImGui::MenuItem("PayPal")) { ShellExecute(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL); }
+					if (ImGui::MenuItem("Patreon")) { 
+						#if defined(__APPLE__)
+							system("open https://www.patreon.com/dfranx"); // [MACOS]
+						#elif defined(__linux__) || defined(__unix__)
+							system("xdg-open https://www.patreon.com/dfranx");
+						#elif defined(_WIN32)
+							ShellExecuteW(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL);
+						#endif
+						}
+					if (ImGui::MenuItem("PayPal")) { 
+						#if defined(__APPLE__)
+							system("open https://www.paypal.me/dfranx"); // [MACOS]
+						#elif defined(__linux__) || defined(__unix__)
+							system("xdg-open https://www.paypal.me/dfranx");
+						#elif defined(_WIN32)
+							ShellExecuteW(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL);
+						#endif
+					}
 					ImGui::EndMenu();
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("Tutorial")) { ShellExecute(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL); }
-				if (ImGui::MenuItem("Send feedback")) { ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL); }
+				if (ImGui::MenuItem("Tutorial")) {
+					#if defined(__APPLE__)
+						system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
+					#elif defined(__linux__) || defined(__unix__)
+						system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
+					#elif defined(_WIN32)
+						ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
+					#endif
+				}
+				if (ImGui::MenuItem("Send feedback")) {
+					#if defined(__APPLE__)
+						system("open https://www.github.com/dfranx/SHADERed/issues"); // [MACOS]
+					#elif defined(__linux__) || defined(__unix__)
+						system("xdg-open https://www.github.com/dfranx/SHADERed/issues");
+					#elif defined(_WIN32)
+						ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
+					#endif
+				}
 				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true;}
 
 				ImGui::EndMenu();
@@ -335,10 +390,13 @@ namespace ed
 
 		ImGui::End();
 
+		int wndW, wndH;
+		SDL_GetWindowSize(m_wnd, &wndW, &wndH);
+
 		if (!m_performanceMode) {
 			for (auto view : m_views)
 				if (view->Visible) {
-					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_wnd->GetSize().x, m_wnd->GetSize().y));
+					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(wndW, wndH));
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 					ImGui::End();
 				}
@@ -374,6 +432,12 @@ namespace ed
 			m_savePreviewPopupOpened = false;
 		}
 
+		// open popup for creating cubemap
+		if (m_isCreateCubemapOpened) {
+			ImGui::OpenPopup("Create cubemap##main_create_cubemap");
+			m_isCreateCubemapOpened = false;
+		}
+
 		// open popup for creating render texture
 		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
@@ -407,6 +471,72 @@ namespace ed
 			ImGui::EndPopup();
 		}
 
+		// Create cubemap popup
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 275 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create cubemap##main_create_cubemap")) {
+			static char buf[65] = { 0 };
+			ImGui::InputText("Name", buf, 64);
+
+			static std::string left, top, front, bottom, right, back;
+
+			ImGui::Text("Left: %s", left.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##left")) {
+				UIHelper::GetOpenFileDialog(left, "png;bmp;jpg,jpeg;tga");
+				left = m_data->Parser.GetRelativePath(left);
+			}
+
+			ImGui::Text("Top: %s", top.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##top")) {
+				UIHelper::GetOpenFileDialog(top, "png;bmp;jpg,jpeg;tga");
+				top = m_data->Parser.GetRelativePath(top);
+			}
+
+			ImGui::Text("Front: %s", front.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##front")) {
+				UIHelper::GetOpenFileDialog(front, "png;bmp;jpg,jpeg;tga");
+				front = m_data->Parser.GetRelativePath(front);
+			}
+
+			ImGui::Text("Bottom: %s", bottom.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##bottom")) {
+				UIHelper::GetOpenFileDialog(bottom, "png;bmp;jpg,jpeg;tga");
+				bottom = m_data->Parser.GetRelativePath(bottom);
+			}
+
+			ImGui::Text("Right: %s", right.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##right")) {
+				UIHelper::GetOpenFileDialog(right, "png;bmp;jpg,jpeg;tga");
+				right = m_data->Parser.GetRelativePath(right);
+			}
+
+			ImGui::Text("Back: %s", back.c_str());
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			if (ImGui::Button("Change##back")) {
+				UIHelper::GetOpenFileDialog(back, "png;bmp;jpg,jpeg;tga");
+				back = m_data->Parser.GetRelativePath(back);
+			}
+
+
+			if (ImGui::Button("Ok") && strlen(buf) > 0 && !m_data->Objects.Exists(buf)) {
+				if (m_data->Objects.CreateCubemap(buf, left, top, front, bottom, right, back))
+					ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
 		// Create RT popup
 		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create RT##main_create_rt")) {
@@ -430,9 +560,15 @@ namespace ed
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");
 			ImGui::SameLine();
-			if (ImGui::Button("link"))
-				ShellExecute(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
-
+			if (ImGui::Button("link")) {
+				#if defined(__APPLE__)
+					system("open https://www.github.com/dfranx/SHADERed"); // [MACOS]
+				#elif defined(__linux__) || defined(__unix__)
+					system("xdg-open https://www.github.com/dfranx/SHADERed");
+				#elif defined(_WIN32)
+					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
+				#endif
+			}
 
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();
@@ -448,7 +584,7 @@ namespace ed
 
 				if (m_selectedTemplate == "?empty") {
 						Settings::Instance().Project.FPCamera = false;
-						Settings::Instance().Project.ClearColor = ml::Color(0, 0, 0, 0);
+						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
 
 						m_data->Renderer.FlushCache();
 						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
@@ -458,7 +594,7 @@ namespace ed
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						m_data->Pipeline.New(false);
 
-						SetWindowTextA(m_wnd->GetWindowHandle(), "SHADERed");
+						SDL_SetWindowTitle(m_wnd, "SHADERed");
 				} else {
 					m_data->Parser.SetTemplate(m_selectedTemplate);
 
@@ -472,10 +608,10 @@ namespace ed
 
 					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
 
-					SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + m_selectedTemplate + ")").c_str());
+					SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());
 				}
 
-				bool chosen = m_saveAsProject();
+				bool chosen = SaveAsProject();
 				if (!chosen) {
 					if (oldFile != "") {
 						m_data->Renderer.FlushCache();
@@ -500,12 +636,12 @@ namespace ed
 		}
 
 		// Save preview
-		ImGui::SetNextWindowSize(ImVec2(400, 125), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(400, 145), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
-				m_previewSavePath = UIHelper::GetSaveFileDialog(m_wnd->GetWindowHandle(), L"PNG\0*.png\0DDS\0*.dds\0BMP\0*.bmp\0JPEG\0*.jpg\0TIFF\0*.tiff\0GIF\0*.gif\0ICO\0*.ico\0");
+				UIHelper::GetSaveFileDialog(m_previewSavePath, "png;jpg,jpeg;bmp;tga");
 			
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
@@ -520,33 +656,27 @@ namespace ed
 			ImGui::Unindent(55);
 
 			if (ImGui::Button("Save")) {
-				DirectX::WICCodecs codec = DirectX::WICCodecs::WIC_CODEC_PNG;
-				std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
-				if (ext == "bmp")
-					codec = DirectX::WICCodecs::WIC_CODEC_BMP;
-				else if (ext == "jpg" || ext == "jpeg")
-					codec = DirectX::WICCodecs::WIC_CODEC_JPEG;
-				else if (ext == "tiff" || ext == "tif")
-					codec = DirectX::WICCodecs::WIC_CODEC_TIFF;
-				else if (ext == "gif")
-					codec = DirectX::WICCodecs::WIC_CODEC_GIF;
-				else if (ext == "ico")
-					codec = DirectX::WICCodecs::WIC_CODEC_ICO;
-
-				DirectX::ScratchImage img;
-				std::wstring wpath(m_previewSavePath.begin(), m_previewSavePath.end());
-				
 				if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0)
 					m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
-
-				DirectX::CaptureTexture(m_wnd->GetDevice(), m_wnd->GetDeviceContext(), m_data->Renderer.GetRenderTexture().GetResource(), img);
-				if (ext == "dds")
-					DirectX::SaveToDDSFile(img.GetImages()[0], DirectX::DDS_FLAGS_NONE, wpath.c_str());
-				else 
-					DirectX::SaveToWICFile(img.GetImages()[0], DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(codec), wpath.c_str());
 				
+				GLuint tex = m_data->Renderer.GetTexture();
+				glBindTexture(GL_TEXTURE_2D, tex);
+				unsigned char *pixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+				glBindTexture(GL_TEXTURE_2D, 0);
 
-				//DirectX::SaveToWICFile()
+				std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+				
+				if (ext == "jpg" || ext == "jpeg")
+					stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, 100);
+				else if (ext == "bmp")
+					stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+				else if (ext == "tga")
+					stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+				else
+					stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
+
+				free(pixels);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
@@ -575,7 +705,7 @@ namespace ed
 		ImGui::SetColumnWidth(0, 100 * Settings::Instance().DPIScale + ImGui::GetStyle().WindowPadding.x * 2);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushItemWidth(100 * Settings::Instance().DPIScale);
-		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, _ARRAYSIZE(optGroups), height))
+		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, HARRAYSIZE(optGroups), height))
 			options->SetGroup((OptionsUI::Page)m_optGroup);
 		ImGui::PopStyleColor();
 
@@ -629,7 +759,7 @@ namespace ed
 	void GUIManager::Render()
 	{
 		// actually render to back buffer
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Update and Render additional Platform Windows
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -667,80 +797,28 @@ namespace ed
 
 		((OptionsUI*)m_options)->ApplyTheme();
 	}
-	void GUIManager::m_imguiHandleEvent(const ml::Event & e)
+	void GUIManager::m_imguiHandleEvent(const SDL_Event& e)
 	{
-		if (ImGui::GetCurrentContext() == NULL)
-			return;
-
-		ImGuiIO& io = ImGui::GetIO();
-		switch (e.Type) {
-			case ml::EventType::MouseButtonPress:
-			{
-				int button = 0;
-				if (e.MouseButton.VK == VK_LBUTTON) button = 0;
-				if (e.MouseButton.VK == VK_RBUTTON) button = 1;
-				if (e.MouseButton.VK == VK_MBUTTON) button = 2;
-				if (!ImGui::IsAnyMouseDown() && GetCapture() == NULL)
-					SetCapture(m_wnd->GetWindowHandle());
-				io.MouseDown[button] = true;
-			}
-			break;
-
-			case ml::EventType::MouseButtonRelease:
-			{
-				int button = 0;
-				if (e.MouseButton.VK == VK_LBUTTON) button = 0;
-				if (e.MouseButton.VK == VK_RBUTTON) button = 1;
-				if (e.MouseButton.VK == VK_MBUTTON) button = 2;
-				io.MouseDown[button] = false;
-				if (!ImGui::IsAnyMouseDown() && GetCapture() == m_wnd->GetWindowHandle())
-					ReleaseCapture();
-			}
-			break;
-
-			case ml::EventType::Scroll:
-				io.MouseWheel += e.MouseWheel.Delta;
-			break;
-
-			case ml::EventType::KeyPress:
-				io.KeysDown[e.Keyboard.VK] = 1;
-			break;
-
-			case ml::EventType::KeyRelease:
-				io.KeysDown[e.Keyboard.VK] = 0;
-			break;
-
-			case ml::EventType::TextEnter:
-				io.AddInputCharacter(e.TextCode);
-			break;
-		}
+		ImGui_ImplSDL2_ProcessEvent(&e);
 	}
-	bool GUIManager::m_saveAsProject()
+	bool GUIManager::SaveAsProject(bool restoreCached)
 	{
-		OPENFILENAME dialog;
-		TCHAR filePath[MAX_PATH] = { 0 };
+		std::string file;
+		bool success = UIHelper::GetSaveFileDialog(file, "sprj");
 
-		ZeroMemory(&dialog, sizeof(dialog));
-		dialog.lStructSize = sizeof(dialog);
-		dialog.hwndOwner = m_data->GetOwner()->GetWindowHandle();
-		dialog.lpstrFile = filePath;
-		dialog.nMaxFile = sizeof(filePath);
-		dialog.lpstrFilter = L"SHADERed Project\0*.sprj\0";
-		dialog.nFilterIndex = 1;
-		dialog.lpstrDefExt = L".sprj";
-		dialog.Flags = OFN_PATHMUSTEXIST | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
-		bool ret = false;
-
-		if ((ret = GetSaveFileName(&dialog)) == TRUE) {
-			std::wstring wfile = std::wstring(filePath);
-			std::string file(wfile.begin(), wfile.end());
-
+		if (success) {
 			m_data->Parser.SaveAs(file, true);
 
 
 			m_data->Renderer.FlushCache();
 
-			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+			// cache opened code editors
+			CodeEditorUI* editor = ((CodeEditorUI*)Get(ViewID::Code));
+			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
+			std::vector<std::string> filesData = editor->GetOpenedFilesData();
+
+			// close all
+			editor->CloseAll();
 			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
@@ -751,10 +829,42 @@ namespace ed
 			std::string projName = m_data->Parser.GetOpenedFile();
 			projName = projName.substr(projName.find_last_of("/\\") + 1);
 
-			SetWindowTextA(m_wnd->GetWindowHandle(), ("SHADERed (" + projName + ")").c_str());
+			SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
+
+			// returned cached state
+			if (restoreCached) {
+				for (auto& file : files) {
+					PipelineItem* item = m_data->Pipeline.Get(file.first.c_str());
+
+					if (file.second == 0)
+						editor->OpenVS(*item);
+					else if (file.second == 1)
+						editor->OpenPS(*item);
+					else if (file.second == 2)
+						editor->OpenGS(*item);
+				}
+				editor->SetOpenedFilesData(filesData);
+			}
 		}
 
-		return ret;
+		return success;
+	}
+	void GUIManager::Open(const std::string& file)
+	{
+		m_data->Renderer.FlushCache();
+
+		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+		((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+
+		m_data->Parser.Open(file);
+
+		std::string projName = m_data->Parser.GetOpenedFile();
+		projName = projName.substr(projName.find_last_of("/\\") + 1);
+
+		SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
 	}
 
 	void GUIManager::CreateNewShaderPass() {
@@ -762,17 +872,25 @@ namespace ed
 		m_isCreateItemPopupOpened = true;
 	}
 	void GUIManager::CreateNewTexture() {
-		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
+		std::string path;
+		bool success = UIHelper::GetOpenFileDialog(path, "png;jpg;jpeg;bmp");
+		
+		if (!success)
+			return;
+
+		std::string file = m_data->Parser.GetRelativePath(path);
 		if (!file.empty())
 			m_data->Objects.CreateTexture(file);
 	}
-	void GUIManager::CreateNewCubemap() {
-		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0PNG\0*.png\0JPG\0*.jpg;*.jpeg\0DDS\0*.dds\0BMP\0*.bmp\0"));
-		if (!file.empty())
-			m_data->Objects.CreateTexture(file, true);
-	}
 	void GUIManager::CreateNewAudio() {
-		std::string file = m_data->Parser.GetRelativePath(UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"All\0*.*\0WAV\0*.wav\0MP3\0*.mp3;\0FLAC\0*.flac\0OGG\0*.ogg\0MIDI\0*.midi\0"));
+		std::string path;
+		bool success = UIHelper::GetOpenFileDialog(path, "wav;flac;ogg;midi");
+		
+		if (!success)
+			return;
+
+		std::string file = m_data->Parser.GetRelativePath(path);
+
 		if (!file.empty())
 			m_data->Objects.CreateAudio(file);
 	}
@@ -789,18 +907,19 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.Save", [=]() {
 			if (m_data->Parser.GetOpenedFile() == "")
-				m_saveAsProject();
+				SaveAsProject();
 			else
 				m_data->Parser.Save();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.SaveAs", [=]() {
-			m_saveAsProject();
+			SaveAsProject();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.Open", [=]() {
 			m_data->Renderer.FlushCache();
-			std::string file = UIHelper::GetOpenFileDialog(m_wnd->GetWindowHandle(), L"SHADERed Project\0*.sprj\0");
+			std::string file;
+			bool success = UIHelper::GetOpenFileDialog(file, "sprj");
 
-			if (file.size() > 0) {
+			if (success) {
 				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
@@ -864,8 +983,17 @@ namespace ed
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HidePinned", [=]() {
 			Get(ViewID::Pinned)->Visible = !Get(ViewID::Pinned)->Visible;
 		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.HideProperties", [=]() {
+			Get(ViewID::Properties)->Visible = !Get(ViewID::Properties)->Visible;
+			});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
-			ShellExecute(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
+			#if defined(__APPLE__)
+				system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
+			#elif defined(__linux__) || defined(__unix__)
+				system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
+			#elif defined(_WIN32)
+				ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
+			#endif
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Options", [=]() {
 			m_optionsOpened = true;
@@ -908,35 +1036,24 @@ namespace ed
 		});
 
 		KeyboardShortcuts::Instance().SetCallback("Window.Exit", [=]() {
-			m_wnd->Destroy();
+			SDL_DestroyWindow(m_wnd);
 		});
 	}
 	void GUIManager::m_loadTemplateList()
 	{
 		m_selectedTemplate = "";
 
-		WIN32_FIND_DATA data;
-		HANDLE hFind = FindFirstFile(L".\\templates\\*", &data);      // DIRECTORY
-
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do {
-				if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-					std::wstring wfile(data.cFileName);
-					std::string file(wfile.begin(), wfile.end());
-
-					if (file[0] != '.') {
-						m_templates.push_back(file);
-						
-						if (file == Settings::Instance().General.StartUpTemplate)
-							m_selectedTemplate = file;
-					}
-				}
-			} while (FindNextFile(hFind, &data));
-			FindClose(hFind);
+		for (const auto & entry : ghc::filesystem::directory_iterator("templates")) {
+			std::string file = entry.path().filename().native();
+			m_templates.push_back(file);
+			
+			if (file == Settings::Instance().General.StartUpTemplate)
+				m_selectedTemplate = file;
 		}
 
-		if (m_selectedTemplate == "" && m_selectedTemplate.size() > 0)
-			m_selectedTemplate = m_templates[0];
+		if (m_selectedTemplate.size() == 0)
+			if (m_templates.size() != 0)
+				m_selectedTemplate = m_templates[0];
 
 		m_data->Parser.SetTemplate(m_selectedTemplate);
 	}

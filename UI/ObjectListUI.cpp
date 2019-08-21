@@ -1,12 +1,14 @@
 #include "ObjectListUI.h"
 #include "PropertyUI.h"
+#include "../Objects/Settings.h"
+#include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#define IMAGE_CONTEXT_WIDTH 150
+#define IMAGE_CONTEXT_WIDTH 150 * Settings::Instance().DPIScale
 
 namespace ed
 {
-	void ObjectListUI::OnEvent(const ml::Event & e)
+	void ObjectListUI::OnEvent(const SDL_Event & e)
 	{
 	}
 	void ObjectListUI::Update(float delta)
@@ -22,18 +24,18 @@ namespace ed
 			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
 
 		for (int i = 0; i < items.size(); i++) {
-			ml::ShaderResourceView* srv = m_data->Objects.GetSRV(items[i]);
+			GLuint tex = m_data->Objects.GetTexture(items[i]);
 
 			float imgWH = 0.0f;
 			if (m_data->Objects.IsRenderTexture(items[i])) {
-				DirectX::XMINT2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
+				glm::ivec2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
 				imgWH = (float)rtSize.y / rtSize.x;
-			} else if (m_data->Objects.IsAudio(items[i])) {
+			}
+			else if (m_data->Objects.IsAudio(items[i]))
 				imgWH = 2.0f / 512.0f;
-			} else {
-				ml::Image* img = m_data->Objects.GetImage(items[i]);
-				DirectX::Image imgData = img->GetImage()->GetImages()[0];
-				imgWH = (float)imgData.height / imgData.width;
+			else {
+				auto img = m_data->Objects.GetImageSize(items[i]);
+				imgWH = (float)img.second / img.first;
 			}
 
 			size_t lastSlash = items[i].find_last_of("/\\");
@@ -42,18 +44,12 @@ namespace ed
 			if (lastSlash != std::string::npos)
 				itemText = itemText.substr(lastSlash + 1);
 
-			if (m_data->Objects.IsLoading(items[i]))
-				ImGui::PushStyleColor(ImGuiCol_Text, IMGUI_WARNING_COLOR);
-
 			ImGui::Selectable(itemText.c_str());
-
-			if (m_data->Objects.IsLoading(items[i]))
-				ImGui::PopStyleColor();
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
 				ImGui::Text("Preview");
-				ImGui::Image(srv->GetView(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH));
+				ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
 
 				ImGui::Separator();
 
@@ -75,7 +71,7 @@ namespace ed
 
 				if (m_data->Objects.IsRenderTexture(items[i])) {
 					if (ImGui::Selectable("Properties")) {
-						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(items[i]));
+						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(tex));
 					}
 				}
 
@@ -95,33 +91,34 @@ namespace ed
 						for (int j = 0; j < passes.size(); j++) {
 							pipe::ShaderPass* sData = (pipe::ShaderPass*)passes[j]->Data;
 
-							for (int k = 0; k < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; k++) {
-								if (items[i] == sData->RenderTexture[k]) {
+							// check if shader pass uses this rt
+							for (int k = 0; k < MAX_RENDER_TEXTURES; k++) {
+								if (tex == sData->RenderTextures[k]) {
 									// TODO: maybe implement better logic for what to replace the deleted RT with
 									bool alreadyUsesWindow = false;
-									for (int l = 0; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
-										if (strcmp(sData->RenderTexture[l], "Window") == 0) {
+									for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
+										if (sData->RenderTextures[l] == m_data->Renderer.GetTexture()) {
 											alreadyUsesWindow = true;
 											break;
 										}
 
 									if (!alreadyUsesWindow)
-										strcpy(sData->RenderTexture[k], "Window");
+										sData->RenderTextures[k] = m_data->Renderer.GetTexture();
 									else if (k != 0) {
-										for (int l = j; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
-											sData->RenderTexture[l][0] = 0;
+										for (int l = j; l < MAX_RENDER_TEXTURES; l++)
+											sData->RenderTextures[l] = 0;
 									}
 									else {
-										for (int l = 0; l < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; l++)
-											sData->RenderTexture[l][0] = 0;
-										strcpy(sData->RenderTexture[0], "Window");
+										for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
+											sData->RenderTextures[l] = 0;
+										sData->RenderTextures[0] = m_data->Renderer.GetTexture();
 									}
 								}
 							}
 						}
 					}
 
-					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr);
+					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties
 					m_data->Objects.Remove(items[i]);
 				}
 

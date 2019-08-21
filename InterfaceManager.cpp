@@ -4,18 +4,15 @@
 
 namespace ed
 {
-	InterfaceManager::InterfaceManager(GUIManager* gui, ml::Window* wnd) :
-		Renderer(wnd, &Pipeline, &Objects, &Parser, &Messages),
-		Pipeline(wnd, &Parser),
-		Objects(wnd, &Parser, &Renderer),
+	InterfaceManager::InterfaceManager(GUIManager* gui) :
+		Renderer(&Pipeline, &Objects, &Parser, &Messages),
+		Pipeline(&Parser),
+		Objects(&Parser, &Renderer),
 		Parser(&Pipeline, &Objects, &Renderer, &Messages, gui)
 	{
 		m_ui = gui;
-		m_wnd = wnd;
-
-		DefaultState::Instance().Create(*wnd);
 	}
-	void InterfaceManager::OnEvent(const ml::Event & e)
+	void InterfaceManager::OnEvent(const SDL_Event& e)
 	{}
 	void InterfaceManager::Update(float delta)
 	{}

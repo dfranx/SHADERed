@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
-#include <ImGuiColorTextEdit/TextEditor.h>
-#include <MoonLight/Base/Color.h>
+#include <vector>
+#include <glm/glm.hpp>
+#include "../Options.h"
 
 namespace ed
 {
@@ -22,24 +23,24 @@ namespace ed
 			bool AutoOpenErrorWindow;
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;			// [TODO] Not implemented
-			bool SupportGLSL;			// [TODO] Not implemented (forgot what it was supposed to do hahah)
 			bool RecompileOnFileChange;
 			bool ReopenShaders;
 			bool UseExternalEditor;
 			bool OpenShadersOnDblClk;
 			bool ItemPropsOnDblCLk;
 			bool SelectItemOnDblClk;
+			bool Log;
+			bool PipeLogsToTerminal;
 			std::string StartUpTemplate;
-			bool CustomFont;
-			char Font[256];
+			char Font[MAX_PATH];
 			int FontSize;
 			bool AutoScale;
-			std::vector<std::string> GLSLExtensions;
+			std::vector<std::string> HLSLExtensions;
 		} General;
 
 		struct strEditor {
 			bool SmartPredictions;
-			char Font[256];
+			char Font[MAX_PATH];
 			int FontSize;
 			bool ShowWhitespace;			// [TODO] Not implemented
 			bool HiglightCurrentLine;
@@ -64,11 +65,13 @@ namespace ed
 			bool PropertyPick;
 			bool StatusBar;
 			int FPSLimit;
+			bool ApplyFPSLimitToApp; // apply FPSLimit to whole app, not only preview
+			bool LostFocusLimitFPS; // limit to 30FPS when app loses focus
 		} Preview;
 
 		struct strProject {
 			bool FPCamera;
-			ml::Color ClearColor;
+			glm::vec4 ClearColor;
 		} Project;
 
 		static inline Settings& Instance()
@@ -78,6 +81,6 @@ namespace ed
 		}
 
 	private:
-		void m_parseGLSLExt(const std::string& str);
+		void m_parseHLSLExt(const std::string& str);
 	};
 }

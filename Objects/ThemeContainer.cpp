@@ -1,4 +1,5 @@
 #include "ThemeContainer.h"
+#include "Logger.h"
 #include <inih/INIReader.h>
 #include <sstream>
 
@@ -6,6 +7,8 @@ namespace ed
 {
 	std::string ThemeContainer::LoadTheme(const std::string& filename)
 	{
+		Logger::Get().Log("Loading a theme from file " + filename);
+
 		static const std::string ColorNames[] = {
 			"Text",
 			"TextDisabled",
@@ -83,7 +86,11 @@ namespace ed
 		};
 
 		INIReader ini("./themes/" + filename);
-		
+		if (ini.ParseError() != 0) {
+			Logger::Get().Log("Failed to parse a theme from file " + filename, true);
+			return "";
+		}
+
 		std::string name = ini.Get("general", "name", "NULL");
 		std::string editorTheme = ini.Get("general", "editor", "Dark");
 		int version = ini.GetInteger("general", "version", 1);

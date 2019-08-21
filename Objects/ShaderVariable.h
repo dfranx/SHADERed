@@ -1,51 +1,52 @@
 #pragma once
 #include "../Options.h"
 #include <string>
+#include <string.h>
 
 namespace ed
 {
 	enum class SystemShaderVariable
 	{
 		None,				// not using system value
-		Time,				// float	- time elapsed since start
-		TimeDelta,			// float	- render time
-		ViewportSize,		// float2	- rendering window size
-		MousePosition,		// float2	- mouse position relative to (0,0) in the rendering window
-		View,				// matrix/float4x4 - a built-in camera matrix
-		Projection,			// matrix/float4x4 - a built-in projection matrix
-		ViewProjection,		// matrix/float4x4 - View*Projection matrix
-		Orthographic,		// matrix/float4x4 - an orthographic matrix
-		ViewOrthographic,	// matrix/float4x4 - View*Orthographic
-		GeometryTransform,	// matrix/float4x4 - apply Scale, Rotation and Position to geometry
-		IsPicked,			// bool		- check if current item is selected
-		CameraPosition,		// float4	- current camera position
-		KeysWASD,			// int4	- are W, A, S or D keys pressed
+		Time,				// float - time elapsed since start
+		TimeDelta,			// float - render time
+		ViewportSize,		// vec2 - rendering window size
+		MousePosition,		// vec2 - mouse position relative to (0,0) in the rendering window
+		View,				// mat4 - a built-in camera matrix
+		Projection,			// mat4 - a built-in projection matrix
+		ViewProjection,		// mat4 - View*Projection matrix
+		Orthographic,		// mat4 - an orthographic matrix
+		ViewOrthographic,	// mat4 - View*Orthographic
+		GeometryTransform,	// mat4 - apply Scale, Rotation and Position to geometry
+		IsPicked,			// bool - check if current item is selected
+		CameraPosition,		// vec4 - current camera position
+		KeysWASD,			// vec4 - are W, A, S or D keys pressed
 		Count
 	};
 
 	enum class FunctionShaderVariable
 	{
 		None,					// using user input instead of built-in functions
-		MatrixIdentity,			// XMMatrixIdentity()
-		MatrixLookAtLH,			// XMMatrixLookAtLH(float3 EyePosition, float3 FocusPosition, float3 UpDirection)
-		MatrixLookToLH,			// XMMatrixLookToLH(float3 EyePosition, float3 EyeDirection, float3 UpDirection)
-		MatrixOrthographicLH,	// XMMatrixOrthographicLH(float ViewWidth, float ViewHeight, float NearZ, float FarZ)
-		MatrixPerspectiveFovLH,	// XMMatrixPerspectiveFovLH(float fovAngleY, float AspectRatio, float NearZ, float FarZ)
-		MatrixPerspectiveLH,	// XMMatrixPerspectiveLH(float ViewWidth, float ViewHeight, float NearZ, float FarZ)
-		MatrixReflect,			// XMMatrixReflect(float4 ReflectionPlane)
-		MatrixRotationAxis,		// XMMatrixRotationAxis(float4 axis, float angle)
-		MatrixRotationNormal,	// XMMatrixRotationNormal(float4 normal, float angle)
-		MatrixRotationRollPitchYaw, // XMMatrixRotationRollPitchYaw(float pitch, float yaw, float roll)
-		MatrixRotationX,		// XMMatrixRotationX(float angle)
-		MatrixRotationY,		// XMMatrixRotationY(float angle)
-		MatrixRotationZ,		// XMMatrixRotationZ(float angle)
-		MatrixScaling,			// XMMatrixScaling(float x, float y, float z)
-		MatrixShadow,			// XMMatrixShadow(float4 ShadowPlane, float4 LightPosition) -> 4th param actually bool, 0 = directional light, 1 = point light
-		MatrixTranslation,		// XMMatrixScaling(float offsetX, float offsetY, float offsetZ)
-		ScalarCos,				// XMScalarCos(float radians)
-		ScalarSin,				// XMScalarSin(float radians)
-		VectorNormalize,		// XMVector2|3|4Normalize(float2|3|4 vector)
-		Count
+		MatrixIdentity,
+		MatrixLookAtLH,
+		MatrixLookToLH,
+		MatrixOrthographicLH,
+		MatrixPerspectiveFovLH,
+		MatrixPerspectiveLH,
+		MatrixReflect,
+		MatrixRotationAxis,
+		MatrixRotationNormal,
+		MatrixRotationRollPitchYaw,
+		MatrixRotationX,
+		MatrixRotationY,
+		MatrixRotationZ,
+		MatrixScaling,
+		MatrixShadow,
+		MatrixTranslation,
+		ScalarCos,
+		ScalarSin,
+		VectorNormalize,
+		Count					// not usable - this value just tells us number of all functions
 	};
 
 	class ShaderVariable
@@ -71,8 +72,8 @@ namespace ed
 			Count
 		};
 
-		ShaderVariable(ValueType type, const char* name = "var\0", SystemShaderVariable systemVar = SystemShaderVariable::None, int slot = 0) :
-			m_type(type), System(systemVar), Slot(slot)
+		ShaderVariable(ValueType type, const char* name = "var\0", SystemShaderVariable systemVar = SystemShaderVariable::None) :
+			m_type(type), System(systemVar)
 		{
 			Arguments = nullptr;
 			Data = (char*)calloc(GetSize(type), 1);
@@ -106,10 +107,9 @@ namespace ed
 			return 0;
 		}
 		
-		char Name[VARIABLE_NAME_LENGTH];	// just a descriptive name to help you out
+		char Name[VARIABLE_NAME_LENGTH];	// name that a uniform variable has
 		SystemShaderVariable System;		// do we provide the value or does our system provide the value?
 		FunctionShaderVariable Function;	// do we input value or does system calculate it for us?
-		int Slot;			// b0, b1, ..., b15
 		char* Data;			// allocated with malloc()
 		char* Arguments;	// space to store arguments for function - allocated if not null!!!
 
@@ -119,6 +119,7 @@ namespace ed
 
 		inline int* AsIntegerPtr(int index = 0) { return (int*)(Data + index * GetSize(ValueType::Integer1)); }
 		inline bool* AsBooleanPtr(int index = 0) { return (bool*)(Data + index * GetSize(ValueType::Boolean1)); }
+
 		inline float* AsFloatPtr(int col = 0, int row = 0) { return (float*)(Data + (row*GetColumnCount() + col) * GetSize(ValueType::Float1)); }
 
 		inline void SetIntegerValue(int value, int index = 0) { *AsIntegerPtr(index) = value; }

@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include <MoonLight/Base/Event.h>
+#include <SDL2/SDL_events.h>
 
 namespace ed
 {
@@ -51,10 +51,10 @@ namespace ed
 
 		inline void Detach(const std::string& name) { m_data.erase(name); }
 
-		void Check(const ml::Event& e);
+		void Check(const SDL_Event& e, bool codeHasFocus);
 
 	private:
-		bool m_canSolo(int k);
+		bool m_canSolo(const std::string& name, int k);
 
 		int m_keys[2];
 		std::map<std::string, Shortcut> m_data;

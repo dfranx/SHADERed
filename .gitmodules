@@ -12,3 +12,6 @@
 	path = libs/imgui
 	url = https://github.com/dfranx/imgui.git
 	branch = docking
+[submodule "libs/glslang"]
+	path = libs/glslang
+	url = https://github.com/KhronosGroup/glslang

@@ -1,16 +1,18 @@
 #pragma once
-#include <MoonLight/Base/Event.h>
 #include "InterfaceManager.h"
 #include "GUIManager.h"
+
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_video.h>
 
 namespace ed
 {
 	class EditorEngine
 	{
 	public:
-		EditorEngine(ml::Window* wnd);
+		EditorEngine(SDL_Window* wnd, SDL_GLContext* gl);
 		
-		void OnEvent(const ml::Event& e);
+		void OnEvent(const SDL_Event& e);
 		void Update(float delta);
 		void Render();
 

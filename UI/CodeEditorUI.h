@@ -3,11 +3,12 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include "../Objects/PipelineItem.h"
 #include "../Objects/Settings.h"
-#include <imgui/examples/imgui_impl_win32.h>
-#include <imgui/examples/imgui_impl_dx11.h>
-#include <d3d11.h>
+#include "../Objects/Logger.h"
+#include <imgui/examples/imgui_impl_sdl.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
 #include <deque>
 #include <future>
+#include <ghc/filesystem.hpp>
 
 namespace ed
 {
@@ -15,10 +16,17 @@ namespace ed
 	{
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_selectedItem(-1) {
-			Settings& sets = Settings::Instance();
-			m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
-			m_fontFilename = Settings::Instance().Editor.Font;
-			m_fontSize = Settings::Instance().Editor.FontSize;
+			Settings& sets = Settings::Instance(); // TODO: do this more often
+
+			if (ghc::filesystem::exists(sets.Editor.Font))
+				m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(sets.Editor.Font, sets.Editor.FontSize);
+			else {
+				m_font = ImGui::GetIO().Fonts->AddFontDefault();
+				Logger::Get().Log("Failed to load editor font", true);
+			}
+
+			m_fontFilename = sets.Editor.Font;
+			m_fontSize = sets.Editor.FontSize;
 			m_fontNeedsUpdate = false;
 			m_savePopupOpen = -1;
 			m_focusSID = 0;
@@ -29,7 +37,7 @@ namespace ed
 			m_setupShortcuts();
 		}
 
-		virtual void OnEvent(const ml::Event& e);
+		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
 		void SaveAll();
@@ -39,6 +47,8 @@ namespace ed
 		void OpenGS(PipelineItem item);
 
 		void RenameShaderPass(const std::string& name, const std::string& newName);
+
+		inline bool HasFocus() { return m_selectedItem != -1; }
 
 		inline void SetTheme(const TextEditor::Palette& colors) {
 			for (TextEditor& editor : m_editor)
@@ -82,6 +92,8 @@ namespace ed
 			m_fontFilename = filename;
 			m_fontSize = size;
 		}
+		
+		// TODO: remove unused functions here
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
 		inline std::pair<std::string, int> GetFont() { return std::make_pair(m_fontFilename, m_fontSize); }
 		inline void UpdateFont() { m_fontNeedsUpdate = false; m_font = ImGui::GetIO().Fonts->Fonts[1]; }
@@ -98,6 +110,8 @@ namespace ed
 		void CloseAll();
 
 		std::vector<std::pair<std::string, int>> GetOpenedFiles();
+		std::vector<std::string> GetOpenedFilesData();
+		void SetOpenedFilesData(const std::vector<std::string>& data);
 
 
 	private:
@@ -119,7 +133,7 @@ namespace ed
 
 
 	private:
-		void m_open(PipelineItem item, int shaderTypeID);
+		void m_open(PipelineItem item, int shaderTypeID); // TODO: add pointer to the pipelineitem
 		void m_setupShortcuts();
 
 		void m_loadEditorShortcuts(TextEditor* editor);

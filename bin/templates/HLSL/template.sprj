@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="property" name="Simple" />
+		<entry type="camera" fp="false">
+			<distance>8</distance>
+			<pitch>31</pitch>
+			<yaw>50</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="1" />
+	</settings>
+</project>

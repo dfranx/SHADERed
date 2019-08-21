@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="StencilWrite" type="renderstate">
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+					<stenciltest>true</stenciltest>
+					<stencilmask>255</stencilmask>
+					<stencilref>1</stencilref>
+					<stencilfrontfunc>Always</stencilfrontfunc>
+					<stencilbackfunc>Always</stencilbackfunc>
+					<stencilfrontpass>Replace</stencilfrontpass>
+					<stencilbackpass>Replace</stencilbackpass>
+					<stencilfrontfail>Keep</stencilfrontfail>
+					<stencilbackfail>Keep</stencilbackfail>
+					<depthfrontfail>Keep</depthfrontfail>
+					<depthbackfail>Keep</depthbackfail>
+				</item>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>-1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Ball" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+		<pass name="OutlinePass">
+			<shader type="vs" path="shaders/OutlinePassVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/OutlinePassPS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="StencilOutline" type="renderstate">
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+					<stenciltest>true</stenciltest>
+					<stencilmask>0</stencilmask>
+					<stencilref>1</stencilref>
+					<stencilfrontfunc>NotEqual</stencilfrontfunc>
+					<stencilbackfunc>NotEqual</stencilbackfunc>
+					<stencilfrontpass>Keep</stencilfrontpass>
+					<stencilbackpass>Keep</stencilbackpass>
+					<stencilfrontfail>Keep</stencilfrontfail>
+					<stencilbackfail>Keep</stencilbackfail>
+					<depthfrontfail>Keep</depthfrontfail>
+					<depthbackfail>Keep</depthbackfail>
+				</item>
+				<item name="BoxOutline" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<scaleX>1.10000002</scaleX>
+					<scaleY>1.10000002</scaleY>
+					<scaleZ>1.10000002</scaleZ>
+					<x>-1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="BallOutline" type="geometry">
+					<type>Sphere</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<scaleX>1.04999995</scaleX>
+					<scaleY>1.04999995</scaleY>
+					<scaleZ>1.04999995</scaleZ>
+					<x>1.25</x>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="property" name="StencilOutline" />
+		<entry type="camera" fp="false">
+			<distance>8</distance>
+			<pitch>19</pitch>
+			<yaw>73</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

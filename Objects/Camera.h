@@ -1,5 +1,5 @@
 #pragma once
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 
 namespace ed
 {
@@ -8,11 +8,11 @@ namespace ed
 	public:
 		virtual void Reset() {};
 
-		virtual DirectX::XMFLOAT3 GetRotation() = 0;
+		virtual glm::vec3 GetRotation() = 0;
 
-		virtual DirectX::XMVECTOR GetPosition() = 0;
-		virtual DirectX::XMVECTOR GetUpVector() = 0;
+		virtual glm::vec4 GetPosition() = 0;
+		virtual glm::vec4 GetUpVector() = 0;
 
-		virtual DirectX::XMMATRIX GetMatrix() = 0;
+		virtual glm::mat4 GetMatrix() = 0;
 	};
 }

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="SimpleTexture">
+			<shader type="vs" path="shaders/SimpleTextureVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimpleTexturePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="texture" path="../../Common/noise.png">
+			<bind slot="0" name="SimpleTexture" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="property" name="SimpleTexture" />
+		<entry type="camera" fp="false">
+			<distance>3</distance>
+			<pitch>42</pitch>
+			<yaw>28</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

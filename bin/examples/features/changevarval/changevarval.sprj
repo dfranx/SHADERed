@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float" name="darkness">
+					<row>
+						<value>1</value>
+					</row>
+				</variable>
+			</variables>
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>-0.5</x>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="BoxDefault" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<x>0.5</x>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues>
+				<value variable="darkness" for="Box">
+					<row>
+						<value>0.5</value>
+					</row>
+				</value>
+			</itemvalues>
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="property" name="Simple" />
+		<entry type="camera" fp="false">
+			<distance>8</distance>
+			<pitch>21</pitch>
+			<yaw>347</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

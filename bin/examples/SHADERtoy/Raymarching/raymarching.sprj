@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.glsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.glsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float2" name="iResolution" system="ViewportSize" />
+				<variable type="float2" name="iMouse" system="MousePosition" />
+				<variable type="float" name="iTime" system="Time" />
+			</variables>
+			<items>
+				<item name="FS" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="property" name="Simple" />
+		<entry type="camera" fp="false">
+			<distance>19</distance>
+			<pitch>89</pitch>
+			<yaw>3</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

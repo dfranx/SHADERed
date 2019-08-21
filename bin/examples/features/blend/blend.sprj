@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float" name="alpha">
+					<row>
+						<value>0.472000003</value>
+					</row>
+				</variable>
+			</variables>
+			<items>
+				<item name="Blend" type="renderstate">
+					<blend>true</blend>
+					<colorsrcfactor>Source Alpha</colorsrcfactor>
+					<colordstfactor>Inverse Source Alpha</colordstfactor>
+					<colorfunc>Add</colorfunc>
+					<alphasrcfactor>One</alphasrcfactor>
+					<alphadstfactor>Zero</alphadstfactor>
+					<alphafunc>Add</alphafunc>
+					<blendfactor_r>1</blendfactor_r>
+					<blendfactor_g>1</blendfactor_g>
+					<blendfactor_b>1</blendfactor_b>
+					<blendfactor_a>1</blendfactor_a>
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+				</item>
+				<item name="SmallBox" type="geometry">
+					<type>Cube</type>
+					<width>0.5</width>
+					<height>0.5</height>
+					<depth>0.5</depth>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects />
+	<settings>
+		<entry type="pinned" name="alpha" owner="Simple" />
+		<entry type="camera" fp="false">
+			<distance>2</distance>
+			<pitch>28</pitch>
+			<yaw>318</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

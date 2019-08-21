@@ -14,7 +14,7 @@ namespace ed
 			memset(m_owner, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char));
 		}
 
-		virtual void OnEvent(const ml::Event& e);
+		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
 		void SetOwner(const char* shaderPass);

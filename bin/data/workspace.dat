@@ -1,0 +1,94 @@
+[Window][DockSpaceWnd]
+Pos=0,0
+Size=1920,1017
+Collapsed=0
+
+[Window][Debug##Default]
+Pos=60,60
+Size=400,1637
+Collapsed=0
+
+[Window][Pinned]
+Pos=0,470
+Size=274,547
+Collapsed=0
+DockId=0x00000004,1
+
+[Window][Preview]
+Pos=276,22
+Size=1644,852
+Collapsed=0
+DockId=0x00000005,0
+
+[Window][Output]
+Pos=276,876
+Size=1644,141
+Collapsed=0
+DockId=0x00000006,0
+
+[Window][Objects]
+Pos=0,22
+Size=274,446
+Collapsed=0
+DockId=0x00000003,1
+
+[Window][Pipeline]
+Pos=0,22
+Size=274,446
+Collapsed=0
+DockId=0x00000003,0
+
+[Window][Properties]
+Pos=0,470
+Size=274,547
+Collapsed=0
+DockId=0x00000004,0
+
+[Window][Options]
+Pos=354,149
+Size=857,637
+Collapsed=0
+
+[Window][###code_viewVS0]
+Pos=262,22
+Size=621,560
+Collapsed=0
+DockId=0x00000009,0
+
+[Window][###code_viewPS0]
+Pos=262,22
+Size=621,994
+Collapsed=0
+DockId=0x0000000A,0
+
+[Window][###code_viewGS0]
+Pos=272,585
+Size=644,432
+Collapsed=0
+DockId=0x0000000A,1
+
+[Window][###code_viewVS1]
+Pos=272,22
+Size=657,561
+Collapsed=0
+DockId=0x00000009,1
+
+[Window][###code_viewPS1]
+Pos=272,585
+Size=657,432
+Collapsed=0
+DockId=0x0000000A,1
+
+[Docking][Data]
+DockSpace       ID=0x160B189F Pos=0,22 Size=1920,995 Split=X
+  DockNode      ID=0x00000001 Parent=0x160B189F SizeRef=264,997 Split=Y SelectedTab=0xC89E3217
+    DockNode    ID=0x00000003 Parent=0x00000001 SizeRef=239,446 SelectedTab=0x848ABB8F
+    DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=239,547 SelectedTab=0xC89E3217
+  DockNode      ID=0x00000002 Parent=0x160B189F SizeRef=1584,997 Split=X
+    DockNode    ID=0x00000007 Parent=0x00000002 SizeRef=644,915 Split=Y SelectedTab=0xF34EBBA5
+      DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=399,561 SelectedTab=0xF7C3C717
+      DockNode  ID=0x0000000A Parent=0x00000007 SizeRef=399,432 SelectedTab=0xF34EBBA5
+    DockNode    ID=0x00000008 Parent=0x00000002 SizeRef=1002,915 Split=Y SelectedTab=0x763816AC
+      DockNode  ID=0x00000005 Parent=0x00000008 SizeRef=1685,852 CentralNode=1 SelectedTab=0x763816AC
+      DockNode  ID=0x00000006 Parent=0x00000008 SizeRef=1685,141 SelectedTab=0xCB7211A8
+

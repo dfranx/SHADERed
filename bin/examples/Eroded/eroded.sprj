@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple">
+			<shader type="vs" path="shaders\SimpleVS.vert" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.frag" entry="main" />
+			<rendertexture />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float" name="eFactor">
+					<row>
+						<value>0.0900000036</value>
+					</row>
+				</variable>
+				<variable type="float" name="iFactor1">
+					<row>
+						<value>0.75</value>
+					</row>
+				</variable>
+				<variable type="float" name="iFactor2">
+					<row>
+						<value>1.95000005</value>
+					</row>
+				</variable>
+			</variables>
+			<items>
+				<item name="DisableCull" type="renderstate">
+					<cull>false</cull>
+					<cullfront>true</cullfront>
+					<ccw>false</ccw>
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+				</item>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="texture" path="../Common/noise2.png">
+			<bind slot="0" name="Simple" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="property" name="DisableCull" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
+		<entry type="pinned" name="eFactor" owner="Simple" />
+		<entry type="pinned" name="iFactor1" owner="Simple" />
+		<entry type="pinned" name="iFactor2" owner="Simple" />
+		<entry type="camera" fp="false">
+			<distance>3</distance>
+			<pitch>37</pitch>
+			<yaw>115</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+	</settings>
+</project>

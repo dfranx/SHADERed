@@ -11,7 +11,7 @@ namespace ed
 	{
 	public:
 
-		PipelineManager(ml::Window* wnd, ProjectParser* project);
+		PipelineManager(ProjectParser* project);
 		~PipelineManager();
 
 		void Clear();
@@ -26,10 +26,7 @@ namespace ed
 
 		void New(bool openTemplate = true);
 
-		inline ml::Window* GetOwner() { return m_wnd; }
-
 	private:
-		ml::Window* m_wnd;
 		ProjectParser* m_project;
 		std::vector<PipelineItem*> m_items;
 	};

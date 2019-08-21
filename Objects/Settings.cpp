@@ -1,6 +1,4 @@
-#pragma once
 #include "Settings.h"
-#include <imgui/imgui.h>
 #include <inih/INIReader.h>
 
 #include <algorithm>
@@ -13,6 +11,53 @@ namespace ed
 	Settings::Settings()
 	{
 		Theme = "Dark";
+
+		General.VSync = false;
+		General.AutoOpenErrorWindow = true;
+		General.Recovery = false;
+		General.CheckUpdates = false;
+		General.ReopenShaders = true;
+		General.UseExternalEditor = true;
+		General.OpenShadersOnDblClk = true;
+		General.ItemPropsOnDblCLk = true;
+		General.SelectItemOnDblClk = true;
+		General.RecompileOnFileChange = true;
+		General.StartUpTemplate = "HLSL";
+		General.AutoScale = true;
+		General.Log = true;
+		General.PipeLogsToTerminal = false;
+		DPIScale = 1.0f;
+		strcpy(General.Font, "null");
+		General.FontSize = 15;
+		m_parseHLSLExt("hlsl");
+
+		Editor.SmartPredictions = false;
+		strcpy(Editor.Font, "data/inconsolata.ttf");
+		Editor.FontSize = 15;
+		Editor.ShowWhitespace = false;
+		Editor.HiglightCurrentLine = true;
+		Editor.LineNumbers = true;
+		Editor.HorizontalScroll = true;
+		Editor.StatusBar =false;
+		Editor.AutoBraceCompletion = true;
+		Editor.SmartIndent = true;
+		Editor.InsertSpaces = false;
+		Editor.TabSize = 4;
+
+		Preview.FXAA = false;
+		Preview.SwitchLeftRightClick = false;
+		Preview.BoundingBox = false;
+		Preview.Gizmo = true;
+		Preview.GizmoRotationUI = true;
+		Preview.GizmoSnapTranslation = 0;
+		Preview.GizmoSnapScale = 0;
+		Preview.GizmoSnapRotation = 0;
+		Preview.GizmoSnapTranslation = 0;
+		Preview.PropertyPick = true;
+		Preview.StatusBar = true;
+		Preview.FPSLimit = -1;
+		Preview.ApplyFPSLimitToApp = false;
+		Preview.LostFocusLimitFPS = false;
 	}
 	void Settings::Load()
 	{
@@ -20,13 +65,16 @@ namespace ed
 
 		if (ini.ParseError() != 0) return;
 
+		General.HLSLExtensions.clear();
+
 		Theme = ini.Get("general", "theme", "Dark");
 
 		General.VSync = ini.GetBoolean("general", "vsync", false);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", false);
-		General.SupportGLSL = ini.GetBoolean("general", "glsl", true);
+		General.Log = ini.GetBoolean("general", "log", true);
+		General.PipeLogsToTerminal = ini.GetBoolean("general", "pipelogsterminal", false);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.UseExternalEditor = ini.GetBoolean("general", "useexternaleditor", true);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
@@ -34,15 +82,14 @@ namespace ed
 		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
-		General.CustomFont = ini.GetBoolean("general", "customfont", false);
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 15);
-		m_parseGLSLExt(ini.Get("general", "glslext", "glsl vert frag geom"));
+		m_parseHLSLExt(ini.Get("general", "hlslext", "hlsl"));
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
-		strcpy(Editor.Font, ini.Get("editor", "font", "inconsolata.ttf").c_str());
+		strcpy(Editor.Font, ini.Get("editor", "font", "data/inconsolata.ttf").c_str());
 		Editor.FontSize = ini.GetInteger("editor", "fontsize", 15);
 		Editor.ShowWhitespace = ini.GetBoolean("editor", "whitespace", false);
 		Editor.HiglightCurrentLine = ini.GetBoolean("editor", "highlightline", true);
@@ -66,6 +113,11 @@ namespace ed
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
 		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
+		Preview.ApplyFPSLimitToApp = ini.GetBoolean("preview", "fpslimitwholeapp", false);
+		Preview.LostFocusLimitFPS = ini.GetBoolean("preview", "fpslimitlostfocus", false);
+
+		if (Preview.ApplyFPSLimitToApp)
+			Preview.LostFocusLimitFPS = false;
 	}
 	void Settings::Save()
 	{
@@ -77,7 +129,8 @@ namespace ed
 		ini << "autoerror=" << General.AutoOpenErrorWindow << std::endl;
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
-		ini << "glsl=" << General.SupportGLSL << std::endl;
+		ini << "log=" << General.Log << std::endl;
+		ini << "pipelogsterminal=" << General.PipeLogsToTerminal << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "useexternaleditor=" << General.UseExternalEditor << std::endl;
 		ini << "openshadersdblclk=" << General.OpenShadersOnDblClk << std::endl;
@@ -85,16 +138,15 @@ namespace ed
 		ini << "selectitemdblclk=" << General.SelectItemOnDblClk << std::endl;
 		ini << "trackfilechange=" << General.RecompileOnFileChange << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
-		ini << "customfont=" << General.CustomFont << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;
 		ini << "autoscale=" << General.AutoScale << std::endl;
 		ini << "uiscale=" << DPIScale << std::endl;
 		
-		ini << "glslext=";
-		for (int i = 0; i < General.GLSLExtensions.size(); i++) {
-			ini << General.GLSLExtensions[i];
-			if (i != General.GLSLExtensions.size() - 1)
+		ini << "hlslext=";
+		for (int i = 0; i < General.HLSLExtensions.size(); i++) {
+			ini << General.HLSLExtensions[i];
+			if (i != General.HLSLExtensions.size() - 1)
 				ini << " ";
 		}
 		ini << std::endl;
@@ -111,6 +163,8 @@ namespace ed
 		ini << "propertypick=" << Preview.PropertyPick << std::endl;
 		ini << "statusbar=" << Preview.StatusBar << std::endl;
 		ini << "fpslimit=" << Preview.FPSLimit << std::endl;
+		ini << "fpslimitwholeapp=" << Preview.ApplyFPSLimitToApp << std::endl;
+		ini << "fpslimitlostfocus=" << Preview.LostFocusLimitFPS << std::endl;
 
 		ini << "[editor]" << std::endl;
 		ini << "smartpred=" << Editor.SmartPredictions << std::endl;
@@ -128,7 +182,7 @@ namespace ed
 
 	}
 
-	void Settings::m_parseGLSLExt(const std::string& str)
+	void Settings::m_parseHLSLExt(const std::string& str)
 	{
 		std::stringstream ss(str);
 		std::string token;
@@ -138,7 +192,7 @@ namespace ed
 			if (token.size() < 1)
 				break;
 
-			General.GLSLExtensions.push_back(token);
+			General.HLSLExtensions.push_back(token);
 		}
 	}
 }

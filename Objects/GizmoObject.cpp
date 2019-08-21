@@ -1,224 +1,281 @@
 #include "GizmoObject.h"
+#include "Logger.h"
+#include "DefaultState.h"
 #include "SystemVariableManager.h"
-#include "../Objects/DefaultState.h"
-#include <MoonLight/Base/GeometryFactory.h>
-#include <DirectXCollision.h>
+#include "../Engine/GeometryFactory.h"
+#include "../Engine/Ray.h"
+
+#include <iostream>
 
 const char* GIZMO_VS_CODE = R"(
-cbuffer cbPerFrame : register(b0)
-{
-	float4x4 matVP;
-	float4x4 matWorld;
-};
+#version 330
 
-struct VSInput
-{
-	float3 Position : POSITION;
-	float3 Normal : NORMAL;
-	float3 Color : COLOR;
-};
+layout (location = 0) in vec3 iPos;
+layout (location = 1) in vec3 iNormal;
 
-struct VSOutput
-{
-	float4 Position : SV_POSITION;
-	float4 Color : COLOR;
-};
+uniform mat4 uMatVP;
+uniform mat4 uMatWorld;
+uniform vec3 uColor;
 
-static const float3 light1 = float3(1, 1, 1);
-static const float3 light2 = float3(-1, 1, -1);
-static const float lightRatio = 0.8f;
-VSOutput main(VSInput vin)
-{
-	VSOutput vout = (VSOutput)0;
-	
-	vin.Normal = normalize(mul(float4(vin.Normal, 0), matWorld));
-	vout.Position = mul(float4(vin.Position, 1.0f), matWorld);
-	
-	float3 lightVec1 = normalize(light1);
-	float3 lightVec2 = normalize(light2);
-	
-	float lightFactor = saturate(dot(lightVec1, vin.Normal)) + saturate(dot(lightVec2, vin.Normal));
-	float3 clr = vin.Color*(1-lightRatio) + lightFactor*vin.Color*lightRatio;
+out vec4 oColor;
 
-	vout.Color = float4(clr, 1.0f);
-	vout.Position = mul(vout.Position, matVP);
+const vec3 light1 = vec3(1,1,1);
+const vec3 light2 = vec3(-1,1,-1);
+const float lightRatio = 0.8;
+
+void main() {
+	vec3 normal = normalize(uMatWorld * vec4(iNormal, 0.0)).xyz;
+	gl_Position = uMatVP * uMatWorld * vec4(iPos, 1.0f);
 	
-	return vout;
-})";
+	vec3 lightVec1 = normalize(light1);
+	vec3 lightVec2 = normalize(light2);
+	
+	float lightFactor = clamp(dot(lightVec1, normal), 0.0, 1.0) + clamp(dot(lightVec2, normal), 0.0, 1.0);
+	vec3 clr = (1.0-lightRatio) * uColor + lightFactor*lightRatio*uColor;
+
+	oColor = vec4(clr, 1.0);
+}
+)";
 
 const char* GIZMO_PS_CODE = R"(
-struct PSInput
-{
-	float4 Position : SV_POSITION;
-	float4 Color : COLOR;
-};
+#version 330
 
-float4 main(PSInput pin) : SV_TARGET
-{
-	return pin.Color;
-})";
+in vec4 oColor;
+out vec4 fragColor;
+
+void main() {
+	fragColor = oColor;
+}
+)";
 const char* GUI_VS_CODE = R"(
-cbuffer cbPerFrame : register(b0) {
-	float4x4 matWVP;
-};
+#version 330
+layout (location = 0) in vec3 iPos;
 
-struct VSInput {
-	float3 Position : POSITION;
-};
+uniform mat4 uMatWVP;
 
-struct VSOutput {
-	float4 Position : SV_POSITION;
-};
-
-VSOutput main(VSInput vin) {
-	VSOutput vout = (VSOutput)0;
-	vout.Position = mul(float4(vin.Position, 1.0f), matWVP);
-	return vout;
-})";
+void main() {
+	gl_Position = uMatWVP * vec4(iPos, 1.0f);
+}
+)";
 
 const char* GUI_PS_CODE = R"(
-struct PSInput
-{
-	float4 Position : SV_POSITION;
-};
+#version 330
+out vec4 fragColor;
 
-float4 main(PSInput pin) : SV_TARGET
-{
-	return float4(1,0.84313f,0, 0.51f);
-})";
+void main() {
+	fragColor = vec4(1.0f,0.84313f,0.0f, 0.51f);
+}
+)";
 #define GIZMO_SCALE_FACTOR 7.5f
 #define GIZMO_HEIGHT 1.1f
 #define GIZMO_WIDTH 0.05f
 #define GIZMO_POINTER_WIDTH 0.1f
 #define GIZMO_POINTER_HEIGHT 0.175f
 #define GIZMO_PRECISE_COLBOX_WD 2.0f // increase the collision box by 100% in width and depth
-#define GIZMO_SELECTED_COLOR DirectX::XMFLOAT3(1,0.84313f,0)
+#define GIZMO_SELECTED_COLOR glm::vec3(1,0.84313f,0)
+
+#define GUI_POINT_COUNT 32
+#define GUI_ROTA_RADIUS 115
 
 namespace ed
 {
-	ml::Geometry::Vertex* CreateDegreeInfo(float degreesStart, float degreesEnd, size_t& count, size_t pointCount)
+	GLuint CreateDegreeInfo(GLuint& vbo, float degreesStart, float degreesEnd)
 	{
 		int x = 0, y = 0;
 		float radius = 115;
 
-		count = pointCount * 2 + 1;
-		ml::Geometry::Vertex* ret = new ml::Geometry::Vertex[count];
+		const size_t count = GUI_POINT_COUNT*3;
 
 		float degrees = degreesEnd - degreesStart;
 		if (degrees < 0) degrees += 360;
 
-		float step = DirectX::XMConvertToRadians(degrees) / pointCount;
-		float radStart = DirectX::XMConvertToRadians(degreesStart);
+		float step = glm::radians(degrees) / GUI_POINT_COUNT;
+		float radStart = glm::radians(degreesStart);
 
-		ret[0].Position = DirectX::XMFLOAT3(x + radius * sin(radStart), y + radius * cos(radStart), 0);
-		ret[1].Position = DirectX::XMFLOAT3(x + radius * sin(radStart+step), y + radius * cos(radStart + step), 0);
-		ret[2].Position = DirectX::XMFLOAT3(x, y, 0);
 
-		ret[0].UV = DirectX::XMFLOAT2(sin(0) * 0.5f + 0.5f, 1 - (cos(0) * 0.5f + 0.5f));
-		ret[1].UV = DirectX::XMFLOAT2(sin(step) * 0.5f + 0.5f, 1 - (cos(step) * 0.5f + 0.5f));
-		ret[2].UV = DirectX::XMFLOAT2(0.5f, 0.5f);
+		const int numPoints = GUI_POINT_COUNT * 3;
+		int numSegs = numPoints / 3;
 
-		ret[0].Normal = DirectX::XMFLOAT3(0, 0, -1);
-		ret[1].Normal = DirectX::XMFLOAT3(0, 0, -1);
-		ret[2].Normal = DirectX::XMFLOAT3(0, 0, -1);
+		GLfloat circleData[numPoints * 8];
 
-		for (int i = 0; i < pointCount - 1; i++) {
-			float xVal = sin(radStart + step * (i + 2));
-			float yVal = cos(radStart + step * (i + 2));
-			ret[i * 2 + 3].Position = DirectX::XMFLOAT3(x + radius * xVal, y + radius * yVal, 0);
-			ret[i * 2 + 4].Position = DirectX::XMFLOAT3(x, y, 0);
 
-			ret[i * 2 + 3].UV = DirectX::XMFLOAT2(xVal * 0.5f + 0.5f, 1 - (yVal * 0.5f + 0.5f));
-			ret[i * 2 + 4].UV = DirectX::XMFLOAT2(0.5f, 0.5f);
+		for (int i = 0; i < numSegs; i++)
+		{
+			int j = i * 3 * 8;
+			GLfloat* ptrData = &circleData[j];
 
-			ret[i * 2 + 3].Normal = DirectX::XMFLOAT3(0, 0, -1);
-			ret[i * 2 + 4].Normal = DirectX::XMFLOAT3(0, 0, -1);
+			float xVal1 = sin(radStart + step * i);
+			float yVal1 = cos(radStart + step * i);
+			float xVal2 = sin(radStart + step * (i + 1));
+			float yVal2 = cos(radStart + step * (i + 1));
+
+			GLfloat point1[8] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f };
+			GLfloat point2[8] = { xVal1 * radius, yVal1 * radius, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f };
+			GLfloat point3[8] = { xVal2 * radius, yVal2 * radius, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f };
+
+			memcpy(ptrData + 0, point1, 8 * sizeof(GLfloat));
+			memcpy(ptrData + 8, point2, 8 * sizeof(GLfloat));
+			memcpy(ptrData + 16, point3, 8 * sizeof(GLfloat));
 		}
 
-		return ret;
+
+		// create vao and vbo
+		GLuint vao;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		// create vbo
+		glGenBuffers(1, &vbo);				// create buffer
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);	// bind as vertex buffer
+
+		// then copy the data to the bound vbo and unbind it
+		glBufferData(GL_ARRAY_BUFFER, sizeof(circleData), circleData, GL_STATIC_DRAW);
+	
+		// configure input layout
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+	
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3* sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6* sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+		// unbind
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		return vao;
 	}
-	ml::Geometry CreateDegreeInfo(float degreesStart, float degreesEnd, ml::Window& wnd, size_t pointCount)
-	{
-		ml::Geometry ret;
-		size_t vertCount = 0;
 
-		ml::Geometry::Vertex* verts = CreateDegreeInfo(degreesStart, degreesEnd, vertCount, pointCount);
-		ret.Create(wnd, verts, vertCount);
-		delete[] verts;
-
-		return ret;
-	}
-
-
-	GizmoObject::GizmoObject(ml::Window* wnd) :
-		m_wnd(wnd),
+	GizmoObject::GizmoObject() :
 		m_axisSelected(-1), m_vw(-1), m_vh(-1),
 		m_mode(0)
 	{
-		m_vlayout.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
-		m_vlayout.Add("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 12);
-		m_vlayout.Add("COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 24);
-		m_vs.InputSignature = &m_vlayout;
+		GLint success = false;
+		char infoLog[512];
 
-		m_uiInput.Add("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0);
-		m_uiPS.LoadFromMemory(*wnd, GUI_PS_CODE, strlen(GUI_PS_CODE), "main");
-		m_uiVS.InputSignature = &m_uiInput;
-		m_uiVS.LoadFromMemory(*wnd, GUI_VS_CODE, strlen(GUI_VS_CODE), "main");
-		m_cbUI.Create(*wnd, &m_cbUIData, sizeof(CBDegreeUI));
-
-		m_degreeInfoUI = CreateDegreeInfo(45, 90, *wnd, 24);
+		ed::Logger::Get().Log("Initializing gizmo...", false, __FILE__, __LINE__);
+		ed::Logger::Get().Log("Loading shaders...");
 		
-		m_rasterState.Info.DepthClipEnable = false;
-		m_rasterState.Info.CullMode = D3D11_CULL_NONE;
-		m_rasterState.Create(*wnd);
-		m_ignoreDepth.Info.DepthEnable = false;
-		m_ignoreDepth.Info.DepthFunc = D3D11_COMPARISON_ALWAYS;
-		m_ignoreDepth.Create(*wnd);
-		m_transparencyBlend.Info.IndependentBlendEnable = true;
-		m_transparencyBlend.Info.AlphaToCoverageEnable = true;
-		m_transparencyBlend.Info.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-		m_transparencyBlend.Info.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-		m_transparencyBlend.Info.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
-		m_transparencyBlend.Create(*wnd);
+		// create vertex shader
+		unsigned int gizmoVS = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(gizmoVS, 1, &GIZMO_VS_CODE, nullptr);
+		glCompileShader(gizmoVS);
+		glGetShaderiv(gizmoVS, GL_COMPILE_STATUS, &success);
+		if(!success) {
+			glGetShaderInfoLog(gizmoVS, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to compile a gizmo vertex shader", true);
+			ed::Logger::Get().Log(infoLog, true);
+		}
 
+		// create pixel shader
+		unsigned int gizmoPS = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(gizmoPS, 1, &GIZMO_PS_CODE, nullptr);
+		glCompileShader(gizmoPS);
+		glGetShaderiv(gizmoPS, GL_COMPILE_STATUS, &success);
+		if(!success) {
+			glGetShaderInfoLog(gizmoPS, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to compile a gizmo pixel shader", true);
+			ed::Logger::Get().Log(infoLog, true);
+		}
 
-		m_vs.LoadFromMemory(*m_wnd, GIZMO_VS_CODE, strlen(GIZMO_VS_CODE), "main");
-		m_ps.LoadFromMemory(*m_wnd, GIZMO_PS_CODE, strlen(GIZMO_PS_CODE), "main");
+		// create vertex shader
+		unsigned int uiVS = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(uiVS, 1, &GUI_VS_CODE, nullptr);
+		glCompileShader(uiVS);
+		glGetShaderiv(uiVS, GL_COMPILE_STATUS, &success);
+		if(!success) {
+			glGetShaderInfoLog(uiVS, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to compile a GUI vertex shader", true, __FILE__, __LINE__);
+			ed::Logger::Get().Log(infoLog, true);
+		}
 
-		m_model.LoadFromFile("data/gizmo.obj");
+		// create pixel shader
+		unsigned int uiPS = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(uiPS, 1, &GUI_PS_CODE, nullptr);
+		glCompileShader(uiPS);
+		glGetShaderiv(uiPS, GL_COMPILE_STATUS, &success);
+		if(!success) {
+			glGetShaderInfoLog(uiPS, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to compile a GUI pixel shader", true, __FILE__, __LINE__);
+			ed::Logger::Get().Log(infoLog, true);
+		}
 
-		m_cb.Create(*m_wnd, &m_cbData, sizeof(m_cbData));
+		// create a shader program for gizmo
+		m_gizmoShader = glCreateProgram();
+		glAttachShader(m_gizmoShader, gizmoVS);
+		glAttachShader(m_gizmoShader, gizmoPS);
+		glLinkProgram(m_gizmoShader);
+		glGetProgramiv(m_gizmoShader, GL_LINK_STATUS, &success);
+		if(!success) {
+			glGetProgramInfoLog(m_gizmoShader, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to create a gizmo shader program", true);
+			ed::Logger::Get().Log(infoLog, true);
+		}
+		
 
-		m_vertsCreated = false;
+		// create a shader program for gui
+		m_uiShader = glCreateProgram();
+		glAttachShader(m_uiShader, uiVS);
+		glAttachShader(m_uiShader, uiPS);
+		glLinkProgram(m_uiShader);
+		glGetProgramiv(m_uiShader, GL_LINK_STATUS, &success);
+		if(!success) {
+			glGetProgramInfoLog(m_uiShader, 512, NULL, infoLog);
+			ed::Logger::Get().Log("Failed to create a GUI shader program", true, __FILE__, __LINE__);
+			ed::Logger::Get().Log(infoLog, true);
+		}
+
+		glDeleteShader(gizmoVS);
+		glDeleteShader(gizmoPS);
+		glDeleteShader(uiVS);
+		glDeleteShader(uiPS);
+
+		// cache uniform locations
+		m_uMatWorldLoc = glGetUniformLocation(m_gizmoShader, "uMatWorld");
+		m_uMatVPLoc = glGetUniformLocation(m_gizmoShader, "uMatVP");
+		m_uColorLoc = glGetUniformLocation(m_gizmoShader, "uColor");
+		m_uMatWVPLoc = glGetUniformLocation(m_uiShader, "uMatWVP");
+		
+		// gizmo and ui
+		m_uiVAO = CreateDegreeInfo(m_uiVBO, 45, 90);
+
+		ed::Logger::Get().Log("Loading gizmo 3D model...");
+		bool gizmo3DLoaded = m_model.LoadFromFile("data/gizmo.obj");
+
+		if (gizmo3DLoaded)
+			ed::Logger::Get().Log("Loaded gizmo 3D model");
+		else
+			ed::Logger::Get().Log("Failed to load gizmo 3D model", true);
+
 		m_axisHovered = -1;
+		m_colors[0] = glm::vec3(1, 0, 0);
+		m_colors[1] = glm::vec3(0, 1, 0);
+		m_colors[2] = glm::vec3(0, 0, 1);
 
-		m_colors[0] = DirectX::XMFLOAT3(1, 0, 0);
-		m_colors[1] = DirectX::XMFLOAT3(0, 1, 0);
-		m_colors[2] = DirectX::XMFLOAT3(0, 0, 1);
-		m_buildHandles();
+		ed::Logger::Get().Log("Finished with initializing gizmo");
 	}
 	GizmoObject::~GizmoObject()
 	{
+		glDeleteProgram(m_gizmoShader);
+		glDeleteProgram(m_uiShader);
+		glDeleteBuffers(1, &m_uiVBO);
+		glDeleteVertexArrays(1, &m_uiVAO);
 	}
 	void GizmoObject::HandleMouseMove(int x, int y, int vw, int vh)
 	{
 		// handle dragging rotation controls
 		if (m_axisSelected != -1 && m_mode == 2) {
-			// update UI cb
-			if (Settings::Instance().Preview.GizmoRotationUI) {
-				DirectX::XMMATRIX matProj = DirectX::XMMatrixOrthographicLH(m_vw, m_vh, 0.1f, 1000.0f);
-				DirectX::XMStoreFloat4x4(&m_cbUIData.matWVP, DirectX::XMMatrixTranspose(DirectX::XMMatrixRotationZ(DirectX::XM_PI) *
-					DirectX::XMMatrixRotationY(DirectX::XM_PI) *
-					matProj));
-				m_cbUI.Update(&m_cbUIData);
-			}
-
 			// rotate the object
-			float degNow = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2)));
+			float degNow = glm::degrees(atan2(x - (vw / 2), y - (vh / 2)));
 			float deg = degNow-m_clickDegrees;
 
-			if (Settings::Instance().Preview.GizmoRotationUI)
-				m_degreeInfoUI = CreateDegreeInfo(m_clickDegrees, degNow, *m_wnd, 24);
+			if (Settings::Instance().Preview.GizmoRotationUI) {
+				glDeleteVertexArrays(1, &m_uiVAO);
+				glDeleteBuffers(1, &m_uiVBO);
+				m_uiVAO = CreateDegreeInfo(m_uiVBO, m_clickDegrees, degNow);
+			}
 
 			if (deg < 0) deg = 360 + deg;
 
@@ -229,22 +286,22 @@ namespace ed
 				m_tValue.x = deg;
 
 
-			float rad = m_tValue.x / 180 * DirectX::XM_PI;
+			float rad = m_tValue.x / 180 * glm::pi<float>();
 			switch (m_axisSelected) {
 			case 0:
 				m_rota->x = m_curValue.x + rad;
-				if (m_rota->x >= DirectX::XM_2PI)
-					m_rota->x -= (int)(m_rota->x / DirectX::XM_2PI) * DirectX::XM_2PI;
+				if (m_rota->x >= 2*glm::pi<float>())
+					m_rota->x -= (int)(m_rota->x / (2*glm::pi<float>())) * glm::pi<float>() * 2;
 				break;
 			case 1:
 				m_rota->y = m_curValue.y + rad;
-				if (m_rota->y >= DirectX::XM_2PI)
-					m_rota->y -= (int)(m_rota->y / DirectX::XM_2PI) * DirectX::XM_2PI;
+				if (m_rota->y >= 2*glm::pi<float>())
+					m_rota->y -= (int)(m_rota->y / (2*glm::pi<float>())) * 2*glm::pi<float>();
 				break;
 			case 2:
 				m_rota->z = m_curValue.z + rad;
-				if (m_rota->z >= DirectX::XM_2PI)
-					m_rota->z -= (int)(m_rota->z / DirectX::XM_2PI) * DirectX::XM_2PI; 
+				if (m_rota->z >= 2*glm::pi<float>())
+					m_rota->z -= (int)(m_rota->z / (2*glm::pi<float>())) * 2*glm::pi<float>(); 
 				break;
 			}
 		}
@@ -254,112 +311,105 @@ namespace ed
 		m_vw = vw;
 		m_vh = vh;
 
-		float scale = DirectX::XMVectorGetX(
-			DirectX::XMVector3Length(
-				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
-				))) / GIZMO_SCALE_FACTOR;
+		float scale = glm::length(*m_trans - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())) / GIZMO_SCALE_FACTOR;
+		if (scale == 0.0f)
+			return;
 
+		// selection
 		// X axis
-		DirectX::XMMATRIX xWorld = DirectX::XMMatrixRotationZ(DirectX::XM_PIDIV2) *
-			DirectX::XMMatrixTranslation(m_trans->x + scale * (GIZMO_HEIGHT / 2 + GIZMO_WIDTH / 2), m_trans->y, m_trans->z);
+		glm::mat4 xWorld = glm::translate(glm::mat4(1), *m_trans)
+			* glm::rotate(glm::mat4(1), -glm::half_pi<float>(), glm::vec3(0, 0, 1));
 
 		// Y axis
-		DirectX::XMMATRIX yWorld = DirectX::XMMatrixTranslation(m_trans->x, m_trans->y + scale * (GIZMO_HEIGHT / 2 - GIZMO_WIDTH / 2), m_trans->z);
+		glm::mat4 yWorld = glm::translate(glm::mat4(1), *m_trans);
 
 		// Z axis
-		DirectX::XMMATRIX zWorld = DirectX::XMMatrixRotationX(DirectX::XM_PIDIV2) *
-			DirectX::XMMatrixTranslation(m_trans->x, m_trans->y, m_trans->z + scale * (GIZMO_HEIGHT / 2 + GIZMO_WIDTH / 2));
+		glm::mat4 zWorld = glm::translate(glm::mat4(1), *m_trans) *
+			glm::rotate(glm::mat4(1), glm::half_pi<float>(), glm::vec3(1, 0, 0));
+		
+		float mouseX = x / (vw * 0.5f) - 1.0f;
+		float mouseY = y / (vh * 0.5f) - 1.0f;
 
-		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
-		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
+		glm::mat4 proj = SystemVariableManager::Instance().GetProjectionMatrix();
+		glm::mat4 view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
 
-		float vx = (+2.0f * x / m_vw - 1.0f) / proj4x4(0, 0);
-		float vy = (-2.0f * y / m_vh + 1.0f) / proj4x4(1, 1);
+		glm::mat4 invVP = glm::inverse(proj * view);
+		glm::vec4 screenPos(mouseX, mouseY, 1.0f, 1.0f);
+		glm::vec4 worldPos = invVP * screenPos;
 
-		DirectX::XMVECTOR rayOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-		DirectX::XMVECTOR rayDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
-
-		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
-		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
-
-		rayOrigin = DirectX::XMVector3TransformCoord(rayOrigin, invView);
-		rayDir = DirectX::XMVector3TransformNormal(rayDir, invView);
+		glm::vec3 rayDir = glm::normalize(glm::vec3(worldPos));
+		glm::vec3 rayOrigin = glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition());
 
 		if (m_mode == 0 || m_mode == 1) {
-			DirectX::BoundingBox handleBox;
-			handleBox.Center = DirectX::XMFLOAT3(0, 0, 0);
-			handleBox.Extents = DirectX::XMFLOAT3(GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2, (GIZMO_HEIGHT + GIZMO_POINTER_HEIGHT) * scale / 2, GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2);
+			glm::vec3 maxP(GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2, (GIZMO_HEIGHT + GIZMO_POINTER_HEIGHT) * scale, GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2);
+			glm::vec3 minP(-maxP.x, 0, -maxP.z);
 
 			// X axis
-			DirectX::XMMATRIX invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(xWorld), xWorld);
-			DirectX::XMVECTOR rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
-			DirectX::XMVECTOR rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+			glm::vec3 b1 = xWorld * glm::vec4(minP, 1);
+			glm::vec3 b2 = xWorld * glm::vec4(maxP, 1);
 
 			float distX, distY, distZ, dist = std::numeric_limits<float>::infinity();
-			if (handleBox.Intersects(rayOrigin2, rayDir2, distX))
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distX))
 				m_axisHovered = 0, dist = distX;
 			else distX = std::numeric_limits<float>::infinity();
 
 			// Y axis
-			invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(yWorld), yWorld);
-			rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
-			rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+			b1 = yWorld * glm::vec4(minP, 1);
+			b2 = yWorld * glm::vec4(maxP, 1);
 
-			if (handleBox.Intersects(rayOrigin2, rayDir2, distY) && distY < distX)
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distY) && distY < distX)
 				m_axisHovered = 1, dist = distY;
 			else distY = std::numeric_limits<float>::infinity();
 
 			// Z axis
-			invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(zWorld), zWorld);
-			rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
-			rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+			b1 = zWorld * glm::vec4(minP, 1);
+			b2 = zWorld * glm::vec4(maxP, 1);
 
-			if (handleBox.Intersects(rayOrigin2, rayDir2, distZ) && distZ < distY && distZ < distX)
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distZ) && distZ < distY && distZ < distX)
 				m_axisHovered = 2, dist = distZ;
 			else distZ = std::numeric_limits<float>::infinity();
 
 			if (m_axisHovered != -1) {
 				m_hoverDepth = dist;
-				m_hoverStart = DirectX::XMVectorAdd(rayOrigin, DirectX::XMVectorScale(rayDir, m_hoverDepth));
+				m_hoverStart = rayOrigin + m_hoverDepth * rayDir;
 			}
 		}
 		else { // handle the rotation bars
-			DirectX::XMMATRIX matWorld = DirectX::XMMatrixScaling(scale, scale, scale) *
-				DirectX::XMMatrixRotationX(DirectX::XM_PIDIV2) *
-				DirectX::XMMatrixTranslation(m_trans->x, m_trans->y, m_trans->z);
-			DirectX::XMMATRIX invWorld = DirectX::XMMatrixInverse(&XMMatrixDeterminant(matWorld), matWorld);
-			DirectX::XMVECTOR rayOrigin2 = DirectX::XMVector3TransformCoord(rayOrigin, invWorld);
-			DirectX::XMVECTOR rayDir2 = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(rayDir, invWorld));
+			glm::mat4 matWorld = glm::translate(glm::mat4(1), *m_trans) *
+				glm::rotate(glm::mat4(1), glm::half_pi<float>(), glm::vec3(1, 0, 0)) *
+				glm::scale(glm::mat4(1), glm::vec3(scale));
 
 			float triDist = 0;
 			float curDist = std::numeric_limits<float>::infinity();
 			int selIndex = -1;
-			for (int i = 0; i < m_verts.size(); i += 3) {
-				DirectX::XMVECTOR v0 = DirectX::XMLoadFloat3(&m_verts[i + 0].Position);
-				DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&m_verts[i + 1].Position);
-				DirectX::XMVECTOR v2 = DirectX::XMLoadFloat3(&m_verts[i + 2].Position);
+			
+			std::vector<std::string> models = { "RotateX", "RotateY", "RotateZ" };
 
-				if (DirectX::TriangleTests::Intersects(rayOrigin2, rayDir2, v0, v1, v2, triDist)) {
-					if (triDist < curDist) {
-						curDist = triDist;
-						selIndex = i;
+			for (auto& mesh : m_model.Meshes) {
+				for (int j = 0; j < models.size(); j++) {
+					if (mesh.Name != models[j])
+						continue;
+
+					for (int i = 0; i < mesh.Vertices.size(); i += 3) {
+						glm::vec3 v0 = matWorld * glm::vec4(mesh.Vertices[i + 0].Position, 1);// TODO: this is inefficient... idk why inverse(matWorld) isnt worked
+						glm::vec3 v1 = matWorld * glm::vec4(mesh.Vertices[i + 1].Position, 1);
+						glm::vec3 v2 = matWorld * glm::vec4(mesh.Vertices[i + 2].Position, 1);
+
+						if (ray::IntersectTriangle(rayOrigin, rayDir, v0, v1, v2, triDist)) {
+							if (triDist < curDist) {
+								curDist = triDist;
+								selIndex = j;
+							}
+						}
 					}
 				}
 			}
 
 			if (selIndex != -1) {
-				m_axisHovered = selIndex / (m_verts.size() / 3);
+				m_axisHovered = selIndex;
 				m_hoverDepth = curDist;
-				m_hoverStart = DirectX::XMVectorAdd(rayOrigin, DirectX::XMVectorScale(rayDir, m_hoverDepth));
+				m_hoverStart = rayOrigin + rayDir*m_hoverDepth;
 			}
-		}
-
-		// update vb
-		if (m_axisSelected == -1) {
-			int bounds = m_verts.size() / 3;
-			for (int i = 0; i < m_verts.size(); i++)
-				m_verts[i].Color = (i / bounds == m_axisHovered) ? GIZMO_SELECTED_COLOR : m_colors[i / bounds];
-			m_buffer.Update(m_verts.data());
 		}
 	}
 	int GizmoObject::Click(int x, int y, int vw, int vh)
@@ -371,10 +421,13 @@ namespace ed
 			m_clickStart = m_hoverStart;
 
 			if (m_mode == 2) {
-				m_clickDegrees = DirectX::XMConvertToDegrees(atan2(x - (vw / 2), y - (vh / 2)));
+				m_clickDegrees = glm::degrees(atan2(x - (vw / 2), y - (vh / 2)));
 
-				if (Settings::Instance().Preview.GizmoRotationUI)
-					m_degreeInfoUI = CreateDegreeInfo(0, 0, *m_wnd, 24);
+				if (Settings::Instance().Preview.GizmoRotationUI){
+					glDeleteVertexArrays(1, &m_uiVAO);
+					glDeleteBuffers(1, &m_uiVBO);
+					m_uiVAO = CreateDegreeInfo(m_uiVBO, 0, 0);
+				}
 			}
 
 			switch (m_mode) {
@@ -382,49 +435,46 @@ namespace ed
 			case 1: m_curValue = *m_scale; break;
 			case 2: m_curValue = *m_rota; break;
 			}
-			m_tValue = DirectX::XMFLOAT3(0, 0, 0);
+			m_tValue = glm::vec3(0, 0, 0);
 		}
 
 		return m_axisSelected;
 	}
-	void GizmoObject::Move(int dx, int dy)
+	void GizmoObject::Move(int x, int y, bool shift)
 	{
 		// dont handle the rotation controls here as we handle that in the HandleMouseMove method
 		if (m_axisSelected == -1 || m_mode == 2)
 			return;
 
 		// handle scaling and translating
-		DirectX::XMMATRIX proj = SystemVariableManager::Instance().GetProjectionMatrix();
-		DirectX::XMFLOAT4X4 proj4x4; DirectX::XMStoreFloat4x4(&proj4x4, proj);
+		float mouseX = x / (m_vw * 0.5f) - 1.0f;
+		float mouseY = y / (m_vh * 0.5f) - 1.0f;
 
-		float vx = (+2.0f * dx / m_vw - 1.0f) / proj4x4(0, 0);
-		float vy = (-2.0f * dy / m_vh + 1.0f) / proj4x4(1, 1);
+		glm::mat4 proj = SystemVariableManager::Instance().GetProjectionMatrix();
+		glm::mat4 view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
 
-		DirectX::XMVECTOR rayOrigin = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-		DirectX::XMVECTOR rayDir = DirectX::XMVectorSet(vx, vy, 1.0f, 0.0f);
+		glm::mat4 invVP = glm::inverse(proj * view);
+		glm::vec4 screenPos(mouseX, mouseY, 1.0f, 1.0f);
+		glm::vec4 worldPos = invVP * screenPos;
 
-		DirectX::XMMATRIX view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
-		DirectX::XMMATRIX invView = DirectX::XMMatrixInverse(&XMMatrixDeterminant(view), view);
-		
-		DirectX::XMVECTOR axisVec = DirectX::XMVectorSet(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
-		DirectX::XMVECTOR tAxisVec = DirectX::XMVector3Normalize(DirectX::XMVector3TransformNormal(axisVec, invView));
+		glm::vec3 rayDir = glm::normalize(glm::vec3(worldPos));
+		glm::vec4 rayOrigin = SystemVariableManager::Instance().GetCamera()->GetPosition();
 
-		rayOrigin = DirectX::XMVector3TransformCoord(rayOrigin, invView);
-		rayDir = DirectX::XMVector3TransformNormal(rayDir, invView);
+		glm::vec4 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
+		glm::vec3 tAxisVec = glm::normalize(glm::mat3(invVP) * glm::vec3(axisVec));
 
-		DirectX::XMVECTOR mouseVec = DirectX::XMVectorAdd(rayOrigin, DirectX::XMVectorScale(rayDir, m_clickDepth));
-		DirectX::XMVECTOR moveVec = DirectX::XMVectorSubtract(m_clickStart, mouseVec);
-		moveVec = DirectX::XMVector3TransformNormal(moveVec, invView);
+		glm::vec4 mouseVec = rayOrigin + m_clickDepth * glm::vec4(rayDir, 0.0f);
+		glm::vec3 moveVec = glm::vec3(m_clickStart - glm::vec3(mouseVec));
 
-		float dotval = DirectX::XMVectorGetX(DirectX::XMVector3Dot(DirectX::XMVector3Normalize(moveVec), tAxisVec));
-		float length = DirectX::XMVectorGetX(DirectX::XMVector3Length(moveVec));
+		float length = glm::length(moveVec);
+		if (length == 0)
+			return;
 
-		float scale = DirectX::XMVectorGetX(
-			DirectX::XMVector3Length(
-				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
-				))) / GIZMO_SCALE_FACTOR;
+		float dotval = glm::dot(glm::normalize(moveVec), glm::vec3(axisVec));
 
-		float moveDist = -length * dotval;
+		float scale = glm::length(*m_trans - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())) / GIZMO_SCALE_FACTOR;
+
+		float moveDist = -length * dotval * (1/scale) * (1.2f + shift * 4.0f);
 
 		if (m_mode == 0) {
 			if (m_axisSelected == 0) m_tValue.x += moveDist;
@@ -463,49 +513,19 @@ namespace ed
 	}
 	void GizmoObject::Render()
 	{
-		float scale = DirectX::XMVectorGetX(
-			DirectX::XMVector3Length(
-				DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(m_trans), SystemVariableManager::Instance().GetCamera()->GetPosition()
-				))) / GIZMO_SCALE_FACTOR;
+		float scale = glm::length(*m_trans - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())) / GIZMO_SCALE_FACTOR;
 
-		m_vs.Bind();
-		m_ps.Bind();
-		m_wnd->SetInputLayout(m_vlayout);
-		m_wnd->SetTopology(ml::Topology::TriangleList);
 
-		m_cb.BindVS(0);
+		glUseProgram(m_gizmoShader);
+		
+		glm::mat4 matWorld = glm::translate(glm::mat4(1), *m_trans)*
+							 glm::rotate(glm::mat4(1), -glm::half_pi<float>(), glm::vec3(1, 0, 0)) *
+							 glm::scale(glm::mat4(1), glm::vec3(scale));
 
-		DirectX::XMMATRIX matWorld = DirectX::XMMatrixScaling(scale, scale, scale) *
-			DirectX::XMMatrixRotationX(DirectX::XM_PIDIV2)*
-			DirectX::XMMatrixTranslation(m_trans->x, m_trans->y, m_trans->z);
-		DirectX::XMStoreFloat4x4(&m_cbData.matWorld, DirectX::XMMatrixTranspose(matWorld));
-		m_cb.Update(&m_cbData);
-
-		m_buffer.Bind();
-		m_wnd->Draw(m_verts.size());
-
-		// degree info UI
-		if (m_axisSelected != -1 && m_mode == 2 && Settings::Instance().Preview.GizmoRotationUI)
-		{
-			m_cbUI.BindVS(0);
-
-			m_ignoreDepth.Bind();
-			m_transparencyBlend.Bind();
-			m_rasterState.Bind();
-
-			m_wnd->SetTopology(ml::Topology::TriangleStrip);
-			m_wnd->SetInputLayout(m_uiInput);
-			m_uiPS.Bind();
-			m_uiVS.Bind();
-			m_degreeInfoUI.Draw();
-
-			DefaultState::Instance().Bind();
-		}
-	}
-	void GizmoObject::m_buildHandles()
-	{
-		size_t vertsSize = 0;
-
+		glUniformMatrix4fv(m_uMatWorldLoc, 1, GL_FALSE, glm::value_ptr(matWorld));
+		glUniformMatrix4fv(m_uMatVPLoc, 1, GL_FALSE, glm::value_ptr(m_proj * m_view));
+		
+		
 		std::vector<std::string> objects;
 		if (m_mode == 0) // translation
 			objects = { "HandleX", "ArrowX", "HandleY", "ArrowY", "HandleZ", "ArrowZ" };
@@ -514,30 +534,42 @@ namespace ed
 		else if (m_mode == 2) // Rotation
 			objects = { "RotateX", "RotateY", "RotateZ" };
 
-		int curi = 0;
-		for (int i = 0; i < objects.size(); i++) {
-			size_t vcnt = m_model.GetObjectVertexCount(objects[i]);
-			ml::OBJModel::Vertex* v = m_model.GetObjectVertices(objects[i]);
+		for (auto& obj : objects) {
+			int id = 0;
+			if (obj.find("Y") != std::string::npos)
+				id = 1;
+			else if (obj.find("Z") != std::string::npos)
+				id = 2;
+			glm::vec3 clr = (id == m_axisHovered) ? GIZMO_SELECTED_COLOR : m_colors[id];
 
-			vertsSize += vcnt;
-			m_verts.resize(vertsSize);
+			glUniform3fv(m_uColorLoc, 1, glm::value_ptr(clr));
 
-			for (int j = 0; j < vcnt; j++) {
-				m_verts[curi + j].Position = v[j].Position;
-				m_verts[curi + j].Normal = v[j].Normal;
-			}
-			curi += vcnt;
+			m_model.Draw(obj);
 		}
 
-		int bounds = vertsSize / 3;
-		for (int i = 0; i < vertsSize; i++)
-			m_verts[i].Color = m_colors[i / bounds];
 
-		if (m_vertsCreated)
-			m_buffer.Release();
 
-		m_buffer.Create(*m_wnd, m_verts.data(), m_verts.size());
-		
-		m_vertsCreated = true;
+		// degree info UI
+		if (m_axisSelected != -1 && m_mode == 2 && Settings::Instance().Preview.GizmoRotationUI)
+		{
+			glUseProgram(m_uiShader);
+			
+			glm::mat4 matProj = glm::ortho(0.0f, m_vw, m_vh, 0.0f, 0.1f, 1000.0f);
+			glm::mat4 uMatWVP = matProj * glm::translate(glm::mat4(1), glm::vec3(m_vw/2,m_vh/2,-1)) * glm::rotate(glm::mat4(1), glm::pi<float>(), glm::vec3(1, 0, 0));
+
+			glUniformMatrix4fv(m_uMatWVPLoc, 1, GL_FALSE, glm::value_ptr(uMatWVP));
+
+			glDisable(GL_DEPTH_CLAMP);
+			glDisable(GL_CULL_FACE);
+			glDisable(GL_DEPTH_TEST);
+			glEnable(GL_BLEND);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+			glBlendEquationSeparate(GL_ADD, GL_MAX);
+			
+			glBindVertexArray(m_uiVAO);
+			glDrawArrays(GL_TRIANGLES, 0, GUI_POINT_COUNT*3);
+
+			DefaultState::Bind();
+		}
 	}
 }
