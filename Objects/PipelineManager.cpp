@@ -180,7 +180,7 @@ namespace ed
 
 		m_project->ResetProjectDirectory();
 
-		if (openTemplate)
+		if (openTemplate && m_project->GetTemplate() != "?empty")
 			m_project->OpenTemplate();
 	}
 }

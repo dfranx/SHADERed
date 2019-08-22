@@ -23,7 +23,9 @@ namespace ed
 {
 	std::string toGenericPath(const std::string& p)
 	{
-		return ghc::filesystem::path(p).generic_string();
+		std::string ret = p;
+		std::replace(ret.begin(), ret.end(), '\\', '/');
+		return ret;
 	}
 
 	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, MessageStack* msgs, GUIManager* gui) :
@@ -37,6 +39,8 @@ namespace ed
 	{}
 	void ProjectParser::Open(const std::string & file)
 	{
+		setlocale(LC_ALL,"C");
+
 		Logger::Get().Log("Openning a project file " + file);
 
 		m_file = file;

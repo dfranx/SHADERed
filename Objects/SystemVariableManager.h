@@ -22,7 +22,7 @@ namespace ed
 
 		SystemVariableManager() : 
 			m_deltaTime(0.0f),
-			m_viewport(0,0), m_mouse(0,0),
+			m_viewport(0,1), m_mouse(0,0),
 			m_isPicked(false),
 			m_wasd(0,0,0,0) {
 			m_geometryTransform = glm::identity<glm::mat4>();

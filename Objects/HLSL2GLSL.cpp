@@ -154,6 +154,10 @@ namespace ed
 			shaderType = EShLangGeometry;
 
 		glslang::TShader shader(shaderType);
+		if (entry.size() > 0 && entry != "main") {
+			shader.setEntryPoint(entry.c_str());
+			shader.setSourceEntryPoint(entry.c_str());
+		}
 		shader.setStrings(&inputStr, 1);
 
 		// set up

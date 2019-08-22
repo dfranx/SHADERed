@@ -150,13 +150,6 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - logs from GUIManager and InterfaceManager
- - reimplement Entry (disable if IsGLSL)
- - convert paths in ProjectParser
- - test 2 bound textures in a glsl shader
- - test when there are no templates (should create fully empty project and not crash)
- - implement inotify on linux
-
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
  - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
  - program crashes on invalid input layout (+ probably other invalid inputs too)

@@ -29,6 +29,6 @@ float4 main(PSInput pin) : SV_TARGET
 	float diffuse = saturate(dot(normal,toLight));
 	
 	float4 ret = diffuse * diffuseTex.Sample(smp, pin.UV);
-	ret.a = 1;
+	ret.a = 0;
 	return ret;
 }

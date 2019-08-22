@@ -578,8 +578,14 @@ namespace ed
 				Logger::Get().Log("Caching a new shader pass " + std::string(items[i]->Name));
 
 				pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
+
 				m_items.insert(m_items.begin() + i, items[i]);
 				m_shaders.insert(m_shaders.begin() + i, 0);
+
+				if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
+					Logger::Get().Log("No shader paths are set", true);
+					continue;
+				}
 
 				/*
 					ITEM CACHING

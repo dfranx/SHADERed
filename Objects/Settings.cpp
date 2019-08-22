@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "Logger.h"
 #include <inih/INIReader.h>
 
 #include <algorithm>
@@ -61,9 +62,14 @@ namespace ed
 	}
 	void Settings::Load()
 	{
+		Logger::Get().Log("Reading settings");
+
 		INIReader ini("data/settings.ini");
 
-		if (ini.ParseError() != 0) return;
+		if (ini.ParseError() != 0) {
+			Logger::Get().Log("Failed to parse data/settings.ini", true);
+			return;
+		}
 
 		General.HLSLExtensions.clear();
 
@@ -121,6 +127,8 @@ namespace ed
 	}
 	void Settings::Save()
 	{
+		Logger::Get().Log("Saving settings");
+		
 		std::ofstream ini("data/settings.ini");
 
 		ini << "[general]" << std::endl;

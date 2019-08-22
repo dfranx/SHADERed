@@ -3,6 +3,7 @@
 #include "CodeEditorUI.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
+#include "../Objects/HLSL2GLSL.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -163,9 +164,12 @@ namespace ed
 					ImGui::Text("VS Entry:");
 					ImGui::NextColumn();
 
-					ImGui::PushItemWidth(-1);
-					ImGui::InputText("##pui_vsentry", item->VSEntry, 32);
-					ImGui::PopItemWidth();
+					if (HLSL2GLSL::IsHLSL(item->VSPath)) {
+						ImGui::PushItemWidth(-1);
+						ImGui::InputText("##pui_vsentry", item->VSEntry, 32);
+						ImGui::PopItemWidth();
+					} else
+						ImGui::Text("main");
 					ImGui::NextColumn();
 
 					ImGui::Separator();
@@ -199,9 +203,12 @@ namespace ed
 					ImGui::Text("PS Entry:");
 					ImGui::NextColumn();
 
-					ImGui::PushItemWidth(-1);
-					ImGui::InputText("##pui_psentry", item->PSEntry, 32);
-					ImGui::PopItemWidth();
+					if (HLSL2GLSL::IsHLSL(item->PSPath)) {
+						ImGui::PushItemWidth(-1);
+						ImGui::InputText("##pui_psentry", item->PSEntry, 32);
+						ImGui::PopItemWidth();
+					} else
+						ImGui::Text("main");
 					ImGui::NextColumn();
 
 					ImGui::Separator();
@@ -242,8 +249,13 @@ namespace ed
 					// gs entry
 					ImGui::Text("GS entry:");
 					ImGui::NextColumn();
-					ImGui::PushItemWidth(-1);
-					ImGui::InputText("##pui_gsentry", item->GSEntry, 32);
+					if (HLSL2GLSL::IsHLSL(item->GSPath)) {
+						ImGui::PushItemWidth(-1);
+						ImGui::InputText("##pui_gsentry", item->GSEntry, 32);
+						ImGui::PopItemWidth();
+					} else
+						ImGui::Text("main");
+					ImGui::NextColumn();
 
 					if (!item->GSUsed) ImGui::PopItemFlag();
 				}

@@ -10,8 +10,15 @@
 
 #include <iostream>
 #include <fstream>
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <windows.h>
+#elif defined(__linux__) || defined(__unix__)
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/inotify.h>
+
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 #endif
 
 #define STATUSBAR_HEIGHT 18 * Settings::Instance().DPIScale
@@ -440,12 +447,6 @@ namespace ed
 	}
 	void CodeEditorUI::m_trackWorker()
 	{
-	#if defined(__APPLE__)
-	// no includes on mac os
-	#elif defined(__linux__) || defined(__unix__)
-		// no includes on linux
-		// TODO: implement this using inotify
-	#elif defined(_WIN32)
 		std::string curProject = m_data->Parser.GetOpenedFile();
 
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
@@ -455,6 +456,186 @@ namespace ed
 		std::vector<std::string> allPasses;		// list of shader pass names that correspond to the file name
 		std::vector<std::string> paths;			// list of all paths that we should have "notifications turned on"
 
+	#if defined(__APPLE__)
+		// no implementation for macos (cant test)
+	#elif defined(__linux__) || defined(__unix__)
+	
+		int bufLength, bufIndex = 0;
+		int notifyEngine = inotify_init1(IN_NONBLOCK);
+		char buffer[EVENT_BUF_LEN];
+
+		std::vector<int> notifyIDs;
+		
+		if (notifyEngine < 0) {
+			// TODO: log from this thread!
+			return;
+		}
+		
+		// run this loop until we close the thread
+		while (m_trackerRunning)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+			// check if user added/changed shader paths
+			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
+			bool needsUpdate = false;
+			for (auto pass : nPasses) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+
+				bool foundVS = false, foundPS = false, foundGS = false;
+
+				std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+				std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+
+				for (auto& f : allFiles) {
+					if (f == vsPath) {
+						foundVS = true;
+						if (foundPS) break;
+					} else if (f == psPath) {
+						foundPS = true;
+						if (foundVS) break;
+					}
+				}
+
+				if (data->GSUsed) {
+					std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+					for (auto& f : allFiles)
+						if (f == gsPath) {
+							foundGS = true;
+							break;
+						}
+				}
+				else foundGS = true;
+
+				if (!foundGS || !foundVS || !foundPS) {
+					needsUpdate = true;
+					break;
+				}
+			}
+
+			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
+				bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
+				if (gsUsed[i] != used) {
+					gsUsed[i] = used;
+					needsUpdate = true;
+				}
+			}
+
+			// update our file collection if needed
+			if (nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
+				for (int i = 0; i < notifyIDs.size(); i++)
+					inotify_rm_watch(notifyEngine, notifyIDs[i]);
+
+				allFiles.clear();
+				allPasses.clear();
+				paths.clear();
+				notifyIDs.clear();
+				curProject = m_data->Parser.GetOpenedFile();
+				
+				// get all paths to all shaders
+				passes = nPasses;
+				gsUsed.resize(passes.size());
+				for (auto pass : passes) {
+					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+
+					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+
+					allFiles.push_back(vsPath);
+					paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
+					allPasses.push_back(pass->Name);
+
+					allFiles.push_back(psPath);
+					paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
+					allPasses.push_back(pass->Name);
+
+					if (data->GSUsed) {
+						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+
+						allFiles.push_back(gsPath);
+						paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
+					}
+				}
+
+				// delete directories that appear twice or that are subdirectories
+				{
+					std::vector<bool> toDelete(paths.size(), false);
+
+					for (int i = 0; i < paths.size(); i++) {
+						if (toDelete[i]) continue;
+
+						for (int j = 0; j < paths.size(); j++) {
+							if (j == i || toDelete[j]) continue;
+
+							if (paths[j].find(paths[i]) != std::string::npos)
+								toDelete[j] = true;
+						}
+					}
+
+					for (int i = 0; i < paths.size(); i++)
+						if (toDelete[i]) {
+							paths.erase(paths.begin() + i);
+							toDelete.erase(toDelete.begin() + i);
+							i--;
+						}
+				}
+
+				// create HANDLE to all tracked directories
+				notifyIDs.resize(paths.size());
+				for (int i = 0; i < paths.size(); i++)
+					notifyIDs[i] = inotify_add_watch(notifyEngine, paths[i].c_str(), IN_MODIFY);
+			}
+
+			if (paths.size() == 0) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				continue;
+			}
+
+			fd_set rfds;
+			int eCount = select(notifyEngine+1, &rfds, NULL, NULL, NULL);
+			
+			// check for changes
+			bufLength = read(notifyEngine, buffer, EVENT_BUF_LEN ); 
+			if (bufLength < 0) { /* TODO: error! */ }  
+
+			// read all events
+			while (bufIndex < bufLength) {
+				struct inotify_event *event = (struct inotify_event*)&buffer[bufIndex];
+				if (event->len) {
+					if (event->mask & IN_MODIFY) {
+						if (event->mask & IN_ISDIR) { /* it is a directory - do nothing */ }
+						else {
+							// check if its our shader and push it on the update queue if it is
+							char filename[MAX_PATH];
+							strcpy(filename, event->name);
+
+							int pathIndex = 0;
+							for (int i = 0; i < notifyIDs.size(); i++) {
+								if (event->wd == notifyIDs[i]) {
+									pathIndex = i;
+									break;
+								}
+							}
+
+							std::lock_guard<std::mutex> lock(m_trackFilesMutex);
+							std::string updatedFile(paths[pathIndex] + filename);
+
+							for (int i = 0; i < allFiles.size(); i++)
+								if (allFiles[i] == updatedFile)
+									m_trackedShaderPasses.push_back(allPasses[i]);
+						}
+					}
+				}
+				bufIndex += EVENT_SIZE + event->len;
+			}
+			bufIndex = 0;
+		}
+
+		for (int i = 0; i < notifyIDs.size(); i++)
+			inotify_rm_watch(notifyEngine, notifyIDs[i]);
+		close(notifyEngine);
+	#elif defined(_WIN32)
 		// variables for storing all the handles
 		std::vector<HANDLE> events(paths.size());
 		std::vector<HANDLE> hDirs(paths.size());

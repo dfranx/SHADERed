@@ -61,7 +61,9 @@ namespace ed
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
-
+		
+		Logger::Get().Log("Initializing Dear ImGUI");
+		
 		// set vsync on startup
 		SDL_GL_SetSwapInterval(Settings::Instance().General.VSync);
 
@@ -81,6 +83,8 @@ namespace ed
 		ImGui_ImplSDL2_InitForOpenGL(m_wnd, *m_gl);
 
 		ImGui::StyleColorsDark();
+
+		Logger::Get().Log("Creating various UI view objects");
 
 		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new PreviewUI(this, objects, "Preview"));
@@ -119,8 +123,10 @@ namespace ed
 	}
 	GUIManager::~GUIManager()
 	{
-		// turn off the tracker on startup
+		// turn off the tracker on exit
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
+
+		Logger::Get().Log("Shutting down UI");
 
 		for (auto view : m_views)
 			delete view;
@@ -168,6 +174,8 @@ namespace ed
 				strcmp(settings.General.Font, "null") != 0) ||
 			m_fontNeedsUpdate)
 		{
+			Logger::Get().Log("Updating fonts...");
+
 			std::pair<std::string, int> edFont = ((CodeEditorUI*)Get(ViewID::Code))->GetFont();
 
 			m_cachedFont = settings.General.Font;
@@ -1043,6 +1051,8 @@ namespace ed
 	{
 		m_selectedTemplate = "";
 
+		Logger::Get().Log("Loading template list");
+		
 		for (const auto & entry : ghc::filesystem::directory_iterator("templates")) {
 			std::string file = entry.path().filename().native();
 			m_templates.push_back(file);
@@ -1051,9 +1061,15 @@ namespace ed
 				m_selectedTemplate = file;
 		}
 
-		if (m_selectedTemplate.size() == 0)
-			if (m_templates.size() != 0)
+		if (m_selectedTemplate.size() == 0) {
+			if (m_templates.size() != 0) {
+				Logger::Get().Log("Default template set to " + m_selectedTemplate);
 				m_selectedTemplate = m_templates[0];
+			} else {
+				m_selectedTemplate = "?empty";
+				Logger::Get().Log("No templates found", true);
+			}
+		}
 
 		m_data->Parser.SetTemplate(m_selectedTemplate);
 	}

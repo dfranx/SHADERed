@@ -46,6 +46,7 @@ namespace ed
 		inline std::string GetProjectDirectory() { return m_projectPath; }
 
 		inline std::string GetOpenedFile() { return m_file; }
+		inline std::string GetTemplate() { return m_template; }
 
 	private:
 		void m_parseV1(pugi::xml_node& projectNode); // old
