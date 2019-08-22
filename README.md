@@ -187,12 +187,18 @@ To get started you can visit [Release](https://github.com/dfranx/SHADERed/releas
 latest stable binary release.
 
 ## Building
-First clone the project:
-`git clone https://github.com/dfranx/SHADERed.git`
+First clone the project & submodules:
+```
+git clone https://github.com/dfranx/SHADERed.git
+git submodule init
+git submodule update
+```
 
 ### Linux
 Install all the libraries that are needed:
-`sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev`
+```
+sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
+```
 
 Build:
 ```

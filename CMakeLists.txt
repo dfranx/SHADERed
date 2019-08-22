@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.1)
 project(SHADERed)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
-# our project info
-include_directories(inc)
+# source code
 set(SOURCES
 	main.cpp
 	UI/UIHelper.cpp
@@ -84,17 +83,12 @@ else()
 		libs/nativefiledialog/nfd_gtk.c
 	)
 	
-	# also link gtk on linux
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	PKG_CHECK_MODULES(GTK REQUIRED gtk+-3.0)
-	INCLUDE_DIRECTORIES(${GTK_INCLUDE_DIRS})
-	# Add other flags to the compiler
-	LINK_DIRECTORIES(${GTK_LIBRARY_DIRS})
-	ADD_DEFINITIONS(${GTK_CFLAGS})
+	# link gtk on linux
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(GTK REQUIRED gtk+-3.0)
+	link_directories(${GTK_LIBRARY_DIRS})
+	add_definitions(${GTK_CFLAGS})
 endif()
-
-# bruh
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "./cmake")
 
 # sdl2
 find_package(SDL2 REQUIRED)
@@ -111,33 +105,38 @@ find_package(ASSIMP REQUIRED)
 # sfml audio
 find_package(SFML COMPONENTS audio)
 
-# library includes
-include_directories(${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-include_directories(libs)
-
 # glslang
+set(ENABLE_GLSLANG_BINARIES OFF)
+set(ENABLE_SPVREMAPPER OFF)
 add_subdirectory(libs/glslang)
-include_directories(libs/glslang)
 
 # create executable
 add_executable(SHADERed ${SOURCES})
 
+# properties
+set_target_properties(SHADERed PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+)
+
+# include directories
+target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
+target_include_directories(SHADERed PRIVATE inc libs libs/glslang)
+if (NOT WIN32)
+	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
+endif()
+
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV)
-target_link_libraries(SHADERed sfml-audio)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV sfml-audio)
 
 if(WIN32)
 	# link specific win32 libraries
 	target_link_libraries(SHADERed Shell32.lib opengl32 SDL2::SDL2 SDL2::SDL2main)
-	# TODO: try removing shell32.lib opengl32.lib
 else()
 	# link linux libraries
-	# Link the target to the GTK+ libraries
-	TARGET_LINK_LIBRARIES(SHADERed ${SDL2_LIBRARIES} ${GTK_LIBRARIES})
+	target_link_libraries(SHADERed ${SDL2_LIBRARIES} ${GTK_LIBRARIES})
 endif()
 
 if (NOT MSVC)
-	set_target_properties(SHADERed PROPERTIES CXX_STANDARD 17)
 	target_compile_options(SHADERed PRIVATE -Wno-narrowing)
-#	target_compile_options(SHADERed PRIVATE -fno-use-cxa-atexit)
 endif()
