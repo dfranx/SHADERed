@@ -205,7 +205,10 @@ Run:
 ```
 
 ### Windows
-TODO
+1. Install SDL2, SFML, GLEW, GLM, ASSIMP through your favourite package manager (I recommend vcpkg)
+2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable
+3. Press Configure and then Generate if no errors occured
+4. Open the .sln and build the project!
 
 ## Tutorial
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
