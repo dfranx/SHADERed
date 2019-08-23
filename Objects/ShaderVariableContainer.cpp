@@ -2,6 +2,7 @@
 #include "FunctionVariableManager.h"
 #include "SystemVariableManager.h"
 #include <iostream>
+#include <regex>
 
 namespace ed
 {
@@ -41,8 +42,7 @@ namespace ed
 		const GLsizei bufSize = 64; // maximum name length
 		GLchar name[bufSize]; // variable name in GLSL
 		GLsizei length; // name length
-
-		GLint samplerLoc = 0;
+		GLuint samplerLoc = 0;
 
 		glGetProgramiv(pass, GL_ACTIVE_UNIFORMS, &count);
 		for (GLuint i = 0; i < count; i++)
@@ -52,13 +52,39 @@ namespace ed
 
 			glGetActiveUniform(pass, (GLuint)i, bufSize, &length, &size, &type, name);
 
-			if (type == GL_SAMPLER_2D) {
-				glUniform1i(glGetUniformLocation(pass, name), samplerLoc);
-				samplerLoc++;
-			}
+			if (type == GL_SAMPLER_2D)
+				glUniform1i(glGetUniformLocation(pass, name), samplerLoc++);
 			else
 				m_uLocs[name] = glGetUniformLocation(pass, name);
 		}
+	}
+	void ShaderVariableContainer::UpdateTextureList(const std::string& fragShader)
+	{
+		m_samplers.clear();
+
+		try {
+			std::regex re("sampler.+ .+;");
+			std::sregex_iterator next(fragShader.begin(), fragShader.end(), re);
+			std::sregex_iterator end;
+			while (next != end) {
+				std::smatch match = *next;
+				std::string name = match.str();
+				name = name.substr(name.find_first_of(' ') + 1);
+				name = name.substr(0, name.size() - 1);
+				m_samplers.push_back(name);
+				next++;
+			}
+		}
+		catch (std::regex_error& e) {
+			// Syntax error in the regular expression
+		}
+	}
+	void ShaderVariableContainer::UpdateTexture(GLuint pass, GLuint unit)
+	{
+		if (unit >= m_samplers.size())
+			return;
+
+		glUniform1i(glGetUniformLocation(pass, m_samplers[unit].c_str()), unit);
 	}
 	void ShaderVariableContainer::Bind()
 	{

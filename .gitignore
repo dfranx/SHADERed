@@ -1,7 +1,6 @@
 Debug*
 Release*
 *.vcxproj.*
-MoonLight.dll
 .vs
 .vscode
 vNext.txt
@@ -21,5 +20,7 @@ bin/*.dll
 bin/*.ilk
 bin/*.pdb
 VSProject
+vsproject32
+test
 CMakeCache.txt
 Makefile

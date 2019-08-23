@@ -149,12 +149,13 @@ namespace ed
 			// bind shader resource views
 			for (int j = 0; j < srvs.size(); j++) {
 				glActiveTexture(GL_TEXTURE0 + j);
-				if (m_objects->IsCubeMap(srvs[j])) {
+				if (m_objects->IsCubeMap(srvs[j]))
 					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-				}
-				else {
+				else
 					glBindTexture(GL_TEXTURE_2D, srvs[j]);
-				}
+
+				if (!HLSL2GLSL::IsHLSL(data->PSPath))
+					data->Variables.UpdateTexture(m_shaders[i], j);
 			}
 
 			// clear messages
@@ -316,6 +317,7 @@ namespace ed
 					psEntry = "main";
 				}
 
+				shader->Variables.UpdateTextureList(psContent);
 				GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
 				bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 
@@ -624,7 +626,8 @@ namespace ed
 					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->GSUsed, m_msgs);
 					psEntry = "main";
 				}
-				
+
+				data->Variables.UpdateTextureList(psContent);
 				ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
 				bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 

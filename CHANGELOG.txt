@@ -1,3 +1,7 @@
+[v1.1.1]
++ fix a bug when multiple textures are bound but some are not used
++ fix GLSL shaders (specify location)
+
 [v1.1.0]
 + port from DirectX to OpenGL & SDL (works on linux now)
 + add CMakeLists.txt

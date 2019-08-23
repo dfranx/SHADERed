@@ -23,11 +23,14 @@ namespace ed
 
 		bool ContainsVariable(const char* name);
 		void UpdateUniformInfo(GLuint pass);
+		void UpdateTexture(GLuint pass, GLuint unit);
+		void UpdateTextureList(const std::string& fragShader);
 		void Bind();
 		inline std::vector<ShaderVariable*>& GetVariables() { return m_vars; }
 
 	private:
 		std::vector<ShaderVariable*> m_vars;
 		std::map<std::string, GLint> m_uLocs;
+		std::vector<std::string> m_samplers;
 	};
 }

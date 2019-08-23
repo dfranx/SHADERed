@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(SHADERed)
 
+set(CMAKE_MODULE_PATH cmake)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # source code
@@ -76,6 +77,7 @@ if(WIN32)
 	set(SOURCES
 		"${SOURCES}"
 		libs/nativefiledialog/nfd_win.cpp
+		resource.rc
 	)
 else()
 	set(SOURCES
@@ -140,6 +142,7 @@ target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MI
 if(WIN32)
 	# link specific win32 libraries
 	target_link_libraries(SHADERed GLEW::GLEW SDL2::SDL2 SDL2::SDL2main)
+
 else()
 	# link linux libraries
 	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES})

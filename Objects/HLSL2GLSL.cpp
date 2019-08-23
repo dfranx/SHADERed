@@ -308,10 +308,7 @@ namespace ed
 	}
 	bool HLSL2GLSL::IsHLSL(const std::string& file)
 	{
-		size_t extLoc = file.find_last_of('.');
-		std::string ext = file.substr(extLoc+1);
-
 		std::vector<std::string>& exts = Settings::Instance().General.HLSLExtensions;
-		return std::count(exts.begin(), exts.end(), ext) > 0;
+		return std::count(exts.begin(), exts.end(), file.substr(file.find_last_of('.') + 1)) > 0;
 	}
 }
