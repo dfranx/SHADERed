@@ -597,7 +597,7 @@ namespace ed
 						m_data->Renderer.FlushCache();
 						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						m_data->Pipeline.New(false);
@@ -609,7 +609,7 @@ namespace ed
 					m_data->Renderer.FlushCache();
 					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-					((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+					((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 					m_data->Pipeline.New();
@@ -625,7 +625,7 @@ namespace ed
 						m_data->Renderer.FlushCache();
 						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-						((PreviewUI*)Get(ViewID::Output))->Pick(nullptr);
+						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						m_data->Parser.Open(oldFile);

@@ -67,7 +67,7 @@ namespace ed
 			}
 		}
 
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 
 		// cache elements
 		m_cache();

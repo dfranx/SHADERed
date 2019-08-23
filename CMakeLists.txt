@@ -90,6 +90,11 @@ else()
 	add_definitions(${GTK_CFLAGS})
 endif()
 
+# cmake toolchain 
+if(CMAKE_TOOLCHAIN_FILE)
+    include(${CMAKE_TOOLCHAIN_FILE})
+endif(CMAKE_TOOLCHAIN_FILE)
+
 # sdl2
 find_package(SDL2 REQUIRED)
 
@@ -98,6 +103,9 @@ find_package(OpenGL REQUIRED)
 
 # glew
 find_package(GLEW REQUIRED)
+
+# glm
+find_package(GLM REQUIRED)
 
 # ASSIMP
 find_package(ASSIMP REQUIRED)
@@ -120,21 +128,21 @@ set_target_properties(SHADERed PROPERTIES
 )
 
 # include directories
-target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
+target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
 target_include_directories(SHADERed PRIVATE inc libs libs/glslang)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV sfml-audio)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV sfml-audio)
 
 if(WIN32)
 	# link specific win32 libraries
-	target_link_libraries(SHADERed Shell32.lib opengl32 SDL2::SDL2 SDL2::SDL2main)
+	target_link_libraries(SHADERed GLEW::GLEW SDL2::SDL2 SDL2::SDL2main)
 else()
 	# link linux libraries
-	target_link_libraries(SHADERed ${SDL2_LIBRARIES} ${GTK_LIBRARIES})
+	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES})
 endif()
 
 if (NOT MSVC)

@@ -2,8 +2,8 @@
 <project version="2">
 	<pipeline>
 		<pass name="Simple">
-			<shader type="vs" path="shaders\SimpleVS.vert" entry="main" />
-			<shader type="ps" path="shaders\SimplePS.frag" entry="main" />
+			<shader type="vs" path="shaders/SimpleVS.glsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.glsl" entry="main" />
 			<rendertexture />
 			<variables>
 				<variable type="float4x4" name="matVP" system="Orthographic" />
@@ -26,15 +26,13 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="audio" path="../../../../../beat.wav">
-			<bind slot="0" name="Simple" />
-		</object>
+		<object type="audio" path="..\..\Common\beat.ogg" />
 	</objects>
 	<settings>
 		<entry type="camera" fp="false">
 			<distance>15</distance>
 			<pitch>89</pitch>
-			<yaw>37</yaw>
+			<yaw>323</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
