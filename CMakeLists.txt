@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(SHADERed)
 
-set(CMAKE_MODULE_PATH cmake)
+set(CMAKE_MODULE_PATH "./cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # source code

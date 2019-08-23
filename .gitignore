@@ -12,7 +12,8 @@ libs/**/*.a
 libs/**/*.cmake
 libs/**/bin
 libs/**/*.tcl
-*.cmake
+cmake_install.cmake
+CMakeCache.txt
 bin/SHADERed
 bin/SHADERed.exe
 bin/log.txt
