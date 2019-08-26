@@ -126,8 +126,13 @@ int main(int argc, char* argv[])
 		ghc::filesystem::remove("./data/workspace.dat", errCode);
 	}
 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
+
 	// open window
-	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	SDL_SetWindowMinimumSize(wnd, 200, 200);
 
 	// set window icon:
@@ -138,8 +143,7 @@ int main(int argc, char* argv[])
 	if (fullscreen)
 		SDL_SetWindowFullscreen(wnd, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-	// create GL context
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
+	// get GL context
 	SDL_GLContext glContext = SDL_GL_CreateContext(wnd);
 	SDL_GL_MakeCurrent(wnd, glContext);
 	glEnable(GL_DEPTH_TEST);

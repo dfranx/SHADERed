@@ -87,8 +87,8 @@ namespace ed
 
 		Logger::Get().Log("Creating various UI view objects");
 
-		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new PreviewUI(this, objects, "Preview"));
+		m_views.push_back(new PinnedUI(this, objects, "Pinned"));
 		m_views.push_back(new CodeEditorUI(this, objects, "Code"));
 		m_views.push_back(new MessageOutputUI(this, objects, "Output"));
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));

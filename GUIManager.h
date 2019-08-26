@@ -17,8 +17,8 @@ namespace ed
 
 	enum class ViewID
 	{
-		Pinned,
 		Preview,
+		Pinned,
 		Code,
 		Output,
 		Objects,
