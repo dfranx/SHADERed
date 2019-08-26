@@ -27,6 +27,7 @@ namespace ed
 	enum class FunctionShaderVariable
 	{
 		None,					// using user input instead of built-in functions
+		Pointer,
 		MatrixIdentity,
 		MatrixLookAtLH,
 		MatrixLookToLH,

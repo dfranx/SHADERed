@@ -1,6 +1,6 @@
 [Window][DockSpaceWnd]
 Pos=0,0
-Size=1920,1017
+Size=1850,1016
 Collapsed=0
 
 [Window][Debug##Default]
@@ -9,38 +9,38 @@ Size=400,1637
 Collapsed=0
 
 [Window][Pinned]
-Pos=0,470
-Size=267,547
+Pos=0,469
+Size=257,546
 Collapsed=0
 DockId=0x00000004,1
 
 [Window][Preview]
-Pos=269,22
-Size=1651,844
+Pos=993,22
+Size=857,842
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Output]
-Pos=269,868
-Size=1651,149
+Pos=993,866
+Size=857,149
 Collapsed=0
 DockId=0x00000006,0
 
 [Window][Objects]
 Pos=0,22
-Size=267,446
+Size=257,445
 Collapsed=0
 DockId=0x00000003,1
 
 [Window][Pipeline]
 Pos=0,22
-Size=267,446
+Size=257,445
 Collapsed=0
 DockId=0x00000003,0
 
 [Window][Properties]
-Pos=0,470
-Size=267,547
+Pos=0,469
+Size=257,546
 Collapsed=0
 DockId=0x00000004,0
 
@@ -80,10 +80,10 @@ Collapsed=0
 DockId=0x0000000A,1
 
 [Docking][Data]
-DockSpace       ID=0x160B189F Pos=0,22 Size=1920,995 Split=X
+DockSpace       ID=0x160B189F Pos=0,22 Size=1850,993 Split=X
   DockNode      ID=0x00000001 Parent=0x160B189F SizeRef=257,997 Split=Y SelectedTab=0xC89E3217
     DockNode    ID=0x00000003 Parent=0x00000001 SizeRef=239,446 SelectedTab=0x848ABB8F
-    DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=239,547 SelectedTab=0xC89E3217
+    DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=239,547 SelectedTab=0xE28BE0D1
   DockNode      ID=0x00000002 Parent=0x160B189F SizeRef=1591,997 Split=X
     DockNode    ID=0x00000007 Parent=0x00000002 SizeRef=732,915 Split=Y SelectedTab=0xF34EBBA5
       DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=399,561 SelectedTab=0xF7C3C717

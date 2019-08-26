@@ -559,9 +559,13 @@ namespace ed
 		for (pugi::xml_node row : node.children("row")) {
 			int colID = 0;
 			for (pugi::xml_node value : row.children("value")) {
-				if (var->Function != FunctionShaderVariable::None)
-					*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
-				else {
+				if (var->Function != FunctionShaderVariable::None) {
+					if (var->Function == FunctionShaderVariable::Pointer) {
+						strcpy(var->Arguments, value.text().as_string());
+					} else {
+						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
+					}
+				} else {
 					if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
 						var->SetBooleanValue(value.text().as_bool(), colID++);
 					else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
@@ -595,9 +599,13 @@ namespace ed
 			}
 		}
 		else {
-			// save arguments
-			for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
-				valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
+			if (var->Function == FunctionShaderVariable::Pointer) {
+				valueRowNode.append_child("value").text().set(var->Arguments);
+			} else {
+				// save arguments
+				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
+					valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
+				}
 			}
 		}
 	}

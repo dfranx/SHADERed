@@ -5,6 +5,9 @@
 
 namespace ed
 {
+	int FunctionVariableManager::CurrentIndex = 0;
+	std::vector<ed::ShaderVariable*> FunctionVariableManager::VariableList = std::vector<ed::ShaderVariable*>();
+
 	size_t FunctionVariableManager::GetArgumentCount(ed::FunctionShaderVariable func)
 	{
 		switch (func) {
@@ -26,6 +29,7 @@ namespace ed
 			case FunctionShaderVariable::MatrixTranslation: return 3;
 			case FunctionShaderVariable::ScalarCos: return 1;
 			case FunctionShaderVariable::ScalarSin: return 1;
+			case FunctionShaderVariable::Pointer: return 1;
 			case FunctionShaderVariable::VectorNormalize: return 4;
 		}
 		return 0;
@@ -34,6 +38,9 @@ namespace ed
 	{
 		size_t args = GetArgumentCount(func) * sizeof(float);
 		var->Function = func;
+
+		if (func == ed::FunctionShaderVariable::Pointer)
+			args = sizeof(char) * VARIABLE_NAME_LENGTH;
 
 		if (var->Arguments != nullptr) {
 			free(var->Arguments);
@@ -79,6 +86,9 @@ namespace ed
 				case FunctionShaderVariable::VectorNormalize:
 					*LoadFloat(var->Arguments, 0) = 1;
 					break;
+				case FunctionShaderVariable::Pointer:
+					memset(var->Arguments, 0, VARIABLE_NAME_LENGTH*sizeof(char));
+					break;
 			}
 		}
 		else var->Arguments = (char*)calloc(args, 1);
@@ -91,14 +101,37 @@ namespace ed
 			return ret == ShaderVariable::ValueType::Float1;
 		else if (func == FunctionShaderVariable::VectorNormalize)
 			return ret > ShaderVariable::ValueType::Float1 && ret <= ShaderVariable::ValueType::Float4;
+		else if (func == FunctionShaderVariable::Pointer)
+			return true;
 		return false;
+	}
+	void FunctionVariableManager::AddToList(ed::ShaderVariable* var)
+	{
+		int& curIndex = FunctionVariableManager::CurrentIndex;
+		std::vector<ed::ShaderVariable*>& varList = FunctionVariableManager::VariableList;
+		for (int i = 0; i < curIndex; i++)
+			if(varList[i] == var)
+				return; // already exists
+		if (curIndex % 20 == 0)
+			varList.resize(curIndex+20);
+		varList[curIndex] = var;
+		curIndex++;
 	}
 	void FunctionVariableManager::Update(ed::ShaderVariable* var)
 	{
+
 		if (var->Function == FunctionShaderVariable::None)
 			return;
 
-		if (var->Function >= FunctionShaderVariable::MatrixIdentity && var->Function <= FunctionShaderVariable::MatrixTranslation) {
+		if (var->Function == FunctionShaderVariable::Pointer) {
+			std::vector<ed::ShaderVariable*>& varList = FunctionVariableManager::VariableList;
+			for (int i = 0; i < varList.size(); i++)
+				if (strcmp(varList[i]->Name, var->Arguments) == 0) {
+					memcpy(var->Data, varList[i]->Data, ShaderVariable::GetSize(var->GetType()));
+					break;
+				}
+		}
+		else if (var->Function >= FunctionShaderVariable::MatrixIdentity && var->Function <= FunctionShaderVariable::MatrixTranslation) {
 			glm::mat4 matrix;
 
 			switch (var->Function) {
@@ -260,6 +293,11 @@ namespace ed
 			}
 			memcpy(var->Data, &vector, ShaderVariable::GetSize(var->GetType()));
 		}
+	}
+	void FunctionVariableManager::ClearVariableList()
+	{
+		FunctionVariableManager::VariableList.clear();
+		FunctionVariableManager::CurrentIndex = 0;
 	}
 	float * FunctionVariableManager::LoadFloat(char* data, int index)
 	{

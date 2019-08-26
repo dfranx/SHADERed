@@ -89,6 +89,8 @@ namespace ed
 	void ShaderVariableContainer::Bind()
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
+			FunctionVariableManager::AddToList(m_vars[i]);
+			
 			if (m_uLocs.count(m_vars[i]->Name) == 0)
 				continue;
 			

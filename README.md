@@ -133,8 +133,6 @@ Also feel free to contact me and suggest some missing feature you would like me 
 There are also some features that I am looking to implement:
  - multiple cameras
    - this feature would allow you to render same scene from multiple angles
- - shader variable pointers
-   - currently if you want to have same value in two shader passes you will have to enter the values manually
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
@@ -152,7 +150,6 @@ There are also some features that I am looking to implement:
 Except those large features, I am also planning to do some small QoL changes:
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
  - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
- - program crashes on invalid input layout (+ probably other invalid inputs too)
  - cubemap preview
  - click on cubemap, audio, 3d model, texture and render texture preview should open a preview window
  - recompile the shader after we change shader path in a shader pass

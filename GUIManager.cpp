@@ -18,6 +18,7 @@
 #include "Objects/Settings.h"
 #include "Objects/ThemeContainer.h"
 #include "Objects/KeyboardShortcuts.h"
+#include "Objects/FunctionVariableManager.h"
 
 #include <fstream>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -166,6 +167,7 @@ namespace ed
 
 		// update audio textures
 		m_data->Objects.Update(delta);
+		FunctionVariableManager::ClearVariableList();
 
 		// update editor & workspace font
 		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||

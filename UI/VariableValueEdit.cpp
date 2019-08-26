@@ -131,6 +131,32 @@ namespace ed
 
 		ImGui::Indent(15);
 		switch (m_var->Function) {
+			case FunctionShaderVariable::Pointer:
+			{
+				ImGui::Text("Variable:");
+				ImGui::NextColumn();
+
+				auto& varList = FunctionVariableManager::VariableList;
+				if (ImGui::BeginCombo(("##ptrVars" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
+					for (int n = 0; n < varList.size(); n++) {
+						if (m_var == varList[n] || varList[n] == nullptr)
+							break;
+
+						if (m_var->GetType() != varList[n]->GetType())
+							continue;
+
+
+						bool is_selected = strcmp(m_var->Arguments, varList[n]->Name) == 0;
+						if (ImGui::Selectable(varList[n]->Name, is_selected))
+							strcpy(m_var->Arguments, varList[n]->Name);
+						if (is_selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+				ImGui::NextColumn();
+			} break;
+
 			case FunctionShaderVariable::MatrixLookAtLH:
 			{
 				ImGui::Text("Eye position:");
