@@ -204,6 +204,15 @@ namespace ed
 			// variables -> now global in pass element [V2]
 			m_exportShaderVariables(passNode, passData->Variables.GetVariables());
 
+			// macros
+			pugi::xml_node macrosNode = passNode.append_child("macros");		
+			for (auto& macro : passData->Macros) {
+				pugi::xml_node macroNode = macrosNode.append_child("define");
+				macroNode.append_attribute("name").set_value(macro.Name);
+				macroNode.append_attribute("active").set_value(macro.Active);
+				macroNode.text().set(macro.Value);
+			}
+
 			// pass items
 			pugi::xml_node itemsNode = passNode.append_child("items");
 			for (PipelineItem* item : passData->Items) {
@@ -1364,6 +1373,20 @@ namespace ed
 					m_parseVariableValue(variableNode, var);
 
 				data->Variables.Add(var);
+			}
+
+			// macros
+			pugi::xml_node macrosNode = passNode.append_child("macros");		
+			for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
+				ShaderMacro newMacro;
+				if (!macroNode.attribute("name").empty())
+					strcpy(newMacro.Name, macroNode.attribute("name").as_string());
+				
+				newMacro.Active = true;
+				if (!macroNode.attribute("active").empty())
+					newMacro.Active = macroNode.attribute("active").as_bool();
+				strcpy(newMacro.Value, macroNode.text().get());
+				data->Macros.push_back(newMacro);
 			}
 
 			// parse items

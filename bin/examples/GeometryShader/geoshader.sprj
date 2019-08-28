@@ -2,21 +2,19 @@
 <project version="2">
 	<pipeline>
 		<pass name="Light">
-			<shader type="vs" path="shaders\LightVS.glsl" entry="main" />
-			<shader type="ps" path="shaders\LightPS.glsl" entry="main" />
-			<shader used="true" type="gs" path="shaders\LightGS.glsl" entry="main" />
+			<shader type="vs" path="shaders/LightVS.glsl" entry="main" />
+			<shader type="ps" path="shaders/LightPS.glsl" entry="main" />
+			<shader used="true" type="gs" path="shaders/LightGS.glsl" entry="main" />
 			<rendertexture />
 			<variables>
 				<variable type="float4x4" name="projection" system="Projection" />
 				<variable type="float4x4" name="view" system="View" />
 				<variable type="float4x4" name="model" system="GeometryTransform" />
 				<variable type="float" name="fTime" system="Time" />
-				<variable type="float" name="scale">
-					<row>
-						<value>0.310000002</value>
-					</row>
-				</variable>
 			</variables>
+			<macros>
+				<define name="MAGNITUDE" active="true">0.2</define>
+			</macros>
 			<items>
 				<item name="Sphere" type="geometry">
 					<type>Sphere</type>
@@ -31,11 +29,14 @@
 	</pipeline>
 	<objects />
 	<settings>
-		<entry type="pinned" name="scale" owner="Light" />
+		<entry type="property" name="Light" />
+		<entry type="file" name="Light" shader="vs" />
+		<entry type="file" name="Light" shader="ps" />
+		<entry type="file" name="Light" shader="gs" />
 		<entry type="camera" fp="false">
-			<distance>6</distance>
-			<pitch>31</pitch>
-			<yaw>22</yaw>
+			<distance>9</distance>
+			<pitch>41</pitch>
+			<yaw>193</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

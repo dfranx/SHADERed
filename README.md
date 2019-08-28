@@ -1,10 +1,23 @@
 # SHADERed
 
 SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
-open source and frequently updated with new features. It has many **features** that the competition
+open source, cross-platform (runs on Windows, Linux and soon macOS - even HLSL shaders work on every OS too) and frequently updated with new features. It has many **features** that the competition
 is lacking.
 
 <img src="./Screenshots/IMG2.png"/>
+
+## Sponsors
+No one :(
+
+Contact: **dfranx00 at gmail dot com**
+
+## Support
+Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
+
+You can support the development of this project via **PayPal**: [PayPal link](https://paypal.me/dfranx) 
+
+This is my e-mail address for businesses or if you just want to contact me:
+**dfranx00 at gmail dot com**
 
 ## Features
 
@@ -62,20 +75,18 @@ to one shader pass. It helps you create things such as G-Buffer more easily and 
 </p>
 
 ### Shader input variables
-You can create your own variables and edit their values. Those variables will be sent to a shader using a
-constant buffer. There are also a lot of built-in 'system' shader variables (elapsed time, window size, various
+You can create your own variables and edit their values in real time. SHADERed also comes with lots of built-in 'system' shader variables (elapsed time, window size, various
 view matrices, etc...).
 <img src="./Screenshots/varmanager.jpg">
 
 You can also pin those variables. All pinned variables (from different shader passes) will be visible on
-a single window. You can edit them there easily and see your results in real time.
+a single window and easily accessible. You can edit them there quickly and see your results instantly.
 <p align="center">
     <img width="230" src="./Screenshots/pinned.jpg">
 </p>
 
 You can change a shader variable value only for a specific 3D model/geometry item. No programming is required.
-Imagine passing a variable objColor with value (1,1,1,1) to a shader in a constant buffer. You can change that
-variable's value before rendering a specific item:
+You can change multiple variables for each item in the scene before rendering it.
 <p align="center">
     <img width="400" src="./Screenshots/itemvarvalue.gif">
 </p>
@@ -119,15 +130,8 @@ directory in /templates directory and name your project file `template.sprj`. Yo
 already running to see the template under `File -> New`. A menu item for creating a template will
 have the same text as the parent directory of the template.
 
-## Support
-Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
-
-You can support the development of this project via **PayPal**: [PayPal link](https://paypal.me/dfranx) 
-
-This is my e-mail address for businesses or if you just want to contact me:
-**dfranx00 at gmail dot com**
-
-Also feel free to contact me and suggest some missing feature you would like me to implement.
+### And many more
+Variable pointers, shader macros, etc...
 
 ## TODO
 There are also some features that I am looking to implement:
@@ -139,7 +143,6 @@ There are also some features that I am looking to implement:
  - "Export as DirectX/OpenGL application" option (.cpp file)
 -  compute and tesselation shaders
  - render your shader to a video file
- - support #include and macros
  - buffers read from file or built using in-app buffer editor
  - magnifier tool & pixel inspector
  - text geometry
@@ -163,6 +166,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - toolbar (a bar with all the important tools (icons))
  - shift+drag with right click to move ArcBallCamera focus point
  - add an option to disable certain shader pass
+ - error marker should "stick" on the line when new lines are added
  - find and replace in code editor
  - right click in code editor
  - improve the overall code (enum for shader type, etc...)
@@ -173,7 +177,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - dragging items from one pass to another, duplicating them, etc...
 
 ## Binaries
-To get started you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
+To download already precompiled binaries, you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
 latest stable binary release.
 
 ## Building

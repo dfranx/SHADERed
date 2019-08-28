@@ -73,6 +73,14 @@ namespace ed
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
 
+		/* 'window' FBO */
+		glm::ivec2 m_lastSize;
+		GLuint m_rtColor, m_rtDepth;
+		bool m_fbosNeedUpdate;
+
+		// apply macros to GLSL source code
+		void m_applyMacros(std::string& source, pipe::ShaderPass* pass);
+		
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;
@@ -83,10 +91,7 @@ namespace ed
 		bool m_wasMultiPick;
 		void m_pickItem(PipelineItem* item, bool multiPick);
 
-		glm::ivec2 m_lastSize;
-		GLuint m_rtColor, m_rtDepth;
-		bool m_fbosNeedUpdate;
-		
+		// cache
 		std::vector<PipelineItem*> m_items;
 		std::vector<GLuint> m_shaders;
 		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;

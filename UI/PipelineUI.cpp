@@ -83,11 +83,24 @@ namespace ed
 			ImGui::OpenPopup("Change Variables##pui_render_variables");
 			m_isChangeVarsOpened = false;
 		}
+		if (m_isMacroManagerOpened) {
+			ImGui::OpenPopup("Shader Macros##pui_shader_macros");
+			m_isMacroManagerOpened = false;
+		}
 
 		// Shader Variable manager
 		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
 			m_renderVariableManagerUI();
+
+			if (ImGui::Button("Ok")) m_closePopup();
+			ImGui::EndPopup();
+		}
+
+		// Shader Macro Manager
+		ImGui::SetNextWindowSize(ImVec2(530 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Shader Macros##pui_shader_macros")) {
+			m_renderMacroManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
 			ImGui::EndPopup();
@@ -224,6 +237,11 @@ namespace ed
 
 				if (ImGui::MenuItem("Variables")) {
 					m_isVarManagerOpened = true;
+					m_modalItem = items[index];
+				}
+
+				if (ImGui::MenuItem("Macros")) {
+					m_isMacroManagerOpened = true;
 					m_modalItem = items[index];
 				}
 			}
@@ -597,6 +615,122 @@ namespace ed
 			}
 		}
 		ImGui::NextColumn();
+
+		ImGui::EndChild();
+		ImGui::Columns(1);
+	}
+	
+	void PipelineUI::m_renderMacroManagerUI()
+	{
+		static ShaderMacro addMacro = { true, "\0", "\0" };
+		static bool scrollToBottom = false;
+		ed::pipe::ShaderPass* itemData = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data);
+
+		ImGui::TextWrapped("Add or remove shader macros.");
+
+		ImGui::BeginChild("##pui_macro_table", ImVec2(0, -25));
+		ImGui::Columns(4);
+
+		ImGui::Text("Active"); ImGui::NextColumn();
+		ImGui::Text("Name"); ImGui::NextColumn();
+		ImGui::Text("Value"); ImGui::NextColumn();
+		ImGui::Text("Controls"); ImGui::NextColumn();
+
+		ImGui::Separator();
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+		int id = 0;
+		std::vector<ShaderMacro>& els = itemData->Macros;
+
+		/* EXISTING VARIABLES */
+		for (auto& el : els) {
+			/* ACTIVE */
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::Checkbox(("##pui_mcr_act" + std::to_string(id)).c_str(), &el.Active);
+			ImGui::NextColumn();
+
+			/* NAME */
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::InputText(("##mcrName" + std::to_string(id)).c_str(), el.Name, 32);
+			ImGui::NextColumn();
+
+			/* VALUE */
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::InputText(("##mcrVal" + std::to_string(id)).c_str(), el.Value, 512);
+			ImGui::NextColumn();
+
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+			/* UP BUTTON */
+			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
+				ed::ShaderMacro temp = els[id - 1];
+				els[id - 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine();
+			/* DOWN BUTTON */
+			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+				ed::ShaderMacro temp = els[id + 1];
+				els[id + 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine();
+			/* DELETE BUTTON */
+			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
+				els.erase(els.begin() + id);
+				id--;
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::NextColumn();
+
+			id++;
+		}
+
+		ImGui::PopStyleColor();
+
+		// widgets for adding a macro
+		/* ACTIVE */
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::Checkbox(("##pui_mcrActAdd" + std::to_string(id)).c_str(), &addMacro.Active);
+		ImGui::NextColumn();
+
+		/* NAME */
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::InputText(("##mcrNameAdd" + std::to_string(id)).c_str(), addMacro.Name, 32);
+		ImGui::NextColumn();
+
+		/* VALUE */
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::InputText(("##mcrValAdd" + std::to_string(id)).c_str(), addMacro.Value, 512);
+		ImGui::NextColumn();
+		
+		if (scrollToBottom) {
+			ImGui::SetScrollHere();
+			scrollToBottom = false;
+		}
+
+		/* ADD BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button("ADD")) {
+			// cant have two macros with same name
+			bool exists = false;
+			for (auto& el : els)
+				if (strcmp(el.Name, addMacro.Name) == 0)
+					exists = true;
+
+			// add if it doesnt exist
+			if (!exists) {
+				els.push_back(addMacro);
+				scrollToBottom = true;
+			}
+		}
+		ImGui::NextColumn();
+		ImGui::PopStyleColor();
+		//ImGui::PopItemWidth();
 
 		ImGui::EndChild();
 		ImGui::Columns(1);

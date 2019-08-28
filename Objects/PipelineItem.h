@@ -1,6 +1,7 @@
 #pragma once
 #include "../Engine/Model.h"
 #include "ShaderVariableContainer.h"
+#include "ShaderMacro.h"
 #include "../Options.h"
 
 #include <glm/glm.hpp>
@@ -46,6 +47,7 @@ namespace ed
 				FBO = 0;
 				RTCount = 0;
 				GSUsed = false;
+				Macros.clear();
 				memset(VSPath, 0, sizeof(char) * MAX_PATH);
 				memset(PSPath, 0, sizeof(char) * MAX_PATH);
 				memset(GSPath, 0, sizeof(char) * MAX_PATH);
@@ -70,6 +72,7 @@ namespace ed
 			bool GSUsed;
 
 			ShaderVariableContainer Variables;
+			std::vector<ShaderMacro> Macros;
 
 			std::vector<PipelineItem*> Items;
 		};

@@ -13,6 +13,7 @@ namespace ed
 			m_isCreateViewOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
 			m_createUI(ui, objects) {
 			m_itemMenuOpened = false;
+			m_isMacroManagerOpened = false;
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -25,6 +26,7 @@ namespace ed
 
 	private:
 		// for popups
+		bool m_isMacroManagerOpened;
 		bool m_isVarManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
@@ -44,6 +46,7 @@ namespace ed
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderVariableManagerUI();
 		void m_renderChangeVariablesUI();
+		void m_renderMacroManagerUI();
 
 		// adding items to pipeline UI
 		void m_addShaderPass(ed::PipelineItem* data);

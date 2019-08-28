@@ -310,10 +310,11 @@ namespace ed
 
 				// pixel shader
 				m_msgs->CurrentItemType = 1;
-				if (!HLSL2GLSL::IsHLSL(shader->PSPath)) // GLSL
+				if (!HLSL2GLSL::IsHLSL(shader->PSPath)) {// GLSL
 					psContent = m_project->LoadProjectFile(shader->PSPath);
-				else {// HLSL
-					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->GSUsed, m_msgs);
+					m_applyMacros(psContent, shader);
+				} else {// HLSL
+					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs);
 					psEntry = "main";
 				}
 
@@ -326,12 +327,14 @@ namespace ed
 
 				// vertex shader
 				m_msgs->CurrentItemType = 0;
-				if (!HLSL2GLSL::IsHLSL(shader->VSPath)) // GLSL
+				if (!HLSL2GLSL::IsHLSL(shader->VSPath)) {// GLSL
 					vsContent = m_project->LoadProjectFile(shader->VSPath);
-				else { // HLSL
-					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->GSUsed, m_msgs);
+					m_applyMacros(vsContent, shader);
+				} else { // HLSL
+					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
 					vsEntry = "main";
 				}
+				printf("%s\n\n\n", vsContent.c_str());
 
 				GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 				bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
@@ -347,10 +350,11 @@ namespace ed
 						gsEntry = shader->GSEntry;
 
 					m_msgs->CurrentItemType = 2;
-					if (!HLSL2GLSL::IsHLSL(shader->GSPath)) // GLSL
+					if (!HLSL2GLSL::IsHLSL(shader->GSPath)) { // GLSL
 						gsContent = m_project->LoadProjectFile(shader->GSPath);
-					else { // HLSL
-						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->GSUsed, m_msgs);
+						m_applyMacros(gsContent, shader);
+					} else { // HLSL
+						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs);
 						gsEntry = "main";
 					}
 
@@ -605,10 +609,11 @@ namespace ed
 
 				// vertex shader
 				m_msgs->CurrentItemType = 0;
-				if (!HLSL2GLSL::IsHLSL(data->VSPath)) // GLSL
+				if (!HLSL2GLSL::IsHLSL(data->VSPath)) { // GLSL
 					vsContent = m_project->LoadProjectFile(data->VSPath);
-				else { // HLSL
-					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->GSUsed, m_msgs);
+					m_applyMacros(vsContent, data);
+				} else { // HLSL
+					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs);
 					vsEntry = "main";
 				}
 				
@@ -620,10 +625,11 @@ namespace ed
 
 				// pixel shader
 				m_msgs->CurrentItemType = 1;
-				if (!HLSL2GLSL::IsHLSL(data->PSPath)) // HLSL
+				if (!HLSL2GLSL::IsHLSL(data->PSPath)) {// HLSL
 					psContent = m_project->LoadProjectFile(data->PSPath);
-				else { // GLSL
-					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->GSUsed, m_msgs);
+					m_applyMacros(psContent, data);
+				} else { // GLSL
+					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs);
 					psEntry = "main";
 				}
 
@@ -639,10 +645,11 @@ namespace ed
 				if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
 					std::string gsContent = "", gsEntry = data->GSEntry;
 					m_msgs->CurrentItemType = 2;
-					if (!HLSL2GLSL::IsHLSL(data->GSPath)) // GLSL
+					if (!HLSL2GLSL::IsHLSL(data->GSPath)) { // GLSL
 						gsContent = m_project->LoadProjectFile(data->GSPath);
-					else { // HLSL
-						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->GSUsed, m_msgs);
+						m_applyMacros(gsContent, data);
+					} else { // HLSL
+						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs);
 						gsEntry = "main";
 					}
 
@@ -722,6 +729,22 @@ namespace ed
 				}
 			}
 		}
+	}
+	void RenderEngine::m_applyMacros(std::string& src, pipe::ShaderPass* pass)
+	{
+		size_t verLoc = src.find_first_of("#version");
+		size_t lineLoc = src.find_first_of('\n', verLoc+1) + 1;
+		std::string strMacro = "";
+
+		for (auto& macro : pass->Macros) {
+			if (!macro.Active)
+				continue;
+			
+			strMacro += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+		}
+
+		if (strMacro.size() > 0)
+			src.insert(lineLoc, strMacro);
 	}
 	void RenderEngine::m_updatePassFBO(ed::pipe::ShaderPass* pass)
 	{

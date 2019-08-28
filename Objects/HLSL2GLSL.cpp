@@ -125,7 +125,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
 
 namespace ed
 {
-	std::string HLSL2GLSL::Transcompile(const std::string& filename, int sType, const std::string& entry, bool gsUsed, MessageStack* msgs)
+	std::string HLSL2GLSL::Transcompile(const std::string& filename, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs)
 	{
 		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
 
@@ -160,6 +160,16 @@ namespace ed
 		}
 		shader.setStrings(&inputStr, 1);
 
+		// set macros
+		std::string macroStr = "";
+		for (auto& macro : macros) {
+			if (!macro.Active)
+				continue;
+			macroStr += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+		}
+		if (macroStr.size() > 0)
+			shader.setPreamble(macroStr.c_str());
+
 		// set up
 		int sVersion = 330;
 		glslang::EShTargetClientVersion vulkanVersion = glslang::EShTargetVulkan_1_0;
@@ -168,7 +178,7 @@ namespace ed
 		shader.setEnvInput(glslang::EShSourceHlsl, shaderType, glslang::EShClientVulkan, sVersion);
 		shader.setEnvClient(glslang::EShClientVulkan, vulkanVersion);
 		shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
-
+		
 		TBuiltInResource res = DefaultTBuiltInResource;
 		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
@@ -183,7 +193,7 @@ namespace ed
 		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedHLSL, includer))
 		{
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "HLSL preprocessing failed", -1, sType);
-			return "error";
+			return "errorPreprocess";
 		}
 
 		// update strings
@@ -194,7 +204,7 @@ namespace ed
 		if (!shader.parse(&res, 100, false, messages))
 		{
 			msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
-			return "error";
+			return "errorParse";
 		}
 
 		// link
@@ -204,7 +214,7 @@ namespace ed
 		if (!prog.link(messages))
 		{
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "HLSL linking failed", -1, sType);
-			return "error";
+			return "errorLink";
 		}
 
 		// convert to spirv
