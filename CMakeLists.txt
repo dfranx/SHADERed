@@ -98,7 +98,16 @@ if(CMAKE_TOOLCHAIN_FILE)
 endif(CMAKE_TOOLCHAIN_FILE)
 
 # sdl2
-find_package(SDL2 REQUIRED)
+if(WIN32)
+
+  find_package(SDL2 REQUIRED)
+
+else()
+
+  # find sdl2 on linux
+  pkg_check_modules(SDL2 REQUIRED sdl2)
+
+endif()
 
 # opengl
 find_package(OpenGL REQUIRED)
