@@ -1,5 +1,6 @@
 [v1.1.2]
 + add Pointer function (variables can now be pointers to other variables)
++ add shader macros
 
 [v1.1.1]
 + fix a bug when multiple textures are bound but some are not used
