@@ -563,6 +563,9 @@ namespace ed
 			Logger::Get().Log("Opening a CreateItemUI for creating ShaderPass object...");
 
 			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
+			strcpy(allocatedData->VSEntry, "main");
+			strcpy(allocatedData->PSEntry, "main");
+			strcpy(allocatedData->GSEntry, "main");
 			m_item.Data = allocatedData;
 			
 			allocatedData->RenderTextures[0] = m_data->Renderer.GetTexture();		
@@ -603,6 +606,7 @@ namespace ed
 			strcpy(data->VSEntry, origData->VSEntry);
 			strcpy(data->VSPath, origData->VSPath);
 			data->RenderTextures[0] = origData->RenderTextures[0];
+			data->RTCount = 1;
 
 			return m_data->Pipeline.AddPass(m_item.Name, data);
 		}

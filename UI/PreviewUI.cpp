@@ -203,11 +203,10 @@ namespace ed
 
 			m_elapsedTime -= 1 / m_fpsLimit;
 		}
-
+		
 		if (capWholeApp && 1000 / delta > m_fpsLimit)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
-
-
+			
 		GLuint rtView = renderer->GetTexture();
 		
 		// display the image on the imgui window

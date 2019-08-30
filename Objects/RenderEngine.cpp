@@ -81,7 +81,14 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
 			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
+
+			if (data->Items.size() <= 0)
+				continue;
+
 			std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
+
+			if (data->RTCount == 0)
+				continue;
 
 			// create/update fbo if necessary
 			m_updatePassFBO(data);
