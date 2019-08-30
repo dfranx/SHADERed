@@ -29,6 +29,7 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"--NONE--",
 	"Time",
 	"TimeDelta",
+	"FrameIndex",
 	"ViewportSize",
 	"MousePosition",
 	"View",

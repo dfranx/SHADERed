@@ -3,6 +3,11 @@
 
 namespace ed
 {
+	void SystemVariableManager::Reset()
+	{
+		m_timer.Restart();
+		m_frameIndex = 0;
+	}
 	void SystemVariableManager::Update(ed::ShaderVariable* var)
 	{
 		if (var->System != ed::SystemShaderVariable::None) {
@@ -53,6 +58,11 @@ namespace ed
 				{
 					float raw = SystemVariableManager::Instance().GetTimeDelta();
 					memcpy(var->Data, &raw, sizeof(float));
+				} break;
+				case ed::SystemShaderVariable::FrameIndex:
+				{
+					unsigned int frame = SystemVariableManager::Instance().GetFrameIndex();
+					memcpy(var->Data, &frame, sizeof(unsigned int));
 				} break;
 				case ed::SystemShaderVariable::IsPicked:
 				{

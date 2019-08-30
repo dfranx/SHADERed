@@ -72,6 +72,8 @@ namespace ed
 		// cache elements
 		m_cache();
 
+		auto& systemVM = SystemVariableManager::Instance();
+
 		auto& itemVarValues = GetItemVariableValues();
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
@@ -147,7 +149,7 @@ namespace ed
 				previousTexture[i] = data->RenderTextures[i];
 
 			// update viewport value
-			SystemVariableManager::Instance().SetViewportSize(rtSize.x, rtSize.y);
+			systemVM.SetViewportSize(rtSize.x, rtSize.y);
 			glViewport(0, 0, rtSize.x, rtSize.y);
 
 			// bind shaders
@@ -179,7 +181,7 @@ namespace ed
 			for (int j = 0; j < data->Items.size(); j++) {
 				PipelineItem* item = data->Items[j];
 
-				SystemVariableManager::Instance().SetPicked(false);
+				systemVM.SetPicked(false);
 
 				// update the value for this element and check if we picked it
 				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
@@ -195,11 +197,11 @@ namespace ed
 					if (geoData->Type == pipe::GeometryItem::Rectangle) {
 						glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
 						glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
-						SystemVariableManager::Instance().SetGeometryTransform(scaleRect, geoData->Rotation, posRect);
+						systemVM.SetGeometryTransform(scaleRect, geoData->Rotation, posRect);
 					} else
-						SystemVariableManager::Instance().SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
+						systemVM.SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
 
-					SystemVariableManager::Instance().SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 
 					// bind variables
 					data->Variables.Bind();
@@ -210,8 +212,8 @@ namespace ed
 				else if (item->Type == PipelineItem::ItemType::Model) {
 					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
-					SystemVariableManager::Instance().SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-					SystemVariableManager::Instance().SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					systemVM.SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
 
 					// bind variables
 					data->Variables.Bind();
@@ -281,6 +283,9 @@ namespace ed
 			}
 		}
 
+		// update frame index
+		systemVM.SetFrameIndex(systemVM.GetFrameIndex() + 1);
+
 		// bind default state after rendering everything
 		if (changedState)
 			DefaultState::Bind();
@@ -341,7 +346,6 @@ namespace ed
 					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
 					vsEntry = "main";
 				}
-				printf("%s\n\n\n", vsContent.c_str());
 
 				GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 				bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);

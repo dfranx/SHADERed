@@ -10,6 +10,7 @@ namespace ed
 		None,				// not using system value
 		Time,				// float - time elapsed since start
 		TimeDelta,			// float - render time
+		FrameIndex,			// uint	 - current frame index
 		ViewportSize,		// vec2 - rendering window size
 		MousePosition,		// vec2 - mouse position relative to (0,0) in the rendering window
 		View,				// mat4 - a built-in camera matrix

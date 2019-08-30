@@ -13,6 +13,7 @@ namespace ed
 	{
 		nfdchar_t *path = NULL;
 		nfdresult_t result = NFD_OpenDialog(NULL, NULL, &path );
+		setlocale(LC_ALL,"C");
 
 		outPath = "";
 		if ( result == NFD_OKAY ) {
@@ -28,6 +29,7 @@ namespace ed
 	{
 		nfdchar_t *path = NULL;
 		nfdresult_t result = NFD_SaveDialog(files.size() == 0 ? NULL : files.c_str(), NULL, &path );
+		setlocale(LC_ALL,"C");
 
 		outPath = "";
 		if ( result == NFD_OKAY ) {

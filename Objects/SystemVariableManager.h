@@ -21,6 +21,7 @@ namespace ed
 		}
 
 		SystemVariableManager() : 
+			m_frameIndex(0),
 			m_deltaTime(0.0f),
 			m_viewport(0,1), m_mouse(0,0),
 			m_isPicked(false),
@@ -35,6 +36,7 @@ namespace ed
 				case ed::SystemShaderVariable::Projection: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::Time: return ed::ShaderVariable::ValueType::Float1;
 				case ed::SystemShaderVariable::TimeDelta: return ed::ShaderVariable::ValueType::Float1;
+				case ed::SystemShaderVariable::FrameIndex: return ed::ShaderVariable::ValueType::Integer1;
 				case ed::SystemShaderVariable::View: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::ViewportSize: return ed::ShaderVariable::ValueType::Float2;
 				case ed::SystemShaderVariable::ViewProjection: return ed::ShaderVariable::ValueType::Float4x4;
@@ -51,6 +53,8 @@ namespace ed
 
 		void Update(ed::ShaderVariable* var);
 
+		void Reset();
+
 		inline Camera* GetCamera() { return Settings::Instance().Project.FPCamera ? (Camera*)&m_fpCam : (Camera*)&m_abCam; }
 		inline glm::mat4 GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_fpCam.GetMatrix() : m_abCam.GetMatrix(); }
 		inline glm::mat4 GetProjectionMatrix() { return glm::perspective(glm::radians(45.0f), m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
@@ -61,6 +65,7 @@ namespace ed
 		inline glm::vec2 GetViewportSize() { return m_viewport; }
 		inline glm::ivec4  GetKeysWASD() { return m_wasd; }
 		inline glm::vec2 GetMousePosition() { return m_mouse; }
+		inline unsigned int GetFrameIndex() { return m_frameIndex; }
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
 		inline float GetTimeDelta() { return m_deltaTime; }
 		inline bool IsPicked() { return m_isPicked; }
@@ -76,6 +81,7 @@ namespace ed
 		inline void SetTimeDelta(float x) { m_deltaTime = x; }
 		inline void SetPicked(bool picked) { m_isPicked = picked; }
 		inline void SetKeysWASD(int w, int a, int s, int d) { m_wasd = glm::ivec4(w, a, s, d); }
+		inline void SetFrameIndex(unsigned int ind) { m_frameIndex = ind; }
 
 	private:
 		eng::Timer m_timer;
@@ -85,6 +91,7 @@ namespace ed
 		glm::vec2 m_viewport, m_mouse;
 		glm::mat4 m_geometryTransform;
 		bool m_isPicked;
+		unsigned int m_frameIndex;
 
 		glm::ivec4 m_wasd;
 	};

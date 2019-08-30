@@ -39,8 +39,6 @@ namespace ed
 	{}
 	void ProjectParser::Open(const std::string & file)
 	{
-		setlocale(LC_ALL,"C");
-
 		Logger::Get().Log("Openning a project file " + file);
 
 		m_file = file;
@@ -74,6 +72,9 @@ namespace ed
 				Logger::Get().Log("Tried to open a project that is newer version", true);
 			break;
 		}
+
+		// reset time, frame index, etc...
+		SystemVariableManager::Instance().Reset();
 	}
 	void ProjectParser::OpenTemplate()
 	{

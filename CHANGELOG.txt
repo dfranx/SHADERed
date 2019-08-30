@@ -1,6 +1,8 @@
 [v1.1.2]
 + add Pointer function (variables can now be pointers to other variables)
 + add shader macros
++ add FrameIndex system variable
++ fix a bug where SHADERed would crash when adding a shader pass through CreateItemUI
 
 [v1.1.1]
 + fix a bug when multiple textures are bound but some are not used
