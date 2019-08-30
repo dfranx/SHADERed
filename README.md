@@ -151,6 +151,7 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
+ - CodeEditorUI loses focus when pressing ALT keys
  - name already taken when creating item thru CreateItemUI? then color the "Name:" label red
  - add Options -> Project -> Disable clear
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)

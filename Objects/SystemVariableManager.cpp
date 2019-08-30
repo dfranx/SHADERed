@@ -10,7 +10,7 @@ namespace ed
 	}
 	void SystemVariableManager::CopyState()
 	{
-		m_prevState = m_curState;
+		memcpy(&m_prevState, &m_curState, sizeof(m_curState));
 	}
 	void SystemVariableManager::Update(ed::ShaderVariable* var)
 	{
