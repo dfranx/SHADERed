@@ -710,13 +710,32 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::Separator();
 
-				/* CLEAR COLOR */
+				/* CLEAR? */
 				ImGui::Text("Clear:");
 				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::Checkbox("##pui_gsuse", &m_currentRT->Clear);
+				ImGui::NextColumn();
+				ImGui::Separator();
+		
+
+				/* CLEAR COLOR */
+				ImGui::Text("Clear color:");
+				ImGui::NextColumn();
+
+				if (!m_currentRT->Clear) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
 
 				ImGui::PushItemWidth(-1);
 				ImGui::ColorEdit4("##prop_rt_color", glm::value_ptr(m_currentRT->ClearColor));
 				ImGui::PopItemWidth();
+
+				if (!m_currentRT->Clear) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
 			}
 			
 			ImGui::NextColumn();

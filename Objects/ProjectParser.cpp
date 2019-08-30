@@ -365,6 +365,7 @@ namespace ed
 					else
 						textureNode.append_attribute("rsize").set_value((std::to_string(rtObj->RatioSize.x) + "," + std::to_string(rtObj->RatioSize.y)).c_str());
 
+					textureNode.append_attribute("clear").set_value(rtObj->Clear);
 					if (rtObj->ClearColor.r != 0) textureNode.append_attribute("r").set_value(rtObj->ClearColor.r);
 					if (rtObj->ClearColor.g != 0) textureNode.append_attribute("g").set_value(rtObj->ClearColor.g);
 					if (rtObj->ClearColor.b != 0) textureNode.append_attribute("b").set_value(rtObj->ClearColor.b);
@@ -1107,13 +1108,14 @@ namespace ed
 				}
 
 				// load clear color
-				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_int();
+				rt->Clear = true;
+				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_int() / 255.0f;
 				else rt->ClearColor.r = 0;
-				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_int();
+				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_int() / 255.0f;
 				else rt->ClearColor.g = 0;
-				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_int();
+				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_int() / 255.0f;
 				else rt->ClearColor.b = 0;
-				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_int();
+				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_int() / 255.0f;
 				else rt->ClearColor.a = 0;
 
 				// load binds
@@ -1704,14 +1706,19 @@ namespace ed
 					m_objects->ResizeRenderTexture(objName, rt->FixedSize);
 				}
 
+				// load clear flag
+				rt->Clear = true;
+				if (!objectNode.attribute("clear").empty())
+					rt->Clear = objectNode.attribute("clear").as_bool();
+
 				// load clear color
-				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_int();
+				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_float();
 				else rt->ClearColor.r = 0;
-				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_int();
+				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_float();
 				else rt->ClearColor.g = 0;
-				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_int();
+				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_float();
 				else rt->ClearColor.b = 0;
-				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_int();
+				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_float();
 				else rt->ClearColor.a = 0;
 
 				// load binds
@@ -1839,13 +1846,13 @@ namespace ed
 				}
 				else if (type == "clearcolor") {
 					if (!settingItem.attribute("r").empty())
-						Settings::Instance().Project.ClearColor.r = settingItem.attribute("r").as_uint() / 255.0f;
+						Settings::Instance().Project.ClearColor.r = settingItem.attribute("r").as_float();
 					if (!settingItem.attribute("g").empty())
-						Settings::Instance().Project.ClearColor.g = settingItem.attribute("g").as_uint() / 255.0f;
+						Settings::Instance().Project.ClearColor.g = settingItem.attribute("g").as_float();
 					if (!settingItem.attribute("b").empty())
-						Settings::Instance().Project.ClearColor.b = settingItem.attribute("b").as_uint() / 255.0f;
+						Settings::Instance().Project.ClearColor.b = settingItem.attribute("b").as_float();
 					if (!settingItem.attribute("a").empty())
-						Settings::Instance().Project.ClearColor.a = settingItem.attribute("a").as_uint() / 255.0f;
+						Settings::Instance().Project.ClearColor.a = settingItem.attribute("a").as_float();
 				}
 			}
 		}

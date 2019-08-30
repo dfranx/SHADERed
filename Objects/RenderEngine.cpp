@@ -135,7 +135,7 @@ namespace ed
 							usedPreviously = true;
 							break;
 						}
-					if (!usedPreviously)
+					if (!usedPreviously && rtObject->Clear)
 						glClearBufferfv(GL_COLOR, i, glm::value_ptr(rtObject->ClearColor));
 
 				}

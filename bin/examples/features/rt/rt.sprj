@@ -9,6 +9,7 @@
 				<variable type="float4x4" name="matVP" system="ViewProjection" />
 				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
 			</variables>
+			<macros />
 			<items>
 				<item name="Sphere" type="geometry">
 					<type>Sphere</type>
@@ -29,6 +30,7 @@
 				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
 				<variable type="float2" name="mPos" system="MousePosition" />
 			</variables>
+			<macros />
 			<items>
 				<item name="Rect" type="geometry">
 					<type>ScreenQuad</type>
@@ -42,16 +44,15 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="rendertexture" name="rt" rsize="0.540000,0.540000" r="255" g="255" b="255" a="255">
+		<object type="rendertexture" name="rt" rsize="0.540000,0.540000" clear="true" r="1" g="1" b="1" a="1">
 			<bind slot="0" name="RenderTxt" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Sphere" />
 		<entry type="camera" fp="false">
 			<distance>6</distance>
 			<pitch>43</pitch>
-			<yaw>114</yaw>
+			<yaw>246</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

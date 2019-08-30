@@ -84,6 +84,7 @@ namespace ed
 		m_rts[name]->FixedSize = size;
 		m_rts[name]->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		m_rts[name]->Name = name;
+		m_rts[name]->Clear = true;
 
 		return true;
 	}

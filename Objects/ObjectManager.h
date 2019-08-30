@@ -22,6 +22,7 @@ namespace ed
 		glm::vec2 RatioSize;
 		glm::vec4 ClearColor;
 		std::string Name;
+		bool Clear;
 
 		glm::ivec2 CalculateSize(int w, int h)
 		{
