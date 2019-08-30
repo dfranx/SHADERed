@@ -284,6 +284,7 @@ namespace ed
 		}
 
 		// update frame index
+		systemVM.CopyState();
 		systemVM.SetFrameIndex(systemVM.GetFrameIndex() + 1);
 
 		// bind default state after rendering everything

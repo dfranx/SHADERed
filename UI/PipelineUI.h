@@ -37,6 +37,7 @@ namespace ed
 		CreateItemUI m_createUI;
 		ed::PipelineItem* m_modalItem; // item that we are editing in a popup modal
 		void m_closePopup();
+		
 
 		// for variable value editor
 		ed::VariableValueEditUI m_valueEdit;
@@ -47,6 +48,9 @@ namespace ed
 		void m_renderVariableManagerUI();
 		void m_renderChangeVariablesUI();
 		void m_renderMacroManagerUI();
+
+		void m_flagTooltip(const std::string& text);
+		void m_renderVarFlags(ed::ShaderVariable* var, char flags);
 
 		// adding items to pipeline UI
 		void m_addShaderPass(ed::PipelineItem* data);

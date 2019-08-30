@@ -27,6 +27,12 @@ namespace ed
 
 		virtual glm::mat4 GetMatrix();
 
+		inline FirstPersonCamera& operator=(const FirstPersonCamera& fp) {
+			this->m_pos = fp.m_pos;
+			this->m_yaw = fp.m_yaw;
+			this->m_pitch = fp.m_pitch;
+		}
+
 	private:
 		glm::vec3 m_pos;
 

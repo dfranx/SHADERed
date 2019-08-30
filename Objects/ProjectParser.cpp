@@ -629,6 +629,11 @@ namespace ed
 				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var->GetType()]);
 				varNode.append_attribute("name").set_value(var->Name);
 
+				bool isInvert = var->Flags & (char)ShaderVariable::Flag::Inverse;
+				bool isLastFrame = var->Flags & (char)ShaderVariable::Flag::LastFrame;
+				if (isInvert) varNode.append_attribute("invert").set_value(isInvert);
+				if (isLastFrame) varNode.append_attribute("lastframe").set_value(isLastFrame);
+
 				if (var->System != SystemShaderVariable::None)
 					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var->System]);
 				else if (var->Function != FunctionShaderVariable::None)
@@ -1338,7 +1343,20 @@ namespace ed
 				ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 				SystemShaderVariable system = SystemShaderVariable::None;
 				FunctionShaderVariable func = FunctionShaderVariable::None;
+				char flags = 0;
 
+				/* FLAGS */
+				bool isInvert = false, isLastFrame = false;
+
+				if (!variableNode.attribute("invert").empty())
+					isInvert = variableNode.attribute("invert").as_bool();
+				if (!variableNode.attribute("lastframe").empty())
+					isLastFrame = variableNode.attribute("lastframe").as_bool();
+
+				flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
+						(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+						
+				/* TYPE */
 				if (!variableNode.attribute("type").empty()) {
 					const char* myType = variableNode.attribute("type").as_string();
 					for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
@@ -1369,6 +1387,7 @@ namespace ed
 				}
 
 				ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+				var->Flags = flags;
 				FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 				// parse value

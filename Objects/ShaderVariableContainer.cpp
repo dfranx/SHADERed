@@ -101,8 +101,22 @@ namespace ed
 			FunctionVariableManager::Update(m_vars[i]);
 
 			// update uniform every time we bind this container
-			// TODO: maybe dont update variables that havent changed
+			// TODO: maybe we shouldn't update variables that havent changed
 			ShaderVariable::ValueType type = m_vars[i]->GetType();
+
+			// check the flags
+			if (m_vars[i]->Flags & (char)ShaderVariable::Flag::Inverse) {
+				if (type == ShaderVariable::ValueType::Float4x4) {
+					glm::mat4x4 matVal = glm::make_mat4x4(m_vars[i]->AsFloatPtr());
+					memcpy(m_vars[i]->Data, glm::value_ptr(glm::inverse(matVal)), sizeof(glm::mat4x4));
+				} else if (type == ShaderVariable::ValueType::Float3x3) {
+					glm::mat3x3 matVal = glm::make_mat3x3(m_vars[i]->AsFloatPtr());
+					memcpy(m_vars[i]->Data, glm::value_ptr(glm::inverse(matVal)), sizeof(glm::mat3x3));
+				} else if (type == ShaderVariable::ValueType::Float2x2) {
+					glm::mat2x2 matVal = glm::make_mat2x2(m_vars[i]->AsFloatPtr());
+					memcpy(m_vars[i]->Data, glm::value_ptr(glm::inverse(matVal)), sizeof(glm::mat2x2));
+				}
+			}
 
 			switch (type) {
 			case ShaderVariable::ValueType::Boolean1:

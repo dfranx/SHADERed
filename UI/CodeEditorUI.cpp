@@ -121,6 +121,7 @@ namespace ed
 
 						ImGui::EndMenuBar();
 					}
+					
 
 					if (m_stats[i].IsActive)
 						m_stats[i].Render();
@@ -242,9 +243,8 @@ namespace ed
 				path = m_data->Parser.GetProjectPath(shader->GSPath);
 
 			#if defined(__APPLE__)
-				// no includes on mac os
+				// no macos impl
 			#elif defined(__linux__) || defined(__unix__)
-				// no includes on linux
 				system(("xdg-open " + path).c_str());
 			#elif defined(_WIN32)
 				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);

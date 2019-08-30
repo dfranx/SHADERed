@@ -20,13 +20,15 @@ namespace ed
 			return ret;
 		}
 
-		SystemVariableManager() : 
-			m_frameIndex(0),
-			m_deltaTime(0.0f),
-			m_viewport(0,1), m_mouse(0,0),
-			m_isPicked(false),
-			m_wasd(0,0,0,0) {
-			m_geometryTransform = glm::identity<glm::mat4>();
+		SystemVariableManager()
+		{
+			m_curState.FrameIndex = 0;
+			m_curState.IsPicked = false;
+			m_curState.WASD = glm::vec4(0,0,0,0);
+			m_curState.Viewport = glm::vec2(0,0);
+			m_curState.Mouse = glm::vec2(0,0);
+			m_curState.DeltaTime = 0.0f;
+			m_curState.GeometryTransform = glm::identity<glm::mat4>();
 		}
 
 		static inline ed::ShaderVariable::ValueType GetType(ed::SystemShaderVariable sysVar)
@@ -54,45 +56,50 @@ namespace ed
 		void Update(ed::ShaderVariable* var);
 
 		void Reset();
+		void CopyState();
 
-		inline Camera* GetCamera() { return Settings::Instance().Project.FPCamera ? (Camera*)&m_fpCam : (Camera*)&m_abCam; }
-		inline glm::mat4 GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_fpCam.GetMatrix() : m_abCam.GetMatrix(); }
-		inline glm::mat4 GetProjectionMatrix() { return glm::perspective(glm::radians(45.0f), m_viewport.x / m_viewport.y, 0.1f, 1000.0f); }
-		inline glm::mat4 GetOrthographicMatrix() { return glm::ortho(0.0f, m_viewport.x, m_viewport.y, 0.0f, 0.1f, 1000.0f); }
+		inline Camera* GetCamera() { return Settings::Instance().Project.FPCamera ? (Camera*)&m_curState.FPCam : (Camera*)&m_curState.ArcCam; }
+		inline glm::mat4 GetViewMatrix() { return Settings::Instance().Project.FPCamera ? m_curState.FPCam.GetMatrix() : m_curState.ArcCam.GetMatrix(); }
+		inline glm::mat4 GetProjectionMatrix() { return glm::perspective(glm::radians(45.0f), m_curState.Viewport.x / m_curState.Viewport.y, 0.1f, 1000.0f); }
+		inline glm::mat4 GetOrthographicMatrix() { return glm::ortho(0.0f, m_curState.Viewport.x, m_curState.Viewport.y, 0.0f, 0.1f, 1000.0f); }
 		inline glm::mat4 GetViewProjectionMatrix() { return GetProjectionMatrix() * GetViewMatrix(); }
 		inline glm::mat4 GetViewOrthographicMatrix() { return GetOrthographicMatrix() * GetViewMatrix(); }
-		inline glm::mat4 GetGeometryTransform() { return m_geometryTransform; }
-		inline glm::vec2 GetViewportSize() { return m_viewport; }
-		inline glm::ivec4  GetKeysWASD() { return m_wasd; }
-		inline glm::vec2 GetMousePosition() { return m_mouse; }
-		inline unsigned int GetFrameIndex() { return m_frameIndex; }
+		inline glm::mat4 GetGeometryTransform() { return m_curState.GeometryTransform; }
+		inline glm::vec2 GetViewportSize() { return m_curState.Viewport; }
+		inline glm::ivec4  GetKeysWASD() { return m_curState.WASD; }
+		inline glm::vec2 GetMousePosition() { return m_curState.Mouse; }
+		inline unsigned int GetFrameIndex() { return m_curState.FrameIndex; }
 		inline float GetTime() { return m_timer.GetElapsedTime(); }
-		inline float GetTimeDelta() { return m_deltaTime; }
-		inline bool IsPicked() { return m_isPicked; }
+		inline float GetTimeDelta() { return m_curState.DeltaTime; }
+		inline bool IsPicked() { return m_curState.IsPicked; }
 
 		inline void SetGeometryTransform(const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
 		{
-			m_geometryTransform = glm::translate(glm::mat4(1), pos) *
+			m_curState.GeometryTransform = glm::translate(glm::mat4(1), pos) *
 				glm::yawPitchRoll(rota.y, rota.x, rota.z) * 
 				glm::scale(glm::mat4(1.0f), scale);
 		}
-		inline void SetViewportSize(float x, float y) { m_viewport = glm::vec2(x, y); }
-		inline void SetMousePosition(float x, float y) { m_mouse = glm::vec2(x, y); }
-		inline void SetTimeDelta(float x) { m_deltaTime = x; }
-		inline void SetPicked(bool picked) { m_isPicked = picked; }
-		inline void SetKeysWASD(int w, int a, int s, int d) { m_wasd = glm::ivec4(w, a, s, d); }
-		inline void SetFrameIndex(unsigned int ind) { m_frameIndex = ind; }
+		inline void SetViewportSize(float x, float y) { m_curState.Viewport = glm::vec2(x, y); }
+		inline void SetMousePosition(float x, float y) { m_curState.Mouse = glm::vec2(x, y); }
+		inline void SetTimeDelta(float x) { m_curState.DeltaTime = x; }
+		inline void SetPicked(bool picked) { m_curState.IsPicked = picked; }
+		inline void SetKeysWASD(int w, int a, int s, int d) { m_curState.WASD = glm::ivec4(w, a, s, d); }
+		inline void SetFrameIndex(unsigned int ind) { m_curState.FrameIndex = ind; }
 
 	private:
 		eng::Timer m_timer;
-		float m_deltaTime;
-		ArcBallCamera m_abCam;
-		FirstPersonCamera m_fpCam;
-		glm::vec2 m_viewport, m_mouse;
-		glm::mat4 m_geometryTransform;
-		bool m_isPicked;
-		unsigned int m_frameIndex;
 
-		glm::ivec4 m_wasd;
+		struct ValueGroup
+		{
+			float DeltaTime;
+			ArcBallCamera ArcCam;
+			FirstPersonCamera FPCam;
+			glm::vec2 Viewport, Mouse;
+			glm::mat4 GeometryTransform;
+			bool IsPicked;
+			unsigned int FrameIndex;
+
+			glm::ivec4 WASD;
+		} m_prevState, m_curState;
 	};
 }

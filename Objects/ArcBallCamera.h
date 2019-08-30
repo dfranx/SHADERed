@@ -35,6 +35,13 @@ namespace ed
 
 		virtual glm::mat4 GetMatrix();
 
+		inline ArcBallCamera& operator=(const ArcBallCamera& arc) {
+			this->m_distance = arc.m_distance;
+			this->m_yaw = arc.m_yaw;
+			this->m_pitch = arc.m_pitch;
+			this->m_roll = arc.m_roll;
+		}
+
 	private:
 		float m_distance;
 		float m_yaw, m_pitch, m_roll;

@@ -73,6 +73,12 @@ namespace ed
 			Float4x4,
 			Count
 		};
+		enum class Flag
+		{
+			None		= 0b00000000, // no flags
+			LastFrame	= 0b00000001, // use previous value instead of the current value
+			Inverse		= 0b00000010  // inverse(matrix)
+		};
 
 		ShaderVariable(ValueType type, const char* name = "var\0", SystemShaderVariable systemVar = SystemShaderVariable::None) :
 			m_type(type), System(systemVar)
@@ -82,6 +88,7 @@ namespace ed
 			memset(Name, 0, VARIABLE_NAME_LENGTH);
 			memcpy(Name, name, strlen(name));
 			Function = FunctionShaderVariable::None;
+			Flags = 0;
 		}
 
 		static inline int GetSize(ValueType type)
@@ -114,6 +121,7 @@ namespace ed
 		FunctionShaderVariable Function;	// do we input value or does system calculate it for us?
 		char* Data;			// allocated with malloc()
 		char* Arguments;	// space to store arguments for function - allocated if not null!!!
+		char Flags;
 
 		inline int AsInteger(int index = 0) { return *AsIntegerPtr(index); }
 		inline bool AsBoolean(int index = 0) { return *AsBooleanPtr(index); }

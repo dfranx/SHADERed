@@ -287,6 +287,54 @@ namespace ed
 		m_modalItem = nullptr;
 	}
 
+	void PipelineUI::m_flagTooltip(const std::string& text)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(text.c_str());
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+	void PipelineUI::m_renderVarFlags(ed::ShaderVariable* var, char flags)
+	{
+		ShaderVariable::ValueType type = var->GetType();
+		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
+		bool isInvert = var->Flags & (char)ShaderVariable::Flag::Inverse;
+		bool isLastFrame = var->Flags & (char)ShaderVariable::Flag::LastFrame;
+
+		if (var->System == ed::SystemShaderVariable::None || !canInvert) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		ImGui::Checkbox(("##flaginv" + std::string(var->Name)).c_str(), &isInvert);
+		m_flagTooltip("Invert");
+		ImGui::SameLine();
+
+		if (!canInvert && var->System != ed::SystemShaderVariable::None) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
+		if (var->System == ed::SystemShaderVariable::Time) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		ImGui::Checkbox(("##flaglf" + std::string(var->Name)).c_str(), &isLastFrame);
+		m_flagTooltip("Use last frame values");
+
+		if (var->System == ed::SystemShaderVariable::None || var->System == ed::SystemShaderVariable::Time) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
+		var->Flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
+					 (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+	}
 	void PipelineUI::m_renderVariableManagerUI()
 	{
 		static ed::ShaderVariable iVariable(ed::ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
@@ -298,11 +346,12 @@ namespace ed
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 
 		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
-		ImGui::Columns(4);
+		ImGui::Columns(5);
 
 		ImGui::Text("Type"); ImGui::NextColumn();
 		ImGui::Text("Name"); ImGui::NextColumn();
 		ImGui::Text("System"); ImGui::NextColumn();
+		ImGui::Text("Flags"); ImGui::NextColumn();
 		ImGui::Text("Controls"); ImGui::NextColumn();
 
 		ImGui::Separator();
@@ -340,6 +389,10 @@ namespace ed
 			}
 			ImGui::NextColumn();
 
+			/* FLAGS */
+			m_renderVarFlags(el, el->Flags);
+			ImGui::NextColumn();
+			
 			
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -476,6 +529,10 @@ namespace ed
 			}
 			ImGui::EndCombo();
 		}
+		ImGui::NextColumn();
+
+		/* FLAGS */
+		m_renderVarFlags(&iVariable, iVariable.Flags);
 		ImGui::NextColumn();
 
 		/* ADD BUTTON */
