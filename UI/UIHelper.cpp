@@ -2,6 +2,7 @@
 #include "../Objects/Names.h"
 #include "../Objects/Logger.h"
 
+#include <clocale>
 #include <imgui/imgui.h>
 #include <nativefiledialog/nfd.h>
 
