@@ -5,8 +5,11 @@
 #include <glm/gtx/euler_angles.hpp>
 #include "ShaderVariable.h"
 #include "ArcBallCamera.h"
+#include "PipelineItem.h"
 #include "FirstPersonCamera.h"
 #include "Settings.h"
+
+#include <unordered_map>
 
 namespace ed
 {
@@ -28,7 +31,8 @@ namespace ed
 			m_curState.Viewport = glm::vec2(0,0);
 			m_curState.Mouse = glm::vec2(0,0);
 			m_curState.DeltaTime = 0.0f;
-			m_curState.GeometryTransform = glm::identity<glm::mat4>();
+			m_curGeoTransform.clear();
+			m_prevGeoTransform.clear();
 		}
 
 		static inline ed::ShaderVariable::ValueType GetType(ed::SystemShaderVariable sysVar)
@@ -53,7 +57,7 @@ namespace ed
 			return ed::ShaderVariable::ValueType::Float1;
 		}
 
-		void Update(ed::ShaderVariable* var);
+		void Update(ed::ShaderVariable* var, void* item = nullptr);
 
 		void Reset();
 		void CopyState();
@@ -64,7 +68,7 @@ namespace ed
 		inline glm::mat4 GetOrthographicMatrix() { return glm::ortho(0.0f, m_curState.Viewport.x, m_curState.Viewport.y, 0.0f, 0.1f, 1000.0f); }
 		inline glm::mat4 GetViewProjectionMatrix() { return GetProjectionMatrix() * GetViewMatrix(); }
 		inline glm::mat4 GetViewOrthographicMatrix() { return GetOrthographicMatrix() * GetViewMatrix(); }
-		inline glm::mat4 GetGeometryTransform() { return m_curState.GeometryTransform; }
+		inline glm::mat4 GetGeometryTransform(PipelineItem* item) { return m_curGeoTransform[item]; }
 		inline glm::vec2 GetViewportSize() { return m_curState.Viewport; }
 		inline glm::ivec4  GetKeysWASD() { return m_curState.WASD; }
 		inline glm::vec2 GetMousePosition() { return m_curState.Mouse; }
@@ -73,9 +77,9 @@ namespace ed
 		inline float GetTimeDelta() { return m_curState.DeltaTime; }
 		inline bool IsPicked() { return m_curState.IsPicked; }
 
-		inline void SetGeometryTransform(const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
+		inline void SetGeometryTransform(PipelineItem* item, const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
 		{
-			m_curState.GeometryTransform = glm::translate(glm::mat4(1), pos) *
+			m_curGeoTransform[item] = glm::translate(glm::mat4(1), pos) *
 				glm::yawPitchRoll(rota.y, rota.x, rota.z) * 
 				glm::scale(glm::mat4(1.0f), scale);
 		}
@@ -95,11 +99,12 @@ namespace ed
 			ArcBallCamera ArcCam;
 			FirstPersonCamera FPCam;
 			glm::vec2 Viewport, Mouse;
-			glm::mat4 GeometryTransform;
 			bool IsPicked;
 			unsigned int FrameIndex;
-
 			glm::ivec4 WASD;
 		} m_prevState, m_curState;
+
+
+		std::unordered_map<PipelineItem*, glm::mat4> m_curGeoTransform, m_prevGeoTransform;
 	};
 }

@@ -2,6 +2,7 @@
 #include "ProjectParser.h"
 #include "Logger.h"
 #include "../Options.h"
+#include "SystemVariableManager.h"
 
 int strcmpcase(const char* s1, const char* s2)
 {
@@ -182,5 +183,8 @@ namespace ed
 
 		if (openTemplate && m_project->GetTemplate() != "?empty")
 			m_project->OpenTemplate();
+		
+		// reset time, frame index, etc...
+		SystemVariableManager::Instance().Reset();
 	}
 }

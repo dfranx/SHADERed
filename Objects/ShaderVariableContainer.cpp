@@ -86,7 +86,7 @@ namespace ed
 
 		glUniform1i(glGetUniformLocation(pass, m_samplers[unit].c_str()), unit);
 	}
-	void ShaderVariableContainer::Bind()
+	void ShaderVariableContainer::Bind(void* item)
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
 			FunctionVariableManager::AddToList(m_vars[i]);
@@ -97,7 +97,7 @@ namespace ed
 			GLint loc = m_uLocs[m_vars[i]->Name];
 
 			// update values if needed
-			SystemVariableManager::Instance().Update(m_vars[i]);
+			SystemVariableManager::Instance().Update(m_vars[i], item);
 			FunctionVariableManager::Update(m_vars[i]);
 
 			// update uniform every time we bind this container

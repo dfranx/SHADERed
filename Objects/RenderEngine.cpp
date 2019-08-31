@@ -197,14 +197,14 @@ namespace ed
 					if (geoData->Type == pipe::GeometryItem::Rectangle) {
 						glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
 						glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
-						systemVM.SetGeometryTransform(scaleRect, geoData->Rotation, posRect);
+						systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
 					} else
-						systemVM.SetGeometryTransform(geoData->Scale, geoData->Rotation, geoData->Position);
+						systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
 					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 
 					// bind variables
-					data->Variables.Bind();
+					data->Variables.Bind(item);
 
 					glBindVertexArray(geoData->VAO);
 					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
@@ -213,7 +213,7 @@ namespace ed
 					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
 					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-					systemVM.SetGeometryTransform(objData->Scale, objData->Rotation, objData->Position);
+					systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
 
 					// bind variables
 					data->Variables.Bind();

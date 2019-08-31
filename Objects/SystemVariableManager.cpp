@@ -7,12 +7,15 @@ namespace ed
 	{
 		m_timer.Restart();
 		m_curState.FrameIndex = 0;
+		m_curGeoTransform.clear();
+		m_prevGeoTransform.clear();
 	}
 	void SystemVariableManager::CopyState()
 	{
 		memcpy(&m_prevState, &m_curState, sizeof(m_curState));
+		m_prevGeoTransform = m_curGeoTransform;
 	}
-	void SystemVariableManager::Update(ed::ShaderVariable* var)
+	void SystemVariableManager::Update(ed::ShaderVariable* var, void* item)
 	{
 		if (var->System != ed::SystemShaderVariable::None) {
 			// we are using some system value so now is the right time to update its value
@@ -42,7 +45,7 @@ namespace ed
 						memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 						break;
 					case ed::SystemShaderVariable::GeometryTransform:
-						rawMatrix = SystemVariableManager::Instance().GetGeometryTransform();
+						rawMatrix = SystemVariableManager::Instance().GetGeometryTransform((PipelineItem*)item);
 						memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 						break;
 					case ed::SystemShaderVariable::ViewportSize:
@@ -115,7 +118,7 @@ namespace ed
 						memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 					} break;
 					case ed::SystemShaderVariable::GeometryTransform:
-						rawMatrix = m_prevState.GeometryTransform;
+						rawMatrix = m_prevGeoTransform[(PipelineItem*)item];
 						memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 						break;
 					case ed::SystemShaderVariable::ViewportSize:

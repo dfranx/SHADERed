@@ -25,7 +25,7 @@ namespace ed
 		void UpdateUniformInfo(GLuint pass);
 		void UpdateTexture(GLuint pass, GLuint unit);
 		void UpdateTextureList(const std::string& fragShader);
-		void Bind();
+		void Bind(void* item = nullptr);
 		inline std::vector<ShaderVariable*>& GetVariables() { return m_vars; }
 
 	private:

@@ -301,7 +301,10 @@ namespace ed
 	void PipelineUI::m_renderVarFlags(ed::ShaderVariable* var, char flags)
 	{
 		ShaderVariable::ValueType type = var->GetType();
+		
 		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
+		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::ViewportSize;
+
 		bool isInvert = var->Flags & (char)ShaderVariable::Flag::Inverse;
 		bool isLastFrame = var->Flags & (char)ShaderVariable::Flag::LastFrame;
 
@@ -319,7 +322,7 @@ namespace ed
 			ImGui::PopItemFlag();
 		}
 
-		if (var->System == ed::SystemShaderVariable::Time) {
+		if (!canLastFrame) {
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
@@ -327,7 +330,7 @@ namespace ed
 		ImGui::Checkbox(("##flaglf" + std::string(var->Name)).c_str(), &isLastFrame);
 		m_flagTooltip("Use last frame values");
 
-		if (var->System == ed::SystemShaderVariable::None || var->System == ed::SystemShaderVariable::Time) {
+		if (var->System == ed::SystemShaderVariable::None || !canLastFrame) {
 			ImGui::PopStyleVar();
 			ImGui::PopItemFlag();
 		}
@@ -390,7 +393,9 @@ namespace ed
 			ImGui::NextColumn();
 
 			/* FLAGS */
+			ImGui::PopStyleColor();
 			m_renderVarFlags(el, el->Flags);
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImGui::NextColumn();
 			
 			
