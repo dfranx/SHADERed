@@ -91,7 +91,7 @@ namespace ed
 		}
 
 		// Shader Variable manager
-		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
 			m_renderVariableManagerUI();
 
@@ -305,7 +305,7 @@ namespace ed
 		ShaderVariable::ValueType type = var->GetType();
 		
 		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
-		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::ViewportSize;
+		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::IsPicked && var->System != ed::SystemShaderVariable::ViewportSize;
 
 		bool isInvert = var->Flags & (char)ShaderVariable::Flag::Inverse;
 		bool isLastFrame = var->Flags & (char)ShaderVariable::Flag::LastFrame;
