@@ -39,7 +39,7 @@ namespace ed
 	private:
 		void m_setupShortcuts();
 
-		void m_renderStatusbar();
+		void m_renderStatusbar(float width);
 		
 		void m_setupBoundingBox();
 		void m_buildBoundingBox();

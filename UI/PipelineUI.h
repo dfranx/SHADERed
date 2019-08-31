@@ -49,7 +49,7 @@ namespace ed
 		void m_renderChangeVariablesUI();
 		void m_renderMacroManagerUI();
 
-		void m_flagTooltip(const std::string& text);
+		void m_tooltip(const std::string& text);
 		void m_renderVarFlags(ed::ShaderVariable* var, char flags);
 
 		// adding items to pipeline UI

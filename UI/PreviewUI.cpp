@@ -1,6 +1,7 @@
 #include "PreviewUI.h"
 #include "PropertyUI.h"
 #include "PipelineUI.h"
+#include "Icons.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
 #include "../Objects/DefaultState.h"
@@ -13,8 +14,10 @@
 #include <thread>
 #include <imgui/imgui_internal.h>
 
-#define STATUSBAR_HEIGHT 25 * Settings::Instance().DPIScale
-#define BUTTON_SIZE 17 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT 26 * Settings::Instance().DPIScale
+#define BUTTON_SIZE 20 * Settings::Instance().DPIScale
+#define ICON_BUTTON_WIDTH 20 * Settings::Instance().DPIScale
+#define BUTTON_INDENT 5 * Settings::Instance().DPIScale
 #define FPS_UPDATE_RATE 0.3f
 #define BOUNDING_BOX_PADDING 0.01f
 
@@ -445,7 +448,7 @@ namespace ed
 
 		// status bar
 		if (statusbar)
-			m_renderStatusbar();
+			m_renderStatusbar(imageSize.x);
 	}
 	void PreviewUI::Duplicate()
 	{
@@ -555,14 +558,14 @@ namespace ed
 				((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(m_picks[m_picks.size()-1]);
 	}
 
-	void PreviewUI::m_renderStatusbar()
+	void PreviewUI::m_renderStatusbar(float width)
 	{
 		float FPS = 1.0f / m_fpsDelta;
 		ImGui::Separator();
 		ImGui::Text("FPS: %.2f", FPS);
 		ImGui::SameLine();
-		ImGui::Text("|");
-		ImGui::SameLine();
+		
+		ImGui::SameLine(150 * Settings::Instance().DPIScale);
 
 		if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
@@ -589,8 +592,7 @@ namespace ed
 		ImGui::SameLine();
 
 		if (m_picks.size() != 0) {
-			ImGui::Text("|");
-			ImGui::SameLine();
+			ImGui::SameLine(0, 20*Settings::Instance().DPIScale);
 			ImGui::Text("Picked: ");
 			
 			for (int i = 0; i < m_picks.size(); i++) {
@@ -601,8 +603,28 @@ namespace ed
 				else
 					ImGui::Text("%s", m_picks[i]->Name);
 			}
+			ImGui::SameLine();
 		}
-	
+
+		/* PAUSE BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		
+		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
+		ImGui::SetCursorPosX(pauseStartX);
+		ImGui::Button(UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		ImGui::SameLine(0,BUTTON_INDENT);
+		ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		ImGui::SameLine();
+
+		float zoomStartX = width - (ICON_BUTTON_WIDTH*3) - BUTTON_INDENT*3;
+		ImGui::SetCursorPosX(zoomStartX);
+		ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		ImGui::SameLine(0,BUTTON_INDENT);
+		ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		ImGui::SameLine(0,BUTTON_INDENT);
+		ImGui::Button(UI_ICON_MAXIMIZE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+
+		ImGui::PopStyleColor();
 	}
 
 	void PreviewUI::m_setupBoundingBox()

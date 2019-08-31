@@ -3,6 +3,7 @@
 #include "PropertyUI.h"
 #include "PinnedUI.h"
 #include "PreviewUI.h"
+#include "Icons.h"
 #include "../Options.h"
 #include "../GUIManager.h"
 #include "../Objects/Names.h"
@@ -14,8 +15,9 @@
 #include <algorithm>
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
-#define PIPELINE_SHADER_PASS_INDENT 65 * Settings::Instance().DPIScale
-#define PIPELINE_ITEM_INDENT 75 * Settings::Instance().DPIScale
+#define PIPELINE_SHADER_PASS_INDENT 75 * Settings::Instance().DPIScale
+#define PIPELINE_ITEM_INDENT 85 * Settings::Instance().DPIScale
+#define BUTTON_ICON_SIZE ImVec2(20 * Settings::Instance().DPIScale, 0)
 
 namespace ed
 {
@@ -134,7 +136,7 @@ namespace ed
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-		if (ImGui::ArrowButton(std::string("##U" + std::string(items[index]->Name)).c_str(), ImGuiDir_Up)) {
+		if (ImGui::Button(std::string(UI_ICON_ARROW_UP "##U" + std::string(items[index]->Name)).c_str(), BUTTON_ICON_SIZE)) {
 			if (index != 0) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
@@ -155,7 +157,7 @@ namespace ed
 		}
 		ImGui::SameLine(0, 0);
 
-		if (ImGui::ArrowButton(std::string("##D" + std::string(items[index]->Name)).c_str(), ImGuiDir_Down)) {
+		if (ImGui::Button(std::string(UI_ICON_ARROW_DOWN "##D" + std::string(items[index]->Name)).c_str(), BUTTON_ICON_SIZE)) {
 			if (index != items.size() - 1) {
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
@@ -287,7 +289,7 @@ namespace ed
 		m_modalItem = nullptr;
 	}
 
-	void PipelineUI::m_flagTooltip(const std::string& text)
+	void PipelineUI::m_tooltip(const std::string& text)
 	{
 		if (ImGui::IsItemHovered())
 		{
@@ -314,7 +316,7 @@ namespace ed
 		}
 
 		ImGui::Checkbox(("##flaginv" + std::string(var->Name)).c_str(), &isInvert);
-		m_flagTooltip("Invert");
+		m_tooltip("Invert");
 		ImGui::SameLine();
 
 		if (!canInvert && var->System != ed::SystemShaderVariable::None) {
@@ -328,7 +330,7 @@ namespace ed
 		}
 
 		ImGui::Checkbox(("##flaglf" + std::string(var->Name)).c_str(), &isLastFrame);
-		m_flagTooltip("Use last frame values");
+		m_tooltip("Use last frame values");
 
 		if (var->System == ed::SystemShaderVariable::None || !canLastFrame) {
 			ImGui::PopStyleVar();
@@ -351,11 +353,14 @@ namespace ed
 		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
 		ImGui::Columns(5);
 
+		ImGui::SetColumnWidth(0, (6*20) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(3, 180 * Settings::Instance().DPIScale);
+
+		ImGui::Text("Controls"); ImGui::NextColumn();
 		ImGui::Text("Type"); ImGui::NextColumn();
 		ImGui::Text("Name"); ImGui::NextColumn();
 		ImGui::Text("System"); ImGui::NextColumn();
 		ImGui::Text("Flags"); ImGui::NextColumn();
-		ImGui::Text("Controls"); ImGui::NextColumn();
 
 		ImGui::Separator();
 
@@ -366,6 +371,88 @@ namespace ed
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+			/* UP BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_UP "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != 0) {
+				// check if any of the affected variables are pinned
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
+				bool containsCur = pinState->Contains(el->Name);
+				bool containsDown = pinState->Contains(els[id-1]->Name);
+
+				// first unpin if it was pinned
+				if (containsCur)
+					pinState->Remove(el->Name);
+				if (containsDown)
+					pinState->Remove(els[id - 1]->Name);
+
+				ed::ShaderVariable* temp = els[id - 1];
+				els[id - 1] = el;
+				els[id] = temp;
+
+				// then pin again if it was previously pinned
+				if (containsCur)
+					pinState->Add(els[id-1]);
+				if (containsDown)
+					pinState->Add(els[id]);
+			}
+			ImGui::SameLine(0,0);
+			/* DOWN BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != els.size() - 1) {
+				// check if any of the affected variables are pinned
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
+				bool containsCur = pinState->Contains(el->Name);
+				bool containsDown = pinState->Contains(els[id + 1]->Name);
+
+				// first unpin if it was pinned
+				if (containsCur)
+					pinState->Remove(el->Name);
+				if (containsDown)
+					pinState->Remove(els[id + 1]->Name);
+
+				ed::ShaderVariable* temp = els[id + 1];
+				els[id + 1] = el;
+				els[id] = temp;
+
+				// then pin again if it was previously pinned
+				if (containsCur)
+					pinState->Add(els[id + 1]);
+				if (containsDown)
+					pinState->Add(els[id]);
+			}
+			ImGui::SameLine(0,0);
+			/* DELETE BUTTON */
+			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
+				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
+				
+				itemData->Variables.Remove(el->Name);
+			}
+			ImGui::SameLine(0,0);
+			/* EDIT & PIN BUTTONS */
+			if (el->System == ed::SystemShaderVariable::None) {
+				if (ImGui::Button((UI_ICON_EDIT "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
+					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
+					m_valueEdit.Open(el);
+				}
+				ImGui::SameLine(0,0);
+
+				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
+				if (!pinState->Contains(el->Name)) {
+					if (ImGui::Button((UI_ICON_ADD "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
+						pinState->Add(el);
+					m_tooltip("Pin");
+				} else {
+					if (ImGui::Button((UI_ICON_REMOVE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
+						pinState->Remove(el->Name);
+					m_tooltip("Unpin");
+				}
+
+				ImGui::SameLine();
+			}
+
+			ImGui::PopStyleColor();
+			ImGui::NextColumn();
+
 			/* TYPE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el->GetType()]);
@@ -398,85 +485,6 @@ namespace ed
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImGui::NextColumn();
 			
-			
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-
-			/* EDIT & PIN BUTTONS */
-			if (el->System == ed::SystemShaderVariable::None) {
-				if (ImGui::Button(("EDIT##" + std::to_string(id)).c_str())) {
-					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
-					m_valueEdit.Open(el);
-				}
-				ImGui::SameLine();
-
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
-				if (!pinState->Contains(el->Name)) {
-					if (ImGui::Button(("PIN##" + std::to_string(id)).c_str()))
-						pinState->Add(el);
-				} else if (ImGui::Button(("UNPIN##" + std::to_string(id)).c_str()))
-						pinState->Remove(el->Name);
-
-				ImGui::SameLine();
-			}
-
-			/* UP BUTTON */
-			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
-				// check if any of the affected variables are pinned
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
-				bool containsCur = pinState->Contains(el->Name);
-				bool containsDown = pinState->Contains(els[id-1]->Name);
-
-				// first unpin if it was pinned
-				if (containsCur)
-					pinState->Remove(el->Name);
-				if (containsDown)
-					pinState->Remove(els[id - 1]->Name);
-
-				ed::ShaderVariable* temp = els[id - 1];
-				els[id - 1] = el;
-				els[id] = temp;
-
-				// then pin again if it was previously pinned
-				if (containsCur)
-					pinState->Add(els[id-1]);
-				if (containsDown)
-					pinState->Add(els[id]);
-			}
-			ImGui::SameLine();
-			/* DOWN BUTTON */
-			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
-				// check if any of the affected variables are pinned
-				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
-				bool containsCur = pinState->Contains(el->Name);
-				bool containsDown = pinState->Contains(els[id + 1]->Name);
-
-				// first unpin if it was pinned
-				if (containsCur)
-					pinState->Remove(el->Name);
-				if (containsDown)
-					pinState->Remove(els[id + 1]->Name);
-
-				ed::ShaderVariable* temp = els[id + 1];
-				els[id + 1] = el;
-				els[id] = temp;
-
-				// then pin again if it was previously pinned
-				if (containsCur)
-					pinState->Add(els[id + 1]);
-				if (containsDown)
-					pinState->Add(els[id]);
-			}
-			ImGui::SameLine();
-			/* DELETE BUTTON */
-			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
-				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
-				
-				itemData->Variables.Remove(el->Name);
-			}
-
-			ImGui::PopStyleColor();
-			ImGui::NextColumn();
-
 			id++;
 		}
 
@@ -495,6 +503,28 @@ namespace ed
 		}
 
 		// widgets for editing "virtual" element - an element that will be added to the list later
+		/* ADD BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button(UI_ICON_ADD)) {
+			// cant have two variables with same name
+			bool exists = false;
+			for (auto el : els)
+				if (strcmp(el->Name, iVariable.Name) == 0)
+					exists = true;
+
+			// add if it doesnt exist
+			if (!exists) {
+				itemData->Variables.AddCopy(iVariable);
+
+				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
+				iValueType = ShaderVariable::ValueType::Float1;
+				scrollToBottom = true;
+			}
+		}
+		ImGui::NextColumn();
+		ImGui::PopStyleColor();
+
 		/* TYPE */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		if (ImGui::Combo("##inputType", reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES))) {
@@ -540,27 +570,6 @@ namespace ed
 		m_renderVarFlags(&iVariable, iVariable.Flags);
 		ImGui::NextColumn();
 
-		/* ADD BUTTON */
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Button("ADD")) {
-			// cant have two variables with same name
-			bool exists = false;
-			for (auto el : els)
-				if (strcmp(el->Name, iVariable.Name) == 0)
-					exists = true;
-
-			// add if it doesnt exist
-			if (!exists) {
-				itemData->Variables.AddCopy(iVariable);
-
-				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
-				iValueType = ShaderVariable::ValueType::Float1;
-				scrollToBottom = true;
-			}
-		}
-		ImGui::NextColumn();
-		ImGui::PopStyleColor();
 		//ImGui::PopItemWidth();
 
 		ImGui::EndChild();
@@ -615,12 +624,12 @@ namespace ed
 
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			if (ImGui::Button(("EDIT##edBtn" + std::to_string(id)).c_str())) {
+			if (ImGui::Button((UI_ICON_EDIT "##edBtn" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				ImGui::OpenPopup("Value Edit##pui_shader_ivalue_edit");
 				m_valueEdit.Open(i.NewValue);
 			}
 			ImGui::SameLine();
-			if (ImGui::Button(("X##delBtn" + std::to_string(id)).c_str()))
+			if (ImGui::Button((UI_ICON_DELETE "##delBtn" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
 				m_data->Renderer.RemoveItemVariableValue(i.Item, i.Variable);
 			ImGui::NextColumn();
 
@@ -661,7 +670,7 @@ namespace ed
 		ImGui::NextColumn();
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Button("ADD") && vars.size() > 0) {
+		if (ImGui::Button(UI_ICON_ADD, BUTTON_ICON_SIZE) && vars.size() > 0) {
 			bool alreadyAdded = false;
 			for (int i = 0; i < allItems.size(); i++)
 				if (strcmp(vars[shaderVarSel]->Name, allItems[i].Variable->Name) == 0 && allItems[i].Item == m_modalItem) {
@@ -693,10 +702,10 @@ namespace ed
 		ImGui::BeginChild("##pui_macro_table", ImVec2(0, -25));
 		ImGui::Columns(4);
 
+		ImGui::Text("Controls"); ImGui::NextColumn();
 		ImGui::Text("Active"); ImGui::NextColumn();
 		ImGui::Text("Name"); ImGui::NextColumn();
 		ImGui::Text("Value"); ImGui::NextColumn();
-		ImGui::Text("Controls"); ImGui::NextColumn();
 
 		ImGui::Separator();
 
@@ -707,6 +716,30 @@ namespace ed
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
+			/* CONTROLS */
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			/* UP BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_UP "##" + std::to_string(id)).c_str()) && id != 0) {
+				ed::ShaderMacro temp = els[id - 1];
+				els[id - 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(0,0);
+			/* DOWN BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+				ed::ShaderMacro temp = els[id + 1];
+				els[id + 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(0,0);
+			/* DELETE BUTTON */
+			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str())) {
+				els.erase(els.begin() + id);
+				id--;
+			}
+			ImGui::PopStyleColor();
+			ImGui::NextColumn();
+
 			/* ACTIVE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			ImGui::Checkbox(("##pui_mcr_act" + std::to_string(id)).c_str(), &el.Active);
@@ -722,38 +755,32 @@ namespace ed
 			ImGui::InputText(("##mcrVal" + std::to_string(id)).c_str(), el.Value, 512);
 			ImGui::NextColumn();
 
-
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-
-			/* UP BUTTON */
-			if (ImGui::Button(("U##" + std::to_string(id)).c_str()) && id != 0) {
-				ed::ShaderMacro temp = els[id - 1];
-				els[id - 1] = el;
-				els[id] = temp;
-			}
-			ImGui::SameLine();
-			/* DOWN BUTTON */
-			if (ImGui::Button(("D##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
-				ed::ShaderMacro temp = els[id + 1];
-				els[id + 1] = el;
-				els[id] = temp;
-			}
-			ImGui::SameLine();
-			/* DELETE BUTTON */
-			if (ImGui::Button(("X##" + std::to_string(id)).c_str())) {
-				els.erase(els.begin() + id);
-				id--;
-			}
-
-			ImGui::PopStyleColor();
-			ImGui::NextColumn();
-
 			id++;
 		}
 
 		ImGui::PopStyleColor();
 
 		// widgets for adding a macro
+		/* ADD BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button(UI_ICON_ADD)) {
+			// cant have two macros with same name
+			bool exists = false;
+			for (auto& el : els)
+				if (strcmp(el.Name, addMacro.Name) == 0)
+					exists = true;
+
+			// add if it doesnt exist
+			if (!exists) {
+				els.push_back(addMacro);
+				scrollToBottom = true;
+			}
+		}
+		ImGui::NextColumn();
+		ImGui::PopStyleColor();
+		ImGui::PopItemWidth();
+
 		/* ACTIVE */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		ImGui::Checkbox(("##pui_mcrActAdd" + std::to_string(id)).c_str(), &addMacro.Active);
@@ -774,26 +801,6 @@ namespace ed
 			scrollToBottom = false;
 		}
 
-		/* ADD BUTTON */
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Button("ADD")) {
-			// cant have two macros with same name
-			bool exists = false;
-			for (auto& el : els)
-				if (strcmp(el.Name, addMacro.Name) == 0)
-					exists = true;
-
-			// add if it doesnt exist
-			if (!exists) {
-				els.push_back(addMacro);
-				scrollToBottom = true;
-			}
-		}
-		ImGui::NextColumn();
-		ImGui::PopStyleColor();
-		//ImGui::PopItemWidth();
-
 		ImGui::EndChild();
 		ImGui::Columns(1);
 	}
@@ -802,18 +809,18 @@ namespace ed
 	{
 		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
-		std::string expandTxt = "-";
+		std::string expandTxt = UI_ICON_UP;
 		for (int i = 0; i < m_expandList.size(); i++)
 			if (m_expandList[i] == data) {
-				expandTxt = "+";
+				expandTxt = UI_ICON_DOWN;
 				break;
 			}
 
 		expandTxt += "##passexp_" + std::string(item->Name);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::SmallButton(expandTxt.c_str())) {
-			if (expandTxt[0] == '+') {
+		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE)) {
+			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos) {
 				for (int i = 0; i < m_expandList.size(); i++)
 					if (m_expandList[i] == data) {
 						m_expandList.erase(m_expandList.begin() + i);

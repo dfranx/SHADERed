@@ -141,17 +141,18 @@ There are also some features that I am looking to implement:
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
--  compute and tesselation shaders
+ -  compute and tesselation shaders
  - render your shader to a video file
  - buffers read from file or built using in-app buffer editor
  - magnifier tool & pixel inspector
- - text geometry
  - debugger
- - built-in FXAA
 
 
 Except those large features, I am also planning to do some small QoL changes:
- - CodeEditorUI loses focus when pressing ALT keys
+ - fix "Show the error list window when a build finishes with errors" option
+ - add "Hide the error list window when a build doesn't hve any errors" option
+ - remove everything FXAA related
+ - CodeEditorUI loses focus when pressing ALT keys on linux
  - name already taken when creating item thru CreateItemUI? then color the "Name:" label red
  - add Options -> Project -> Disable clear
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
@@ -168,7 +169,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - use an icon font instead of buttons like "U", "D", etc...
  - toolbar (a bar with all the important tools (icons))
  - shift+drag with right click to move ArcBallCamera focus point
- - add an option to disable certain shader pass
+ - add an option to hide/lock certain shader pass
  - error marker should "stick" on the line when new lines are added
  - find and replace in code editor
  - right click in code editor
@@ -234,7 +235,7 @@ Some of the examples in the `examples` directory were taken from AMD's Render Mo
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)
-![](./Screenshots/screen2.jpg)
+![](https://user-images.githubusercontent.com/3957610/64042734-e1f9f880-cb62-11e9-8751-90bea93a55a7.png)
 
 Send your own screenshots!
 

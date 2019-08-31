@@ -187,15 +187,21 @@ namespace ed
 			ImFontAtlas* fonts = ImGui::GetIO().Fonts;
 			fonts->Clear();
 
-			ImFont* font = nullptr;
-			font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
+			ImFont* font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
 
+			// icon font
+  			ImGuiIO& io = ImGui::GetIO();
+			ImFontConfig config;
+			config.MergeMode = true;
+  			static const ImWchar icon_ranges[] = { 0xea5b, 0xf026, 0 };
+			io.Fonts->AddFontFromFileTTF("data/icofont.ttf", m_cachedFontSize * Settings::Instance().DPIScale, &config, icon_ranges);
+			
 			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
 
 			if (font == nullptr || edFontPtr == nullptr) {
 				fonts->Clear();
 				font = fonts->AddFontDefault();
-				font = fonts->AddFontDefault();
+				edFontPtr = fonts->AddFontDefault();
 
 				Logger::Get().Log("Failed to load fonts", true);
 			}

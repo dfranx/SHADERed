@@ -168,7 +168,7 @@ namespace ed
 
 
 		/* AUTO ERROR SHOW: */
-		ImGui::Text("Show error list when build finishes with an error: ");
+		ImGui::Text("Show error list window when build finishes with an error: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autoerror", &settings->General.AutoOpenErrorWindow);
 

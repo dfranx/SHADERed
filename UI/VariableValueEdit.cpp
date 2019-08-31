@@ -1,4 +1,5 @@
 #include "VariableValueEdit.h"
+#include "Icons.h"
 #include "../Objects/FunctionVariableManager.h"
 #include "../Objects/Names.h"
 
@@ -23,7 +24,7 @@ namespace ed
 
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth()-(71+ImGui::GetStyle().WindowPadding.x*2));
-			if (ImGui::Button(("V##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0)))
+			if (ImGui::Button((UI_ICON_EDIT "##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0)))
 				m_var->Function = FunctionShaderVariable::None;
 
 			if (state != FunctionShaderVariable::None)
@@ -32,7 +33,7 @@ namespace ed
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
 			ImGui::SameLine();
-			if (ImGui::Button(("F##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0))) {
+			if (ImGui::Button((UI_ICON_FX "##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0))) {
 				// find first function that is compatible with this value type
 				for (int i = 0; i < (int)FunctionShaderVariable::Count; i++)
 					if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)i)) {
@@ -112,6 +113,8 @@ namespace ed
 	}
 	void VariableValueEditUI::m_drawFunction()
 	{
+		ImGui::Text("Function:");
+		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 		const char* inputComboPreview = FUNCTION_NAMES[(int)m_var->Function];
 		if (ImGui::BeginCombo(("##func" + std::string(m_var->Name)).c_str(), inputComboPreview)) {
