@@ -560,8 +560,10 @@ namespace ed
 			ImGui::InputText("Name", buf, 64);
 
 			if (ImGui::Button("Ok")) {
-				if (m_data->Objects.CreateRenderTexture(buf))
+				if (m_data->Objects.CreateRenderTexture(buf)) {
+					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetRenderTexture(m_data->Objects.GetTexture(buf)));
 					ImGui::CloseCurrentPopup();
+				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();

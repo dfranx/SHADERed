@@ -17,7 +17,7 @@ PSOutput main(PSInput pin)
 {
 	PSOutput pout;
 	pout.Color0 = pin.PosInWorld;
-	pout.Color1 = float4(pin.Normal, 1) * 0.5f + 0.5f;
+	pout.Color1 = float4(pin.Normal, 1);
 	pout.Color2 = pin.Color;
 	
 	return pout;

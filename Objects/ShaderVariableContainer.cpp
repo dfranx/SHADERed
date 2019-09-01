@@ -63,7 +63,7 @@ namespace ed
 		m_samplers.clear();
 
 		try {
-			std::regex re("sampler.+ .+;");
+			std::regex re("[a-z]?sampler.+ .+;");
 			std::sregex_iterator next(fragShader.begin(), fragShader.end(), re);
 			std::sregex_iterator end;
 			while (next != end) {

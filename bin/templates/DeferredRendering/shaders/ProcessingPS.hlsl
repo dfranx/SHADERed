@@ -22,7 +22,7 @@ float4 main(PSInput pin) : SV_TARGET
 	float4 pos = posTex.Sample(smp,pin.UV);   
 	clip((pos.w != 0) - 1);
 	
-	float4 n = normalTex.Sample(smp, pin.UV) * 2 - 1;
+	float4 n = normalTex.Sample(smp, pin.UV);
 	float3 normal = normalize(n.xyz);
 	float3 toLight = normalize(lightPos - pos.xyz);
  

@@ -1,4 +1,6 @@
 [v1.1.3]
++ add icon font
++ add format property to render textures
 + fix last frame flag for GeometryTransform
 - disable last frame flag for ViewportSize
 

@@ -2,8 +2,8 @@
 <project version="2">
 	<pipeline>
 		<pass name="GBuffer">
-			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
+			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
 			<rendertexture name="positionRT" />
 			<rendertexture name="normalRT" />
 			<rendertexture name="diffuseRT" />
@@ -18,6 +18,7 @@
 					</row>
 				</variable>
 			</variables>
+			<macros />
 			<items>
 				<item name="Box" type="geometry">
 					<type>Cube</type>
@@ -49,8 +50,8 @@
 			</itemvalues>
 		</pass>
 		<pass name="Processing">
-			<shader type="vs" path="shaders\ProcessingVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders\ProcessingPS.hlsl" entry="main" />
+			<shader type="vs" path="shaders/ProcessingVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/ProcessingPS.hlsl" entry="main" />
 			<rendertexture />
 			<variables>
 				<variable type="float4x4" name="matVP" system="Orthographic" />
@@ -63,6 +64,7 @@
 					</row>
 				</variable>
 			</variables>
+			<macros />
 			<items>
 				<item name="Fullscreen" type="geometry">
 					<type>ScreenQuad</type>
@@ -76,18 +78,17 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="rendertexture" name="normalRT" rsize="1.000000,1.000000">
+		<object type="rendertexture" name="normalRT" format="R32G32B32_FLOAT" rsize="1.000000,1.000000" clear="true">
 			<bind slot="1" name="Processing" />
 		</object>
-		<object type="rendertexture" name="positionRT" rsize="1.000000,1.000000">
+		<object type="rendertexture" name="positionRT" format="R32G32B32A32_FLOAT" rsize="1.000000,1.000000" clear="true">
 			<bind slot="0" name="Processing" />
 		</object>
-		<object type="rendertexture" name="diffuseRT" rsize="1.000000,1.000000">
+		<object type="rendertexture" name="diffuseRT" rsize="1.000000,1.000000" clear="true">
 			<bind slot="2" name="Processing" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Processing" />
 		<entry type="pinned" name="lightPos" owner="Processing" />
 		<entry type="camera" fp="false">
 			<distance>10</distance>

@@ -11,8 +11,10 @@ extern const char* BLEND_OPERATOR_NAMES[6];
 extern const char* COMPARISON_FUNCTION_NAMES[9];
 extern const char* STENCIL_OPERATION_NAMES[9];
 extern const char* CULL_MODE_NAMES[4];
+extern const char* FORMAT_NAMES[66];
 
 // VALUES //
+extern const unsigned int FORMAT_VALUES[66];
 extern const unsigned int BLEND_VALUES[20];
 extern const unsigned int BLEND_OPERATOR_VALUES[6];
 extern const unsigned int COMPARISON_FUNCTION_VALUES[9];
@@ -27,6 +29,7 @@ namespace ed
 		class String
 		{
 		public:
+			static const char* Format(unsigned int val);
 			static const char* BlendFactor(unsigned int val);
 			static const char* BlendFunction(unsigned int val);
 			static const char* ComparisonFunction(unsigned int val);

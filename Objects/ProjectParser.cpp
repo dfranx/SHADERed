@@ -362,6 +362,10 @@ namespace ed
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
+					
+					if(rtObj->Format != GL_RGBA)
+						textureNode.append_attribute("format").set_value(gl::String::Format(rtObj->Format));
+					
 					if (rtObj->FixedSize.x != -1)
 						textureNode.append_attribute("fsize").set_value((std::to_string(rtObj->FixedSize.x) + "," + std::to_string(rtObj->FixedSize.y)).c_str());
 					else
@@ -1093,6 +1097,7 @@ namespace ed
 
 				m_objects->CreateRenderTexture(objName);
 				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(m_objects->GetTexture(objName));
+				rt->Format = GL_RGBA;
 
 				// load size
 				if (objectNode.attribute("fsize").empty()) { // load RatioSize if attribute fsize (FixedSize) doesnt exist
@@ -1705,6 +1710,17 @@ namespace ed
 
 				m_objects->CreateRenderTexture(objName);
 				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(m_objects->GetTexture(objName));
+
+				// load format
+				if (!objectNode.attribute("format").empty()) {
+					auto formatName = objectNode.attribute("format").as_string();
+					for (int i = 0; i < HARRAYSIZE(FORMAT_NAMES); i++) {
+						if (strcmp(formatName, FORMAT_NAMES[i]) == 0) {
+							rt->Format = FORMAT_VALUES[i];
+							break;
+						}
+					}
+				}
 
 				// load size
 				if (objectNode.attribute("fsize").empty()) { // load RatioSize if attribute fsize (FixedSize) doesnt exist

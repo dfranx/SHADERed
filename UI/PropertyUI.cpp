@@ -710,6 +710,28 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::Separator();
 
+				/* FORMAT */
+				ImGui::Text("Format:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentRT->Format))) {
+					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
+					for (int i = 0; i < len; i++) {
+						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentRT->Format)) {
+							m_currentRT->Format = FORMAT_VALUES[i];
+							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
+
+							m_data->Objects.ResizeRenderTexture(std::string(m_itemName), m_currentRT->CalculateSize(wsize.x, wsize.y));
+						}
+					}
+
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				
 				/* CLEAR? */
 				ImGui::Text("Clear:");
 				ImGui::NextColumn();

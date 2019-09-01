@@ -65,10 +65,16 @@ namespace ed
 		ed::RenderTextureObject* rtObj = m_rts[name] = new ed::RenderTextureObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
+		rtObj->FixedSize = size;
+		rtObj->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		rtObj->Name = name;
+		rtObj->Clear = true;
+		rtObj->Format = GL_RGBA;
+
 		// color texture
 		glGenTextures(1, &m_texs[name]);
 		glBindTexture(GL_TEXTURE_2D, m_texs[name]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -80,11 +86,6 @@ namespace ed
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		m_rts[name]->FixedSize = size;
-		m_rts[name]->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		m_rts[name]->Name = name;
-		m_rts[name]->Clear = true;
 
 		return true;
 	}
@@ -370,7 +371,7 @@ namespace ed
 		RenderTextureObject* rtObj = this->GetRenderTexture(m_texs[name]);
 
 		glBindTexture(GL_TEXTURE_2D, m_texs[name]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, size.x, size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);

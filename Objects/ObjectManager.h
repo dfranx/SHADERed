@@ -23,6 +23,10 @@ namespace ed
 		glm::vec4 ClearColor;
 		std::string Name;
 		bool Clear;
+		GLuint Format;
+
+		RenderTextureObject() : FixedSize(-1, -1), RatioSize(1,1),
+		Clear(true), ClearColor(0,0,0,1), Format(GL_RGBA) { }
 
 		glm::ivec2 CalculateSize(int w, int h)
 		{
