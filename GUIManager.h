@@ -50,6 +50,8 @@ namespace ed
 		inline void CreateNewCubemap() { m_isCreateCubemapOpened = true; }
 		void CreateNewAudio();
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
+		inline bool IsPerformanceMode() { return m_performanceMode; }
+		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
 
 		bool SaveAsProject(bool restoreCached = false);
 		void Open(const std::string& file);
@@ -59,6 +61,7 @@ namespace ed
 
 		void m_imguiHandleEvent(const SDL_Event& e);
 
+		void m_tooltip(const std::string& str);
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;
 

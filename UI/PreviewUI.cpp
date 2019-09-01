@@ -14,7 +14,7 @@
 #include <thread>
 #include <imgui/imgui_internal.h>
 
-#define STATUSBAR_HEIGHT 26 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT 28 * Settings::Instance().DPIScale
 #define BUTTON_SIZE 20 * Settings::Instance().DPIScale
 #define ICON_BUTTON_WIDTH 20 * Settings::Instance().DPIScale
 #define BUTTON_INDENT 5 * Settings::Instance().DPIScale
@@ -564,9 +564,12 @@ namespace ed
 		ImGui::Separator();
 		ImGui::Text("FPS: %.2f", FPS);
 		ImGui::SameLine();
-		
-		ImGui::SameLine(150 * Settings::Instance().DPIScale);
 
+		ImGui::SameLine(150 * Settings::Instance().DPIScale);
+		ImGui::Text("Time: %.2f", SystemVariableManager::Instance().GetTime());
+		ImGui::SameLine();
+
+		ImGui::SameLine(300 * Settings::Instance().DPIScale);
 		if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
 			m_pickMode = 0;
@@ -609,22 +612,26 @@ namespace ed
 		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		
-		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
+		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2 * Settings::Instance().DPIScale;
 		ImGui::SetCursorPosX(pauseStartX);
 		ImGui::Button(UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
 		ImGui::SameLine(0,BUTTON_INDENT);
 		ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
 		ImGui::SameLine();
 
-		float zoomStartX = width - (ICON_BUTTON_WIDTH*3) - BUTTON_INDENT*3;
+		float zoomStartX = (width - (ICON_BUTTON_WIDTH * 3) - BUTTON_INDENT * 3) * Settings::Instance().DPIScale;
 		ImGui::SetCursorPosX(zoomStartX);
 		ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
 		ImGui::SameLine(0,BUTTON_INDENT);
 		ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
 		ImGui::SameLine(0,BUTTON_INDENT);
-		ImGui::Button(UI_ICON_MAXIMIZE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		if (m_ui->IsPerformanceMode())
+			ImGui::PopStyleColor();
+		if (ImGui::Button(UI_ICON_MAXIMIZE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) 
+			m_ui->SetPerformanceMode(!m_ui->IsPerformanceMode());
 
-		ImGui::PopStyleColor();
+		if (!m_ui->IsPerformanceMode())
+			ImGui::PopStyleColor();
 	}
 
 	void PreviewUI::m_setupBoundingBox()

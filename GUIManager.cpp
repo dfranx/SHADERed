@@ -162,6 +162,21 @@ namespace ed
 		for (auto view : m_views)
 			view->OnEvent(e);
 	}
+	void GUIManager::m_tooltip(const std::string &text)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::PopFont(); // TODO: remove this if its being used in non-toolbar places
+
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(text.c_str());
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+
+			ImGui::PushFont(m_iconFontLarge);
+		}
+	}
 	void GUIManager::m_renderToolbar()
 	{
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
@@ -170,7 +185,7 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		ImGui::Begin("##toolbar", 0, window_flags);
 		ImGui::PopStyleVar(3);
@@ -187,32 +202,106 @@ namespace ed
 		*/
 		ImGui::Columns(4);
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(2, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(2, (6*(TOOLBAR_HEIGHT) + 6*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-		ImGui::Button(UI_ICON_DOCUMENT_FOLDER); ImGui::SameLine();
-		ImGui::Button(UI_ICON_SAVE); ImGui::SameLine();
-		ImGui::Button(UI_ICON_FILE_FILE); ImGui::SameLine();
-		ImGui::Button(UI_ICON_FOLDER_OPEN); ImGui::SameLine();
-		ImGui::Button(UI_ICON_FILE_CODE);
+		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
+		// repetitions
+		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) {		// OPEN PROJECT
+			std::string file;
+			if (UIHelper::GetOpenFileDialog(file, "sprj"))
+				Open(file);
+		}
+		m_tooltip("Open a project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_SAVE)) {					// SAVE
+			if (m_data->Parser.GetOpenedFile() == "")
+				SaveAsProject();
+			else
+				m_data->Parser.Save();
+		}
+		m_tooltip("Save project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_FILE)) {				// EMPTY PROJECT
+			m_selectedTemplate = "?empty";
+			m_isNewProjectPopupOpened = true;
+		}
+		m_tooltip("New empty project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FOLDER_OPEN)) {			// OPEN DIRECTORY
+			std::string prpath = m_data->Parser.GetProjectPath("");
+#if defined(__APPLE__)
+			system(("open " + prpath).c_str()); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+			system(("xdg-open " + prpath).c_str());
+#elif defined(_WIN32)
+			ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+		}
+		m_tooltip("Open project directory");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_CODE)) {				// NEW SHADER FILE
+			std::string file;
+			bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
+
+			if (success) {
+				// create a file (cross platform)
+				std::ofstream ofs(file);
+				ofs << "// empty shader file\n";
+				ofs.close();
+			}
+		}
+		m_tooltip("New shader file");
 		ImGui::NextColumn();
 
-		ImGui::Button(UI_ICON_FILE_IMAGE); ImGui::SameLine();
-		ImGui::Button(UI_ICON_FILE_WAVE); ImGui::SameLine();
-		ImGui::Button(UI_ICON_TRANSPARENT); ImGui::SameLine();
-		ImGui::Button(UI_ICON_CUBE);
+		if (ImGui::Button(UI_ICON_PIXELS)) this->CreateNewShaderPass();
+		m_tooltip("New shader pass");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
+		m_tooltip("New texture");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_WAVE)) this->CreateNewAudio();
+		m_tooltip("New audio");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_TRANSPARENT)) this->CreateNewRenderTexture();
+		m_tooltip("New render texture");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_CUBE)) this->CreateNewCubemap();
+		m_tooltip("New cubemap");
 		ImGui::NextColumn();
 
-		ImGui::Button(UI_ICON_CAMERA); ImGui::SameLine();
-		ImGui::Button(UI_ICON_PAUSE); ImGui::SameLine();
-		ImGui::Button(UI_ICON_ZOOM_IN); ImGui::SameLine();
-		ImGui::Button(UI_ICON_ZOOM_OUT); ImGui::SameLine();
-		ImGui::Button(UI_ICON_MAXIMIZE);
+		if (ImGui::Button(UI_ICON_REFRESH)) {				// REBUILD PROJECT
+			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
+			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+			for (PipelineItem*& pass : passes)
+				m_data->Renderer.Recompile(pass->Name);
+		}
+		m_tooltip("Rebuild");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_CAMERA)) m_savePreviewPopupOpened = true; // TAKE A SCREENSHOT
+		m_tooltip("Render");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_PAUSE)) { }
+		m_tooltip("Pause preview");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_ZOOM_IN)) { }
+		m_tooltip("Zoom in");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_ZOOM_OUT)) { }
+		m_tooltip("Zoom out");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
+		m_tooltip("Performance mode");
 		ImGui::NextColumn();
 
-		ImGui::Button(UI_ICON_GEAR);	
+		if (ImGui::Button(UI_ICON_GEAR)) {				// SETTINGS BUTTON 
+			m_optionsOpened = true;
+			*m_settingsBkp = Settings::Instance();
+			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
+		}
+		m_tooltip("Settings");
 		ImGui::NextColumn();	
 
 		ImGui::PopStyleColor();
