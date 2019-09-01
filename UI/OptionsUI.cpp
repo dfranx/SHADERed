@@ -165,7 +165,10 @@ namespace ed
 			ApplyTheme();
 		}
 
-
+		/* RECOVERY: */
+		ImGui::Text("Show toolbar: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_recovery", &settings->General.Toolbar);
 
 		/* AUTO ERROR SHOW: */
 		ImGui::Text("Show error list window when build finishes with an error: ");

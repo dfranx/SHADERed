@@ -15,6 +15,7 @@ namespace ed
 
 		General.VSync = false;
 		General.AutoOpenErrorWindow = true;
+		General.Toolbar = false;
 		General.Recovery = false;
 		General.CheckUpdates = false;
 		General.ReopenShaders = true;
@@ -77,6 +78,7 @@ namespace ed
 
 		General.VSync = ini.GetBoolean("general", "vsync", false);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
+		General.Toolbar = ini.GetBoolean("general", "toolbar", false);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", false);
 		General.Log = ini.GetBoolean("general", "log", true);
@@ -135,6 +137,7 @@ namespace ed
 		ini << "theme=" << Theme << std::endl;
 		ini << "vsync=" << General.VSync << std::endl;
 		ini << "autoerror=" << General.AutoOpenErrorWindow << std::endl;
+		ini << "toolbar=" << General.Toolbar << std::endl;
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
 		ini << "log=" << General.Log << std::endl;

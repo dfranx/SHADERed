@@ -149,6 +149,7 @@ There are also some features that I am looking to implement:
 
 
 Except those large features, I am also planning to do some small QoL changes:
+ - fix for: SetColumnWidth doesn't allow user to resize the columns
  - fix "Show the error list window when a build finishes with errors" option
  - add "Hide the error list window when a build doesn't hve any errors" option
  - remove everything FXAA related
@@ -166,8 +167,7 @@ Except those large features, I am also planning to do some small QoL changes:
  - ability to change warning, message and error text colors
  - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
- - use an icon font instead of buttons like "U", "D", etc...
- - toolbar (a bar with all the important tools (icons))
+ - ability to edit the buttons that show up in the toolbar
  - shift+drag with right click to move ArcBallCamera focus point
  - add an option to hide/lock certain shader pass
  - error marker should "stick" on the line when new lines are added

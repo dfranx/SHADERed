@@ -13,6 +13,7 @@
 #include "UI/OptionsUI.h"
 #include "UI/PinnedUI.h"
 #include "UI/UIHelper.h"
+#include "UI/Icons.h"
 #include "Objects/Logger.h"
 #include "Objects/Names.h"
 #include "Objects/Settings.h"
@@ -34,6 +35,7 @@
 #endif
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define TOOLBAR_HEIGHT 48
 
 namespace ed
 {
@@ -160,6 +162,66 @@ namespace ed
 		for (auto view : m_views)
 			view->OnEvent(e);
 	}
+	void GUIManager::m_renderToolbar()
+	{
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + ImGui::GetFrameHeight()));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("##toolbar", 0, window_flags);
+		ImGui::PopStyleVar(3);
+		
+		float bHeight = TOOLBAR_HEIGHT/2 + ImGui::GetStyle().FramePadding.y * 2;
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - bHeight * Settings::Instance().DPIScale / 2);
+		ImGui::Indent(15 * Settings::Instance().DPIScale);
+
+		/*
+			project (open, open directory, save, empty, new shader) ||
+			objects (new texture, new cubemap, new audio, new render texture) ||
+			preview (screenshot, pause, zoom in, zoom out, maximize) ||
+			random (settings)
+		*/
+		ImGui::Columns(4);
+		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(2, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::PushFont(m_iconFontLarge);
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+		ImGui::Button(UI_ICON_DOCUMENT_FOLDER); ImGui::SameLine();
+		ImGui::Button(UI_ICON_SAVE); ImGui::SameLine();
+		ImGui::Button(UI_ICON_FILE_FILE); ImGui::SameLine();
+		ImGui::Button(UI_ICON_FOLDER_OPEN); ImGui::SameLine();
+		ImGui::Button(UI_ICON_FILE_CODE);
+		ImGui::NextColumn();
+
+		ImGui::Button(UI_ICON_FILE_IMAGE); ImGui::SameLine();
+		ImGui::Button(UI_ICON_FILE_WAVE); ImGui::SameLine();
+		ImGui::Button(UI_ICON_TRANSPARENT); ImGui::SameLine();
+		ImGui::Button(UI_ICON_CUBE);
+		ImGui::NextColumn();
+
+		ImGui::Button(UI_ICON_CAMERA); ImGui::SameLine();
+		ImGui::Button(UI_ICON_PAUSE); ImGui::SameLine();
+		ImGui::Button(UI_ICON_ZOOM_IN); ImGui::SameLine();
+		ImGui::Button(UI_ICON_ZOOM_OUT); ImGui::SameLine();
+		ImGui::Button(UI_ICON_MAXIMIZE);
+		ImGui::NextColumn();
+
+		ImGui::Button(UI_ICON_GEAR);	
+		ImGui::NextColumn();	
+
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		ImGui::Columns(1);
+
+
+		ImGui::End();
+	}
 	void GUIManager::Update(float delta)
 	{
 		Settings& settings = Settings::Instance();
@@ -206,6 +268,10 @@ namespace ed
 				Logger::Get().Log("Failed to load fonts", true);
 			}
 
+			// icon font large
+			ImFontConfig configIconsLarge;
+			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", (TOOLBAR_HEIGHT/2) * Settings::Instance().DPIScale, &configIconsLarge, icon_ranges);
+
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();
 
@@ -219,11 +285,20 @@ namespace ed
 		ImGui_ImplSDL2_NewFrame(m_wnd);
 		ImGui::NewFrame();
 
+		// toolbar
+		static bool initializedToolbar = false;
+		bool actuallyToolbar = settings.General.Toolbar && !m_performanceMode;
+		if (!initializedToolbar) { // some hacks ew
+			m_renderToolbar();
+			initializedToolbar = true;
+		} else if (actuallyToolbar)
+			m_renderToolbar();
+
 		// create a fullscreen imgui panel that will host a dockspace
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, viewport->Size.y - actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -406,10 +481,11 @@ namespace ed
 
 		ImGui::End();
 
-		int wndW, wndH;
-		SDL_GetWindowSize(m_wnd, &wndW, &wndH);
 
 		if (!m_performanceMode) {
+			int wndW, wndH;
+			SDL_GetWindowSize(m_wnd, &wndW, &wndH);
+			
 			for (auto view : m_views)
 				if (view->Visible) {
 					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(wndW, wndH));
@@ -931,6 +1007,9 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.SaveAs", [=]() {
 			SaveAsProject();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.ToggleToolbar", [=]() {
+			Settings::Instance().General.Toolbar ^= 1;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.Open", [=]() {
 			m_data->Renderer.FlushCache();

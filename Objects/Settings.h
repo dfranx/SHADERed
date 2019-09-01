@@ -21,6 +21,7 @@ namespace ed
 			bool VSync;
 			// std::string Language;	// [TODO] Not implemented
 			bool AutoOpenErrorWindow;
+			bool Toolbar;
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;			// [TODO] Not implemented
 			bool RecompileOnFileChange;

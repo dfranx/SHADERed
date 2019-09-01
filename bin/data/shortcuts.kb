@@ -51,3 +51,4 @@ Workspace.HidePreview CTRL W P
 Workspace.HideProperties CTRL W R
 Workspace.Options CTRL W O
 Workspace.PerformanceMode F
+Workspace.ToggleToolbar CTRL SHIFT F1

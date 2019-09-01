@@ -8,6 +8,8 @@
 #include <string>
 #include <map>
 
+class ImFont;
+
 namespace ed
 {
 	class InterfaceManager;
@@ -56,6 +58,9 @@ namespace ed
 		void m_setupShortcuts();
 
 		void m_imguiHandleEvent(const SDL_Event& e);
+
+		void m_renderToolbar();
+		ImFont* m_iconFontLarge;
 
 		void m_renderOptions();
 		bool m_optionsOpened;
