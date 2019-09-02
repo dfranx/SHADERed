@@ -59,6 +59,16 @@ namespace ed
 						glm::vec2 raw = SystemVariableManager::Instance().GetMousePosition();
 						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
 					} break;
+					case ed::SystemShaderVariable::Mouse:
+					{
+						glm::vec4 raw = SystemVariableManager::Instance().GetMouse();
+						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
+					} break;
+					case ed::SystemShaderVariable::MouseButton:
+					{
+						glm::vec4 raw = SystemVariableManager::Instance().GetMouseButton();
+						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
+					} break;
 					case ed::SystemShaderVariable::Time:
 					{
 						float raw = SystemVariableManager::Instance().GetTime();
@@ -129,8 +139,18 @@ namespace ed
 					} break;
 					case ed::SystemShaderVariable::MousePosition:
 					{
-						glm::vec2 raw = m_prevState.Mouse;
+						glm::vec2 raw = m_prevState.MousePosition;
 						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
+					} break;
+					case ed::SystemShaderVariable::Mouse:
+					{
+						glm::vec4 raw = m_prevState.Mouse;
+						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
+					} break;
+					case ed::SystemShaderVariable::MouseButton:
+					{
+						glm::vec4 raw = m_prevState.MouseButton;
+						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
 					} break;
 					case ed::SystemShaderVariable::Time:
 					{

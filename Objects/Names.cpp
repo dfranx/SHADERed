@@ -40,7 +40,9 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"GeometryTransform",
 	"IsPicked",
 	"CameraPosition",
-	"KeysWASD"
+	"KeysWASD",
+	"Mouse",
+	"MouseButton"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",

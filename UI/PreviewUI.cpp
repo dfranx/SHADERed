@@ -119,9 +119,15 @@ namespace ed
 	}
 	void PreviewUI::OnEvent(const SDL_Event& e)
 	{
-		if (e.type == SDL_MOUSEBUTTONDOWN)
+		if (e.type == SDL_MOUSEBUTTONDOWN) {
 			m_mouseContact = ImVec2(e.button.x, e.button.y);
-		else if (e.type == SDL_MOUSEMOTION && Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
+		
+			if (!m_data->Renderer.IsPaused() &&
+			   (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT)) {
+					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
+			}
+			SystemVariableManager::Instance().SetMouse(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
+		} else if (e.type == SDL_MOUSEMOTION && Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
 			glm::vec2 s = m_mousePos;
 			s.x *= m_lastSize.x;
 			s.y *= m_lastSize.y;
@@ -273,6 +279,7 @@ namespace ed
 
 			// update system variable mouse position value
 			SystemVariableManager::Instance().SetMousePosition(m_mousePos.x, m_mousePos.y);
+			SystemVariableManager::Instance().SetMouse(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
 		}
 
 		// apply transformations to picked items

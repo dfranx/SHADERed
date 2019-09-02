@@ -29,7 +29,7 @@ namespace ed
 			m_curState.IsPicked = false;
 			m_curState.WASD = glm::vec4(0,0,0,0);
 			m_curState.Viewport = glm::vec2(0,0);
-			m_curState.Mouse = glm::vec2(0,0);
+			m_curState.MousePosition = glm::vec2(0,0);
 			m_curState.DeltaTime = 0.0f;
 			m_curGeoTransform.clear();
 			m_prevGeoTransform.clear();
@@ -39,6 +39,8 @@ namespace ed
 		{
 			switch (sysVar) {
 				case ed::SystemShaderVariable::MousePosition: return ed::ShaderVariable::ValueType::Float2;
+				case ed::SystemShaderVariable::Mouse: return ed::ShaderVariable::ValueType::Float4;
+				case ed::SystemShaderVariable::MouseButton: return ed::ShaderVariable::ValueType::Float4;
 				case ed::SystemShaderVariable::Projection: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::Time: return ed::ShaderVariable::ValueType::Float1;
 				case ed::SystemShaderVariable::TimeDelta: return ed::ShaderVariable::ValueType::Float1;
@@ -71,7 +73,9 @@ namespace ed
 		inline glm::mat4 GetGeometryTransform(PipelineItem* item) { return m_curGeoTransform[item]; }
 		inline glm::vec2 GetViewportSize() { return m_curState.Viewport; }
 		inline glm::ivec4  GetKeysWASD() { return m_curState.WASD; }
-		inline glm::vec2 GetMousePosition() { return m_curState.Mouse; }
+		inline glm::vec2 GetMousePosition() { return m_curState.MousePosition; }
+		inline glm::vec4 GetMouse() { return m_curState.Mouse; }
+		inline glm::vec4 GetMouseButton() { return m_curState.MouseButton; }
 		inline unsigned int GetFrameIndex() { return m_curState.FrameIndex; }
 		inline float GetTime() { return m_timer.GetElapsedTime() + m_advTimer; }
 		inline eng::Timer& GetTimeClock() { return m_timer; }
@@ -85,7 +89,9 @@ namespace ed
 				glm::scale(glm::mat4(1.0f), scale);
 		}
 		inline void SetViewportSize(float x, float y) { m_curState.Viewport = glm::vec2(x, y); }
-		inline void SetMousePosition(float x, float y) { m_curState.Mouse = glm::vec2(x, y); }
+		inline void SetMousePosition(float x, float y) { m_curState.MousePosition = glm::vec2(x, y); }
+		inline void SetMouse(float x, float y, float left, float right) { m_curState.Mouse = glm::vec4(x, y, left, right); }
+		inline void SetMouseButton(float x, float y, float left, float right) { m_curState.MouseButton = glm::vec4(x, y, left, right); }
 		inline void SetTimeDelta(float x) { m_curState.DeltaTime = x; }
 		inline void SetPicked(bool picked) { m_curState.IsPicked = picked; }
 		inline void SetKeysWASD(int w, int a, int s, int d) { m_curState.WASD = glm::ivec4(w, a, s, d); }
@@ -102,10 +108,11 @@ namespace ed
 			float DeltaTime;
 			ArcBallCamera ArcCam;
 			FirstPersonCamera FPCam;
-			glm::vec2 Viewport, Mouse;
+			glm::vec2 Viewport, MousePosition;
 			bool IsPicked;
 			unsigned int FrameIndex;
 			glm::ivec4 WASD;
+			glm::vec4 Mouse, MouseButton;
 		} m_prevState, m_curState;
 
 

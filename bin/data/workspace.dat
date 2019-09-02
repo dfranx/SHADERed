@@ -15,14 +15,14 @@ Collapsed=0
 DockId=0x00000004,1
 
 [Window][Preview]
-Pos=848,22
-Size=1002,826
+Pos=289,22
+Size=1561,826
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Output]
-Pos=848,850
-Size=1002,165
+Pos=289,850
+Size=1561,165
 Collapsed=0
 DockId=0x00000006,0
 
