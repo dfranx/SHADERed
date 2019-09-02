@@ -73,7 +73,8 @@ namespace ed
 		inline glm::ivec4  GetKeysWASD() { return m_curState.WASD; }
 		inline glm::vec2 GetMousePosition() { return m_curState.Mouse; }
 		inline unsigned int GetFrameIndex() { return m_curState.FrameIndex; }
-		inline float GetTime() { return m_timer.GetElapsedTime(); }
+		inline float GetTime() { return m_timer.GetElapsedTime() + m_advTimer; }
+		inline eng::Timer& GetTimeClock() { return m_timer; }
 		inline float GetTimeDelta() { return m_curState.DeltaTime; }
 		inline bool IsPicked() { return m_curState.IsPicked; }
 
@@ -90,8 +91,11 @@ namespace ed
 		inline void SetKeysWASD(int w, int a, int s, int d) { m_curState.WASD = glm::ivec4(w, a, s, d); }
 		inline void SetFrameIndex(unsigned int ind) { m_curState.FrameIndex = ind; }
 
+		inline void AdvanceTimer(float t) { m_advTimer += t; }
+
 	private:
 		eng::Timer m_timer;
+		float m_advTimer;
 
 		struct ValueGroup
 		{

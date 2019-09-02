@@ -22,6 +22,7 @@ namespace ed
 			ret = ret / 1000000.0f - m_pauseTime;
 
 			m_start = end;
+			m_pauseStart = end;
 			m_pauseTime = 0;
 
 			return ret;

@@ -34,6 +34,9 @@ namespace ed
 		inline GLuint GetTexture() { return m_rtColor; }
 		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
 
+		inline bool IsPaused() { return m_paused; }
+		void Pause(bool pause);
+
 	public:
 		struct ItemVariableValue
 		{
@@ -72,6 +75,9 @@ namespace ed
 		ObjectManager* m_objects;
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
+
+		// paused time?
+		bool m_paused;
 
 		/* 'window' FBO */
 		glm::ivec2 m_lastSize;

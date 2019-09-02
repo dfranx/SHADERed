@@ -132,67 +132,10 @@ have the same text as the parent directory of the template.
 
 ### And many more
 Variable pointers, shader macros, etc...
-
-## Screenshots
-![](./Screenshots/screen1.jpg)
-![](https://user-images.githubusercontent.com/3957610/64042734-e1f9f880-cb62-11e9-8751-90bea93a55a7.png)
-
-Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!
-
-## TODO
-There are also some features that I am looking to implement:
- - multiple cameras
-   - this feature would allow you to render same scene from multiple angles
- - node shader editor that can export to GLSL and HLSL
- - shader & theme "store"
-   - a place where you can upload your shaders or themes and see other peoples creations
- - "Export as DirectX/OpenGL application" option (.cpp file)
- - compute shaders
- - render your shader to a video file
- - buffers read from file or built using in-app buffer editor
- - magnifier tool
- - pixel inspector
- - debugger
-
-
-Except those large features, I am also planning to do some small QoL changes:
- - fix for: SetColumnWidth doesn't allow user to resize the columns
- - fix "Show the error list window when a build finishes with errors" option
- - add "Hide the error list window when a build doesn't hve any errors" option
- - remove everything FXAA related
- - CodeEditorUI loses focus when pressing ALT keys on linux
- - name already taken when creating item thru CreateItemUI? then color the "Name:" label red
- - add Options -> Project -> Disable clear
- - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
- - add "Advanced" menu that allows user to modify (at least some) system variables when taking screenshot/video
- - cubemap preview
- - click on cubemap, audio, 3d model, texture and render texture preview should open a preview window
- - recompile the shader after we change shader path in a shader pass
- - when adding a shader pass, decompile the shader and detect the input layout + input variables
- - vec4 MouseState (x, y, lBtn, rBtn)
- - when loading a texture it might not be loaded if not bound to any shader pass
- - indent controls after fps in the status bar - bad UX and UI
- - ability to change warning, message and error text colors
- - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
- - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
- - ability to edit the buttons that show up in the toolbar
- - shift+drag with right click to move ArcBallCamera focus point
- - add an option to hide/lock certain shader pass
- - error marker should "stick" on the line when new lines are added
- - find and replace in code editor
- - right click in code editor
- - improve the overall code (enum for shader type, etc...)
- - show tips on startup
- - option "Show menu bar on mouse move" or "Hide menu bar in performance mode" or "Hide menu bar"
- - fix memory leaks
- - undo/redo adding shader items
- - languages (english, croatian, etc...)
- - switch from sdl to sfml (?)
- - dragging items from one pass to another, duplicating them, etc...
+Check out the list of features that I want to implement in near future: [TODO.md](./TODO.md)
 
 ## Binaries
-To download already precompiled binaries, you can visit [Release](https://github.com/dfranx/SHADERed/releases) page and download
-latest stable binary release.
+You can download precompiled binaries here: [Releases](https://github.com/dfranx/SHADERed/releases)
 
 ## Building
 First clone the project & submodules:
@@ -229,12 +172,18 @@ Run:
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
 detailed steps on how to do so.
 
+## Screenshots
+![](./Screenshots/screen1.jpg)
+![](https://user-images.githubusercontent.com/3957610/64042734-e1f9f880-cb62-11e9-8751-90bea93a55a7.png)
+
+Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!
+
 ## Dependencies
 This project uses:
- - [imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
- - [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
- - [pugixml](https://github.com/zeux/pugixml)
- - [inih](https://github.com/benhoyt/inih)
+ - [ocornut/imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
+ - [BalazsJako/ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
+ - [zeux/pugixml](https://github.com/zeux/pugixml)
+ - [benhoyt/inih](https://github.com/benhoyt/inih)
  - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
  - [gulrak/filesystem](https://github.com/gulrak/filesystem)
@@ -242,16 +191,6 @@ This project uses:
  - [mlabbe/nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 
 Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
-
-## Credits
-Huge thanks to Omar Cornut, go follow him on [twitter](https://twitter.com/ocornut) or support him on [patreon](https://www.patreon.com/imgui).
-I dont think SHADERed would exist without his awesome library [Dear ImGUI](https://github.com/ocornut/).
-I came up with the shader editor idea when I stubmled upon a [ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit).
-So big thanks to BalazsJako for his amazing creation. Also, thanks to Raph Levien for the [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font.
-
-Thanks to Khronos for creating [glslangValidator](https://github.com/KhronosGroup/glslang) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) tools.
-Those programs allowed me to add support for HLSL. Thanks to AMD and their RenderMonkey examples. Credits to creators of the
-themes that SHADERed comes with. Those themes and their creators can be found [here](https://github.com/ocornut/imgui/issues/707).
 
 ## LICENSE
 SHADERed is licensed under MIT license. See [LICENSE](./LICENSE) for more details.

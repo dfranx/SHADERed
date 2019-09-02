@@ -1,5 +1,5 @@
 CodeUI.SwitchView ALT F2
-CodeUI.ToggleStatusbar CTRL ALT F2
+CodeUI.ToggleStatusbar CTRL SHIFT F2
 Editor.AutocompleteDown Down
 Editor.AutocompleteOpen CTRL Space
 Editor.AutocompleteSelect Tab
@@ -23,11 +23,14 @@ Editor.Undo CTRL Z
 Gizmo.Position CTRL G P
 Gizmo.Rotation CTRL G R
 Gizmo.Scale CTRL G S
-Preview.Delete CTRL Delete
+Preview.Delete Delete
 Preview.Duplicate SHIFT D
+Preview.IncreaseTime CTRL Right
+Preview.IncreaseTimeFast CTRL SHIFT Right
 Preview.SaveImage CTRL R
 Preview.SelectAll SHIFT A
-Preview.ToggleStatusbar CTRL ALT F3
+Preview.TogglePause Space
+Preview.ToggleStatusbar CTRL SHIFT F3
 Preview.Unselect CTRL SHIFT Delete
 Project.New CTRL N N
 Project.NewAudio CTRL N A
@@ -40,8 +43,6 @@ Project.Rebuild CTRL F5
 Project.Save CTRL P S
 Project.SaveAs CTRL P A
 Window.Exit ALT F4
-Workspace.ChangeThemeDown CTRL Down
-Workspace.ChangeThemeUp CTRL Up
 Workspace.Help CTRL H
 Workspace.HideEditor CTRL W E
 Workspace.HideOutput CTRL W O

@@ -73,6 +73,28 @@ namespace ed
 				m_picks.clear();
 			}
 		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.IncreaseTime", [=]() {
+			if (!m_data->Renderer.IsPaused())
+				return;
+
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+
+			SystemVariableManager::Instance().AdvanceTimer(deltaTime); // add one second to timer
+			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 1);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.IncreaseTimeFast", [=]() {
+			if (!m_data->Renderer.IsPaused())
+				return;
+
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+			
+			SystemVariableManager::Instance().AdvanceTimer(0.1f); // add one second to timer
+			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
+					0.1f/deltaTime); // add estimated number of frames
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.TogglePause", [=]() {
+			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
 			m_picks.clear();
 		});
@@ -100,7 +122,7 @@ namespace ed
 		if (e.type == SDL_MOUSEBUTTONDOWN)
 			m_mouseContact = ImVec2(e.button.x, e.button.y);
 		else if (e.type == SDL_MOUSEMOTION && Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
-			glm::vec2 s = SystemVariableManager::Instance().GetMousePosition();
+			glm::vec2 s = m_mousePos;
 			s.x *= m_lastSize.x;
 			s.y *= m_lastSize.y;
 			m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
@@ -243,12 +265,15 @@ namespace ed
 			ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(0, 1), ImVec2(1, 0));
 		}
 
-		// update wasd key state
-		SystemVariableManager::Instance().SetKeysWASD(ImGui::IsKeyDown(SDL_SCANCODE_W), ImGui::IsKeyDown(SDL_SCANCODE_A), ImGui::IsKeyDown(SDL_SCANCODE_S), ImGui::IsKeyDown(SDL_SCANCODE_D));
+		m_mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
+				1 - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+		if (!m_data->Renderer.IsPaused()) {
+			// update wasd key state
+			SystemVariableManager::Instance().SetKeysWASD(ImGui::IsKeyDown(SDL_SCANCODE_W), ImGui::IsKeyDown(SDL_SCANCODE_A), ImGui::IsKeyDown(SDL_SCANCODE_S), ImGui::IsKeyDown(SDL_SCANCODE_D));
 
-		// update system variable mouse position value
-		SystemVariableManager::Instance().SetMousePosition((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
-			1 - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+			// update system variable mouse position value
+			SystemVariableManager::Instance().SetMousePosition(m_mousePos.x, m_mousePos.y);
+		}
 
 		// apply transformations to picked items
 		if (settings.Preview.Gizmo && m_picks.size() != 0) {
@@ -345,7 +370,7 @@ namespace ed
 				settings.Preview.Gizmo)
 			{
 				// screen space position
-				glm::vec2 s = SystemVariableManager::Instance().GetMousePosition();
+				glm::vec2 s = m_mousePos;
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
@@ -398,7 +423,7 @@ namespace ed
 				settings.Preview.Gizmo)
 			{
 				// screen space position
-				glm::vec2 s = SystemVariableManager::Instance().GetMousePosition();
+				glm::vec2 s = m_mousePos;
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
@@ -419,7 +444,7 @@ namespace ed
 			SDL_GetMouseState(&ptX, &ptY);
 
 			// screen space position
-			glm::vec2 s = SystemVariableManager::Instance().GetMousePosition();
+			glm::vec2 s = m_mousePos;
 
 			bool wrappedMouse = false;
 			const float mPercent = 0.00f;
@@ -612,14 +637,29 @@ namespace ed
 		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		
-		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2 * Settings::Instance().DPIScale;
+		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
 		ImGui::SetCursorPosX(pauseStartX);
-		ImGui::Button(UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
+			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 		ImGui::SameLine(0,BUTTON_INDENT);
-		ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		if (ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) &&
+			m_data->Renderer.IsPaused())
+		{
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+
+			if (ImGui::GetIO().KeyCtrl) {
+				SystemVariableManager::Instance().AdvanceTimer(deltaTime); // add one second to timer
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
+					1); // increase by 1 frame
+			} else {
+				SystemVariableManager::Instance().AdvanceTimer(0.1f); // add one second to timer
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
+					0.1f/deltaTime); // add estimated number of frames
+			}
+		}
 		ImGui::SameLine();
 
-		float zoomStartX = (width - (ICON_BUTTON_WIDTH * 3) - BUTTON_INDENT * 3) * Settings::Instance().DPIScale;
+		float zoomStartX = width - (ICON_BUTTON_WIDTH * 3) - BUTTON_INDENT * 3;
 		ImGui::SetCursorPosX(zoomStartX);
 		ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
 		ImGui::SameLine(0,BUTTON_INDENT);

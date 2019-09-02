@@ -9,6 +9,7 @@ namespace ed
 		m_curState.FrameIndex = 0;
 		m_curGeoTransform.clear();
 		m_prevGeoTransform.clear();
+		m_advTimer = 0;
 	}
 	void SystemVariableManager::CopyState()
 	{

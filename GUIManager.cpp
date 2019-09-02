@@ -283,7 +283,8 @@ namespace ed
 		if (ImGui::Button(UI_ICON_CAMERA)) m_savePreviewPopupOpened = true; // TAKE A SCREENSHOT
 		m_tooltip("Render");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_PAUSE)) { }
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE))
+			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 		m_tooltip("Pause preview");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_ZOOM_IN)) { }
@@ -1041,6 +1042,7 @@ namespace ed
 		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+		m_data->Renderer.Pause(false); // unpause
 
 		m_data->Parser.Open(file);
 

@@ -2,6 +2,7 @@
 + add icon font
 + add tool bar
 + add format property to render textures
++ add ability to pause and increase time by 100ms (or hold CTRL to increase just by 1 frame)
 + fix last frame flag for GeometryTransform
 - disable last frame flag for ViewportSize
 

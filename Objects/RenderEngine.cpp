@@ -284,8 +284,10 @@ namespace ed
 		}
 
 		// update frame index
-		systemVM.CopyState();
-		systemVM.SetFrameIndex(systemVM.GetFrameIndex() + 1);
+		if (!m_paused) {
+			systemVM.CopyState();
+			systemVM.SetFrameIndex(systemVM.GetFrameIndex() + 1);
+		}
 
 		// bind default state after rendering everything
 		if (changedState)
@@ -299,6 +301,15 @@ namespace ed
 		if (m_pickAwaiting && m_pickHandle != nullptr)
 			m_pickHandle(m_pick.size() == 0 ? nullptr : m_pick[m_pick.size()-1]);
 		m_pickAwaiting = false;
+	}
+	void RenderEngine::Pause(bool pause)
+	{
+		m_paused = pause;
+
+		if (m_paused)
+			SystemVariableManager::Instance().GetTimeClock().Pause();
+		else 
+			SystemVariableManager::Instance().GetTimeClock().Resume();
 	}
 	void RenderEngine::Recompile(const char * name)
 	{

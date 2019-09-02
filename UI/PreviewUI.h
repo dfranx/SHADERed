@@ -47,6 +47,7 @@ namespace ed
 
 		ImVec2 m_mouseContact;
 		bool m_startWrap;
+		glm::vec2 m_mousePos;
 
 		glm::vec3 m_tempTrans, m_tempScale, m_tempRota, 
 			m_prevTrans, m_prevScale, m_prevRota;
