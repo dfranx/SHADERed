@@ -5,6 +5,7 @@
 
 namespace ed
 {
+	// TODO: add these to TUTORIAL.md
 	enum class SystemShaderVariable
 	{
 		None,				// not using system value

@@ -1,4 +1,5 @@
 [v1.1.3]
++ fix float4/int4/bool4 variables
 + add icon font
 + add tool bar
 + add format property to render textures

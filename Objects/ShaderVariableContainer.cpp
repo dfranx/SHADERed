@@ -133,7 +133,7 @@ namespace ed
 				break;
 			case ShaderVariable::ValueType::Boolean4:
 			case ShaderVariable::ValueType::Integer4:
-				glUniform3iv(loc, 1, m_vars[i]->AsIntegerPtr());
+				glUniform4iv(loc, 1, m_vars[i]->AsIntegerPtr());
 				break;
 			case ShaderVariable::ValueType::Float1:
 				glUniform1f(loc, m_vars[i]->AsFloat());
@@ -145,7 +145,7 @@ namespace ed
 				glUniform3fv(loc, 1, m_vars[i]->AsFloatPtr());
 				break;
 			case ShaderVariable::ValueType::Float4:
-				glUniform3fv(loc, 1, m_vars[i]->AsFloatPtr());
+				glUniform4fv(loc, 1, m_vars[i]->AsFloatPtr());
 				break;
 			case ShaderVariable::ValueType::Float2x2:
 				glUniformMatrix2fv(loc, 1, GL_FALSE, m_vars[i]->AsFloatPtr());
