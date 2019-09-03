@@ -121,24 +121,84 @@ namespace ed
 	void PreviewUI::OnEvent(const SDL_Event& e)
 	{
 		if (e.type == SDL_MOUSEBUTTONDOWN) {
+			const Uint8* keyState = SDL_GetKeyboardState(NULL);
+			bool isAltDown = keyState[SDL_SCANCODE_LALT] || keyState[SDL_SCANCODE_RALT];
+
 			m_mouseContact = ImVec2(e.button.x, e.button.y);
 		
 			if (!m_data->Renderer.IsPaused() &&
-			   (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT)) {
+			   (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT) &&
+				!isAltDown) {
 					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
 			}
-			SystemVariableManager::Instance().SetMouse(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
-		} else if (e.type == SDL_MOUSEMOTION && Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
-			glm::vec2 s = m_mousePos;
-			s.x *= m_lastSize.x;
-			s.y *= m_lastSize.y;
-			m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
+
+			if (isAltDown) {
+				m_zoomPosStart = m_mousePos;
+				m_zoomPosStart.y = 1 - m_zoomPosStart.y;
+				if (e.button.button == SDL_BUTTON_LEFT)
+					m_zoomSelecting = true;
+				if (e.button.button == SDL_BUTTON_RIGHT)
+					m_zoomDragging = true;
+			}
+		} else if (e.type == SDL_MOUSEMOTION) {
+			if (Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
+				glm::vec2 s = m_mousePos;
+				s.x *= m_lastSize.x;
+				s.y *= m_lastSize.y;
+				m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
+			}
+			
+			if (m_zoomDragging) {
+				float mpy = 1 - m_mousePos.y;
+				float mpx = m_mousePos.x;
+
+				float moveY = (mpy - m_zoomPosStart.y) * m_zoomHeight;
+				float moveX = (m_zoomPosStart.x - mpx) * m_zoomWidth;
+
+				m_zoomX = std::max<float>(moveX + m_zoomX, 0.0f);
+				m_zoomY = std::max<float>(moveY + m_zoomY, 0.0f);
+
+				if (m_zoomX + m_zoomWidth > 1.0f)
+					m_zoomX = 1 - m_zoomWidth;
+				if (m_zoomY + m_zoomHeight > 1.0f)
+					m_zoomY = 1 - m_zoomHeight;
+			}
 		}
 		else if (e.type == SDL_MOUSEBUTTONUP) {
 			SDL_CaptureMouse(SDL_FALSE);
 			m_startWrap = false;
 			if (Settings::Instance().Preview.Gizmo)
 				m_gizmo.UnselectAxis();
+
+			if (m_zoomSelecting && m_mousePos.x != m_zoomPosStart.x && m_mousePos.y != 1-m_zoomPosStart.y) {
+				float mpy = 1-m_mousePos.y;
+				float mpx = m_mousePos.x;
+
+				if (mpy > m_zoomPosStart.y) {
+					float temp = m_zoomPosStart.y;
+					m_zoomPosStart.y = mpy;
+					mpy = temp;
+				}
+				if (mpx < m_zoomPosStart.x) {
+					float temp = m_zoomPosStart.x;
+					m_zoomPosStart.x = mpx;
+					mpx = temp;
+				}
+
+				m_zoomX = m_zoomX + m_zoomWidth * m_zoomPosStart.x;
+				m_zoomY = m_zoomY + m_zoomHeight * (1-m_zoomPosStart.y);
+				m_zoomWidth = (mpx - m_zoomPosStart.x) * m_zoomWidth;
+				m_zoomHeight = (m_zoomPosStart.y - mpy) * m_zoomHeight;
+				if (m_zoomWidth >= m_zoomHeight)
+					m_zoomHeight = m_zoomWidth;
+				if (m_zoomHeight >= m_zoomWidth)
+					m_zoomWidth = m_zoomHeight;
+
+				m_zoomWidth = std::max<float>(m_zoomWidth, 25.0f / m_lastSize.x);
+				m_zoomHeight = std::max<float>(m_zoomHeight, 25.0f / m_lastSize.x);
+			}
+			m_zoomSelecting = false;
+			m_zoomDragging = false;
 		}
 	}
 	void PreviewUI::Pick(PipelineItem* item, bool add)
@@ -240,17 +300,20 @@ namespace ed
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
 			
 		GLuint rtView = renderer->GetTexture();
-		
+
 		// display the image on the imgui window
 		ImGui::Image((void*)rtView, imageSize, ImVec2(m_zoomX,m_zoomY+m_zoomHeight), ImVec2(m_zoomX+m_zoomWidth,m_zoomY));
 
 		m_hasFocus = ImGui::IsWindowFocused();
 		
-		// render the gizmo if necessary
-		if (m_picks.size() != 0 && settings.Preview.Gizmo) {
+		// render the gizmo/bounding box/zoom area if necessary
+		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) ||
+			m_zoomSelecting) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != imageSize.x || m_lastSize.y != imageSize.y) {
 				m_lastSize = glm::ivec2(imageSize.x, imageSize.y);
+
+				m_buildZoomRect(imageSize.x, imageSize.y);
 
 				gl::FreeSimpleFramebuffer(m_overlayFBO, m_overlayColor, m_overlayDepth);
 				m_overlayFBO = gl::CreateSimpleFramebuffer(imageSize.x, imageSize.y, m_overlayColor, m_overlayDepth);
@@ -259,17 +322,41 @@ namespace ed
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // TODO: is this needed?
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
-			m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
-			m_gizmo.Render();
+			if (settings.Preview.Gizmo && m_picks.size() != 0) {
+				m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
+				m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
+				m_gizmo.Render();
+			}
 
-			if (settings.Preview.BoundingBox)
+			if (settings.Preview.BoundingBox && m_picks.size() != 0)
 				m_renderBoundingBox();
+
+			if (m_zoomSelecting) {
+				glUseProgram(m_boxShader);
+
+				float mpy = 1 - m_mousePos.y;
+				float mpx = m_mousePos.x;
+				float zx = m_zoomX + m_zoomWidth*m_zoomPosStart.x;
+				float zy = 1 - (m_zoomY + m_zoomHeight * (1 - m_zoomPosStart.y));
+				float zw = (mpx - m_zoomPosStart.x) * m_zoomWidth;
+				float zh = (mpy - m_zoomPosStart.y) * m_zoomHeight;
+
+				glm::mat4 zMatWorld = glm::translate(glm::mat4(1), glm::vec3(zx * imageSize.x, zy * imageSize.y, 0.0f))
+					* glm::scale(glm::mat4(1), glm::vec3(zw, zh, 1.0f));
+
+				glm::mat4 zMatProj = glm::ortho(0.0f, imageSize.x, imageSize.y, 0.0f, 0.1f, 100.0f);
+
+				glUniformMatrix4fv(m_uMatWVPLoc, 1, GL_FALSE, glm::value_ptr(zMatProj * zMatWorld));
+				glUniform4fv(m_uColorLoc, 1, glm::value_ptr(glm::vec4(0, 120.f/255.f, 215.f/255.f, 0.5f)));
+
+				glBindVertexArray(m_zoomVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
-			ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(m_zoomX, m_zoomY + m_zoomHeight), ImVec2(m_zoomX + m_zoomWidth, m_zoomY));
 		}
 
 		m_mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
@@ -385,7 +472,7 @@ namespace ed
 			// handle left click - selection
 			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
 				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
-				settings.Preview.Gizmo)
+				(settings.Preview.Gizmo || settings.Preview.BoundingBox))
 			{
 				// screen space position
 				glm::vec2 s = m_mousePos;
@@ -394,7 +481,10 @@ namespace ed
 
 				bool shiftPickBegan = ImGui::GetIO().KeyShift;
 
-				if ((m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) || m_picks.size() == 0) {
+				if ((settings.Preview.BoundingBox && !settings.Preview.Gizmo) ||
+					(m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) ||
+					m_picks.size() == 0)
+				{
 					renderer->Pick(s.x, s.y, shiftPickBegan, [&](PipelineItem* item) {
 						if (settings.Preview.PropertyPick)
 							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
@@ -408,7 +498,8 @@ namespace ed
 
 			// handle right mouse dragging - camera
 			if (((ImGui::IsMouseDown(0) && settings.Preview.SwitchLeftRightClick) ||
-				(ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick)))
+				(ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick))
+				&& !m_zoomDragging)
 			{
 				m_startWrap = true;
 				SDL_CaptureMouse(SDL_TRUE);
@@ -438,7 +529,7 @@ namespace ed
 			// handle left mouse dragging - moving objects if selected
 			else if (((ImGui::IsMouseDown(0) && !settings.Preview.SwitchLeftRightClick) ||
 				(ImGui::IsMouseDown(1) && settings.Preview.SwitchLeftRightClick)) &&
-				settings.Preview.Gizmo)
+				settings.Preview.Gizmo && !m_zoomSelecting)
 			{
 				// screen space position
 				glm::vec2 s = m_mousePos;
@@ -696,6 +787,11 @@ namespace ed
 			m_zoomHeight = std::max<float>(m_zoomHeight / 2,25.0f/width);
 			m_zoomX += (curZoomWidth - m_zoomWidth)/2;
 			m_zoomY += (curZoomHeight - m_zoomHeight) / 2;
+
+			if (m_zoomX + m_zoomWidth >= 1.0f)
+				m_zoomX = 1.0f - m_zoomWidth;
+			if (m_zoomY + m_zoomHeight >= 1.0f)
+				m_zoomY = 1.0f - m_zoomHeight;
 		}
 		ImGui::SameLine(0,BUTTON_INDENT);
 		if (ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
@@ -703,8 +799,13 @@ namespace ed
 			float curZoomHeight = m_zoomHeight;
 			m_zoomWidth = std::min<float>(m_zoomWidth * 2, 1.0f);
 			m_zoomHeight = std::min<float>(m_zoomHeight * 2, 1.0f);
-			m_zoomX -= (m_zoomWidth-curZoomWidth) / 2;
-			m_zoomY -= (m_zoomHeight-curZoomHeight) / 2;
+			m_zoomX = std::max<float>(m_zoomX - (m_zoomWidth-curZoomWidth) / 2, 0.0f);
+			m_zoomY = std::max<float>(m_zoomY - (m_zoomHeight-curZoomHeight) / 2, 0.0f);
+
+			if (m_zoomX + m_zoomWidth >= 1.0f)
+				m_zoomX = 1.0f - m_zoomWidth;
+			if (m_zoomY + m_zoomHeight >= 1.0f)
+				m_zoomY = 1.0f - m_zoomHeight;
 		}
 		ImGui::SameLine(0,BUTTON_INDENT);
 		if (m_ui->IsPerformanceMode())
@@ -714,6 +815,40 @@ namespace ed
 
 		if (!m_ui->IsPerformanceMode())
 			ImGui::PopStyleColor();
+	}
+
+	void PreviewUI::m_buildZoomRect(float width, float height)
+	{
+		// lines
+		std::vector<glm::vec3> verts = {
+			{ glm::vec3(0, 0, -1) },
+			{ glm::vec3(width, height, -1) },
+			{ glm::vec3(0, height, -1) },
+			{ glm::vec3(width, 0, -1) },
+			{ glm::vec3(width, height, -1) },
+			{ glm::vec3(0, 0, -1) },
+		};
+
+		if (m_boxVBO != 0)
+			glDeleteBuffers(1, &m_zoomVBO);
+		if (m_boxVAO != 0)
+			glDeleteVertexArrays(1, &m_zoomVAO);
+
+		// create vbo
+		glGenBuffers(1, &m_zoomVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_zoomVBO);
+		glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec3), verts.data(), GL_STATIC_DRAW);
+
+		// create vao
+		glGenVertexArrays(1, &m_zoomVAO);
+		glBindVertexArray(m_zoomVAO);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		// unbind
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	void PreviewUI::m_setupBoundingBox()

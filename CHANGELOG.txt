@@ -3,10 +3,12 @@
 + add icon font
 + add tool bar
 + add zoom in/out functionality
++ add zoom controls (ALT + LEFT drag to select the zoom area, ALT + RIGHT drag to move the zoom area, ALT + DBL CLICK reset zoom)
 + add format property to render textures
 + add ability to pause and increase time by 100ms (or hold CTRL to increase just by 1 frame)
 + add Mouse and MouseButton system variables
 + fix last frame flag for GeometryTransform
++ fix a bug where bounding box wouldn't show if gizmo is turned off
 - disable last frame flag for ViewportSize
 
 [v1.1.2]

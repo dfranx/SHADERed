@@ -24,6 +24,8 @@ namespace ed
 			m_fpsLimit = m_elapsedTime = 0;
 			m_hasFocus = false;
 			m_startWrap = false;
+			m_zoomSelecting = false;
+			m_zoomDragging = false;
 		}
 		~PreviewUI() {
 			glDeleteBuffers(1, &m_boxVBO);
@@ -48,6 +50,11 @@ namespace ed
 
 		// zoom info
 		float m_zoomX, m_zoomY, m_zoomWidth, m_zoomHeight;
+		glm::vec2 m_zoomPosStart;
+		bool m_zoomSelecting;
+		bool m_zoomDragging;
+		GLuint m_zoomVAO, m_zoomVBO;
+		void m_buildZoomRect(float width, float height);
 
 		// mouse position
 		ImVec2 m_mouseContact;
