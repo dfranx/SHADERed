@@ -20,6 +20,7 @@ namespace ed
 			m_lastSize(-1, -1) {
 			m_setupShortcuts();
 			m_setupBoundingBox();
+			m_zoomX = 0, m_zoomY = 0, m_zoomWidth = 1, m_zoomHeight = 1;
 			m_fpsLimit = m_elapsedTime = 0;
 			m_hasFocus = false;
 			m_startWrap = false;
@@ -39,12 +40,16 @@ namespace ed
 	private:
 		void m_setupShortcuts();
 
-		void m_renderStatusbar(float width);
+		void m_renderStatusbar(float width, float height);
 		
 		void m_setupBoundingBox();
 		void m_buildBoundingBox();
 		void m_renderBoundingBox();
 
+		// zoom info
+		float m_zoomX, m_zoomY, m_zoomWidth, m_zoomHeight;
+
+		// mouse position
 		ImVec2 m_mouseContact;
 		bool m_startWrap;
 		glm::vec2 m_mousePos;

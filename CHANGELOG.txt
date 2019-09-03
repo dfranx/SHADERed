@@ -2,6 +2,7 @@
 + !!! fix float4/int4/bool4 variables !!!
 + add icon font
 + add tool bar
++ add zoom in/out functionality
 + add format property to render textures
 + add ability to pause and increase time by 100ms (or hold CTRL to increase just by 1 frame)
 + add Mouse and MouseButton system variables

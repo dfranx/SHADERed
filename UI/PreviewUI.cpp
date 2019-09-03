@@ -20,6 +20,7 @@
 #define BUTTON_INDENT 5 * Settings::Instance().DPIScale
 #define FPS_UPDATE_RATE 0.3f
 #define BOUNDING_BOX_PADDING 0.01f
+#define MAX_PICKED_ITEM_LIST_SIZE 4
 
 
 const char* BOX_VS_CODE = R"(
@@ -241,7 +242,7 @@ namespace ed
 		GLuint rtView = renderer->GetTexture();
 		
 		// display the image on the imgui window
-		ImGui::Image((void*)rtView, imageSize, ImVec2(0,1), ImVec2(1,0));
+		ImGui::Image((void*)rtView, imageSize, ImVec2(m_zoomX,m_zoomY+m_zoomHeight), ImVec2(m_zoomX+m_zoomWidth,m_zoomY));
 
 		m_hasFocus = ImGui::IsWindowFocused();
 		
@@ -367,7 +368,17 @@ namespace ed
 		if (ImGui::IsItemHovered()) {
 			bool fp = settings.Project.FPCamera;
 
-			// zoom in/out if needed
+			// rt zoom in/out
+			if (ImGui::GetIO().KeyAlt) {
+				if (ImGui::IsMouseDoubleClicked(0)) {
+					m_zoomX = 0;
+					m_zoomY = 0;
+					m_zoomWidth = 1;
+					m_zoomHeight = 1;
+				}
+			}
+
+			// arc ball zoom in/out if needed
 			if (!fp)
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
@@ -480,7 +491,7 @@ namespace ed
 
 		// status bar
 		if (statusbar)
-			m_renderStatusbar(imageSize.x);
+			m_renderStatusbar(imageSize.x, imageSize.y);
 	}
 	void PreviewUI::Duplicate()
 	{
@@ -590,18 +601,22 @@ namespace ed
 				((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(m_picks[m_picks.size()-1]);
 	}
 
-	void PreviewUI::m_renderStatusbar(float width)
+	void PreviewUI::m_renderStatusbar(float width, float height)
 	{
 		float FPS = 1.0f / m_fpsDelta;
 		ImGui::Separator();
 		ImGui::Text("FPS: %.2f", FPS);
 		ImGui::SameLine();
 
-		ImGui::SameLine(150 * Settings::Instance().DPIScale);
+		ImGui::SameLine(120 * Settings::Instance().DPIScale);
 		ImGui::Text("Time: %.2f", SystemVariableManager::Instance().GetTime());
 		ImGui::SameLine();
 
-		ImGui::SameLine(300 * Settings::Instance().DPIScale);
+		ImGui::SameLine(240 * Settings::Instance().DPIScale);
+		ImGui::Text("Zoom: %d%%", (int)((1.0f/m_zoomWidth)*100.0f));
+		ImGui::SameLine();
+
+		ImGui::SameLine(340 * Settings::Instance().DPIScale);
 		if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
 			m_pickMode = 0;
@@ -637,6 +652,12 @@ namespace ed
 					ImGui::Text("%s,", m_picks[i]->Name);
 				else
 					ImGui::Text("%s", m_picks[i]->Name);
+
+				if (i >= MAX_PICKED_ITEM_LIST_SIZE-1) {
+					ImGui::SameLine();
+					ImGui::Text("...");
+					break;
+				}
 			}
 			ImGui::SameLine();
 		}
@@ -668,9 +689,23 @@ namespace ed
 
 		float zoomStartX = width - (ICON_BUTTON_WIDTH * 3) - BUTTON_INDENT * 3;
 		ImGui::SetCursorPosX(zoomStartX);
-		ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		if (ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+			float curZoomWidth = m_zoomWidth;
+			float curZoomHeight = m_zoomHeight;
+			m_zoomWidth = std::max<float>(m_zoomWidth / 2, 25.0f/width);
+			m_zoomHeight = std::max<float>(m_zoomHeight / 2,25.0f/width);
+			m_zoomX += (curZoomWidth - m_zoomWidth)/2;
+			m_zoomY += (curZoomHeight - m_zoomHeight) / 2;
+		}
 		ImGui::SameLine(0,BUTTON_INDENT);
-		ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE));
+		if (ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+			float curZoomWidth = m_zoomWidth;
+			float curZoomHeight = m_zoomHeight;
+			m_zoomWidth = std::min<float>(m_zoomWidth * 2, 1.0f);
+			m_zoomHeight = std::min<float>(m_zoomHeight * 2, 1.0f);
+			m_zoomX -= (m_zoomWidth-curZoomWidth) / 2;
+			m_zoomY -= (m_zoomHeight-curZoomHeight) / 2;
+		}
 		ImGui::SameLine(0,BUTTON_INDENT);
 		if (m_ui->IsPerformanceMode())
 			ImGui::PopStyleColor();
