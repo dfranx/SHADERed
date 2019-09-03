@@ -216,7 +216,7 @@ namespace ed
 					systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
 
 					// bind variables
-					data->Variables.Bind();
+					data->Variables.Bind(item);
 
 					objData->Data->Draw();
 				}
