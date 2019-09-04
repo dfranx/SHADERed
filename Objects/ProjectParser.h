@@ -70,6 +70,6 @@ namespace ed
 		std::string m_projectPath;
 		std::string m_template;
 
-		std::vector<std::pair<std::string, eng::Model>> m_models;
+		std::vector<std::pair<std::string, eng::Model*>> m_models;
 	};
 }

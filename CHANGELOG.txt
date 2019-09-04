@@ -1,5 +1,7 @@
+[v1.1.4]
++ fix a bug where SHADERed would crash with multiple 3D models
+
 [v1.1.3]
-+ !!! fix float4/int4/bool4 variables !!!
 + add icon font
 + add tool bar
 + add zoom in/out functionality
@@ -7,6 +9,7 @@
 + add format property to render textures
 + add ability to pause and increase time by 100ms (or hold CTRL to increase just by 1 frame)
 + add Mouse and MouseButton system variables
++ fix float4/int4/bool4 variables
 + fix last frame flag for GeometryTransform
 + fix a bug where bounding box wouldn't show if gizmo is turned off
 - disable last frame flag for ViewportSize

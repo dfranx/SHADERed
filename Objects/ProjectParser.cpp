@@ -45,6 +45,13 @@ namespace ed
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
 		m_msgs->Clear();
+
+		for (auto& mdl : m_models) {
+			if (mdl.second) {
+				delete mdl.second;
+				mdl.second = nullptr;
+			}
+		}
 		m_models.clear();
 
 		pugi::xml_document doc;
@@ -528,17 +535,17 @@ namespace ed
 		// return already loaded model
 		for (auto& mdl : m_models)
 			if (mdl.first == file)
-				return &mdl.second;
+				return mdl.second;
 
-		m_models.push_back(std::make_pair(file, eng::Model()));
+		m_models.push_back(std::make_pair(file, new eng::Model()));
 
 		// load the model
 		std::string path = GetProjectPath(file);
-		bool loaded = m_models[m_models.size() - 1].second.LoadFromFile(path);
+		bool loaded = m_models[m_models.size() - 1].second->LoadFromFile(path);
 		if (!loaded)
 			return nullptr;
 
-		return &m_models[m_models.size() - 1].second;
+		return m_models[m_models.size() - 1].second;
 	}
 	void ProjectParser::SaveProjectFile(const std::string & file, const std::string & data)
 	{
