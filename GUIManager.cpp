@@ -20,6 +20,7 @@
 #include "Objects/ThemeContainer.h"
 #include "Objects/KeyboardShortcuts.h"
 #include "Objects/FunctionVariableManager.h"
+#include "Objects/SystemVariableManager.h"
 
 #include <fstream>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -499,6 +500,8 @@ namespace ed
 						this->CreateNewRenderTexture();
 					ImGui::EndMenu();
 				}
+				if (ImGui::MenuItem("Reset time"))
+					SystemVariableManager::Instance().Reset();
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
