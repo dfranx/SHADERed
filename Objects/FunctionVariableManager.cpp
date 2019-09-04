@@ -137,7 +137,7 @@ namespace ed
 			switch (var->Function) {
 				case FunctionShaderVariable::MatrixIdentity:
 				{
-					matrix = glm::identity<glm::mat4>();
+					matrix = glm::mat4(1.0f);
 				} break;
 
 				case FunctionShaderVariable::MatrixLookAtLH:
@@ -192,7 +192,7 @@ namespace ed
 					float* plane = LoadFloat(var->Arguments, 0);
 
 					// TODO: implement this!
-					matrix = glm::identity<glm::mat4>();
+					matrix = glm::mat4(1.0f);
 				} break;
 
 				case FunctionShaderVariable::MatrixRotationAxis:
@@ -247,7 +247,7 @@ namespace ed
 					float* light = LoadFloat(var->Arguments, 4);
 
 					// TODO: implement this
-					matrix = glm::identity<glm::mat4>();
+					matrix = glm::mat4(1.0f);
 				} break;
 
 				case FunctionShaderVariable::MatrixTranslation:
