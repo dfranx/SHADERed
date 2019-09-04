@@ -122,7 +122,7 @@ find_package(GLM REQUIRED)
 find_package(ASSIMP REQUIRED)
 
 # sfml audio
-find_package(SFML COMPONENTS audio)
+find_package(SFML COMPONENTS system audio)
 
 # glslang
 set(ENABLE_GLSLANG_BINARIES OFF)
@@ -146,7 +146,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV sfml-audio)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV sfml-audio sfml-system)
 
 if(WIN32)
 	# link specific win32 libraries

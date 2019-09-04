@@ -476,10 +476,36 @@ namespace ed
 					m_zoomWidth = 1;
 					m_zoomHeight = 1;
 				}
+
+				if (ImGui::GetIO().KeyCtrl) {
+					float wheelDelta = ImGui::GetIO().MouseWheel;
+					if (wheelDelta != 0.0f) {
+						if (wheelDelta < 0)
+							wheelDelta = -wheelDelta * 2;
+						else
+							wheelDelta = wheelDelta / 2;
+
+						float oldZoomWidth = m_zoomWidth, oldZoomHeight = m_zoomHeight;
+
+						m_zoomWidth = std::max<float>(std::min<float>(m_zoomWidth * wheelDelta, 1.0f), 25.0f / imageSize.x);
+						m_zoomHeight = std::max<float>(std::min<float>(m_zoomHeight * wheelDelta, 1.0f), 25.0f / imageSize.x);
+						float zx = (m_zoomX + oldZoomWidth * m_mousePos.x) - m_zoomWidth/2;
+						float zy = (m_zoomY + oldZoomHeight * m_mousePos.y) - m_zoomHeight / 2;
+						m_zoomX = std::max<float>(zx, 0.0f);
+						m_zoomY = std::max<float>(zy, 0.0f);
+
+						if (m_zoomX + m_zoomWidth >= 1.0f)
+							m_zoomX = 1.0f - m_zoomWidth;
+						if (m_zoomY + m_zoomHeight >= 1.0f)
+							m_zoomY = 1.0f - m_zoomHeight;
+
+						printf("%.2f %.2f %.2f %.2f\n", zx, zy, m_mousePos.x, m_mousePos.y);
+					}
+				}
 			}
 
 			// arc ball zoom in/out if needed
-			if (!fp)
+			if (!fp && !(ImGui::GetIO().KeyAlt && ImGui::GetIO().KeyCtrl))
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
