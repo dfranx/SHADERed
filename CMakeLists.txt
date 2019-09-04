@@ -146,7 +146,14 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV ${SFML_LIBRARIES})
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV)
+
+# link sfml
+if(${USE_FINDSFML})
+	target_link_libraries(SHADERed ${SFML_LIBRARIES})
+else()
+	target_link_libraries(SHADERed sfml-audio sfml-system)
+endif()
 
 if(WIN32)
 	# link specific win32 libraries

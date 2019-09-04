@@ -157,6 +157,12 @@ cmake .
 make
 ```
 
+**NOTE:** If you dont have SFML 2.5 installed on your machine, run these commands:
+```
+cmake -DUSE_FINDSFML=ON .
+make
+```
+
 Run:
 ```
 ./bin/SHADERed
