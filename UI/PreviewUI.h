@@ -50,7 +50,7 @@ namespace ed
 
 		// zoom info
 		float m_zoomX, m_zoomY, m_zoomWidth, m_zoomHeight;
-		glm::vec2 m_zoomPosStart;
+		glm::vec2 m_zoomPosStart, m_lastZoomDrag;
 		bool m_zoomSelecting;
 		bool m_zoomDragging;
 		GLuint m_zoomVAO, m_zoomVBO;

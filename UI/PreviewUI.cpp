@@ -137,8 +137,10 @@ namespace ed
 				m_zoomPosStart.y = 1 - m_zoomPosStart.y;
 				if (e.button.button == SDL_BUTTON_LEFT)
 					m_zoomSelecting = true;
-				if (e.button.button == SDL_BUTTON_RIGHT)
+				if (e.button.button == SDL_BUTTON_RIGHT) {
 					m_zoomDragging = true;
+					m_lastZoomDrag = m_zoomPosStart;
+				}
 			}
 		} else if (e.type == SDL_MOUSEMOTION) {
 			if (Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
@@ -152,11 +154,13 @@ namespace ed
 				float mpy = 1 - m_mousePos.y;
 				float mpx = m_mousePos.x;
 
-				float moveY = (mpy - m_zoomPosStart.y) * m_zoomHeight;
-				float moveX = (m_zoomPosStart.x - mpx) * m_zoomWidth;
+				float moveY = (mpy - m_lastZoomDrag.y) * m_zoomWidth;
+				float moveX = (m_lastZoomDrag.x - mpx) * m_zoomHeight;
 
 				m_zoomX = std::max<float>(moveX + m_zoomX, 0.0f);
 				m_zoomY = std::max<float>(moveY + m_zoomY, 0.0f);
+
+				m_lastZoomDrag = glm::vec2(mpx, mpy);
 
 				if (m_zoomX + m_zoomWidth > 1.0f)
 					m_zoomX = 1 - m_zoomWidth;
@@ -194,8 +198,17 @@ namespace ed
 				if (m_zoomHeight >= m_zoomWidth)
 					m_zoomWidth = m_zoomHeight;
 
-				m_zoomWidth = std::max<float>(m_zoomWidth, 25.0f / m_lastSize.x);
-				m_zoomHeight = std::max<float>(m_zoomHeight, 25.0f / m_lastSize.x);
+				m_zoomWidth = std::max<float>(std::min<float>(m_zoomWidth, 1.0f), 25.0f / m_lastSize.x);
+				m_zoomHeight = std::max<float>(std::min<float>(m_zoomHeight, 1.0f), 25.0f / m_lastSize.x);
+
+				if (m_zoomX + m_zoomWidth > 1.0f)
+					m_zoomX = 1 - m_zoomWidth;
+				if (m_zoomY + m_zoomHeight > 1.0f)
+					m_zoomY = 1 - m_zoomHeight;
+				if (m_zoomX < 0.0f)
+					m_zoomX = 0.0f;
+				if (m_zoomY < 0.0f)
+					m_zoomY = 0.0f;
 			}
 			m_zoomSelecting = false;
 			m_zoomDragging = false;
