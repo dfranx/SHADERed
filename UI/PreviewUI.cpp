@@ -498,8 +498,6 @@ namespace ed
 							m_zoomX = 1.0f - m_zoomWidth;
 						if (m_zoomY + m_zoomHeight >= 1.0f)
 							m_zoomY = 1.0f - m_zoomHeight;
-
-						printf("%.2f %.2f %.2f %.2f\n", zx, zy, m_mousePos.x, m_mousePos.y);
 					}
 				}
 			}

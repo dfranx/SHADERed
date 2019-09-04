@@ -1,6 +1,6 @@
 [v1.1.4]
 + add option to reset time
-+ add CTRL+ALT+Scroll to zoom in/out
++ add CTRL+ALT+MWheel to zoom in/out
 + fix zoom area dragging
 + fix zoom selection bounds
 + fix a bug where SHADERed would crash with multiple 3D models
