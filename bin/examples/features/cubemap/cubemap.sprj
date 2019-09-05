@@ -22,7 +22,7 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" name="cubemap" cube="true" left="..\..\Common\cubemap\negx.jpg" top="..\..\Common\cubemap\posy.jpg" front="..\..\Common\cubemap\posz.jpg" bottom="..\..\Common\cubemap\negy.jpg" right="..\..\Common\cubemap\posx.jpg" back="..\..\Common\cubemap\posx.jpg">
+		<object type="texture" name="cubemap" cube="true" left="..\..\Common\cubemap\negx.jpg" top="..\..\Common\cubemap\posy.jpg" front="..\..\Common\cubemap\posz.jpg" bottom="..\..\Common\cubemap\negy.jpg" right="..\..\Common\cubemap\posx.jpg" back="..\..\Common\cubemap\negz.jpg">
 			<bind slot="0" name="Cubemap" />
 		</object>
 	</objects>

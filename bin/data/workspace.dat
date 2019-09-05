@@ -87,7 +87,7 @@ Collapsed=0
 [Docking][Data]
 DockSpace       ID=0x160B189F Pos=0,22 Size=1850,993 Split=X
   DockNode      ID=0x00000001 Parent=0x160B189F SizeRef=287,997 Split=Y SelectedTab=0xC89E3217
-    DockNode    ID=0x00000003 Parent=0x00000001 SizeRef=239,446 SelectedTab=0x848ABB8F
+    DockNode    ID=0x00000003 Parent=0x00000001 SizeRef=239,446 SelectedTab=0x7DA7F56F
     DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=239,547 SelectedTab=0xC89E3217
   DockNode      ID=0x00000002 Parent=0x160B189F SizeRef=1561,997 Split=X
     DockNode    ID=0x00000007 Parent=0x00000002 SizeRef=557,915 Split=Y SelectedTab=0xF34EBBA5

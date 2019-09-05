@@ -515,7 +515,7 @@ namespace ed
 				if (triDist < m_pickDist) { // optimization: check if bounding box is closer than selected object
 					bool donetris = false;
 					for (auto& mesh : obj->Data->Meshes) {
-						for (int i = 0; i < mesh.Vertices.size(); i+=3) {
+						for (int i = 0; i+2 < mesh.Vertices.size(); i+=3) {
 							glm::vec3 v0 = mesh.Vertices[i + 0].Position;
 							glm::vec3 v1 = mesh.Vertices[i + 1].Position;
 							glm::vec3 v2 = mesh.Vertices[i + 2].Position;

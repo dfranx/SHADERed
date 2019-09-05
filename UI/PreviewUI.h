@@ -30,6 +30,8 @@ namespace ed
 		~PreviewUI() {
 			glDeleteBuffers(1, &m_boxVBO);
 			glDeleteVertexArrays(1, &m_boxVAO);
+			glDeleteBuffers(1, &m_zoomVBO);
+			glDeleteVertexArrays(1, &m_zoomVAO);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
