@@ -323,8 +323,9 @@ namespace ed
 		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) ||
 			m_zoomSelecting) {
 			// recreate render texture if size is changed
-			if (m_lastSize.x != imageSize.x || m_lastSize.y != imageSize.y) {
-				m_lastSize = glm::ivec2(imageSize.x, imageSize.y);
+			if (m_lastSize.x != (int)imageSize.x || m_lastSize.y != (int)imageSize.y) {
+				m_lastSize.x = imageSize.x;
+				m_lastSize.y = imageSize.y;
 
 				m_buildZoomRect(imageSize.x, imageSize.y);
 
@@ -361,9 +362,12 @@ namespace ed
 
 				glUniformMatrix4fv(m_uMatWVPLoc, 1, GL_FALSE, glm::value_ptr(zMatProj * zMatWorld));
 				glUniform4fv(m_uColorLoc, 1, glm::value_ptr(glm::vec4(0, 120.f/255.f, 215.f/255.f, 0.5f)));
+				glDisable(GL_CULL_FACE);
 
 				glBindVertexArray(m_zoomVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
+			
+				glEnable(GL_CULL_FACE);
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -857,6 +861,8 @@ namespace ed
 
 	void PreviewUI::m_buildZoomRect(float width, float height)
 	{
+		Logger::Get().Log("Building the zoom area rectangle...");
+
 		// lines
 		std::vector<glm::vec3> verts = {
 			{ glm::vec3(0, 0, -1) },
@@ -867,9 +873,9 @@ namespace ed
 			{ glm::vec3(0, 0, -1) },
 		};
 
-		if (m_boxVBO != 0)
+		if (m_zoomVBO != 0)
 			glDeleteBuffers(1, &m_zoomVBO);
-		if (m_boxVAO != 0)
+		if (m_zoomVAO != 0)
 			glDeleteVertexArrays(1, &m_zoomVAO);
 
 		// create vbo
