@@ -4,6 +4,7 @@
 + add cubemap preview
 + fix zoom area dragging
 + fix zoom selection bounds
++ fix picking when zoomed in
 + fix a bug where SHADERed would crash with multiple 3D models
 
 [v1.1.3]

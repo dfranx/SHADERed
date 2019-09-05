@@ -512,7 +512,8 @@ namespace ed
 				(settings.Preview.Gizmo || settings.Preview.BoundingBox))
 			{
 				// screen space position
-				glm::vec2 s = m_mousePos;
+				glm::vec2 s(m_zoomX + m_zoomWidth*m_mousePos.x, m_zoomY + m_zoomHeight * m_mousePos.y);
+				
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
