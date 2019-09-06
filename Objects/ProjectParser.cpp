@@ -1062,22 +1062,22 @@ namespace ed
 			if (strcmp(objType, "texture") == 0) {
 				pugi::char_t name[MAX_PATH];
 				bool isCube = false;
-				std::vector<pugi::char_t[MAX_PATH]> cubeFaces(6);
+				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
+							cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
 				if (isCube) {
 					strcpy(name, objectNode.attribute("name").as_string());
 
-					strcpy(cubeFaces[0], toGenericPath(objectNode.attribute("left").as_string()).c_str());
-					strcpy(cubeFaces[1], toGenericPath(objectNode.attribute("top").as_string()).c_str());
-					strcpy(cubeFaces[2], toGenericPath(objectNode.attribute("front").as_string()).c_str());
-					strcpy(cubeFaces[3], toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
-					strcpy(cubeFaces[4], toGenericPath(objectNode.attribute("right").as_string()).c_str());
-					strcpy(cubeFaces[5], toGenericPath(objectNode.attribute("back").as_string()).c_str());
-				} else {
+					strcpy(cubeLeft, toGenericPath(objectNode.attribute("left").as_string()).c_str());
+					strcpy(cubeTop, toGenericPath(objectNode.attribute("top").as_string()).c_str());
+					strcpy(cubeFront, toGenericPath(objectNode.attribute("front").as_string()).c_str());
+					strcpy(cubeBottom, toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
+					strcpy(cubeRight, toGenericPath(objectNode.attribute("right").as_string()).c_str());
+					strcpy(cubeBack, toGenericPath(objectNode.attribute("back").as_string()).c_str());
+				} else
 					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
-				}
 
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
@@ -1091,7 +1091,7 @@ namespace ed
 							boundTextures[pass][slot] = name;
 							// TODO: test binding textures that were unbound before opening the project:
 							if (isCube)
-								m_objects->CreateCubemap(name, cubeFaces[0], cubeFaces[1], cubeFaces[2], cubeFaces[3], cubeFaces[4], cubeFaces[5]);
+								m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
 							else
 								m_objects->CreateTexture(name);
 							break;
@@ -1674,24 +1674,24 @@ namespace ed
 			if (strcmp(objType, "texture") == 0) {
 				pugi::char_t name[MAX_PATH];
 				bool isCube = false;
-				std::vector<pugi::char_t[MAX_PATH]> cubeFaces(6);
+				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
+							cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
 				if (isCube) {
 					strcpy(name, objectNode.attribute("name").as_string());
 
-					strcpy(cubeFaces[0], toGenericPath(objectNode.attribute("left").as_string()).c_str());
-					strcpy(cubeFaces[1], toGenericPath(objectNode.attribute("top").as_string()).c_str());
-					strcpy(cubeFaces[2], toGenericPath(objectNode.attribute("front").as_string()).c_str());
-					strcpy(cubeFaces[3], toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
-					strcpy(cubeFaces[4], toGenericPath(objectNode.attribute("right").as_string()).c_str());
-					strcpy(cubeFaces[5], toGenericPath(objectNode.attribute("back").as_string()).c_str());
+					strcpy(cubeLeft, toGenericPath(objectNode.attribute("left").as_string()).c_str());
+					strcpy(cubeTop, toGenericPath(objectNode.attribute("top").as_string()).c_str());
+					strcpy(cubeFront, toGenericPath(objectNode.attribute("front").as_string()).c_str());
+					strcpy(cubeBottom, toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
+					strcpy(cubeRight, toGenericPath(objectNode.attribute("right").as_string()).c_str());
+					strcpy(cubeBack, toGenericPath(objectNode.attribute("back").as_string()).c_str());
 				}
-				else {
+				else
 					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
-				}
-
+				
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
@@ -1704,7 +1704,7 @@ namespace ed
 							boundTextures[pass][slot] = name;
 							// TODO: test binding textures that were unbound before opening the project:
 							if (isCube)
-								m_objects->CreateCubemap(name, cubeFaces[0], cubeFaces[1], cubeFaces[2], cubeFaces[3], cubeFaces[4], cubeFaces[5]);
+								m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
 							else
 								m_objects->CreateTexture(name);
 							break;

@@ -26,6 +26,7 @@ namespace ed
 			m_startWrap = false;
 			m_zoomSelecting = false;
 			m_zoomDragging = false;
+			m_mouseHovers = false;
 		}
 		~PreviewUI() {
 			glDeleteBuffers(1, &m_boxVBO);
@@ -76,6 +77,7 @@ namespace ed
 		GLuint m_overlayFBO, m_overlayColor, m_overlayDepth;
 		glm::ivec2 m_lastSize;
 		bool m_hasFocus;
+		bool m_mouseHovers;
 
 		float m_elapsedTime;
 		float m_fpsLimit;

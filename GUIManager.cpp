@@ -62,6 +62,7 @@ namespace ed
 		m_isCreateRTOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isAboutOpen = false;
+		m_wasPausedPrior = true;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -204,7 +205,7 @@ namespace ed
 		ImGui::Columns(4);
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(1, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(2, (6*(TOOLBAR_HEIGHT) + 6*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -287,12 +288,6 @@ namespace ed
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE))
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 		m_tooltip("Pause preview");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_ZOOM_IN)) { }
-		m_tooltip("Zoom in");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_ZOOM_OUT)) { }
-		m_tooltip("Zoom out");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
 		m_tooltip("Performance mode");
@@ -615,6 +610,16 @@ namespace ed
 			ImGui::OpenPopup("Save Preview##main_save_preview");
 			m_previewSavePath = "render.png";
 			m_savePreviewPopupOpened = false;
+			m_wasPausedPrior = m_data->Renderer.IsPaused();
+			m_savePreviewCachedTime = m_savePreviewTime = SystemVariableManager::Instance().GetTime();
+			m_savePreviewTimeDelta = SystemVariableManager::Instance().GetTimeDelta();
+			m_savePreviewCachedFIndex = m_savePreviewFrameIndex = SystemVariableManager::Instance().GetFrameIndex();
+			glm::ivec4 wasd = SystemVariableManager::Instance().GetKeysWASD();
+			m_savePreviewWASD[0] = wasd.x; m_savePreviewWASD[1] = wasd.y;
+			m_savePreviewWASD[2] = wasd.z; m_savePreviewWASD[3] = wasd.w;
+			m_savePreviewMouse = SystemVariableManager::Instance().GetMouse();
+			
+			m_data->Renderer.Pause(true);
 		}
 
 		// open popup for creating cubemap
@@ -823,7 +828,7 @@ namespace ed
 		}
 
 		// Save preview
-		ImGui::SetNextWindowSize(ImVec2(400, 145), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(400, 180), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
@@ -842,9 +847,69 @@ namespace ed
 			ImGui::InputInt("##save_prev_sizeh", &m_previewSaveSize.y);
 			ImGui::Unindent(55);
 
+			ImGui::Separator();
+			if (ImGui::CollapsingHeader("Advanced")) {
+				/* TIME */
+				ImGui::Text("Time:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragFloat("##save_prev_time", &m_savePreviewTime)) {
+					float timeAdvance = m_savePreviewTime - SystemVariableManager::Instance().GetTime();
+					SystemVariableManager::Instance().AdvanceTimer(timeAdvance);
+				}
+				ImGui::PopItemWidth();
+
+				/* TIME DELTA */
+				ImGui::Text("Time delta:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##save_prev_timed", &m_savePreviewTimeDelta);
+				ImGui::PopItemWidth();
+
+				/* FRAME INDEX */
+				ImGui::Text("Frame index:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragInt("##save_prev_findex", &m_savePreviewFrameIndex);
+				ImGui::PopItemWidth();
+
+				/* WASD */
+				ImGui::Text("WASD:"); ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keyw", &m_savePreviewWASD[0]); ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keya", &m_savePreviewWASD[1]); ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keys", &m_savePreviewWASD[2]); ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keyd", &m_savePreviewWASD[3]);
+
+				/* MOUSE */
+				ImGui::Text("Mouse:");
+				ImGui::SameLine();
+				if (ImGui::DragFloat2("##save_prev_mpos", glm::value_ptr(m_savePreviewMouse)))
+					SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+				ImGui::SameLine();
+				bool isLeftDown = m_savePreviewMouse.z >= 1.0f;
+				ImGui::Checkbox("##save_prev_btnleft", &isLeftDown); ImGui::SameLine();
+				m_savePreviewMouse.z = isLeftDown;
+				bool isRightDown = m_savePreviewMouse.w >= 1.0f;
+				ImGui::Checkbox("##save_prev_btnright", &isRightDown);
+				m_savePreviewMouse.w = isRightDown;
+				SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+			}
+			ImGui::Separator();
+
 			if (ImGui::Button("Save")) {
-				if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0)
+				if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
+					SystemVariableManager::Instance().CopyState();
+					
+					SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
+					SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
+					SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
+					SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+					SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+					
 					m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+
+					SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+				}
 				
 				GLuint tex = m_data->Renderer.GetTexture();
 				glBindTexture(GL_TEXTURE_2D, tex);
@@ -863,12 +928,16 @@ namespace ed
 				else
 					stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
 
+				m_data->Renderer.Pause(m_wasPausedPrior);
+
 				free(pixels);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
+			if (ImGui::Button("Cancel")) {
 				ImGui::CloseCurrentPopup();
+				m_data->Renderer.Pause(m_wasPausedPrior);
+			}
 			ImGui::EndPopup();
 		}
 

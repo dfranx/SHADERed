@@ -132,7 +132,7 @@ namespace ed
 					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
 			}
 
-			if (isAltDown) {
+			if (isAltDown && m_mouseHovers) {
 				m_zoomPosStart = m_mousePos;
 				m_zoomPosStart.y = 1 - m_zoomPosStart.y;
 				if (e.button.button == SDL_BUTTON_LEFT)
@@ -469,7 +469,7 @@ namespace ed
 		}
 
 		// mouse controls for preview window
-		if (ImGui::IsItemHovered()) {
+		if (m_mouseHovers = ImGui::IsItemHovered()) {
 			bool fp = settings.Project.FPCamera;
 
 			// rt zoom in/out
@@ -513,7 +513,8 @@ namespace ed
 			// handle left click - selection
 			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
 				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
-				(settings.Preview.Gizmo || settings.Preview.BoundingBox))
+				(settings.Preview.Gizmo || settings.Preview.BoundingBox) &&
+				!ImGui::GetIO().KeyAlt)
 			{
 				// screen space position
 				glm::vec2 s(m_zoomX + m_zoomWidth*m_mousePos.x, m_zoomY + m_zoomHeight * m_mousePos.y);

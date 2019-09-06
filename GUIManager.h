@@ -81,6 +81,11 @@ namespace ed
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
 		bool m_savePreviewPopupOpened;
+		bool m_wasPausedPrior;
+		float m_savePreviewTime, m_savePreviewCachedTime, m_savePreviewTimeDelta;
+		int m_savePreviewFrameIndex, m_savePreviewCachedFIndex;
+		bool m_savePreviewWASD[4];
+		glm::vec4 m_savePreviewMouse;
 		std::string m_previewSavePath;
 		glm::ivec2 m_previewSaveSize;
 
