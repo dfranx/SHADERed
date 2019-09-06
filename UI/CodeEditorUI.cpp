@@ -243,7 +243,7 @@ namespace ed
 				path = m_data->Parser.GetProjectPath(shader->GSPath);
 
 			#if defined(__APPLE__)
-				// no macos impl
+				system(("open " + path).c_str());
 			#elif defined(__linux__) || defined(__unix__)
 				system(("xdg-open " + path).c_str());
 			#elif defined(_WIN32)

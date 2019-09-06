@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(SHADERed)
 
 set(CMAKE_MODULE_PATH "./cmake")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 # source code
 set(SOURCES
@@ -78,6 +78,11 @@ if(WIN32)
 		"${SOURCES}"
 		libs/nativefiledialog/nfd_win.cpp
 		resource.rc
+	)
+elseif(APPLE)
+	set(SOURCES
+		"${SOURCES}"
+		libs/nativefiledialog/nfd_cocoa.m
 	)
 else()
 	set(SOURCES

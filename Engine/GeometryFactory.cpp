@@ -2,7 +2,11 @@
 #include "../Objects/PipelineItem.h"
 
 #include <GL/glew.h>
-#include <GL/gl.h>
+#if defined(__APPLE__)
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 #include <glm/gtc/constants.hpp>
 
 namespace ed
