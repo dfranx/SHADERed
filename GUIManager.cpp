@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
+#include "UI/ObjectPreviewUI.h"
 #include "UI/CreateItemUI.h"
 #include "UI/CodeEditorUI.h"
 #include "UI/ObjectListUI.h"
@@ -104,6 +105,7 @@ namespace ed
 
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
+		m_objectPrev = new ObjectPreviewUI(this, objects, "Object Preview");
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
@@ -136,6 +138,8 @@ namespace ed
 		for (auto view : m_views)
 			delete view;
 
+		delete m_options;
+		delete m_objectPrev;
 		delete m_createUI;
 		delete m_settingsBkp;
 
@@ -160,6 +164,9 @@ namespace ed
 
 		if (m_optionsOpened)
 			m_options->OnEvent(e);
+
+		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
+			m_objectPrev->OnEvent(e);
 
 		for (auto view : m_views)
 			view->OnEvent(e);
@@ -584,9 +591,13 @@ namespace ed
 			Get(ViewID::Code)->Update(delta);
 		}
 
+		// object preview
+		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
+			m_objectPrev->Update(delta);
+
 		// handle the "build occured" event
 		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
-			size_t errors = m_data->Messages.GetMessages().size();
+			size_t errors = m_data->Messages.GetMessages().size(); //TODO: actual errors
 			if (errors > 0 && !Get(ViewID::Output)->Visible)
 				Get(ViewID::Output)->Visible = true;
 			m_data->Messages.BuildOccured = false;
@@ -784,6 +795,7 @@ namespace ed
 						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+						((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 						m_data->Pipeline.New(false);
 
 						SDL_SetWindowTitle(m_wnd, "SHADERed");
@@ -796,6 +808,7 @@ namespace ed
 					((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+					((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 					m_data->Pipeline.New();
 
 					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
@@ -812,6 +825,7 @@ namespace ed
 						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+						((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 						m_data->Parser.Open(oldFile);
 
 					}
@@ -1027,6 +1041,9 @@ namespace ed
 	{
 		if (view == ViewID::Options)
 			return m_options;
+		else if (view == ViewID::ObjectPreview)
+			return m_objectPrev;
+
 		return m_views[(int)view];
 	}
 	void GUIManager::SaveSettings()
@@ -1079,6 +1096,7 @@ namespace ed
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+			((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 
 			m_data->Parser.Open(file);
 
@@ -1114,6 +1132,7 @@ namespace ed
 		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+		((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 		m_data->Renderer.Pause(false); // unpause
 
 		m_data->Parser.Open(file);
@@ -1179,12 +1198,15 @@ namespace ed
 			std::string file;
 			bool success = UIHelper::GetOpenFileDialog(file, "sprj");
 
+			// TODO: use Open()
+
 			if (success) {
 				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 				((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 				((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+				((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 
 				m_data->Parser.Open(file);
 			}
@@ -1196,6 +1218,7 @@ namespace ed
 			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
 			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+			((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {

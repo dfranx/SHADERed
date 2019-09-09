@@ -40,6 +40,7 @@ set(SOURCES
 	UI/CreateItemUI.cpp
 	UI/MessageOutputUI.cpp
 	UI/ObjectListUI.cpp
+	UI/ObjectPreviewUI.cpp
 	UI/OptionsUI.cpp
 	UI/PinnedUI.cpp
 	UI/PipelineUI.cpp
@@ -103,7 +104,7 @@ if(CMAKE_TOOLCHAIN_FILE)
 endif(CMAKE_TOOLCHAIN_FILE)
 
 # sdl2
-if(WIN32)
+if(WIN32 OR APPLE)
 
   find_package(SDL2 REQUIRED)
 

@@ -9,8 +9,8 @@ List of features I want to implement:
  - compute shaders
  - render your shader to a video file
  - buffers read from file or built using in-app buffer editor
- - magnifier tool
  - pixel inspector
+ - audio shaders
  - debugger
 
 
@@ -19,6 +19,7 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - fix "Show the error list window when a build finishes with errors" option
  - add "Hide the error list window when a build doesn't hve any errors" option
  - remove everything FXAA related
+ - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
  - add Options -> Project -> Disable clear
@@ -48,4 +49,4 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  # PLAN
  1.2    -> compute shaders
  1.2.*  -> polishing & fixing
- 1.3    -> shader debugging
+ 1.3    -> shader debugger

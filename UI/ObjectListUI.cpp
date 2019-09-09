@@ -1,4 +1,5 @@
 #include "ObjectListUI.h"
+#include "ObjectPreviewUI.h"
 #include "PropertyUI.h"
 #include "../Objects/Settings.h"
 #include "../Objects/Logger.h"
@@ -166,17 +167,24 @@ namespace ed
 			GLuint tex = m_data->Objects.GetTexture(items[i]);
 
 			float imgWH = 0.0f;
+			glm::vec2 imgSize(0,0);
 			if (m_data->Objects.IsRenderTexture(items[i])) {
 				glm::ivec2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
 				imgWH = (float)rtSize.y / rtSize.x;
+				imgSize = glm::vec2(rtSize.x, rtSize.y);
 			}
-			else if (m_data->Objects.IsAudio(items[i]))
+			else if (m_data->Objects.IsAudio(items[i])) {
 				imgWH = 2.0f / 512.0f;
-			else if (m_data->Objects.IsCubeMap(items[i]))
+				imgSize = glm::vec2(512, 2);
+			}
+			else if (m_data->Objects.IsCubeMap(items[i])) {
 				imgWH = 375.0f / 512.0f;
+				imgSize = glm::vec2(512, 375);
+			}
 			else {
 				auto img = m_data->Objects.GetImageSize(items[i]);
 				imgWH = (float)img.second / img.first;
+				imgSize = glm::vec2(img.first, img.second);
 			}
 
 			size_t lastSlash = items[i].find_last_of("/\\");
@@ -189,7 +197,12 @@ namespace ed
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
-				ImGui::Text("Preview");
+				if (ImGui::Selectable("Preview")) {
+					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex,
+							m_data->Objects.IsCubeMap(items[i]),
+							m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr,
+							nullptr);
+				}
 				if (m_data->Objects.IsCubeMap(items[i])) {
 					m_renderCubemap(tex);
 					ImGui::Image((void*)(intptr_t)m_cubeTex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));

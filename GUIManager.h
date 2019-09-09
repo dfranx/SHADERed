@@ -26,7 +26,8 @@ namespace ed
 		Objects,
 		Pipeline,
 		Properties,
-		Options
+		Options,
+		ObjectPreview
 	};
 
 	class GUIManager
@@ -69,6 +70,8 @@ namespace ed
 		bool m_optionsOpened;
 		int m_optGroup;
 		UIView* m_options;
+
+		UIView* m_objectPrev;
 
 		std::string m_cachedFont;
 		int m_cachedFontSize;
