@@ -14,6 +14,7 @@ namespace ed
 	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd) :
 		m_parser(parser), m_renderer(rnd)
 	{
+		m_bufs.clear();
 		m_rts.clear();
 		m_binds.clear();
 		m_imgSize.clear();
@@ -27,7 +28,12 @@ namespace ed
 		Logger::Get().Log("Clearing ObjectManager contents...");
 
 		for (auto str : m_items) {
-			glDeleteTextures(1, &m_texs[str]);
+			if (IsBuffer(str)) {
+				glDeleteBuffers(1, &m_bufs[str]->ID);
+				glDeleteBuffers(1, &m_bufs[str]->ID);
+				free(m_bufs[str]->Data);
+			} else
+				glDeleteTextures(1, &m_texs[str]);
 
 			if (IsAudio(str)) {
 				if (m_audioPlayer[str]->getStatus() == sf::Sound::Playing)
@@ -41,9 +47,11 @@ namespace ed
 		}
 		
 		m_rts.clear();
+		m_bufs.clear();
 		m_imgSize.clear();
 		m_texs.clear();
 		m_binds.clear();
+		m_uniformBinds.clear();
 
 		m_audioData.clear();
 		m_audioPlayer.clear();
@@ -91,13 +99,13 @@ namespace ed
 
 		return true;
 	}
-	void ObjectManager::CreateTexture(const std::string& file)
+	bool ObjectManager::CreateTexture(const std::string& file)
 	{
 		Logger::Get().Log("Creating a texture " + file + " ...");
 
 		if (Exists(file)) {
 			Logger::Get().Log("Cannot create a texture " + file + " because that texture is already added to the project", true);
-			return;
+			return false;
 		}
 
 		m_items.push_back(file);
@@ -127,6 +135,8 @@ namespace ed
 		m_imgSize[file] = std::make_pair(width, height);
 
 		stbi_image_free(data);
+
+		return true;
 	}
 	bool ObjectManager::CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back)
 	{
@@ -252,6 +262,93 @@ namespace ed
 
 		return true;
 	}
+	bool ObjectManager::CreateBuffer(const std::string& name)
+	{
+		Logger::Get().Log("Creating a buffer " + name + " ...");
+
+		if (Exists(name)) {
+			Logger::Get().Log("Cannot create the buffer " + name + " because an item with such name already exists", true);
+			return false;
+		}
+
+		m_items.push_back(name);
+
+		ed::BufferObject* bObj = m_bufs[name] = new ed::BufferObject();
+		glm::ivec2 size = m_renderer->GetLastRenderSize();
+
+		bObj->Size = 0;
+		bObj->Data = nullptr;
+		strcpy(bObj->ViewFormat, "float");
+
+		glGenBuffers(1, &bObj->ID);
+		glBindBuffer(GL_UNIFORM_BUFFER, bObj->ID);
+		glBufferData(GL_UNIFORM_BUFFER, 0, NULL, GL_STATIC_DRAW); // allocate 0 bytes of memory
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		return true;
+	}
+
+	ShaderVariable::ValueType getValueType(const std::string& name)
+	{
+		if (name == "bool")
+			return ShaderVariable::ValueType::Boolean1;
+		else if (name == "bvec2")
+			return ShaderVariable::ValueType::Boolean2;
+		else if (name == "bvec3")
+			return ShaderVariable::ValueType::Boolean3;
+		else if (name == "bvec4")
+			return ShaderVariable::ValueType::Boolean4;
+		else if (name == "int")
+			return ShaderVariable::ValueType::Integer1;
+		else if (name == "ivec2")
+			return ShaderVariable::ValueType::Integer2;
+		else if (name == "ivec3")
+			return ShaderVariable::ValueType::Integer3;
+		else if (name == "ivec4")
+			return ShaderVariable::ValueType::Integer4;
+		else if (name == "float")
+			return ShaderVariable::ValueType::Float1;
+		else if (name == "vec2")
+			return ShaderVariable::ValueType::Float2;
+		else if (name == "vec3")
+			return ShaderVariable::ValueType::Float3;
+		else if (name == "vec4")
+			return ShaderVariable::ValueType::Float4;
+		else if (name == "mat2")
+			return ShaderVariable::ValueType::Float2x2;
+		else if (name == "mat3")
+			return ShaderVariable::ValueType::Float3x3;
+		else if (name == "mat4")
+			return ShaderVariable::ValueType::Float4x4;
+
+		return ShaderVariable::ValueType::Float1;
+	}
+	std::vector<ShaderVariable::ValueType> ObjectManager::ParseBufferFormat(const std::string& str)
+	{
+		std::vector<ed::ShaderVariable::ValueType> ret;
+		std::string tok = str;
+		size_t pos = tok.find_first_of(';');
+		while (pos != std::string::npos)
+		{
+			std::string tokpart = tok.substr(0, pos);
+			if (tokpart.size() > 0)
+				ret.push_back(getValueType(tokpart));
+
+			if (pos+1 < tok.size())
+				tok = tok.substr(pos+1);
+			else {
+				tok = tok.substr(pos);
+				break;
+			}
+			pos = tok.find_first_of(';');
+		}
+
+		if (tok.size() > 2)
+			ret.push_back(getValueType(tok));
+
+		return ret;
+	}
+	
 	void ObjectManager::Update(float delta)
 	{
 		for (auto& it : m_audioData) {
@@ -277,34 +374,32 @@ namespace ed
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
-	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
-	{
-		if (IsBound(file, pass) == -1)
-			m_binds[pass].push_back(m_texs[file]);
-	}
-	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
-	{
-		std::vector<GLuint>& srvs = m_binds[pass];
-		GLuint srv = m_texs[file];
-
-		for (int i = 0; i < srvs.size(); i++)
-			if (srvs[i] == srv) {
-				srvs.erase(srvs.begin() + i);
-				return;
-			}
-	}
 	void ObjectManager::Remove(const std::string & file)
 	{
-		GLuint srv = m_texs[file];
-
-		for (auto& i : m_binds)
-			for (int j = 0; j < i.second.size(); j++)
-				if (i.second[j] == srv) {
-					i.second.erase(i.second.begin() + j);
-					j--;
-				}
-
-		glDeleteTextures(1, &m_texs[file]);
+		if (!IsBuffer(file)) {
+			GLuint srv = m_texs[file];
+			for (auto& i : m_binds)
+				for (int j = 0; j < i.second.size(); j++)
+					if (i.second[j] == srv) {
+						i.second.erase(i.second.begin() + j);
+						j--;
+					}
+		} else {
+			for (auto& i : m_uniformBinds)
+				for (int j = 0; j < i.second.size(); j++)
+					if (i.second[j] == file) {
+						i.second.erase(i.second.begin() + j);
+						j--;
+					}
+		}
+		
+		if (IsBuffer(file)) {
+			glDeleteBuffers(1, &m_bufs[file]->ID);
+			free(m_bufs[file]->Data);
+			m_bufs.erase(file);
+		} else
+			glDeleteTextures(1, &m_texs[file]);
+		
 		if (IsRenderTexture(file)) {
 			glDeleteTextures(1, &m_rts[file]->DepthStencilBuffer);
 
@@ -332,6 +427,22 @@ namespace ed
 		m_texs.erase(file);
 		m_isCube.erase(file);
 	}
+	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
+	{
+		if (IsBound(file, pass) == -1)
+			m_binds[pass].push_back(m_texs[file]);
+	}
+	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
+	{
+		std::vector<GLuint>& srvs = m_binds[pass];
+		GLuint srv = m_texs[file];
+
+		for (int i = 0; i < srvs.size(); i++)
+			if (srvs[i] == srv) {
+				srvs.erase(srvs.begin() + i);
+				return;
+			}
+	}
 	int ObjectManager::IsBound(const std::string & file, PipelineItem * pass)
 	{
 		if (m_binds.count(pass) == 0)
@@ -339,6 +450,33 @@ namespace ed
 
 		for (int i = 0; i < m_binds[pass].size(); i++)
 			if (m_binds[pass][i] == m_texs[file]) {
+				return i;
+			}
+
+		return -1;
+	}
+	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
+	{
+		if (IsUniformBound(file, pass) == -1)
+			m_uniformBinds[pass].push_back(file);
+	}
+	void ObjectManager::UnbindUniform(const std::string & file, PipelineItem * pass)
+	{
+		std::vector<std::string>& ubos = m_uniformBinds[pass];
+		
+		for (int i = 0; i < ubos.size(); i++)
+			if (ubos[i] == file) {
+				ubos.erase(ubos.begin() + i);
+				return;
+			}
+	}
+	int ObjectManager::IsUniformBound(const std::string & file, PipelineItem * pass)
+	{
+		if (m_uniformBinds.count(pass) == 0)
+			return -1;
+
+		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
+			if (m_uniformBinds[pass][i] == file) {
 				return i;
 			}
 

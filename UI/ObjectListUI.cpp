@@ -64,32 +64,47 @@ namespace ed
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
-				if (ImGui::Selectable("Preview")) {
+				bool isBuf = m_data->Objects.IsBuffer(items[i]);
+				if (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview")) {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex,
 							m_data->Objects.IsCubeMap(items[i]),
 							m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr,
 							m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr,
-							nullptr);
+							isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr);
 				}
 				if (m_data->Objects.IsCubeMap(items[i])) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
-				} else
+				} else if (!isBuf)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
 
 				ImGui::Separator();
 
 
 				if (ImGui::BeginMenu("Bind")) {
-					for (int j = 0; j < passes.size(); j++) {
-						int boundID = m_data->Objects.IsBound(items[i], passes[j]);
-						size_t boundItemCount = m_data->Objects.GetBindList(passes[j]).size();
-						bool isBound = boundID != -1;
-						if (ImGui::MenuItem(passes[j]->Name, ("(" + std::to_string(boundID == -1 ? boundItemCount : boundID) + ")").c_str(), isBound)) {
-							if (!isBound)
-								m_data->Objects.Bind(items[i], passes[j]);
-							else
-								m_data->Objects.Unbind(items[i], passes[j]);
+					if (isBuf) {
+						for (int j = 0; j < passes.size(); j++) {
+							int boundID = m_data->Objects.IsUniformBound(items[i], passes[j]);
+							size_t boundItemCount = m_data->Objects.GetUniformBindList(passes[j]).size();
+							bool isBound = boundID != -1;
+							if (ImGui::MenuItem(passes[j]->Name, ("(" + std::to_string(boundID == -1 ? boundItemCount : boundID) + ")").c_str(), isBound)) {
+								if (!isBound)
+									m_data->Objects.BindUniform(items[i], passes[j]);
+								else
+									m_data->Objects.UnbindUniform(items[i], passes[j]);
+							}
+						}
+					} else {
+						for (int j = 0; j < passes.size(); j++) {
+							int boundID = m_data->Objects.IsBound(items[i], passes[j]);
+							size_t boundItemCount = m_data->Objects.GetBindList(passes[j]).size();
+							bool isBound = boundID != -1;
+							if (ImGui::MenuItem(passes[j]->Name, ("(" + std::to_string(boundID == -1 ? boundItemCount : boundID) + ")").c_str(), isBound)) {
+								if (!isBound)
+									m_data->Objects.Bind(items[i], passes[j]);
+								else
+									m_data->Objects.Unbind(items[i], passes[j]);
+							}
 						}
 					}
 					ImGui::EndMenu();
@@ -160,6 +175,7 @@ namespace ed
 			if (ImGui::Selectable("Create Cubemap")) { m_ui->CreateNewCubemap(); }
 			if (ImGui::Selectable("Create Render Texture")) { m_ui->CreateNewRenderTexture(); }
 			if (ImGui::Selectable("Create Audio")) { m_ui->CreateNewAudio(); }
+			if (ImGui::Selectable("Create Buffer")) { m_ui->CreateNewBuffer(); }
 
 			ImGui::EndPopup();
 		}

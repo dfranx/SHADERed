@@ -1,9 +1,10 @@
 #include "ObjectPreviewUI.h"
+#include "../Objects/Names.h"
 #include <imgui/imgui.h>
 
 namespace ed
 {
-    void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* model)
+    void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer)
     {
         mItem i;
         i.Name = name;
@@ -14,7 +15,15 @@ namespace ed
         i.IsCube = isCube;
         i.Audio = audio;
         i.RT = rt;
-        i.Model = model;
+        i.Buffer = buffer;
+        i.CachedFormat.clear();
+        i.CachedSize = 0;
+
+        if (buffer != nullptr) {
+            BufferObject* buf = (BufferObject*)buffer;
+            i.CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+            i.CachedSize = buf->Size;
+        }
 
         m_items.push_back(i);
     }
@@ -72,6 +81,64 @@ namespace ed
                     
                     ImGui::PlotHistogram("Frequencies", m_fft, IM_ARRAYSIZE(m_fft), 0, NULL, 0.0f, 1.0f, ImVec2(0,80));
                     ImGui::PlotHistogram("Samples", m_samples, IM_ARRAYSIZE(m_samples), 0, NULL, 0.0f, 1.0f, ImVec2(0,80));
+                } else if (item->Buffer != nullptr) {
+                    BufferObject* buf = (BufferObject*)item->Buffer;
+                    
+                    ImGui::Text("Format:");
+                    ImGui::SameLine();
+                    ImGui::InputText("##objprev_formatinp", buf->ViewFormat, 256);
+                    ImGui::SameLine();
+                    if (ImGui::Button("APPLY##objprev_applyfmt"))
+                        item->CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+                
+                    int perRow = 0;
+                    for (int i = 0; i < item->CachedFormat.size(); i++)
+                        perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
+                    ImGui::Text("Per row size: %d", perRow);
+
+                    ImGui::Text("Size in bytes:");
+                    ImGui::SameLine();
+                    ImGui::InputInt("##objprev_bsize", &item->CachedSize, 1, 100, ImGuiInputTextFlags_AlwaysInsertMode);
+                    ImGui::SameLine();
+                    if (ImGui::Button("APPLY##objprev_applysize")) {
+                        buf->Size = item->CachedSize;
+                        if (buf->Size < 0) buf->Size = 0;
+
+                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, NULL, GL_STATIC_DRAW); // allocate 0 bytes of memory
+                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+                        buf->Data = realloc(buf->Data, buf->Size);
+                    }
+
+                    if (perRow != 0) {
+                        ImGui::Separator();
+
+                        int rows = buf->Size / perRow;
+                        ImGui::Columns(item->CachedFormat.size());
+
+                        for (int j = 0; j < item->CachedFormat.size(); j++) {
+                            ImGui::Text(VARIABLE_TYPE_NAMES[(int)item->CachedFormat[j]]);
+                            ImGui::NextColumn();
+                        }
+                        
+                        for (int i = 0; i < rows; i++) {
+                            int curColOffset = 0;
+                            for (int j = 0; j < item->CachedFormat.size(); j++) {
+                                int dOffset = i * perRow + curColOffset;
+                                if (m_drawBufferElement(i, j, buf->Data + dOffset, item->CachedFormat[j])) {
+                                    glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+					                glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
+					                glBindBuffer(GL_UNIFORM_BUFFER, 0);
+                                }
+                                curColOffset += ShaderVariable::GetSize(item->CachedFormat[j]);
+                                ImGui::NextColumn();
+                            }
+                        }
+
+                        ImGui::Columns(1);
+                    }
+                    
                 } else {
                     ImVec2 posSize = ImGui::GetContentRegionAvail();
                     float posX = (posSize.x - aSize.x) / 2;
@@ -89,6 +156,81 @@ namespace ed
                 i--;
             }
         }
+    }
+    bool ObjectPreviewUI::m_drawBufferElement(int row, int col, void *data, ShaderVariable::ValueType type)
+    {
+        bool ret = false;
+
+		ImGui::PushItemWidth(-1);
+
+        std::string id = std::to_string(row) + std::to_string(col);
+
+		switch (type) {
+			case ed::ShaderVariable::ValueType::Float4x4:
+			case ed::ShaderVariable::ValueType::Float3x3:
+			case ed::ShaderVariable::ValueType::Float2x2:
+            {
+                int cols = 2;
+                if (type == ShaderVariable::ValueType::Float3x3)
+                    cols = 3;
+                else if (type == ShaderVariable::ValueType::Float4x4)
+                    cols = 4;
+
+				for (int y = 0; y < cols; y++) {
+					if (type == ShaderVariable::ValueType::Float2x2)
+						ret = ret || ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					else if (type == ShaderVariable::ValueType::Float3x3)
+						ret = ret || ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					else ret = ret || ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+				}
+            } break;
+			case ed::ShaderVariable::ValueType::Float1:
+				ret = ret || ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+				break;
+			case ed::ShaderVariable::ValueType::Float2:
+				ret = ret || ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+				break;
+			case ed::ShaderVariable::ValueType::Float3:
+				ret = ret || ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+				break;
+			case ed::ShaderVariable::ValueType::Float4:
+				ret = ret || ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
+				break;
+			case ed::ShaderVariable::ValueType::Integer1:
+				ret = ret || ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+				break;
+			case ed::ShaderVariable::ValueType::Integer2:
+				ret = ret || ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+				break;
+			case ed::ShaderVariable::ValueType::Integer3:
+				ret = ret || ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+				break;
+			case ed::ShaderVariable::ValueType::Integer4:
+				ret = ret || ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+				break;
+			case ed::ShaderVariable::ValueType::Boolean1:
+				ret = ret || ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
+				break;
+			case ed::ShaderVariable::ValueType::Boolean2:
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1));
+				break;
+			case ed::ShaderVariable::ValueType::Boolean3:
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data + 2));
+				break;
+			case ed::ShaderVariable::ValueType::Boolean4:
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data + 2)); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data + 3));
+				break;
+		}
+
+		ImGui::PopItemWidth();
+
+        return ret;
     }
     void ObjectPreviewUI::Close(const std::string& name)
     {

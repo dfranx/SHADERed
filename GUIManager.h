@@ -51,6 +51,8 @@ namespace ed
 		inline void CreateNewCubemap() { m_isCreateCubemapOpened = true; }
 		void CreateNewAudio();
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
+		inline void CreateNewBuffer() { m_isCreateBufferOpened = true; }
+		
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
 
@@ -78,7 +80,9 @@ namespace ed
 		bool m_fontNeedsUpdate;
 		float m_cacheUIScale;
 
-		bool m_isCreateItemPopupOpened, m_isCreateRTOpened, m_isCreateCubemapOpened, m_isNewProjectPopupOpened, m_isAboutOpen;
+		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
+			 m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
+			 m_isAboutOpen, m_isCreateBufferOpened;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;

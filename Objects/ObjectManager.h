@@ -40,6 +40,14 @@ namespace ed
 		}
 	};
 
+	struct BufferObject
+	{
+		int Size;
+		void* Data;
+		char ViewFormat[256]; // vec3;vec3;vec2
+		GLuint ID;
+	};
+
 	class ObjectManager
 	{
 	public:
@@ -47,23 +55,22 @@ namespace ed
 		~ObjectManager();
 
 		bool CreateRenderTexture(const std::string& name);
-		void CreateTexture(const std::string& file);
+		bool CreateTexture(const std::string& file);
 		bool CreateAudio(const std::string& file);
 		bool CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back);
+		bool CreateBuffer(const std::string& file);
 
 		void Update(float delta);
 
-		void Bind(const std::string& file, PipelineItem* pass);
-		void Unbind(const std::string& file, PipelineItem* pass);
 		void Remove(const std::string& file);
-		int IsBound(const std::string& file, PipelineItem* pass);
-
+		
 		glm::ivec2 GetRenderTextureSize(const std::string& name);
 		RenderTextureObject* GetRenderTexture(GLuint tex);
 		inline bool IsRenderTexture(const std::string& name) { return m_rts.count(name) > 0; }
 		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }
 		inline bool IsAudio(const std::string& name) { return m_audioData.count(name) > 0; }
 		inline bool IsAudioMuted(const std::string& name) { return m_audioMute[name]; }
+		inline bool IsBuffer(const std::string& name) { return m_bufs.count(name) > 0; }
 		bool IsCubeMap(GLuint id);
 
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);
@@ -75,13 +82,29 @@ namespace ed
 		inline std::pair<int, int> GetImageSize(const std::string& file) { return m_imgSize[file]; }
 		inline sf::SoundBuffer* GetSoundBuffer(const std::string& file) { return m_audioData[file]; }
 		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
+		inline BufferObject* GetBuffer(const std::string& name) { return m_bufs[name]; }
+		
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
 
+		std::vector<ed::ShaderVariable::ValueType> ParseBufferFormat(const std::string& str);
+
+		void Bind(const std::string& file, PipelineItem* pass);
+		void Unbind(const std::string& file, PipelineItem* pass);
+		int IsBound(const std::string& file, PipelineItem* pass);
 		inline std::vector<GLuint> GetBindList(PipelineItem* pass) {
 			if (m_binds.count(pass) > 0) return m_binds[pass];
 			return std::vector<GLuint>();
 		}
+
+		void BindUniform(const std::string& file, PipelineItem* pass);
+		void UnbindUniform(const std::string& file, PipelineItem* pass);
+		int IsUniformBound(const std::string& file, PipelineItem* pass);
+		inline std::vector<std::string> GetUniformBindList(PipelineItem* pass) {
+			if (m_uniformBinds.count(pass) > 0) return m_uniformBinds[pass];
+			return std::vector<std::string>();
+		}
+
 		inline bool Exists(const std::string& name) { return std::count(m_items.begin(), m_items.end(), name) > 0; }
 
 		inline std::vector<std::string> GetCubemapTextures(const std::string& name) {
@@ -106,6 +129,9 @@ namespace ed
 
 		std::unordered_map<std::string, RenderTextureObject*> m_rts;
 
+		std::unordered_map<std::string, BufferObject*> m_bufs;
+
 		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_binds;
+		std::unordered_map<PipelineItem*, std::vector<std::string>> m_uniformBinds;
 	};
 }

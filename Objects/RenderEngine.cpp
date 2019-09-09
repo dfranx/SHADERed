@@ -88,6 +88,7 @@ namespace ed
 				continue;
 
 			std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
+			std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
 
 			if (data->RTCount == 0)
 				continue;
@@ -167,6 +168,10 @@ namespace ed
 					data->Variables.UpdateTexture(m_shaders[i], j);
 			}
 
+			// TODO: bind ubos
+			for (int j = 0; j < ubos.size(); j++)
+				glBindBufferBase(GL_UNIFORM_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
+			
 			// clear messages
 			if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
 				m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);

@@ -47,8 +47,6 @@ namespace ed
 		m_wnd = wnd;
 		m_gl  = gl;
 		m_settingsBkp = new Settings();
-		m_isCreateRTOpened = false;
-		m_isCreateItemPopupOpened = false;
 		m_previewSaveSize = glm::ivec2(1920, 1080);
 		m_savePreviewPopupOpened = false;
 		m_optGroup = 0;
@@ -61,6 +59,7 @@ namespace ed
 		m_isCreateItemPopupOpened = false;
 		m_isCreateCubemapOpened = false;
 		m_isCreateRTOpened = false;
+		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
@@ -500,6 +499,8 @@ namespace ed
 						this->CreateNewAudio();
 					if (ImGui::MenuItem("Render Texture", KeyboardShortcuts::Instance().GetString("Project.NewRenderTexture").c_str()))
 						this->CreateNewRenderTexture();
+					if (ImGui::MenuItem("Buffer", KeyboardShortcuts::Instance().GetString("Project.NewBuffer").c_str())) 
+						this->CreateNewBuffer();
 					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Reset time"))
@@ -639,6 +640,12 @@ namespace ed
 			m_isCreateCubemapOpened = false;
 		}
 
+		// open popup for creating buffer
+		if (m_isCreateBufferOpened) {
+			ImGui::OpenPopup("Create buffer##main_create_buffer");
+			m_isCreateBufferOpened = false;
+		}
+
 		// open popup for creating render texture
 		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
@@ -749,6 +756,21 @@ namespace ed
 					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetRenderTexture(m_data->Objects.GetTexture(buf)));
 					ImGui::CloseCurrentPopup();
 				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create buffer popup
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create buffer##main_create_buffer")) {
+			static char buf[65] = { 0 };
+			ImGui::InputText("Name", buf, 64);
+
+			if (ImGui::Button("Ok")) {
+				if (m_data->Objects.CreateBuffer(buf))
+					ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
@@ -1223,6 +1245,9 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {
 			CreateNewRenderTexture();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewBuffer", [=]() {
+			CreateNewBuffer();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
 			CreateNewCubemap();

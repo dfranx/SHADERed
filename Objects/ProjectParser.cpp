@@ -356,12 +356,13 @@ namespace ed
 				bool isRT = m_objects->IsRenderTexture(texs[i]);
 				bool isAudio = m_objects->IsAudio(texs[i]);
 				bool isCube = m_objects->IsCubeMap(texs[i]);
+				bool isBuffer = m_objects->IsBuffer(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isRT ? "rendertexture" : (isAudio ? "audio" : "texture"));
-				textureNode.append_attribute((isRT || isCube) ? "name" : "path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : "texture")));
+				textureNode.append_attribute((isRT || isCube || isBuffer) ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT && !isAudio) {
+				if (!isRT && !isAudio && !isBuffer) {
 					bool isCube = m_objects->IsCubeMap(texs[i]);
 					if (isCube)
 						textureNode.append_attribute("cube").set_value(isCube);
@@ -396,18 +397,45 @@ namespace ed
 					textureNode.append_attribute("back").set_value(texmaps[4].c_str());
 				}
 
-				GLuint myTex = m_objects->GetTexture(texs[i]);
+				if (isBuffer) {
+					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
+					
+					textureNode.append_attribute("size").set_value(bobj->Size);
+					textureNode.append_attribute("format").set_value(bobj->ViewFormat);
+					
+					std::string bPath = GetProjectPath("buffers/" + texs[i] + ".buf");
+					if (!ghc::filesystem::exists(GetProjectPath("buffers")))
+						ghc::filesystem::create_directories(GetProjectPath("buffers"));
 
-				for (int j = 0; j < passItems.size(); j++) {
-					std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
+					std::ofstream bufWrite(bPath, std::ios::binary);
+					bufWrite.write((char*)bobj->Data, bobj->Size);
+					bufWrite.close();
 
-					for (int slot = 0; slot < bound.size(); slot++)
-						if (bound[slot] == myTex) {
-							pugi::xml_node bindNode = textureNode.append_child("bind");
-							bindNode.append_attribute("slot").set_value(slot);
-							bindNode.append_attribute("name").set_value(passItems[j]->Name);
-						}
-				}
+
+					for (int j = 0; j < passItems.size(); j++) {
+						std::vector<std::string> bound = m_objects->GetUniformBindList(passItems[j]);
+
+						for (int slot = 0; slot < bound.size(); slot++)
+							if (bound[slot] == texs[i]) {
+								pugi::xml_node bindNode = textureNode.append_child("bind");
+								bindNode.append_attribute("slot").set_value(slot);
+								bindNode.append_attribute("name").set_value(passItems[j]->Name);
+							}
+					}
+				} else {
+					GLuint myTex = m_objects->GetTexture(texs[i]);
+
+					for (int j = 0; j < passItems.size(); j++) {
+						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
+
+						for (int slot = 0; slot < bound.size(); slot++)
+							if (bound[slot] == myTex) {
+								pugi::xml_node bindNode = textureNode.append_child("bind");
+								bindNode.append_attribute("slot").set_value(slot);
+								bindNode.append_attribute("name").set_value(passItems[j]->Name);
+							}
+					}
+				} 
 			}
 		}
 
@@ -1667,7 +1695,7 @@ namespace ed
 
 		// objects
 		std::vector<PipelineItem*> passes = m_pipe->GetList();
-		std::map<PipelineItem*, std::vector<std::string>> boundTextures;
+		std::map<PipelineItem*, std::vector<std::string>> boundTextures, boundUBOs;
 		for (pugi::xml_node objectNode : projectNode.child("objects").children("object")) {
 			const pugi::char_t* objType = objectNode.attribute("type").as_string();
 
@@ -1802,6 +1830,44 @@ namespace ed
 					}
 				}
 			}
+			else if (strcmp(objType, "buffer") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
+				
+				m_objects->CreateBuffer(objName);
+				ed::BufferObject* buf = m_objects->GetBuffer(objName);
+
+				if (!objectNode.attribute("size").empty()) {
+					buf->Size = objectNode.attribute("size").as_int();
+					buf->Data = realloc(buf->Data, buf->Size);
+				}
+				if (!objectNode.attribute("format").empty())
+					strcpy(buf->ViewFormat, objectNode.attribute("format").as_string());
+				
+				std::string bPath = GetProjectPath("buffers/" + std::string(objName) + ".buf");
+				std::ifstream bufRead(bPath, std::ios::binary);
+				if (bufRead.is_open())
+					bufRead.read((char*)buf->Data, buf->Size);
+				bufRead.close();
+
+				glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+				glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+				
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+
+					for (auto pass : passes) {
+						if (strcmp(pass->Name, passBindName) == 0) {
+							if (boundUBOs[pass].size() <= slot)
+								boundUBOs[pass].resize(slot + 1);
+
+							boundUBOs[pass][slot] = objName;
+							break;
+						}
+					}
+				}
+			}
 		}
 
 		// bind objects
@@ -1809,6 +1875,12 @@ namespace ed
 			for (auto id : b.second)
 				if (!id.empty())
 					m_objects->Bind(id, b.first);
+		// bind buffers
+		for (auto b : boundUBOs)
+			for (auto id : b.second)
+				if (!id.empty())
+					m_objects->BindUniform(id, b.first);
+
 
 		// settings
 		for (pugi::xml_node settingItem : projectNode.child("settings").children("entry")) {
