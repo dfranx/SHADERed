@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include "../Objects/PipelineItem.h"
+#include "CubemapPreview.h"
 
 namespace ed
 {
@@ -9,16 +10,19 @@ namespace ed
 	public:
 		ObjectPreviewUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
 			UIView(ui, objects, name, visible)
-		{ }
+		{
+            m_cubePrev.Init(256, 192);
+        }
 		~ObjectPreviewUI() { }
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
-        void Open(const std::string& name, float w, float h, unsigned int item, bool isCube = false, void* rt = nullptr, void* audio = nullptr);
+        void Open(const std::string& name, float w, float h, unsigned int item, bool isCube = false, void* rt = nullptr, void* audio = nullptr, void* model = nullptr);
 
         inline bool ShouldRun() { return m_items.size() > 0; }
         inline void CloseAll() { m_items.clear(); }
+        void Close(const std::string& name);
 
 	protected:
         struct mItem
@@ -31,9 +35,13 @@ namespace ed
 
             void* RT;
             void* Audio; // TODO this
+            void* Model; // TODO
         };
 
     private:
         std::vector<mItem> m_items;
+        ed::AudioAnalyzer m_audioAnalyzer;
+		CubemapPreview m_cubePrev;
+        float m_samples[512], m_fft[512];
 	};
 }

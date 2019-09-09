@@ -30,8 +30,10 @@ namespace ed
 			glDeleteTextures(1, &m_texs[str]);
 
 			if (IsAudio(str)) {
-				if (m_audioPlayer[str].getStatus() == sf::Sound::Playing)
-					m_audioPlayer[str].stop();
+				if (m_audioPlayer[str]->getStatus() == sf::Sound::Playing)
+					m_audioPlayer[str]->stop();
+				delete m_audioPlayer[str];
+				delete m_audioData[str];
 			}
 			else if (IsRenderTexture(str)) {
 				glDeleteTextures(1, &m_rts[str]->DepthStencilBuffer);
@@ -222,8 +224,10 @@ namespace ed
 			return false;
 		}
 
-		bool loaded = m_audioData[file].loadFromFile(m_parser->GetProjectPath(file));
+		m_audioData[file] = new sf::SoundBuffer();
+		bool loaded = m_audioData[file]->loadFromFile(m_parser->GetProjectPath(file));
 		if (!loaded) {
+			delete m_audioData[file];
 			m_audioData.erase(file);
 			ed::Logger::Get().Log("Failed to load an audio file " + file, true);
 			return false;
@@ -240,9 +244,10 @@ namespace ed
 
 		m_items.push_back(file);
 
-		m_audioPlayer[file].setBuffer(m_audioData[file]);
-		m_audioPlayer[file].setLoop(true);
-		m_audioPlayer[file].play();
+		m_audioPlayer[file] = new sf::Sound();
+		m_audioPlayer[file]->setBuffer(*m_audioData[file]);
+		m_audioPlayer[file]->setLoop(true);
+		m_audioPlayer[file]->play();
 		m_audioMute[file] = false;
 
 		return true;
@@ -251,14 +256,14 @@ namespace ed
 	{
 		for (auto& it : m_audioData) {
 			// get samples and fft data
-			sf::Sound& player = m_audioPlayer[it.first];
-			int channels = it.second.getChannelCount();
-			int perChannel = it.second.getSampleCount() / channels;
-			int curSample = (int)((player.getPlayingOffset().asSeconds() / it.second.getDuration().asSeconds()) * perChannel);
+			sf::Sound* player = m_audioPlayer[it.first];
+			int channels = it.second->getChannelCount();
+			int perChannel = it.second->getSampleCount() / channels;
+			int curSample = (int)((player->getPlayingOffset().asSeconds() / it.second->getDuration().asSeconds()) * perChannel);
 
-			double* fftData = m_audioAnalyzer.FFT(it.second, curSample);
+			double* fftData = m_audioAnalyzer.FFT(*it.second, curSample);
 
-			const sf::Int16* samples = it.second.getSamples();
+			const sf::Int16* samples = it.second->getSamples();
 			for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
 				sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
 				float sf = (float)s / (float)INT16_MAX;
@@ -306,9 +311,11 @@ namespace ed
 			delete m_rts[file];
 			m_rts.erase(file);
 		} else if (IsAudio(file)) {
-			if (m_audioPlayer[file].getStatus() == sf::Sound::Playing)
-				m_audioPlayer[file].stop();
+			if (m_audioPlayer[file]->getStatus() == sf::Sound::Playing)
+				m_audioPlayer[file]->stop();
 
+			delete m_audioData[file];
+			delete m_audioPlayer[file];
 			m_audioData.erase(file);
 			m_audioPlayer.erase(file);
 			m_audioMute.erase(file);
@@ -358,12 +365,12 @@ namespace ed
 	}
 	void ObjectManager::Mute(const std::string& name)
 	{
-		m_audioPlayer[name].setVolume(0);
+		m_audioPlayer[name]->setVolume(0);
 		m_audioMute[name] = true;
 	}
 	void ObjectManager::Unmute(const std::string& name)
 	{
-		m_audioPlayer[name].setVolume(100);
+		m_audioPlayer[name]->setVolume(100);
 		m_audioMute[name] = false;
 	}
 	void ObjectManager::ResizeRenderTexture(const std::string & name, glm::ivec2 size)

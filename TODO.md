@@ -25,6 +25,8 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - add Options -> Project -> Disable clear
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
  - click on cubemap, audio, 3d model, texture and render texture preview should open a preview window
+ - move 3D models to ObjectManager
+ - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - recompile the shader after we change shader path in a shader pass
  - when adding a shader pass, decompile the shader and detect input variables
  - when loading a texture it might not be loaded if not bound to any shader pass

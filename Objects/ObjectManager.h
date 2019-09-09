@@ -73,7 +73,8 @@ namespace ed
 		inline std::vector<std::string> GetObjects() { return m_items; }
 		inline GLuint GetTexture(const std::string& file) { return m_texs[file]; }
 		inline std::pair<int, int> GetImageSize(const std::string& file) { return m_imgSize[file]; }
-
+		inline sf::SoundBuffer* GetSoundBuffer(const std::string& file) { return m_audioData[file]; }
+		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
 
@@ -99,8 +100,8 @@ namespace ed
 
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_audioTempTexData[ed::AudioAnalyzer::SampleCount * 2];
-		std::unordered_map<std::string, sf::SoundBuffer> m_audioData;
-		std::unordered_map<std::string, sf::Sound> m_audioPlayer;
+		std::unordered_map<std::string, sf::SoundBuffer*> m_audioData;
+		std::unordered_map<std::string, sf::Sound*> m_audioPlayer;
 		std::unordered_map<std::string, bool> m_audioMute;
 
 		std::unordered_map<std::string, RenderTextureObject*> m_rts;

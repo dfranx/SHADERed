@@ -38,6 +38,7 @@ set(SOURCES
 # UI
 	UI/CodeEditorUI.cpp
 	UI/CreateItemUI.cpp
+	UI/CubemapPreview.cpp
 	UI/MessageOutputUI.cpp
 	UI/ObjectListUI.cpp
 	UI/ObjectPreviewUI.cpp
