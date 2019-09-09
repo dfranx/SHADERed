@@ -105,14 +105,10 @@ endif(CMAKE_TOOLCHAIN_FILE)
 
 # sdl2
 if(WIN32 OR APPLE)
-
   find_package(SDL2 REQUIRED)
-
 else()
-
   # find sdl2 on linux
   pkg_check_modules(SDL2 REQUIRED sdl2)
-
 endif()
 
 # opengl
