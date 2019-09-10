@@ -48,7 +48,7 @@ namespace ed
                 if (item->RT != nullptr)
                     iSize = m_data->Objects.GetRenderTextureSize(name);
 
-                float scale = std::min(aSize.x/iSize.x, aSize.y/iSize.y);
+                float scale = std::min<float>(aSize.x/iSize.x, aSize.y/iSize.y);
                 aSize.x = iSize.x * scale;
                 aSize.y = iSize.y * scale;
 
@@ -128,7 +128,7 @@ namespace ed
                             int curColOffset = 0;
                             for (int j = 0; j < item->CachedFormat.size(); j++) {
                                 int dOffset = i * perRow + curColOffset;
-                                if (m_drawBufferElement(i, j, buf->Data + dOffset, item->CachedFormat[j])) {
+                                if (m_drawBufferElement(i, j, (void*)(((char*)buf->Data) + dOffset), item->CachedFormat[j])) {
                                     glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
 					                glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
 					                glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -214,19 +214,19 @@ namespace ed
 				ret = ret || ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
 				break;
 			case ed::ShaderVariable::ValueType::Boolean2:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1));
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1);
 				break;
 			case ed::ShaderVariable::ValueType::Boolean3:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data + 2));
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data)+2);
 				break;
 			case ed::ShaderVariable::ValueType::Boolean4:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data + 0)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data + 1)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data + 2)); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data + 3));
+				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data)+2); ImGui::SameLine();
+				ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data)+3);
 				break;
 		}
 
