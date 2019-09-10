@@ -354,7 +354,7 @@ namespace ed
 								item->InstanceBuffer = buf.second;
 								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
 								
-								gl::CreateVAO(item->VAO, item->VBO, buf.second->ID, fmtList);
+								gl::CreateVAO(item->VAO, item->VBO, 0, buf.second->ID, fmtList);
 							}
 						}
 
@@ -749,7 +749,7 @@ namespace ed
 							item->InstanceBuffer = nullptr;
 
 							for (auto& mesh : item->Data->Meshes)
-								gl::CreateVAO(mesh.VAO, mesh.VBO);
+								gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO);
 						}
 
 						for (const auto& buf : bufList) {
@@ -758,10 +758,13 @@ namespace ed
 								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
 								
 								for (auto& mesh : item->Data->Meshes)
-									gl::CreateVAO(mesh.VAO, mesh.VBO, buf.second->ID, fmtList);
+									gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO, buf.second->ID, fmtList);
 							}
 						}
+
+						ImGui::EndCombo();
 					}
+					ImGui::PopItemWidth();
 				}
 			} else if (m_currentRT != nullptr) {
 				/* FIXED SIZE */

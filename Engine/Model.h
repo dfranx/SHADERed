@@ -36,7 +36,7 @@ namespace ed
 
 				Mesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
 
-				void Draw();
+				void Draw(bool instanced = false, int iCount = 0);
 
 				unsigned int VAO, VBO, EBO;
 
@@ -51,7 +51,7 @@ namespace ed
 
 			std::vector<std::string> GetMeshNames();
 			bool LoadFromFile(const std::string& path);
-			void Draw();
+			void Draw(bool instanced = false, int iCount = 0);
 			void Draw(const std::string& mesh);
 
 			inline glm::vec3 GetMinBound() { return m_minBound; }

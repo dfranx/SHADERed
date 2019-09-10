@@ -225,7 +225,7 @@ namespace ed
 					// bind variables
 					data->Variables.Bind(item);
 
-					objData->Data->Draw();
+					objData->Data->Draw(objData->Instanced, objData->InstanceCount);
 				}
 				else if (item->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);

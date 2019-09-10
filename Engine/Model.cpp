@@ -54,11 +54,15 @@ namespace ed
 
 			glBindVertexArray(0);
 		}
-		void Model::Mesh::Draw()
+		void Model::Mesh::Draw(bool instanced, int iCount)
 		{
 			// draw mesh
 			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
+
+			if (instanced)
+				glDrawElementsInstanced(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, nullptr, iCount);
+			else
+				glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
 		}
 
 		Model::~Model()
@@ -115,10 +119,10 @@ namespace ed
 				ret.push_back(Meshes[i].Name);
 			return ret;
 		}
-		void Model::Draw()
+		void Model::Draw(bool inst, int iCount)
 		{
 			for (unsigned int i = 0; i < Meshes.size(); i++)
-				Meshes[i].Draw();
+				Meshes[i].Draw(inst, iCount);
 		}
 		void Model::Draw(const std::string & mesh)
 		{

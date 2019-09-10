@@ -177,7 +177,7 @@ namespace ed
 
 									if (mitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i])) {
 										for (auto& mesh : mitem->Data->Meshes)
-											gl::CreateVAO(mesh.VAO, mesh.VBO);
+											gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO);
 										mitem->InstanceBuffer = nullptr;
 									}
 								}

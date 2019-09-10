@@ -1908,14 +1908,14 @@ namespace ed
 		for (auto& geo : geoUBOs) {
 			BufferObject* bojb = m_objects->GetBuffer(geo.second);
 			geo.first->InstanceBuffer = bojb;
-			gl::CreateVAO(geo.first->VAO, geo.first->VBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+			gl::CreateVAO(geo.first->VAO, geo.first->VBO, 0, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
 		}
 		for (auto& mdl : modelUBOs) {
 			BufferObject* bojb = m_objects->GetBuffer(mdl.second);
 			mdl.first->InstanceBuffer = bojb;
 
 			for (auto& mesh : mdl.first->Data->Meshes)
-				gl::CreateVAO(mesh.VAO, mesh.VBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+				gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
 		}
 
 		// bind objects
