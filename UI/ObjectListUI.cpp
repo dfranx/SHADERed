@@ -159,6 +159,32 @@ namespace ed
 						}
 					}
 
+					if (isBuf) {
+						auto& passes = m_data->Pipeline.GetList();
+						for (int j = 0; j < passes.size(); j++) {
+							pipe::ShaderPass* pdata = (pipe::ShaderPass*)passes[j]->Data;
+							for (int k = 0; k < pdata->Items.size(); k++) {
+								PipelineItem* pitem = pdata->Items[k];
+								if (pitem->Type == ed::PipelineItem::ItemType::Geometry) {
+									pipe::GeometryItem* gitem = (pipe::GeometryItem*)pitem->Data;
+
+									if (gitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i]))
+										gl::CreateVAO(gitem->VAO, gitem->VBO);
+									gitem->InstanceBuffer = nullptr;
+								}
+								else if (pitem->Type == ed::PipelineItem::ItemType::Model) {
+									pipe::Model* mitem = (pipe::Model*)pitem->Data;
+
+									if (mitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i])) {
+										for (auto& mesh : mitem->Data->Meshes)
+											gl::CreateVAO(mesh.VAO, mesh.VBO);
+										mitem->InstanceBuffer = nullptr;
+									}
+								}
+							}
+						}
+					}
+
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Close(items[i]);
 					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties
 					m_data->Objects.Remove(items[i]);

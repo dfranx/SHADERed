@@ -71,6 +71,72 @@ namespace ed
 		}
 
 
+		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
+		{
+			if (geoVAO == 0)
+				glDeleteVertexArrays(1, &geoVAO);
+
+			glGenVertexArrays(1, &geoVAO);
+			glBindVertexArray(geoVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, geoVBO);
+
+			// vertex positions
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+
+			// vertex normals
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(GLfloat)));
+			glEnableVertexAttribArray(1);
+
+			// vertex texture coords
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
+			glEnableVertexAttribArray(2);
+
+			// user defined
+			if (bufVBO != 0) {
+				int sizeInBytes = 0;
+				for (const auto& fmt : types)
+					sizeInBytes += ed::ShaderVariable::GetSize(fmt);
+
+				glBindBuffer(GL_ARRAY_BUFFER, bufVBO);
+				int fmtIndex = 3, fmtOffset = 0;
+				for (const auto& fmt : types) {
+					GLint colCount = 0;
+					GLenum type = GL_FLOAT;
+
+					switch (fmt) {
+						case ShaderVariable::ValueType::Boolean1: colCount = 1; type = GL_BYTE; break;
+						case ShaderVariable::ValueType::Boolean2: colCount = 2; type = GL_BYTE; break;
+						case ShaderVariable::ValueType::Boolean3: colCount = 3; type = GL_BYTE; break;
+						case ShaderVariable::ValueType::Boolean4: colCount = 4; type = GL_BYTE; break;
+						case ShaderVariable::ValueType::Integer1: colCount = 1; type = GL_INT; break;
+						case ShaderVariable::ValueType::Integer2: colCount = 2; type = GL_INT; break;
+						case ShaderVariable::ValueType::Integer3: colCount = 3; type = GL_INT; break;
+						case ShaderVariable::ValueType::Integer4: colCount = 4; type = GL_INT; break;
+						case ShaderVariable::ValueType::Float1: colCount = 1; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float2: colCount = 2; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float3: colCount = 3; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float4: colCount = 4; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float2x2: colCount = 2; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float3x3: colCount = 3; type = GL_FLOAT; break;
+						case ShaderVariable::ValueType::Float4x4: colCount = 4; type = GL_FLOAT; break;
+					}
+
+					glVertexAttribPointer(fmtIndex, colCount, type, GL_FALSE, sizeInBytes, (void*)fmtOffset);
+					glEnableVertexAttribArray(fmtIndex);
+					glVertexAttribDivisor(fmtIndex, 1);
+					
+					fmtOffset += ShaderVariable::GetSize(fmt);
+					fmtIndex++;
+				}
+			}
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+
+
+
 		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str)
 		{
 			std::vector< MessageStack::Message > ret;

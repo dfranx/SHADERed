@@ -131,7 +131,7 @@ already running to see the template under `File -> New`. A menu item for creatin
 have the same text as the parent directory of the template.
 
 ### And many more
-Variable pointers, shader macros, etc...
+Instancing, variable pointers, shader macros, etc...
 Check out the list of features that I want to implement in near future: [TODO.md](./TODO.md)
 
 ## Binaries

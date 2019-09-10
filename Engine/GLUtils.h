@@ -11,6 +11,7 @@
 #include <string>
 
 #include "../Objects/MessageStack.h"
+#include "../Objects/ShaderVariable.h"
 
 namespace ed
 {
@@ -24,5 +25,7 @@ namespace ed
 
 		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str);
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
+	
+		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
 	}
 }

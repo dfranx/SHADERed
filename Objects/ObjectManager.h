@@ -77,12 +77,13 @@ namespace ed
 
 		void Clear();
 
-		inline std::vector<std::string> GetObjects() { return m_items; }
+		inline const std::vector<std::string>& GetObjects() { return m_items; }
 		inline GLuint GetTexture(const std::string& file) { return m_texs[file]; }
 		inline std::pair<int, int> GetImageSize(const std::string& file) { return m_imgSize[file]; }
 		inline sf::SoundBuffer* GetSoundBuffer(const std::string& file) { return m_audioData[file]; }
 		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
 		inline BufferObject* GetBuffer(const std::string& name) { return m_bufs[name]; }
+		inline std::unordered_map<std::string, BufferObject*>& GetBuffers() { return m_bufs; }
 		
 		std::string GetBufferNameByID(int id);
 		

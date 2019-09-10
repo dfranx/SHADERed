@@ -1,6 +1,7 @@
 #include "PropertyUI.h"
 #include "UIHelper.h"
 #include "CodeEditorUI.h"
+#include "../Engine/GLUtils.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 #include "../Objects/HLSL2GLSL.h"
@@ -333,6 +334,33 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
+
+					/* instance array buffers */
+					ImGui::Text("Instance input buffer:");
+					ImGui::NextColumn();
+
+					auto& bufList = m_data->Objects.GetBuffers();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##pui_geo_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->InstanceBuffer)->ID).c_str())))) {
+						// null element
+						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
+							item->InstanceBuffer = nullptr;
+
+							gl::CreateVAO(item->VAO, item->VBO);
+						}
+
+						for (const auto& buf : bufList) {
+							if (ImGui::Selectable(buf.first.c_str(), buf.second == item->InstanceBuffer)) {
+								item->InstanceBuffer = buf.second;
+								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
+								
+								gl::CreateVAO(item->VAO, item->VBO, buf.second->ID, fmtList);
+							}
+						}
+
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
 				}
 				else if (m_current->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* data = (pipe::RenderState*)m_current->Data;
@@ -689,6 +717,51 @@ namespace ed
 					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
+
+
+					/* instanced */
+					ImGui::Text("Instanced:");
+					ImGui::NextColumn();
+
+					ImGui::Checkbox("##pui_mdlinst", &item->Instanced);
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instance count */
+					ImGui::Text("Instance count:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					ImGui::InputInt("##pui_mdlinstcount", &item->InstanceCount);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instance array buffers */
+					ImGui::Text("Instance input buffer:");
+					ImGui::NextColumn();
+
+					auto& bufList = m_data->Objects.GetBuffers();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##pui_mdl_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->InstanceBuffer)->ID).c_str())))) {
+						// null element
+						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
+							item->InstanceBuffer = nullptr;
+
+							for (auto& mesh : item->Data->Meshes)
+								gl::CreateVAO(mesh.VAO, mesh.VBO);
+						}
+
+						for (const auto& buf : bufList) {
+							if (ImGui::Selectable(buf.first.c_str(), buf.second == item->InstanceBuffer)) {
+								item->InstanceBuffer = buf.second;
+								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
+								
+								for (auto& mesh : item->Data->Meshes)
+									gl::CreateVAO(mesh.VAO, mesh.VBO, buf.second->ID, fmtList);
+							}
+						}
+					}
 				}
 			} else if (m_currentRT != nullptr) {
 				/* FIXED SIZE */
