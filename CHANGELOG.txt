@@ -4,6 +4,7 @@
 + add cubemap preview
 + add object preview window
 + add buffer objects
++ add instancing
 + add option to modify system variables when rendering to image
 + fix zoom area dragging
 + fix zoom selection bounds

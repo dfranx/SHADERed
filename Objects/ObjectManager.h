@@ -84,6 +84,8 @@ namespace ed
 		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
 		inline BufferObject* GetBuffer(const std::string& name) { return m_bufs[name]; }
 		
+		std::string GetBufferNameByID(int id);
+		
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
 

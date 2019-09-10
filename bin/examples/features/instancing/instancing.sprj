@@ -16,6 +16,8 @@
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
+					<instanced>true</instanced>
+					<instancecount>15</instancecount>
 					<topology>TriangleList</topology>
 				</item>
 			</items>
@@ -23,16 +25,16 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="buffer" name="Buffer" size="16" format="vec4">
+		<object type="buffer" name="Buffer" size="240" format="vec4">
 			<bind slot="0" name="Simple" />
 		</object>
 	</objects>
 	<settings>
-		<entry type="property" name="Simple" />
+		<entry type="property" name="Box" />
 		<entry type="camera" fp="false">
-			<distance>4</distance>
-			<pitch>28</pitch>
-			<yaw>317</yaw>
+			<distance>16</distance>
+			<pitch>52</pitch>
+			<yaw>351</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

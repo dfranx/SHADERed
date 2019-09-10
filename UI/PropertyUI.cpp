@@ -313,6 +313,26 @@ namespace ed
 					ImGui::PushItemWidth(-1);
 					ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES));
 					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instanced */
+					ImGui::Text("Instanced:");
+					ImGui::NextColumn();
+
+					ImGui::Checkbox("##pui_geoinst", &item->Instanced);
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instance count */
+					ImGui::Text("Instance count:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					ImGui::InputInt("##pui_geoinstcount", &item->InstanceCount);
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
 				}
 				else if (m_current->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* data = (pipe::RenderState*)m_current->Data;

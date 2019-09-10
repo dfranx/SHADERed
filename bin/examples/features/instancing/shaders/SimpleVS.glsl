@@ -7,15 +7,12 @@ layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 
 layout (std140) uniform ubo {
-	vec4 test;
-};
-layout (std140) uniform tester {
-	vec4 test2;
+	vec4 test[10];
 };
 
 out vec4 color;
 
 void main() {
-   color = test2;//vec4(abs(normal), 1.0);
-   gl_Position = matVP * matGeo * vec4(pos, 1);
+   color = vec4(abs(normal), 1.0);
+   gl_Position = matVP * matGeo * vec4(pos + test[gl_InstanceID].xyz, 1);
 }

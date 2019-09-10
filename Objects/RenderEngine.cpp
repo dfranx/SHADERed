@@ -168,7 +168,6 @@ namespace ed
 					data->Variables.UpdateTexture(m_shaders[i], j);
 			}
 
-			// TODO: bind ubos
 			for (int j = 0; j < ubos.size(); j++)
 				glBindBufferBase(GL_UNIFORM_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
 			
@@ -212,7 +211,10 @@ namespace ed
 					data->Variables.Bind(item);
 
 					glBindVertexArray(geoData->VAO);
-					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+					if (geoData->Instanced)
+						glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
+					else
+						glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
 				}
 				else if (item->Type == PipelineItem::ItemType::Model) {
 					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);

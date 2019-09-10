@@ -94,21 +94,23 @@ namespace ed
                     int perRow = 0;
                     for (int i = 0; i < item->CachedFormat.size(); i++)
                         perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
-                    ImGui::Text("Per row size: %d", perRow);
+                    ImGui::Text("Size per row: %d bytes", perRow);
 
                     ImGui::Text("Size in bytes:");
                     ImGui::SameLine();
+                    ImGui::PushItemWidth(200);
                     ImGui::InputInt("##objprev_bsize", &item->CachedSize, 1, 100, ImGuiInputTextFlags_AlwaysInsertMode);
+                    ImGui::PopItemWidth();
                     ImGui::SameLine();
                     if (ImGui::Button("APPLY##objprev_applysize")) {
                         buf->Size = item->CachedSize;
                         if (buf->Size < 0) buf->Size = 0;
 
-                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
-                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, NULL, GL_STATIC_DRAW); // allocate 0 bytes of memory
-                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
                         buf->Data = realloc(buf->Data, buf->Size);
+
+                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
+                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
                     }
 
                     if (perRow != 0) {

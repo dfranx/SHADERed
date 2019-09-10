@@ -50,5 +50,9 @@ Except those features, I am also looking to do some small QoL changes and fixes:
 
  # PLAN
  1.2    -> compute shaders
+
  1.2.*  -> polishing & fixing
+
  1.3    -> shader debugger
+
+ 1.3.*  -> improve debugger

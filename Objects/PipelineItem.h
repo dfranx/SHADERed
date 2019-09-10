@@ -92,6 +92,9 @@ namespace ed
 				Topology = GL_TRIANGLES;
 				Type = GeometryType::Cube;
 				VAO = VBO = 0;
+				Instanced = false;
+				InstanceCount = 0;
+				InstanceBuffer = nullptr;
 			}
 			enum GeometryType {
 				Cube,
@@ -106,6 +109,10 @@ namespace ed
 			GLuint VBO;
 			unsigned int Topology;
 			glm::vec3 Position, Rotation, Scale, Size;
+
+			bool Instanced;
+			int InstanceCount;
+			void* InstanceBuffer;
 		};
 
 		struct RenderState
@@ -178,6 +185,10 @@ namespace ed
 			eng::Model* Data;
 
 			glm::vec3 Position, Rotation, Scale;
+
+			bool Instanced;
+			int InstanceCount;
+			void* InstanceBuffer;
 		};
 	}
 }

@@ -247,6 +247,9 @@ namespace ed
 					if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.x);
 					if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.y);
 					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.z);
+					if (tData->Instanced) itemNode.append_child("instanced").text().set(tData->Instanced);
+					if (tData->InstanceCount > 0) itemNode.append_child("instancecount").text().set(tData->InstanceCount);
+					if (tData->InstanceBuffer != nullptr) itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)tData->InstanceBuffer)->ID).c_str());
 					for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
 						if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
 							itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
@@ -322,6 +325,9 @@ namespace ed
 					if (data->Position.x != 0.0f) itemNode.append_child("x").text().set(data->Position.x);
 					if (data->Position.y != 0.0f) itemNode.append_child("y").text().set(data->Position.y);
 					if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
+					if (data->Instanced) itemNode.append_child("instanced").text().set(data->Instanced);
+					if (data->InstanceCount > 0) itemNode.append_child("instancecount").text().set(data->InstanceCount);
+					if (data->InstanceBuffer != nullptr) itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
 				}
 			}
 
@@ -850,6 +856,9 @@ namespace ed
 					tData->Scale = glm::vec3(1, 1, 1);
 					tData->Position = glm::vec3(0, 0, 0);
 					tData->Rotation = glm::vec3(0, 0, 0);
+					tData->InstanceBuffer = nullptr;
+					tData->InstanceCount = 0;
+					tData->Instanced = false;
 
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "width") == 0)
@@ -986,6 +995,9 @@ namespace ed
 					mdata->Scale = glm::vec3(1, 1, 1);
 					mdata->Position = glm::vec3(0, 0, 0);
 					mdata->Rotation = glm::vec3(0, 0, 0);
+					mdata->InstanceBuffer = nullptr;
+					mdata->InstanceCount = 0;
+					mdata->Instanced = false;
 
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "filepath") == 0)
@@ -1315,6 +1327,8 @@ namespace ed
 		Logger::Get().Log("Parsing a V2 project file...");
 
 		std::map<pipe::ShaderPass*, std::vector<std::string>> fbos;
+		std::map<pipe::GeometryItem*, std::string> geoUBOs; // buffers that are bound to pipeline items
+		std::map<pipe::Model*, std::string> modelUBOs;
 
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
@@ -1470,6 +1484,9 @@ namespace ed
 					tData->Scale = glm::vec3(1, 1, 1);
 					tData->Position = glm::vec3(0, 0, 0);
 					tData->Rotation = glm::vec3(0, 0, 0);
+					tData->Instanced = false;
+					tData->InstanceCount = 0;
+					tData->InstanceBuffer = nullptr;
 
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "width") == 0)
@@ -1496,6 +1513,12 @@ namespace ed
 							tData->Position.y = attrNode.text().as_float();
 						else if (strcmp(attrNode.name(), "z") == 0)
 							tData->Position.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "instanced") == 0)
+							tData->Instanced = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "instancecount") == 0)
+							tData->InstanceCount = attrNode.text().as_int();
+						else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+							geoUBOs[tData] = attrNode.text().as_string();
 						else if (strcmp(attrNode.name(), "topology") == 0) {
 							for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 								if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
@@ -1598,6 +1621,9 @@ namespace ed
 					mdata->Scale = glm::vec3(1, 1, 1);
 					mdata->Position = glm::vec3(0, 0, 0);
 					mdata->Rotation = glm::vec3(0, 0, 0);
+					mdata->InstanceBuffer = nullptr;
+					mdata->Instanced = false;
+					mdata->InstanceCount = 0;
 
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "filepath") == 0)
@@ -1624,6 +1650,12 @@ namespace ed
 							mdata->Position.y = attrNode.text().as_float();
 						else if (strcmp(attrNode.name(), "z") == 0)
 							mdata->Position.z = attrNode.text().as_float();
+						else if (strcmp(attrNode.name(), "instanced") == 0)
+							mdata->Instanced = attrNode.text().as_bool();
+						else if (strcmp(attrNode.name(), "instancecount") == 0)
+							mdata->InstanceCount = attrNode.text().as_int();
+						else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+							modelUBOs[mdata] = attrNode.text().as_string();
 					}
 
 					if (strlen(mdata->Filename) > 0)
@@ -1870,14 +1902,21 @@ namespace ed
 			}
 		}
 
+		// bind ARRAY_BUFFERS
+		// TODO: recreate vao on load
+		for (const auto& geo : geoUBOs)
+			geo.first->InstanceBuffer = m_objects->GetBuffer(geo.second);
+		for (const auto& mdl : modelUBOs)
+			mdl.first->InstanceBuffer = m_objects->GetBuffer(mdl.second);
+
 		// bind objects
-		for (auto b : boundTextures)
-			for (auto id : b.second)
+		for (const auto& b : boundTextures)
+			for (const auto& id : b.second)
 				if (!id.empty())
 					m_objects->Bind(id, b.first);
 		// bind buffers
-		for (auto b : boundUBOs)
-			for (auto id : b.second)
+		for (const auto& b : boundUBOs)
+			for (const auto& id : b.second)
 				if (!id.empty())
 					m_objects->BindUniform(id, b.first);
 

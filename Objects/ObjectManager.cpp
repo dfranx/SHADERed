@@ -496,9 +496,16 @@ namespace ed
 	}
 	RenderTextureObject* ObjectManager::GetRenderTexture(GLuint tex)
 	{
-		for (auto str : m_items)
+		for (const auto& str : m_items)
 			if (m_texs[str] == tex)
 				return m_rts[str];
+		return nullptr;
+	}
+	std::string ObjectManager::GetBufferNameByID(int id)
+	{
+		for (const auto& buf : m_bufs)
+			if (buf.second->ID == id)
+				return buf.first;
 		return nullptr;
 	}
 	void ObjectManager::Mute(const std::string& name)
