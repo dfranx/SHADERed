@@ -41,6 +41,10 @@
 
 namespace ed
 {
+	float clip(float n, float lower, float upper) {
+		return std::max(lower, std::min(n, upper));
+	}
+
 	GUIManager::GUIManager(ed::InterfaceManager* objects, SDL_Window* wnd, SDL_GLContext* gl)
 	{
 		m_data = objects;
@@ -61,6 +65,7 @@ namespace ed
 		m_isCreateRTOpened = false;
 		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
+		m_isUpdateNotificationOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
 
@@ -126,6 +131,13 @@ namespace ed
 		m_cacheUIScale = Settings::Instance().TempScale = Settings::Instance().DPIScale;
 
 		ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
+
+		if (Settings::Instance().General.CheckUpdates) {
+			m_updateCheck.CheckForUpdates([&]() {
+				m_isUpdateNotificationOpened = true;
+				m_updateNotifyClock.restart();
+			});
+		}
 	}
 	GUIManager::~GUIManager()
 	{
@@ -975,6 +987,38 @@ namespace ed
 				m_data->Renderer.Pause(m_wasPausedPrior);
 			}
 			ImGui::EndPopup();
+		}
+
+		if (m_isUpdateNotificationOpened) {
+			const float DISTANCE = 15.0f;
+			ImGuiIO& io = ImGui::GetIO();
+			ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, io.DisplaySize.y - DISTANCE);
+			ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f);
+			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+			ImGui::SetNextWindowBgAlpha(1.0f-clip(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
+			ImVec4 textClr = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+			ImVec4 windowClr = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, textClr);
+			ImGui::PushStyleColor(ImGuiCol_Text, windowClr);
+			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+			{
+				ImGui::Text("A new version of SHADERed is available! Download now!");
+				ImGui::SameLine();
+				if (ImGui::Button("UPDATE")) {
+#if defined(__APPLE__)
+					system("open https://github.com/dfranx/SHADERed/releases"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+					system("xdg-open https://github.com/dfranx/SHADERed/releases");
+#elif defined(_WIN32)
+					ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/releases", NULL, NULL, SW_SHOWNORMAL);
+#endif
+				}
+			}
+			ImGui::PopStyleColor(2);
+			ImGui::End();
+
+			if (m_updateNotifyClock.getElapsedTime().asSeconds() > 7.0f)
+				m_isUpdateNotificationOpened = false;
 		}
 
 		// render ImGUI

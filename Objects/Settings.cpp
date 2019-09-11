@@ -17,7 +17,7 @@ namespace ed
 		General.AutoOpenErrorWindow = true;
 		General.Toolbar = false;
 		General.Recovery = false;
-		General.CheckUpdates = false;
+		General.CheckUpdates = true;
 		General.ReopenShaders = true;
 		General.UseExternalEditor = true;
 		General.OpenShadersOnDblClk = true;
@@ -80,7 +80,7 @@ namespace ed
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Toolbar = ini.GetBoolean("general", "toolbar", false);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
-		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", false);
+		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
 		General.Log = ini.GetBoolean("general", "log", true);
 		General.PipeLogsToTerminal = ini.GetBoolean("general", "pipelogsterminal", false);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);

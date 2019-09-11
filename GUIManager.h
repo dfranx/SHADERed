@@ -1,8 +1,10 @@
 #pragma once
 #include "Objects/KeyboardShortcuts.h"
+#include "Objects/UpdateChecker.h"
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
+#include <SFML/System/Clock.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
@@ -84,6 +86,9 @@ namespace ed
 			 m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
 			 m_isAboutOpen, m_isCreateBufferOpened;
 
+		bool m_isUpdateNotificationOpened;
+		sf::Clock m_updateNotifyClock;
+
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
@@ -104,6 +109,8 @@ namespace ed
 
 		std::vector<UIView*> m_views;
 		CreateItemUI* m_createUI;
+
+		UpdateChecker m_updateCheck;
 
 		InterfaceManager* m_data;
 		SDL_Window* m_wnd;

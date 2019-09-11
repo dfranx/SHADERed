@@ -34,6 +34,7 @@ set(SOURCES
 	Objects/ShaderVariableContainer.cpp
 	Objects/SystemVariableManager.cpp
 	Objects/ThemeContainer.cpp
+	Objects/UpdateChecker.cpp
 
 # UI
 	UI/CodeEditorUI.cpp
@@ -125,7 +126,7 @@ find_package(GLM REQUIRED)
 find_package(ASSIMP REQUIRED)
 
 # sfml audio
-find_package(SFML COMPONENTS system audio)
+find_package(SFML COMPONENTS system audio network)
 
 # glslang
 set(ENABLE_GLSLANG_BINARIES OFF)
@@ -155,7 +156,7 @@ target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MI
 if(${USE_FINDSFML})
 	target_link_libraries(SHADERed ${SFML_LIBRARIES})
 else()
-	target_link_libraries(SHADERed sfml-audio sfml-system)
+	target_link_libraries(SHADERed sfml-audio sfml-system sfml-network)
 endif()
 
 if(WIN32)

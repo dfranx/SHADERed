@@ -183,13 +183,13 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_recovery", &settings->General.Recovery);
 
+		ImGui::PopStyleVar();
+		ImGui::PopItemFlag();
+
 		/* CHECK FOR UPDATES: */
 		ImGui::Text("Check for updates on startup: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_checkupdates", &settings->General.CheckUpdates);
-
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
 
 		/* TRACK FILE CHANGES: */
 		ImGui::Text("Recompile shader on file change: ");
