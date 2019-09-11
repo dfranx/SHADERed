@@ -8,7 +8,6 @@ List of features I want to implement:
  - "Export as DirectX/OpenGL application" option (.cpp file)
  - compute shaders
  - render your shader to a video file
- - buffers read from file or built using in-app buffer editor
  - pixel inspector
  - audio shaders
  - debugger

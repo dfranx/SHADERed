@@ -34,6 +34,7 @@ Preview.ToggleStatusbar CTRL SHIFT F3
 Preview.Unselect CTRL SHIFT Delete
 Project.New CTRL N N
 Project.NewAudio CTRL N A
+Project.NewBuffer CTRL N B
 Project.NewCubeMap CTRL N C
 Project.NewRenderTexture CTRL N R
 Project.NewShaderPass CTRL N P

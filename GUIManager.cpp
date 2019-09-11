@@ -222,7 +222,7 @@ namespace ed
 		*/
 		ImGui::Columns(4);
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, (6*(TOOLBAR_HEIGHT) + 6*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -244,7 +244,7 @@ namespace ed
 		}
 		m_tooltip("Save project");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_FILE)) {				// EMPTY PROJECT
+		if (ImGui::Button(UI_ICON_FILE_FILE)) { // EMPTY PROJECT
 			m_selectedTemplate = "?empty";
 			m_isNewProjectPopupOpened = true;
 		}
@@ -290,6 +290,9 @@ namespace ed
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_CUBE)) this->CreateNewCubemap();
 		m_tooltip("New cubemap");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_TEXT)) this->CreateNewBuffer();
+		m_tooltip("New buffer");
 		ImGui::NextColumn();
 
 		if (ImGui::Button(UI_ICON_REFRESH)) {				// REBUILD PROJECT
@@ -793,7 +796,8 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
 			ImGui::TextWrapped("(C) 2019 dfranx");
-			ImGui::TextWrapped("Version 1.0");
+			ImGui::TextWrapped("Version 1.1.4");
+			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");
 			ImGui::SameLine();
@@ -989,6 +993,7 @@ namespace ed
 			ImGui::EndPopup();
 		}
 
+		// update notification
 		if (m_isUpdateNotificationOpened) {
 			const float DISTANCE = 15.0f;
 			ImGuiIO& io = ImGui::GetIO();
@@ -1002,7 +1007,10 @@ namespace ed
 			ImGui::PushStyleColor(ImGuiCol_Text, windowClr);
 			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 			{
-				ImGui::Text("A new version of SHADERed is available! Download now!");
+				if (ImGui::IsWindowHovered())
+					m_updateNotifyClock.restart();
+
+				ImGui::Text("A new version of SHADERed is available!");
 				ImGui::SameLine();
 				if (ImGui::Button("UPDATE")) {
 #if defined(__APPLE__)
@@ -1012,6 +1020,7 @@ namespace ed
 #elif defined(_WIN32)
 					ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/releases", NULL, NULL, SW_SHOWNORMAL);
 #endif
+					m_isUpdateNotificationOpened = false;
 				}
 			}
 			ImGui::PopStyleColor(2);
