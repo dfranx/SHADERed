@@ -168,7 +168,7 @@ namespace ed
 			if (!(m_optionsOpened && ((OptionsUI*)m_options)->IsListening())) {
 				bool codeHasFocus = ((CodeEditorUI*)Get(ViewID::Code))->HasFocus();
 
-				if (!(!codeHasFocus && ImGui::GetIO().WantTextInput))
+				if (!(ImGui::GetIO().WantTextInput && !codeHasFocus))
 					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
 			}
 		}

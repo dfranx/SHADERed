@@ -1,3 +1,5 @@
+CodeUI.Compile F5
+CodeUI.Save CTRL S
 CodeUI.SwitchView ALT F2
 CodeUI.ToggleStatusbar CTRL SHIFT F2
 Editor.AutocompleteDown Down
@@ -5,7 +7,6 @@ Editor.AutocompleteOpen CTRL Space
 Editor.AutocompleteSelect Tab
 Editor.AutocompleteSelectActive Return
 Editor.AutocompleteUp Up
-Editor.Compile F5
 Editor.Copy CTRL C
 Editor.Cut CTRL X
 Editor.MoveBottom CTRL End
@@ -17,7 +18,6 @@ Editor.MoveUpBlock PageUp
 Editor.OverwriteCursor Insert
 Editor.Paste CTRL V
 Editor.Redo CTRL Y
-Editor.Save CTRL S
 Editor.SelectAll CTRL A
 Editor.Undo CTRL Z
 Gizmo.Position CTRL G P

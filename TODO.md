@@ -16,6 +16,7 @@ List of features I want to implement:
 Except those features, I am also looking to do some small QoL changes and fixes:
  - fix for: SetColumnWidth doesn't allow user to resize the columns
  - fix "Show the error list window when a build finishes with errors" option
+ - crashes when opening cubemap example only on Linux and only in Release mode!
  - add "Hide the error list window when a build doesn't hve any errors" option
  - remove everything FXAA related
  - bring all Preview tools to ObjectPreview window

@@ -23,7 +23,7 @@ namespace ed
 			bool AutoOpenErrorWindow;
 			bool Toolbar;
 			bool Recovery;				// [TODO] Not implemented
-			bool CheckUpdates;			// [TODO] Not implemented
+			bool CheckUpdates;
 			bool RecompileOnFileChange;
 			bool ReopenShaders;
 			bool UseExternalEditor;

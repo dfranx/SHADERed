@@ -56,13 +56,13 @@ const std::string EDITOR_SHORTCUT_NAMES[] =
 namespace ed
 {
 	void CodeEditorUI::m_setupShortcuts() {
-		KeyboardShortcuts::Instance().SetCallback("Editor.Compile", [=]() {
+		KeyboardShortcuts::Instance().SetCallback("CodeUI.Compile", [=]() {
 			if (m_selectedItem == -1)
 				return;
 
 			m_compile(m_selectedItem);
 		});
-		KeyboardShortcuts::Instance().SetCallback("Editor.Save", [=]() {
+		KeyboardShortcuts::Instance().SetCallback("CodeUI.Save", [=]() {
 			if (m_selectedItem == -1)
 				return;
 
@@ -98,11 +98,11 @@ namespace ed
 				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[m_shaderTypeId[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
-							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Editor.Save").c_str())) m_save(i);
+							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
-							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("Editor.Compile").c_str())) m_compile(i);
+							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
 							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(&m_items[i], m_editor[i].GetText(), m_shaderTypeId[i]);
 							
