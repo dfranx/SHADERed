@@ -138,7 +138,7 @@ add_executable(SHADERed ${SOURCES})
 
 # properties
 set_target_properties(SHADERed PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
 )
 

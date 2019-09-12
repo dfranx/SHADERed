@@ -25,6 +25,7 @@ namespace ed
 			bool Recovery;				// [TODO] Not implemented
 			bool CheckUpdates;
 			bool RecompileOnFileChange;
+			bool AutoRecompile;
 			bool ReopenShaders;
 			bool UseExternalEditor;
 			bool OpenShadersOnDblClk;

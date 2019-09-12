@@ -89,6 +89,7 @@ namespace ed
 		General.ItemPropsOnDblCLk = ini.GetBoolean("general", "itempropsdblclk", true);
 		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
+		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
 		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
@@ -148,6 +149,7 @@ namespace ed
 		ini << "itempropsdblclk=" << General.ItemPropsOnDblCLk << std::endl;
 		ini << "selectitemdblclk=" << General.SelectItemOnDblClk << std::endl;
 		ini << "trackfilechange=" << General.RecompileOnFileChange << std::endl;
+		ini << "autorecompile=" << General.AutoRecompile << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;

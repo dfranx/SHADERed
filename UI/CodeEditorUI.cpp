@@ -10,15 +10,15 @@
 
 #include <iostream>
 #include <fstream>
-#if defined(_WIN32)
-#include <windows.h>
-#elif defined(__linux__) || defined(__unix__)
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/inotify.h>
 
-#define EVENT_SIZE  ( sizeof (struct inotify_event) )
-#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+#if defined(_WIN32)
+	#include <windows.h>
+#elif defined(__linux__) || defined(__unix__)
+	#include <unistd.h>
+	#include <sys/types.h>
+	#include <sys/inotify.h>
+	#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+	#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 #endif
 
 #define STATUSBAR_HEIGHT 18 * Settings::Instance().DPIScale
@@ -417,6 +417,93 @@ namespace ed
 		}
 	}
 
+	void CodeEditorUI::UpdateAutoRecompileItems() 
+	{
+		if (m_autoRecompileRequest) {
+        	std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
+			for (const auto& it : m_ariiList) 
+				m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
+			m_autoRecompileRequest = false;
+		}
+	}
+	void CodeEditorUI::SetAutoRecompile(bool autorec)
+	{
+		if (m_autoRecompile == autorec)
+			return;
+		
+		m_autoRecompile = autorec;
+
+		if (autorec) {
+			Logger::Get().Log("Starting auto-recompiler...");
+
+			if (m_autoRecompileThread != nullptr) {
+				m_autoRecompilerRunning = false;
+				if (m_autoRecompileThread->joinable())
+					m_autoRecompileThread->join();
+
+				delete m_autoRecompileThread;
+				m_autoRecompileThread = nullptr;
+			}
+
+			m_autoRecompilerRunning = true;
+
+			m_autoRecompileThread = new std::thread(&CodeEditorUI::m_autoRecompiler, this);
+		}
+		else {
+			Logger::Get().Log("Stopping auto-recompiler...");
+
+			m_autoRecompilerRunning = false;
+
+			if (m_autoRecompileThread->joinable())
+				m_autoRecompileThread->join();
+			delete m_autoRecompileThread;
+			m_autoRecompileThread = nullptr;
+		}
+	}
+	void CodeEditorUI::m_autoRecompiler()
+	{		
+		while (m_autoRecompilerRunning) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+			// get all the sources
+			std::unique_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
+			m_ariiList.clear();
+			for (int i = 0; i < m_editor.size(); i++) {
+				if (!m_editor[i].IsTextChanged())
+					continue;
+
+				AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i].Name];
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i].Data;
+				inf->Pass = pass;
+				
+				if (m_shaderTypeId[i] == 0) {
+					inf->VS = m_editor[i].GetText();
+					inf->VS_IsHLSL = HLSL2GLSL::IsHLSL(pass->VSPath);
+				}
+				else if (m_shaderTypeId[i] == 1) {
+					inf->PS = m_editor[i].GetText();
+					inf->PS_IsHLSL = HLSL2GLSL::IsHLSL(pass->PSPath);
+				}
+				else if (m_shaderTypeId[i] == 2) {
+					inf->GS = m_editor[i].GetText();
+					inf->GS_IsHLSL = HLSL2GLSL::IsHLSL(pass->GSPath);
+				}
+			}
+
+			// cache
+			for (auto& it : m_ariiList) {
+				if (it.second.VS_IsHLSL)
+					it.second.VS = HLSL2GLSL::TranscompileSource(it.second.Pass->VSPath, it.second.VS, 0, it.second.Pass->VSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
+				if (it.second.PS_IsHLSL)
+					it.second.PS = HLSL2GLSL::TranscompileSource(it.second.Pass->PSPath, it.second.PS, 1, it.second.Pass->PSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
+				if (it.second.GS_IsHLSL)
+					it.second.GS = HLSL2GLSL::TranscompileSource(it.second.Pass->GSPath, it.second.GS, 2, it.second.Pass->GSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
+			}
+
+			m_autoRecompileRequest = m_ariiList.size()>0;
+		}
+	}
+
 	void CodeEditorUI::SetTrackFileChanges(bool track)
 	{
 		if (m_trackFileChanges == track)
@@ -428,6 +515,10 @@ namespace ed
 			Logger::Get().Log("Starting to track file changes...");
 
 			if (m_trackThread != nullptr) {
+				m_trackerRunning = false;
+				if (m_trackThread->joinable())
+					m_trackThread->join();
+
 				delete m_trackThread;
 				m_trackThread = nullptr;
 			}
@@ -441,7 +532,9 @@ namespace ed
 
 			m_trackerRunning = false;
 
-			m_trackThread->join();
+			if (m_trackThread->joinable())
+				m_trackThread->join();
+
 			delete m_trackThread;
 			m_trackThread = nullptr;
 		}

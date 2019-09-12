@@ -30,6 +30,7 @@ namespace ed
 
 		void Render(int width, int height);
 		void Recompile(const char* name);
+		void RecompileFromSource(const char* name, const std::string& vs = "", const std::string& ps = "", const std::string& gs = "");
 		void Pick(float sx, float sy, bool multiPick, std::function<void(PipelineItem*)> func = nullptr);
 
 		void FlushCache();
@@ -106,6 +107,9 @@ namespace ed
 		std::vector<GLuint> m_shaders;
 		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
 		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
+		struct ShaderPack {ShaderPack() {VS=GS=PS=0;} GLuint VS, PS, GS;};
+		std::vector<ShaderPack> m_shaderSources;
+
 
 		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 

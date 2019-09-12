@@ -113,6 +113,7 @@ namespace ed
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
+		((CodeEditorUI*)Get(ViewID::Code))->SetAutoRecompile(Settings::Instance().General.AutoRecompile);
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
@@ -427,7 +428,7 @@ namespace ed
 				m_data->Renderer.Recompile(pass->Name);
 			((CodeEditorUI*)Get(ViewID::Code))->EmptyTrackedFiles();
 		}
-
+		((CodeEditorUI*)Get(ViewID::Code))->UpdateAutoRecompileItems();
 
 		// menu
 		if (ImGui::BeginMainMenuBar()) {
@@ -1078,6 +1079,7 @@ namespace ed
 			code->SetHorizontalScrollbar(Settings::Instance().Editor.HorizontalScroll);
 			code->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			code->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
+			code->SetAutoRecompile(Settings::Instance().General.AutoRecompile);
 			code->UpdateShortcuts();
 
 			if (Settings::Instance().TempScale != m_cacheUIScale) {

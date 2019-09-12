@@ -165,7 +165,7 @@ namespace ed
 			ApplyTheme();
 		}
 
-		/* RECOVERY: */
+		/* TOOLBAR: */
 		ImGui::Text("Show toolbar: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_recovery", &settings->General.Toolbar);
@@ -195,6 +195,11 @@ namespace ed
 		ImGui::Text("Recompile shader on file change: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_trackfilechange", &settings->General.RecompileOnFileChange);
+
+		/* AUTO RECOMPILE */
+		ImGui::Text("Recompile shader every 200ms: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_autorecompile", &settings->General.AutoRecompile);
 
 		/* REOPEN: */
 		ImGui::Text("Reopen shaders after openning a project: ");

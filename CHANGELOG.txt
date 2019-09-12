@@ -1,4 +1,5 @@
 [v1.1.5]
++ add auto recompile option (compile changed shaders every 200ms)
 + add "Show whitespace" option
 + fix some TextEditor bugs
 

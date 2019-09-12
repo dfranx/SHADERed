@@ -8,6 +8,7 @@
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <deque>
 #include <future>
+#include <shared_mutex>
 #include <ghc/filesystem.hpp>
 
 namespace ed
@@ -33,6 +34,9 @@ namespace ed
 			m_focusWindow = false;
 			m_trackFileChanges = false;
 			m_trackThread = nullptr;
+			m_autoRecompileThread = nullptr;
+			m_autoRecompilerRunning = false;
+			m_autoRecompile = false;
 
 			m_setupShortcuts();
 		}
@@ -106,6 +110,10 @@ namespace ed
 				m_loadEditorShortcuts(&editor);
 		}
 
+		void SetAutoRecompile(bool autorecompile);
+		void UpdateAutoRecompileItems();
+
+
 		void SetTrackFileChanges(bool track);
 		inline bool TrackedFilesNeedUpdate() { return m_trackedShaderPasses.size() > 0; }
 		inline void EmptyTrackedFiles() { m_trackedShaderPasses.clear(); }
@@ -167,6 +175,24 @@ namespace ed
 		std::string m_focusItem;
 
 		int m_selectedItem;
+
+		// auto recompile
+		std::thread* m_autoRecompileThread;
+		void m_autoRecompiler();
+		std::atomic<bool> m_autoRecompilerRunning, m_autoRecompileRequest;
+		bool m_autoRecompile;
+		std::shared_mutex m_autoRecompilerMutex;
+		struct AutoRecompilerItemInfo
+		{
+			AutoRecompilerItemInfo() {
+				VS = PS = GS = "";
+				VS_IsHLSL = PS_IsHLSL = GS_IsHLSL = false;
+			}
+			std::string VS, PS, GS;
+			bool VS_IsHLSL, PS_IsHLSL, GS_IsHLSL;
+			pipe::ShaderPass* Pass;
+		};
+		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
 
 		// all the variables needed for the file change notifications
 		bool m_trackFileChanges;

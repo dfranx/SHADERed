@@ -136,7 +136,7 @@ namespace ed
 		{
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
 			file.close();
-			return "";
+			return "errorFile";
 		}
 
 		std::string inputHLSL((std::istreambuf_iterator<char>(file)),
@@ -144,6 +144,10 @@ namespace ed
 
 		file.close();
 
+		return HLSL2GLSL::TranscompileSource(filename, inputHLSL, sType, entry, macros, gsUsed, msgs);
+	}
+	std::string HLSL2GLSL::TranscompileSource(const std::string& filename, const std::string& inputHLSL, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs)
+	{
 		const char* inputStr = inputHLSL.c_str();
 
 		// create shader

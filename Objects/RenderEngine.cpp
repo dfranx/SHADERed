@@ -34,6 +34,7 @@ namespace ed
 	}
 	RenderEngine::~RenderEngine()
 	{
+
 		glDeleteTextures(1, &m_rtColor);
 		glDeleteTextures(1, &m_rtDepth);
 		FlushCache();
@@ -335,6 +336,10 @@ namespace ed
 
 				m_msgs->ClearGroup(name);
 
+				if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
+				if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
+				if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
+
 				std::string psContent = "", vsContent = "",
 					vsEntry = shader->VSEntry,
 					psEntry = shader->PSEntry;
@@ -416,9 +421,92 @@ namespace ed
 				if (m_shaders[i] != 0)
 					shader->Variables.UpdateUniformInfo(m_shaders[i]);
 
-				if (vs != 0) glDeleteShader(vs);
-				if (ps != 0) glDeleteShader(ps);
-				if (gs != 0) glDeleteShader(gs);
+				m_shaderSources[i].VS = vs;
+				m_shaderSources[i].PS = ps;
+				m_shaderSources[i].GS = gs;
+			}
+		}
+	}
+	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc)
+	{
+		Logger::Get().Log("Recompiling from source " + std::string(name)); 
+		
+		m_msgs->BuildOccured = true;
+		m_msgs->CurrentItem = name;
+
+		GLchar cMsg[1024];
+
+		int d3dCounter = 0;
+		for (int i = 0; i < m_items.size(); i++) {
+			PipelineItem* item = m_items[i];
+			if (strcmp(item->Name, name) == 0) {
+				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+
+				m_msgs->ClearGroup(name);
+				bool vsCompiled = true, psCompiled = true, gsCompiled = true;
+
+				// pixel shader
+				if (pssrc.size() > 0) {
+					m_msgs->CurrentItemType = 1;
+					shader->Variables.UpdateTextureList(pssrc);
+					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, pssrc.c_str());
+					psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
+
+					if (!psCompiled && !HLSL2GLSL::IsHLSL(shader->PSPath))
+						m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
+
+					glDeleteShader(m_shaderSources[i].PS);
+					m_shaderSources[i].PS = ps;
+				}
+
+				// vertex shader
+				if (vssrc.size() > 0) {
+					m_msgs->CurrentItemType = 0;
+					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vssrc.c_str());
+					vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
+
+					if (!vsCompiled && !HLSL2GLSL::IsHLSL(shader->VSPath))
+						m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
+
+					glDeleteShader(m_shaderSources[i].VS);
+					m_shaderSources[i].VS = vs;
+				}
+
+				// geometry shader
+				if (gssrc.size() > 0) {
+					GLuint gs = 0;
+					glDeleteShader(m_shaderSources[i].GS);
+					if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
+						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
+						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+
+						if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
+							m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+
+						m_shaderSources[i].GS = gs;
+					}
+				}
+
+				if (m_shaders[i] != 0)
+					glDeleteProgram(m_shaders[i]);
+
+				if (!vsCompiled || !psCompiled || !gsCompiled) {
+					Logger::Get().Log("Shaders not compilied", true); 
+					m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+					m_shaders[i] = 0;
+				}
+				else {
+					m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
+
+					m_shaders[i] = glCreateProgram();
+					glAttachShader(m_shaders[i], m_shaderSources[i].VS);
+					glAttachShader(m_shaders[i], m_shaderSources[i].PS);
+					if (shader->GSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].GS);
+					glLinkProgram(m_shaders[i]);
+				}
+
+				if (m_shaders[i] != 0)
+					shader->Variables.UpdateUniformInfo(m_shaders[i]);
 			}
 		}
 	}
@@ -580,11 +668,16 @@ namespace ed
 	}
 	void RenderEngine::FlushCache()
 	{
-		for (int i = 0; i < m_shaders.size(); i++)
+		for (int i = 0; i < m_shaders.size(); i++) {
 			glDeleteProgram(m_shaders[i]);
+			glDeleteShader(m_shaderSources[i].VS);
+			glDeleteShader(m_shaderSources[i].PS);
+			glDeleteShader(m_shaderSources[i].GS);
+		}
 		
 		m_items.clear();
 		m_shaders.clear();
+		m_shaderSources.clear();
 		m_fbosNeedUpdate = true;
 	}
 	void RenderEngine::m_cache()
@@ -617,11 +710,16 @@ namespace ed
 
 				m_items.insert(m_items.begin() + i, items[i]);
 				m_shaders.insert(m_shaders.begin() + i, 0);
+				m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 
 				if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
 					Logger::Get().Log("No shader paths are set", true);
 					continue;
 				}
+
+				if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
+				if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
+				if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
 
 				/*
 					ITEM CACHING
@@ -711,9 +809,9 @@ namespace ed
 				if (m_shaders[i] != 0)
 					data->Variables.UpdateUniformInfo(m_shaders[i]);
 
-				if (vs != 0) glDeleteShader(vs);
-				if (ps != 0) glDeleteShader(ps);
-				if (gs != 0) glDeleteShader(gs);
+				m_shaderSources[i].VS = vs;
+				m_shaderSources[i].PS = ps;
+				m_shaderSources[i].GS = gs;
 			}
 		}
 
@@ -734,6 +832,7 @@ namespace ed
 				m_fbos.erase((pipe::ShaderPass*)m_items[i]->Data);
 				m_items.erase(m_items.begin() + i);
 				m_shaders.erase(m_shaders.begin() + i);
+				m_shaderSources.erase(m_shaderSources.begin() + i);
 			}
 		}
 
@@ -752,9 +851,12 @@ namespace ed
 						m_items.insert(m_items.begin() + dest, items[j]);
 
 						GLuint sCopy = m_shaders[i];
+						ShaderPack ssrcCopy = m_shaderSources[i];
 						
 						m_shaders.erase(m_shaders.begin() + i);
 						m_shaders.insert(m_shaders.begin() + dest, sCopy);
+						m_shaderSources.erase(m_shaderSources.begin() + i);
+						m_shaderSources.insert(m_shaderSources.begin() + dest, ssrcCopy);
 					}
 				}
 			}

@@ -89,11 +89,12 @@
 		</object>
 	</objects>
 	<settings>
+		<entry type="property" name="Processing" />
 		<entry type="pinned" name="lightPos" owner="Processing" />
 		<entry type="camera" fp="false">
-			<distance>10</distance>
+			<distance>9</distance>
 			<pitch>27</pitch>
-			<yaw>314</yaw>
+			<yaw>46</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
