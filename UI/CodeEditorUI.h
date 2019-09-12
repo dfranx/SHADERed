@@ -66,6 +66,10 @@ namespace ed
 			for (TextEditor& editor : m_editor)
 				editor.SetSmartIndent(ts);
 		}
+		inline void SetShowWhitespace(bool wh) {
+			for (TextEditor& editor : m_editor)
+				editor.SetShowWhitespaces(wh);
+		}
 		inline void SetHighlightLine(bool ts) {
 			for (TextEditor& editor : m_editor)
 				editor.SetHighlightLine(ts);

@@ -43,7 +43,7 @@ namespace ed
 			bool SmartPredictions;
 			char Font[MAX_PATH];
 			int FontSize;
-			bool ShowWhitespace;			// [TODO] Not implemented
+			bool ShowWhitespace;
 			bool HiglightCurrentLine;
 			bool LineNumbers;
 			bool StatusBar;

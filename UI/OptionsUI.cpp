@@ -369,15 +369,9 @@ namespace ed
 		ImGui::Checkbox("##opte_smart_pred", &settings->Editor.SmartPredictions);
 
 		/* SHOW WHITESPACE: */
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-
 		ImGui::Text("Show whitespace: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_show_whitespace", &settings->Editor.ShowWhitespace);
-
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
 
 		/* FONT: */
 		ImGui::Text("Font: ");

@@ -1070,6 +1070,7 @@ namespace ed
 			code->SetTabSize(Settings::Instance().Editor.TabSize);
 			code->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
 			code->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			code->SetShowWhitespace(Settings::Instance().Editor.ShowWhitespace);
 			code->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 			code->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
 			code->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);

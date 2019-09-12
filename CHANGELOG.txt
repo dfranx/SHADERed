@@ -1,3 +1,7 @@
+[v1.1.5]
++ add "Show whitespace" option
++ fix some TextEditor bugs
+
 [v1.1.4]
 + add option to reset time
 + add CTRL+ALT+MWheel to zoom in/out
