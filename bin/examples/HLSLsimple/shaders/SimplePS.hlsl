@@ -6,5 +6,8 @@ struct PSInput
 
 float4 main(PSInput pin) : SV_TARGET
 {
-	return pin.Color;
+	float4 ret = pin.Color;
+	ret.a = 0.5f;
+	return ret;
 }
+

@@ -605,6 +605,12 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera);
 
+		/* FPS CAMERA: */
+		ImGui::Text("Window alpha channel: ");
+		ImGui::SameLine();
+		if (ImGui::Checkbox("##optpr_wndalpha", &settings->Project.UseAlphaChannel))
+			m_data->Renderer.RequestTextureResize();
+
 		/* CLEAR COLOR: */
 		ImGui::Text("Preview window clear color: ");
 		ImGui::SameLine();

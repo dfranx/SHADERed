@@ -46,7 +46,7 @@ namespace ed
 			m_lastSize = glm::vec2(width, height);
 
 			glBindTexture(GL_TEXTURE_2D, m_rtColor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, Settings::Instance().Project.UseAlphaChannel ? GL_RGBA : GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -679,6 +679,8 @@ namespace ed
 		m_shaders.clear();
 		m_shaderSources.clear();
 		m_fbosNeedUpdate = true;
+
+		m_lastSize = glm::ivec2(1,1); // recreate window rt!
 	}
 	void RenderEngine::m_cache()
 	{

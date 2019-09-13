@@ -36,6 +36,7 @@ namespace ed
 		void FlushCache();
 		void AddPickedItem(PipelineItem* pipe, bool multiPick = false);
 
+		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1,1); }
 		inline GLuint GetTexture() { return m_rtColor; }
 		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
 

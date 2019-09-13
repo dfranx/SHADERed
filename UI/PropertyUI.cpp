@@ -87,7 +87,7 @@ namespace ed
 						
 						if (!windowAlreadyBound && item->RenderTextures[i] == m_data->Renderer.GetTexture()) {
 							windowAlreadyBound = true;
-							continue;
+							break;
 						}
 
 						for (int j = 0; j < rts.size(); j++) {
@@ -113,9 +113,12 @@ namespace ed
 							}
 
 							// window element
-							if (!windowAlreadyBound)
-								if (ImGui::Selectable("Window", rtID == m_data->Renderer.GetTexture()))
+							if (!windowAlreadyBound && i == 0)
+								if (ImGui::Selectable("Window", rtID == m_data->Renderer.GetTexture())) {
 									item->RenderTextures[i] = m_data->Renderer.GetTexture();
+									for (int j = 1; j < MAX_RENDER_TEXTURES; j++) // "Window" RT can only be used solo
+										item->RenderTextures[j] = 0;
+								}
 
 							// users RTs
 							for (int j = 0; j < rts.size(); j++)

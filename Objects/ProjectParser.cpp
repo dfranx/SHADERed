@@ -67,6 +67,7 @@ namespace ed
 
 		Settings::Instance().Project.FPCamera = false;
 		Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
+		Settings::Instance().Project.UseAlphaChannel = false;
 
 		pugi::xml_node projectNode = doc.child("project");
 		int projectVersion = 1; // if no project version is specified == using first project file
@@ -531,6 +532,13 @@ namespace ed
 				colorNode.append_attribute("g").set_value(Settings::Instance().Project.ClearColor.g);
 				colorNode.append_attribute("b").set_value(Settings::Instance().Project.ClearColor.b);
 				colorNode.append_attribute("a").set_value(Settings::Instance().Project.ClearColor.a);
+			}
+
+			// usealpha
+			{
+				pugi::xml_node alphaNode = settingsNode.append_child("entry");
+				alphaNode.append_attribute("type").set_value("usealpha");
+				alphaNode.append_attribute("val").set_value(Settings::Instance().Project.UseAlphaChannel);
 			}
 		}
 
@@ -2017,6 +2025,12 @@ namespace ed
 						Settings::Instance().Project.ClearColor.b = settingItem.attribute("b").as_float();
 					if (!settingItem.attribute("a").empty())
 						Settings::Instance().Project.ClearColor.a = settingItem.attribute("a").as_float();
+				}
+				else if (type == "usealpha") {
+					if (!settingItem.attribute("val").empty())
+						Settings::Instance().Project.UseAlphaChannel = settingItem.attribute("val").as_bool();
+					else 
+						Settings::Instance().Project.UseAlphaChannel = false;
 				}
 			}
 		}

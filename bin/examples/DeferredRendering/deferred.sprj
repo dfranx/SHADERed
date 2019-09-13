@@ -94,9 +94,10 @@
 		<entry type="camera" fp="false">
 			<distance>9</distance>
 			<pitch>27</pitch>
-			<yaw>46</yaw>
+			<yaw>325</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="true" />
 	</settings>
 </project>

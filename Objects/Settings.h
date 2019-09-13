@@ -73,6 +73,7 @@ namespace ed
 
 		struct strProject {
 			bool FPCamera;
+			bool UseAlphaChannel;
 			glm::vec4 ClearColor;
 		} Project;
 

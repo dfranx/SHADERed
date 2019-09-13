@@ -106,7 +106,7 @@ if(CMAKE_TOOLCHAIN_FILE)
 endif(CMAKE_TOOLCHAIN_FILE)
 
 # sdl2
-if(WIN32 OR APPLE)
+if(WIN32 OR APPLE OR NOT ${USE_PKG_CHECK_SDL})
   find_package(SDL2 REQUIRED)
 else()
   # find sdl2 on linux
@@ -150,7 +150,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${SDL2_MIXER_LIBRARY} ${ASSIMP_LIBRARIES} glslang SPIRV)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${ASSIMP_LIBRARIES} glslang SPIRV)
 
 # link sfml
 if(${USE_FINDSFML})

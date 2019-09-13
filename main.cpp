@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
 
 	// open window
-	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosY == -1 ? SDL_WINDOWPOS_CENTERED : wndPosY, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	SDL_SetWindowMinimumSize(wnd, 200, 200);
 
 	// set window icon:
