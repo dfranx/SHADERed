@@ -1051,9 +1051,11 @@ namespace ed
 					else if (tData->Type == pipe::GeometryItem::Rectangle)
 						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1);
 					else if (tData->Type == pipe::GeometryItem::Sphere)
-						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO,tData->Size.x);
+						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
 					else if (tData->Type == pipe::GeometryItem::Triangle)
 						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
+					else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
+						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
 				}
 				else if (itemType == ed::PipelineItem::ItemType::Model) {
 					pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
@@ -1686,6 +1688,8 @@ namespace ed
 						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
 					else if (tData->Type == pipe::GeometryItem::Triangle)
 						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
+					else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
+						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
 				}
 				else if (itemType == ed::PipelineItem::ItemType::Model) {
 					pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);

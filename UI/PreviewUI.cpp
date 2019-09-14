@@ -693,7 +693,8 @@ namespace ed
 					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x);
 				else if (data->Type == pipe::GeometryItem::Triangle)
 					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO,  data->Size.x);
-
+				else if (data->Type == pipe::GeometryItem::ScreenQuadNDC)
+					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO);
 				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
 			}
 

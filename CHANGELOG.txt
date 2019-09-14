@@ -1,6 +1,8 @@
 [v1.1.5]
-+ add auto recompile option (compile changed shaders every 200ms)
++ add auto recompile option (compile shaders every 200ms)
++ add option to disable/enable window's alpha channel
 + add "Show whitespace" option
++ add ScreenQuadNDC
 + fix some TextEditor bugs
 
 [v1.1.4]

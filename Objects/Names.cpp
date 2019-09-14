@@ -96,7 +96,8 @@ const char* GEOMETRY_NAMES[] = {
 	"Circle",
 	"Triangle",
 	"Sphere",
-	"Plane"
+	"Plane",
+	"ScreenQuadNDC"
 };
 
 const char* PIPELINE_ITEM_NAMES[] =

@@ -535,7 +535,8 @@ namespace ed
 		glm::mat4 world(1);
 		if (item->Type == PipelineItem::ItemType::Geometry) {
 			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
-			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle)
+			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle ||
+				geo->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
 				return;
 
 			world = glm::translate(glm::mat4(1), geo->Position) * glm::yawPitchRoll(geo->Rotation.y, geo->Rotation.x, geo->Rotation.z);

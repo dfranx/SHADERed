@@ -874,7 +874,8 @@ namespace ed
 					{
 						bool proceed = true;
 						if (item->Type == PipelineItem::ItemType::Geometry)
-							proceed = ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::Rectangle;
+							proceed = ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::Rectangle &&
+									  ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::ScreenQuadNDC;
 					
 						if (proceed) {
 							PreviewUI* props = reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview));

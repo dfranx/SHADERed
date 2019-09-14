@@ -98,11 +98,12 @@ namespace ed
 			}
 			enum GeometryType {
 				Cube,
-				Rectangle,
+				Rectangle, // ScreenQuad
 				Circle,
 				Triangle,
 				Sphere,
-				Plane
+				Plane,
+				ScreenQuadNDC
 			} Type;
 
 			GLuint VAO;

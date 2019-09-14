@@ -15,11 +15,12 @@ namespace ed
 	{
 		const int GeometryFactory::VertexCount[] = {
 			36,		/* CUBE */
-			6,		/* RECTANGLE */
+			6,		/* RECTANGLE / SCREENQUAD */
 			32 * 3,	/* CIRCLE */
 			3,		/* TRIANGLE */
 			20 * 20 * 6,/* SPHERE */
 			6,		/* PLANE */
+			6,		/* SCREEQUADNDC */
 		};
 
 		void generateFace(GLfloat* verts, float radius, float sx, float sy, int x, int y)
@@ -273,7 +274,7 @@ namespace ed
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, 6 * 6 * 8 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, 6 * 8 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
 
 			// vertex positions
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
@@ -377,6 +378,43 @@ namespace ed
 			// vertex texture coords
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
 			glEnableVertexAttribArray(2);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			return vao;
+		}
+		unsigned int GeometryFactory::CreateScreenQuadNDC(unsigned int& vbo)
+		{
+			const GLfloat sqData[] = {
+				1, 1, 1.0f, 1.0f,
+				1, -1, 1.0f, 0.0f,
+				-1, -1, 0.0f, 0.0f,
+				-1, 1, 0.0f, 1.0f,
+				1, 1, 1.0f, 1.0f,
+				-1, -1, 0.0f, 0.0f
+			};
+
+			GLuint vao;
+
+			// create vao
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
+			// create vbo
+			glGenBuffers(1, &vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			// vbo data
+			glBufferData(GL_ARRAY_BUFFER, 6 * 4 * sizeof(GLfloat), sqData, GL_STATIC_DRAW);
+
+			// vertex positions
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
+			glEnableVertexAttribArray(0);
+
+			// vertex texture coords
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+			glEnableVertexAttribArray(1);
 
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
