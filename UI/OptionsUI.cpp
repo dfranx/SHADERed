@@ -472,7 +472,7 @@ namespace ed
 					m_selectedShortcut = -1;
 			}
 			else {
-				if (ImGui::Button(KeyboardShortcuts::Instance().GetString(names[i]).c_str(), ImVec2(-1, 0))) {
+				if (ImGui::Button((KeyboardShortcuts::Instance().GetString(names[i]) + "##stcbtn" + names[i]).c_str(), ImVec2(-1, 0))) {
 					if (ImGui::IsKeyDown(SDL_SCANCODE_LCTRL) || ImGui::IsKeyDown(SDL_SCANCODE_RCTRL))
 						KeyboardShortcuts::Instance().Remove(names[i]);
 					else {

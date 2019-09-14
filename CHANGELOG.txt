@@ -3,6 +3,7 @@
 + add option to disable/enable window's alpha channel
 + add "Show whitespace" option
 + add ScreenQuadNDC
++ add the ability to set CodeUI.Save and Project.Save to same shortcut
 + fix some TextEditor bugs
 
 [v1.1.4]

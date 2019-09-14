@@ -45,7 +45,7 @@ Collapsed=0
 DockId=0x00000004,0
 
 [Window][Options]
-Pos=324,189
+Pos=323,192
 Size=1170,690
 Collapsed=0
 
@@ -56,8 +56,8 @@ Collapsed=0
 DockId=0x00000009,0
 
 [Window][###code_viewPS0]
-Pos=273,22
-Size=662,993
+Pos=273,584
+Size=662,431
 Collapsed=0
 DockId=0x0000000A,0
 

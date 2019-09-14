@@ -85,8 +85,12 @@ namespace ed
 
 		for (auto& i : m_data)
 			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
-				i.second.Ctrl = i.second.Alt = i.second.Shift = false;
-				i.second.Key1 = i.second.Key2 = -1;
+				if (!(name == "CodeUI.Save" && i.first == "Project.Save") &&
+					!(name == "Project.Save" && i.first == "CodeUI.Save"))
+				{
+					i.second.Ctrl = i.second.Alt = i.second.Shift = false;
+					i.second.Key1 = i.second.Key2 = -1;
+				}
 			}
 		m_data[name].Alt = alt;
 		m_data[name].Ctrl = ctrl;
@@ -139,8 +143,10 @@ namespace ed
 		bool ctrl = e.key.keysym.mod & KMOD_CTRL;
 		bool shift = e.key.keysym.mod & KMOD_SHIFT;
 
+		bool resetSecond = false, resetFirst = false;
+
 		for (auto hotkey : m_data) {
-			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos))
+			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos || hotkey.first == "Project.Save"))
 				continue;
 
 			Shortcut s = hotkey.second;
@@ -157,7 +163,7 @@ namespace ed
 					if (key1 != -1)
 						for (auto clone : m_data)
 							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift &&
-								clone.second.Key1 == key1 && clone.second.Key2 == key2)
+								clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1)
 							{
 								found = true;
 							}
@@ -165,7 +171,7 @@ namespace ed
 					// call the proper function
 					if (!found) {
 						s.Function();
-						m_keys[1] = -1;
+						resetSecond = true;
 					}
 				}
 				else if (s.Key2 != -1) {
@@ -175,13 +181,15 @@ namespace ed
 						if (s.Key1 == key1 && s.Key2 == key2 && s.Function != nullptr) {
 							s.Function();
 
-							m_keys[1] = -1;
-							m_keys[0] = -1;
+							resetFirst = resetSecond = true;
 						}
 					}
 				}
 			}
 		}
+
+		if (resetFirst) m_keys[0] = -1;
+		if (resetSecond) m_keys[1] = -1;
 	}
 	bool KeyboardShortcuts::m_canSolo(const std::string& name, int k)
 	{
