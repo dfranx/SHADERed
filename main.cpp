@@ -69,8 +69,20 @@ int main(int argc, char* argv[])
 {
 	if (argc > 0) {
 		ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
+		
+		// delete log.txt on startup
+		if (ghc::filesystem::exists("./log.txt")) {
+			std::error_code errCode;
+			ghc::filesystem::remove("./log.txt", errCode);
+		}
+
 		ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
 	}
+	else if (ghc::filesystem::exists("./log.txt")) {
+		std::error_code errCode;
+		ghc::filesystem::remove("./log.txt", errCode);
+	}
+
 
 	// set stb_image flags
 	stbi_flip_vertically_on_write(1);

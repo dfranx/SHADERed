@@ -82,6 +82,7 @@ namespace ed
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
 		General.Log = ini.GetBoolean("general", "log", true);
+		General.StreamLogs = ini.GetBoolean("general", "streamlogs", false);
 		General.PipeLogsToTerminal = ini.GetBoolean("general", "pipelogsterminal", false);
 		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
 		General.UseExternalEditor = ini.GetBoolean("general", "useexternaleditor", true);
@@ -142,6 +143,7 @@ namespace ed
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
 		ini << "log=" << General.Log << std::endl;
+		ini << "streamlogs=" << General.StreamLogs << std::endl;
 		ini << "pipelogsterminal=" << General.PipeLogsToTerminal << std::endl;
 		ini << "reopenshaders=" << General.ReopenShaders << std::endl;
 		ini << "useexternaleditor=" << General.UseExternalEditor << std::endl;

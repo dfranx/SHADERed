@@ -32,6 +32,7 @@ namespace ed
 			bool ItemPropsOnDblCLk;
 			bool SelectItemOnDblClk;
 			bool Log;
+			bool StreamLogs;
 			bool PipeLogsToTerminal;
 			std::string StartUpTemplate;
 			char Font[MAX_PATH];

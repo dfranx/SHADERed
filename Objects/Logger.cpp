@@ -46,11 +46,17 @@ namespace ed
 		if (Settings::Instance().General.PipeLogsToTerminal)
 			std::cout << data.str() << std::endl;
 
-		m_msgs.push_back(data.str());
+		if (Settings::Instance().General.StreamLogs) {
+			std::ofstream log("log.txt", std::ios_base::app | std::ios_base::out);
+    		log << data.str() << std::endl;
+			log.close();
+		}
+		else
+			m_msgs.push_back(data.str());
 	}
 	void Logger::Save()
 	{
-		if (!Settings::Instance().General.Log)
+		if (!Settings::Instance().General.Log || Settings::Instance().General.StreamLogs)
 			return;
 
 		time_t now = time(0);

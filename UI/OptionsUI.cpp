@@ -338,7 +338,7 @@ namespace ed
 			ImGui::TextDisabled("   (scale=%.4f)", settings->TempScale);
 		}
 
-		/* LOGGER STUFF */
+		/* LOG STUFF */
 		ImGui::NewLine();
 		ImGui::Separator();
 		ImGui::NewLine();
@@ -352,6 +352,11 @@ namespace ed
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
+
+		/* STREAM LOGS: */
+		ImGui::Text("Streams logs to log.txt: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_streamlogs", &settings->General.StreamLogs);
 
 		/* PIPE LOGS: */
 		ImGui::Text("Write log messages to console window: ");
