@@ -4,7 +4,7 @@
 + add "Show whitespace" option
 + add ScreenQuadNDC
 + add the ability to set CodeUI.Save and Project.Save to same shortcut
-+ add option to stream logs
++ add option to stream logs to log.txt
 + fix some TextEditor bugs
 
 [v1.1.4]

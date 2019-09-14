@@ -797,7 +797,7 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
 			ImGui::TextWrapped("(C) 2019 dfranx");
-			ImGui::TextWrapped("Version 1.1.4");
+			ImGui::TextWrapped("Version 1.1.5");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");

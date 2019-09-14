@@ -7,7 +7,7 @@ namespace ed
 	class UpdateChecker
 	{
 	public:
-		static const int MyVersion = 2;
+		static const int MyVersion = 3;
 
 		UpdateChecker();
 		~UpdateChecker();
