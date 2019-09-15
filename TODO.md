@@ -14,17 +14,19 @@ List of features I want to implement:
 
 
 Except those features, I am also looking to do some small QoL changes and fixes:
+ - write geometry type in properties
+ - fix TextEditor
+ - change TextEditor light theme error msg color
  - fix for: SetColumnWidth doesn't allow user to resize the columns
  - fix "Show the error list window when a build finishes with errors" option
  - crashes when opening cubemap example only on Linux and only in Release mode!
- - add "Hide the error list window when a build doesn't hve any errors" option
+ - prevent crashes (loading wrong 3d models, etc...)
  - remove everything FXAA related
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
  - add Options -> Project -> Disable clear
  - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
- - click on cubemap, audio, 3d model, texture and render texture preview should open a preview window
  - move 3D models to ObjectManager
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - recompile the shader after we change shader path in a shader pass

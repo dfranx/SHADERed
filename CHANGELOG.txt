@@ -1,3 +1,6 @@
+[v1.2]
++ fix loading files from different drives on Windows
+
 [v1.1.5]
 + add auto recompile option (compile shaders every 200ms)
 + add option to disable/enable window's alpha channel
