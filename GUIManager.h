@@ -54,7 +54,8 @@ namespace ed
 		void CreateNewAudio();
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
 		inline void CreateNewBuffer() { m_isCreateBufferOpened = true; }
-		
+		inline void CreateNewImage() { m_isCreateImgOpened = true; }
+
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
 
@@ -83,8 +84,8 @@ namespace ed
 		float m_cacheUIScale;
 
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
-			 m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
-			 m_isAboutOpen, m_isCreateBufferOpened;
+			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
+			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened;
 
 		bool m_isUpdateNotificationOpened;
 		sf::Clock m_updateNotifyClock;

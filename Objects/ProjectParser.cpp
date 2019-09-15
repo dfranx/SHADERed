@@ -365,16 +365,14 @@ namespace ed
 				bool isAudio = m_objects->IsAudio(texs[i]);
 				bool isCube = m_objects->IsCubeMap(texs[i]);
 				bool isBuffer = m_objects->IsBuffer(texs[i]);
+				bool isImage = m_objects->IsImage(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : "texture")));
-				textureNode.append_attribute((isRT || isCube || isBuffer) ? "name" : "path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : "texture"))));
+				textureNode.append_attribute((isRT || isCube || isBuffer || isImage) ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT && !isAudio && !isBuffer) {
-					bool isCube = m_objects->IsCubeMap(texs[i]);
-					if (isCube)
-						textureNode.append_attribute("cube").set_value(isCube);
-				}
+				if (!isRT && !isAudio && !isBuffer && !isImage && isCube)
+					textureNode.append_attribute("cube").set_value(isCube);
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
@@ -403,6 +401,16 @@ namespace ed
 					textureNode.append_attribute("bottom").set_value(texmaps[3].c_str());
 					textureNode.append_attribute("right").set_value(texmaps[4].c_str());
 					textureNode.append_attribute("back").set_value(texmaps[4].c_str());
+				}
+
+				if (isImage) {
+					ImageObject *iobj = m_objects->GetImage(texs[i]);
+
+					textureNode.append_attribute("width").set_value(iobj->Size.x);
+					textureNode.append_attribute("height").set_value(iobj->Size.y);
+					textureNode.append_attribute("read").set_value(iobj->Read);
+					textureNode.append_attribute("write").set_value(iobj->Write);
+					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 
 				if (isBuffer) {
@@ -457,6 +465,7 @@ namespace ed
 				pugi::xml_node propNode = settingsNode.append_child("entry");
 				propNode.append_attribute("type").set_value("property");
 				propNode.append_attribute("name").set_value(name.c_str());
+				propNode.append_attribute("item").set_value(props->IsPipelineItem() ? "pipe" : (props->IsRenderTexture() ? "rt" : "image"));
 			}
 
 			// code editor ui
@@ -1864,6 +1873,61 @@ namespace ed
 					}
 				}
 			}
+			else if (strcmp(objType, "image") == 0)
+			{
+				const pugi::char_t *objName = objectNode.attribute("name").as_string();
+
+				m_objects->CreateImage(objName);
+				ImageObject* iobj = m_objects->GetImage(objName);
+
+				// load format
+				if (!objectNode.attribute("format").empty())
+				{
+					auto formatName = objectNode.attribute("format").as_string();
+					for (int i = 0; i < HARRAYSIZE(FORMAT_NAMES); i++)
+						if (strcmp(formatName, FORMAT_NAMES[i]) == 0)
+						{
+							iobj->Format = FORMAT_VALUES[i];
+							break;
+						}
+				}
+
+				// load size
+				if (!objectNode.attribute("width").empty())
+					iobj->Size.x = objectNode.attribute("width").as_int();
+				if (!objectNode.attribute("height").empty())
+					iobj->Size.y = objectNode.attribute("height").as_int();
+				m_objects->ResizeImage(objName, iobj->Size);
+
+				// load write flag
+				iobj->Write = true;
+				if (!objectNode.attribute("write").empty())
+					iobj->Write = objectNode.attribute("write").as_bool();
+
+				// load read flag
+				iobj->Read = true;
+				if (!objectNode.attribute("read").empty())
+					iobj->Read = objectNode.attribute("read").as_bool();
+
+				// load binds
+				for (pugi::xml_node bindNode : objectNode.children("bind"))
+				{
+					const pugi::char_t *passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+
+					for (auto pass : passes)
+					{
+						if (strcmp(pass->Name, passBindName) == 0)
+						{
+							if (boundTextures[pass].size() <= slot)
+								boundTextures[pass].resize(slot + 1);
+
+							boundTextures[pass][slot] = objName;
+							break;
+						}
+					}
+				}
+			}
 			else if (strcmp(objType, "audio") == 0) {
 				pugi::char_t objPath[MAX_PATH];
 				strcpy(objPath, toGenericPath(objectNode.attribute("path").as_string()).c_str());
@@ -1959,8 +2023,26 @@ namespace ed
 				if (type == "property") {
 					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 					if (!settingItem.attribute("name").empty()) {
-						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
-						props->Open(item);
+						int type = 0; // pipeline item
+						if (!settingItem.attribute("item").empty()) {
+							const pugi::char_t* itemType = settingItem.attribute("item").as_string();
+							if (strcmp(itemType, "rt") == 0)
+								type = 1;
+							else if (strcmp(itemType, "image") == 0)
+								type = 2;
+						}
+
+						const pugi::char_t *itemName = settingItem.attribute("name").as_string();
+						if (type == 0) {
+							PipelineItem *item = m_pipe->Get(itemName);
+							props->Open(item);
+						} else if (type == 1) {
+							RenderTextureObject *item = m_objects->GetRenderTexture(m_objects->GetTexture(itemName));
+							props->Open(itemName, item);
+						} else if (type == 2) {
+							ImageObject* item = m_objects->GetImage(itemName);
+							props->Open(itemName, item);
+						}
 					}
 				}
 				else if (type == "file" && Settings::Instance().General.ReopenShaders) {

@@ -1,4 +1,6 @@
 [v1.2]
++ add empty image object
++ fix saving info about item opened in PropertyUI
 + fix loading files from different drives on Windows
 
 [v1.1.5]

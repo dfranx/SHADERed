@@ -48,6 +48,15 @@ namespace ed
 		GLuint ID;
 	};
 
+	struct ImageObject
+	{
+		glm::ivec2 Size;
+		GLuint Format;
+		bool Read,Write;
+
+		GLuint Texture;
+	};
+
 	class ObjectManager
 	{
 	public:
@@ -59,6 +68,7 @@ namespace ed
 		bool CreateAudio(const std::string& file);
 		bool CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back);
 		bool CreateBuffer(const std::string& file);
+		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1,1));
 
 		void Update(float delta);
 
@@ -71,21 +81,26 @@ namespace ed
 		inline bool IsAudio(const std::string& name) { return m_audioData.count(name) > 0; }
 		inline bool IsAudioMuted(const std::string& name) { return m_audioMute[name]; }
 		inline bool IsBuffer(const std::string& name) { return m_bufs.count(name) > 0; }
+		inline bool IsImage(const std::string& name) { return m_images.count(name) > 0; }
 		bool IsCubeMap(GLuint id);
 
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);
+		void ResizeImage(const std::string& name, glm::ivec2 size);
 
 		void Clear();
 
 		inline const std::vector<std::string>& GetObjects() { return m_items; }
 		inline GLuint GetTexture(const std::string& file) { return m_texs[file]; }
-		inline std::pair<int, int> GetImageSize(const std::string& file) { return m_imgSize[file]; }
+		inline std::pair<int, int> GetTextureSize(const std::string& file) { return m_imgSize[file]; }
 		inline sf::SoundBuffer* GetSoundBuffer(const std::string& file) { return m_audioData[file]; }
 		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
 		inline BufferObject* GetBuffer(const std::string& name) { return m_bufs[name]; }
 		inline std::unordered_map<std::string, BufferObject*>& GetBuffers() { return m_bufs; }
-		
+		inline ImageObject* GetImage(const std::string& name) { return m_images[name]; }
+		inline glm::ivec2 GetImageSize(const std::string &name) { return m_images[name]->Size; }
+
 		std::string GetBufferNameByID(int id);
+		std::string GetImageNameByID(GLuint id);
 		
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
@@ -119,7 +134,9 @@ namespace ed
 		ProjectParser* m_parser;
 
 		std::vector<std::string> m_items;
-		std::unordered_map<std::string, std::pair<int, int>> m_imgSize;
+
+		// TODO: lower down the number of maps
+		std::unordered_map<std::string, std::pair<int, int>> m_imgSize; // TODO: use glm::ivec2
 		std::unordered_map<std::string, GLuint> m_texs;
 		std::unordered_map<std::string, bool> m_isCube;
 		std::unordered_map<std::string, std::vector<std::string>> m_cubemaps;
@@ -130,9 +147,9 @@ namespace ed
 		std::unordered_map<std::string, sf::Sound*> m_audioPlayer;
 		std::unordered_map<std::string, bool> m_audioMute;
 
-		std::unordered_map<std::string, RenderTextureObject*> m_rts;
-
-		std::unordered_map<std::string, BufferObject*> m_bufs;
+		std::unordered_map<std::string, RenderTextureObject *> m_rts;
+		std::unordered_map<std::string, BufferObject *> m_bufs;
+		std::unordered_map<std::string, ImageObject *> m_images;
 
 		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_binds;
 		std::unordered_map<PipelineItem*, std::vector<std::string>> m_uniformBinds;

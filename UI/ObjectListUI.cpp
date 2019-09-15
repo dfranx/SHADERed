@@ -31,7 +31,7 @@ namespace ed
 			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
 
 		for (int i = 0; i < items.size(); i++) {
-			GLuint tex = m_data->Objects.GetTexture(items[i]);
+			GLuint tex = m_data->Objects.IsImage(items[i]) ? m_data->Objects.GetImage(items[i])->Texture : m_data->Objects.GetTexture(items[i]);
 
 			float imgWH = 0.0f;
 			glm::vec2 imgSize(0,0);
@@ -48,8 +48,12 @@ namespace ed
 				imgWH = 375.0f / 512.0f;
 				imgSize = glm::vec2(512, 375);
 			}
+			else if (m_data->Objects.IsImage(items[i])) {
+				imgSize = m_data->Objects.GetImageSize(items[i]);
+				imgWH = imgSize.y / imgSize.x;
+			}
 			else {
-				auto img = m_data->Objects.GetImageSize(items[i]);
+				auto img = m_data->Objects.GetTextureSize(items[i]);
 				imgWH = (float)img.second / img.first;
 				imgSize = glm::vec2(img.first, img.second);
 			}
@@ -80,7 +84,6 @@ namespace ed
 
 				ImGui::Separator();
 
-
 				if (ImGui::BeginMenu("Bind")) {
 					if (isBuf) {
 						for (int j = 0; j < passes.size(); j++) {
@@ -110,9 +113,13 @@ namespace ed
 					ImGui::EndMenu();
 				}
 
-				if (m_data->Objects.IsRenderTexture(items[i])) {
+				if (m_data->Objects.IsRenderTexture(items[i]) ||
+					m_data->Objects.IsImage(items[i])) {
 					if (ImGui::Selectable("Properties")) {
-						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(tex));
+						if (m_data->Objects.IsImage(items[i]))
+							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage(items[i]));
+						else
+							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(tex));
 					}
 				}
 
@@ -202,6 +209,7 @@ namespace ed
 			if (ImGui::Selectable("Create Render Texture")) { m_ui->CreateNewRenderTexture(); }
 			if (ImGui::Selectable("Create Audio")) { m_ui->CreateNewAudio(); }
 			if (ImGui::Selectable("Create Buffer")) { m_ui->CreateNewBuffer(); }
+			if (ImGui::Selectable("Create Empty Image")) m_ui->CreateNewImage();
 
 			ImGui::EndPopup();
 		}

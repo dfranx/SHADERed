@@ -12,15 +12,16 @@ List of features I want to implement:
  - audio shaders
  - debugger
 
-
 Except those features, I am also looking to do some small QoL changes and fixes:
  - write geometry type in properties
  - fix TextEditor
  - change TextEditor light theme error msg color
  - fix for: SetColumnWidth doesn't allow user to resize the columns
  - fix "Show the error list window when a build finishes with errors" option
+ - fix ShowHorizontalScrollbar option
  - crashes when opening cubemap example only on Linux and only in Release mode!
- - prevent crashes (loading wrong 3d models, etc...)
+ - prevent crashes (loading wrong 3d models, compute shaders not supported, etc...)
+ - color compute shader labels light/dark green
  - remove everything FXAA related
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux

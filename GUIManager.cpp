@@ -66,6 +66,7 @@ namespace ed
 		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isUpdateNotificationOpened = false;
+		m_isCreateImgOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
 
@@ -223,7 +224,7 @@ namespace ed
 		*/
 		ImGui::Columns(4);
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, (6*(TOOLBAR_HEIGHT) + 6*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, (7*(TOOLBAR_HEIGHT) + 7*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -282,6 +283,9 @@ namespace ed
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
 		m_tooltip("New texture");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_IMAGE)) this->CreateNewImage();
+		m_tooltip("New empty image");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_WAVE)) this->CreateNewAudio();
 		m_tooltip("New audio");
@@ -515,8 +519,10 @@ namespace ed
 						this->CreateNewAudio();
 					if (ImGui::MenuItem("Render Texture", KeyboardShortcuts::Instance().GetString("Project.NewRenderTexture").c_str()))
 						this->CreateNewRenderTexture();
-					if (ImGui::MenuItem("Buffer", KeyboardShortcuts::Instance().GetString("Project.NewBuffer").c_str())) 
+					if (ImGui::MenuItem("Buffer", KeyboardShortcuts::Instance().GetString("Project.NewBuffer").c_str()))
 						this->CreateNewBuffer();
+					if (ImGui::MenuItem("Empty image", KeyboardShortcuts::Instance().GetString("Project.NewImage").c_str()))
+						this->CreateNewImage();
 					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Reset time"))
@@ -662,6 +668,12 @@ namespace ed
 			m_isCreateBufferOpened = false;
 		}
 
+		// open popup for creating image
+		if (m_isCreateImgOpened) {
+			ImGui::OpenPopup("Create image##main_create_img");
+			m_isCreateImgOpened = false;
+		}
+
 		// open popup for creating render texture
 		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
@@ -793,8 +805,31 @@ namespace ed
 			ImGui::EndPopup();
 		}
 
+		// Create empty image popup
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create image##main_create_img"))
+		{
+			static char buf[65] = {0};
+			static glm::ivec2 size(0,0);
+
+			ImGui::InputText("Name", buf, 64);
+			ImGui::DragInt2("Size", glm::value_ptr(size));
+			if (size.x <= 0) size.x = 1;
+			if (size.y <= 0) size.y = 1;
+
+			if (ImGui::Button("Ok"))
+			{
+				if (m_data->Objects.CreateImage(buf, size))
+					ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
 		// Create about popup
-		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 180 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
 			ImGui::TextWrapped("(C) 2019 dfranx");
 			ImGui::TextWrapped("Version 1.1.5");
@@ -811,6 +846,8 @@ namespace ed
 					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
 				#endif
 			}
+
+			ImGui::Separator();
 
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();
@@ -1304,6 +1341,9 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewBuffer", [=]() {
 			CreateNewBuffer();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewImage", [=]() {
+			CreateNewImage();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
 			CreateNewCubemap();

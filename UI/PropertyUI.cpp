@@ -16,16 +16,25 @@
 
 namespace ed
 {
+	void PropertyUI::m_init()
+	{
+		m_current = nullptr;
+		m_currentRT = nullptr;
+		m_currentImg = nullptr;
+		memset(m_itemName, 0, 64 * sizeof(char));
+	}
 	void PropertyUI::OnEvent(const SDL_Event& e)
 	{}
 	void PropertyUI::Update(float delta)
 	{
-		if (m_current != nullptr || m_currentRT != nullptr) {
+		if (m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			if (m_current != nullptr)
 				ImGui::Text(m_current->Name);
 			else if (m_currentRT != nullptr)
 				ImGui::Text(m_currentRT->Name.c_str());
+			else if (m_currentImg != nullptr)
+				ImGui::Text(m_data->Objects.GetImageNameByID(m_currentImg->Texture).c_str());
 			else
 				ImGui::Text("nullptr");
 			ImGui::PopStyleColor();
@@ -35,7 +44,7 @@ namespace ed
 
 			ImGui::Separator();
 			
-			if (m_currentRT == nullptr) {
+			if (m_currentRT == nullptr && m_currentImg == nullptr) {
 				ImGui::Text("Name:");
 				ImGui::NextColumn();
 
@@ -857,8 +866,68 @@ namespace ed
 					ImGui::PopStyleVar();
 					ImGui::PopItemFlag();
 				}
+			} else if (m_currentImg != nullptr) {
+				/* SIZE */
+				ImGui::Text("Size:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragInt2("##prop_rt_fsize", glm::value_ptr(m_currentImg->Size), 1))
+				{
+					if (m_currentImg->Size.x <= 0)
+						m_currentImg->Size.x = 1;
+					if (m_currentImg->Size.y <= 0)
+						m_currentImg->Size.y = 1;
+
+					m_data->Objects.ResizeImage(std::string(m_itemName), m_currentImg->Size);
+				}
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* FORMAT */
+				ImGui::Text("Format:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg->Format)))
+				{
+					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
+					for (int i = 0; i < len; i++)
+					{
+						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg->Format))
+						{
+							m_currentImg->Format = FORMAT_VALUES[i];
+							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
+
+							m_data->Objects.ResizeImage(std::string(m_itemName), m_currentImg->Size);
+						}
+					}
+
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* WRITE? */
+				ImGui::Text("Write:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##pui_write", &m_currentImg->Write))
+					if (!m_currentImg->Read && !m_currentImg->Write)
+						m_currentImg->Write = true;
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* READ? */
+				ImGui::Text("Read:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::Checkbox("##pui_read", &m_currentImg->Read))
+					if (!m_currentImg->Read && !m_currentImg->Write)
+						m_currentImg->Read = true;
 			}
-			
+
 			ImGui::NextColumn();
 			ImGui::Separator();
 			ImGui::Columns(1);
@@ -875,7 +944,7 @@ namespace ed
 		m_currentRT = nullptr;
 		m_current = item;
 	}
-	void PropertyUI::Open(const std::string& name, ed::RenderTextureObject * obj)
+	void PropertyUI::Open(const std::string &name, ed::RenderTextureObject *obj)
 	{
 		Logger::Get().Log("Openning a render texutre in the PropertyUI");
 
@@ -884,5 +953,15 @@ namespace ed
 
 		m_current = nullptr;
 		m_currentRT = obj;
+	}
+	void PropertyUI::Open(const std::string &name, ed::ImageObject *obj)
+	{
+		Logger::Get().Log("Openning an image in the PropertyUI");
+
+		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
+		memcpy(m_itemName, name.c_str(), name.size());
+
+		m_current = nullptr;
+		m_currentImg = obj;
 	}
 }

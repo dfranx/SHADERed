@@ -23,6 +23,7 @@ namespace ed
 	{
 		Clear();
 	}
+
 	void ObjectManager::Clear()
 	{
 		Logger::Get().Log("Clearing ObjectManager contents...");
@@ -32,7 +33,11 @@ namespace ed
 				glDeleteBuffers(1, &m_bufs[str]->ID);
 				glDeleteBuffers(1, &m_bufs[str]->ID);
 				free(m_bufs[str]->Data);
-			} else
+			} else if (IsImage(str)) {
+				glDeleteTextures(1, &m_images[str]->Texture);
+				delete m_images[str];
+			}
+			else
 				glDeleteTextures(1, &m_texs[str]);
 
 			if (IsAudio(str)) {
@@ -43,12 +48,14 @@ namespace ed
 			}
 			else if (IsRenderTexture(str)) {
 				glDeleteTextures(1, &m_rts[str]->DepthStencilBuffer);
+				delete m_rts[str];
 			}
 		}
 		
 		m_rts.clear();
 		m_bufs.clear();
 		m_imgSize.clear();
+		m_images.clear();
 		m_texs.clear();
 		m_binds.clear();
 		m_uniformBinds.clear();
@@ -287,6 +294,33 @@ namespace ed
 
 		return true;
 	}
+	bool ObjectManager::CreateImage(const std::string &name, glm::ivec2 size)
+	{
+		Logger::Get().Log("Creating an image " + name + " ...");
+
+		if (Exists(name))
+		{
+			Logger::Get().Log("Cannot create the image " + name + " because an item with exact name already exists", true);
+			return false;
+		}
+
+		m_items.push_back(name);
+		ed::ImageObject *iObj = m_images[name] = new ImageObject();
+
+		glGenTextures(1, &iObj->Texture);
+		glBindTexture(GL_TEXTURE_2D, iObj->Texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		iObj->Size = size;
+		iObj->Read = true;
+		iObj->Write = true;
+		iObj->Format = GL_RGBA;
+
+		return true;
+	}
 
 	ShaderVariable::ValueType getValueType(const std::string& name)
 	{
@@ -397,6 +431,10 @@ namespace ed
 			glDeleteBuffers(1, &m_bufs[file]->ID);
 			free(m_bufs[file]->Data);
 			m_bufs.erase(file);
+		} else if (IsImage(file)) {
+			glDeleteTextures(1, &m_images[file]->Texture);
+			delete m_images[file];
+			m_images.erase(file);
 		} else
 			glDeleteTextures(1, &m_texs[file]);
 		
@@ -429,8 +467,12 @@ namespace ed
 	}
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{
-		if (IsBound(file, pass) == -1)
-			m_binds[pass].push_back(m_texs[file]);
+		if (IsBound(file, pass) == -1) {
+			if (IsImage(file))
+				m_binds[pass].push_back(m_images[file]->Texture);
+			else
+				m_binds[pass].push_back(m_texs[file]);
+		}
 	}
 	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
 	{
@@ -448,10 +490,16 @@ namespace ed
 		if (m_binds.count(pass) == 0)
 			return -1;
 
-		for (int i = 0; i < m_binds[pass].size(); i++)
-			if (m_binds[pass][i] == m_texs[file]) {
-				return i;
-			}
+		if (IsImage(file))
+		{
+			for (int i = 0; i < m_binds[pass].size(); i++)
+				if (m_binds[pass][i] == m_images[file]->Texture)
+					return i;
+		} else {
+			for (int i = 0; i < m_binds[pass].size(); i++)
+				if (m_binds[pass][i] == m_texs[file])
+					return i;
+		}
 
 		return -1;
 	}
@@ -508,6 +556,13 @@ namespace ed
 				return buf.first;
 		return nullptr;
 	}
+	std::string ObjectManager::GetImageNameByID(GLuint id)
+	{
+		for (const auto& buf : m_images)
+			if (buf.second->Texture == id)
+				return buf.first;
+		return nullptr;
+	}
 	void ObjectManager::Mute(const std::string& name)
 	{
 		m_audioPlayer[name]->setVolume(0);
@@ -527,6 +582,16 @@ namespace ed
 
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, size.x, size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	void ObjectManager::ResizeImage(const std::string &name, glm::ivec2 size)
+	{
+		ImageObject *iobj = m_images[name];
+
+		iobj->Size = size;
+
+		glBindTexture(GL_TEXTURE_2D, iobj->Texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
