@@ -20,55 +20,56 @@ My e-mail address for businesses (or if you just want to contact me):
 
 ## Features
 
+### Compute & geometry shaders
+You are not limited to vertex and pixel shaders. SHADERed also has support for compute & geometry
+shaders. To use GS enable it in your shader pass' properties and set the path to your shader. You can create advanced
+animations and effects using geometry shaders.
+<p align="center">
+    <img width="200" src="./Screenshots/geometryshader.gif">
+</p>
+
+You can also add **compute pass**es alongside shader passes:
+<p align="center">
+    <img width="200" src="./Screenshots/computeshader.gif">
+</p>
+
 ### See changes instantly
-You can press F5 (or whatever shortcut you have set in the options) to see you changes:
+SHADERed offers different ways of recompiling your changed shaders. You can press
+F5 to manually recompile your shader, make it recompile shaders on file modify event (this also allows
+you to use external editors with ease) or make it recompile shaders every 200ms:
 <img src="./Screenshots/instantresult.gif">
 
-Don't want to press F5 constantly? Using an external editor and not the built-in one? Turn on
-the `"Recompile shader on file change"` flag in the options and once you make changes to the
-file, SHADERed will instantly detect that and recompile your shaders:
+Since the built-in text editor is buggy in the latest version, you can turn on
+the `"Recompile shader on file change"` and `"Open shaders in an external editor"` options.
+Open the shader files in an external editor & once you make changes to the file, SHADERed will instantly
+detect them and recompile your shaders:
 <img src="./Screenshots/detectfilechange.gif">
 
 Want to see how a certain object affects your scene? Grab the object and scale, rotate and move it
 around the scene:
 <img src="./Screenshots/gizmo.gif">
 
-### Geometry shaders
-You are not limited to vertex and pixel shaders. SHADERed also has support for geometry
-shaders. Just enable GS in your shader pass and set the path to your shader. Create advanced
-animations and effects using geometry shaders.
-<p align="center">
-    <img width="200" src="./Screenshots/geometryshader.gif">
-</p>
-
 ### Render states
-You can modify rasterizer, blend and depth-stencil state. Using these states you can: turn on wireframe mode,
+You can modify rasterizer, blend and depth-stencil states. Using these states you can: turn on wireframe mode,
 disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
 
-Heres an example of rasterizer state properties:
-<p align="center">
-    <img width="300" src="./Screenshots/rasterizerstate.jpg">
-</p>
-
-### Audio files
-Load a song and create amazing music visualizers!
+### 3D models, textures & audio files
+You can add music and create amazing visualizers!
 <p align="center">
     <img width="200" src="./Screenshots/music.gif">
 </p>
 
-### Loading 3D models
-You can easily add your custom 3D models to the scene. You can also add built-in geometry objects such as cubes, spheres, planes,
+Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
 full screen quads, etc...
 
-### Textures
 Load textures from files and bind them to your shader. SHADERed also supports cubemaps.
 <p align="center">
     <img width="260" src="./Screenshots/texture.jpg">
 </p>
 
 ### Render textures
-You can render your results to a window or a custom render texture. You can bind multiple render textures
-to one shader pass. It helps you create things such as G-Buffer more easily and in only one shader pass. 
+You can render your scene to custom render textures. You can bind multiple render textures
+to one shader pass. This helps with create G-Buffers and similar things more easily. 
 <p align="center">
     <img width="220" src="./Screenshots/multiplert.jpg">
 </p>
@@ -78,16 +79,16 @@ You can create your own variables and edit their values in real time. SHADERed a
 view matrices, etc...).
 <img src="./Screenshots/varmanager.jpg">
 
-You can also pin those variables. All pinned variables (from different shader passes) will be visible on
-a single window and easily accessible. You can edit them there quickly and see your results instantly.
-<p align="center">
-    <img width="230" src="./Screenshots/pinned.jpg">
-</p>
-
-You can change a shader variable value only for a specific 3D model/geometry item. No programming is required.
-You can change multiple variables for each item in the scene before rendering it.
+You can also change shader variable value only for a specific 3D object. No programming is required.
 <p align="center">
     <img width="400" src="./Screenshots/itemvarvalue.gif">
+</p>
+
+### Zooming in & pausing
+Working on an antialiasing shader? You can zoom in and inspect edges of 3D objects.
+Hold ALT and select an area that you want to look at in more detail
+<p align="center">
+    <img width="400" src="https://i.redd.it/89r3mpu2vek31.gif">
 </p>
 
 ### Workspace
@@ -97,40 +98,32 @@ You can modify SHADERed workspace however you want to thanks to Omar Cornut's gr
     <img width="400" src="./Screenshots/workspace.gif">
 </p>
 
-### Code editor
-SHADERed has a built-in code editor. The code editor features a very basic version of code predictions.
-It is called Smart predictions and it will be updated and improved over time. It also has very basic version
-of autocompletion (inserts/removes brackets) and automatic indenting. All of these features can be turned on/off
-in options. Theres also an option to convert your tabs to spaces. The code editor will be improved over time.
-
-**You are not forced to use the built-in code editor (and you probably shouldn't use it right now to avoid some
-annoying bugs)**. You can seperately run your favourite code editor and SHADERed. 
-**Modify your shaders in the code editor of your choice and just save the file - SHADERed will automatically
-recompile the shaders for you**.
-
 ### Error markers
-Error markers help you locate and identify your shader errors more easily. Hover over a line with an error
-to see the message or just check it in the "Output" window.
+The built-in code editor has error markers. They help you locate and identify your shader errors more easily.
+Hover over a line with an error to see the message or just check it in the "Output" window.
 <p align="center">
     <img width="370" src="./Screenshots/error.jpg">
 </p>
 
+**NOTE: You are not forced to use the built-in code editor** (and you probably shouldn't use it right now to avoid some
+annoying bugs).
+
 ### Custom themes
-You can create your own theme SHADERed theme. Modify ImGuiStyle members in an *.ini file. SHADERed themes allow you to
-customize everything including text editor color palette. SHADERed comes with a few built-in themes. I am bad at designing 
-so please submit your own themes!
+You can create your own SHADERed theme. SHADERed themes allow you to
+customize everything. SHADERed comes with a few built-in themes. I am bad at designing 
+so please submit your custom themes!
 
 Want to create your own theme but don't know how? Visit [TUTORIAL.md](./TUTORIAL.md).
 
 ### Custom templates
 You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
 Templates help you start developing shaders quickly. To create your own project template, paste your project
-directory in /templates directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
+directory in the "templates" directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
 already running to see the template under `File -> New`. A menu item for creating a template will
 have the same text as the parent directory of the template.
 
 ### And many more
-Instancing, variable pointers, shader macros, etc...
+Instancing, variable pointers, shader macros, buffers, pausing time, etc...
 Check out the list of features that I want to implement in near future: [TODO.md](./TODO.md)
 
 ## Binaries
@@ -179,7 +172,7 @@ detailed steps on how to do so.
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)
-![](https://user-images.githubusercontent.com/3957610/64042734-e1f9f880-cb62-11e9-8751-90bea93a55a7.png)
+![](https://user-images.githubusercontent.com/3957610/64245795-e54b0680-cf0b-11e9-8799-ea7ace785190.png)
 
 Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!
 
