@@ -130,7 +130,7 @@ You don't have to do anything special to write HLSL shaders. They even work on L
 shader files ends with the specific extension (.hlsl &rightarrow;
 these can be changed in options and are a located under "General" tab).
 
-Geometry shaders currently don't work.
+**Geometry shaders currently don't work.**
 
 # Build your own theme
 Create an `.ini` file. Under `[general]` write the name of your theme and the version. Also, there is

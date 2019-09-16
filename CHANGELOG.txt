@@ -4,6 +4,7 @@
 + fix loading files from different drives on Windows
 + fix saving info about item opened in PropertyUI
 + fix "Show error list window when build finishes with an error" option
++ temprorary fix for crash on float3(), float4(), etc...
 
 [v1.1.5]
 + add auto recompile option (compile shaders every 200ms)

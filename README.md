@@ -1,7 +1,7 @@
 # SHADERed
 
 SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
-open source, cross-platform (runs on Windows, Linux and soon macOS - HLSL shaders work on every OS too) and frequently updated with new features.
+open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both OS) and frequently updated with new features.
 
 <img src="./Screenshots/IMG2.png"/>
 
@@ -13,9 +13,9 @@ Contact: **dfranx00 at gmail dot com**
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
 
-You can support the development of this project via **PayPal**: [PayPal link](https://paypal.me/dfranx) 
+You can support the development of this project via **PayPal**: [<img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/pp-acceptance-medium.png" alt="Buy now with PayPal" />](https://paypal.me/dfranx) 
 
-This is my e-mail address for businesses or if you just want to contact me:
+My e-mail address for businesses (or if you just want to contact me):
 **dfranx00 at gmail dot com**
 
 ## Features

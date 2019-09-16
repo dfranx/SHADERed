@@ -439,6 +439,9 @@ namespace ed
 						} else { // HLSL
 							gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs);
 							gsEntry = "main";
+
+							// TODO: delete this when glslang adds GS support
+							m_msgs->Add(MessageStack::Type::Warning, name, "Geometry shaders are currently not supported by glslang");
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
@@ -576,6 +579,10 @@ namespace ed
 
 							if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
 								m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+
+							// TODO: delete this when glslang adds GS support
+							if (HLSL2GLSL::IsHLSL(shader->GSPath))
+								m_msgs->Add(MessageStack::Type::Warning, name, "Geometry shaders are currently not supported by glslang");
 
 							m_shaderSources[i].GS = gs;
 						}
@@ -916,6 +923,8 @@ namespace ed
 						} else { // HLSL
 							gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs);
 							gsEntry = "main";
+							
+							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
