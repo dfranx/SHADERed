@@ -6,11 +6,12 @@ List of features I want to implement:
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
- - compute shaders
+ - import from ShaderToy
  - render your shader to a video file
  - pixel inspector
  - audio shaders
  - debugger
+ - add compute shader GLSL example with instancing and HLSL example with "rendering" to texture
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - write geometry type in properties
@@ -23,6 +24,8 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - prevent crashes (loading wrong 3d models, compute shaders not supported, etc...)
  - color compute shader labels light/dark green
  - remove everything FXAA related
+ - disable path textboxs
+ - drag and drop files (textures, audio files, etc...)
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
@@ -35,6 +38,10 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - when loading a texture it might not be loaded if not bound to any shader pass
  - ability to change warning, message and error text colors
  - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
+ - rename AddPass to AddShaderPass
+ - bound UBOs should be GLuint's and not std::string -> performance improvement
+ - lower down std::map and std::unordered_map usage
+ - why isn't first arg in CodeEditorUI::m_open a pointer?
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - ability to edit the buttons that show up in the toolbar
  - shift+drag with right click to move ArcBallCamera focus point

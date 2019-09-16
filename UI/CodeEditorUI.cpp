@@ -86,12 +86,12 @@ namespace ed
 		m_selectedItem = -1;
 
 		// counters for each shader type for window ids
-		int wid[3] = { 0, 0, 0 }; // vs, ps, gs
+		int wid[4] = { 0, 0, 0, 0 }; // vs, ps, gs, cs
 
 		// code editor windows
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
-				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : "GS");
+				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : (m_shaderTypeId[i] == 2 ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i].Name) + " (" + shaderType + ")");
 				
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -131,7 +131,7 @@ namespace ed
 						int groupMsg = 0;
 						TextEditor::ErrorMarkers groupErrs;
 						for (int j = 0; j < msgs.size(); j++)
-							if (msgs[j].Group == m_items[i].Name && msgs[j].Shader == m_shaderTypeId[i] && msgs[j].Line > 0)
+							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i].Name && msgs[j].Shader == m_shaderTypeId[i])
 								groupErrs[msgs[j].Line] = msgs[j].Text;
 						m_editor[i].SetErrorMarkers(groupErrs);
 
@@ -145,13 +145,19 @@ namespace ed
 						// status bar
 						if (statusbar) {
 							auto cursor = m_editor[i].GetCursorPosition();
+							char* path = "\0";
 
-							ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
-							char* path = shader->VSPath;
-							if (m_shaderTypeId[i] == 1)
-								path = shader->PSPath;
-							else if (m_shaderTypeId[i] == 2)
-								path = shader->GSPath;
+							if (m_items[i].Type == PipelineItem::ItemType::ShaderPass) {
+								ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+								path = shader->VSPath;
+								if (m_shaderTypeId[i] == 1)
+									path = shader->PSPath;
+								else if (m_shaderTypeId[i] == 2)
+									path = shader->GSPath;
+							} else {
+								ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i].Data);
+								path = shader->Path;
+							}
 
 							ImGui::Separator();
 							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i].GetLanguageDefinition().mName.c_str(), path);
@@ -231,91 +237,162 @@ namespace ed
 	}
 	void CodeEditorUI::m_open(PipelineItem item, int sid)
 	{
-		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
+		if (item.Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
 
-		if (Settings::Instance().General.UseExternalEditor) {
-			std::string path = "";
-			if (sid == 0)
-				path = m_data->Parser.GetProjectPath(shader->VSPath);
-			else if (sid == 1)
-				path = m_data->Parser.GetProjectPath(shader->PSPath);
-			else if (sid == 2)
-				path = m_data->Parser.GetProjectPath(shader->GSPath);
+			if (Settings::Instance().General.UseExternalEditor) {
+				std::string path = "";
+				if (sid == 0)
+					path = m_data->Parser.GetProjectPath(shader->VSPath);
+				else if (sid == 1)
+					path = m_data->Parser.GetProjectPath(shader->PSPath);
+				else if (sid == 2)
+					path = m_data->Parser.GetProjectPath(shader->GSPath);
 
-			#if defined(__APPLE__)
-				system(("open " + path).c_str());
-			#elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + path).c_str());
-			#elif defined(_WIN32)
-				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
-			#endif
+				#if defined(__APPLE__)
+					system(("open " + path).c_str());
+				#elif defined(__linux__) || defined(__unix__)
+					system(("xdg-open " + path).c_str());
+				#elif defined(_WIN32)
+					ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+				#endif
 
-			return;
-		}
+				return;
+			}
 
-		// check if already opened
-		for (int i = 0; i < m_items.size(); i++) {
-			if (m_shaderTypeId[i] == sid) {
-				ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
-				bool match = false;
-				if (sid == 0 && (strcmp(shader->VSPath, sData->VSPath) == 0 || strcmp(shader->VSPath, sData->PSPath) == 0 || strcmp(shader->VSPath, sData->GSPath) == 0))
-					match = true;
-				else if (sid == 1 && (strcmp(shader->PSPath, sData->VSPath) == 0 || strcmp(shader->PSPath, sData->PSPath) == 0 || strcmp(shader->PSPath, sData->GSPath) == 0))
-					match = true;
-				else if (sid == 2 && (strcmp(shader->GSPath, sData->VSPath) == 0 || strcmp(shader->GSPath, sData->PSPath) == 0 || strcmp(shader->GSPath, sData->GSPath) == 0))
-					match = true;
+			// check if already opened
+			for (int i = 0; i < m_items.size(); i++) {
+				if (m_shaderTypeId[i] == sid) {
+					ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+					bool match = false;
+					if (sid == 0 && (strcmp(shader->VSPath, sData->VSPath) == 0 || strcmp(shader->VSPath, sData->PSPath) == 0 || strcmp(shader->VSPath, sData->GSPath) == 0))
+						match = true;
+					else if (sid == 1 && (strcmp(shader->PSPath, sData->VSPath) == 0 || strcmp(shader->PSPath, sData->PSPath) == 0 || strcmp(shader->PSPath, sData->GSPath) == 0))
+						match = true;
+					else if (sid == 2 && (strcmp(shader->GSPath, sData->VSPath) == 0 || strcmp(shader->GSPath, sData->PSPath) == 0 || strcmp(shader->GSPath, sData->GSPath) == 0))
+						match = true;
 
-				if (match) {
-					m_focusWindow = true;
-					m_focusSID = sid;
-					m_focusItem = m_items[i].Name;
-					return;
+					if (match) {
+						m_focusWindow = true;
+						m_focusSID = sid;
+						m_focusItem = m_items[i].Name;
+						return;
+					}
 				}
 			}
+
+			m_items.push_back(item);
+			m_editor.push_back(TextEditor());
+			m_editorOpen.push_back(true);
+			m_stats.push_back(StatsPage(m_data));
+
+			TextEditor* editor = &m_editor[m_editor.size() - 1];
+
+			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
+			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
+
+			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+			editor->SetTabSize(Settings::Instance().Editor.TabSize);
+			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			m_loadEditorShortcuts(editor);
+
+			bool isHLSL = false;
+			if (sid == 0)
+				isHLSL = HLSL2GLSL::IsHLSL(shader->VSPath);
+			else if (sid == 1)
+				isHLSL = HLSL2GLSL::IsHLSL(shader->PSPath);
+			else if (sid == 2)
+				isHLSL = HLSL2GLSL::IsHLSL(shader->GSPath);
+			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
+			
+			m_shaderTypeId.push_back(sid);
+
+			std::string shaderContent = "";
+			if (sid == 0)
+				shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
+			else if (sid == 1)
+				shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
+			else if (sid == 2)
+				shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
+			editor->SetText(shaderContent);
+			editor->ResetTextChanged();
 		}
+		else if (item.Type == PipelineItem::ItemType::ComputePass)
+		{
+			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(item.Data);
 
-		m_items.push_back(item);
-		m_editor.push_back(TextEditor());
-		m_editorOpen.push_back(true);
-		m_stats.push_back(StatsPage(m_data));
+			if (Settings::Instance().General.UseExternalEditor)
+			{
+				std::string path = m_data->Parser.GetProjectPath(shader->Path);
+#if defined(__APPLE__)
+				system(("open " + path).c_str());
+#elif defined(__linux__) || defined(__unix__)
+				system(("xdg-open " + path).c_str());
+#elif defined(_WIN32)
+				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+#endif
+				return;
+			}
 
-		TextEditor* editor = &m_editor[m_editor.size() - 1];
+			// check if already opened
+			for (int i = 0; i < m_items.size(); i++)
+			{
+				if (m_shaderTypeId[i] == 3 && m_items[i].Type == PipelineItem::ItemType::ComputePass)
+				{
+					ed::pipe::ComputePass *sData = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i].Data);
+					bool match = false;
+					if (sid == 3 && strcmp(shader->Path, sData->Path) == 0)
+						match = true;
 
-		TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
-		TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
+					if (match)
+					{
+						m_focusWindow = true;
+						m_focusSID = sid;
+						m_focusItem = m_items[i].Name;
+						return;
+					}
+				}
+			}
 
-		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-		editor->SetTabSize(Settings::Instance().Editor.TabSize);
-		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-		editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-		m_loadEditorShortcuts(editor);
+			// TODO: some of this can be moved outside of the if() {} block
+			m_items.push_back(item);
+			m_editor.push_back(TextEditor());
+			m_editorOpen.push_back(true);
+			m_stats.push_back(StatsPage(m_data));
 
-		bool isHLSL = false;
-		if (sid == 0)
-			isHLSL = HLSL2GLSL::IsHLSL(shader->VSPath);
-		else if (sid == 1)
-			isHLSL = HLSL2GLSL::IsHLSL(shader->PSPath);
-		else if (sid == 2)
-			isHLSL = HLSL2GLSL::IsHLSL(shader->GSPath);
-		editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
-		
-		m_shaderTypeId.push_back(sid);
+			TextEditor *editor = &m_editor[m_editor.size() - 1];
 
-		std::string shaderContent = "";
-		if (sid == 0)
-			shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
-		else if (sid == 1)
-			shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
-		else if (sid == 2)
-			shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
-		editor->SetText(shaderContent);
-		editor->ResetTextChanged();
+			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
+			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
+
+			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+			editor->SetTabSize(Settings::Instance().Editor.TabSize);
+			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			m_loadEditorShortcuts(editor);
+
+			bool isHLSL = HLSL2GLSL::IsHLSL(shader->Path);
+			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
+
+			m_shaderTypeId.push_back(sid);
+
+			std::string shaderContent = m_data->Parser.LoadProjectFile(shader->Path);
+			editor->SetText(shaderContent);
+			editor->ResetTextChanged();
+		}
 	}
 	void CodeEditorUI::OpenVS(PipelineItem item)
 	{
@@ -328,6 +405,10 @@ namespace ed
 	void CodeEditorUI::OpenGS(PipelineItem item)
 	{
 		m_open(item, 2);
+	}
+	void CodeEditorUI::OpenCS(PipelineItem item)
+	{
+		m_open(item, 3);
 	}
 	void CodeEditorUI::CloseAll()
 	{
@@ -375,16 +456,22 @@ namespace ed
 		if (!canSave)
 			return;
 
-		ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id].Data);
+		if (m_items[id].Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass *shader = reinterpret_cast<ed::pipe::ShaderPass *>(m_items[id].Data);
 
-		m_editor[id].ResetTextChanged();
+			m_editor[id].ResetTextChanged();
 
-		if (m_shaderTypeId[id] == 0)
-			m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
-		else if (m_shaderTypeId[id] == 1)
-			m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
-		else if (m_shaderTypeId[id] == 2)
-			m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
+			if (m_shaderTypeId[id] == 0)
+				m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
+			else if (m_shaderTypeId[id] == 1)
+				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
+			else if (m_shaderTypeId[id] == 2)
+				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
+		} else if (m_items[id].Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[id].Data);
+			m_editor[id].ResetTextChanged();
+			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
+		}
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
@@ -421,8 +508,12 @@ namespace ed
 	{
 		if (m_autoRecompileRequest) {
         	std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
-			for (const auto& it : m_ariiList) 
-				m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
+			for (const auto& it : m_ariiList) {
+				if (it.second.SPass != nullptr)
+					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
+				else
+					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.CS);
+			}
 			m_autoRecompileRequest = false;
 		}
 	}
@@ -472,32 +563,49 @@ namespace ed
 				if (!m_editor[i].IsTextChanged())
 					continue;
 
-				AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i].Name];
-				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i].Data;
-				inf->Pass = pass;
-				
-				if (m_shaderTypeId[i] == 0) {
-					inf->VS = m_editor[i].GetText();
-					inf->VS_IsHLSL = HLSL2GLSL::IsHLSL(pass->VSPath);
-				}
-				else if (m_shaderTypeId[i] == 1) {
-					inf->PS = m_editor[i].GetText();
-					inf->PS_IsHLSL = HLSL2GLSL::IsHLSL(pass->PSPath);
-				}
-				else if (m_shaderTypeId[i] == 2) {
-					inf->GS = m_editor[i].GetText();
-					inf->GS_IsHLSL = HLSL2GLSL::IsHLSL(pass->GSPath);
+				if (m_items[i].Type == PipelineItem::ItemType::ShaderPass) {
+					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i].Name];
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i].Data;
+					inf->SPass = pass;
+					inf->CPass = nullptr;
+					
+					if (m_shaderTypeId[i] == 0) {
+						inf->VS = m_editor[i].GetText();
+						inf->VS_IsHLSL = HLSL2GLSL::IsHLSL(pass->VSPath);
+					}
+					else if (m_shaderTypeId[i] == 1) {
+						inf->PS = m_editor[i].GetText();
+						inf->PS_IsHLSL = HLSL2GLSL::IsHLSL(pass->PSPath);
+					}
+					else if (m_shaderTypeId[i] == 2) {
+						inf->GS = m_editor[i].GetText();
+						inf->GS_IsHLSL = HLSL2GLSL::IsHLSL(pass->GSPath);
+					}
+				} else if (m_items[i].Type == PipelineItem::ItemType::ComputePass)
+				{
+					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i].Name];
+					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i].Data;
+					inf->CPass = pass;
+					inf->SPass = nullptr;
+					
+					inf->CS = m_editor[i].GetText();
+					inf->CS_IsHLSL = HLSL2GLSL::IsHLSL(pass->Path);
 				}
 			}
 
 			// cache
 			for (auto& it : m_ariiList) {
-				if (it.second.VS_IsHLSL)
-					it.second.VS = HLSL2GLSL::TranscompileSource(it.second.Pass->VSPath, it.second.VS, 0, it.second.Pass->VSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
-				if (it.second.PS_IsHLSL)
-					it.second.PS = HLSL2GLSL::TranscompileSource(it.second.Pass->PSPath, it.second.PS, 1, it.second.Pass->PSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
-				if (it.second.GS_IsHLSL)
-					it.second.GS = HLSL2GLSL::TranscompileSource(it.second.Pass->GSPath, it.second.GS, 2, it.second.Pass->GSEntry, it.second.Pass->Macros, it.second.Pass->GSUsed, &m_data->Messages);
+				if (it.second.SPass != nullptr) {
+					if (it.second.VS_IsHLSL)
+						it.second.VS = HLSL2GLSL::TranscompileSource(it.second.SPass->VSPath, it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+					if (it.second.PS_IsHLSL)
+						it.second.PS = HLSL2GLSL::TranscompileSource(it.second.SPass->PSPath, it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+					if (it.second.GS_IsHLSL)
+						it.second.GS = HLSL2GLSL::TranscompileSource(it.second.SPass->GSPath, it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+				} else if (it.second.CPass != nullptr) {
+					if (it.second.CS_IsHLSL)
+						it.second.CS = HLSL2GLSL::TranscompileSource(it.second.CPass->Path, it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages);
+				}
 			}
 
 			m_autoRecompileRequest = m_ariiList.size()>0;
@@ -574,44 +682,63 @@ namespace ed
 			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
 			bool needsUpdate = false;
 			for (auto pass : nPasses) {
-				pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
-				bool foundVS = false, foundPS = false, foundGS = false;
+					bool foundVS = false, foundPS = false, foundGS = false;
 
-				std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-				std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
 
-				for (auto& f : allFiles) {
-					if (f == vsPath) {
-						foundVS = true;
-						if (foundPS) break;
-					} else if (f == psPath) {
-						foundPS = true;
-						if (foundVS) break;
-					}
-				}
-
-				if (data->GSUsed) {
-					std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
-					for (auto& f : allFiles)
-						if (f == gsPath) {
-							foundGS = true;
-							break;
+					for (auto& f : allFiles) {
+						if (f == vsPath) {
+							foundVS = true;
+							if (foundPS) break;
+						} else if (f == psPath) {
+							foundPS = true;
+							if (foundVS) break;
 						}
-				}
-				else foundGS = true;
+					}
 
-				if (!foundGS || !foundVS || !foundPS) {
-					needsUpdate = true;
-					break;
+					if (data->GSUsed) {
+						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+						for (auto& f : allFiles)
+							if (f == gsPath) {
+								foundGS = true;
+								break;
+							}
+					}
+					else foundGS = true;
+
+					if (!foundGS || !foundVS || !foundPS) {
+						needsUpdate = true;
+						break;
+					}
+				} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
+
+					bool found = false;
+
+					std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+					for (auto &f : allFiles)
+						if (f == path)
+							found = true;
+
+					if (!found) {
+						needsUpdate = true;
+						break;
+					}
 				}
 			}
 
 			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
-				bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
-				if (gsUsed[i] != used) {
-					gsUsed[i] = used;
-					needsUpdate = true;
+				if (nPasses[i]->Type == PipelineItem::ItemType::ShaderPass) {
+					bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
+					if (gsUsed[i] != used) {
+						gsUsed[i] = used;
+						needsUpdate = true;
+					}
 				}
 			}
 
@@ -630,24 +757,34 @@ namespace ed
 				passes = nPasses;
 				gsUsed.resize(passes.size());
 				for (auto pass : passes) {
-					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
-					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+						std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+						std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
 
-					allFiles.push_back(vsPath);
-					paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
-					allPasses.push_back(pass->Name);
+						allFiles.push_back(vsPath);
+						paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
 
-					allFiles.push_back(psPath);
-					paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
-					allPasses.push_back(pass->Name);
+						allFiles.push_back(psPath);
+						paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
 
-					if (data->GSUsed) {
-						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+						if (data->GSUsed) {
+							std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
 
-						allFiles.push_back(gsPath);
-						paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+							allFiles.push_back(gsPath);
+							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+							allPasses.push_back(pass->Name);
+						}
+					} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass *data = (pipe::ComputePass*)pass->Data;
+
+						std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+						allFiles.push_back(path);
+						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
 					}
 				}
@@ -746,48 +883,74 @@ namespace ed
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
+			// TODO: some of these parts can be used on other os too - merge this
+
 			// check if user added/changed shader paths
 			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
 			bool needsUpdate = false;
 			for (auto pass : nPasses) {
-				pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass *data = (pipe::ShaderPass *)pass->Data;
 
-				bool foundVS = false, foundPS = false, foundGS = false;
+					bool foundVS = false, foundPS = false, foundGS = false;
 
-				std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-				std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
 
-				for (auto& f : allFiles) {
-					if (f == vsPath) {
-						foundVS = true;
-						if (foundPS) break;
-					} else if (f == psPath) {
-						foundPS = true;
-						if (foundVS) break;
+					for (auto &f : allFiles) {
+						if (f == vsPath) {
+							foundVS = true;
+							if (foundPS)
+								break;
+						}
+						else if (f == psPath) {
+							foundPS = true;
+							if (foundVS)
+								break;
+						}
+					}
+
+					if (data->GSUsed) {
+						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+						for (auto &f : allFiles)
+							if (f == gsPath) {
+								foundGS = true;
+								break;
+							}
+					}
+					else
+						foundGS = true;
+
+					if (!foundGS || !foundVS || !foundPS) {
+						needsUpdate = true;
+						break;
 					}
 				}
+				else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
 
-				if (data->GSUsed) {
-					std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
-					for (auto& f : allFiles)
-						if (f == gsPath) {
-							foundGS = true;
-							break;
-						}
-				}
-				else foundGS = true;
+					bool found = false;
 
-				if (!foundGS || !foundVS || !foundPS) {
-					needsUpdate = true;
-					break;
+					std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+					for (auto &f : allFiles)
+						if (f == path)
+							found = true;
+
+					if (!found) {
+						needsUpdate = true;
+						break;
+					}
 				}
 			}
 
 			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
-				bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
-				if (gsUsed[i] != used) {
-					gsUsed[i] = used;
-					needsUpdate = true;
+				if (nPasses[i]->Type == PipelineItem::ItemType::ShaderPass) {
+					bool used = ((pipe::ShaderPass *)nPasses[i]->Data)->GSUsed;
+					if (gsUsed[i] != used) {
+						gsUsed[i] = used;
+						needsUpdate = true;
+					}
 				}
 			}
 
@@ -810,24 +973,35 @@ namespace ed
 				passes = nPasses;
 				gsUsed.resize(passes.size());
 				for (auto pass : passes) {
-					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass *data = (pipe::ShaderPass *)pass->Data;
 
-					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
+						std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
+						std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
 
-					allFiles.push_back(vsPath);
-					paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
-					allPasses.push_back(pass->Name);
+						allFiles.push_back(vsPath);
+						paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
 
-					allFiles.push_back(psPath);
-					paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
-					allPasses.push_back(pass->Name);
+						allFiles.push_back(psPath);
+						paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
 
-					if (data->GSUsed) {
-						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
+						if (data->GSUsed) {
+							std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
 
-						allFiles.push_back(gsPath);
-						paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+							allFiles.push_back(gsPath);
+							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+							allPasses.push_back(pass->Name);
+						}
+					}
+					else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
+
+						std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+						allFiles.push_back(path);
+						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
 					}
 				}

@@ -272,6 +272,65 @@ namespace ed
 
 					if (!item->GSUsed) ImGui::PopItemFlag();
 				}
+				else if (m_current->Type == ed::PipelineItem::ItemType::ComputePass)
+				{
+					ed::pipe::ComputePass *item = reinterpret_cast<ed::pipe::ComputePass *>(m_current->Data);
+
+					/* compute shader path */
+					ImGui::Text("Path:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::InputText("##pui_cspath", item->Path, MAX_PATH);
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("...##pui_csbtn", ImVec2(-1, 0)))
+					{
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file);
+						if (success)
+						{
+							file = m_data->Parser.GetRelativePath(file);
+							strcpy(item->Path, file.c_str());
+
+							if (m_data->Parser.FileExists(file))
+								m_data->Messages.ClearGroup(m_current->Name);
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Compute shader file doesnt exist");
+						}
+					}
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* compute shader entry */
+					ImGui::Text("Entry:");
+					ImGui::NextColumn();
+
+					if (HLSL2GLSL::IsHLSL(item->Path))
+					{
+						ImGui::PushItemWidth(-1);
+						ImGui::InputText("##pui_csentry", item->Entry, 32);
+						ImGui::PopItemWidth();
+					}
+					else
+						ImGui::Text("main");
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* group size */
+					ImGui::Text("Group size:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::InputInt3("##pui_csgroupsize", glm::value_ptr(m_cachedGroupSize));
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("OK##pui_csapply", ImVec2(-1, 0)))
+					{
+						item->WorkX = std::max<int>(m_cachedGroupSize.x, 1);
+						item->WorkY = std::max<int>(m_cachedGroupSize.y, 1);
+						item->WorkZ = std::max<int>(m_cachedGroupSize.z, 1);
+					}
+				}
 				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 
@@ -937,10 +996,18 @@ namespace ed
 	}
 	void PropertyUI::Open(ed::PipelineItem * item)
 	{
-		if (item != nullptr) memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
+		if (item != nullptr) {
+			memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
+
+			if (item->Type == PipelineItem::ItemType::ComputePass) {
+				pipe::ComputePass* cPass = (pipe::ComputePass*)item->Data;
+				m_cachedGroupSize = glm::ivec3(cPass->WorkX, cPass->WorkY, cPass->WorkZ);
+			}
+		}
 
 		Logger::Get().Log("Openning a pipeline item in the PropertyUI");
 
+		m_currentImg = nullptr;
 		m_currentRT = nullptr;
 		m_current = item;
 	}
@@ -951,6 +1018,7 @@ namespace ed
 		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
 		memcpy(m_itemName, name.c_str(), name.size());
 
+		m_currentImg = nullptr;
 		m_current = nullptr;
 		m_currentRT = obj;
 	}

@@ -83,211 +83,252 @@ namespace ed
 
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
-			pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-			if (data->Items.size() <= 0)
-				continue;
+			if (it->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-			std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
-			std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
+				if (data->Items.size() <= 0)
+					continue;
 
-			if (data->RTCount == 0)
-				continue;
+				std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
+				std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
 
-			// create/update fbo if necessary
-			m_updatePassFBO(data);
+				if (data->RTCount == 0)
+					continue;
 
-			if (m_shaders[i] == 0)
-				continue;
+				// create/update fbo if necessary
+				m_updatePassFBO(data);
 
-			// bind fbo and buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, data->FBO);
-			glDrawBuffers(data->RTCount, fboBuffers);
+				if (m_shaders[i] == 0)
+					continue;
 
-			// clear depth texture
-			if (data->DepthTexture != previousDepth) {
-				if ((data->DepthTexture == m_rtDepth && !clearedWindow) || data->DepthTexture != m_rtDepth) {
-					glStencilMask(0xFFFFFFFF);
-					glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+				// bind fbo and buffers
+				glBindFramebuffer(GL_FRAMEBUFFER, data->FBO);
+				glDrawBuffers(data->RTCount, fboBuffers);
+
+				// clear depth texture
+				if (data->DepthTexture != previousDepth) {
+					if ((data->DepthTexture == m_rtDepth && !clearedWindow) || data->DepthTexture != m_rtDepth) {
+						glStencilMask(0xFFFFFFFF);
+						glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+					}
+
+					previousDepth = data->DepthTexture;
 				}
 
-				previousDepth = data->DepthTexture;
-			}
+				// bind RTs
+				int rtCount = MAX_RENDER_TEXTURES;
+				glm::vec2 rtSize(width, height);
+				for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+					if (data->RenderTextures[i] == 0) {
+						rtCount = i;
+						break;
+					}
 
-			// bind RTs
-			int rtCount = MAX_RENDER_TEXTURES;
-			glm::vec2 rtSize(width, height);
-			for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
-				if (data->RenderTextures[i] == 0) {
-					rtCount = i;
-					break;
+					GLuint rt = data->RenderTextures[i];
+
+					if (rt != m_rtColor) {
+						ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+
+						rtSize = rtObject->CalculateSize(width, height);
+
+						// clear and bind rt (only if not used in last shader pass)
+						bool usedPreviously = false;
+						for (int j = 0; j < MAX_RENDER_TEXTURES; j++)
+							if (previousTexture[j] == rt) {
+								usedPreviously = true;
+								break;
+							}
+						if (!usedPreviously && rtObject->Clear)
+							glClearBufferfv(GL_COLOR, i, glm::value_ptr(rtObject->ClearColor));
+
+					}
+					else if (!clearedWindow) {
+						glClearBufferfv(GL_COLOR, i, glm::value_ptr(Settings::Instance().Project.ClearColor));
+
+						clearedWindow = true;
+					}
+				}
+				for (int i = 0; i < data->RTCount; i++)
+					previousTexture[i] = data->RenderTextures[i];
+
+				// update viewport value
+				systemVM.SetViewportSize(rtSize.x, rtSize.y);
+				glViewport(0, 0, rtSize.x, rtSize.y);
+
+				// bind shaders
+				glUseProgram(m_shaders[i]);
+
+				// bind shader resource views
+				for (int j = 0; j < srvs.size(); j++) {
+					glActiveTexture(GL_TEXTURE0 + j);
+					if (m_objects->IsCubeMap(srvs[j]))
+						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+					else
+						glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+					if (!HLSL2GLSL::IsHLSL(data->PSPath))
+						data->Variables.UpdateTexture(m_shaders[i], j);
 				}
 
-				GLuint rt = data->RenderTextures[i];
+				for (int j = 0; j < ubos.size(); j++)
+					glBindBufferBase(GL_UNIFORM_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
+				
+				// clear messages
+				//if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
+				//	m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);
 
-				if (rt != m_rtColor) {
-					ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+				// bind default states for each shader pass
+				if (changedState) {
+					DefaultState::Bind();
+					changedState = false;
+				}
 
-					rtSize = rtObject->CalculateSize(width, height);
+				// render pipeline items
+				for (int j = 0; j < data->Items.size(); j++) {
+					PipelineItem* item = data->Items[j];
 
-					// clear and bind rt (only if not used in last shader pass)
-					bool usedPreviously = false;
-					for (int j = 0; j < MAX_RENDER_TEXTURES; j++)
-						if (previousTexture[j] == rt) {
-							usedPreviously = true;
-							break;
+					systemVM.SetPicked(false);
+
+					// update the value for this element and check if we picked it
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+						if (m_pickAwaiting) m_pickItem(item, m_wasMultiPick);
+						for (int k = 0; k < itemVarValues.size(); k++)
+							if (itemVarValues[k].Item == item)
+								itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+					}
+
+					if (item->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+
+						if (geoData->Type == pipe::GeometryItem::Rectangle) {
+							glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
+							glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
+							systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+						} else
+							systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+						// bind variables
+						data->Variables.Bind(item);
+
+						glBindVertexArray(geoData->VAO);
+						if (geoData->Instanced)
+							glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
+						else
+							glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+					}
+					else if (item->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+						systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+
+						// bind variables
+						data->Variables.Bind(item);
+
+						objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+					}
+					else if (item->Type == PipelineItem::ItemType::RenderState) {
+						pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
+						changedState = true;
+
+						// depth clamp
+						if (state->DepthClamp)
+							glEnable(GL_DEPTH_CLAMP);
+						else
+							glDisable(GL_DEPTH_CLAMP);
+
+						// fill mode
+						glPolygonMode(GL_FRONT_AND_BACK, state->PolygonMode);
+
+						// culling and front face
+						if (state->CullFace)
+							glEnable(GL_CULL_FACE);
+						else
+							glDisable(GL_CULL_FACE);
+						glCullFace(state->CullFaceType);
+						glFrontFace(state->FrontFace);
+
+						// disable blending
+						if (state->Blend) {
+							glEnable(GL_BLEND);
+							glBlendEquationSeparate(state->BlendFunctionColor, state->BlendFunctionAlpha);
+							glBlendFuncSeparate(state->BlendSourceFactorRGB, state->BlendDestinationFactorRGB, state->BlendSourceFactorAlpha, state->BlendDestinationFactorAlpha);
+							glBlendColor(state->BlendFactor.r, state->BlendFactor.g, state->BlendFactor.a, state->BlendFactor.a);
+							glSampleCoverage(state->AlphaToCoverage, GL_FALSE);
 						}
-					if (!usedPreviously && rtObject->Clear)
-						glClearBufferfv(GL_COLOR, i, glm::value_ptr(rtObject->ClearColor));
+						else
+							glDisable(GL_BLEND);
 
-				}
-				else if (!clearedWindow) {
-					glClearBufferfv(GL_COLOR, i, glm::value_ptr(Settings::Instance().Project.ClearColor));
+						// depth state
+						if (state->DepthTest)
+							glEnable(GL_DEPTH_TEST);
+						else
+							glDisable(GL_DEPTH_TEST);
+						glDepthMask(state->DepthMask);
+						glDepthFunc(state->DepthFunction);
+						glPolygonOffset(0.0f, state->DepthBias);
 
-					clearedWindow = true;
-				}
-			}
-			for (int i = 0; i < data->RTCount; i++)
-				previousTexture[i] = data->RenderTextures[i];
-
-			// update viewport value
-			systemVM.SetViewportSize(rtSize.x, rtSize.y);
-			glViewport(0, 0, rtSize.x, rtSize.y);
-
-			// bind shaders
-			glUseProgram(m_shaders[i]);
-
-			// bind shader resource views
-			for (int j = 0; j < srvs.size(); j++) {
-				glActiveTexture(GL_TEXTURE0 + j);
-				if (m_objects->IsCubeMap(srvs[j]))
-					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-				else
-					glBindTexture(GL_TEXTURE_2D, srvs[j]);
-
-				if (!HLSL2GLSL::IsHLSL(data->PSPath))
-					data->Variables.UpdateTexture(m_shaders[i], j);
-			}
-
-			for (int j = 0; j < ubos.size(); j++)
-				glBindBufferBase(GL_UNIFORM_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
-			
-			// clear messages
-			if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
-				m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);
-
-			// bind default states for each shader pass
-			if (changedState) {
-				DefaultState::Bind();
-				changedState = false;
-			}
-
-			// render pipeline items
-			for (int j = 0; j < data->Items.size(); j++) {
-				PipelineItem* item = data->Items[j];
-
-				systemVM.SetPicked(false);
-
-				// update the value for this element and check if we picked it
-				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
-					if (m_pickAwaiting) m_pickItem(item, m_wasMultiPick);
-					for (int k = 0; k < itemVarValues.size(); k++)
-						if (itemVarValues[k].Item == item)
-							itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
-				}
-
-				if (item->Type == PipelineItem::ItemType::Geometry) {
-					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
-
-					if (geoData->Type == pipe::GeometryItem::Rectangle) {
-						glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
-						glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
-						systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-					} else
-						systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
-
-					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-
-					// bind variables
-					data->Variables.Bind(item);
-
-					glBindVertexArray(geoData->VAO);
-					if (geoData->Instanced)
-						glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
-					else
-						glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
-				}
-				else if (item->Type == PipelineItem::ItemType::Model) {
-					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
-
-					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-					systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
-
-					// bind variables
-					data->Variables.Bind(item);
-
-					objData->Data->Draw(objData->Instanced, objData->InstanceCount);
-				}
-				else if (item->Type == PipelineItem::ItemType::RenderState) {
-					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
-					changedState = true;
-
-					// depth clamp
-					if (state->DepthClamp)
-						glEnable(GL_DEPTH_CLAMP);
-					else
-						glDisable(GL_DEPTH_CLAMP);
-
-					// fill mode
-					glPolygonMode(GL_FRONT_AND_BACK, state->PolygonMode);
-
-					// culling and front face
-					if (state->CullFace)
-						glEnable(GL_CULL_FACE);
-					else
-						glDisable(GL_CULL_FACE);
-					glCullFace(state->CullFaceType);
-					glFrontFace(state->FrontFace);
-
-					// disable blending
-					if (state->Blend) {
-						glEnable(GL_BLEND);
-						glBlendEquationSeparate(state->BlendFunctionColor, state->BlendFunctionAlpha);
-						glBlendFuncSeparate(state->BlendSourceFactorRGB, state->BlendDestinationFactorRGB, state->BlendSourceFactorAlpha, state->BlendDestinationFactorAlpha);
-						glBlendColor(state->BlendFactor.r, state->BlendFactor.g, state->BlendFactor.a, state->BlendFactor.a);
-						glSampleCoverage(state->AlphaToCoverage, GL_FALSE);
+						// stencil
+						if (state->StencilTest) {
+							glEnable(GL_STENCIL_TEST);
+							glStencilFuncSeparate(GL_FRONT, state->StencilFrontFaceFunction, 1, state->StencilReference);
+							glStencilFuncSeparate(GL_BACK, state->StencilBackFaceFunction, 1, state->StencilReference);
+							glStencilMask(state->StencilMask);
+							glStencilOpSeparate(GL_FRONT, state->StencilFrontFaceOpStencilFail, state->StencilFrontFaceOpDepthFail, state->StencilFrontFaceOpPass);
+							glStencilOpSeparate(GL_BACK, state->StencilBackFaceOpStencilFail, state->StencilBackFaceOpDepthFail, state->StencilBackFaceOpPass);
+						}
+						else
+							glDisable(GL_STENCIL_TEST);
 					}
-					else
-						glDisable(GL_BLEND);
 
-					// depth state
-					if (state->DepthTest)
-						glEnable(GL_DEPTH_TEST);
-					else
-						glDisable(GL_DEPTH_TEST);
-					glDepthMask(state->DepthMask);
-					glDepthFunc(state->DepthFunction);
-					glPolygonOffset(0.0f, state->DepthBias);
+					// set the old value back
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+						for (int k = 0; k < itemVarValues.size(); k++)
+							if (itemVarValues[k].Item == item)
+								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
-					// stencil
-					if (state->StencilTest) {
-						glEnable(GL_STENCIL_TEST);
-						glStencilFuncSeparate(GL_FRONT, state->StencilFrontFaceFunction, 1, state->StencilReference);
-						glStencilFuncSeparate(GL_BACK, state->StencilBackFaceFunction, 1, state->StencilReference);
-						glStencilMask(state->StencilMask);
-						glStencilOpSeparate(GL_FRONT, state->StencilFrontFaceOpStencilFail, state->StencilFrontFaceOpDepthFail, state->StencilFrontFaceOpPass);
-						glStencilOpSeparate(GL_BACK, state->StencilBackFaceOpStencilFail, state->StencilBackFaceOpDepthFail, state->StencilBackFaceOpPass);
+				}
+			} else if (it->Type == PipelineItem::ItemType::ComputePass)
+			{
+				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
+
+				std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
+				std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
+
+				if (m_shaders[i] == 0)
+					continue;
+				
+				// bind shaders
+				glUseProgram(m_shaders[i]);
+
+				// bind shader resource views
+				for (int j = 0; j < srvs.size(); j++)
+				{
+					if (m_objects->IsImage(srvs[j])) {
+						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(srvs[j])); // TODO: GetImageByID
+						glBindImageTexture(j, srvs[j], 0, GL_FALSE, 0, (iobj->Write * GL_WRITE_ONLY) | (iobj->Read * GL_READ_ONLY), iobj->Format);
+					} else { 
+						glActiveTexture(GL_TEXTURE0 + j);
+						if (m_objects->IsCubeMap(srvs[j]))
+							glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+						else
+							glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+						if (!HLSL2GLSL::IsHLSL(data->Path))
+							data->Variables.UpdateTexture(m_shaders[i], j);
 					}
-					else
-						glDisable(GL_STENCIL_TEST);
 				}
 
-				// set the old value back
-				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
-					for (int k = 0; k < itemVarValues.size(); k++)
-						if (itemVarValues[k].Item == item)
-							itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+				for (int j = 0; j < ubos.size(); j++)
+					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
 
+				glDispatchCompute(data->WorkX, data->WorkY, data->WorkZ);
+				
+				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
 		}
 
@@ -332,105 +373,151 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
-				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
 
-				m_msgs->ClearGroup(name);
+					m_msgs->ClearGroup(name);
 
-				if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
-				if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
-				if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
+					if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
+					if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
+					if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
 
-				std::string psContent = "", vsContent = "",
-					vsEntry = shader->VSEntry,
-					psEntry = shader->PSEntry;
+					std::string psContent = "", vsContent = "",
+						vsEntry = shader->VSEntry,
+						psEntry = shader->PSEntry;
 
-				// pixel shader
-				m_msgs->CurrentItemType = 1;
-				if (!HLSL2GLSL::IsHLSL(shader->PSPath)) {// GLSL
-					psContent = m_project->LoadProjectFile(shader->PSPath);
-					m_applyMacros(psContent, shader);
-				} else {// HLSL
-					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs);
-					psEntry = "main";
-				}
-
-				shader->Variables.UpdateTextureList(psContent);
-				GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-				bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
-
-				if (!psCompiled && !HLSL2GLSL::IsHLSL(shader->PSPath))
-					m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
-
-				// vertex shader
-				m_msgs->CurrentItemType = 0;
-				if (!HLSL2GLSL::IsHLSL(shader->VSPath)) {// GLSL
-					vsContent = m_project->LoadProjectFile(shader->VSPath);
-					m_applyMacros(vsContent, shader);
-				} else { // HLSL
-					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
-					vsEntry = "main";
-				}
-
-				GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-				bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-				if (!vsCompiled && !HLSL2GLSL::IsHLSL(shader->VSPath))
-					m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
-
-				// geometry shader
-				bool gsCompiled = true;
-				GLuint gs = 0;
-				if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
-					std::string gsContent = "",
-						gsEntry = shader->GSEntry;
-
-					m_msgs->CurrentItemType = 2;
-					if (!HLSL2GLSL::IsHLSL(shader->GSPath)) { // GLSL
-						gsContent = m_project->LoadProjectFile(shader->GSPath);
-						m_applyMacros(gsContent, shader);
-					} else { // HLSL
-						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs);
-						gsEntry = "main";
+					// pixel shader
+					m_msgs->CurrentItemType = 1;
+					if (!HLSL2GLSL::IsHLSL(shader->PSPath)) {// GLSL
+						psContent = m_project->LoadProjectFile(shader->PSPath);
+						m_applyMacros(psContent, shader);
+					} else {// HLSL
+						psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs);
+						psEntry = "main";
 					}
 
-					gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-					gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+					shader->Variables.UpdateTextureList(psContent);
+					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
+					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 
-					if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
-						m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+					if (!psCompiled && !HLSL2GLSL::IsHLSL(shader->PSPath))
+						m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
+
+					// vertex shader
+					m_msgs->CurrentItemType = 0;
+					if (!HLSL2GLSL::IsHLSL(shader->VSPath)) {// GLSL
+						vsContent = m_project->LoadProjectFile(shader->VSPath);
+						m_applyMacros(vsContent, shader);
+					} else { // HLSL
+						vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
+						vsEntry = "main";
+					}
+
+					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
+					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
+
+					if (!vsCompiled && !HLSL2GLSL::IsHLSL(shader->VSPath))
+						m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
+
+					// geometry shader
+					bool gsCompiled = true;
+					GLuint gs = 0;
+					if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
+						std::string gsContent = "",
+							gsEntry = shader->GSEntry;
+
+						m_msgs->CurrentItemType = 2;
+						if (!HLSL2GLSL::IsHLSL(shader->GSPath)) { // GLSL
+							gsContent = m_project->LoadProjectFile(shader->GSPath);
+							m_applyMacros(gsContent, shader);
+						} else { // HLSL
+							gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs);
+							gsEntry = "main";
+						}
+
+						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
+						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+
+						if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
+							m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+					}
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!vsCompiled || !psCompiled || !gsCompiled) {
+						Logger::Get().Log("Shaders not compiled", true); 
+						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+						m_shaders[i] = 0;
+					}
+					else {
+						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], vs);
+						glAttachShader(m_shaders[i], ps);
+						if (shader->GSUsed) glAttachShader(m_shaders[i], gs);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					if (m_shaders[i] != 0)
+						shader->Variables.UpdateUniformInfo(m_shaders[i]);
+
+					m_shaderSources[i].VS = vs;
+					m_shaderSources[i].PS = ps;
+					m_shaderSources[i].GS = gs;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
+
+					m_msgs->ClearGroup(name);
+
+					std::string content = "", entry = shader->Entry;
+
+					// compute shader
+					m_msgs->CurrentItemType = 3;
+					if (!HLSL2GLSL::IsHLSL(shader->Path))
+					{ // GLSL
+						content = m_project->LoadProjectFile(shader->Path);
+						m_applyMacros(content, shader);
+					}
+					else
+					{ // HLSL
+						content = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs);
+						entry = "main";
+					}
+
+					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
+					GLuint cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
+					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
+
+					if (!compiled && !HLSL2GLSL::IsHLSL(shader->Path))
+						m_msgs->Add(gl::ParseMessages(name, 3, cMsg));
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!compiled) {
+						Logger::Get().Log("Compute shader was not compiled", true);
+						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
+						m_shaders[i] = 0;
+					} else {
+						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the compute shader.");
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], cs);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					glDeleteShader(cs);
+
+					if (m_shaders[i] != 0)
+						shader->Variables.UpdateUniformInfo(m_shaders[i]);
 				}
-
-				if (m_shaders[i] != 0)
-					glDeleteProgram(m_shaders[i]);
-
-				if (!vsCompiled || !psCompiled || !gsCompiled) {
-					Logger::Get().Log("Shaders not compilied", true); 
-					m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
-					m_shaders[i] = 0;
-				}
-				else {
-					m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
-
-					m_shaders[i] = glCreateProgram();
-					glAttachShader(m_shaders[i], vs);
-					glAttachShader(m_shaders[i], ps);
-					if (shader->GSUsed) glAttachShader(m_shaders[i], gs);
-					glLinkProgram(m_shaders[i]);
-				}
-
-				if (m_shaders[i] != 0)
-					shader->Variables.UpdateUniformInfo(m_shaders[i]);
-
-				m_shaderSources[i].VS = vs;
-				m_shaderSources[i].PS = ps;
-				m_shaderSources[i].GS = gs;
 			}
 		}
 	}
 	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc)
 	{
-		Logger::Get().Log("Recompiling from source " + std::string(name)); 
-		
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 
@@ -440,73 +527,113 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
-				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
 
-				m_msgs->ClearGroup(name);
-				bool vsCompiled = true, psCompiled = true, gsCompiled = true;
+					m_msgs->ClearGroup(name);
+					bool vsCompiled = true, psCompiled = true, gsCompiled = true;
 
-				// pixel shader
-				if (pssrc.size() > 0) {
-					m_msgs->CurrentItemType = 1;
-					shader->Variables.UpdateTextureList(pssrc);
-					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, pssrc.c_str());
-					psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
+					// pixel shader
+					if (pssrc.size() > 0) {
+						m_msgs->CurrentItemType = 1;
+						shader->Variables.UpdateTextureList(pssrc);
+						GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, pssrc.c_str());
+						psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 
-					if (!psCompiled && !HLSL2GLSL::IsHLSL(shader->PSPath))
-						m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
+						if (!psCompiled && !HLSL2GLSL::IsHLSL(shader->PSPath))
+							m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
 
-					glDeleteShader(m_shaderSources[i].PS);
-					m_shaderSources[i].PS = ps;
-				}
-
-				// vertex shader
-				if (vssrc.size() > 0) {
-					m_msgs->CurrentItemType = 0;
-					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vssrc.c_str());
-					vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-					if (!vsCompiled && !HLSL2GLSL::IsHLSL(shader->VSPath))
-						m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
-
-					glDeleteShader(m_shaderSources[i].VS);
-					m_shaderSources[i].VS = vs;
-				}
-
-				// geometry shader
-				if (gssrc.size() > 0) {
-					GLuint gs = 0;
-					glDeleteShader(m_shaderSources[i].GS);
-					if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
-						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
-						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
-
-						if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
-							m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
-
-						m_shaderSources[i].GS = gs;
+						glDeleteShader(m_shaderSources[i].PS);
+						m_shaderSources[i].PS = ps;
 					}
+
+					// vertex shader
+					if (vssrc.size() > 0) {
+						m_msgs->CurrentItemType = 0;
+						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vssrc.c_str());
+						vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
+
+						if (!vsCompiled && !HLSL2GLSL::IsHLSL(shader->VSPath))
+							m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
+
+						glDeleteShader(m_shaderSources[i].VS);
+						m_shaderSources[i].VS = vs;
+					}
+
+					// geometry shader
+					if (gssrc.size() > 0) {
+						GLuint gs = 0;
+						glDeleteShader(m_shaderSources[i].GS);
+						if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
+							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
+							gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+
+							if (!gsCompiled && !HLSL2GLSL::IsHLSL(shader->GSPath))
+								m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+
+							m_shaderSources[i].GS = gs;
+						}
+					}
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!vsCompiled || !psCompiled || !gsCompiled) {
+						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+						m_shaders[i] = 0;
+					}
+					else {
+						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], m_shaderSources[i].VS);
+						glAttachShader(m_shaders[i], m_shaderSources[i].PS);
+						if (shader->GSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].GS);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					if (m_shaders[i] != 0)
+						shader->Variables.UpdateUniformInfo(m_shaders[i]);
+				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
+
+					m_msgs->ClearGroup(name);
+					bool compiled = false;
+					GLuint cs = 0;
+
+					// compute shader
+					if (vssrc.size() > 0)
+					{
+						m_msgs->CurrentItemType = 3;
+						cs = gl::CompileShader(GL_COMPUTE_SHADER, vssrc.c_str());
+						compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
+
+						if (!compiled && !HLSL2GLSL::IsHLSL(shader->Path))
+							m_msgs->Add(gl::ParseMessages(name, 3, cMsg));
+					}
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!compiled)
+					{
+						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
+						m_shaders[i] = 0;
+					}
+					else
+					{
+						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the compute shader.");
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], cs);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					if (m_shaders[i] != 0)
+						shader->Variables.UpdateUniformInfo(m_shaders[i]);
+
+					glDeleteShader(cs);
 				}
-
-				if (m_shaders[i] != 0)
-					glDeleteProgram(m_shaders[i]);
-
-				if (!vsCompiled || !psCompiled || !gsCompiled) {
-					Logger::Get().Log("Shaders not compilied", true); 
-					m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
-					m_shaders[i] = 0;
-				}
-				else {
-					m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
-
-					m_shaders[i] = glCreateProgram();
-					glAttachShader(m_shaders[i], m_shaderSources[i].VS);
-					glAttachShader(m_shaders[i], m_shaderSources[i].PS);
-					if (shader->GSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].GS);
-					glLinkProgram(m_shaders[i]);
-				}
-
-				if (m_shaders[i] != 0)
-					shader->Variables.UpdateUniformInfo(m_shaders[i]);
 			}
 		}
 	}
@@ -709,112 +836,178 @@ namespace ed
 			if (!found) {
 				Logger::Get().Log("Caching a new shader pass " + std::string(items[i]->Name));
 
-				pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
+				if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
 
-				m_items.insert(m_items.begin() + i, items[i]);
-				m_shaders.insert(m_shaders.begin() + i, 0);
-				m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+					m_items.insert(m_items.begin() + i, items[i]);
+					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 
-				if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
-					Logger::Get().Log("No shader paths are set", true);
-					continue;
-				}
-
-				if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
-				if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
-				if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
-
-				/*
-					ITEM CACHING
-				*/
-
-				m_fbos[data].resize(MAX_RENDER_TEXTURES);
-
-				GLuint ps = 0, vs = 0, gs = 0;
-
-				m_msgs->CurrentItem = items[i]->Name;
-
-				std::string psContent = "", vsContent = "",
-					vsEntry = data->VSEntry,
-					psEntry = data->PSEntry;
-
-				// vertex shader
-				m_msgs->CurrentItemType = 0;
-				if (!HLSL2GLSL::IsHLSL(data->VSPath)) { // GLSL
-					vsContent = m_project->LoadProjectFile(data->VSPath);
-					m_applyMacros(vsContent, data);
-				} else { // HLSL
-					vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs);
-					vsEntry = "main";
-				}
-				
-				vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-				bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-				if (!vsCompiled && !HLSL2GLSL::IsHLSL(data->VSPath))
-					m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 0, cMsg));
-
-				// pixel shader
-				m_msgs->CurrentItemType = 1;
-				if (!HLSL2GLSL::IsHLSL(data->PSPath)) {// HLSL
-					psContent = m_project->LoadProjectFile(data->PSPath);
-					m_applyMacros(psContent, data);
-				} else { // GLSL
-					psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs);
-					psEntry = "main";
-				}
-
-				data->Variables.UpdateTextureList(psContent);
-				ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-				bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
-
-				if (!psCompiled && !HLSL2GLSL::IsHLSL(data->PSPath))
-					m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 1, cMsg)); 
-
-				// geometry shader
-				bool gsCompiled = true;
-				if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
-					std::string gsContent = "", gsEntry = data->GSEntry;
-					m_msgs->CurrentItemType = 2;
-					if (!HLSL2GLSL::IsHLSL(data->GSPath)) { // GLSL
-						gsContent = m_project->LoadProjectFile(data->GSPath);
-						m_applyMacros(gsContent, data);
-					} else { // HLSL
-						gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs);
-						gsEntry = "main";
+					if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
+						Logger::Get().Log("No shader paths are set", true);
+						continue;
 					}
 
-					gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-					gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+					if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
+					if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
+					if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
 
-					if (!gsCompiled && !HLSL2GLSL::IsHLSL(data->GSPath))
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg));
+					/*
+						ITEM CACHING
+					*/
 
+					m_fbos[data].resize(MAX_RENDER_TEXTURES);
+
+					GLuint ps = 0, vs = 0, gs = 0;
+
+					m_msgs->CurrentItem = items[i]->Name;
+
+					std::string psContent = "", vsContent = "",
+						vsEntry = data->VSEntry,
+						psEntry = data->PSEntry;
+
+					// vertex shader
+					m_msgs->CurrentItemType = 0;
+					if (!HLSL2GLSL::IsHLSL(data->VSPath)) { // GLSL
+						vsContent = m_project->LoadProjectFile(data->VSPath);
+						m_applyMacros(vsContent, data);
+					} else { // HLSL
+						vsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs);
+						vsEntry = "main";
+					}
+					
+					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
+					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
+
+					if (!vsCompiled && !HLSL2GLSL::IsHLSL(data->VSPath))
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 0, cMsg));
+
+					// pixel shader
+					m_msgs->CurrentItemType = 1;
+					if (!HLSL2GLSL::IsHLSL(data->PSPath)) {// HLSL
+						psContent = m_project->LoadProjectFile(data->PSPath);
+						m_applyMacros(psContent, data);
+					} else { // GLSL
+						psContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs);
+						psEntry = "main";
+					}
+
+					data->Variables.UpdateTextureList(psContent);
+					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
+					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
+
+					if (!psCompiled && !HLSL2GLSL::IsHLSL(data->PSPath))
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 1, cMsg)); 
+
+					// geometry shader
+					bool gsCompiled = true;
+					if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
+						std::string gsContent = "", gsEntry = data->GSEntry;
+						m_msgs->CurrentItemType = 2;
+						if (!HLSL2GLSL::IsHLSL(data->GSPath)) { // GLSL
+							gsContent = m_project->LoadProjectFile(data->GSPath);
+							m_applyMacros(gsContent, data);
+						} else { // HLSL
+							gsContent = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs);
+							gsEntry = "main";
+						}
+
+						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
+						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+
+						if (!gsCompiled && !HLSL2GLSL::IsHLSL(data->GSPath))
+							m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg));
+
+					}
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!vsCompiled || !psCompiled || !gsCompiled) {
+						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
+						m_shaders[i] = 0;
+					}
+					else {
+						m_msgs->ClearGroup(items[i]->Name);
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], vs);
+						glAttachShader(m_shaders[i], ps);
+						if (data->GSUsed) glAttachShader(m_shaders[i], gs);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					if (m_shaders[i] != 0)
+						data->Variables.UpdateUniformInfo(m_shaders[i]);
+
+					m_shaderSources[i].VS = vs;
+					m_shaderSources[i].PS = ps;
+					m_shaderSources[i].GS = gs;
+				} else if (items[i]->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *data = reinterpret_cast<ed::pipe::ComputePass *>(items[i]->Data);
+
+					m_items.insert(m_items.begin() + i, items[i]);
+					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+
+					if (strlen(data->Path) == 0) {
+						Logger::Get().Log("No shader paths are set", true);
+						continue;
+					}
+
+					/*
+						ITEM CACHING
+					*/
+
+					GLuint cs = 0;
+
+					m_msgs->CurrentItem = items[i]->Name;
+
+					std::string content = "", entry = data->Entry;
+
+					// vertex shader
+					m_msgs->CurrentItemType = 3;
+					if (!HLSL2GLSL::IsHLSL(data->Path))
+					{ // GLSL
+						content = m_project->LoadProjectFile(data->Path);
+						m_applyMacros(content, data);
+					}
+					else
+					{ // HLSL
+						content = ed::HLSL2GLSL::Transcompile(m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs);
+						entry = "main";
+					}
+
+					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
+					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
+
+					if (!compiled && !HLSL2GLSL::IsHLSL(data->Path))
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 3, cMsg));
+
+					if (m_shaders[i] != 0)
+						glDeleteProgram(m_shaders[i]);
+
+					if (!compiled)
+					{
+						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the compute shader");
+						m_shaders[i] = 0;
+					}
+					else
+					{
+						m_msgs->ClearGroup(items[i]->Name);
+
+						m_shaders[i] = glCreateProgram();
+						glAttachShader(m_shaders[i], cs);
+						glLinkProgram(m_shaders[i]);
+					}
+
+					if (m_shaders[i] != 0)
+						data->Variables.UpdateUniformInfo(m_shaders[i]);
+
+					m_shaderSources[i].VS = 0;
+					m_shaderSources[i].PS = 0;
+					m_shaderSources[i].GS = 0;
 				}
-
-				if (m_shaders[i] != 0)
-					glDeleteProgram(m_shaders[i]);
-
-				if (!vsCompiled || !psCompiled || !gsCompiled) {
-					m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
-					m_shaders[i] = 0;
-				}
-				else {
-					m_msgs->ClearGroup(items[i]->Name);
-
-					m_shaders[i] = glCreateProgram();
-					glAttachShader(m_shaders[i], vs);
-					glAttachShader(m_shaders[i], ps);
-					if (data->GSUsed) glAttachShader(m_shaders[i], gs);
-					glLinkProgram(m_shaders[i]);
-				}
-
-				if (m_shaders[i] != 0)
-					data->Variables.UpdateUniformInfo(m_shaders[i]);
-
-				m_shaderSources[i].VS = vs;
-				m_shaderSources[i].PS = ps;
-				m_shaderSources[i].GS = gs;
 			}
 		}
 
@@ -832,7 +1025,9 @@ namespace ed
 
 				Logger::Get().Log("Removing an item from cache");
 
-				m_fbos.erase((pipe::ShaderPass*)m_items[i]->Data);
+				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass)
+					m_fbos.erase((pipe::ShaderPass*)m_items[i]->Data);
+				
 				m_items.erase(m_items.begin() + i);
 				m_shaders.erase(m_shaders.begin() + i);
 				m_shaderSources.erase(m_shaderSources.begin() + i);
@@ -865,16 +1060,34 @@ namespace ed
 			}
 		}
 	}
-	void RenderEngine::m_applyMacros(std::string& src, pipe::ShaderPass* pass)
+	void RenderEngine::m_applyMacros(std::string &src, pipe::ShaderPass *pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
-		size_t lineLoc = src.find_first_of('\n', verLoc+1) + 1;
+		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
-		for (auto& macro : pass->Macros) {
+		for (auto &macro : pass->Macros)
+		{
 			if (!macro.Active)
 				continue;
-			
+
+			strMacro += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+		}
+
+		if (strMacro.size() > 0)
+			src.insert(lineLoc, strMacro);
+	}
+	void RenderEngine::m_applyMacros(std::string &src, pipe::ComputePass *pass)
+	{
+		size_t verLoc = src.find_first_of("#version");
+		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
+		std::string strMacro = "";
+
+		for (auto &macro : pass->Macros)
+		{
+			if (!macro.Active)
+				continue;
+
 			strMacro += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
 		}
 

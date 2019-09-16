@@ -224,7 +224,7 @@ namespace ed
 		*/
 		ImGui::Columns(4);
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, (7*(TOOLBAR_HEIGHT) + 7*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, (8*(TOOLBAR_HEIGHT) + 8*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -280,6 +280,9 @@ namespace ed
 
 		if (ImGui::Button(UI_ICON_PIXELS)) this->CreateNewShaderPass();
 		m_tooltip("New shader pass");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FX)) this->CreateNewComputePass();
+		m_tooltip("New compute pass");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
 		m_tooltip("New texture");
@@ -509,8 +512,10 @@ namespace ed
 				if (ImGui::MenuItem("Render", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
 					m_savePreviewPopupOpened = true;
 				if (ImGui::BeginMenu("Create")) {
-					if (ImGui::MenuItem("Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str()))
+					if (ImGui::MenuItem("Shader Pass", KeyboardShortcuts::Instance().GetString("Project.NewShaderPass").c_str()))
 						this->CreateNewShaderPass();
+					if (ImGui::MenuItem("Compute Pass", KeyboardShortcuts::Instance().GetString("Project.NewComputePass").c_str()))
+						this->CreateNewComputePass();
 					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str()))
 						this->CreateNewTexture();
 					if (ImGui::MenuItem("Cubemap", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str()))
@@ -620,7 +625,7 @@ namespace ed
 
 		// handle the "build occured" event
 		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
-			size_t errors = m_data->Messages.GetMessages().size(); //TODO: actual errors
+			size_t errors = m_data->Messages.GetGroupErrorAndWarningMsgCount();
 			if (errors > 0 && !Get(ViewID::Output)->Visible)
 				Get(ViewID::Output)->Visible = true;
 			m_data->Messages.BuildOccured = false;
@@ -1262,6 +1267,10 @@ namespace ed
 		m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
 		m_isCreateItemPopupOpened = true;
 	}
+	void GUIManager::CreateNewComputePass() {
+		m_createUI->SetType(PipelineItem::ItemType::ComputePass);
+		m_isCreateItemPopupOpened = true;
+	}
 	void GUIManager::CreateNewTexture() {
 		std::string path;
 		bool success = UIHelper::GetOpenFileDialog(path, "png;jpg;jpeg;bmp");
@@ -1357,7 +1366,9 @@ namespace ed
 		KeyboardShortcuts::Instance().SetCallback("Project.NewShaderPass", [=]() {
 			CreateNewShaderPass();
 		});
-
+		KeyboardShortcuts::Instance().SetCallback("Project.NewComputePass", [=]() {
+			CreateNewComputePass();
+		});
 
 		// PREVIEW
 		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleStatusbar", [=]() {

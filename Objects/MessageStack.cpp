@@ -32,6 +32,14 @@ namespace ed
 				cnt++;
 		return cnt;
 	}
+	int MessageStack::GetGroupErrorAndWarningMsgCount()
+	{
+		int cnt = 0;
+		for (int i = 0; i < m_msgs.size(); i++)
+			if (m_msgs[i].MType == ed::MessageStack::Type::Warning || m_msgs[i].MType == ed::MessageStack::Type::Error)
+				cnt++;
+		return cnt;
+	}
 	void MessageStack::RenameGroup(const std::string& group, const std::string& newName)
 	{
 		for (int i = 0; i < m_msgs.size(); i++)

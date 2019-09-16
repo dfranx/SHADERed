@@ -118,26 +118,37 @@ namespace ed
 			std::string proj = oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/");
 			
 			for (PipelineItem* passItem : passItems) {
-				pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
+				if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
 
-				std::string vs = ghc::filesystem::path(passData->VSPath).is_absolute() ? passData->VSPath : (proj + std::string(passData->VSPath));
-				std::string ps = ghc::filesystem::path(passData->PSPath).is_absolute() ? passData->PSPath : (proj + std::string(passData->PSPath));
+					std::string vs = ghc::filesystem::path(passData->VSPath).is_absolute() ? passData->VSPath : (proj + std::string(passData->VSPath));
+					std::string ps = ghc::filesystem::path(passData->PSPath).is_absolute() ? passData->PSPath : (proj + std::string(passData->PSPath));
 
-				std::string vsExt = ed::HLSL2GLSL::IsHLSL(vs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-				std::string psExt = ed::HLSL2GLSL::IsHLSL(ps) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string vsExt = ed::HLSL2GLSL::IsHLSL(vs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string psExt = ed::HLSL2GLSL::IsHLSL(ps) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
 
-				ghc::filesystem::copy_file(vs, shadersDir + "/" + passItem->Name + "VS." + vsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
-				ghc::filesystem::copy_file(ps, shadersDir + "/" + passItem->Name + "PS." + psExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					ghc::filesystem::copy_file(vs, shadersDir + "/" + passItem->Name + "VS." + vsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					ghc::filesystem::copy_file(ps, shadersDir + "/" + passItem->Name + "PS." + psExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 
-				if (passData->GSUsed) {
-					std::string gs = ghc::filesystem::path(passData->GSPath).is_absolute() ? passData->GSPath : (proj + std::string(passData->GSPath));
-					std::string gsExt = ed::HLSL2GLSL::IsHLSL(gs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					if (passData->GSUsed) {
+						std::string gs = ghc::filesystem::path(passData->GSPath).is_absolute() ? passData->GSPath : (proj + std::string(passData->GSPath));
+						std::string gsExt = ed::HLSL2GLSL::IsHLSL(gs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
 
-					ghc::filesystem::copy_file(gs, shadersDir + "/" + passItem->Name + "GS." + gsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+						ghc::filesystem::copy_file(gs, shadersDir + "/" + passItem->Name + "GS." + gsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					}
+
+					if (errc)
+						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
+				} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass *passData = (pipe::ComputePass*)passItem->Data;
+
+					std::string cs = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
+					std::string csExt = ed::HLSL2GLSL::IsHLSL(cs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+
+					ghc::filesystem::copy_file(cs, shadersDir + "/" + passItem->Name + "CS." + csExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					if (errc)
+						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 				}
-
-				if (errc)
-					ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 			}
 		}
 
@@ -150,209 +161,290 @@ namespace ed
 
 		// shader passes
 		for (PipelineItem* passItem : passItems) {
-			pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
-
 			pugi::xml_node passNode = pipelineNode.append_child("pass");
 			passNode.append_attribute("name").set_value(passItem->Name);
 
-			/* collapsed="true" attribute */
-			for (int i = 0; i < collapsedSP.size(); i++)
-				if (collapsedSP[i] == passData) {
-					passNode.append_attribute("collapsed").set_value(true);
-					break;
-				}
+			if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass *passData = (pipe::ShaderPass *)passItem->Data;
 
-			// vertex shader
-			pugi::xml_node vsNode = passNode.append_child("shader");
-			std::string relativePath = (ghc::filesystem::path(passData->VSPath).is_absolute()) ? passData->VSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->VSPath));
-			if (copyFiles) {
-				std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->VSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-				relativePath = "shaders/" + std::string(passItem->Name) + "VS." + vsExt;
-			}
+				passNode.append_attribute("type").set_value("shader");
 
-			vsNode.append_attribute("type").set_value("vs");
-			vsNode.append_attribute("path").set_value(relativePath.c_str());
-			vsNode.append_attribute("entry").set_value(passData->VSEntry);
-
-			// pixel shader
-			pugi::xml_node psNode = passNode.append_child("shader");
-			relativePath = (ghc::filesystem::path(passData->PSPath).is_absolute()) ? passData->PSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->PSPath));
-			if (copyFiles) {
-				std::string psExt = ed::HLSL2GLSL::IsHLSL(passData->PSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-				relativePath = "shaders/" + std::string(passItem->Name) + "PS." + psExt;
-			}
-
-			psNode.append_attribute("type").set_value("ps");
-			psNode.append_attribute("path").set_value(relativePath.c_str());
-			psNode.append_attribute("entry").set_value(passData->PSEntry);
-
-			// geometry shader
-			if (strlen(passData->GSEntry) > 0 && strlen(passData->GSPath) > 0) {
-				pugi::xml_node gsNode = passNode.append_child("shader");
-				relativePath = (ghc::filesystem::path(passData->GSPath).is_absolute()) ? passData->GSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->GSPath));
-				if (copyFiles) {
-					std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->GSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-					relativePath = "shaders/" + std::string(passItem->Name) + "GS." + vsExt;
-				}
-
-				gsNode.append_attribute("used").set_value(passData->GSUsed);
-
-				gsNode.append_attribute("type").set_value("gs");
-				gsNode.append_attribute("path").set_value(relativePath.c_str());
-				gsNode.append_attribute("entry").set_value(passData->GSEntry);
-			}
-
-			/* render textures */
-			for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
-				if (passData->RenderTextures[i] == 0)
-					break;
-				GLuint rtID = passData->RenderTextures[i];
-				if (rtID == m_renderer->GetTexture())
-					passNode.append_child("rendertexture");
-				else
-					passNode.append_child("rendertexture").append_attribute("name").set_value(m_objects->GetRenderTexture(rtID)->Name.c_str());
-			}
-
-			// variables -> now global in pass element [V2]
-			m_exportShaderVariables(passNode, passData->Variables.GetVariables());
-
-			// macros
-			pugi::xml_node macrosNode = passNode.append_child("macros");		
-			for (auto& macro : passData->Macros) {
-				pugi::xml_node macroNode = macrosNode.append_child("define");
-				macroNode.append_attribute("name").set_value(macro.Name);
-				macroNode.append_attribute("active").set_value(macro.Active);
-				macroNode.text().set(macro.Value);
-			}
-
-			// pass items
-			pugi::xml_node itemsNode = passNode.append_child("items");
-			for (PipelineItem* item : passData->Items) {
-				pugi::xml_node itemNode = itemsNode.append_child("item");
-				itemNode.append_attribute("name").set_value(item->Name);
-
-				if (item->Type == PipelineItem::ItemType::Geometry) {
-					itemNode.append_attribute("type").set_value("geometry");
-
-					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
-
-					itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
-					itemNode.append_child("width").text().set(tData->Size.x);
-					itemNode.append_child("height").text().set(tData->Size.y);
-					itemNode.append_child("depth").text().set(tData->Size.z);
-					if (tData->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(tData->Scale.x);
-					if (tData->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(tData->Scale.y);
-					if (tData->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(tData->Scale.z);
-					if (tData->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(tData->Rotation.z);
-					if (tData->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(tData->Rotation.x);
-					if (tData->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(tData->Rotation.y);
-					if (tData->Position.x != 0.0f) itemNode.append_child("x").text().set(tData->Position.x);
-					if (tData->Position.y != 0.0f) itemNode.append_child("y").text().set(tData->Position.y);
-					if (tData->Position.z != 0.0f) itemNode.append_child("z").text().set(tData->Position.z);
-					if (tData->Instanced) itemNode.append_child("instanced").text().set(tData->Instanced);
-					if (tData->InstanceCount > 0) itemNode.append_child("instancecount").text().set(tData->InstanceCount);
-					if (tData->InstanceBuffer != nullptr) itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)tData->InstanceBuffer)->ID).c_str());
-					for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
-						if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
-							itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
-							break;
-						}
-					}
-				}
-				else if (item->Type == PipelineItem::ItemType::RenderState) {
-					itemNode.append_attribute("type").set_value("renderstate");
-
-					ed::pipe::RenderState* s = reinterpret_cast<ed::pipe::RenderState*>(item->Data);
-
-					if (s->PolygonMode != GL_FILL) itemNode.append_child("wireframe").text().set(s->PolygonMode == GL_LINE);
-					if (!s->CullFace) itemNode.append_child("cull").text().set(s->CullFace);
-					if (s->CullFaceType != GL_BACK) itemNode.append_child("cullfront").text().set(true);
-					if (s->FrontFace != GL_CCW) itemNode.append_child("ccw").text().set(false);
-
-					if (s->Blend) {
-						itemNode.append_child("blend").text().set(true);
-
-						if (s->AlphaToCoverage) itemNode.append_child("alpha2coverage").text().set(true);
-
-						itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
-						itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
-						itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
-						itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
-						itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
-						itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
-						itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
-						itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
-						itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
-						itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
-					}
-
-					if (s->DepthTest) {
-						itemNode.append_child("depthtest").text().set(true);
-						itemNode.append_child("depthclamp").text().set(s->DepthClamp);
-						itemNode.append_child("depthmask").text().set(s->DepthMask);
-						itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
-						itemNode.append_child("depthbias").text().set(s->DepthBias);
-					}
-
-					if (s->StencilTest) {
-						itemNode.append_child("stenciltest").text().set(true);
-						itemNode.append_child("stencilmask").text().set(s->StencilMask);
-						itemNode.append_child("stencilref").text().set(s->StencilReference);
-						itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
-						itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
-						itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
-						itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
-						itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
-						itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
-						itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
-						itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
-					}
-				}
-				else if (item->Type == PipelineItem::ItemType::Model) {
-					itemNode.append_attribute("type").set_value("model");
-
-					ed::pipe::Model* data = reinterpret_cast<ed::pipe::Model*>(item->Data);
-
-					std::string opath = (ghc::filesystem::path(data->Filename).is_absolute()) ? data->Filename : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(data->Filename));
-
-					itemNode.append_child("filepath").text().set(opath.c_str());
-					itemNode.append_child("grouponly").text().set(data->OnlyGroup);
-					if (data->OnlyGroup) itemNode.append_child("group").text().set(data->GroupName);
-					if (data->Scale.x != 1.0f) itemNode.append_child("scaleX").text().set(data->Scale.x);
-					if (data->Scale.y != 1.0f) itemNode.append_child("scaleY").text().set(data->Scale.y);
-					if (data->Scale.z != 1.0f) itemNode.append_child("scaleZ").text().set(data->Scale.z);
-					if (data->Rotation.z != 0.0f) itemNode.append_child("roll").text().set(data->Rotation.z);
-					if (data->Rotation.x != 0.0f) itemNode.append_child("pitch").text().set(data->Rotation.x);
-					if (data->Rotation.y != 0.0f) itemNode.append_child("yaw").text().set(data->Rotation.y);
-					if (data->Position.x != 0.0f) itemNode.append_child("x").text().set(data->Position.x);
-					if (data->Position.y != 0.0f) itemNode.append_child("y").text().set(data->Position.y);
-					if (data->Position.z != 0.0f) itemNode.append_child("z").text().set(data->Position.z);
-					if (data->Instanced) itemNode.append_child("instanced").text().set(data->Instanced);
-					if (data->InstanceCount > 0) itemNode.append_child("instancecount").text().set(data->InstanceCount);
-					if (data->InstanceBuffer != nullptr) itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
-				}
-			}
-
-
-			// item variable values
-			pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
-			std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
-			std::vector<ShaderVariable*>& vars = passData->Variables.GetVariables();
-			for (auto itemVal : itemValues) {
-				bool found = false;
-				for (auto passChild : passData->Items)
-					if (passChild == itemVal.Item) {
-						found = true;
+				/* collapsed="true" attribute */
+				for (int i = 0; i < collapsedSP.size(); i++)
+					if (collapsedSP[i] == passData) {
+						passNode.append_attribute("collapsed").set_value(true);
 						break;
 					}
-				if (!found) continue;
 
-				pugi::xml_node itemValueNode = itemValuesNode.append_child("value");
+				// vertex shader
+				pugi::xml_node vsNode = passNode.append_child("shader");
+				std::string relativePath = (ghc::filesystem::path(passData->VSPath).is_absolute()) ? passData->VSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->VSPath));
+				if (copyFiles) {
+					std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->VSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					relativePath = "shaders/" + std::string(passItem->Name) + "VS." + vsExt;
+				}
 
-				itemValueNode.append_attribute("variable").set_value(itemVal.Variable->Name);
-				itemValueNode.append_attribute("for").set_value(itemVal.Item->Name);
+				vsNode.append_attribute("type").set_value("vs");
+				vsNode.append_attribute("path").set_value(relativePath.c_str());
+				vsNode.append_attribute("entry").set_value(passData->VSEntry);
 
-				m_exportVariableValue(itemValueNode, itemVal.NewValue);
+				// pixel shader
+				pugi::xml_node psNode = passNode.append_child("shader");
+				relativePath = (ghc::filesystem::path(passData->PSPath).is_absolute()) ? passData->PSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->PSPath));
+				if (copyFiles) {
+					std::string psExt = ed::HLSL2GLSL::IsHLSL(passData->PSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					relativePath = "shaders/" + std::string(passItem->Name) + "PS." + psExt;
+				}
+
+				psNode.append_attribute("type").set_value("ps");
+				psNode.append_attribute("path").set_value(relativePath.c_str());
+				psNode.append_attribute("entry").set_value(passData->PSEntry);
+
+				// geometry shader
+				if (strlen(passData->GSEntry) > 0 && strlen(passData->GSPath) > 0) {
+					pugi::xml_node gsNode = passNode.append_child("shader");
+					relativePath = (ghc::filesystem::path(passData->GSPath).is_absolute()) ? passData->GSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->GSPath));
+					if (copyFiles) {
+						std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->GSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+						relativePath = "shaders/" + std::string(passItem->Name) + "GS." + vsExt;
+					}
+
+					gsNode.append_attribute("used").set_value(passData->GSUsed);
+
+					gsNode.append_attribute("type").set_value("gs");
+					gsNode.append_attribute("path").set_value(relativePath.c_str());
+					gsNode.append_attribute("entry").set_value(passData->GSEntry);
+				}
+
+				/* render textures */
+				for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+					if (passData->RenderTextures[i] == 0)
+						break;
+					GLuint rtID = passData->RenderTextures[i];
+					if (rtID == m_renderer->GetTexture())
+						passNode.append_child("rendertexture");
+					else
+						passNode.append_child("rendertexture").append_attribute("name").set_value(m_objects->GetRenderTexture(rtID)->Name.c_str());
+				}
+
+				// pass items
+				pugi::xml_node itemsNode = passNode.append_child("items");
+				for (PipelineItem *item : passData->Items)
+				{
+					pugi::xml_node itemNode = itemsNode.append_child("item");
+					itemNode.append_attribute("name").set_value(item->Name);
+
+					if (item->Type == PipelineItem::ItemType::Geometry)
+					{
+						itemNode.append_attribute("type").set_value("geometry");
+
+						ed::pipe::GeometryItem *tData = reinterpret_cast<ed::pipe::GeometryItem *>(item->Data);
+
+						itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
+						itemNode.append_child("width").text().set(tData->Size.x);
+						itemNode.append_child("height").text().set(tData->Size.y);
+						itemNode.append_child("depth").text().set(tData->Size.z);
+						if (tData->Scale.x != 1.0f)
+							itemNode.append_child("scaleX").text().set(tData->Scale.x);
+						if (tData->Scale.y != 1.0f)
+							itemNode.append_child("scaleY").text().set(tData->Scale.y);
+						if (tData->Scale.z != 1.0f)
+							itemNode.append_child("scaleZ").text().set(tData->Scale.z);
+						if (tData->Rotation.z != 0.0f)
+							itemNode.append_child("roll").text().set(tData->Rotation.z);
+						if (tData->Rotation.x != 0.0f)
+							itemNode.append_child("pitch").text().set(tData->Rotation.x);
+						if (tData->Rotation.y != 0.0f)
+							itemNode.append_child("yaw").text().set(tData->Rotation.y);
+						if (tData->Position.x != 0.0f)
+							itemNode.append_child("x").text().set(tData->Position.x);
+						if (tData->Position.y != 0.0f)
+							itemNode.append_child("y").text().set(tData->Position.y);
+						if (tData->Position.z != 0.0f)
+							itemNode.append_child("z").text().set(tData->Position.z);
+						if (tData->Instanced)
+							itemNode.append_child("instanced").text().set(tData->Instanced);
+						if (tData->InstanceCount > 0)
+							itemNode.append_child("instancecount").text().set(tData->InstanceCount);
+						if (tData->InstanceBuffer != nullptr)
+							itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject *)tData->InstanceBuffer)->ID).c_str());
+						for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++)
+						{
+							if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology)
+							{
+								itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
+								break;
+							}
+						}
+					}
+					else if (item->Type == PipelineItem::ItemType::RenderState)
+					{
+						itemNode.append_attribute("type").set_value("renderstate");
+
+						ed::pipe::RenderState *s = reinterpret_cast<ed::pipe::RenderState *>(item->Data);
+
+						if (s->PolygonMode != GL_FILL)
+							itemNode.append_child("wireframe").text().set(s->PolygonMode == GL_LINE);
+						if (!s->CullFace)
+							itemNode.append_child("cull").text().set(s->CullFace);
+						if (s->CullFaceType != GL_BACK)
+							itemNode.append_child("cullfront").text().set(true);
+						if (s->FrontFace != GL_CCW)
+							itemNode.append_child("ccw").text().set(false);
+
+						if (s->Blend)
+						{
+							itemNode.append_child("blend").text().set(true);
+
+							if (s->AlphaToCoverage)
+								itemNode.append_child("alpha2coverage").text().set(true);
+
+							itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
+							itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
+							itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
+							itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
+							itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
+							itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
+							itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
+							itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
+							itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
+							itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
+						}
+
+						if (s->DepthTest)
+						{
+							itemNode.append_child("depthtest").text().set(true);
+							itemNode.append_child("depthclamp").text().set(s->DepthClamp);
+							itemNode.append_child("depthmask").text().set(s->DepthMask);
+							itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
+							itemNode.append_child("depthbias").text().set(s->DepthBias);
+						}
+
+						if (s->StencilTest)
+						{
+							itemNode.append_child("stenciltest").text().set(true);
+							itemNode.append_child("stencilmask").text().set(s->StencilMask);
+							itemNode.append_child("stencilref").text().set(s->StencilReference);
+							itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
+							itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
+							itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
+							itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
+							itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
+							itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
+							itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
+							itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
+						}
+					}
+					else if (item->Type == PipelineItem::ItemType::Model)
+					{
+						itemNode.append_attribute("type").set_value("model");
+
+						ed::pipe::Model *data = reinterpret_cast<ed::pipe::Model *>(item->Data);
+
+						std::string opath = (ghc::filesystem::path(data->Filename).is_absolute()) ? data->Filename : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(data->Filename));
+
+						itemNode.append_child("filepath").text().set(opath.c_str());
+						itemNode.append_child("grouponly").text().set(data->OnlyGroup);
+						if (data->OnlyGroup)
+							itemNode.append_child("group").text().set(data->GroupName);
+						if (data->Scale.x != 1.0f)
+							itemNode.append_child("scaleX").text().set(data->Scale.x);
+						if (data->Scale.y != 1.0f)
+							itemNode.append_child("scaleY").text().set(data->Scale.y);
+						if (data->Scale.z != 1.0f)
+							itemNode.append_child("scaleZ").text().set(data->Scale.z);
+						if (data->Rotation.z != 0.0f)
+							itemNode.append_child("roll").text().set(data->Rotation.z);
+						if (data->Rotation.x != 0.0f)
+							itemNode.append_child("pitch").text().set(data->Rotation.x);
+						if (data->Rotation.y != 0.0f)
+							itemNode.append_child("yaw").text().set(data->Rotation.y);
+						if (data->Position.x != 0.0f)
+							itemNode.append_child("x").text().set(data->Position.x);
+						if (data->Position.y != 0.0f)
+							itemNode.append_child("y").text().set(data->Position.y);
+						if (data->Position.z != 0.0f)
+							itemNode.append_child("z").text().set(data->Position.z);
+						if (data->Instanced)
+							itemNode.append_child("instanced").text().set(data->Instanced);
+						if (data->InstanceCount > 0)
+							itemNode.append_child("instancecount").text().set(data->InstanceCount);
+						if (data->InstanceBuffer != nullptr)
+							itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject *)data->InstanceBuffer)->ID).c_str());
+					}
+				}
+
+				// item variable values
+				pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
+				std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
+				std::vector<ShaderVariable *> &vars = passData->Variables.GetVariables();
+				for (auto itemVal : itemValues)
+				{
+					bool found = false;
+					for (auto passChild : passData->Items)
+						if (passChild == itemVal.Item)
+						{
+							found = true;
+							break;
+						}
+					if (!found)
+						continue;
+
+					pugi::xml_node itemValueNode = itemValuesNode.append_child("value");
+
+					itemValueNode.append_attribute("variable").set_value(itemVal.Variable->Name);
+					itemValueNode.append_attribute("for").set_value(itemVal.Item->Name);
+
+					m_exportVariableValue(itemValueNode, itemVal.NewValue);
+				}
+
+				// variables -> now global in pass element [V2]
+				m_exportShaderVariables(passNode, passData->Variables.GetVariables());
+
+				// macros
+				pugi::xml_node macrosNode = passNode.append_child("macros");
+				for (auto &macro : passData->Macros)
+				{
+					pugi::xml_node macroNode = macrosNode.append_child("define");
+					macroNode.append_attribute("name").set_value(macro.Name);
+					macroNode.append_attribute("active").set_value(macro.Active);
+					macroNode.text().set(macro.Value);
+				}
+			} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+				pipe::ComputePass *passData = (pipe::ComputePass *)passItem->Data;
+
+				passNode.append_attribute("type").set_value("compute");
+
+				// compute shader
+				pugi::xml_node csNode = passNode.append_child("shader");
+				std::string relativePath = (ghc::filesystem::path(passData->Path).is_absolute()) ? passData->Path : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->Path));
+				if (copyFiles) {
+					std::string csExt = ed::HLSL2GLSL::IsHLSL(passData->Path) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					relativePath = "shaders/" + std::string(passItem->Name) + "CS." + csExt;
+				}
+
+				csNode.append_attribute("type").set_value("cs");
+				csNode.append_attribute("path").set_value(relativePath.c_str());
+				csNode.append_attribute("entry").set_value(passData->Entry);
+
+				// group size
+				pugi::xml_node workNode = passNode.append_child("groupsize");
+				workNode.append_attribute("x").set_value(passData->WorkX);
+				workNode.append_attribute("y").set_value(passData->WorkY);
+				workNode.append_attribute("z").set_value(passData->WorkZ);
+
+				// variables -> now global in pass element [V2]
+				m_exportShaderVariables(passNode, passData->Variables.GetVariables());
+
+				// macros
+				pugi::xml_node macrosNode = passNode.append_child("macros");
+				for (auto &macro : passData->Macros)
+				{
+					pugi::xml_node macroNode = macrosNode.append_child("define");
+					macroNode.append_attribute("name").set_value(macro.Name);
+					macroNode.append_attribute("active").set_value(macro.Active);
+					macroNode.text().set(macro.Value);
+				}
 			}
 		}
 
@@ -439,7 +531,7 @@ namespace ed
 							}
 					}
 				} else {
-					GLuint myTex = m_objects->GetTexture(texs[i]);
+					GLuint myTex = isImage ? m_objects->GetImage(texs[i])->Texture : m_objects->GetTexture(texs[i]);
 
 					for (int j = 0; j < passItems.size(); j++) {
 						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
@@ -475,7 +567,7 @@ namespace ed
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
 				fileNode.append_attribute("type").set_value("file");
 				fileNode.append_attribute("name").set_value(file.first.c_str());
-				fileNode.append_attribute("shader").set_value(file.second == 0 ? "vs" : (file.second == 1 ? "ps" : "gs"));
+				fileNode.append_attribute("shader").set_value(file.second == 0 ? "vs" : (file.second == 1 ? "ps" : (file.second == 2 ? "gs" : "cs")));
 			}
 
 			// pinned ui
@@ -487,10 +579,17 @@ namespace ed
 				varNode.append_attribute("name").set_value(var->Name);
 
 				for (PipelineItem* passItem : passItems) {
-					pipe::ShaderPass* data = (pipe::ShaderPass*)passItem->Data;
 					bool found = false;
 
-					std::vector<ShaderVariable*> vars = data->Variables.GetVariables();
+					std::vector<ShaderVariable*> vars;
+					if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass *data = (pipe::ShaderPass *)passItem->Data;
+						vars = data->Variables.GetVariables();
+					} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass *data = (pipe::ComputePass *)passItem->Data;
+						vars = data->Variables.GetVariables();
+					}
+
 					for (int i = 0; i < vars.size(); i++) {
 						if (vars[i] == var) {
 							varNode.append_attribute("owner").set_value(passItem->Name);
@@ -1363,397 +1462,513 @@ namespace ed
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
 			char name[PIPELINE_ITEM_NAME_LENGTH];
-			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
-			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
-
-			data->RenderTextures[0] = m_renderer->GetTexture();
-			for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
-				data->RenderTextures[i] = 0;
 
 			// get pass name
 			if (!passNode.attribute("name").empty())
 				strcpy(name, passNode.attribute("name").as_string());
 
-			// check if it should be collapsed
-			if (!passNode.attribute("collapsed").empty()) {
-				bool cs = passNode.attribute("collapsed").as_bool();
-				if (cs)
-					((PipelineUI*)m_ui->Get(ViewID::Pipeline))->Collapse(data);
+			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
+			if (!passNode.attribute("type").empty()) {
+				if (strcmp(passNode.attribute("type").as_string(), "compute") == 0)
+					type = ed::PipelineItem::ItemType::ComputePass;
 			}
 
-			// get render textures
-			int rtCur = 0;
-			for (pugi::xml_node rtNode : passNode.children("rendertexture")) {
-				std::string rtName("");
-				if (!rtNode.attribute("name").empty())
-					rtName = std::string(rtNode.attribute("name").as_string());
-				fbos[data].push_back(rtName);
-				rtCur++;
-			}
-			data->RTCount = (rtCur == 0) ? 1 : rtCur;
+			if (type == PipelineItem::ItemType::ShaderPass) {
+				ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
 
-			// add the item
-			m_pipe->AddPass(name, data);
+				data->RenderTextures[0] = m_renderer->GetTexture();
+				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
+					data->RenderTextures[i] = 0;
 
-			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
-			for (pugi::xml_node shaderNode : passNode.children("shader")) {
-				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
-
-				// parse path and type
-				pugi::char_t shaderPath[MAX_PATH];
-				strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
-				const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
-				
-				if (shaderNodeType == "vs") {
-					strcpy(data->VSPath, shaderPath);
-					strcpy(data->VSEntry, shaderEntry);
-				}
-				else if (shaderNodeType == "ps") {
-					strcpy(data->PSPath, shaderPath);
-					strcpy(data->PSEntry, shaderEntry);
-				}
-				else if (shaderNodeType == "gs") {
-					if (!shaderNode.attribute("used").empty()) data->GSUsed = shaderNode.attribute("used").as_bool();
-					else data->GSUsed = false;
-					strcpy(data->GSPath, shaderPath);
-					strcpy(data->GSEntry, shaderEntry);
+				// check if it should be collapsed
+				if (!passNode.attribute("collapsed").empty()) {
+					bool cs = passNode.attribute("collapsed").as_bool();
+					if (cs)
+						((PipelineUI*)m_ui->Get(ViewID::Pipeline))->Collapse(data);
 				}
 
-				std::string type = ((shaderNodeType == "vs") ? "vertex" : ((shaderNodeType == "ps") ? "pixel" : "geometry"));
-				if (!FileExists(shaderPath))
-					m_msgs->Add(ed::MessageStack::Type::Error, name, type + " shader does not exist.");
-			}
-
-			// parse variables
-			for (pugi::xml_node variableNode : passNode.child("variables").children("variable")) {
-				ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
-				SystemShaderVariable system = SystemShaderVariable::None;
-				FunctionShaderVariable func = FunctionShaderVariable::None;
-				char flags = 0;
-
-				/* FLAGS */
-				bool isInvert = false, isLastFrame = false;
-
-				if (!variableNode.attribute("invert").empty())
-					isInvert = variableNode.attribute("invert").as_bool();
-				if (!variableNode.attribute("lastframe").empty())
-					isLastFrame = variableNode.attribute("lastframe").as_bool();
-
-				flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
-						(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
-						
-				/* TYPE */
-				if (!variableNode.attribute("type").empty()) {
-					const char* myType = variableNode.attribute("type").as_string();
-					for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
-						if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
-							type = (ed::ShaderVariable::ValueType)i;
-							break;
-						}
+				// get render textures
+				int rtCur = 0;
+				for (pugi::xml_node rtNode : passNode.children("rendertexture")) {
+					std::string rtName("");
+					if (!rtNode.attribute("name").empty())
+						rtName = std::string(rtNode.attribute("name").as_string());
+					fbos[data].push_back(rtName);
+					rtCur++;
 				}
-				if (!variableNode.attribute("system").empty()) {
-					const char* mySystem = variableNode.attribute("system").as_string();
-					for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
-						if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
-							system = (ed::SystemShaderVariable)i;
-							break;
-						}
-					if (SystemVariableManager::GetType(system) != type)
-						system = ed::SystemShaderVariable::None;
-				}
-				if (!variableNode.attribute("function").empty()) {
-					const char* myFunc = variableNode.attribute("function").as_string();
-					for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
-						if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
-							func = (FunctionShaderVariable)i;
-							break;
-						}
-					if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
-						func = FunctionShaderVariable::None;
-				}
+				data->RTCount = (rtCur == 0) ? 1 : rtCur;
 
-				ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
-				var->Flags = flags;
-				FunctionVariableManager::AllocateArgumentSpace(var, func);
+				// add the item
+				m_pipe->AddPass(name, data);
 
-				// parse value
-				if (system == SystemShaderVariable::None)
-					m_parseVariableValue(variableNode, var);
+				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
+				for (pugi::xml_node shaderNode : passNode.children("shader")) {
+					std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
 
-				data->Variables.Add(var);
-			}
-
-			// macros
-			pugi::xml_node macrosNode = passNode.append_child("macros");		
-			for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
-				ShaderMacro newMacro;
-				if (!macroNode.attribute("name").empty())
-					strcpy(newMacro.Name, macroNode.attribute("name").as_string());
-				
-				newMacro.Active = true;
-				if (!macroNode.attribute("active").empty())
-					newMacro.Active = macroNode.attribute("active").as_bool();
-				strcpy(newMacro.Value, macroNode.text().get());
-				data->Macros.push_back(newMacro);
-			}
-
-			// parse items
-			for (pugi::xml_node itemNode : passNode.child("items").children()) {
-				char itemName[PIPELINE_ITEM_NAME_LENGTH];
-				ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
-				void* itemData = nullptr;
-
-				strcpy(itemName, itemNode.attribute("name").as_string());
-
-				// parse the inner content of the item
-				if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
-					itemType = ed::PipelineItem::ItemType::Geometry;
-					itemData = new pipe::GeometryItem;
-					pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
-
-					tData->Scale = glm::vec3(1, 1, 1);
-					tData->Position = glm::vec3(0, 0, 0);
-					tData->Rotation = glm::vec3(0, 0, 0);
-					tData->Instanced = false;
-					tData->InstanceCount = 0;
-					tData->InstanceBuffer = nullptr;
-
-					for (pugi::xml_node attrNode : itemNode.children()) {
-						if (strcmp(attrNode.name(), "width") == 0)
-							tData->Size.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "height") == 0)
-							tData->Size.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "depth") == 0)
-							tData->Size.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "scaleX") == 0)
-							tData->Scale.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "scaleY") == 0)
-							tData->Scale.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "scaleZ") == 0)
-							tData->Scale.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "roll") == 0)
-							tData->Rotation.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "yaw") == 0)
-							tData->Rotation.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "pitch") == 0)
-							tData->Rotation.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "x") == 0)
-							tData->Position.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "y") == 0)
-							tData->Position.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "z") == 0)
-							tData->Position.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "instanced") == 0)
-							tData->Instanced = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "instancecount") == 0)
-							tData->InstanceCount = attrNode.text().as_int();
-						else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-							geoUBOs[tData] = attrNode.text().as_string();
-						else if (strcmp(attrNode.name(), "topology") == 0) {
-							for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
-								if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
-									tData->Topology = TOPOLOGY_ITEM_VALUES[k];
-						}
-						else if (strcmp(attrNode.name(), "type") == 0) {
-							for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
-								if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
-									tData->Type = (pipe::GeometryItem::GeometryType)k;
-						}
+					// parse path and type
+					pugi::char_t shaderPath[MAX_PATH];
+					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
+					const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
+					
+					if (shaderNodeType == "vs") {
+						strcpy(data->VSPath, shaderPath);
+						strcpy(data->VSEntry, shaderEntry);
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
-					itemType = ed::PipelineItem::ItemType::RenderState;
-					itemData = new pipe::RenderState;
-
-					pipe::RenderState* tData = (pipe::RenderState*)itemData;
-
-					for (pugi::xml_node attrNode : itemNode.children()) {
-						// rasterizer
-						if (strcmp(attrNode.name(), "wireframe") == 0)
-							tData->PolygonMode = attrNode.text().as_bool() ? GL_LINE : GL_FILL;
-						else if (strcmp(attrNode.name(), "cull") == 0)
-							tData->CullFace = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "cullfront") == 0)
-							tData->CullFaceType = attrNode.text().as_bool() ? GL_FRONT : GL_BACK;
-						else if (strcmp(attrNode.name(), "ccw") == 0)
-							tData->FrontFace = attrNode.text().as_bool() ? GL_CCW : GL_CW;
-
-						// blend
-						else if (strcmp(attrNode.name(), "blend") == 0)
-							tData->Blend = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "colorsrcfactor") == 0)
-							tData->BlendSourceFactorRGB = m_toBlend(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "colorfunc") == 0)
-							tData->BlendFunctionColor = m_toBlendOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "colordstfactor") == 0)
-							tData->BlendDestinationFactorRGB = m_toBlend(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "alphasrcfactor") == 0)
-							tData->BlendSourceFactorAlpha = m_toBlend(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "alphafunc") == 0)
-							tData->BlendFunctionAlpha = m_toBlendOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "alphadstfactor") == 0)
-							tData->BlendDestinationFactorAlpha = m_toBlend(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "alpha2coverage") == 0)
-							tData->AlphaToCoverage = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "blendfactor_r") == 0)
-							tData->BlendFactor.r = attrNode.text().as_uint();
-						else if (strcmp(attrNode.name(), "blendfactor_g") == 0)
-							tData->BlendFactor.g = attrNode.text().as_uint();
-						else if (strcmp(attrNode.name(), "blendfactor_b") == 0)
-							tData->BlendFactor.b = attrNode.text().as_uint();
-						else if (strcmp(attrNode.name(), "blendfactor_a") == 0)
-							tData->BlendFactor.a = attrNode.text().as_uint();
-
-						// depth
-						else if (strcmp(attrNode.name(), "depthtest") == 0)
-							tData->DepthTest = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "depthfunc") == 0)
-							tData->DepthFunction = m_toComparisonFunc(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "depthbias") == 0)
-							tData->DepthBias = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "depthclamp") == 0)
-							tData->DepthClamp = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "depthmask") == 0)
-							tData->DepthMask = attrNode.text().as_bool();
-
-						// stencil
-						else if (strcmp(attrNode.name(), "stenciltest") == 0)
-							tData->StencilTest = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "stencilmask") == 0)
-							tData->StencilMask = attrNode.text().as_uint();
-						else if (strcmp(attrNode.name(), "stencilref") == 0)
-							tData->StencilReference = attrNode.text().as_uint();
-						else if (strcmp(attrNode.name(), "stencilfrontfunc") == 0)
-							tData->StencilFrontFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "stencilfrontpass") == 0)
-							tData->StencilFrontFaceOpPass = m_toStencilOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "stencilfrontfail") == 0)
-							tData->StencilFrontFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "stencilbackfunc") == 0)
-							tData->StencilBackFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "stencilbackpass") == 0)
-							tData->StencilBackFaceOpPass = m_toStencilOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "stencilbackfail") == 0)
-							tData->StencilBackFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "depthfrontfail") == 0)
-							tData->StencilFrontFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "depthbackfail") == 0)
-							tData->StencilBackFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
+					else if (shaderNodeType == "ps") {
+						strcpy(data->PSPath, shaderPath);
+						strcpy(data->PSEntry, shaderEntry);
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
-					itemType = ed::PipelineItem::ItemType::Model;
-					itemData = new pipe::Model;
-
-					pipe::Model* mdata = (pipe::Model*)itemData;
-
-					mdata->OnlyGroup = false;
-					mdata->Scale = glm::vec3(1, 1, 1);
-					mdata->Position = glm::vec3(0, 0, 0);
-					mdata->Rotation = glm::vec3(0, 0, 0);
-					mdata->InstanceBuffer = nullptr;
-					mdata->Instanced = false;
-					mdata->InstanceCount = 0;
-
-					for (pugi::xml_node attrNode : itemNode.children()) {
-						if (strcmp(attrNode.name(), "filepath") == 0)
-							strcpy(mdata->Filename, attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "group") == 0)
-							strcpy(mdata->GroupName, attrNode.text().as_string());
-						else if (strcmp(attrNode.name(), "grouponly") == 0)
-							mdata->OnlyGroup = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "scaleX") == 0)
-							mdata->Scale.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "scaleY") == 0)
-							mdata->Scale.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "scaleZ") == 0)
-							mdata->Scale.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "roll") == 0)
-							mdata->Rotation.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "yaw") == 0)
-							mdata->Rotation.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "pitch") == 0)
-							mdata->Rotation.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "x") == 0)
-							mdata->Position.x = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "y") == 0)
-							mdata->Position.y = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "z") == 0)
-							mdata->Position.z = attrNode.text().as_float();
-						else if (strcmp(attrNode.name(), "instanced") == 0)
-							mdata->Instanced = attrNode.text().as_bool();
-						else if (strcmp(attrNode.name(), "instancecount") == 0)
-							mdata->InstanceCount = attrNode.text().as_int();
-						else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-							modelUBOs[mdata] = attrNode.text().as_string();
+					else if (shaderNodeType == "gs") {
+						if (!shaderNode.attribute("used").empty()) data->GSUsed = shaderNode.attribute("used").as_bool();
+						else data->GSUsed = false;
+						strcpy(data->GSPath, shaderPath);
+						strcpy(data->GSEntry, shaderEntry);
 					}
 
-					if (strlen(mdata->Filename) > 0)
-						strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
+					std::string type = ((shaderNodeType == "vs") ? "vertex" : ((shaderNodeType == "ps") ? "pixel" : "geometry"));
+					if (!FileExists(shaderPath))
+						m_msgs->Add(ed::MessageStack::Type::Error, name, type + " shader does not exist.");
 				}
 
-				// create and modify if needed
-				if (itemType == ed::PipelineItem::ItemType::Geometry) {
-					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
-					if (tData->Type == pipe::GeometryItem::Cube)
-						tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z);
-					else if (tData->Type == pipe::GeometryItem::Circle)
-						tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y);
-					else if (tData->Type == pipe::GeometryItem::Plane)
-						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y);
-					else if (tData->Type == pipe::GeometryItem::Rectangle)
-						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1);
-					else if (tData->Type == pipe::GeometryItem::Sphere)
-						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
-					else if (tData->Type == pipe::GeometryItem::Triangle)
-						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
-					else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
-						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
-				}
-				else if (itemType == ed::PipelineItem::ItemType::Model) {
-					pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
+				// parse variables
+				for (pugi::xml_node variableNode : passNode.child("variables").children("variable")) {
+					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
+					SystemShaderVariable system = SystemShaderVariable::None;
+					FunctionShaderVariable func = FunctionShaderVariable::None;
+					char flags = 0;
 
-					//std::string objMem = LoadProjectFile(tData->Filename);
-					eng::Model* ptrObject = LoadModel(tData->Filename);
-					bool loaded = ptrObject != nullptr;
+					/* FLAGS */
+					bool isInvert = false, isLastFrame = false;
 
-					if (loaded)
-						tData->Data = ptrObject;
-					else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
-				}
+					if (!variableNode.attribute("invert").empty())
+						isInvert = variableNode.attribute("invert").as_bool();
+					if (!variableNode.attribute("lastframe").empty())
+						isLastFrame = variableNode.attribute("lastframe").as_bool();
 
-				m_pipe->AddItem(name, itemName, itemType, itemData);
-			}
-
-			// parse item values
-			for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
-				std::string type = itemValueNode.attribute("from").as_string();
-				const pugi::char_t* valname = itemValueNode.attribute("variable").as_string();
-				const pugi::char_t* itemname = itemValueNode.attribute("for").as_string();
-
-				std::vector<ShaderVariable*> vars = data->Variables.GetVariables();
-
-				ShaderVariable* cpyVar = nullptr;
-				for (auto& var : vars)
-					if (strcmp(var->Name, valname) == 0) {
-						cpyVar = var;
-						break;
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
+							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+							
+					/* TYPE */
+					if (!variableNode.attribute("type").empty()) {
+						const char* myType = variableNode.attribute("type").as_string();
+						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
+								type = (ed::ShaderVariable::ValueType)i;
+								break;
+							}
+					}
+					if (!variableNode.attribute("system").empty()) {
+						const char* mySystem = variableNode.attribute("system").as_string();
+						for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
+								system = (ed::SystemShaderVariable)i;
+								break;
+							}
+						if (SystemVariableManager::GetType(system) != type)
+							system = ed::SystemShaderVariable::None;
+					}
+					if (!variableNode.attribute("function").empty()) {
+						const char* myFunc = variableNode.attribute("function").as_string();
+						for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
+								func = (FunctionShaderVariable)i;
+								break;
+							}
+						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+							func = FunctionShaderVariable::None;
 					}
 
-				if (cpyVar != nullptr) {
-					PipelineItem* cpyItem = nullptr;
-					for (auto& item : data->Items)
-						if (strcmp(item->Name, itemname) == 0) {
-							cpyItem = item;
+					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+					var->Flags = flags;
+					FunctionVariableManager::AllocateArgumentSpace(var, func);
+
+					// parse value
+					if (system == SystemShaderVariable::None)
+						m_parseVariableValue(variableNode, var);
+
+					data->Variables.Add(var);
+				}
+
+				// macros	
+				for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
+					ShaderMacro newMacro;
+					if (!macroNode.attribute("name").empty())
+						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
+					
+					newMacro.Active = true;
+					if (!macroNode.attribute("active").empty())
+						newMacro.Active = macroNode.attribute("active").as_bool();
+					strcpy(newMacro.Value, macroNode.text().get());
+					data->Macros.push_back(newMacro);
+				}
+
+				// parse items
+				for (pugi::xml_node itemNode : passNode.child("items").children()) {
+					char itemName[PIPELINE_ITEM_NAME_LENGTH];
+					ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
+					void* itemData = nullptr;
+
+					strcpy(itemName, itemNode.attribute("name").as_string());
+
+					// parse the inner content of the item
+					if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
+						itemType = ed::PipelineItem::ItemType::Geometry;
+						itemData = new pipe::GeometryItem;
+						pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
+
+						tData->Scale = glm::vec3(1, 1, 1);
+						tData->Position = glm::vec3(0, 0, 0);
+						tData->Rotation = glm::vec3(0, 0, 0);
+						tData->Instanced = false;
+						tData->InstanceCount = 0;
+						tData->InstanceBuffer = nullptr;
+
+						for (pugi::xml_node attrNode : itemNode.children()) {
+							if (strcmp(attrNode.name(), "width") == 0)
+								tData->Size.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "height") == 0)
+								tData->Size.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "depth") == 0)
+								tData->Size.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "scaleX") == 0)
+								tData->Scale.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "scaleY") == 0)
+								tData->Scale.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "scaleZ") == 0)
+								tData->Scale.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "roll") == 0)
+								tData->Rotation.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "yaw") == 0)
+								tData->Rotation.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "pitch") == 0)
+								tData->Rotation.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "x") == 0)
+								tData->Position.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "y") == 0)
+								tData->Position.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "z") == 0)
+								tData->Position.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "instanced") == 0)
+								tData->Instanced = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "instancecount") == 0)
+								tData->InstanceCount = attrNode.text().as_int();
+							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+								geoUBOs[tData] = attrNode.text().as_string();
+							else if (strcmp(attrNode.name(), "topology") == 0) {
+								for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
+									if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
+										tData->Topology = TOPOLOGY_ITEM_VALUES[k];
+							}
+							else if (strcmp(attrNode.name(), "type") == 0) {
+								for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
+									if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
+										tData->Type = (pipe::GeometryItem::GeometryType)k;
+							}
+						}
+					}
+					else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
+						itemType = ed::PipelineItem::ItemType::RenderState;
+						itemData = new pipe::RenderState;
+
+						pipe::RenderState* tData = (pipe::RenderState*)itemData;
+
+						for (pugi::xml_node attrNode : itemNode.children()) {
+							// rasterizer
+							if (strcmp(attrNode.name(), "wireframe") == 0)
+								tData->PolygonMode = attrNode.text().as_bool() ? GL_LINE : GL_FILL;
+							else if (strcmp(attrNode.name(), "cull") == 0)
+								tData->CullFace = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "cullfront") == 0)
+								tData->CullFaceType = attrNode.text().as_bool() ? GL_FRONT : GL_BACK;
+							else if (strcmp(attrNode.name(), "ccw") == 0)
+								tData->FrontFace = attrNode.text().as_bool() ? GL_CCW : GL_CW;
+
+							// blend
+							else if (strcmp(attrNode.name(), "blend") == 0)
+								tData->Blend = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "colorsrcfactor") == 0)
+								tData->BlendSourceFactorRGB = m_toBlend(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "colorfunc") == 0)
+								tData->BlendFunctionColor = m_toBlendOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "colordstfactor") == 0)
+								tData->BlendDestinationFactorRGB = m_toBlend(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "alphasrcfactor") == 0)
+								tData->BlendSourceFactorAlpha = m_toBlend(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "alphafunc") == 0)
+								tData->BlendFunctionAlpha = m_toBlendOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "alphadstfactor") == 0)
+								tData->BlendDestinationFactorAlpha = m_toBlend(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "alpha2coverage") == 0)
+								tData->AlphaToCoverage = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "blendfactor_r") == 0)
+								tData->BlendFactor.r = attrNode.text().as_uint();
+							else if (strcmp(attrNode.name(), "blendfactor_g") == 0)
+								tData->BlendFactor.g = attrNode.text().as_uint();
+							else if (strcmp(attrNode.name(), "blendfactor_b") == 0)
+								tData->BlendFactor.b = attrNode.text().as_uint();
+							else if (strcmp(attrNode.name(), "blendfactor_a") == 0)
+								tData->BlendFactor.a = attrNode.text().as_uint();
+
+							// depth
+							else if (strcmp(attrNode.name(), "depthtest") == 0)
+								tData->DepthTest = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "depthfunc") == 0)
+								tData->DepthFunction = m_toComparisonFunc(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "depthbias") == 0)
+								tData->DepthBias = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "depthclamp") == 0)
+								tData->DepthClamp = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "depthmask") == 0)
+								tData->DepthMask = attrNode.text().as_bool();
+
+							// stencil
+							else if (strcmp(attrNode.name(), "stenciltest") == 0)
+								tData->StencilTest = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "stencilmask") == 0)
+								tData->StencilMask = attrNode.text().as_uint();
+							else if (strcmp(attrNode.name(), "stencilref") == 0)
+								tData->StencilReference = attrNode.text().as_uint();
+							else if (strcmp(attrNode.name(), "stencilfrontfunc") == 0)
+								tData->StencilFrontFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "stencilfrontpass") == 0)
+								tData->StencilFrontFaceOpPass = m_toStencilOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "stencilfrontfail") == 0)
+								tData->StencilFrontFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "stencilbackfunc") == 0)
+								tData->StencilBackFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "stencilbackpass") == 0)
+								tData->StencilBackFaceOpPass = m_toStencilOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "stencilbackfail") == 0)
+								tData->StencilBackFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "depthfrontfail") == 0)
+								tData->StencilFrontFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "depthbackfail") == 0)
+								tData->StencilBackFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
+						}
+					}
+					else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
+						itemType = ed::PipelineItem::ItemType::Model;
+						itemData = new pipe::Model;
+
+						pipe::Model* mdata = (pipe::Model*)itemData;
+
+						mdata->OnlyGroup = false;
+						mdata->Scale = glm::vec3(1, 1, 1);
+						mdata->Position = glm::vec3(0, 0, 0);
+						mdata->Rotation = glm::vec3(0, 0, 0);
+						mdata->InstanceBuffer = nullptr;
+						mdata->Instanced = false;
+						mdata->InstanceCount = 0;
+
+						for (pugi::xml_node attrNode : itemNode.children()) {
+							if (strcmp(attrNode.name(), "filepath") == 0)
+								strcpy(mdata->Filename, attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "group") == 0)
+								strcpy(mdata->GroupName, attrNode.text().as_string());
+							else if (strcmp(attrNode.name(), "grouponly") == 0)
+								mdata->OnlyGroup = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "scaleX") == 0)
+								mdata->Scale.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "scaleY") == 0)
+								mdata->Scale.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "scaleZ") == 0)
+								mdata->Scale.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "roll") == 0)
+								mdata->Rotation.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "yaw") == 0)
+								mdata->Rotation.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "pitch") == 0)
+								mdata->Rotation.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "x") == 0)
+								mdata->Position.x = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "y") == 0)
+								mdata->Position.y = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "z") == 0)
+								mdata->Position.z = attrNode.text().as_float();
+							else if (strcmp(attrNode.name(), "instanced") == 0)
+								mdata->Instanced = attrNode.text().as_bool();
+							else if (strcmp(attrNode.name(), "instancecount") == 0)
+								mdata->InstanceCount = attrNode.text().as_int();
+							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+								modelUBOs[mdata] = attrNode.text().as_string();
+						}
+
+						if (strlen(mdata->Filename) > 0)
+							strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
+					}
+
+					// create and modify if needed
+					if (itemType == ed::PipelineItem::ItemType::Geometry) {
+						ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
+						if (tData->Type == pipe::GeometryItem::Cube)
+							tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z);
+						else if (tData->Type == pipe::GeometryItem::Circle)
+							tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y);
+						else if (tData->Type == pipe::GeometryItem::Plane)
+							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y);
+						else if (tData->Type == pipe::GeometryItem::Rectangle)
+							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1);
+						else if (tData->Type == pipe::GeometryItem::Sphere)
+							tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
+						else if (tData->Type == pipe::GeometryItem::Triangle)
+							tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
+						else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
+							tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
+					}
+					else if (itemType == ed::PipelineItem::ItemType::Model) {
+						pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
+
+						//std::string objMem = LoadProjectFile(tData->Filename);
+						eng::Model* ptrObject = LoadModel(tData->Filename);
+						bool loaded = ptrObject != nullptr;
+
+						if (loaded)
+							tData->Data = ptrObject;
+						else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
+					}
+
+					m_pipe->AddItem(name, itemName, itemType, itemData);
+				}
+
+				// parse item values
+				for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
+					std::string type = itemValueNode.attribute("from").as_string();
+					const pugi::char_t* valname = itemValueNode.attribute("variable").as_string();
+					const pugi::char_t* itemname = itemValueNode.attribute("for").as_string();
+
+					std::vector<ShaderVariable*> vars = data->Variables.GetVariables();
+
+					ShaderVariable* cpyVar = nullptr;
+					for (auto& var : vars)
+						if (strcmp(var->Name, valname) == 0) {
+							cpyVar = var;
 							break;
 						}
 
-					RenderEngine::ItemVariableValue ival(cpyVar);
-					m_parseVariableValue(itemValueNode, ival.NewValue);
-					ival.Item = cpyItem;
+					if (cpyVar != nullptr) {
+						PipelineItem* cpyItem = nullptr;
+						for (auto& item : data->Items)
+							if (strcmp(item->Name, itemname) == 0) {
+								cpyItem = item;
+								break;
+							}
 
-					m_renderer->AddItemVariableValue(ival);
+						RenderEngine::ItemVariableValue ival(cpyVar);
+						m_parseVariableValue(itemValueNode, ival.NewValue);
+						ival.Item = cpyItem;
+
+						m_renderer->AddItemVariableValue(ival);
+					}
 				}
+			} else if (type == PipelineItem::ItemType::ComputePass) {
+				ed::pipe::ComputePass *data = new ed::pipe::ComputePass();
+
+				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
+				for (pugi::xml_node shaderNode : passNode.children("shader"))
+				{
+					// parse path and type
+					pugi::char_t shaderPath[MAX_PATH];
+					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
+					const pugi::char_t *shaderEntry = shaderNode.attribute("entry").as_string();
+					
+					strcpy(data->Path, shaderPath);
+					strcpy(data->Entry, shaderEntry);
+
+					if (!FileExists(shaderPath))
+						m_msgs->Add(ed::MessageStack::Type::Error, name, "Compute shader does not exist.");
+				}
+
+				// parse variables
+				for (pugi::xml_node variableNode : passNode.child("variables").children("variable"))
+				{
+					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
+					SystemShaderVariable system = SystemShaderVariable::None;
+					FunctionShaderVariable func = FunctionShaderVariable::None;
+					char flags = 0;
+
+					/* FLAGS */
+					bool isInvert = false, isLastFrame = false;
+
+					if (!variableNode.attribute("invert").empty())
+						isInvert = variableNode.attribute("invert").as_bool();
+					if (!variableNode.attribute("lastframe").empty())
+						isLastFrame = variableNode.attribute("lastframe").as_bool();
+
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
+							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+
+					/* TYPE */
+					if (!variableNode.attribute("type").empty())
+					{
+						const char *myType = variableNode.attribute("type").as_string();
+						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0)
+							{
+								type = (ed::ShaderVariable::ValueType)i;
+								break;
+							}
+					}
+					if (!variableNode.attribute("system").empty())
+					{
+						const char *mySystem = variableNode.attribute("system").as_string();
+						for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0)
+							{
+								system = (ed::SystemShaderVariable)i;
+								break;
+							}
+						if (SystemVariableManager::GetType(system) != type)
+							system = ed::SystemShaderVariable::None;
+					}
+					if (!variableNode.attribute("function").empty())
+					{
+						const char *myFunc = variableNode.attribute("function").as_string();
+						for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0)
+							{
+								func = (FunctionShaderVariable)i;
+								break;
+							}
+						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+							func = FunctionShaderVariable::None;
+					}
+
+					ShaderVariable *var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+					var->Flags = flags;
+					FunctionVariableManager::AllocateArgumentSpace(var, func);
+
+					// parse value
+					if (system == SystemShaderVariable::None)
+						m_parseVariableValue(variableNode, var);
+
+					data->Variables.Add(var);
+				}
+
+				// macros
+				for (pugi::xml_node macroNode : passNode.child("macros").children("define"))
+				{
+					ShaderMacro newMacro;
+					if (!macroNode.attribute("name").empty())
+						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
+
+					newMacro.Active = true;
+					if (!macroNode.attribute("active").empty())
+						newMacro.Active = macroNode.attribute("active").as_bool();
+					strcpy(newMacro.Value, macroNode.text().get());
+					data->Macros.push_back(newMacro);
+				}
+
+				// get group size
+				pugi::xml_node workNode = passNode.child("groupsize");
+				if (!workNode.attribute("x").empty()) data->WorkX = workNode.attribute("x").as_uint();
+				else data->WorkX = 1;
+				if (!workNode.attribute("y").empty()) data->WorkY = workNode.attribute("y").as_uint();
+				else data->WorkY = 1;
+				if (!workNode.attribute("z").empty()) data->WorkZ = workNode.attribute("z").as_uint();
+				else data->WorkZ = 1;
+
+				// add the item
+				m_pipe->AddComputePass(name, data);
 			}
 		}
 
@@ -2051,20 +2266,26 @@ namespace ed
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
 
-						std::string type = ((strcmp(shaderType, "vs") == 0) ? "vertex" : ((strcmp(shaderType, "ps") == 0) ? "pixel" : "geometry"));
-						std::string path = ((ed::pipe::ShaderPass*)item->Data)->VSPath;
+						if (item->Type == PipelineItem::ItemType::ShaderPass) {
+							std::string path = ((ed::pipe::ShaderPass*)item->Data)->VSPath;
 
-						if (strcmp(shaderType, "ps") == 0)
-							path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
-						else if (strcmp(shaderType, "gs") == 0)
-							path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
+							if (strcmp(shaderType, "ps") == 0)
+								path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
+							else if (strcmp(shaderType, "gs") == 0)
+								path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
-						if (strcmp(shaderType, "vs") == 0 && FileExists(path))
-							editor->OpenVS(*item);
-						else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
-							editor->OpenPS(*item);
-						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
-							editor->OpenGS(*item);
+							if (strcmp(shaderType, "vs") == 0 && FileExists(path))
+								editor->OpenVS(*item);
+							else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
+								editor->OpenPS(*item);
+							else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
+								editor->OpenGS(*item);
+						} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+							std::string path = ((ed::pipe::ComputePass *)item->Data)->Path;
+
+							if (strcmp(shaderType, "cs") == 0 && FileExists(path))
+								editor->OpenCS(*item);
+						}
 					}
 				}
 				else if (type == "pinned") {
@@ -2072,9 +2293,14 @@ namespace ed
 					if (!settingItem.attribute("name").empty()) {
 						const pugi::char_t* item = settingItem.attribute("name").as_string();
 						const pugi::char_t* shaderType = settingItem.attribute("from").as_string();
-						pipe::ShaderPass* owner = (pipe::ShaderPass*)(m_pipe->Get(settingItem.attribute("owner").as_string())->Data);
+						PipelineItem* owner = (PipelineItem*)(m_pipe->Get(settingItem.attribute("owner").as_string()));
 
-						std::vector<ShaderVariable*> vars = owner->Variables.GetVariables();
+						std::vector<ShaderVariable *> vars;
+						
+						if (owner->Type == PipelineItem::ItemType::ShaderPass)
+							vars = ((pipe::ShaderPass *)owner->Data)->Variables.GetVariables();
+						else if (owner->Type == PipelineItem::ItemType::ComputePass)
+							vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
 
 						for (auto var : vars)
 							if (strcmp(var->Name, item) == 0) {

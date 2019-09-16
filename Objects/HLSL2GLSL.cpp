@@ -156,6 +156,8 @@ namespace ed
 			shaderType = EShLangFragment;
 		else if (sType == 2)
 			shaderType = EShLangGeometry;
+		else if (sType == 3)
+			shaderType = EShLangCompute;
 
 		glslang::TShader shader(shaderType);
 		if (entry.size() > 0 && entry != "main") {
@@ -175,7 +177,7 @@ namespace ed
 			shader.setPreamble(macroStr.c_str());
 
 		// set up
-		int sVersion = 330;
+		int sVersion = (sType == 3) ? 430 : 330;
 		glslang::EShTargetClientVersion vulkanVersion = glslang::EShTargetVulkan_1_0;
 		glslang::EShTargetLanguageVersion targetVersion = glslang::EShTargetSpv_1_0;
 
@@ -186,7 +188,7 @@ namespace ed
 		TBuiltInResource res = DefaultTBuiltInResource;
 		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
-		const int defVersion = 330;
+		const int defVersion = sVersion;
 
 		// includer
 		DirStackFileIncluder includer;
@@ -239,8 +241,8 @@ namespace ed
 
 		// Set some options.
 		spirv_cross::CompilerGLSL::Options options;
-		options.version = 330;
-		
+		options.version = sVersion;
+
 		glsl.set_common_options(options);
 
 		auto active = glsl.get_active_interface_variables();

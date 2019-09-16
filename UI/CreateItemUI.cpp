@@ -183,6 +183,53 @@ namespace ed
 
 			if (!data->GSUsed) ImGui::PopItemFlag();
 		}
+		else if (m_item.Type == PipelineItem::ItemType::ComputePass)
+		{
+			pipe::ComputePass *data = (pipe::ComputePass *)m_item.Data;
+
+			// cs path
+			ImGui::Text("Shader path:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::InputText("##cui_cppath", data->Path, MAX_PATH);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (ImGui::Button("...##cui_cppath", ImVec2(-1, 0)))
+			{
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success)
+				{
+					file = m_data->Parser.GetRelativePath(file);
+					strcpy(data->Path, file.c_str());
+
+					if (m_data->Parser.FileExists(file))
+						m_data->Messages.ClearGroup(m_item.Name);
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, "Compute shader file doesnt exist");
+				}
+			}
+			ImGui::NextColumn();
+
+			// entry
+			ImGui::Text("Shader entry:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputText("##cui_cpentry", data->Entry, 32);
+			ImGui::NextColumn();
+
+			// group size
+			glm::ivec3 groupSize(data->WorkX, data->WorkY, data->WorkZ);
+			ImGui::Text("Group size:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputInt3("##cui_cpgsize", glm::value_ptr(groupSize));
+			ImGui::NextColumn();
+
+			data->WorkX = std::max<int>(groupSize.x, 1);
+			data->WorkY = std::max<int>(groupSize.y, 1);
+			data->WorkZ = std::max<int>(groupSize.z, 1);
+		}
 		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			pipe::RenderState* data = (pipe::RenderState*)m_item.Data;
 
@@ -562,13 +609,19 @@ namespace ed
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating ShaderPass object...");
 
-			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
+			pipe::ShaderPass *allocatedData = new pipe::ShaderPass();
 			strcpy(allocatedData->VSEntry, "main");
 			strcpy(allocatedData->PSEntry, "main");
 			strcpy(allocatedData->GSEntry, "main");
 			m_item.Data = allocatedData;
-			
-			allocatedData->RenderTextures[0] = m_data->Renderer.GetTexture();		
+
+			allocatedData->RenderTextures[0] = m_data->Renderer.GetTexture();
+		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+			Logger::Get().Log("Opening a CreateItemUI for creating ComputePass object...");
+
+			pipe::ComputePass *allocatedData = new pipe::ComputePass();
+			strcpy(allocatedData->Entry, "main");
+			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			Logger::Get().Log("Opening a CreateItemUI for creating RenderState object...");
@@ -609,6 +662,19 @@ namespace ed
 			data->RTCount = 1;
 
 			return m_data->Pipeline.AddPass(m_item.Name, data);
+		}
+		else if (m_item.Type == PipelineItem::ItemType::ComputePass)
+		{
+			pipe::ComputePass *data = new pipe::ComputePass();
+			pipe::ComputePass *origData = (pipe::ComputePass *)m_item.Data;
+
+			strcpy(data->Entry, origData->Entry);
+			strcpy(data->Path, origData->Path);
+			data->WorkX = origData->WorkX;
+			data->WorkY = origData->WorkY;
+			data->WorkZ = origData->WorkZ;
+
+			return m_data->Pipeline.AddComputePass(m_item.Name, data);
 		}
 		else if (m_owner[0] != 0) {
 			if (m_item.Type == PipelineItem::ItemType::Geometry) {

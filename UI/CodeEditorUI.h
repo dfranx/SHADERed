@@ -49,6 +49,7 @@ namespace ed
 		void OpenVS(PipelineItem item);
 		void OpenPS(PipelineItem item);
 		void OpenGS(PipelineItem item);
+		void OpenCS(PipelineItem item);
 
 		void RenameShaderPass(const std::string& name, const std::string& newName);
 
@@ -185,12 +186,19 @@ namespace ed
 		struct AutoRecompilerItemInfo
 		{
 			AutoRecompilerItemInfo() {
-				VS = PS = GS = "";
-				VS_IsHLSL = PS_IsHLSL = GS_IsHLSL = false;
+				VS = PS = GS = CS = "";
+				VS_IsHLSL = PS_IsHLSL = GS_IsHLSL = CS_IsHLSL = false;
+
+				SPass = nullptr;
+				CPass = nullptr;
 			}
 			std::string VS, PS, GS;
 			bool VS_IsHLSL, PS_IsHLSL, GS_IsHLSL;
-			pipe::ShaderPass* Pass;
+			pipe::ShaderPass* SPass;
+
+			std::string CS;
+			bool CS_IsHLSL;
+			pipe::ComputePass* CPass;
 		};
 		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
 

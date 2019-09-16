@@ -55,6 +55,7 @@ namespace ed
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
 		inline void CreateNewBuffer() { m_isCreateBufferOpened = true; }
 		inline void CreateNewImage() { m_isCreateImgOpened = true; }
+		void CreateNewComputePass();
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }

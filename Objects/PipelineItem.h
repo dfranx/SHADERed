@@ -26,6 +26,7 @@ namespace ed
 			Geometry,
 			RenderState,
 			Model,
+			ComputePass,
 			Count
 		};
 
@@ -43,6 +44,24 @@ namespace ed
 
 	namespace pipe
 	{
+		struct ComputePass
+		{
+			ComputePass() {
+				Macros.clear();
+				memset(Path, 0, sizeof(char) * MAX_PATH);
+				memset(Entry, 0, sizeof(char) * 32);
+
+				WorkX = WorkY = WorkZ = 1;
+			}
+
+			char Path[MAX_PATH];
+			char Entry[32];
+
+			GLuint WorkX, WorkY, WorkZ;
+			ShaderVariableContainer Variables;
+			std::vector<ShaderMacro> Macros;
+		};
+
 		struct ShaderPass
 		{
 			ShaderPass() { 

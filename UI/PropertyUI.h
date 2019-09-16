@@ -32,5 +32,7 @@ namespace ed
 		PipelineItem* m_current;
 		RenderTextureObject* m_currentRT;
 		ImageObject* m_currentImg;
+
+		glm::ivec3 m_cachedGroupSize;
 	};
 }

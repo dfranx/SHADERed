@@ -109,6 +109,9 @@ namespace ed
 			// select all geometry and mesh items
 			std::vector<PipelineItem*>& pass = m_data->Pipeline.GetList();
 			for (int i = 0; i < pass.size(); i++) {
+				if (pass[i]->Type != PipelineItem::ItemType::ShaderPass)
+					continue;
+
 				ed::pipe::ShaderPass* pdata = (ed::pipe::ShaderPass*)pass[i]->Data;
 				for (int j = 0; j < pdata->Items.size(); j++) {
 					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry ||

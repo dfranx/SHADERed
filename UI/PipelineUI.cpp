@@ -36,29 +36,38 @@ namespace ed
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		for (int i = 0; i < items.size(); i++) {
 			m_renderItemUpDown(items, i);
-			m_addShaderPass(items[i]);
-			if (m_renderItemContext(items, i)) {
-				i--;
-				continue;
-			}
 
-			ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
-
-			bool showItems = true;
-			for (int j = 0; j < m_expandList.size(); j++)
-				if (m_expandList[j] == data) {
-					showItems = false;
-					break;
+			if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+				m_addShaderPass(items[i]);
+				if (m_renderItemContext(items, i)) {
+					i--;
+					continue;
 				}
 
-			if (showItems) {
-				for (int j = 0; j < data->Items.size(); j++) {
-					m_renderItemUpDown(data->Items, j);
-					m_addItem(data->Items[j]);
-					if (m_renderItemContext(data->Items, j)) {
-						j--;
-						continue;
+				ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
+
+				bool showItems = true;
+				for (int j = 0; j < m_expandList.size(); j++)
+					if (m_expandList[j] == data) {
+						showItems = false;
+						break;
 					}
+
+				if (showItems) {
+					for (int j = 0; j < data->Items.size(); j++) {
+						m_renderItemUpDown(data->Items, j);
+						m_addItem(data->Items[j]);
+						if (m_renderItemContext(data->Items, j)) {
+							j--;
+							continue;
+						}
+					}
+				}
+			} else {
+				m_addComputePass(items[i]);
+				if (m_renderItemContext(items, i)) {
+					i--;
+					continue;
 				}
 			}
 		}
@@ -67,7 +76,8 @@ namespace ed
 		ImGui::EndChild();
 
 		if (!m_itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_pipeline")) {
-			if (ImGui::Selectable("Create Shader Pass")) { m_ui->CreateNewShaderPass(); }
+			if (ImGui::Selectable("Create Shader Pass")) m_ui->CreateNewShaderPass();
+			if (ImGui::Selectable("Create Compute Pass")) m_ui->CreateNewComputePass();
 			ImGui::EndPopup();
 		}
 		m_itemMenuOpened = false;
@@ -186,11 +196,14 @@ namespace ed
 
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
 			m_itemMenuOpened = true;
-			if (items[index]->Type == ed::PipelineItem::ItemType::ShaderPass) {
+			if (items[index]->Type == PipelineItem::ItemType::ShaderPass ||
+				items[index]->Type == PipelineItem::ItemType::ComputePass)
+			{
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
 
-				if (ImGui::BeginMenu("Add")) {
+				if (items[index]->Type == PipelineItem::ItemType::ShaderPass && ImGui::BeginMenu("Add"))
+				{
 					if (ImGui::MenuItem("Geometry")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
@@ -211,30 +224,37 @@ namespace ed
 				}
 
 				if (ImGui::BeginMenu("Edit Code")) {
-					pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
+					// TODO: show "File doesnt exist - want to create it?" msg box
+					if (items[index]->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass *passData = (pipe::ShaderPass *)(items[index]->Data);
 
-					// TODO: show "File doesnt exist - want to create it?" msg box 
-					if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
-					}
-					else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
-					}
-					else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
-						(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
-					}
-					else if (ImGui::MenuItem("All")) {
-						if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
-
-						if (m_data->Parser.FileExists(passData->PSPath))
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
-
-						if (m_data->Parser.FileExists(passData->VSPath))
+						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
+						}
+						else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
+						}
+						else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
+						}
+						else if (ImGui::MenuItem("All")) {
+							if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
+
+							if (m_data->Parser.FileExists(passData->PSPath))
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
+
+							if (m_data->Parser.FileExists(passData->VSPath))
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
+						}
+					} else if (items[index]->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass *passData = (pipe::ComputePass *)(items[index]->Data);
+
+						if (ImGui::MenuItem("Compute Shader") && m_data->Parser.FileExists(passData->Path))
+							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenCS(*items[index]);
 					}
 
-					ImGui::EndMenu();
+						ImGui::EndMenu();
 				}
 
 				if (ImGui::MenuItem("Variables")) {
@@ -345,8 +365,9 @@ namespace ed
 		static ed::ShaderVariable iVariable(ed::ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
 		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Float1;
 		static bool scrollToBottom = false;
-		
-		ed::pipe::ShaderPass* itemData = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data);
+
+		void *itemData = m_modalItem->Data;
+		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 
@@ -367,7 +388,7 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable*>& els = itemData->Variables.GetVariables();
+		std::vector<ed::ShaderVariable *> &els = isCompute ? ((pipe::ComputePass*)itemData)->Variables.GetVariables() : ((pipe::ShaderPass*)itemData)->Variables.GetVariables();
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -425,7 +446,10 @@ namespace ed
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
 				
-				itemData->Variables.Remove(el->Name);
+				if (isCompute)
+					((pipe::ComputePass*)itemData)->Variables.Remove(el->Name);
+				else
+					((pipe::ShaderPass*)itemData)->Variables.Remove(el->Name);
 			}
 			ImGui::SameLine(0,0);
 			/* EDIT & PIN BUTTONS */
@@ -515,7 +539,10 @@ namespace ed
 
 			// add if it doesnt exist
 			if (!exists) {
-				itemData->Variables.AddCopy(iVariable);
+				if (isCompute)
+					((pipe::ComputePass *)itemData)->Variables.AddCopy(iVariable);
+				else
+					((pipe::ShaderPass *)itemData)->Variables.AddCopy(iVariable);
 
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
 				iValueType = ShaderVariable::ValueType::Float1;
@@ -595,6 +622,9 @@ namespace ed
 		pipe::ShaderPass* ownerData = nullptr;
 		std::vector<PipelineItem*>& passes = m_data->Pipeline.GetList();
 		for (PipelineItem* pass : passes) {
+			if (pass->Type != PipelineItem::ItemType::ShaderPass)
+				continue;
+			
 			ownerData = ((pipe::ShaderPass*)pass->Data);
 			std::vector<PipelineItem*>& children = ownerData->Items;
 			for (PipelineItem* child : children) {
@@ -695,7 +725,6 @@ namespace ed
 	{
 		static ShaderMacro addMacro = { true, "\0", "\0" };
 		static bool scrollToBottom = false;
-		ed::pipe::ShaderPass* itemData = reinterpret_cast<ed::pipe::ShaderPass*>(m_modalItem->Data);
 
 		ImGui::TextWrapped("Add or remove shader macros.");
 
@@ -712,7 +741,8 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ShaderMacro>& els = itemData->Macros;
+		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
+		std::vector<ShaderMacro> &els = isCompute ? ((ed::pipe::ComputePass*)m_modalItem->Data)->Macros : ((ed::pipe::ShaderPass*)m_modalItem->Data)->Macros;
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -805,13 +835,14 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShaderPass(ed::PipelineItem* item)
+	void PipelineUI::m_addShaderPass(ed::PipelineItem *item)
 	{
-		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
+		ed::pipe::ShaderPass *data = (ed::pipe::ShaderPass *)item->Data;
 
 		std::string expandTxt = UI_ICON_UP;
 		for (int i = 0; i < m_expandList.size(); i++)
-			if (m_expandList[i] == data) {
+			if (m_expandList[i] == data)
+			{
 				expandTxt = UI_ICON_DOWN;
 				break;
 			}
@@ -819,27 +850,34 @@ namespace ed
 		expandTxt += "##passexp_" + std::string(item->Name);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE)) {
-			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos) {
+		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE))
+		{
+			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos)
+			{
 				for (int i = 0; i < m_expandList.size(); i++)
-					if (m_expandList[i] == data) {
+					if (m_expandList[i] == data)
+					{
 						m_expandList.erase(m_expandList.begin() + i);
 						break;
 					}
 			}
-			else m_expandList.push_back(data);
+			else
+				m_expandList.push_back(data);
 		}
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0)) {
-				if (Settings::Instance().General.OpenShadersOnDblClk) {
+			if (ImGui::IsMouseDoubleClicked(0))
+			{
+				if (Settings::Instance().General.OpenShadersOnDblClk)
+				{
 					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
 						m_ui->SaveAsProject(true);
-					else {
-						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					else
+					{
+						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->VSPath))
 							editor->OpenVS(*item);
 
@@ -850,9 +888,38 @@ namespace ed
 							editor->OpenGS(*item);
 					}
 				}
-				
-				if (Settings::Instance().General.ItemPropsOnDblCLk) {
-					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
+
+				if (Settings::Instance().General.ItemPropsOnDblCLk)
+				{
+					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
+					props->Open(item);
+				}
+			}
+		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
+	}
+	void PipelineUI::m_addComputePass(ed::PipelineItem *item)
+	{
+		ed::pipe::ComputePass *data = (ed::pipe::ComputePass *)item->Data;
+
+		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
+		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+			if (ImGui::IsMouseDoubleClicked(0))
+			{
+				if (Settings::Instance().General.OpenShadersOnDblClk)
+				{
+					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
+						m_ui->SaveAsProject(true);
+					else
+					{
+						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
+						if (m_data->Parser.FileExists(data->Path))
+							editor->OpenCS(*item);
+					}
+				}
+
+				if (Settings::Instance().General.ItemPropsOnDblCLk)
+				{
+					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}

@@ -80,8 +80,9 @@ namespace ed
 		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }
 		inline bool IsAudio(const std::string& name) { return m_audioData.count(name) > 0; }
 		inline bool IsAudioMuted(const std::string& name) { return m_audioMute[name]; }
-		inline bool IsBuffer(const std::string& name) { return m_bufs.count(name) > 0; }
-		inline bool IsImage(const std::string& name) { return m_images.count(name) > 0; }
+		inline bool IsBuffer(const std::string &name) { return m_bufs.count(name) > 0; }
+		inline bool IsImage(const std::string &name) { return m_images.count(name) > 0; }
+		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
 
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);

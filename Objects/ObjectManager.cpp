@@ -477,7 +477,7 @@ namespace ed
 	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
 	{
 		std::vector<GLuint>& srvs = m_binds[pass];
-		GLuint srv = m_texs[file];
+		GLuint srv = IsImage(file) ? m_images[file]->Texture : m_texs[file];
 
 		for (int i = 0; i < srvs.size(); i++)
 			if (srvs[i] == srv) {
@@ -540,6 +540,13 @@ namespace ed
 		for (auto& i : m_texs)
 			if (i.second == id)
 				return m_isCube[i.first];
+		return false;
+	}
+	bool ObjectManager::IsImage(GLuint id)
+	{
+		for (auto &i : m_images)
+			if (i.second->Texture == id)
+				return true;
 		return false;
 	}
 	RenderTextureObject* ObjectManager::GetRenderTexture(GLuint tex)

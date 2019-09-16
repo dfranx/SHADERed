@@ -137,6 +137,9 @@ namespace ed
 					if (m_data->Objects.IsRenderTexture(items[i])) {
 						auto& passes = m_data->Pipeline.GetList();
 						for (int j = 0; j < passes.size(); j++) {
+							if (passes[i]->Type != PipelineItem::ItemType::ShaderPass)
+								continue;
+
 							pipe::ShaderPass* sData = (pipe::ShaderPass*)passes[j]->Data;
 
 							// check if shader pass uses this rt
@@ -169,6 +172,9 @@ namespace ed
 					if (isBuf) {
 						auto& passes = m_data->Pipeline.GetList();
 						for (int j = 0; j < passes.size(); j++) {
+							if (passes[i]->Type != PipelineItem::ItemType::ShaderPass)
+								continue;
+
 							pipe::ShaderPass* pdata = (pipe::ShaderPass*)passes[j]->Data;
 							for (int k = 0; k < pdata->Items.size(); k++) {
 								PipelineItem* pitem = pdata->Items[k];
