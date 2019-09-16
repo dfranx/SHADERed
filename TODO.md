@@ -1,3 +1,10 @@
+# PLAN
+ 1.2.*  -> polishing & fixing
+
+ 1.3    -> shader debugger
+
+ 1.3.*  -> improve debugger
+ 
 # TODO
 List of features I want to implement:
  - multiple cameras
@@ -11,7 +18,6 @@ List of features I want to implement:
  - pixel inspector
  - audio shaders
  - debugger
- - add compute shader GLSL example with instancing and HLSL example with "rendering" to texture
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - write geometry type in properties
@@ -57,12 +63,3 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - languages (english, croatian, etc...)
  - switch from sdl to sfml (?)
  - dragging items from one pass to another, duplicating them, etc...
-
- # PLAN
- 1.2    -> compute shaders
-
- 1.2.*  -> polishing & fixing
-
- 1.3    -> shader debugger
-
- 1.3.*  -> improve debugger

@@ -35,7 +35,7 @@ namespace ed
 			ImGui::NextColumn();
 
 			if (m->Shader != -1)
-				ImGui::Text(m->Shader == 0 ? "VS" : (m->Shader == 1 ? "PS" : "GS"));
+				ImGui::Text(m->Shader == 0 ? "VS" : (m->Shader == 1 ? "PS" : (m->Shader == 2 ? "GS" : "CS")));
 			ImGui::NextColumn();
 
 			if (m->Line != -1)

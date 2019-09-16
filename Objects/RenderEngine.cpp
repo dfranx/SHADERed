@@ -322,11 +322,17 @@ namespace ed
 					}
 				}
 
+				// bind buffers
 				for (int j = 0; j < ubos.size(); j++)
 					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
+				
+				// bind variables
+				data->Variables.Bind();
 
+				// call compute shader
 				glDispatchCompute(data->WorkX, data->WorkY, data->WorkZ);
 				
+				// wait until it finishes
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}

@@ -43,6 +43,7 @@ namespace ed
         };
 
     private:
+        sf::Clock m_bufUpdateClock;
         bool m_drawBufferElement(int row, int col, void *data, ShaderVariable::ValueType type);
         std::vector<mItem> m_items;
         ed::AudioAnalyzer m_audioAnalyzer;

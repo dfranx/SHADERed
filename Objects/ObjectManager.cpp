@@ -317,7 +317,7 @@ namespace ed
 		iObj->Size = size;
 		iObj->Read = true;
 		iObj->Write = true;
-		iObj->Format = GL_RGBA;
+		iObj->Format = GL_RGBA32F;
 
 		return true;
 	}

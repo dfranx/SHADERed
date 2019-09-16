@@ -9,10 +9,6 @@ layout (location = 2) in vec2 uv;
 layout (location = 3) in vec3 offset;
 layout (location = 4) in vec3 iColor;
 
-layout (std140) uniform ubo {
-	vec4 test[10];
-};
-
 out vec4 color;
 
 void main() {

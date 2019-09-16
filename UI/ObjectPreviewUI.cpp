@@ -112,6 +112,22 @@ namespace ed
                         glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
                         glBindBuffer(GL_UNIFORM_BUFFER, 0);
                     }
+                    if (ImGui::Button("CLEAR##objprev_clearbuf")) {
+                        memset(buf->Data, 0, buf->Size);
+                        
+                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
+                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+                    }
+
+                    // update buffer data every 330ms
+                    ImGui::Text("Buffer view is updated every 330ms");
+                    if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) {
+                        glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
+                        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
+                        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+                        m_bufUpdateClock.restart();
+                    }
 
                     if (perRow != 0) {
                         ImGui::Separator();

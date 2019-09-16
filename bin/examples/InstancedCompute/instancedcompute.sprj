@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Compute" type="compute">
+			<shader type="cs" path="shaders/Compute.hlsl" entry="main" />
+			<groupsize x="512" y="1" z="1" />
+			<variables>
+				<variable type="float" name="delta" system="TimeDelta" />
+			</variables>
+			<macros />
+		</pass>
+		<pass name="Instance" type="shader">
+			<shader type="vs" path="shaders/InstanceVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/InstancePS.hlsl" entry="main" />
+			<rendertexture />
+			<items>
+				<item name="Cube" type="geometry">
+					<type>Cube</type>
+					<width>0.5</width>
+					<height>0.5</height>
+					<depth>0.5</depth>
+					<instanced>true</instanced>
+					<instancecount>512</instancecount>
+					<instancebuffer>InputData</instancebuffer>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<macros />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="buffer" name="InputData" size="16384" format="vec4;vec4;">
+			<bind slot="0" name="Compute" />
+		</object>
+	</objects>
+	<settings>
+		<entry type="camera" fp="false">
+			<distance>48</distance>
+			<pitch>35</pitch>
+			<yaw>49</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
+	</settings>
+</project>
