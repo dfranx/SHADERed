@@ -55,9 +55,6 @@ disable depth test, use stencil buffer, disable culling, custom blending, etc...
 
 ### 3D models, textures & audio files
 You can add music and create amazing visualizers!
-<p align="center">
-    <img width="200" src="./Screenshots/music.gif">
-</p>
 
 Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
 full screen quads, etc...
@@ -94,9 +91,6 @@ Hold ALT and select an area that you want to look at in more detail
 ### Workspace
 You can modify SHADERed workspace however you want to thanks to Omar Cornut's great work on
 [Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
-<p align="center">
-    <img width="400" src="./Screenshots/workspace.gif">
-</p>
 
 ### Error markers
 The built-in code editor has error markers. They help you locate and identify your shader errors more easily.
