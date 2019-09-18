@@ -1,4 +1,5 @@
 [v1.2.1]
++ fix various transcompiler crashes
 + fix crash when using RWTexture2D
 + fix crash on HLSL function calls with no arguments
 

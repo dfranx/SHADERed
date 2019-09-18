@@ -21,7 +21,7 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - write geometry type in properties
- - fix TextEditor
+ - fix TextEditor (hide horizontal bar option, use spaces instead of tabs option, ctrl+backspace, ctrl+v caret position)
  - rework variables (so that the type can be changed)
  - list all system variables
  - change TextEditor light theme error msg color
