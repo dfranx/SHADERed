@@ -148,17 +148,6 @@ namespace ed
 	}
 	std::string HLSL2GLSL::TranscompileSource(const std::string& filename, const std::string& inputHLSL, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs)
 	{
-		// i know, i know... this fix only covers these hardcoded situations
-		// but i am waiting for a fix for this issue 
-		// https://github.com/KhronosGroup/glslang/issues/1903
-		if (inputHLSL.find("float2()") != std::string::npos || inputHLSL.find("float2( )") != std::string::npos ||
-			inputHLSL.find("float3()") != std::string::npos || inputHLSL.find("float3( )") != std::string::npos ||
-			inputHLSL.find("float4()") != std::string::npos || inputHLSL.find("float4( )") != std::string::npos)
-		{
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Empty constructors are not supported by glslang for now...", -1, sType);
-			return "errorGlslang";
-		}
-
 		const char* inputStr = inputHLSL.c_str();
 
 		// create shader
@@ -287,8 +276,6 @@ namespace ed
 		glsl.build_combined_image_samplers();
 		spirv_cross_util::inherit_combined_sampler_bindings(glsl);
 		std::string source = glsl.compile();
-
-		printf("%s\n", source.c_str());
 
 		// remove all the uniform buffer objects
 		std::stringstream ss(source);

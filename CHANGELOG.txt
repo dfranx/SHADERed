@@ -1,5 +1,6 @@
 [v1.2.1]
-+ fix crash on HLSL compute shader keyword RWTexture2D
++ fix crash when using RWTexture2D
++ fix crash on HLSL function calls with no arguments
 
 [v1.2]
 + add compute shaders
