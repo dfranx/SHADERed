@@ -288,6 +288,8 @@ namespace ed
 		spirv_cross_util::inherit_combined_sampler_bindings(glsl);
 		std::string source = glsl.compile();
 
+		printf("%s\n", source.c_str());
+
 		// remove all the uniform buffer objects
 		std::stringstream ss(source);
 		std::string line;
@@ -297,8 +299,9 @@ namespace ed
 		while (std::getline(ss, line)) {
 			if (line.find("layout(binding") != std::string::npos &&
 				line.find("uniform") != std::string::npos &&
-				line.find("sampler2D") == std::string::npos &&
-				line.find("samplerCube") == std::string::npos) // i know, ewww
+				line.find("sampler") == std::string::npos &&
+				line.find("image") == std::string::npos &&
+				line.find(" buffer ") == std::string::npos) // i know, ewww
 			{
 				inUBO = true;
 				continue;
@@ -330,7 +333,7 @@ namespace ed
 		}
 
 		ed::Logger::Get().Log("Finished transcompiling a HLSL shader");
-
+		
 		return source;
 	}
 	bool HLSL2GLSL::IsHLSL(const std::string& file)

@@ -1,3 +1,6 @@
+[v1.2.1]
++ fix crash on HLSL compute shader keyword RWTexture2D
+
 [v1.2]
 + add compute shaders
 + add empty image object
