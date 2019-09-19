@@ -82,7 +82,8 @@ namespace ed
 			"LineNumber",
 			"CurrentLineFill",
 			"CurrentLineFillInactive",
-			"CurrentLineEdge"
+			"CurrentLineEdge",
+			"ErrorMessage"
 		};
 
 		INIReader ini("./themes/" + filename);

@@ -1,4 +1,9 @@
 [v1.2.1]
++ fix ctrl + backspace / ctrl + delete
++ fix ctrl + shift selecting
++ fix "Insert spaces on tab press" option
++ fix "Show horizontal scrollbar" option
++ fix text editor error message color on light theme (& add ErrorMessage property to editor themes)
 + fix various transcompiler crashes
 + fix crash when using RWTexture2D
 + fix crash on HLSL function calls with no arguments

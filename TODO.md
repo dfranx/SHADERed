@@ -13,7 +13,7 @@ List of features I want to implement:
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
  - "Export as DirectX/OpenGL application" option (.cpp file)
- - import from ShaderToy
+ - "import from ShaderToy" option
  - render your shader to a video file
  - pixel inspector
  - audio shaders
@@ -21,7 +21,6 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - write geometry type in properties
- - fix TextEditor (hide horizontal bar option, use spaces instead of tabs option, ctrl+backspace, ctrl+v caret position)
  - rework variables (so that the type can be changed)
  - list all system variables
  - change TextEditor light theme error msg color

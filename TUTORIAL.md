@@ -167,7 +167,7 @@ To change the actual colors of the text editor (if you have set variable `editor
 Default, Keyword, Number, String, CharLiteral, Punctuation, Preprocessor, Identifier,
 KnownIdentifier, PreprocIdentifier, Comment, MultiLineComment, Background,
 Cursor, Selection, ErrorMarker, Breakpoint, LineNumber, CurrentLineFill, 
-CurrentLineFillInactive, CurrentLineEdge
+CurrentLineFillInactive, CurrentLineEdge, ErrorMessage
 ```
 These too have to have a 4 float values in the range [0.0, 1.0] splitted with the
 comma.
