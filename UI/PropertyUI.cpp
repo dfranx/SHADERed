@@ -164,7 +164,9 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::InputText("##pui_vspath", item->VSPath, MAX_PATH);
+					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_vsbtn", ImVec2(-1, 0))) {
@@ -203,7 +205,9 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH);
+					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_psbtn", ImVec2(-1, 0))) {
@@ -251,7 +255,9 @@ namespace ed
 					ImGui::Text("GS path:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::InputText("##pui_gspath", item->GSPath, MAX_PATH);
+					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_gsbtn", ImVec2(-1, 0))) {
@@ -292,7 +298,9 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::InputText("##pui_cspath", item->Path, MAX_PATH);
+					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
 					if (ImGui::Button("...##pui_csbtn", ImVec2(-1, 0)))

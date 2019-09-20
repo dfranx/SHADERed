@@ -89,7 +89,9 @@ namespace ed
 			ImGui::Text("Vertex shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::InputText("##cui_spvspath", data->VSPath, MAX_PATH);
+			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spvspath", ImVec2(-1, 0))) {
@@ -118,7 +120,9 @@ namespace ed
 			ImGui::Text("Pixel shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::InputText("##cui_sppspath", data->PSPath, MAX_PATH);
+			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_sppspath", ImVec2(-1, 0))) {
@@ -156,7 +160,9 @@ namespace ed
 			ImGui::Text("Geometry shader path:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::InputText("##cui_spgspath", data->GSPath, MAX_PATH);
+			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_spgspath", ImVec2(-1, 0))) {
@@ -190,9 +196,11 @@ namespace ed
 			// cs path
 			ImGui::Text("Shader path:");
 			ImGui::NextColumn();
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::InputText("##cui_cppath", data->Path, MAX_PATH);
 			ImGui::PopItemWidth();
+			ImGui::PopItemFlag();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_cppath", ImVec2(-1, 0)))
 			{
@@ -539,7 +547,9 @@ namespace ed
 			ImGui::Text("File:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::InputText("##cui_objfile", data->Filename, MAX_PATH);
+			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {

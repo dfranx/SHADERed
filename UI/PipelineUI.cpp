@@ -909,6 +909,10 @@ namespace ed
 	{
 		ed::pipe::ComputePass *data = (ed::pipe::ComputePass *)item->Data;
 
+		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
+		if (ewCount > 0)
+			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
+
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0))
@@ -932,6 +936,10 @@ namespace ed
 				}
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
+
+
+		if (ewCount > 0)
+			ImGui::PopStyleColor();
 	}
 	void PipelineUI::m_addItem(ed::PipelineItem* item)
 	{

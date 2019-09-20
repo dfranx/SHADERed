@@ -168,17 +168,17 @@ namespace ed
 		/* TOOLBAR: */
 		ImGui::Text("Show toolbar: ");
 		ImGui::SameLine();
-		ImGui::Checkbox("##optg_recovery", &settings->General.Toolbar);
+		ImGui::Checkbox("##optg_toolbar", &settings->General.Toolbar);
 
 		/* AUTO ERROR SHOW: */
 		ImGui::Text("Show error list window when build finishes with an error: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autoerror", &settings->General.AutoOpenErrorWindow);
 
+		/* RECOVERY: */
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 
-		/* RECOVERY: */
 		ImGui::Text("Save recovery file every 10mins: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_recovery", &settings->General.Recovery);
@@ -386,9 +386,11 @@ namespace ed
 		/* FONT: */
 		ImGui::Text("Font: ");
 		ImGui::SameLine();
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushItemWidth(REFRESH_BUTTON_SPACE);
 		ImGui::InputText("##opte_font", settings->Editor.Font, 256);
 		ImGui::PopItemWidth();
+		ImGui::PopItemFlag();
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
 			std::string file;
