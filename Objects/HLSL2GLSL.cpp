@@ -273,7 +273,15 @@ namespace ed
 		}
 
 		// Compile to GLSL, ready to give to GL driver.
-		glsl.build_combined_image_samplers();
+		try {
+			glsl.build_dummy_sampler_for_combined_images();
+			glsl.build_combined_image_samplers();
+		} catch (spirv_cross::CompilerError& e) {
+			ed::Logger::Get().Log("An exception occured: " + std::string(e.what()), true);
+			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
+			return "errorException1";
+		}
+
 		spirv_cross_util::inherit_combined_sampler_bindings(glsl);
 		std::string source = "";
 		try {
@@ -281,7 +289,7 @@ namespace ed
 		} catch (spirv_cross::CompilerError& e) {
 			ed::Logger::Get().Log("Transcompiler threw an exception: " + std::string(e.what()), true);
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
-			return "errorException";
+			return "errorException2";
 		}
 
 		// remove all the uniform buffer objects

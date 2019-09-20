@@ -561,7 +561,7 @@ namespace ed
 						#elif defined(_WIN32)
 							ShellExecuteW(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL);
 						#endif
-						}
+					}
 					if (ImGui::MenuItem("PayPal")) { 
 						#if defined(__APPLE__)
 							system("open https://www.paypal.me/dfranx"); // [MACOS]
@@ -593,6 +593,26 @@ namespace ed
 					#endif
 				}
 				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true;}
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Supporters")) {
+				static const std::vector<std::pair<std::string, std::string>> slist = {
+					std::make_pair("Hugo Locurcio", "https://github.com/Calinou")
+				};
+
+				for (auto& sitem : slist) {
+					if (ImGui::MenuItem(sitem.first.c_str())) {
+#if defined(__APPLE__)
+						system(("open " + sitem.second).c_str()); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+						system(("xdg-open " + sitem.second).c_str());
+#elif defined(_WIN32)
+						std::wstring wstr(sitem.second.begin(), sitem.second.end());
+						ShellExecuteW(NULL, L"open", wstr.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+					}
+				}
 
 				ImGui::EndMenu();
 			}

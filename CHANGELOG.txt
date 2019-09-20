@@ -5,6 +5,7 @@
 + fix "Show horizontal scrollbar" option
 + fix text editor error message color on light theme (& add ErrorMessage property to editor themes)
 + fix various transcompiler crashes
++ fix a crash that occurs when fetching texel data from a texture without a sampler in a HLSL shader
 + fix crash when using RWTexture2D
 + fix crash on HLSL function calls with no arguments
 

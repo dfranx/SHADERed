@@ -5,10 +5,15 @@ open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both
 
 <img src="./Screenshots/IMG2.png"/>
 
-## Sponsors
-No one :(
+## Partners/sponsors
+...
 
 Contact: **dfranx00 at gmail dot com**
+
+## Supporters
+**Silver supporters:**
+[Hugo Locurcio](https://github.com/Calinou)
+
 
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
