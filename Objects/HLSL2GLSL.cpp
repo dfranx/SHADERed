@@ -299,16 +299,18 @@ namespace ed
 		bool inUBO = false;
 		std::vector<std::string> uboNames;
 		while (std::getline(ss, line)) {
+
+			// i know, ewww, but idk if there's a function to do this (this = converting UBO
+			// to separate uniforms)...
 			if (line.find("layout(binding") != std::string::npos &&
 				line.find("uniform") != std::string::npos &&
 				line.find("sampler") == std::string::npos &&
 				line.find("image") == std::string::npos &&
-				line.find(" buffer ") == std::string::npos) // i know, ewww
+				line.find(" buffer ") == std::string::npos)
 			{
 				inUBO = true;
 				continue;
-			}
-			else if (inUBO){
+			} else if (inUBO){
 				if (line == "{")
 					continue;
 				else if (line[0] == '}') {

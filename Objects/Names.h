@@ -6,6 +6,7 @@ extern const char* SYSTEM_VARIABLE_NAMES[17];
 extern const char* VARIABLE_TYPE_NAMES[15];
 extern const char* FUNCTION_NAMES[21];
 extern const char* GEOMETRY_NAMES[7];
+extern const char* PIPELINE_ITEM_NAMES[5];
 extern const char* BLEND_NAMES[20];
 extern const char* BLEND_OPERATOR_NAMES[6];
 extern const char* COMPARISON_FUNCTION_NAMES[9];

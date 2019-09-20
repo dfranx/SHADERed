@@ -103,7 +103,10 @@ const char* GEOMETRY_NAMES[] = {
 const char* PIPELINE_ITEM_NAMES[] =
 {
 	"Shader Pass",
-	"Geometry"
+	"Geometry",
+	"Render State",
+	"Model",
+	"Compute Pass"
 };
 
 const char* BLEND_NAMES[] = {

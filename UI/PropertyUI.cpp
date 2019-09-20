@@ -29,14 +29,25 @@ namespace ed
 	{
 		if (m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-			if (m_current != nullptr)
+			if (m_current != nullptr) {
 				ImGui::Text(m_current->Name);
-			else if (m_currentRT != nullptr)
+				ImGui::Text(PIPELINE_ITEM_NAMES[(int)m_current->Type]);
+				if (m_current->Type == PipelineItem::ItemType::Geometry) {
+					ImGui::SameLine();
+					ImGui::Text(("(" + std::string(GEOMETRY_NAMES[(int)((pipe::GeometryItem*)m_current->Data)->Type]) + ")").c_str());
+				}
+			}
+			else if (m_currentRT != nullptr) {
 				ImGui::Text(m_currentRT->Name.c_str());
-			else if (m_currentImg != nullptr)
+				ImGui::Text("Render Texture");
+			}
+			else if (m_currentImg != nullptr) {
 				ImGui::Text(m_data->Objects.GetImageNameByID(m_currentImg->Texture).c_str());
+				ImGui::Text("Image");
+			}
 			else
 				ImGui::Text("nullptr");
+
 			ImGui::PopStyleColor();
 
 			ImGui::Columns(2, "##content_columns");
