@@ -32,11 +32,19 @@ namespace ed
 				cnt++;
 		return cnt;
 	}
-	int MessageStack::GetGroupErrorAndWarningMsgCount()
+	int MessageStack::GetErrorAndWarningMsgCount()
 	{
 		int cnt = 0;
 		for (int i = 0; i < m_msgs.size(); i++)
 			if (m_msgs[i].MType == ed::MessageStack::Type::Warning || m_msgs[i].MType == ed::MessageStack::Type::Error)
+				cnt++;
+		return cnt;
+	}
+	int MessageStack::GetGroupErrorAndWarningMsgCount(const std::string& group)
+	{
+		int cnt = 0;
+		for (int i = 0; i < m_msgs.size(); i++)
+			if ((m_msgs[i].MType == ed::MessageStack::Type::Warning || m_msgs[i].MType == ed::MessageStack::Type::Error) && m_msgs[i].Group == group)
 				cnt++;
 		return cnt;
 	}

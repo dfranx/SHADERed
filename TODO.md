@@ -20,17 +20,14 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - write geometry type in properties
  - rework variables (so that the type can be changed)
  - list all system variables
  - fix for: SetColumnWidth doesn't allow user to resize the columns
  - openning Sobel after Edge -> doesn't render anything
  - crashes when opening cubemap example only on Linux and only in Release mode!
- - prevent crashes (loading wrong 3d models, compute shaders not supported, etc...)
+ - prevent crashes (loading wrong 3d model, compute shaders not supported, etc...)
  - color compute shader labels light/dark green
  - remove everything FXAA related
- - disable path textboxs
- - color shader pass red in PipelineUI if any error occured in it
  - drag and drop files (textures, audio files, etc...)
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux

@@ -52,7 +52,8 @@ namespace ed
 		void ClearGroup(const std::string& group, int type = -1); // -1 == all, else use an MessageStack::Type enum
 		inline void Clear() { m_msgs.clear(); }
 		int GetGroupWarningMsgCount(const std::string &group);
-		int GetGroupErrorAndWarningMsgCount();
+		int GetErrorAndWarningMsgCount();
+		int GetGroupErrorAndWarningMsgCount(const std::string& group);
 		void RenameGroup(const std::string& group, const std::string& newName);
 
 		bool CanRenderPreview();

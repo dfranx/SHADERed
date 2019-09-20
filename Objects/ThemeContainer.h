@@ -10,7 +10,9 @@ namespace ed
 	{
 	public:
 		std::string LoadTheme(const std::string& filename);
-		ImGuiStyle GetUIStyle(const std::string& name);
+		inline ImGuiStyle GetUIStyle(const std::string& name) {
+			return m_ui[name];
+		}
 		TextEditor::Palette GetTextEditorStyle(const std::string& name);
 
 		static inline ThemeContainer& Instance()

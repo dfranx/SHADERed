@@ -69,7 +69,7 @@ namespace ed
 
 	void OptionsUI::ApplyTheme()
 	{
-		Logger::Get().Log("Applying a UI theme to SHADERed...");
+		Logger::Get().Log("Applying UI theme to SHADERed...");
 
 		std::string theme = Settings::Instance().Theme;
 		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));

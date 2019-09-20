@@ -171,10 +171,6 @@ namespace ed
 
 		return name;
 	}
-	ImGuiStyle ThemeContainer::GetUIStyle(const std::string& name)
-	{
-		return m_ui[name];
-	}
 	TextEditor::Palette ThemeContainer::GetTextEditorStyle(const std::string& name)
 	{
 		if (name == "Dark") {

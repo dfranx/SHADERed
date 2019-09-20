@@ -9,6 +9,7 @@
 + fix crash when using RWTexture2D
 + fix crash on HLSL function calls with no arguments
 + write item type in the Properties
++ minor UI polishing
 
 [v1.2]
 + add compute shaders

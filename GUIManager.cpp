@@ -645,7 +645,7 @@ namespace ed
 
 		// handle the "build occured" event
 		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
-			size_t errors = m_data->Messages.GetGroupErrorAndWarningMsgCount();
+			size_t errors = m_data->Messages.GetErrorAndWarningMsgCount();
 			if (errors > 0 && !Get(ViewID::Output)->Visible)
 				Get(ViewID::Output)->Visible = true;
 			m_data->Messages.BuildOccured = false;
