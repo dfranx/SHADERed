@@ -472,7 +472,8 @@ namespace ed
 		}
 
 		// mouse controls for preview window
-		if (m_mouseHovers = ImGui::IsItemHovered()) {
+		m_mouseHovers = ImGui::IsItemHovered();
+		if (m_mouseHovers) {
 			bool fp = settings.Project.FPCamera;
 
 			// rt zoom in/out
@@ -804,7 +805,11 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		
 		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
-		ImGui::SetCursorPosX(pauseStartX);
+		if (ImGui::GetCursorPosX() >= pauseStartX - 100)
+			ImGui::SameLine();
+		else
+			ImGui::SetCursorPosX(pauseStartX);
+
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 		ImGui::SameLine(0,BUTTON_INDENT);
