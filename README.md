@@ -141,7 +141,10 @@ git submodule update
 ### Linux
 Install all the libraries that are needed:
 ```
+# Ubuntu
 sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
+# Fedora
+sudo dnf install assimp-devel SFML-devel glm-devel glew-devel SDL2-devel gtk3-devel
 ```
 
 Build:
