@@ -7,7 +7,7 @@
 #include "../Options.h"
 #include "../GUIManager.h"
 #include "../Objects/Names.h"
-#include "../Objects/HLSL2GLSL.h"
+#include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/ThemeContainer.h"
 

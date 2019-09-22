@@ -39,6 +39,7 @@ namespace ed
 			int FontSize;
 			bool AutoScale;
 			std::vector<std::string> HLSLExtensions;
+			std::vector<std::string> VulkanGLSLExtensions;
 		} General;
 
 		struct strEditor {
@@ -85,6 +86,6 @@ namespace ed
 		}
 
 	private:
-		void m_parseHLSLExt(const std::string& str);
+		void m_parseExt(const std::string& str, std::vector<std::string>& extcontainer);
 	};
 }

@@ -22,6 +22,7 @@ List of features I want to implement:
 Except those features, I am also looking to do some small QoL changes and fixes:
  - rework variables (so that the type can be changed)
  - list all system variables
+ - fix a bug where no actual error messages show up with the auto recompile on HLSL and Vulkan GLSL shaders
  - fix for: SetColumnWidth doesn't allow user to resize the columns
  - openning Sobel after Edge -> doesn't render anything
  - crashes when opening cubemap example only on Linux and only in Release mode!

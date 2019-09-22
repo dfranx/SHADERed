@@ -240,7 +240,7 @@ namespace ed
 		}
 		ImGui::PopItemWidth();
 
-		/* EXTENSIONS: */
+		/* HLSL EXTENSIONS: */
 		ImGui::Text("HLSL extensions: ");
 		ImGui::SameLine();
 		ImGui::Indent(150 * settings->DPIScale);
@@ -252,7 +252,7 @@ namespace ed
 			ImGui::ListBoxFooter();
 		}
 		ImGui::PushItemWidth(100 * settings->DPIScale);
-		ImGui::InputText("##optg_glslext_inp",hlslExtEntry,64);
+		ImGui::InputText("##optg_hlslext_inp",hlslExtEntry,64);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("ADD##optg_btnaddext")) {
@@ -265,8 +265,6 @@ namespace ed
 				}
 			if (exists == -1 && hlslExtEntryStr.size() >= 1)
 				settings->General.HLSLExtensions.push_back(hlslExtEntryStr);
-			else
-				settings->General.HLSLExtensions.erase(settings->General.HLSLExtensions.begin() + exists);
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("REMOVE##optg_btnremext")) {
@@ -279,6 +277,47 @@ namespace ed
 		}
 		ImGui::Unindent(150 * settings->DPIScale);
 
+		/* VULKAN EXTENSIONS: */
+		ImGui::Text("Vulkan GLSL extensions: ");
+		ImGui::SameLine();
+		ImGui::Indent(180 * settings->DPIScale);
+		static char vkExtEntry[64] = {0};
+		if (ImGui::ListBoxHeader("##optg_vkexts", ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale)))
+		{
+			for (auto &ext : settings->General.VulkanGLSLExtensions)
+				if (ImGui::Selectable(ext.c_str()))
+					strcpy(vkExtEntry, ext.c_str());
+			ImGui::ListBoxFooter();
+		}
+		ImGui::PushItemWidth(100 * settings->DPIScale);
+		ImGui::InputText("##optg_vkext_inp", vkExtEntry, 64);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("ADD##optg_btnaddvkext"))
+		{
+			int exists = -1;
+			std::string vkExtEntryStr(vkExtEntry);
+			for (int i = 0; i < settings->General.VulkanGLSLExtensions.size(); i++)
+				if (settings->General.VulkanGLSLExtensions[i] == vkExtEntry)
+				{
+					exists = i;
+					break;
+				}
+			if (exists == -1 && vkExtEntryStr.size() >= 1)
+				settings->General.VulkanGLSLExtensions.push_back(vkExtEntryStr);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("REMOVE##optg_btnremvkext"))
+		{
+			std::string glslExtEntryStr(vkExtEntry);
+			for (int i = 0; i < settings->General.VulkanGLSLExtensions.size(); i++)
+				if (settings->General.VulkanGLSLExtensions[i] == glslExtEntryStr)
+				{
+					settings->General.VulkanGLSLExtensions.erase(settings->General.VulkanGLSLExtensions.begin() + i);
+					break;
+				}
+		}
+		ImGui::Unindent(180 * settings->DPIScale);
 
 		/* WORKSPACE STUFF */
 		ImGui::NewLine();

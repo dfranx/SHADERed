@@ -21,7 +21,7 @@ set(SOURCES
 	Objects/FirstPersonCamera.cpp
 	Objects/FunctionVariableManager.cpp
 	Objects/GizmoObject.cpp
-	Objects/HLSL2GLSL.cpp
+	Objects/ShaderTranscompiler.cpp
 	Objects/KeyboardShortcuts.cpp
 	Objects/Logger.cpp
 	Objects/MessageStack.cpp

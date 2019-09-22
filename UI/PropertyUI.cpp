@@ -4,7 +4,7 @@
 #include "../Engine/GLUtils.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
-#include "../Objects/HLSL2GLSL.h"
+#include "../Objects/ShaderTranscompiler.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -190,7 +190,7 @@ namespace ed
 					ImGui::Text("VS Entry:");
 					ImGui::NextColumn();
 
-					if (HLSL2GLSL::IsHLSL(item->VSPath)) {
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->VSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						ImGui::InputText("##pui_vsentry", item->VSEntry, 32);
 						ImGui::PopItemWidth();
@@ -231,7 +231,7 @@ namespace ed
 					ImGui::Text("PS Entry:");
 					ImGui::NextColumn();
 
-					if (HLSL2GLSL::IsHLSL(item->PSPath)) {
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->PSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						ImGui::InputText("##pui_psentry", item->PSEntry, 32);
 						ImGui::PopItemWidth();
@@ -279,7 +279,7 @@ namespace ed
 					// gs entry
 					ImGui::Text("GS entry:");
 					ImGui::NextColumn();
-					if (HLSL2GLSL::IsHLSL(item->GSPath)) {
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						ImGui::InputText("##pui_gsentry", item->GSEntry, 32);
 						ImGui::PopItemWidth();
@@ -325,7 +325,7 @@ namespace ed
 					ImGui::Text("Entry:");
 					ImGui::NextColumn();
 
-					if (HLSL2GLSL::IsHLSL(item->Path))
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->Path) != ShaderLanguage::GLSL)
 					{
 						ImGui::PushItemWidth(-1);
 						ImGui::InputText("##pui_csentry", item->Entry, 32);

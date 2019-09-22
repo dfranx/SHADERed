@@ -4,7 +4,7 @@
 #include "../Objects/Names.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
-#include "../Objects/HLSL2GLSL.h"
+#include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/ThemeContainer.h"
 #include "../Objects/KeyboardShortcuts.h"
 
@@ -305,11 +305,11 @@ namespace ed
 
 			bool isHLSL = false;
 			if (sid == 0)
-				isHLSL = HLSL2GLSL::IsHLSL(shader->VSPath);
+				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::HLSL;
 			else if (sid == 1)
-				isHLSL = HLSL2GLSL::IsHLSL(shader->PSPath);
+				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::HLSL;
 			else if (sid == 2)
-				isHLSL = HLSL2GLSL::IsHLSL(shader->GSPath);
+				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 			
 			m_shaderTypeId.push_back(sid);
@@ -384,7 +384,7 @@ namespace ed
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			m_loadEditorShortcuts(editor);
 
-			bool isHLSL = HLSL2GLSL::IsHLSL(shader->Path);
+			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 
 			m_shaderTypeId.push_back(sid);
@@ -571,40 +571,37 @@ namespace ed
 					
 					if (m_shaderTypeId[i] == 0) {
 						inf->VS = m_editor[i].GetText();
-						inf->VS_IsHLSL = HLSL2GLSL::IsHLSL(pass->VSPath);
-					}
-					else if (m_shaderTypeId[i] == 1) {
+						inf->VS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
+					} else if (m_shaderTypeId[i] == 1) {
 						inf->PS = m_editor[i].GetText();
-						inf->PS_IsHLSL = HLSL2GLSL::IsHLSL(pass->PSPath);
-					}
-					else if (m_shaderTypeId[i] == 2) {
+						inf->PS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
+					} else if (m_shaderTypeId[i] == 2) {
 						inf->GS = m_editor[i].GetText();
-						inf->GS_IsHLSL = HLSL2GLSL::IsHLSL(pass->GSPath);
+						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
-				} else if (m_items[i].Type == PipelineItem::ItemType::ComputePass)
-				{
+				} else if (m_items[i].Type == PipelineItem::ItemType::ComputePass) {
 					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i].Name];
 					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i].Data;
 					inf->CPass = pass;
 					inf->SPass = nullptr;
 					
 					inf->CS = m_editor[i].GetText();
-					inf->CS_IsHLSL = HLSL2GLSL::IsHLSL(pass->Path);
+					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
 				}
 			}
 
 			// cache
 			for (auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr) {
-					if (it.second.VS_IsHLSL)
-						it.second.VS = HLSL2GLSL::TranscompileSource(it.second.SPass->VSPath, it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
-					if (it.second.PS_IsHLSL)
-						it.second.PS = HLSL2GLSL::TranscompileSource(it.second.SPass->PSPath, it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
-					if (it.second.GS_IsHLSL)
-						it.second.GS = HLSL2GLSL::TranscompileSource(it.second.SPass->GSPath, it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+					if (it.second.VS_SLang != ShaderLanguage::GLSL)
+						it.second.VS = ShaderTranscompiler::TranscompileSource(it.second.VS_SLang, it.second.SPass->VSPath, it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+					if (it.second.PS_SLang != ShaderLanguage::GLSL)
+						it.second.PS = ShaderTranscompiler::TranscompileSource(it.second.PS_SLang, it.second.SPass->PSPath, it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
+					if (it.second.GS_SLang != ShaderLanguage::GLSL)
+						it.second.GS = ShaderTranscompiler::TranscompileSource(it.second.GS_SLang, it.second.SPass->GSPath, it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages);
 				} else if (it.second.CPass != nullptr) {
-					if (it.second.CS_IsHLSL)
-						it.second.CS = HLSL2GLSL::TranscompileSource(it.second.CPass->Path, it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages);
+					if (it.second.CS_SLang != ShaderLanguage::GLSL)
+						it.second.CS = ShaderTranscompiler::TranscompileSource(it.second.CS_SLang, it.second.CPass->Path, it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages);
 				}
 			}
 

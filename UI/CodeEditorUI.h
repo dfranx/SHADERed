@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include <ImGuiColorTextEdit/TextEditor.h>
+#include "../Objects/ShaderLanguage.h"
 #include "../Objects/PipelineItem.h"
 #include "../Objects/Settings.h"
 #include "../Objects/Logger.h"
@@ -36,6 +37,7 @@ namespace ed
 			m_trackThread = nullptr;
 			m_autoRecompileThread = nullptr;
 			m_autoRecompilerRunning = false;
+			m_autoRecompileClearMsgGroup = false;
 			m_autoRecompile = false;
 
 			m_setupShortcuts();
@@ -182,22 +184,23 @@ namespace ed
 		void m_autoRecompiler();
 		std::atomic<bool> m_autoRecompilerRunning, m_autoRecompileRequest;
 		bool m_autoRecompile;
+		bool m_autoRecompileClearMsgGroup;
 		std::shared_mutex m_autoRecompilerMutex;
 		struct AutoRecompilerItemInfo
 		{
 			AutoRecompilerItemInfo() {
 				VS = PS = GS = CS = "";
-				VS_IsHLSL = PS_IsHLSL = GS_IsHLSL = CS_IsHLSL = false;
+				VS_SLang = PS_SLang = GS_SLang = CS_SLang = ShaderLanguage::GLSL;
 
 				SPass = nullptr;
 				CPass = nullptr;
 			}
 			std::string VS, PS, GS;
-			bool VS_IsHLSL, PS_IsHLSL, GS_IsHLSL;
+			ShaderLanguage VS_SLang, PS_SLang, GS_SLang;
 			pipe::ShaderPass* SPass;
 
 			std::string CS;
-			bool CS_IsHLSL;
+			ShaderLanguage CS_SLang;
 			pipe::ComputePass* CPass;
 		};
 		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;

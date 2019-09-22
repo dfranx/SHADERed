@@ -4,7 +4,7 @@
 #include "PipelineManager.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
-#include "HLSL2GLSL.h"
+#include "ShaderTranscompiler.h"
 #include "Names.h"
 #include "Logger.h"
 
@@ -22,6 +22,17 @@
 
 namespace ed
 {
+	std::string getExtension(const std::string& filename)
+	{
+		switch (ShaderTranscompiler::GetShaderTypeFromExtension(filename)) {
+			case ShaderLanguage::HLSL: return Settings::Instance().General.HLSLExtensions[0];
+			case ShaderLanguage::GLSL: return "glsl";
+			case ShaderLanguage::VulkanGLSL: return Settings::Instance().General.VulkanGLSLExtensions[0];
+		}
+
+		return "glsl";
+	}
+
 	std::string toGenericPath(const std::string& p)
 	{
 		std::string ret = p;
@@ -124,15 +135,15 @@ namespace ed
 					std::string vs = ghc::filesystem::path(passData->VSPath).is_absolute() ? passData->VSPath : (proj + std::string(passData->VSPath));
 					std::string ps = ghc::filesystem::path(passData->PSPath).is_absolute() ? passData->PSPath : (proj + std::string(passData->PSPath));
 
-					std::string vsExt = ed::HLSL2GLSL::IsHLSL(vs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-					std::string psExt = ed::HLSL2GLSL::IsHLSL(ps) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string vsExt = getExtension(vs);
+					std::string psExt = getExtension(ps);
 
 					ghc::filesystem::copy_file(vs, shadersDir + "/" + passItem->Name + "VS." + vsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					ghc::filesystem::copy_file(ps, shadersDir + "/" + passItem->Name + "PS." + psExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 
 					if (passData->GSUsed) {
 						std::string gs = ghc::filesystem::path(passData->GSPath).is_absolute() ? passData->GSPath : (proj + std::string(passData->GSPath));
-						std::string gsExt = ed::HLSL2GLSL::IsHLSL(gs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+						std::string gsExt = getExtension(gs);
 
 						ghc::filesystem::copy_file(gs, shadersDir + "/" + passItem->Name + "GS." + gsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					}
@@ -143,7 +154,7 @@ namespace ed
 					pipe::ComputePass *passData = (pipe::ComputePass*)passItem->Data;
 
 					std::string cs = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
-					std::string csExt = ed::HLSL2GLSL::IsHLSL(cs) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string csExt = getExtension(cs);
 
 					ghc::filesystem::copy_file(cs, shadersDir + "/" + passItem->Name + "CS." + csExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
@@ -180,7 +191,7 @@ namespace ed
 				pugi::xml_node vsNode = passNode.append_child("shader");
 				std::string relativePath = (ghc::filesystem::path(passData->VSPath).is_absolute()) ? passData->VSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->VSPath));
 				if (copyFiles) {
-					std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->VSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string vsExt = getExtension(passData->VSPath);
 					relativePath = "shaders/" + std::string(passItem->Name) + "VS." + vsExt;
 				}
 
@@ -192,7 +203,7 @@ namespace ed
 				pugi::xml_node psNode = passNode.append_child("shader");
 				relativePath = (ghc::filesystem::path(passData->PSPath).is_absolute()) ? passData->PSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->PSPath));
 				if (copyFiles) {
-					std::string psExt = ed::HLSL2GLSL::IsHLSL(passData->PSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string psExt = getExtension(passData->PSPath);
 					relativePath = "shaders/" + std::string(passItem->Name) + "PS." + psExt;
 				}
 
@@ -205,8 +216,8 @@ namespace ed
 					pugi::xml_node gsNode = passNode.append_child("shader");
 					relativePath = (ghc::filesystem::path(passData->GSPath).is_absolute()) ? passData->GSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->GSPath));
 					if (copyFiles) {
-						std::string vsExt = ed::HLSL2GLSL::IsHLSL(passData->GSPath) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
-						relativePath = "shaders/" + std::string(passItem->Name) + "GS." + vsExt;
+						std::string gsExt = getExtension(passData->GSPath);
+						relativePath = "shaders/" + std::string(passItem->Name) + "GS." + gsExt;
 					}
 
 					gsNode.append_attribute("used").set_value(passData->GSUsed);
@@ -419,7 +430,7 @@ namespace ed
 				pugi::xml_node csNode = passNode.append_child("shader");
 				std::string relativePath = (ghc::filesystem::path(passData->Path).is_absolute()) ? passData->Path : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->Path));
 				if (copyFiles) {
-					std::string csExt = ed::HLSL2GLSL::IsHLSL(passData->Path) ? Settings::Instance().General.HLSLExtensions[0] : "glsl";
+					std::string csExt = getExtension(passData->Path);
 					relativePath = "shaders/" + std::string(passItem->Name) + "CS." + csExt;
 				}
 

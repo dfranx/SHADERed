@@ -1,0 +1,17 @@
+#version 450
+
+layout (binding = 0) uniform Vars
+{
+	mat4 matVP;
+	mat4 matGeo;
+} var;
+
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec3 normal;
+
+layout (location = 0) out vec4 color;
+
+void main() {
+   color = vec4(abs(normal), 1.0);
+   gl_Position = var.matVP * var.matGeo * vec4(pos, 1);
+}

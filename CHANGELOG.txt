@@ -1,3 +1,6 @@
+[v1.2.2]
++ add support for Vulkan GLSL
+
 [v1.2.1]
 + fix ctrl + backspace / ctrl + delete
 + fix ctrl + shift selecting

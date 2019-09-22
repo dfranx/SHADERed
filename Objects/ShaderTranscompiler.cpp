@@ -6,7 +6,7 @@
 
 #include "Logger.h"
 #include "Settings.h"
-#include "HLSL2GLSL.h"
+#include "ShaderTranscompiler.h"
 #include <glslang/glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
@@ -125,7 +125,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
 
 namespace ed
 {
-	std::string HLSL2GLSL::Transcompile(const std::string& filename, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs)
+	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string &filename, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs)
 	{
 		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
 
@@ -140,13 +140,13 @@ namespace ed
 		}
 
 		std::string inputHLSL((std::istreambuf_iterator<char>(file)),
-			std::istreambuf_iterator<char>());
+							std::istreambuf_iterator<char>());
 
 		file.close();
 
-		return HLSL2GLSL::TranscompileSource(filename, inputHLSL, sType, entry, macros, gsUsed, msgs);
+		return ShaderTranscompiler::TranscompileSource(inLang, filename, inputHLSL, sType, entry, macros, gsUsed, msgs);
 	}
-	std::string HLSL2GLSL::TranscompileSource(const std::string& filename, const std::string& inputHLSL, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs)
+	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string &filename, const std::string &inputHLSL, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs)
 	{
 		const char* inputStr = inputHLSL.c_str();
 
@@ -181,7 +181,7 @@ namespace ed
 		glslang::EShTargetClientVersion vulkanVersion = glslang::EShTargetVulkan_1_0;
 		glslang::EShTargetLanguageVersion targetVersion = glslang::EShTargetSpv_1_0;
 
-		shader.setEnvInput(glslang::EShSourceHlsl, shaderType, glslang::EShClientVulkan, sVersion);
+		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, glslang::EShClientVulkan, sVersion);
 		shader.setEnvClient(glslang::EShClientVulkan, vulkanVersion);
 		shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
 		
@@ -194,23 +194,23 @@ namespace ed
 		DirStackFileIncluder includer;
 		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
 
-		std::string processedHLSL;
+		std::string processedShader;
 
-		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedHLSL, includer))
+		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer))
 		{
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "HLSL preprocessing failed", -1, sType);
-			return "errorPreprocess";
+			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
+			return "error";
 		}
 
 		// update strings
-		const char* processedStr = processedHLSL.c_str();
+		const char *processedStr = processedShader.c_str();
 		shader.setStrings(&processedStr, 1);
 
 		// parse
 		if (!shader.parse(&res, 100, false, messages))
 		{
 			msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
-			return "errorParse";
+			return "error";
 		}
 
 		// link
@@ -219,8 +219,8 @@ namespace ed
 
 		if (!prog.link(messages))
 		{
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "HLSL linking failed", -1, sType);
-			return "errorLink";
+			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
+			return "error";
 		}
 
 		// convert to spirv
@@ -272,14 +272,14 @@ namespace ed
 			glsl.set_name(resource.id, inputName + std::to_string(resID));
 		}
 
-		// Compile to GLSL, ready to give to GL driver.
+		// Compile to GLSL
 		try {
 			glsl.build_dummy_sampler_for_combined_images();
 			glsl.build_combined_image_samplers();
 		} catch (spirv_cross::CompilerError& e) {
 			ed::Logger::Get().Log("An exception occured: " + std::string(e.what()), true);
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
-			return "errorException1";
+			return "error";
 		}
 
 		spirv_cross_util::inherit_combined_sampler_bindings(glsl);
@@ -289,60 +289,153 @@ namespace ed
 		} catch (spirv_cross::CompilerError& e) {
 			ed::Logger::Get().Log("Transcompiler threw an exception: " + std::string(e.what()), true);
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
-			return "errorException2";
+			return "error";
 		}
 
-		// remove all the uniform buffer objects
-		std::stringstream ss(source);
-		std::string line;
-		source = "";
-		bool inUBO = false;
-		std::vector<std::string> uboNames;
-		while (std::getline(ss, line)) {
+		// remove all the UBOs when transcompiling from HLSL
+		if (inLang == ShaderLanguage::HLSL) {
+			std::stringstream ss(source);
+			std::string line;
+			source = "";
+			bool inUBO = false;
+			std::vector<std::string> uboNames;
+			while (std::getline(ss, line)) {
 
-			// i know, ewww, but idk if there's a function to do this (this = converting UBO
-			// to separate uniforms)...
-			if (line.find("layout(binding") != std::string::npos &&
-				line.find("uniform") != std::string::npos &&
-				line.find("sampler") == std::string::npos &&
-				line.find("image") == std::string::npos &&
-				line.find(" buffer ") == std::string::npos)
+				// i know, ewww, but idk if there's a function to do this (this = converting UBO
+				// to separate uniforms)...
+				if (line.find("layout(binding") != std::string::npos &&
+					line.find("uniform") != std::string::npos &&
+					line.find("sampler") == std::string::npos &&
+					line.find("image") == std::string::npos &&
+					line.find(" buffer ") == std::string::npos)
+				{
+					inUBO = true;
+					continue;
+				} else if (inUBO){
+					if (line == "{")
+						continue;
+					else if (line[0] == '}') {
+						inUBO = false;
+						uboNames.push_back(line.substr(2, line.size() - 3));
+						continue;
+					} else {
+						size_t playout = line.find(")");
+						if (playout != std::string::npos)
+							line.erase(0, playout+2);
+						line = "uniform " + line;
+					}
+				}
+				else { // remove all occurances of "ubo." substrings
+					for (int i = 0; i < uboNames.size(); i++) {
+						std::string what = uboNames[i] + ".";
+						size_t n = what.length();
+						for (size_t j = line.find(what); j != std::string::npos; j = line.find(what))
+							line.erase(j, n);
+					}
+				}
+
+				source += line + "\n";
+			}
+		} 
+		else if (inLang == ShaderLanguage::VulkanGLSL) {
+			std::stringstream ss(source);
+			std::string line;
+			source = "";
+			bool inUBO = false;
+			std::vector<std::string> uboNames;
+			int uboCount = 0, deleteUboPos = 0, deleteUboLength = 0;
+			while (std::getline(ss, line))
 			{
-				inUBO = true;
-				continue;
-			} else if (inUBO){
-				if (line == "{")
-					continue;
-				else if (line[0] == '}') {
-					inUBO = false;
-					uboNames.push_back(line.substr(2, line.size() - 3));
-					continue;
-				} else {
-					size_t playout = line.find(")");
-					if (playout != std::string::npos)
-						line.erase(0, playout+2);
-					line = "uniform " + line;
-				}
-			}
-			else { // remove all occurances of "ubo." substrings
-				for (int i = 0; i < uboNames.size(); i++) {
-					std::string what = uboNames[i] + ".";
-					size_t n = what.length();
-					for (size_t j = line.find(what); j != std::string::npos; j = line.find(what))
-						line.erase(j, n);
-				}
-			}
 
-			source += line + "\n";
+				// i know, ewww, but idk if there's a function to do this (this = converting UBO
+				// to separate uniforms)...
+				if (line.find("layout(binding") != std::string::npos &&
+					line.find("uniform") != std::string::npos &&
+					line.find("sampler") == std::string::npos &&
+					line.find("image") == std::string::npos &&
+					line.find(" buffer ") == std::string::npos)
+				{
+					inUBO = true;
+					deleteUboPos = source.size();
+					std::string newLine = "uniform struct ___shadered_gen_ubo" + std::to_string(uboCount) + " {\n";
+					deleteUboLength = newLine.size();
+					source += newLine;
+					uboCount++;
+					continue;
+				}
+				else if (inUBO)
+				{
+					if (line == "{")
+						continue;
+					else if (line[0] == '}')
+					{
+						// i know this is yucky but are there glslang/spirv-cross functions for these?
+						inUBO = false;
+						std::string uboName = line.substr(2, line.size() - 3);
+						bool isGenBySpirvCross = false;
+						if (uboName[0] == '_') {
+							isGenBySpirvCross = true;
+							for (int i = 1; i < uboName.size(); i++) {
+								if (!isdigit(uboName[i])) {
+									isGenBySpirvCross = false;
+									break;
+								}
+							}
+						}
+
+						if (isGenBySpirvCross) {
+							uboNames.push_back(uboName); // only delete occurances if the structure name is generated by spirv-cross and not us
+							
+							// delete the declaration:
+							source.erase(deleteUboPos, deleteUboLength);
+
+							for (size_t loc = deleteUboPos; loc < source.size(); loc++) {
+								source.insert(loc, "uniform ");
+								loc = source.find_first_of(';', loc) + 1;
+							}
+						} else
+							source += "} " + uboName + ";\n";
+
+						continue;
+					}
+					/*
+					TODO: do i need to remove layout(...)?
+					else
+					{
+						size_t playout = line.find(")");
+						if (playout != std::string::npos)
+							line.erase(0, playout + 2);
+					}
+					*/
+				}
+				else
+				{ // remove all occurances of "ubo." substrings
+					for (int i = 0; i < uboNames.size(); i++)
+					{
+						std::string what = uboNames[i] + ".";
+						size_t n = what.length();
+						for (size_t j = line.find(what); j != std::string::npos; j = line.find(what))
+							line.erase(j, n);
+					}
+				}
+
+				source += line + "\n";
+			}
 		}
 
-		ed::Logger::Get().Log("Finished transcompiling a HLSL shader");
+		ed::Logger::Get().Log("Finished transcompiling the shader");
 		
 		return source;
 	}
-	bool HLSL2GLSL::IsHLSL(const std::string& file)
+	ShaderLanguage ShaderTranscompiler::GetShaderTypeFromExtension(const std::string &file)
 	{
-		std::vector<std::string>& exts = Settings::Instance().General.HLSLExtensions;
-		return std::count(exts.begin(), exts.end(), file.substr(file.find_last_of('.') + 1)) > 0;
+		std::vector<std::string> &hlslExts = Settings::Instance().General.HLSLExtensions;
+		std::vector<std::string> &vkExts = Settings::Instance().General.VulkanGLSLExtensions;
+		if (std::count(hlslExts.begin(), hlslExts.end(), file.substr(file.find_last_of('.') + 1)) > 0)
+			return ShaderLanguage::HLSL;
+		if (std::count(vkExts.begin(), vkExts.end(), file.substr(file.find_last_of('.') + 1)) > 0)
+			return ShaderLanguage::VulkanGLSL;
+
+		return ShaderLanguage::GLSL;
 	}
 }

@@ -31,7 +31,8 @@ namespace ed
 		DPIScale = 1.0f;
 		strcpy(General.Font, "null");
 		General.FontSize = 15;
-		m_parseHLSLExt("hlsl");
+		m_parseExt("hlsl", General.HLSLExtensions);
+		m_parseExt("vk", General.VulkanGLSLExtensions);
 
 		Editor.SmartPredictions = false;
 		strcpy(Editor.Font, "data/inconsolata.ttf");
@@ -73,6 +74,7 @@ namespace ed
 		}
 
 		General.HLSLExtensions.clear();
+		General.VulkanGLSLExtensions.clear();
 
 		Theme = ini.Get("general", "theme", "Dark");
 
@@ -96,7 +98,8 @@ namespace ed
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 15);
-		m_parseHLSLExt(ini.Get("general", "hlslext", "hlsl"));
+		m_parseExt(ini.Get("general", "hlslext", "hlsl"), General.HLSLExtensions);
+		m_parseExt(ini.Get("general", "vkext", "vk"), General.VulkanGLSLExtensions);
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "data/inconsolata.ttf").c_str());
@@ -166,6 +169,14 @@ namespace ed
 		}
 		ini << std::endl;
 
+		ini << "vkext=";
+		for (int i = 0; i < General.VulkanGLSLExtensions.size(); i++) {
+			ini << General.VulkanGLSLExtensions[i];
+			if (i != General.VulkanGLSLExtensions.size() - 1)
+				ini << " ";
+		}
+		ini << std::endl;
+
 		ini << "[preview]" << std::endl;
 		ini << "fxaa=" << Preview.FXAA << std::endl;
 		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
@@ -197,7 +208,7 @@ namespace ed
 
 	}
 
-	void Settings::m_parseHLSLExt(const std::string& str)
+	void Settings::m_parseExt(const std::string& str, std::vector<std::string>& extcontainer)
 	{
 		std::stringstream ss(str);
 		std::string token;
@@ -207,7 +218,7 @@ namespace ed
 			if (token.size() < 1)
 				break;
 
-			General.HLSLExtensions.push_back(token);
+			extcontainer.push_back(token);
 		}
 	}
 }
