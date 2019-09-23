@@ -676,6 +676,9 @@ namespace ed
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)item->Data;
 
+
+				pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
 				data->Position = origData->Position;
 				data->Rotation = origData->Rotation;
 				data->Scale = origData->Scale;
@@ -684,21 +687,21 @@ namespace ed
 				data->Type = origData->Type;
 
 				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
-					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z);
+					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Circle) {
-					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y);
+					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, ownerData->InputLayout);
 					data->Topology = GL_TRIANGLE_STRIP;
 				}
 				else if (data->Type == pipe::GeometryItem::Plane)
-					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, data->Size.x, data->Size.y);
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, data->Size.x, data->Size.y, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
-					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1);
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Sphere)
-					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x);
+					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Triangle)
-					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO,  data->Size.x);
+					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO,  data->Size.x, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::ScreenQuadNDC)
-					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO);
+					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO, ownerData->InputLayout);
 				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
 			}
 

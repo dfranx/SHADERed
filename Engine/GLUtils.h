@@ -10,6 +10,7 @@
 #endif
 #include <string>
 
+#include "../Objects/InputLayout.h"
 #include "../Objects/MessageStack.h"
 #include "../Objects/ShaderVariable.h"
 
@@ -25,7 +26,9 @@ namespace ed
 
 		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str);
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
-	
-		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
+
+		void CreateVAO(GLuint &geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem> &ilayout, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
+
+		std::vector<InputLayoutItem> CreateDefaultInputLayout();
 	}
 }

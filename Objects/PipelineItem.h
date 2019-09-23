@@ -2,6 +2,7 @@
 #include "../Engine/Model.h"
 #include "ShaderVariableContainer.h"
 #include "ShaderMacro.h"
+#include "InputLayout.h"
 #include "../Options.h"
 
 #include <glm/glm.hpp>
@@ -96,6 +97,8 @@ namespace ed
 
 			ShaderVariableContainer Variables;
 			std::vector<ShaderMacro> Macros;
+
+			std::vector<InputLayoutItem> InputLayout;
 
 			std::vector<PipelineItem*> Items;
 		};

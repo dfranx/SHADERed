@@ -155,27 +155,60 @@ namespace ed
 				glm::vec3 vector;
 
 				// positions
-				vector.x = mesh->mVertices[i].x;
-				vector.y = mesh->mVertices[i].y;
-				vector.z = mesh->mVertices[i].z;
-				vertex.Position = vector;
+				if (mesh->HasPositions()) {
+					vector.x = mesh->mVertices[i].x;
+					vector.y = mesh->mVertices[i].y;
+					vector.z = mesh->mVertices[i].z;
+					vertex.Position = vector;
+				} else 
+					vertex.Position = glm::vec3(0,0,0);
 
 				// normals
-				vector.x = mesh->mNormals[i].x;
-				vector.y = mesh->mNormals[i].y;
-				vector.z = mesh->mNormals[i].z;
-				vertex.Normal = vector;
+				if (mesh->HasNormals()) {
+					vector.x = mesh->mNormals[i].x;
+					vector.y = mesh->mNormals[i].y;
+					vector.z = mesh->mNormals[i].z;
+					vertex.Normal = vector;
+				} else 
+					vertex.Normal = glm::vec3(0,0,0);
 
 				// texture coordinates
-				if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+				if (mesh->HasTextureCoords(0)) // does the mesh contain texture coordinates?
 				{
 					glm::vec2 vec;
 					vec.x = mesh->mTextureCoords[0][i].x;
 					vec.y = mesh->mTextureCoords[0][i].y;
 					vertex.TexCoords = vec;
-				}
-				else
+				} else
 					vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+
+				// tangents and binormals
+				if (mesh->HasTangentsAndBitangents()) {
+					vector.x = mesh->mTangents[i].x;
+					vector.y = mesh->mTangents[i].y;
+					vector.z = mesh->mTangents[i].z;
+					vertex.Tangent = vector;
+					
+					vector.x = mesh->mBitangents[i].x;
+					vector.y = mesh->mBitangents[i].y;
+					vector.z = mesh->mBitangents[i].z;
+					vertex.Binormal = vector;
+				} else {
+					vertex.Tangent = glm::vec3(0,0,0);
+					vertex.Binormal = glm::vec3(0,0,0);
+				}
+
+				// texture coordinates
+				if (mesh->HasVertexColors(0))
+				{
+					glm::vec4 vec;
+					vec.x = mesh->mColors[0][i].r;
+					vec.y = mesh->mColors[0][i].g;
+					vec.z = mesh->mColors[0][i].b;
+					vec.w = mesh->mColors[0][i].a;
+					vertex.Color = vec;
+				} else
+					vertex.Color = glm::vec4(1,1,1,1);
 
 				vertices.push_back(vertex);
 			}

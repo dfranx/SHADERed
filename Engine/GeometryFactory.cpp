@@ -1,5 +1,6 @@
 #include "GeometryFactory.h"
 #include "../Objects/PipelineItem.h"
+#include "GLUtils.h"
 
 #include <GL/glew.h>
 #if defined(__APPLE__)
@@ -103,106 +104,150 @@ namespace ed
 			pt6[3] = n.x; pt6[4] = n.y; pt6[5] = n.z;
 			memcpy(verts + 5 * 8, pt6, sizeof(GLfloat) * 8);
 		}
+		void calcBinormalAndTangents(GLfloat* verts, GLuint vertCount)
+		{
+			/* http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/ */
+			for (GLuint i = 0; i < vertCount; i += 3) {
+				GLuint j0 = i * 18;
+				GLuint j1 = (i+1) * 18;
+				GLuint j2 = (i+2) * 18;
 
-		unsigned int GeometryFactory::CreateCube(unsigned int& vbo, float sx, float sy, float sz)
+				// Shortcuts for vertices
+				glm::vec3 v0 = glm::vec3(verts[j0 + 0], verts[j0 + 1], verts[j0 + 2]);
+				glm::vec3 v1 = glm::vec3(verts[j1 + 0], verts[j1 + 1], verts[j1 + 2]);
+				glm::vec3 v2 = glm::vec3(verts[j2 + 0], verts[j2 + 1], verts[j2 + 2]);
+
+				// Shortcuts for normals
+				glm::vec3 n0 = glm::vec3(verts[j0 + 3], verts[j0 + 4], verts[j0 + 5]);
+				glm::vec3 n1 = glm::vec3(verts[j1 + 3], verts[j1 + 4], verts[j1 + 5]);
+				glm::vec3 n2 = glm::vec3(verts[j2 + 3], verts[j2 + 4], verts[j2 + 5]);
+
+				// Shortcuts for UVs
+				glm::vec2 uv0 = glm::vec2(verts[j0 + 6], verts[j0 + 7]);
+				glm::vec2 uv1 = glm::vec2(verts[j1 + 6], verts[j1 + 7]);
+				glm::vec2 uv2 = glm::vec2(verts[j2 + 6], verts[j2 + 7]);
+
+				// Edges of the triangle : position delta
+				glm::vec3 deltaPos1 = v1-v0;
+				glm::vec3 deltaPos2 = v2-v0;
+
+				// UV delta
+				glm::vec2 deltaUV1 = uv1-uv0;
+				glm::vec2 deltaUV2 = uv2-uv0;
+
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				glm::vec3 t = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y)*r;
+				glm::vec3 b = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x)*r;
+
+				// Gram-Schmidt orthogonalize
+				glm::vec3 t0 = glm::normalize(t - n0 * glm::dot(n0, t));
+				glm::vec3 t1 = glm::normalize(t - n1 * glm::dot(n1, t));
+				glm::vec3 t2 = glm::normalize(t - n2 * glm::dot(n2, t));
+
+				// Calculate handedness
+				if (glm::dot(glm::cross(n0, t0), b) < 0.0f)
+					t0 = t0 * -1.0f;
+				if (glm::dot(glm::cross(n1, t1), b) < 0.0f)
+					t1 = t1 * -1.0f;
+				if (glm::dot(glm::cross(n2, t2), b) < 0.0f)
+					t2 = t2 * -1.0f;
+
+				// Set the same tangent for all three vertices of the triangle.
+				// They will be merged later, in vboindexer.cpp
+				verts[j0 + 8] = t0.x; verts[j0 + 9] = t0.y; verts[j0 + 10] = t0.z;
+				verts[j1 + 8] = t1.x; verts[j1 + 9] = t1.y; verts[j1 + 10] = t1.z;
+				verts[j2 + 8] = t2.x; verts[j2 + 9] = t2.y; verts[j2 + 10] = t2.z;
+
+				// Same thing for bitangents
+				verts[j0 + 11] = b.x; verts[j0 + 12] = b.y; verts[j0 + 13] = b.z;
+				verts[j1 + 11] = b.x; verts[j1 + 12] = b.y; verts[j1 + 13] = b.z;
+				verts[j2 + 11] = b.x; verts[j2 + 12] = b.y; verts[j2 + 13] = b.z;
+			}
+		}
+
+		unsigned int GeometryFactory::CreateCube(unsigned int& vbo, float sx, float sy, float sz, const std::vector<InputLayoutItem>& inp)
 		{
 			float halfX = sx / 2.0f;
 			float halfY = sy / 2.0f;
 			float halfZ = sz / 2.0f;
 
-			const GLfloat cubeData[] = {
+			// vec3, vec3, vec2, vec3, vec3, vec4
+			GLfloat cubeData[] = {
 				// front face
-				-halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // vec3, vec3, vec2
-				halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-				halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				-halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				-halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+				-halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, halfZ, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 
 				// back face
-				halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-				halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-				-halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-				-halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-				halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-				-halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+				halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, -halfZ, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, -halfZ, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 
 				// right face
-				halfX, -halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				halfX, -halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-				halfX, halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-				halfX, -halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				halfX, halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-				halfX, halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+				halfX, -halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, -halfZ, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, halfZ, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 
 				// left face
-				-halfX, halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-				-halfX, -halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-				-halfX, -halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				-halfX, halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-				-halfX, halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-				-halfX, -halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				-halfX, halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, -halfZ, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, halfZ, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 
 				// top face
-				-halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-				halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-				halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-				-halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-				halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-				-halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+				-halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, -halfZ, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 
 				// bottom face
-				halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-				halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-				-halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-				halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+				halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
-
-			GLuint vao;
-
-			// create vao
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
 
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, 6 * 6 * 8 * sizeof(GLfloat), cubeData, GL_STATIC_DRAW);
-
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, 36 * 18 * sizeof(GLfloat), cubeData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+			calcBinormalAndTangents(&cubeData[0], 36);
+			
+			GLuint vao = 0;
+			gl::CreateVAO(vao, vbo, inp);
+			
 			return vao;
 		}
-		unsigned int GeometryFactory::CreateCircle(unsigned int& vbo, float rx, float ry)
+		unsigned int GeometryFactory::CreateCircle(unsigned int& vbo, float rx, float ry, const std::vector<InputLayoutItem>& inp)
 		{
 			const int numPoints = 32 * 3;
 			int numSegs = numPoints / 3;
 
-			GLfloat circleData[numPoints * 8];
+			GLfloat circleData[numPoints * 18];
 
 
 			float step = glm::two_pi<float>() / numSegs;
 
 			for (int i = 0; i < numSegs; i++)
 			{
-				int j = i * 3 * 8;
+				int j = i * 3 * 18;
 				GLfloat* ptrData = &circleData[j];
 
 				float xVal1 = sin(step * i);
@@ -210,96 +255,62 @@ namespace ed
 				float xVal2 = sin(step * (i + 1));
 				float yVal2 = cos(step * (i + 1));
 
-				GLfloat point1[8] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f };
-				GLfloat point2[8] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f };
-				GLfloat point3[8] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f };
+				GLfloat point1[18] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
+				GLfloat point2[18] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
+				GLfloat point3[18] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
 
-				memcpy(ptrData + 0, point1, 8 * sizeof(GLfloat));
-				memcpy(ptrData + 8, point2, 8 * sizeof(GLfloat));
-				memcpy(ptrData + 16, point3, 8 * sizeof(GLfloat));
+				memcpy(ptrData + 0, point1, 18 * sizeof(GLfloat));
+				memcpy(ptrData + 18, point2, 18 * sizeof(GLfloat));
+				memcpy(ptrData + 36, point3, 18 * sizeof(GLfloat));
 			}
-
-			GLuint vao;
-
-			// create vao
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
 
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, numPoints * 8 * sizeof(GLfloat), circleData, GL_STATIC_DRAW);
-
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, numPoints * 18 * sizeof(GLfloat), circleData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			calcBinormalAndTangents(&circleData[0], numPoints);
+			
+			GLuint vao;
+			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
 		}
-		unsigned int GeometryFactory::CreatePlane(unsigned int& vbo, float sx, float sy)
+		unsigned int GeometryFactory::CreatePlane(unsigned int& vbo, float sx, float sy, const std::vector<InputLayoutItem>& inp)
 		{
 			float halfX = sx / 2;
 			float halfY = sy / 2;
 
-			const GLfloat planeData[] = {
-				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				-halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			GLfloat planeData[] = {
+				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
-
-			GLuint vao;
-
-			// create vao
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
 
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, 6 * 8 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
-
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, 6 * 18 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			calcBinormalAndTangents(&planeData[0], 6);
+			
+			GLuint vao;
+			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
 		}
-		unsigned int GeometryFactory::CreateSphere(unsigned int& vbo, float r)
+		unsigned int GeometryFactory::CreateSphere(unsigned int& vbo, float r, const std::vector<InputLayoutItem>& inp)
 		{
 			const size_t stackCount = 20;
 			const size_t sliceCount = 20;
 
 			const size_t count = sliceCount * stackCount * 6;
-			GLfloat sphereData[count * 8];
+			GLfloat sphereData[count * 18];
 
 			const float stepY = glm::pi<float>() / stackCount;
 			const float stepX = glm::two_pi<float>() / sliceCount;
@@ -310,83 +321,49 @@ namespace ed
 					float theta = j * stepX;
 					size_t index = (i * sliceCount + j) * 6;
 
-					generateFace(sphereData + index * 8, r, stepX, stepY, j, i);
+					generateFace(sphereData + index * 18, r, stepX, stepY, j, i);
 
 				}
 			}
 
-			GLuint vao;
-
-			// create vao
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
-
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, count * 8 * sizeof(GLfloat), sphereData, GL_STATIC_DRAW);
-
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, count * 18 * sizeof(GLfloat), sphereData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
+			calcBinormalAndTangents(&sphereData[0], count);
+			
+			GLuint vao;
+			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
 		}
-		unsigned int GeometryFactory::CreateTriangle(unsigned int& vbo, float s)
+		unsigned int GeometryFactory::CreateTriangle(unsigned int& vbo, float s, const std::vector<InputLayoutItem>& inp)
 		{
 			float rightOffs = s / tan(glm::radians(30.0f));
-			const GLfloat triData[] = {
-				-rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-				rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				0, s, 0, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f,
+			GLfloat triData[] = {
+				-rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				0, s, 0, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
-
-			GLuint vao;
-
-			// create vao
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
 
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-			// vbo data
-			glBufferData(GL_ARRAY_BUFFER, 3 * 8 * sizeof(GLfloat), triData, GL_STATIC_DRAW);
-
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
-
-			glBindVertexArray(0);
+			glBufferData(GL_ARRAY_BUFFER, 3 * 18 * sizeof(GLfloat), triData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
+			calcBinormalAndTangents(&triData[0], 3);
+			
+			GLuint vao;
+			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
 		}
-		unsigned int GeometryFactory::CreateScreenQuadNDC(unsigned int& vbo)
+		unsigned int GeometryFactory::CreateScreenQuadNDC(unsigned int& vbo, const std::vector<InputLayoutItem>& inp)
 		{
-			const GLfloat sqData[] = {
+			GLfloat sqData[] = {
 				1, 1, 1.0f, 1.0f,
 				1, -1, 1.0f, 0.0f,
 				-1, -1, 0.0f, 0.0f,

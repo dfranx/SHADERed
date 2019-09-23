@@ -70,9 +70,10 @@ namespace ed
 			return (bool)ret;
 		}
 
-
-		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
+		void CreateVAO(GLuint &geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem> &ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{
+			int fmtIndex = 0;
+
 			if (geoVAO == 0)
 				glDeleteVertexArrays(1, &geoVAO);
 
@@ -83,17 +84,12 @@ namespace ed
 			if (geoEBO != 0)
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geoEBO);
 
-			// vertex positions
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-
-			// vertex normals
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(1);
-
-			// vertex texture coords
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GLfloat)));
-			glEnableVertexAttribArray(2);
+			for (const auto& layitem : ilayout) {
+				// vertex positions
+				glVertexAttribPointer(fmtIndex, InputLayoutItem::GetValueSize(layitem.Value), GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void *)(InputLayoutItem::GetValueOffset(layitem.Value) * sizeof(GLfloat)));
+				glEnableVertexAttribArray(fmtIndex);
+				fmtIndex++;
+			}
 
 			// user defined
 			if (bufVBO != 0) {
@@ -102,7 +98,7 @@ namespace ed
 					sizeInBytes += ed::ShaderVariable::GetSize(fmt);
 
 				glBindBuffer(GL_ARRAY_BUFFER, bufVBO);
-				int fmtIndex = 3, fmtOffset = 0;
+				int fmtOffset = 0;
 				for (const auto& fmt : types) {
 					GLint colCount = 0;
 					GLenum type = GL_FLOAT;
@@ -137,8 +133,14 @@ namespace ed
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-
-
+		std::vector<InputLayoutItem> CreateDefaultInputLayout()
+		{
+			std::vector<InputLayoutItem> ret;
+			ret.push_back({InputLayoutValue::Position, "POSITION"});
+			ret.push_back({InputLayoutValue::Normal, "NORMAL"});
+			ret.push_back({InputLayoutValue::Texcoord, "TEXCOORD0"});
+			return ret;
+		}
 
 		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str)
 		{

@@ -24,6 +24,7 @@ set(SOURCES
 	Objects/ShaderTranscompiler.cpp
 	Objects/KeyboardShortcuts.cpp
 	Objects/Logger.cpp
+	Objects/InputLayout.cpp
 	Objects/MessageStack.cpp
 	Objects/Names.cpp
 	Objects/ObjectManager.cpp

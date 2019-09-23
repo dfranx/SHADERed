@@ -717,13 +717,14 @@ namespace ed
 	}
 	std::string ProjectParser::GetRelativePath(const std::string& to)
 	{
-#if defined(_WIN32)
-		if (ghc::filesystem::path(to).is_absolute())
-			return to;
-#endif 
-
 		ghc::filesystem::path fFrom(m_projectPath);
 		ghc::filesystem::path fTo(to);
+
+#if defined(_WIN32)
+		if (fTo.is_absolute())
+			if (fTo.root_name() != fFrom.root_name()) // not on the same drive
+				return to;
+#endif 
 		
 		std::string ret = ghc::filesystem::relative(fTo, fFrom).native();
 
@@ -732,7 +733,8 @@ namespace ed
 	std::string ProjectParser::GetProjectPath(const std::string& to)
 	{
 #if defined(_WIN32)
-		if (ghc::filesystem::path(to).is_absolute())
+		ghc::filesystem::path fTo(to);
+		if (fTo.is_absolute()) // TODO: from.root_path == to.root_path check? or nah?
 			return to;
 #endif
 
@@ -878,6 +880,8 @@ namespace ed
 			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
 			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
 			
+			data->InputLayout = gl::CreateDefaultInputLayout();
+
 			data->RenderTextures[0] = m_renderer->GetTexture();
 			for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
 				data->RenderTextures[i] = 0;
@@ -1171,20 +1175,21 @@ namespace ed
 				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
+					
 					if (tData->Type == pipe::GeometryItem::Cube)
-						tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z);
+						tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Circle)
-						tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y);
+						tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Plane)
-						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y);
+						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Rectangle)
-						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1);
+						tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Sphere)
-						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
+						tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Triangle)
-						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
+						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
-						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
+						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, data->InputLayout);
 				}
 				else if (itemType == ed::PipelineItem::ItemType::Model) {
 					pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
@@ -1467,8 +1472,8 @@ namespace ed
 		Logger::Get().Log("Parsing a V2 project file...");
 
 		std::map<pipe::ShaderPass*, std::vector<std::string>> fbos;
-		std::map<pipe::GeometryItem*, std::string> geoUBOs; // buffers that are bound to pipeline items
-		std::map<pipe::Model*, std::string> modelUBOs;
+		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>> geoUBOs; // buffers that are bound to pipeline items
+		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>> modelUBOs;
 
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
@@ -1485,7 +1490,9 @@ namespace ed
 			}
 
 			if (type == PipelineItem::ItemType::ShaderPass) {
-				ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
+				pipe::ShaderPass* data = new ed::pipe::ShaderPass();
+
+				data->InputLayout = gl::CreateDefaultInputLayout();
 
 				data->RenderTextures[0] = m_renderer->GetTexture();
 				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
@@ -1664,7 +1671,7 @@ namespace ed
 							else if (strcmp(attrNode.name(), "instancecount") == 0)
 								tData->InstanceCount = attrNode.text().as_int();
 							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-								geoUBOs[tData] = attrNode.text().as_string();
+								geoUBOs[tData] = std::make_pair(attrNode.text().as_string(), data);
 							else if (strcmp(attrNode.name(), "topology") == 0) {
 								for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 									if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
@@ -1771,6 +1778,8 @@ namespace ed
 						mdata->Instanced = false;
 						mdata->InstanceCount = 0;
 
+						modelUBOs[mdata] = std::make_pair("", data);
+
 						for (pugi::xml_node attrNode : itemNode.children()) {
 							if (strcmp(attrNode.name(), "filepath") == 0)
 								strcpy(mdata->Filename, attrNode.text().as_string());
@@ -1801,7 +1810,7 @@ namespace ed
 							else if (strcmp(attrNode.name(), "instancecount") == 0)
 								mdata->InstanceCount = attrNode.text().as_int();
 							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-								modelUBOs[mdata] = attrNode.text().as_string();
+								modelUBOs[mdata] = std::make_pair(attrNode.text().as_string(), data);
 						}
 
 						if (strlen(mdata->Filename) > 0)
@@ -1812,19 +1821,19 @@ namespace ed
 					if (itemType == ed::PipelineItem::ItemType::Geometry) {
 						ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
 						if (tData->Type == pipe::GeometryItem::Cube)
-							tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z);
+							tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::Circle)
-							tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y);
+							tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::Plane)
-							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y);
+							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::Rectangle)
-							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1);
+							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::Sphere)
-							tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x);
+							tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::Triangle)
-							tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x);
+							tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, data->InputLayout);
 						else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
-							tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO);
+							tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, data->InputLayout);
 					}
 					else if (itemType == ed::PipelineItem::ItemType::Model) {
 						pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
@@ -2218,16 +2227,21 @@ namespace ed
 		// bind ARRAY_BUFFERS
 		// TODO: recreate vao on load
 		for (auto& geo : geoUBOs) {
-			BufferObject* bojb = m_objects->GetBuffer(geo.second);
+			BufferObject* bojb = m_objects->GetBuffer(geo.second.first);
 			geo.first->InstanceBuffer = bojb;
-			gl::CreateVAO(geo.first->VAO, geo.first->VBO, 0, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+			gl::CreateVAO(geo.first->VAO, geo.first->VBO, geo.second.second->InputLayout, 0, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
 		}
 		for (auto& mdl : modelUBOs) {
-			BufferObject* bojb = m_objects->GetBuffer(mdl.second);
-			mdl.first->InstanceBuffer = bojb;
+			if (mdl.second.first.size() > 0) {
+				BufferObject* bojb = m_objects->GetBuffer(mdl.second.first);
+				mdl.first->InstanceBuffer = bojb;
 
-			for (auto& mesh : mdl.first->Data->Meshes)
-				gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+				for (auto& mesh : mdl.first->Data->Meshes)
+					gl::CreateVAO(mesh.VAO, mesh.VBO, mdl.second.second->InputLayout, mesh.EBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+			} else { // recreate vao anyway
+				for (auto& mesh : mdl.first->Data->Meshes)
+					gl::CreateVAO(mesh.VAO, mesh.VBO, mdl.second.second->InputLayout, mesh.EBO);
+			}
 		}
 
 		// bind objects

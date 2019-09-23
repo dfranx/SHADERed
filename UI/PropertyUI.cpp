@@ -436,15 +436,21 @@ namespace ed
 						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
 							item->InstanceBuffer = nullptr;
 
-							gl::CreateVAO(item->VAO, item->VBO);
+							char* owner = m_data->Pipeline.GetItemOwner(m_current->Name);
+							pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
+							gl::CreateVAO(item->VAO, item->VBO, ownerData->InputLayout);
 						}
 
 						for (const auto& buf : bufList) {
 							if (ImGui::Selectable(buf.first.c_str(), buf.second == item->InstanceBuffer)) {
 								item->InstanceBuffer = buf.second;
 								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
-								
-								gl::CreateVAO(item->VAO, item->VBO, 0, buf.second->ID, fmtList);
+
+								char* owner = m_data->Pipeline.GetItemOwner(m_current->Name);
+								pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
+								gl::CreateVAO(item->VAO, item->VBO, ownerData->InputLayout, 0, buf.second->ID, fmtList);
 							}
 						}
 
@@ -838,17 +844,23 @@ namespace ed
 						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
 							item->InstanceBuffer = nullptr;
 
+							char* owner = m_data->Pipeline.GetItemOwner(m_current->Name);
+							pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
 							for (auto& mesh : item->Data->Meshes)
-								gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO);
+								gl::CreateVAO(mesh.VAO, mesh.VBO, ownerData->InputLayout, mesh.EBO);
 						}
 
 						for (const auto& buf : bufList) {
 							if (ImGui::Selectable(buf.first.c_str(), buf.second == item->InstanceBuffer)) {
 								item->InstanceBuffer = buf.second;
 								auto fmtList = m_data->Objects.ParseBufferFormat(buf.second->ViewFormat);
-								
+
+								char* owner = m_data->Pipeline.GetItemOwner(m_current->Name);
+								pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
 								for (auto& mesh : item->Data->Meshes)
-									gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO, buf.second->ID, fmtList);
+									gl::CreateVAO(mesh.VAO, mesh.VBO, ownerData->InputLayout, mesh.EBO, buf.second->ID, fmtList);
 							}
 						}
 

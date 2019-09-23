@@ -552,7 +552,7 @@ namespace ed
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Help")) {
-				if (ImGui::BeginMenu("Support Us")) {
+				if (ImGui::BeginMenu("Support")) {
 					if (ImGui::MenuItem("Patreon")) { 
 						#if defined(__APPLE__)
 							system("open https://www.patreon.com/dfranx"); // [MACOS]

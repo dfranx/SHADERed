@@ -182,7 +182,7 @@ namespace ed
 									pipe::GeometryItem* gitem = (pipe::GeometryItem*)pitem->Data;
 
 									if (gitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i]))
-										gl::CreateVAO(gitem->VAO, gitem->VBO);
+										gl::CreateVAO(gitem->VAO, gitem->VBO, pdata->InputLayout);
 									gitem->InstanceBuffer = nullptr;
 								}
 								else if (pitem->Type == ed::PipelineItem::ItemType::Model) {
@@ -190,7 +190,7 @@ namespace ed
 
 									if (mitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i])) {
 										for (auto& mesh : mitem->Data->Meshes)
-											gl::CreateVAO(mesh.VAO, mesh.VBO, mesh.EBO);
+											gl::CreateVAO(mesh.VAO, mesh.VBO, pdata->InputLayout, mesh.EBO);
 										mitem->InstanceBuffer = nullptr;
 									}
 								}
