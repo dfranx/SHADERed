@@ -451,6 +451,9 @@ namespace ed
 					((pipe::ComputePass*)itemData)->Variables.Remove(el->Name);
 				else
 					((pipe::ShaderPass*)itemData)->Variables.Remove(el->Name);
+
+				ImGui::PopStyleColor();
+				continue;
 			}
 			ImGui::SameLine(0,0);
 			/* EDIT & PIN BUTTONS */
@@ -570,7 +573,7 @@ namespace ed
 
 		/* NAME */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		ImGui::InputText("##inputName", const_cast<char*>(iVariable.Name), SEMANTIC_LENGTH);
+		ImGui::InputText("##inputName", const_cast<char*>(iVariable.Name), VARIABLE_NAME_LENGTH);
 		ImGui::NextColumn();
 
 		if (scrollToBottom) {

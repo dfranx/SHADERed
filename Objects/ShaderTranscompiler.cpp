@@ -198,6 +198,7 @@ namespace ed
 
 		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer))
 		{
+			msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
 			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
 			return "error";
 		}
@@ -292,6 +293,7 @@ namespace ed
 			return "error";
 		}
 
+		// WARNING: lost of hacks in the following code
 		// remove all the UBOs when transcompiling from HLSL
 		if (inLang == ShaderLanguage::HLSL) {
 			std::stringstream ss(source);
@@ -343,7 +345,8 @@ namespace ed
 			source = "";
 			bool inUBO = false;
 			std::vector<std::string> uboNames;
-			int uboCount = 0, deleteUboPos = 0, deleteUboLength = 0;
+			int deleteUboPos = 0, deleteUboLength = 0;
+			std::string uboExt = (shaderType == 0) ? "VS" : (shaderType == 1 ? "PS" : "GS");
 			while (std::getline(ss, line))
 			{
 
@@ -357,10 +360,12 @@ namespace ed
 				{
 					inUBO = true;
 					deleteUboPos = source.size();
-					std::string newLine = "uniform struct ___shadered_gen_ubo" + std::to_string(uboCount) + " {\n";
+					
+					size_t lineLastOf = line.find_last_of(' ');
+					std::string name = line.substr(lineLastOf + 1, line.find('\n') - lineLastOf -1);
+					std::string newLine = "uniform struct " + name + " {\n";
 					deleteUboLength = newLine.size();
 					source += newLine;
-					uboCount++;
 					continue;
 				}
 				else if (inUBO)
@@ -422,6 +427,8 @@ namespace ed
 				source += line + "\n";
 			}
 		}
+
+		//printf("%s\n\n\n", source.c_str());
 
 		ed::Logger::Get().Log("Finished transcompiling the shader");
 		

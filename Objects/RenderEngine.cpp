@@ -79,7 +79,7 @@ namespace ed
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
 		bool clearedWindow = false;
-		bool changedState = false;
+		bool changedState = true;
 
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
@@ -291,8 +291,7 @@ namespace ed
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
 				}
-			} else if (it->Type == PipelineItem::ItemType::ComputePass)
-			{
+			} else if (it->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
 				std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
