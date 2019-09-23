@@ -228,14 +228,14 @@ namespace ed
 				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
 
+			calcBinormalAndTangents(&cubeData[0], 36);
+			
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, 36 * 18 * sizeof(GLfloat), cubeData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			calcBinormalAndTangents(&cubeData[0], 36);
-			
 			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
 			
@@ -270,14 +270,14 @@ namespace ed
 				memcpy(ptrData + 36, point3, 18 * sizeof(GLfloat));
 			}
 
+			calcBinormalAndTangents(&circleData[0], numPoints);
+			
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, numPoints * 18 * sizeof(GLfloat), circleData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			calcBinormalAndTangents(&circleData[0], numPoints);
-			
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
@@ -297,14 +297,14 @@ namespace ed
 				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
 
+			calcBinormalAndTangents(&planeData[0], 6);
+			
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, 6 * 18 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			calcBinormalAndTangents(&planeData[0], 6);
-			
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
@@ -332,14 +332,14 @@ namespace ed
 				}
 			}
 
+			calcBinormalAndTangents(&sphereData[0], count);
+
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, count * 18 * sizeof(GLfloat), sphereData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			
-			calcBinormalAndTangents(&sphereData[0], count);
-
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
@@ -354,13 +354,13 @@ namespace ed
 				0, s, 0, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
 
+			calcBinormalAndTangents(&triData[0], 3);
+			
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, 3 * 18 * sizeof(GLfloat), triData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
-			calcBinormalAndTangents(&triData[0], 3);
 			
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);

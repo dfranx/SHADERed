@@ -18,7 +18,7 @@ void main()
 {
     mat3 normalMatrix = mat3(transpose(inverse(view * model)));
     vs_out.normal = vec3(projection * vec4(normalMatrix * aNormal, 0.0));
-    vs_out.tangent = normalize(aTangent);
+    vs_out.tangent = vec3(projection * vec4(normalMatrix * aTangent, 0.0));
 	vs_out.bitangent = normalize(aBitangent);
     gl_Position = projection * view * model * vec4(aPos, 1.0); 
 }
