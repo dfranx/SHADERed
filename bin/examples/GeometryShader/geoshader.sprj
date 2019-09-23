@@ -1,20 +1,17 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Light">
-			<shader type="vs" path="shaders/LightVS.glsl" entry="main" />
-			<shader type="ps" path="shaders/LightPS.glsl" entry="main" />
-			<shader used="true" type="gs" path="shaders/LightGS.glsl" entry="main" />
+		<pass name="Light" type="shader">
+			<shader type="vs" path="shaders\LightVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\LightPS.glsl" entry="main" />
+			<shader used="true" type="gs" path="shaders\LightGS.glsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Tangent" semantic="TANGENT" />
+				<item value="Bitangent" semantic="BITANGENT" />
+			</inputlayout>
 			<rendertexture />
-			<variables>
-				<variable type="float4x4" name="projection" system="Projection" />
-				<variable type="float4x4" name="view" system="View" />
-				<variable type="float4x4" name="model" system="GeometryTransform" />
-				<variable type="float" name="fTime" system="Time" />
-			</variables>
-			<macros>
-				<define name="MAGNITUDE" active="true">0.2</define>
-			</macros>
 			<items>
 				<item name="Sphere" type="geometry">
 					<type>Sphere</type>
@@ -25,20 +22,30 @@
 				</item>
 			</items>
 			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="projection" system="Projection" />
+				<variable type="float4x4" name="view" system="View" />
+				<variable type="float4x4" name="model" system="GeometryTransform" />
+				<variable type="float" name="fTime" system="Time" />
+			</variables>
+			<macros>
+				<define name="MAGNITUDE" active="true">0.2</define>
+			</macros>
 		</pass>
 	</pipeline>
 	<objects />
 	<settings>
-		<entry type="property" name="Light" />
+		<entry type="property" name="Sphere" item="pipe" />
 		<entry type="file" name="Light" shader="vs" />
 		<entry type="file" name="Light" shader="ps" />
 		<entry type="file" name="Light" shader="gs" />
 		<entry type="camera" fp="false">
-			<distance>9</distance>
-			<pitch>41</pitch>
-			<yaw>193</yaw>
+			<distance>6</distance>
+			<pitch>57</pitch>
+			<yaw>192</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
 	</settings>
 </project>

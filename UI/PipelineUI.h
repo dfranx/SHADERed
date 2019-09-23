@@ -14,6 +14,7 @@ namespace ed
 			m_createUI(ui, objects) {
 			m_itemMenuOpened = false;
 			m_isMacroManagerOpened = false;
+			m_isInpLayoutManagerOpened = false;
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -28,6 +29,7 @@ namespace ed
 		// for popups
 		bool m_isMacroManagerOpened;
 		bool m_isVarManagerOpened;
+		bool m_isInpLayoutManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
 		bool m_itemMenuOpened;
@@ -46,6 +48,7 @@ namespace ed
 		void m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index);
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderVariableManagerUI();
+		void m_renderInputLayoutManagerUI();
 		void m_renderChangeVariablesUI();
 		void m_renderMacroManagerUI();
 

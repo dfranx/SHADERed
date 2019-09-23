@@ -10,6 +10,7 @@
 #include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/ThemeContainer.h"
+#include "../Engine/GLUtils.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -100,6 +101,10 @@ namespace ed
 			ImGui::OpenPopup("Shader Macros##pui_shader_macros");
 			m_isMacroManagerOpened = false;
 		}
+		if (m_isInpLayoutManagerOpened) {
+			ImGui::OpenPopup("Input layout##pui_input_layout");
+			m_isInpLayoutManagerOpened = false;
+		}
 
 		// Shader Variable manager
 		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
@@ -116,6 +121,44 @@ namespace ed
 			m_renderMacroManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
+			ImGui::EndPopup();
+		}
+
+		// Input Layout Manager
+		ImGui::SetNextWindowSize(ImVec2(630 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Input layout##pui_input_layout")) {
+			m_renderInputLayoutManagerUI();
+
+			if (ImGui::Button("Ok")) {
+				// recreate all VAOs
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_modalItem->Data;
+				std::vector<PipelineItem*>& passItems = pass->Items;
+
+				for (auto& pitem : passItems) {
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* gitem = (pipe::GeometryItem*)pitem->Data;
+						BufferObject* bobj = (BufferObject*)gitem->InstanceBuffer;
+						if (bobj == nullptr)
+							gl::CreateVAO(gitem->VAO, gitem->VBO, pass->InputLayout);
+						else
+							gl::CreateVAO(gitem->VAO, gitem->VBO, pass->InputLayout, 0, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* mitem = (pipe::Model*)pitem->Data;
+						BufferObject* bobj = (BufferObject*)mitem->InstanceBuffer;
+						if (bobj == nullptr) {
+							for (auto& mesh : mitem->Data->Meshes)
+								gl::CreateVAO(mesh.VAO, mesh.VBO, pass->InputLayout, mesh.EBO);
+						}
+						else {
+							for (auto& mesh : mitem->Data->Meshes)
+								gl::CreateVAO(mesh.VAO, mesh.VBO, pass->InputLayout, mesh.EBO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
+						}
+					}
+				}
+
+
+				m_closePopup();
+			}
 			ImGui::EndPopup();
 		}
 
@@ -263,6 +306,11 @@ namespace ed
 					m_modalItem = items[index];
 				}
 
+				if (items[index]->Type == PipelineItem::ItemType::ShaderPass && ImGui::MenuItem("Input layout")) {
+					m_isInpLayoutManagerOpened = true;
+					m_modalItem = items[index];
+				}
+
 				if (ImGui::MenuItem("Macros")) {
 					m_isMacroManagerOpened = true;
 					m_modalItem = items[index];
@@ -360,6 +408,121 @@ namespace ed
 
 		var->Flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
 					 (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+	}
+	void PipelineUI::m_renderInputLayoutManagerUI()
+	{
+		static InputLayoutValue iValueType = InputLayoutValue::Position;
+		static char semanticName[32];
+
+		pipe::ShaderPass *itemData = (pipe::ShaderPass*)m_modalItem->Data;
+
+		ImGui::TextWrapped("Add or remove vertex shader inputs.");
+
+		ImGui::BeginChild("##pui_layout_table", ImVec2(0, -25));
+		ImGui::Columns(4);
+
+		ImGui::Text("Controls"); ImGui::NextColumn();
+		ImGui::Text("Location"); ImGui::NextColumn();
+		ImGui::Text("Value"); ImGui::NextColumn();
+		ImGui::Text("HLSL semantic"); ImGui::NextColumn();
+
+		
+		ImGui::SetColumnWidth(0, 80 * Settings::Instance().DPIScale);
+		ImGui::SetColumnWidth(1, 60 * Settings::Instance().DPIScale);
+
+
+		ImGui::Separator();
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+		int id = 0;
+		std::vector<InputLayoutItem>& els = itemData->InputLayout;
+
+		/* EXISTING INPUTS */
+		for (auto& el : els) {
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+			/* UP BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_UP "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != 0) {
+				InputLayoutItem temp = els[id - 1];
+				els[id - 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(0,0);
+			/* DOWN BUTTON */
+			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != els.size() - 1) {
+				InputLayoutItem temp = els[id + 1];
+				els[id + 1] = el;
+				els[id] = temp;
+			}
+			ImGui::SameLine(0,0);
+			/* DELETE BUTTON */
+			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
+				els.erase(els.begin() + id);
+				ImGui::PopStyleColor();
+				continue;
+			}
+			
+			ImGui::PopStyleColor();
+			ImGui::NextColumn();
+
+			/* TYPE */
+			ImGui::Text("%d", id);
+			ImGui::NextColumn();
+
+			/* VALUE */
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			const char* valueComboPreview = ATTRIBUTE_VALUE_NAMES[(int)el.Value];
+			if (ImGui::BeginCombo(("##value" + std::to_string(id)).c_str(), valueComboPreview)) {
+				for (int n = 0; n < HARRAYSIZE(ATTRIBUTE_VALUE_NAMES); n++) {
+					bool is_selected = (n == (int)el.Value);
+					if (ImGui::Selectable(ATTRIBUTE_VALUE_NAMES[n], is_selected))
+							el.Value = (InputLayoutValue)n;
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::NextColumn();
+
+			/* SEMANTIC */
+			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+			ImGui::Text("Currently not supported (%s)", el.Semantic.c_str());
+			ImGui::NextColumn();
+
+			id++;
+		}
+
+		ImGui::PopStyleColor();
+
+		// widgets for editing "virtual" element - an element that will be added to the list later
+		/* ADD BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Button(UI_ICON_ADD))
+			els.push_back({ iValueType, std::string(semanticName) });
+		ImGui::NextColumn();
+		ImGui::PopStyleColor();
+
+		ImGui::Text("%d", els.size());
+		ImGui::NextColumn();
+
+		/* TYPE */
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		if (ImGui::Combo("##inputType", reinterpret_cast<int*>(&iValueType), ATTRIBUTE_VALUE_NAMES, HARRAYSIZE(ATTRIBUTE_VALUE_NAMES))) {
+			/* Nothing to do here? */
+		}
+		ImGui::NextColumn();
+
+		/* NAME */
+		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		ImGui::InputText("##inputName", const_cast<char*>(semanticName), 32);
+		ImGui::NextColumn();
+
+		//ImGui::PopItemWidth();
+
+		ImGui::EndChild();
+		ImGui::Columns(1);
 	}
 	void PipelineUI::m_renderVariableManagerUI()
 	{

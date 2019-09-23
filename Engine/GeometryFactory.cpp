@@ -28,81 +28,87 @@ namespace ed
 		{
 			float phi = y * sy;
 			float theta = x * sx;
-			GLfloat pt1[8] = {
+			GLfloat pt1[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			glm::vec3 n = glm::normalize(glm::vec3(pt1[0], pt1[1], pt1[2]));
 			pt1[3] = n.x; pt1[4] = n.y; pt1[5] = n.z;
-			memcpy(verts + 2 * 8, pt1, sizeof(GLfloat) * 8);
+			memcpy(verts + 2 * 18, pt1, sizeof(GLfloat) * 18);
 
 			phi = y * sy;
 			theta = (x + 1) * sx;
-			GLfloat pt2[8] = {
+			GLfloat pt2[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			n = glm::normalize(glm::vec3(pt2[0], pt2[1], pt2[2]));
 			pt2[3] = n.x; pt2[4] = n.y; pt2[5] = n.z;
-			memcpy(verts + 1 * 8, pt2, sizeof(GLfloat) * 8);
+			memcpy(verts + 1 * 18, pt2, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = x * sx;
-			GLfloat pt3[8] = {
+			GLfloat pt3[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			n = glm::normalize(glm::vec3(pt3[0], pt3[1], pt3[2]));
 			pt3[3] = n.x; pt3[4] = n.y; pt3[5] = n.z;
-			memcpy(verts + 0 * 8, pt3, sizeof(GLfloat) * 8);
+			memcpy(verts + 0 * 18, pt3, sizeof(GLfloat) * 18);
 
 			phi = y * sy;
 			theta = (x + 1) * sx;
-			GLfloat pt4[8] = {
+			GLfloat pt4[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			n = glm::normalize(glm::vec3(pt4[0], pt4[1], pt4[2]));
 			pt4[3] = n.x; pt4[4] = n.y; pt4[5] = n.z;
-			memcpy(verts + 3 * 8, pt4, sizeof(GLfloat) * 8);
+			memcpy(verts + 3 * 18, pt4, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = x * sx;
-			GLfloat pt5[8] = {
+			GLfloat pt5[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			n = glm::normalize(glm::vec3(pt5[0], pt5[1], pt5[2]));
 			pt5[3] = n.x; pt5[4] = n.y; pt5[5] = n.z;
-			memcpy(verts + 4 * 8, pt5, sizeof(GLfloat) * 8);
+			memcpy(verts + 4 * 18, pt5, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = (x + 1) * sx;
-			GLfloat pt6[8] = {
+			GLfloat pt6[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
 				(radius * cos(phi)),
 				0,0,0,
-				theta / glm::two_pi<float>(), phi / glm::pi<float>()
+				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
+				0,0,0, 0,0,0, 1,1,1,1
 			};
 			n = glm::normalize(glm::vec3(pt6[0], pt6[1], pt6[2]));
 			pt6[3] = n.x; pt6[4] = n.y; pt6[5] = n.z;
-			memcpy(verts + 5 * 8, pt6, sizeof(GLfloat) * 8);
+			memcpy(verts + 5 * 18, pt6, sizeof(GLfloat) * 18);
 		}
 		void calcBinormalAndTangents(GLfloat* verts, GLuint vertCount)
 		{
@@ -333,7 +339,7 @@ namespace ed
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			
 			calcBinormalAndTangents(&sphereData[0], count);
-			
+
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
