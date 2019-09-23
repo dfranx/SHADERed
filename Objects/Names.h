@@ -13,6 +13,7 @@ extern const char* COMPARISON_FUNCTION_NAMES[9];
 extern const char* STENCIL_OPERATION_NAMES[9];
 extern const char* CULL_MODE_NAMES[4];
 extern const char* FORMAT_NAMES[66];
+extern const char* ATTRIBUTE_VALUE_NAMES[6];
 
 // VALUES //
 extern const unsigned int FORMAT_VALUES[66];

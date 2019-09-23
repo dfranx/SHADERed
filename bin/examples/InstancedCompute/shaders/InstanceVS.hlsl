@@ -8,7 +8,6 @@ struct VSInput
 {
 	float3 Position : POSITION;
 	float3 Normal : NORMAL;
-	float2 UV : TEXCOORD;
 	float4 ActualPosition : POSITION1;
 	float4 Velocity : VELOCITY;
 };

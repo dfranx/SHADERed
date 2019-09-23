@@ -4,7 +4,7 @@
 + add glslang error messages when preprocessing fails
 + fix a bug which would crash whole app on deleting last variable
 + fix a bug where variable name was limited to 16chars when being created
-+ fix a bug where SHADERed would use absolute paths even if project and shader are on the same drive
++ fix a bug where SHADERed would use absolute paths even if project and shader file are on the same drive
 + increase variable name length from 32 to 256
 
 [v1.2.1]

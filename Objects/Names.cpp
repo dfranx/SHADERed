@@ -234,6 +234,14 @@ const char* FORMAT_NAMES[] = {
 	"R32G32B32A32_INT",
 	"R32G32B32A32_UINT"
 };
+const char* ATTRIBUTE_VALUE_NAMES[] = {
+	"Position",
+	"Normal",
+	"Texcoord",
+	"Tangent",
+	"Bitangent",
+	"Color"
+};
 
 
 

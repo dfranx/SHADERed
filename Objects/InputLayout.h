@@ -10,7 +10,8 @@ namespace ed
 		Texcoord,
 		Tangent,
 		Binormal,
-		Color
+		Color,
+		MaxCount
 	};
 
 	class InputLayoutItem

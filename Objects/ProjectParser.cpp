@@ -227,6 +227,16 @@ namespace ed
 					gsNode.append_attribute("entry").set_value(passData->GSEntry);
 				}
 
+				/* vs input layout */
+				pugi::xml_node iLayout = passNode.append_child("inputlayout");
+				for (auto& iteminp : passData->InputLayout) {
+					pugi::xml_node lItem = iLayout.append_child("item");
+					lItem.append_attribute("value").set_value(ATTRIBUTE_VALUE_NAMES[(int)iteminp.Value]);
+
+					if (iteminp.Semantic.size() > 0)
+						lItem.append_attribute("semantic").set_value(iteminp.Semantic.c_str());
+				}
+
 				/* render textures */
 				for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
 					if (passData->RenderTextures[i] == 0)
@@ -1492,8 +1502,6 @@ namespace ed
 			if (type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = new ed::pipe::ShaderPass();
 
-				data->InputLayout = gl::CreateDefaultInputLayout();
-
 				data->RenderTextures[0] = m_renderer->GetTexture();
 				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
 					data->RenderTextures[i] = 0;
@@ -1607,7 +1615,29 @@ namespace ed
 					data->Variables.Add(var);
 				}
 
-				// macros	
+				// input layout		
+				for (pugi::xml_node lItemNode : passNode.child("inputlayout").children("item")) {
+					char ITEM_VALUE_NAME[32];
+					char ITEM_SEMANTIC_NAME[32];
+
+					if (!lItemNode.attribute("value").empty())
+						strcpy(ITEM_VALUE_NAME, lItemNode.attribute("value").as_string());
+					
+					if (!lItemNode.attribute("semantic").empty())
+						strcpy(ITEM_SEMANTIC_NAME, lItemNode.attribute("semantic").as_string());
+						
+					InputLayoutValue lValue = InputLayoutValue::Position;
+					for (int k = 0; k < (int)InputLayoutValue::MaxCount; k++)
+						if (strcmp(ITEM_VALUE_NAME, ATTRIBUTE_VALUE_NAMES[k]) == 0)
+							lValue = (InputLayoutValue)k;
+
+					data->InputLayout.push_back({ lValue, std::string(ITEM_SEMANTIC_NAME) });
+				}
+
+				if (data->InputLayout.size() == 0)
+					data->InputLayout = gl::CreateDefaultInputLayout();
+
+				// macros
 				for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
 					ShaderMacro newMacro;
 					if (!macroNode.attribute("name").empty())
