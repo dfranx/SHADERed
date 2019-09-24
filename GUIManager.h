@@ -108,6 +108,7 @@ namespace ed
 		int m_savePreviewSeqFPS;
 
 		bool m_performanceMode, m_perfModeFake;
+		sf::Clock m_perfModeClock;
 
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;

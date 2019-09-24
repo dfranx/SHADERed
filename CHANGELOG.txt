@@ -2,10 +2,13 @@
 + add support for Vulkan GLSL
 + add input layout
 + add tangent, bitangent and color vertex attributes
++ add ability to export your shader to an image sequence
++ add "Hide menu bar in performance mode" option
 + add glslang error messages when preprocessing fails
 + fix a bug which would crash whole app on deleting last variable
 + fix a bug where variable name was limited to 16chars when being created
 + fix a bug where SHADERed would use absolute paths even if project and shader file are on the same drive
++ save performance mode state on exit
 + increase variable name length from 32 to 256
 
 [v1.2.1]

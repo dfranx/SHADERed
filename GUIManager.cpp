@@ -177,6 +177,9 @@ namespace ed
 					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
 			}
 		}
+		else if (e.type == SDL_MOUSEMOTION) {
+			m_perfModeClock.restart();
+		}
 
 		if (m_optionsOpened)
 			m_options->OnEvent(e);
@@ -413,7 +416,8 @@ namespace ed
 			m_renderToolbar();
 
 		// create a fullscreen imgui panel that will host a dockspace
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		bool showMenu = !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.getElapsedTime().asSeconds() > 2.5f);
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | (ImGuiWindowFlags_MenuBar * showMenu) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, viewport->Size.y - actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
@@ -441,7 +445,7 @@ namespace ed
 		((CodeEditorUI*)Get(ViewID::Code))->UpdateAutoRecompileItems();
 
 		// menu
-		if (ImGui::BeginMainMenuBar()) {
+		if (showMenu && ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::BeginMenu("New")) {
 					if (ImGui::MenuItem("Empty")) {

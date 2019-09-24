@@ -122,7 +122,7 @@ already running to see the template under `File -> New`. A menu item for creatin
 have the same text as the parent directory of the template.
 
 ### And many more
-Instancing, variable pointers, shader macros, buffers, pausing time, etc...
+Instancing, variable pointers, shader macros, buffers, pausing time, input layout/vertex attribute manager, export as image and image sequence, etc...
 Check out the list of features that I want to implement in near future: [TODO.md](./TODO.md)
 
 ## Binaries

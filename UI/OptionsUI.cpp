@@ -556,6 +556,11 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::Checkbox("##optp_switchlrclick", &settings->Preview.SwitchLeftRightClick);
 
+		/* MENU IN PERFORMANCE MODE: */
+		ImGui::Text("Hide menu in performance mode: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_menu_perfmode", &settings->Preview.HideMenuInPerformanceMode);
+
 		/* STATUS BAR: */
 		ImGui::Text("Status bar: ");
 		ImGui::SameLine();

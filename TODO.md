@@ -20,41 +20,40 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
+ - fix for: SetColumnWidth doesn't allow user to resize the columns
+ - fix a bug where no actual error messages show up with the auto recompile on HLSL and Vulkan GLSL shaders
+ - find and replace in code editor
+ - show tips on startup & 'whats new' on first startup
+ - right click in code editor
+ - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
+ - remove everything FXAA related
+ - drag and drop files (textures, audio files, etc...)
+ - error marker should "stick" on the line when new lines are added
+ - bound UBOs should be GLuint's and not std::string -> performance improvement
+ - rename AddPass to AddShaderPass
+ - add a * / ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
+
  - rework variables (so that the type can be changed)
  - list all system variables
- - fix a bug where no actual error messages show up with the auto recompile on HLSL and Vulkan GLSL shaders
- - fix for: SetColumnWidth doesn't allow user to resize the columns
  - openning Sobel after Edge -> doesn't render anything
  - crashes when opening cubemap example only on Linux and only in Release mode!
  - prevent crashes (loading wrong 3d model, compute shaders not supported, etc...)
  - color compute shader labels light/dark green
- - remove everything FXAA related
- - drag and drop files (textures, audio files, etc...)
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux
- - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
- - add Options -> Project -> Disable clear
  - move 3D models to ObjectManager
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - recompile the shader after we change shader path in a shader pass
  - when adding a shader pass, decompile the shader and detect input variables
  - when loading a texture it might not be loaded if not bound to any shader pass
  - ability to change warning, message and error text colors
- - add a */ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
- - rename AddPass to AddShaderPass
- - bound UBOs should be GLuint's and not std::string -> performance improvement
  - lower down std::map and std::unordered_map usage
  - why isn't first arg in CodeEditorUI::m_open a pointer?
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - ability to edit the buttons that show up in the toolbar
  - shift+drag with right click to move ArcBallCamera focus point
  - add an option to hide and/or lock certain shader pass
- - error marker should "stick" on the line when new lines are added
- - find and replace in code editor
- - right click in code editor
  - improve the overall code (enum for shader type, etc...)
- - show tips on startup & 'whats new' on first startup
- - option "Show menu bar on mouse move" or "Hide menu bar in performance mode" or "Hide menu bar"
  - fix memory leaks
  - undo/redo
  - languages (english, croatian, etc...)

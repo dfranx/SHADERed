@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 
 	// load window size
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
-	bool fullscreen = false, maximized = false;
+	bool fullscreen = false, maximized = false, perfMode = false;
 	std::ifstream preload("data/preload.dat");
 	if (preload.is_open()) {
 		ed::Logger::Get().Log("Loading window information from data/preload.dat");
@@ -119,6 +119,8 @@ int main(int argc, char* argv[])
 		preload.read(reinterpret_cast<char*>(&wndPosY), 2);
 		fullscreen = preload.get();
 		maximized = preload.get();
+		if (preload.peek() != EOF)
+			perfMode = preload.get();
 		preload.close();
 
 
@@ -181,6 +183,8 @@ int main(int argc, char* argv[])
 		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
 		engine.UI().Open(argv[1]);
 	}
+
+	engine.UI().SetPerformanceMode(perfMode);
 
 	// timer for time delta
 	ed::eng::Timer timer;
@@ -265,6 +269,7 @@ int main(int argc, char* argv[])
 	save.write(converter.data, 2);
 	save.put(fullscreen);
 	save.put(maximized);
+	save.put(engine.UI().IsPerformanceMode());
 
 	save.close();
 

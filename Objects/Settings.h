@@ -60,6 +60,7 @@ namespace ed
 		struct strPreview {
 			bool FXAA;
 			bool SwitchLeftRightClick;
+			bool HideMenuInPerformanceMode;
 			bool BoundingBox;
 			bool Gizmo;
 			bool GizmoRotationUI;
