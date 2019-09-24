@@ -90,8 +90,8 @@ namespace ed
 				if (data->Items.size() <= 0)
 					continue;
 
-				std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
-				std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
+				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
+				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
 
 				if (data->RTCount == 0)
 					continue;
@@ -172,7 +172,7 @@ namespace ed
 				}
 
 				for (int j = 0; j < ubos.size(); j++)
-					glBindBufferBase(GL_UNIFORM_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
+					glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
 				
 				// clear messages
 				//if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
@@ -294,8 +294,8 @@ namespace ed
 			} else if (it->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
-				std::vector<GLuint> srvs = m_objects->GetBindList(m_items[i]);
-				std::vector<std::string> ubos = m_objects->GetUniformBindList(m_items[i]);
+				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
+				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
 
 				if (m_shaders[i] == 0)
 					continue;
@@ -323,7 +323,7 @@ namespace ed
 
 				// bind buffers
 				for (int j = 0; j < ubos.size(); j++)
-					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, m_objects->GetBuffer(ubos[j])->ID);
+					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				
 				// bind variables
 				data->Variables.Bind();

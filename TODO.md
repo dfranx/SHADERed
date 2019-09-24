@@ -20,17 +20,9 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - fix for: SetColumnWidth doesn't allow user to resize the columns
- - fix a bug where no actual error messages show up with the auto recompile on HLSL and Vulkan GLSL shaders
  - find and replace in code editor
- - show tips on startup & 'whats new' on first startup
  - right click in code editor
- - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
- - remove everything FXAA related
  - drag and drop files (textures, audio files, etc...)
- - error marker should "stick" on the line when new lines are added
- - bound UBOs should be GLuint's and not std::string -> performance improvement
- - rename AddPass to AddShaderPass
  - add a * / ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
 
  - rework variables (so that the type can be changed)
@@ -42,6 +34,7 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - bring all Preview tools to ObjectPreview window
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - move 3D models to ObjectManager
+ - show tips on startup & 'whats new' on first startup
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - recompile the shader after we change shader path in a shader pass
  - when adding a shader pass, decompile the shader and detect input variables

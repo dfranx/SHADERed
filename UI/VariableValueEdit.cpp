@@ -130,6 +130,7 @@ namespace ed
 		ImGui::PopItemWidth();
 		
 		ImGui::Columns(2, 0, false);
+		
 		ImGui::SetColumnWidth(0, 15+105);
 
 		ImGui::Indent(15);

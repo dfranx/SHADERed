@@ -3,6 +3,7 @@
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
+#include "../Objects/ThemeContainer.h"
 #include "../Engine/GeometryFactory.h"
 #include "../Engine/Model.h"
 #include "../Engine/GLUtils.h"
@@ -27,10 +28,21 @@ namespace ed
 		if (m_item.Type == PipelineItem::ItemType::RenderState)
 			colWidth = 200;
 
-		ImGui::Columns(2, 0, false);
-		ImGui::SetColumnWidth(0, colWidth);
+		ImGui::Columns(2, 0, true);
+		
+		// TODO: this is only a temprorary fix for non-resizable columns
+		static bool isColumnWidthSet = false;
+		if (!isColumnWidthSet) {
+			ImGui::SetColumnWidth(0, colWidth);
+			isColumnWidthSet= true;
+		}
 
+		if (m_errorOccured)
+			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
 		ImGui::Text("Name:");
+		if (m_errorOccured)
+			ImGui::PopStyleColor();
+
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::InputText("##cui_name", m_item.Name, PIPELINE_ITEM_NAME_LENGTH);
@@ -597,6 +609,7 @@ namespace ed
 	}
 	void CreateItemUI::SetOwner(const char * shaderPass)
 	{
+		m_errorOccured = false;
 		if (shaderPass == nullptr)
 			m_owner[0] = 0;
 		else
@@ -604,6 +617,7 @@ namespace ed
 	}
 	void CreateItemUI::SetType(PipelineItem::ItemType type)
 	{
+		m_errorOccured = false;
 		m_item.Type = type;
 
 		if (m_item.Data != nullptr)
@@ -656,6 +670,7 @@ namespace ed
 	{
 		if (strlen(m_item.Name) < 2) {
 			Logger::Get().Log("CreateItemUI item name is less than 2 characters", true);
+			m_errorOccured = true;
 			return false;
 		}
 
@@ -673,7 +688,8 @@ namespace ed
 			data->RTCount = 1;
 			data->InputLayout = gl::CreateDefaultInputLayout();
 
-			return m_data->Pipeline.AddPass(m_item.Name, data);
+			m_errorOccured = !m_data->Pipeline.AddShaderPass(m_item.Name, data);
+			return !m_errorOccured;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::ComputePass)
 		{
@@ -686,7 +702,8 @@ namespace ed
 			data->WorkY = origData->WorkY;
 			data->WorkZ = origData->WorkZ;
 
-			return m_data->Pipeline.AddComputePass(m_item.Name, data);
+			m_errorOccured = !m_data->Pipeline.AddComputePass(m_item.Name, data);
+			return !m_errorOccured;
 		}
 		else if (m_owner[0] != 0) {
 			if (m_item.Type == PipelineItem::ItemType::Geometry) {
@@ -719,7 +736,8 @@ namespace ed
 				else if (data->Type == pipe::GeometryItem::ScreenQuadNDC)
 					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO, ownerData->InputLayout);
 
-				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				return !m_errorOccured;
 			}
 			else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* data = new pipe::RenderState();
@@ -727,7 +745,8 @@ namespace ed
 
 				memcpy(data, origData, sizeof(pipe::RenderState));
 
-				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				return !m_errorOccured;
 			}
 			else if (m_item.Type == PipelineItem::ItemType::Model) {
 				pipe::Model* data = new pipe::Model();
@@ -750,7 +769,8 @@ namespace ed
 					else m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create a 3D model " + std::string(m_item.Name));
 				}
 
-				return m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				return !m_errorOccured;
 			}
 		}
 

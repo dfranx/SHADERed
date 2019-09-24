@@ -37,11 +37,11 @@ namespace ed
 			m_trackThread = nullptr;
 			m_autoRecompileThread = nullptr;
 			m_autoRecompilerRunning = false;
-			m_autoRecompileClearMsgGroup = false;
 			m_autoRecompile = false;
 
 			m_setupShortcuts();
 		}
+		~CodeEditorUI();
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
@@ -183,8 +183,8 @@ namespace ed
 		std::thread* m_autoRecompileThread;
 		void m_autoRecompiler();
 		std::atomic<bool> m_autoRecompilerRunning, m_autoRecompileRequest;
+		std::vector<ed::MessageStack::Message> m_autoRecompileCachedMsgs;
 		bool m_autoRecompile;
-		bool m_autoRecompileClearMsgGroup;
 		std::shared_mutex m_autoRecompilerMutex;
 		struct AutoRecompilerItemInfo
 		{

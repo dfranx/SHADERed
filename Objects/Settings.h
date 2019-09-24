@@ -58,7 +58,6 @@ namespace ed
 		} Editor;
 
 		struct strPreview {
-			bool FXAA;
 			bool SwitchLeftRightClick;
 			bool HideMenuInPerformanceMode;
 			bool BoundingBox;

@@ -542,10 +542,10 @@ namespace ed
 
 
 					for (int j = 0; j < passItems.size(); j++) {
-						std::vector<std::string> bound = m_objects->GetUniformBindList(passItems[j]);
+						const std::vector<GLuint>& bound = m_objects->GetUniformBindList(passItems[j]);
 
 						for (int slot = 0; slot < bound.size(); slot++)
-							if (bound[slot] == texs[i]) {
+							if (m_objects->GetBufferNameByID(bound[slot]) == texs[i]) {
 								pugi::xml_node bindNode = textureNode.append_child("bind");
 								bindNode.append_attribute("slot").set_value(slot);
 								bindNode.append_attribute("name").set_value(passItems[j]->Name);
@@ -917,7 +917,7 @@ namespace ed
 			data->RTCount = (rtCur == 0) ? 1 : rtCur;
 
 			// add the item
-			m_pipe->AddPass(name, data);
+			m_pipe->AddShaderPass(name, data);
 
 			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY 
 			for (pugi::xml_node shaderNode : passNode.children("shader")) {
@@ -1525,7 +1525,7 @@ namespace ed
 				data->RTCount = (rtCur == 0) ? 1 : rtCur;
 
 				// add the item
-				m_pipe->AddPass(name, data);
+				m_pipe->AddShaderPass(name, data);
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
 				for (pugi::xml_node shaderNode : passNode.children("shader")) {

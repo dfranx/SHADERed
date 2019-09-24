@@ -59,7 +59,7 @@ namespace ed
 	bool PipelineManager::AddItem(const char * owner, const char * name, PipelineItem::ItemType type, void * data)
 	{
 		if (type == PipelineItem::ItemType::ShaderPass)
-			return AddPass(name, (pipe::ShaderPass*)data);
+			return AddShaderPass(name, (pipe::ShaderPass*)data);
 		else if (type == PipelineItem::ItemType::ComputePass)
 			return AddComputePass(name, (pipe::ComputePass*)data);
 		
@@ -93,7 +93,7 @@ namespace ed
 
 		return false;
 	}
-	bool PipelineManager::AddPass(const char * name, pipe::ShaderPass* data)
+	bool PipelineManager::AddShaderPass(const char * name, pipe::ShaderPass* data)
 	{
 		if (Has(name)) {
 			Logger::Get().Log("Shader pass " + std::string(name) + " not added - name already taken", true);

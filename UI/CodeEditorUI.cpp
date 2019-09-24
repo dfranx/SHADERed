@@ -55,6 +55,10 @@ const std::string EDITOR_SHORTCUT_NAMES[] =
 
 namespace ed
 {
+	CodeEditorUI::~CodeEditorUI() {
+		SetAutoRecompile(false);
+		SetTrackFileChanges(false);
+	}
 	void CodeEditorUI::m_setupShortcuts() {
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.Compile", [=]() {
 			if (m_selectedItem == -1)
@@ -514,6 +518,8 @@ namespace ed
 				else
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.CS);
 			}
+			if (m_autoRecompileCachedMsgs.size() > 0)
+				m_data->Messages.Add(m_autoRecompileCachedMsgs);
 			m_autoRecompileRequest = false;
 		}
 	}
@@ -591,6 +597,9 @@ namespace ed
 			}
 
 			// cache
+			std::vector<ed::MessageStack::Message> msgPrev = m_data->Messages.GetMessages();
+			m_autoRecompileCachedMsgs.clear();
+
 			for (auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr) {
 					if (it.second.VS_SLang != ShaderLanguage::GLSL)
@@ -604,6 +613,19 @@ namespace ed
 						it.second.CS = ShaderTranscompiler::TranscompileSource(it.second.CS_SLang, it.second.CPass->Path, it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages);
 				}
 			}
+
+			std::vector<ed::MessageStack::Message> msgCurr = m_data->Messages.GetMessages();
+			for (int i = 0; i < msgCurr.size(); i++) {
+				for (int j = 0; j < msgPrev.size(); j++) {
+					if (msgCurr[i].Text == msgPrev[j].Text) {
+						msgCurr.erase(msgCurr.begin() + i);
+						msgPrev.erase(msgPrev.begin() + j);
+						i--;
+						break;
+					}
+				}
+			}
+			m_autoRecompileCachedMsgs = msgCurr;
 
 			m_autoRecompileRequest = m_ariiList.size()>0;
 		}

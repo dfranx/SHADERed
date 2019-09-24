@@ -229,9 +229,11 @@ namespace ed
 			random (settings)
 		*/
 		ImGui::Columns(4);
+		
 		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(1, (8*(TOOLBAR_HEIGHT) + 8*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
 		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
+		
 		ImGui::PushFont(m_iconFontLarge);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -1209,7 +1211,14 @@ into the actual video");
 		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y*2) / ImGui::GetTextLineHeightWithSpacing() - 1;
 		
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, 100 * Settings::Instance().DPIScale + ImGui::GetStyle().WindowPadding.x * 2);
+		
+		// TODO: this is only a temprorary fix for non-resizable columns
+		static bool isColumnWidthSet = false;
+		if (!isColumnWidthSet) {
+			ImGui::SetColumnWidth(0, 100 * Settings::Instance().DPIScale + ImGui::GetStyle().WindowPadding.x * 2);
+			isColumnWidthSet = true;
+		}
+
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushItemWidth(100 * Settings::Instance().DPIScale);
 		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, HARRAYSIZE(optGroups), height))

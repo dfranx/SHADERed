@@ -9,9 +9,10 @@ namespace ed
 	{}
 	void MessageOutputUI::Update(float delta)
 	{
-		std::vector<MessageStack::Message> msgs = m_data->Messages.GetMessages();
+		const std::vector<MessageStack::Message>& msgs = m_data->Messages.GetMessages();
 
-		ImGui::Columns(4, 0, false);
+		ImGui::Columns(4);
+
 		ImGui::SetColumnWidth(0, 150.0f);
 		ImGui::SetColumnWidth(1, 60.0f);
 		ImGui::SetColumnWidth(2, 60.0f);
@@ -23,7 +24,7 @@ namespace ed
 		ImGui::Separator();
 
 		for (int i = 0; i < msgs.size(); i++) {
-			MessageStack::Message* m = &msgs[i];
+			const MessageStack::Message* m = &msgs[i];
 
 			ImVec4 color = IMGUI_MESSAGE_COLOR;
 			if (m->MType == MessageStack::Type::Error)

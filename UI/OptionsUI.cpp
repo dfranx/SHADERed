@@ -540,17 +540,6 @@ namespace ed
 	{
 		Settings* settings = &Settings::Instance();
 
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-
-		/* FXAA: */
-		ImGui::Text("FXAA: ");
-		ImGui::SameLine();
-		ImGui::Checkbox("##optp_fxaa", &settings->Preview.FXAA);
-
-		ImGui::PopStyleVar();
-		ImGui::PopItemFlag();
-
 		/* SWITCH LEFT AND RIGHT: */
 		ImGui::Text("Switch what left and right clicks do: ");
 		ImGui::SameLine();

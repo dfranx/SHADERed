@@ -111,7 +111,7 @@ namespace ed
 		void Bind(const std::string& file, PipelineItem* pass);
 		void Unbind(const std::string& file, PipelineItem* pass);
 		int IsBound(const std::string& file, PipelineItem* pass);
-		inline std::vector<GLuint> GetBindList(PipelineItem* pass) {
+		inline std::vector<GLuint>& GetBindList(PipelineItem* pass) {
 			if (m_binds.count(pass) > 0) return m_binds[pass];
 			return std::vector<GLuint>();
 		}
@@ -119,9 +119,9 @@ namespace ed
 		void BindUniform(const std::string& file, PipelineItem* pass);
 		void UnbindUniform(const std::string& file, PipelineItem* pass);
 		int IsUniformBound(const std::string& file, PipelineItem* pass);
-		inline std::vector<std::string> GetUniformBindList(PipelineItem* pass) {
+		inline std::vector<GLuint>& GetUniformBindList(PipelineItem* pass) {
 			if (m_uniformBinds.count(pass) > 0) return m_uniformBinds[pass];
-			return std::vector<std::string>();
+			return std::vector<GLuint>();
 		}
 
 		inline bool Exists(const std::string& name) { return std::count(m_items.begin(), m_items.end(), name) > 0; }
@@ -153,6 +153,6 @@ namespace ed
 		std::unordered_map<std::string, ImageObject *> m_images;
 
 		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_binds;
-		std::unordered_map<PipelineItem*, std::vector<std::string>> m_uniformBinds;
+		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_uniformBinds;
 	};
 }

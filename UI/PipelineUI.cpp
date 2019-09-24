@@ -427,8 +427,13 @@ namespace ed
 		ImGui::Text("HLSL semantic"); ImGui::NextColumn();
 
 		
-		ImGui::SetColumnWidth(0, 80 * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, 60 * Settings::Instance().DPIScale);
+		// TODO: this is only a temprorary fix for non-resizable columns
+		static bool isColumnWidthSet = false;
+		if (!isColumnWidthSet) {
+			ImGui::SetColumnWidth(0, 80 * Settings::Instance().DPIScale);
+			ImGui::SetColumnWidth(1, 60 * Settings::Instance().DPIScale);
+			isColumnWidthSet = true;
+		}
 
 
 		ImGui::Separator();
@@ -538,8 +543,13 @@ namespace ed
 		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
 		ImGui::Columns(5);
 
-		ImGui::SetColumnWidth(0, (6*20) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(3, 180 * Settings::Instance().DPIScale);
+		// TODO: this is only a temprorary fix for non-resizable columns
+		static bool isColumnWidthSet = false;
+		if (!isColumnWidthSet) {
+			ImGui::SetColumnWidth(0, (6*20) * Settings::Instance().DPIScale);
+			ImGui::SetColumnWidth(3, 180 * Settings::Instance().DPIScale);
+			isColumnWidthSet = true;
+		}
 
 		ImGui::Text("Controls"); ImGui::NextColumn();
 		ImGui::Text("Type"); ImGui::NextColumn();

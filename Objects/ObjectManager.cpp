@@ -421,7 +421,7 @@ namespace ed
 		} else {
 			for (auto& i : m_uniformBinds)
 				for (int j = 0; j < i.second.size(); j++)
-					if (i.second[j] == file) {
+					if (GetBufferNameByID(i.second[j]) == file) {
 						i.second.erase(i.second.begin() + j);
 						j--;
 					}
@@ -506,14 +506,15 @@ namespace ed
 	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
 	{
 		if (IsUniformBound(file, pass) == -1)
-			m_uniformBinds[pass].push_back(file);
+			m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
 	}
 	void ObjectManager::UnbindUniform(const std::string & file, PipelineItem * pass)
 	{
-		std::vector<std::string>& ubos = m_uniformBinds[pass];
+		std::vector<GLuint>& ubos = m_uniformBinds[pass];
+		BufferObject* obj = GetBuffer(file);
 		
 		for (int i = 0; i < ubos.size(); i++)
-			if (ubos[i] == file) {
+			if (ubos[i] == obj->ID) {
 				ubos.erase(ubos.begin() + i);
 				return;
 			}
@@ -523,10 +524,11 @@ namespace ed
 		if (m_uniformBinds.count(pass) == 0)
 			return -1;
 
+		BufferObject* bobj = GetBuffer(file);
+
 		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
-			if (m_uniformBinds[pass][i] == file) {
+			if (m_uniformBinds[pass][i] == bobj->ID)
 				return i;
-			}
 
 		return -1;
 	}

@@ -51,7 +51,13 @@ namespace ed
 			ImGui::PopStyleColor();
 
 			ImGui::Columns(2, "##content_columns");
-			ImGui::SetColumnWidth(0, ImGui::GetWindowSize().x * 0.3f);
+			
+			// TODO: this is only a temprorary fix for non-resizable columns
+			static bool isColumnWidthSet = false;
+			if (!isColumnWidthSet) {
+				ImGui::SetColumnWidth(0, ImGui::GetWindowSize().x * 0.3f);
+				isColumnWidthSet = true;
+			}
 
 			ImGui::Separator();
 			

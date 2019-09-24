@@ -11,6 +11,7 @@ namespace ed
 			SetOwner(nullptr);
 			m_item.Data = nullptr;
 			m_selectedGroup = 0;
+			m_errorOccured = false;
 			memset(m_owner, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char));
 		}
 
@@ -24,6 +25,8 @@ namespace ed
 	private:
 		std::vector<std::string> m_groups;
 		int m_selectedGroup;
+
+		bool m_errorOccured;
 
 		char m_owner[PIPELINE_ITEM_NAME_LENGTH];
 		PipelineItem m_item;
