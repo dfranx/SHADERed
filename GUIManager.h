@@ -102,6 +102,10 @@ namespace ed
 		glm::vec4 m_savePreviewMouse;
 		std::string m_previewSavePath;
 		glm::ivec2 m_previewSaveSize;
+		
+		bool m_savePreviewSeq;
+		float m_savePreviewSeqDuration;
+		int m_savePreviewSeqFPS;
 
 		bool m_performanceMode, m_perfModeFake;
 

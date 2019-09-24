@@ -34,7 +34,6 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - name already taken when creating item through CreateItemUI? then color the "Name:" label red or write a message to user
  - add Options -> Project -> Disable clear
- - feature such as "Change variables" for items but for changing textures -> render textured 3D models easily (have an option to set up everything automatically)
  - move 3D models to ObjectManager
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - recompile the shader after we change shader path in a shader pass

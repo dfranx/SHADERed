@@ -69,6 +69,9 @@ namespace ed
 		m_isCreateImgOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
+		m_savePreviewSeq = false;
+		m_savePreviewSeqDuration = 5.5f;
+		m_savePreviewSeqFPS = 30;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -678,6 +681,8 @@ namespace ed
 			m_savePreviewWASD[2] = wasd.z; m_savePreviewWASD[3] = wasd.w;
 			m_savePreviewMouse = SystemVariableManager::Instance().GetMouse();
 			
+			m_savePreviewSeq = false;
+			
 			m_data->Renderer.Pause(true);
 		}
 
@@ -963,6 +968,43 @@ namespace ed
 			ImGui::Unindent(55);
 
 			ImGui::Separator();
+			if (ImGui::CollapsingHeader("Sequence")) {
+				ImGui::TextWrapped("NOTE: This allows you to record a video and export it as image sequence - which means that \
+you should probably put it in a separate directory to avoid spam. Use ffmpeg or similar tool to convert the sequence \
+into the actual video");
+
+				/* RECORD */
+				ImGui::Text("Record:");
+				ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keyw", &m_savePreviewSeq);
+
+				if (!m_savePreviewSeq) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+
+				/* DURATION */
+				ImGui::Text("Duration:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##save_prev_seqdur", &m_savePreviewSeqDuration);
+				ImGui::PopItemWidth();
+
+				/* TIME DELTA */
+				ImGui::Text("FPS:");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragInt("##save_prev_seqfps", &m_savePreviewSeqFPS);
+				ImGui::PopItemWidth();
+
+				if (!m_savePreviewSeq) {
+					ImGui::PopItemFlag();
+					ImGui::PopStyleVar();
+				}
+			}
+			ImGui::Separator();
+
+			ImGui::Separator();
 			if (ImGui::CollapsingHeader("Advanced")) {
 				/* TIME */
 				ImGui::Text("Time:");
@@ -1012,40 +1054,93 @@ namespace ed
 			ImGui::Separator();
 
 			if (ImGui::Button("Save")) {
-				if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
-					SystemVariableManager::Instance().CopyState();
-					
-					SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
-					SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
-					SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
-					SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
-					SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
-					
-					m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+				// normal render
+				if (!m_savePreviewSeq) {
+					if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
+						SystemVariableManager::Instance().CopyState();
+						
+						SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
+						SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
+						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
+						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+						
+						m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
 
-					SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+					}
+					
+					GLuint tex = m_data->Renderer.GetTexture();
+					glBindTexture(GL_TEXTURE_2D, tex);
+					unsigned char *pixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+					glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+					glBindTexture(GL_TEXTURE_2D, 0);
+
+					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+					
+					if (ext == "jpg" || ext == "jpeg")
+						stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, 100);
+					else if (ext == "bmp")
+						stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+					else if (ext == "tga")
+						stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+					else
+						stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
+
+					free(pixels);
+				} else { // sequence render
+
+					float seqDelta = 1.0f / m_savePreviewSeqFPS;
+
+					if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
+						unsigned char *pixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+						
+						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
+						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+						
+						float curTime = 0.0f;
+						int curFrame = 0;
+
+						GLuint tex = m_data->Renderer.GetTexture();
+						
+						std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+						std::string filename = m_previewSavePath.substr(0, m_previewSavePath.find_last_of('.'));
+						
+						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+						SystemVariableManager::Instance().SetTimeDelta(seqDelta);
+
+						while (curTime < m_savePreviewSeqDuration) {
+							SystemVariableManager::Instance().CopyState();
+							SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex + curFrame);
+							
+							m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+
+							glBindTexture(GL_TEXTURE_2D, tex);
+							glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+							glBindTexture(GL_TEXTURE_2D, 0);
+
+							std::string prevSavePath = filename + std::to_string(curFrame) + "." + ext;
+							
+							if (ext == "jpg" || ext == "jpeg")
+								stbi_write_jpg(prevSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, 100);
+							else if (ext == "bmp")
+								stbi_write_bmp(prevSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+							else if (ext == "tga")
+								stbi_write_tga(prevSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
+							else
+								stbi_write_png(prevSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
+
+							SystemVariableManager::Instance().AdvanceTimer(seqDelta);
+
+							curTime += seqDelta;
+							curFrame++;
+						}
+						free(pixels);
+					}
 				}
-				
-				GLuint tex = m_data->Renderer.GetTexture();
-				glBindTexture(GL_TEXTURE_2D, tex);
-				unsigned char *pixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
-				
-				if (ext == "jpg" || ext == "jpeg")
-					stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, 100);
-				else if (ext == "bmp")
-					stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
-				else if (ext == "tga")
-					stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
-				else
-					stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
 
 				m_data->Renderer.Pause(m_wasPausedPrior);
-
-				free(pixels);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
