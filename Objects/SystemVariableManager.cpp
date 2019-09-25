@@ -92,7 +92,17 @@ namespace ed
 					case ed::SystemShaderVariable::CameraPosition:
 					{
 						glm::vec3 cam = SystemVariableManager::Instance().GetCamera()->GetPosition();
-						memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec3));
+						memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec4));
+					} break;
+					case ed::SystemShaderVariable::CameraPosition3:
+					{
+						glm::vec3 cam = SystemVariableManager::Instance().GetCamera()->GetPosition();
+						memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
+					} break;
+					case ed::SystemShaderVariable::CameraDirection3:
+					{
+						glm::vec3 cam = SystemVariableManager::Instance().GetCamera()->GetViewDirection();
+						memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
 					} break;
 					case ed::SystemShaderVariable::KeysWASD:
 					{
@@ -175,7 +185,17 @@ namespace ed
 					case ed::SystemShaderVariable::CameraPosition:
 					{
 						glm::vec3 cam = (Settings::Instance().Project.FPCamera ? (Camera*)&m_prevState.FPCam : (Camera*)&m_prevState.ArcCam)->GetPosition();
-						memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec3));
+						memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec4));
+					} break;
+					case ed::SystemShaderVariable::CameraPosition3:
+					{
+						glm::vec3 cam = (Settings::Instance().Project.FPCamera ? (Camera*)&m_prevState.FPCam : (Camera*)&m_prevState.ArcCam)->GetPosition();
+						memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
+					} break;
+					case ed::SystemShaderVariable::CameraDirection3:
+					{
+						glm::vec3 cam = (Settings::Instance().Project.FPCamera ? (Camera*)&m_prevState.FPCam : (Camera*)&m_prevState.ArcCam)->GetViewDirection();
+						memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
 					} break;
 					case ed::SystemShaderVariable::KeysWASD:
 					{

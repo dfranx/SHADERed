@@ -53,6 +53,8 @@ namespace ed
 				case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
 				case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
 				case ed::SystemShaderVariable::CameraPosition: return ed::ShaderVariable::ValueType::Float4;
+				case ed::SystemShaderVariable::CameraPosition3: return ed::ShaderVariable::ValueType::Float3;
+				case ed::SystemShaderVariable::CameraDirection3: return ed::ShaderVariable::ValueType::Float3;
 				case ed::SystemShaderVariable::KeysWASD: return ed::ShaderVariable::ValueType::Integer4;
 			}
 

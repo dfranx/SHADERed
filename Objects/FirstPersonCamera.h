@@ -24,6 +24,7 @@ namespace ed
 
 		virtual inline glm::vec4 GetPosition() { return glm::vec4(m_pos, 0.0f); }
 		virtual glm::vec4 GetUpVector();
+		virtual glm::vec4 GetViewDirection();
 
 		virtual glm::mat4 GetMatrix();
 

@@ -57,6 +57,10 @@ namespace ed
 	{
 		m_roll = r;
 	}
+	glm::vec4 ArcBallCamera::GetViewDirection()
+	{
+		return -GetPosition();
+	}
 	glm::vec4 ArcBallCamera::GetPosition()
 	{
 		glm::vec4 pos(0, 0, -m_distance, 0);

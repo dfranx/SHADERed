@@ -22,6 +22,8 @@ namespace ed
 		GeometryTransform,	// mat4 - apply Scale, Rotation and Position to geometry
 		IsPicked,			// bool - check if current item is selected
 		CameraPosition,		// vec4 - current camera position
+		CameraPosition3,	// vec3 - current camera position
+		CameraDirection3,	// vec3 - camera view direction
 		KeysWASD,			// vec4 - are W, A, S or D keys pressed
 		Mouse,				// vec4 - (x,y,left,right) updated every frame
 		MouseButton,		// vec4 - (x,y,left,right) updated only when mouse button pressed

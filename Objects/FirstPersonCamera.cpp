@@ -50,4 +50,12 @@ namespace ed
 
 		return glm::lookAt(m_pos, glm::vec3(target), glm::vec3(up));
 	}
+	glm::vec4 FirstPersonCamera::GetViewDirection() {
+		glm::mat4 rota = glm::yawPitchRoll(glm::radians(m_yaw), glm::radians(m_pitch), 0.0f);
+		
+		glm::vec4 target = rota * FORWARD_VECTOR;
+		target = glm::vec4(m_pos,0) - glm::normalize(target);
+
+		return target;
+	}
 }

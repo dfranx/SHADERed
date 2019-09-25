@@ -44,6 +44,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"GeometryTransform",
 	"IsPicked",
 	"CameraPosition",
+	"CameraPosition3",
+	"CameraDirection3",
 	"KeysWASD",
 	"Mouse",
 	"MouseButton"

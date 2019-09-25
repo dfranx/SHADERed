@@ -12,6 +12,7 @@ namespace ed
 
 		virtual glm::vec4 GetPosition() = 0;
 		virtual glm::vec4 GetUpVector() = 0;
+		virtual glm::vec4 GetViewDirection() = 0;
 
 		virtual glm::mat4 GetMatrix() = 0;
 	};

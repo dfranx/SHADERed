@@ -30,6 +30,7 @@ namespace ed
 		inline float GetDistance() { return m_distance; }
 		inline virtual glm::vec3 GetRotation() { return glm::vec3(m_pitch, m_yaw, m_roll); }
 
+		virtual glm::vec4 GetViewDirection();
 		virtual glm::vec4 GetPosition();
 		virtual glm::vec4 GetUpVector();
 
