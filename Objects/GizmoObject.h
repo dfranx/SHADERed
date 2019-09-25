@@ -28,7 +28,7 @@ namespace ed
 		inline void UnselectAxis() { m_axisSelected = -1; }
 		void HandleMouseMove(int x, int y, int vw, int vh);
 		int Click(int sx, int sy, int vw, int wh);
-		void Move(int dx, int dy, bool shift);
+		bool Move(int dx, int dy, bool shift);
 
 		void Render();
 

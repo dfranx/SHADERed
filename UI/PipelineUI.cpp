@@ -137,6 +137,10 @@ namespace ed
 				for (auto& pitem : passItems) {
 					if (pitem->Type == PipelineItem::ItemType::Geometry) {
 						pipe::GeometryItem* gitem = (pipe::GeometryItem*)pitem->Data;
+						
+						if (gitem->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
+							continue;
+
 						BufferObject* bobj = (BufferObject*)gitem->InstanceBuffer;
 						if (bobj == nullptr)
 							gl::CreateVAO(gitem->VAO, gitem->VBO, pass->InputLayout);
@@ -384,7 +388,8 @@ namespace ed
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
 
-		ImGui::Checkbox(("##flaginv" + std::string(var->Name)).c_str(), &isInvert);
+		if (ImGui::Checkbox(("##flaginv" + std::string(var->Name)).c_str(), &isInvert))
+			m_data->Parser.ModifyProject();
 		m_tooltip("Invert");
 		ImGui::SameLine();
 
@@ -398,7 +403,8 @@ namespace ed
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
 
-		ImGui::Checkbox(("##flaglf" + std::string(var->Name)).c_str(), &isLastFrame);
+		if (ImGui::Checkbox(("##flaglf" + std::string(var->Name)).c_str(), &isLastFrame))
+			m_data->Parser.ModifyProject();
 		m_tooltip("Use last frame values");
 
 		if (var->System == ed::SystemShaderVariable::None || !canLastFrame) {
@@ -452,6 +458,8 @@ namespace ed
 				InputLayoutItem temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
+				
+				m_data->Parser.ModifyProject();
 			}
 			ImGui::SameLine(0,0);
 			/* DOWN BUTTON */
@@ -459,12 +467,17 @@ namespace ed
 				InputLayoutItem temp = els[id + 1];
 				els[id + 1] = el;
 				els[id] = temp;
+				
+				m_data->Parser.ModifyProject();
 			}
 			ImGui::SameLine(0,0);
 			/* DELETE BUTTON */
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				els.erase(els.begin() + id);
 				ImGui::PopStyleColor();
+				
+				m_data->Parser.ModifyProject();
+
 				continue;
 			}
 			
@@ -481,8 +494,10 @@ namespace ed
 			if (ImGui::BeginCombo(("##value" + std::to_string(id)).c_str(), valueComboPreview)) {
 				for (int n = 0; n < HARRAYSIZE(ATTRIBUTE_VALUE_NAMES); n++) {
 					bool is_selected = (n == (int)el.Value);
-					if (ImGui::Selectable(ATTRIBUTE_VALUE_NAMES[n], is_selected))
-							el.Value = (InputLayoutValue)n;
+					if (ImGui::Selectable(ATTRIBUTE_VALUE_NAMES[n], is_selected)) {
+						el.Value = (InputLayoutValue)n;
+						m_data->Parser.ModifyProject();
+					}
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}
@@ -492,7 +507,7 @@ namespace ed
 
 			/* SEMANTIC */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Text("Currently not supported (%s)", el.Semantic.c_str());
+			ImGui::Text("%s (currently not supported)", el.Semantic.c_str());
 			ImGui::NextColumn();
 
 			id++;
@@ -504,8 +519,10 @@ namespace ed
 		/* ADD BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Button(UI_ICON_ADD))
-			els.push_back({ iValueType, std::string(semanticName) });
+		if (ImGui::Button(UI_ICON_ADD)) {
+			els.push_back({ iValueType, std::string(semanticName) });		
+			m_data->Parser.ModifyProject();
+		}
 		ImGui::NextColumn();
 		ImGui::PopStyleColor();
 
@@ -575,6 +592,8 @@ namespace ed
 				bool containsCur = pinState->Contains(el->Name);
 				bool containsDown = pinState->Contains(els[id-1]->Name);
 
+				m_data->Parser.ModifyProject();
+
 				// first unpin if it was pinned
 				if (containsCur)
 					pinState->Remove(el->Name);
@@ -599,6 +618,8 @@ namespace ed
 				bool containsCur = pinState->Contains(el->Name);
 				bool containsDown = pinState->Contains(els[id + 1]->Name);
 
+				m_data->Parser.ModifyProject();
+
 				// first unpin if it was pinned
 				if (containsCur)
 					pinState->Remove(el->Name);
@@ -620,6 +641,8 @@ namespace ed
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
 				
+				m_data->Parser.ModifyProject();
+
 				if (isCompute)
 					((pipe::ComputePass*)itemData)->Variables.Remove(el->Name);
 				else
@@ -639,12 +662,16 @@ namespace ed
 
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				if (!pinState->Contains(el->Name)) {
-					if (ImGui::Button((UI_ICON_ADD "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
+					if (ImGui::Button((UI_ICON_ADD "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 						pinState->Add(el);
+						m_data->Parser.ModifyProject();
+					}
 					m_tooltip("Pin");
 				} else {
-					if (ImGui::Button((UI_ICON_REMOVE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
+					if (ImGui::Button((UI_ICON_REMOVE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 						pinState->Remove(el->Name);
+						m_data->Parser.ModifyProject();
+					}
 					m_tooltip("Unpin");
 				}
 
@@ -661,7 +688,9 @@ namespace ed
 
 			/* NAME */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputText(("##name" + std::to_string(id)).c_str(), const_cast<char*>(el->Name), VARIABLE_NAME_LENGTH);
+			if (ImGui::InputText(("##name" + std::to_string(id)).c_str(), const_cast<char*>(el->Name), VARIABLE_NAME_LENGTH)) {
+				m_data->Parser.ModifyProject();
+			}
 			ImGui::NextColumn();
 
 			/* SYSTEM VALUE */
@@ -671,8 +700,10 @@ namespace ed
 				for (int n = 0; n < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
 					bool is_selected = (n == (int)el->System);
 					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el->GetType())
-						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
+						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected)) {
 							el->System = (ed::SystemShaderVariable)n;
+							m_data->Parser.ModifyProject();
+						}
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}
@@ -697,6 +728,7 @@ namespace ed
 			m_valueEdit.Update();
 			
 			if (ImGui::Button("Ok")) {
+				m_data->Parser.ModifyProject();
 				m_valueEdit.Close();
 				ImGui::CloseCurrentPopup();
 			}
@@ -724,6 +756,8 @@ namespace ed
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
 				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;
+				
+				m_data->Parser.ModifyProject();
 			}
 		}
 		ImGui::NextColumn();
@@ -836,8 +870,10 @@ namespace ed
 				m_valueEdit.Open(i.NewValue);
 			}
 			ImGui::SameLine();
-			if (ImGui::Button((UI_ICON_DELETE "##delBtn" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE))
+			if (ImGui::Button((UI_ICON_DELETE "##delBtn" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				m_data->Renderer.RemoveItemVariableValue(i.Item, i.Variable);
+				m_data->Parser.ModifyProject();
+			}
 			ImGui::NextColumn();
 
 			id++;
@@ -851,6 +887,7 @@ namespace ed
 			m_valueEdit.Update();
 
 			if (ImGui::Button("Ok")) {
+				m_data->Parser.ModifyProject();
 				m_valueEdit.Close();
 				ImGui::CloseCurrentPopup();
 			}
@@ -890,6 +927,7 @@ namespace ed
 				itemVal.Item = m_modalItem;
 
 				m_data->Renderer.AddItemVariableValue(itemVal);
+				m_data->Parser.ModifyProject();
 			}
 		}
 		ImGui::NextColumn();
@@ -930,6 +968,7 @@ namespace ed
 				ed::ShaderMacro temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
+				m_data->Parser.ModifyProject();
 			}
 			ImGui::SameLine(0,0);
 			/* DOWN BUTTON */
@@ -937,29 +976,34 @@ namespace ed
 				ed::ShaderMacro temp = els[id + 1];
 				els[id + 1] = el;
 				els[id] = temp;
+				m_data->Parser.ModifyProject();
 			}
 			ImGui::SameLine(0,0);
 			/* DELETE BUTTON */
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str())) {
 				els.erase(els.begin() + id);
 				id--;
+				m_data->Parser.ModifyProject();
 			}
 			ImGui::PopStyleColor();
 			ImGui::NextColumn();
 
 			/* ACTIVE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Checkbox(("##pui_mcr_act" + std::to_string(id)).c_str(), &el.Active);
+			if (ImGui::Checkbox(("##pui_mcr_act" + std::to_string(id)).c_str(), &el.Active))
+				m_data->Parser.ModifyProject();
 			ImGui::NextColumn();
 
 			/* NAME */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputText(("##mcrName" + std::to_string(id)).c_str(), el.Name, 32);
+			if (ImGui::InputText(("##mcrName" + std::to_string(id)).c_str(), el.Name, 32))
+				m_data->Parser.ModifyProject();
 			ImGui::NextColumn();
 
 			/* VALUE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::InputText(("##mcrVal" + std::to_string(id)).c_str(), el.Value, 512);
+			if (ImGui::InputText(("##mcrVal" + std::to_string(id)).c_str(), el.Value, 512))
+				m_data->Parser.ModifyProject();
 			ImGui::NextColumn();
 
 			id++;
@@ -982,6 +1026,7 @@ namespace ed
 			if (!exists) {
 				els.push_back(addMacro);
 				scrollToBottom = true;
+				m_data->Parser.ModifyProject();
 			}
 		}
 		ImGui::NextColumn();

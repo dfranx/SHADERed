@@ -93,6 +93,8 @@ namespace ed
 			break;
 		}
 
+		m_modified = false;
+
 		// reset time, frame index, etc...
 		SystemVariableManager::Instance().Reset();
 	
@@ -111,6 +113,7 @@ namespace ed
 	{
 		Logger::Get().Log("Saving project file...");
 
+		m_modified = false;
 		m_file = file;
 		std::string oldProjectPath = m_projectPath;
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));

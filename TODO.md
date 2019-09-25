@@ -9,6 +9,7 @@
 List of features I want to implement:
  - multiple cameras
    - this feature would allow you to render same scene from multiple angles
+   - maybe add it as "Camera snapshot" and have a variable value function that takes in cam snapshot name
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
@@ -22,8 +23,6 @@ List of features I want to implement:
 Except those features, I am also looking to do some small QoL changes and fixes:
  - find and replace in code editor
  - right click in code editor
- - drag and drop files (textures, audio files, etc...)
- - add a * / ImGuiWindowFlags_UnsavedDocument to Pipeline (and add '\*' to window titlebar) after changing anything in the project (+ popup window on exit)
 
  - rework variables (so that the type can be changed)
  - list all system variables

@@ -643,19 +643,23 @@ namespace ed
 		/* FPS CAMERA: */
 		ImGui::Text("First person camera: ");
 		ImGui::SameLine();
-		ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera);
+		if (ImGui::Checkbox("##optpr_fpcamera", &settings->Project.FPCamera))
+			m_data->Parser.ModifyProject();
 
 		/* FPS CAMERA: */
 		ImGui::Text("Window alpha channel: ");
 		ImGui::SameLine();
-		if (ImGui::Checkbox("##optpr_wndalpha", &settings->Project.UseAlphaChannel))
+		if (ImGui::Checkbox("##optpr_wndalpha", &settings->Project.UseAlphaChannel)) {
 			m_data->Renderer.RequestTextureResize();
+			m_data->Parser.ModifyProject();
+		}
 
 		/* CLEAR COLOR: */
 		ImGui::Text("Preview window clear color: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
-		ImGui::ColorEdit4("##optpr_clrclr", glm::value_ptr(settings->Project.ClearColor));
+		if (ImGui::ColorEdit4("##optpr_clrclr", glm::value_ptr(settings->Project.ClearColor)))
+			m_data->Parser.ModifyProject();
 		ImGui::PopItemWidth();
 	}
 }

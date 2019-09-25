@@ -583,7 +583,8 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				m_gizmo.Move(s.x, s.y, ImGui::GetIO().KeyShift);
+				if (m_gizmo.Move(s.x, s.y, ImGui::GetIO().KeyShift))
+					m_data->Parser.ModifyProject();
 			}
 
 			// WASD key press - first person camera

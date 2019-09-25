@@ -196,8 +196,18 @@ int main(int argc, char* argv[])
 		while (SDL_PollEvent(&event))
 		{
 			if (event.type == SDL_QUIT) {
-				run = false;
-				ed::Logger::Get().Log("Received SDL_QUIT event -> quitting");
+
+				bool cont = true;
+				if (engine.Interface().Parser.IsProjectModified()) {
+					int btnID = engine.UI().AreYouSure();
+					if (btnID == 2)
+						cont = false;
+				}
+
+				if (cont) {
+					run = false;
+					ed::Logger::Get().Log("Received SDL_QUIT event -> quitting");
+				}
 			}
 			else if (event.type == SDL_WINDOWEVENT) {
 				if (event.window.event == SDL_WINDOWEVENT_MOVED ||

@@ -563,7 +563,9 @@ namespace ed
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 			// get all the sources
-			std::unique_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
+			if (!m_autoRecompilerMutex.try_lock())
+				continue;
+
 			m_ariiList.clear();
 			for (int i = 0; i < m_editor.size(); i++) {
 				if (!m_editor[i].IsTextChanged())
@@ -628,6 +630,8 @@ namespace ed
 			m_autoRecompileCachedMsgs = msgCurr;
 
 			m_autoRecompileRequest = m_ariiList.size()>0;
+
+			m_autoRecompilerMutex.unlock();
 		}
 	}
 

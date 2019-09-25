@@ -52,6 +52,9 @@ namespace ed
 		inline std::string GetOpenedFile() { return m_file; }
 		inline std::string GetTemplate() { return m_template; }
 
+		inline void ModifyProject() { m_modified = true; }
+		inline bool IsProjectModified() { return m_modified; }
+
 	private:
 		void m_parseV1(pugi::xml_node& projectNode); // old
 		void m_parseV2(pugi::xml_node& projectNode); // current -> merge blend, rasterizer and depth states into one "render state" ||| remove input layout parsing ||| ignore shader entry property
@@ -64,6 +67,8 @@ namespace ed
 		GLenum m_toComparisonFunc(const char* str);
 		GLenum m_toStencilOp(const char* str);
 		GLenum m_toCullMode(const char* str);
+
+		bool m_modified;
 
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;

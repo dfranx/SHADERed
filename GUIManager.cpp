@@ -1,5 +1,6 @@
 #include "GUIManager.h"
 #include "InterfaceManager.h"
+#include <SDL2/SDL_messagebox.h>
 #include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
@@ -70,6 +71,7 @@ namespace ed
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
 		m_savePreviewSeq = false;
+		m_cacheProjectModified = false;
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
 
@@ -190,7 +192,7 @@ namespace ed
 
 				const std::vector<std::string> imgExt = { "png", "jpeg", "jpg", "bmp", "gif", "psd", "pic", "pnm", "hdr", "tga" };
 				const std::vector<std::string> sndExt = { "ogg", "wav", "flac", "aiff", "raw" }; // TODO: more file ext
-				
+
 				if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
 					m_data->Objects.CreateTexture(file);
 				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
@@ -364,8 +366,60 @@ namespace ed
 
 		ImGui::End();
 	}
+	int GUIManager::AreYouSure()
+	{
+		const SDL_MessageBoxButtonData buttons[] = {
+			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
+			{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+		};
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_INFORMATION, /* .flags */
+			m_wnd, /* .window */
+			"SHADERed", /* .title */
+			"Save changes to the project before quitting?", /* .message */
+			SDL_arraysize(buttons), /* .numbuttons */
+			buttons, /* .buttons */
+			NULL /* .colorScheme */
+		};
+		int buttonid;
+		if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+			Logger::Get().Log("Failed to open message box.", true);
+			return -1;
+		}
+
+		if (buttonid == 0) { // save
+			if (m_data->Parser.GetOpenedFile() == "")
+				SaveAsProject();
+			else
+				m_data->Parser.Save();
+		}
+
+		return buttonid;
+	}
 	void GUIManager::Update(float delta)
 	{
+		// add star to the titlebar if project was modified
+		if (m_cacheProjectModified != m_data->Parser.IsProjectModified()) {
+			std::string projName = m_data->Parser.GetOpenedFile();
+
+			if (projName.size() > 0) {
+				projName = projName.substr(projName.find_last_of("/\\") + 1);
+				
+				if (m_data->Parser.IsProjectModified())
+					projName = "*" + projName;
+
+				SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
+			} else {
+				if (m_data->Parser.IsProjectModified())
+					SDL_SetWindowTitle(m_wnd, "SHADERed (*)");
+				else
+					SDL_SetWindowTitle(m_wnd, "SHADERed");
+			}
+
+			m_cacheProjectModified = m_data->Parser.IsProjectModified();
+		}
+
 		Settings& settings = Settings::Instance();
 		m_performanceMode = m_perfModeFake;
 
@@ -470,15 +524,33 @@ namespace ed
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::BeginMenu("New")) {
 					if (ImGui::MenuItem("Empty")) {
-						m_selectedTemplate = "?empty";
-						m_isNewProjectPopupOpened = true;
+						bool cont = true;
+						if (m_data->Parser.IsProjectModified()) {
+							int btnID = this->AreYouSure();
+							if (btnID == 2)
+								cont = false;
+						}
+
+						if (cont) {
+							m_selectedTemplate = "?empty";
+							m_isNewProjectPopupOpened = true;
+						}
 					}
 					ImGui::Separator();
 
 					for (int i = 0; i < m_templates.size(); i++)
 						if (ImGui::MenuItem(m_templates[i].c_str())) {
-							m_selectedTemplate = m_templates[i];
-							m_isNewProjectPopupOpened = true;
+							bool cont = true;
+							if (m_data->Parser.IsProjectModified()) {
+								int btnID = this->AreYouSure();
+								if (btnID == 2)
+									cont = false;
+							}
+
+							if (cont) {
+								m_selectedTemplate = m_templates[i];
+								m_isNewProjectPopupOpened = true;
+							}
 						}
 					ImGui::EndMenu();
 				}
@@ -494,11 +566,20 @@ namespace ed
 					}
 				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
-					std::string file;
-					bool success = UIHelper::GetOpenFileDialog(file, "sprj");
+					bool cont = true;
+					if (m_data->Parser.IsProjectModified()) {
+						int btnID = this->AreYouSure();
+						if (btnID == 2)
+							cont = false;
+					}
 
-					if (success)
-						Open(file);
+					if (cont) {
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file, "sprj");
+
+						if (success)
+							Open(file);
+					}
 				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str())) {
 					if (m_data->Parser.GetOpenedFile() == "")
@@ -1465,21 +1546,30 @@ into the actual video");
 			Settings::Instance().General.Toolbar ^= 1;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.Open", [=]() {
-			m_data->Renderer.FlushCache();
-			std::string file;
-			bool success = UIHelper::GetOpenFileDialog(file, "sprj");
+			bool cont = true;
+			if (m_data->Parser.IsProjectModified()) {
+				int btnID = this->AreYouSure();
+				if (btnID == 2)
+					cont = false;
+			}
 
-			// TODO: use Open()
+			if (cont) {
+				m_data->Renderer.FlushCache();
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file, "sprj");
 
-			if (success) {
-				((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-				((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-				((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-				((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-				((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-				((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+				// TODO: use Open()
 
-				m_data->Parser.Open(file);
+				if (success) {
+					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+					((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+					((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+
+					m_data->Parser.Open(file);
+				}
 			}
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.New", [=]() {

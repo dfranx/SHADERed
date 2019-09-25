@@ -13,11 +13,14 @@ namespace ed
 	{
 		for (auto var : m_pinnedVars) {
 			m_editor.Open(var);
-			m_editor.Update();
+			if (m_editor.Update())
+				m_data->Parser.ModifyProject();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth()/2 - 22);
-			if (ImGui::Button(("CLOSE##pin_cls_" + std::string(var->Name)).c_str(), ImVec2(44, 0)))
+			if (ImGui::Button(("CLOSE##pin_cls_" + std::string(var->Name)).c_str(), ImVec2(44, 0))) {
 				Remove(var->Name);
+				m_data->Parser.ModifyProject();
+			}
 
 			ImGui::NewLine();
 			ImGui::Separator();
@@ -33,9 +36,10 @@ namespace ed
 			Logger::Get().Log("Cannot pin variable " + std::string(inp->Name) + " - it is already pinned", true);
 			return;
 		}
-
+		
 		Logger::Get().Log("Pinning variable " + std::string(inp->Name));
 
+		m_data->Parser.ModifyProject();
 		m_pinnedVars.push_back(inp);
 	}
 	void PinnedUI::Remove(const char * name)
@@ -44,6 +48,7 @@ namespace ed
 			if (strcmp(name, m_pinnedVars[i]->Name) == 0) {
 				Logger::Get().Log("Unpinned variable " + std::string(name), true);
 				m_pinnedVars.erase(m_pinnedVars.begin() + i);
+				m_data->Parser.ModifyProject();
 				return;
 			}
 		}

@@ -71,6 +71,8 @@ namespace ed
 				return false;
 			}
 
+		m_project->ModifyProject();
+
 		for (auto item : m_items) {
 			if (strcmp(item->Name, owner) != 0)
 				continue;
@@ -100,6 +102,8 @@ namespace ed
 			return false;
 		}
 
+		m_project->ModifyProject();
+
 		Logger::Get().Log("Added a shader pass " + std::string(name) + " to the project");
 
 		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::ShaderPass, data));
@@ -113,6 +117,8 @@ namespace ed
 			Logger::Get().Log("Compute pass " + std::string(name) + " not added - name already taken", true);
 			return false;
 		}
+
+		m_project->ModifyProject();
 
 		Logger::Get().Log("Added a shader pass " + std::string(name) + " to the project");
 
@@ -169,6 +175,9 @@ namespace ed
 					}
 				}
 			}
+
+			
+		m_project->ModifyProject();
 	}
 	bool PipelineManager::Has(const char * name)
 	{

@@ -440,11 +440,13 @@ namespace ed
 
 		return m_axisSelected;
 	}
-	void GizmoObject::Move(int x, int y, bool shift)
+	bool GizmoObject::Move(int x, int y, bool shift)
 	{
 		// dont handle the rotation controls here as we handle that in the HandleMouseMove method
 		if (m_axisSelected == -1 || m_mode == 2)
-			return;
+			return false;
+
+		bool ret = true;
 
 		// handle scaling and translating
 		float mouseX = x / (m_vw * 0.5f) - 1.0f;
@@ -468,7 +470,7 @@ namespace ed
 
 		float length = glm::length(moveVec);
 		if (length == 0)
-			return;
+			return false;
 
 		float dotval = glm::dot(glm::normalize(moveVec), glm::vec3(axisVec));
 
@@ -491,6 +493,8 @@ namespace ed
 				m_trans->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
 				m_trans->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
 			}
+
+			ret=true;
 		} else if (m_mode == 1) {
 			if (m_axisSelected == 0) m_tValue.x += moveDist;
 			else if (m_axisSelected == 1) m_tValue.y += moveDist;
@@ -507,9 +511,13 @@ namespace ed
 				m_scale->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
 				m_scale->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
 			}
+
+			ret=true;
 		}
 
 		m_clickStart = mouseVec;
+
+		return ret;
 	}
 	void GizmoObject::Render()
 	{

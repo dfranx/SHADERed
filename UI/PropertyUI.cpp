@@ -78,6 +78,7 @@ namespace ed
 						m_data->Messages.RenameGroup(m_current->Name, m_itemName);
 						((CodeEditorUI*)m_ui->Get(ViewID::Code))->RenameShaderPass(m_current->Name, m_itemName);
 						memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
+						m_data->Parser.ModifyProject();
 					}
 				}
 				ImGui::NextColumn();
@@ -132,6 +133,7 @@ namespace ed
 							// null element
 							if (i != 0 && rtID != 0) {
 								if (ImGui::Selectable("NULL", rtID == 0)) {
+									m_data->Parser.ModifyProject();
 									item->RenderTextures[i] = 0;
 									for (int j = i + 1; j < MAX_RENDER_TEXTURES; j++)
 										item->RenderTextures[j] = 0;
@@ -141,6 +143,7 @@ namespace ed
 							// window element
 							if (!windowAlreadyBound && i == 0)
 								if (ImGui::Selectable("Window", rtID == m_data->Renderer.GetTexture())) {
+									m_data->Parser.ModifyProject();
 									item->RenderTextures[i] = m_data->Renderer.GetTexture();
 									for (int j = 1; j < MAX_RENDER_TEXTURES; j++) // "Window" RT can only be used solo
 										item->RenderTextures[j] = 0;
@@ -150,8 +153,10 @@ namespace ed
 							for (int j = 0; j < rts.size(); j++)
 								if (m_data->Objects.IsRenderTexture(rts[j])) {
 									GLuint texID = m_data->Objects.GetTexture(rts[j]);
-									if (ImGui::Selectable(rts[j].c_str(), rtID == texID))
+									if (ImGui::Selectable(rts[j].c_str(), rtID == texID)) {
+										m_data->Parser.ModifyProject();
 										item->RenderTextures[i] = texID;
+									}
 								}
 
 							ImGui::EndCombo();
@@ -182,6 +187,8 @@ namespace ed
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->VSPath, file.c_str());
 
+							m_data->Parser.ModifyProject();
+
 							if (m_data->Parser.FileExists(file))
 								m_data->Messages.ClearGroup(m_current->Name);
 							else
@@ -198,7 +205,8 @@ namespace ed
 
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->VSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
-						ImGui::InputText("##pui_vsentry", item->VSEntry, 32);
+						if (ImGui::InputText("##pui_vsentry", item->VSEntry, 32))
+							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
 					} else
 						ImGui::Text("main");
@@ -212,7 +220,8 @@ namespace ed
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH);
+					if (ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -222,6 +231,8 @@ namespace ed
 						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->PSPath, file.c_str());
+
+							m_data->Parser.ModifyProject();
 
 							if (m_data->Parser.FileExists(file))
 								m_data->Messages.ClearGroup(m_current->Name);
@@ -239,7 +250,8 @@ namespace ed
 
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->PSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
-						ImGui::InputText("##pui_psentry", item->PSEntry, 32);
+						if (ImGui::InputText("##pui_psentry", item->PSEntry, 32))
+							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
 					} else
 						ImGui::Text("main");
@@ -251,7 +263,8 @@ namespace ed
 					ImGui::Text("GS:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##pui_gsuse", &item->GSUsed);
+					if (ImGui::Checkbox("##pui_gsuse", &item->GSUsed))
+						m_data->Parser.ModifyProject();
 					ImGui::NextColumn();
 					ImGui::Separator();
 
@@ -273,6 +286,8 @@ namespace ed
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->GSPath, file.c_str());
 
+							m_data->Parser.ModifyProject();
+
 							if (m_data->Parser.FileExists(file))
 								m_data->Messages.ClearGroup(m_current->Name);
 							else
@@ -287,7 +302,8 @@ namespace ed
 					ImGui::NextColumn();
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
-						ImGui::InputText("##pui_gsentry", item->GSEntry, 32);
+						if (ImGui::InputText("##pui_gsentry", item->GSEntry, 32))
+							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
 					} else
 						ImGui::Text("main");
@@ -318,6 +334,8 @@ namespace ed
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->Path, file.c_str());
 
+							m_data->Parser.ModifyProject();
+
 							if (m_data->Parser.FileExists(file))
 								m_data->Messages.ClearGroup(m_current->Name);
 							else
@@ -334,7 +352,8 @@ namespace ed
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->Path) != ShaderLanguage::GLSL)
 					{
 						ImGui::PushItemWidth(-1);
-						ImGui::InputText("##pui_csentry", item->Entry, 32);
+						if (ImGui::InputText("##pui_csentry", item->Entry, 32))
+							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
 					}
 					else
@@ -354,6 +373,8 @@ namespace ed
 						item->WorkX = std::max<int>(m_cachedGroupSize.x, 1);
 						item->WorkY = std::max<int>(m_cachedGroupSize.y, 1);
 						item->WorkZ = std::max<int>(m_cachedGroupSize.z, 1);
+
+						m_data->Parser.ModifyProject();
 					}
 				}
 				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
@@ -364,7 +385,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f);
+					if (ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -374,7 +396,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f);
+					if (ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -385,7 +408,8 @@ namespace ed
 
 					ImGui::PushItemWidth(-1);
 					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
-					ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f);
+					if (ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f))
+						m_data->Parser.ModifyProject();
 					if (rotaDeg.x > 360)
 						rotaDeg.x = 0;
 					if (rotaDeg.x < 0)
@@ -408,7 +432,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES));
+					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -417,7 +442,8 @@ namespace ed
 					ImGui::Text("Instanced:");
 					ImGui::NextColumn();
 
-					ImGui::Checkbox("##pui_geoinst", &item->Instanced);
+					if (ImGui::Checkbox("##pui_geoinst", &item->Instanced))
+						m_data->Parser.ModifyProject();
 					ImGui::NextColumn();
 					ImGui::Separator();
 
@@ -426,7 +452,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::InputInt("##pui_geoinstcount", &item->InstanceCount);
+					if (ImGui::InputInt("##pui_geoinstcount", &item->InstanceCount))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -446,6 +473,8 @@ namespace ed
 							pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
 
 							gl::CreateVAO(item->VAO, item->VBO, ownerData->InputLayout);
+							
+							m_data->Parser.ModifyProject();
 						}
 
 						for (const auto& buf : bufList) {
@@ -457,6 +486,8 @@ namespace ed
 								pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
 
 								gl::CreateVAO(item->VAO, item->VBO, ownerData->InputLayout, 0, buf.second->ID, fmtList);
+
+								m_data->Parser.ModifyProject();
 							}
 						}
 
@@ -472,7 +503,8 @@ namespace ed
 					ImGui::Text("Wireframe:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe));
+					if (ImGui::Checkbox("##cui_wireframe", (bool*)(&isWireframe)))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -482,7 +514,8 @@ namespace ed
 					ImGui::Text("Cull:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_cullm", &data->CullFace);
+					if (ImGui::Checkbox("##cui_cullm", &data->CullFace))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -491,7 +524,8 @@ namespace ed
 					ImGui::Text("Cull mode:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateCullModeCombo("##cui_culltype", data->CullFaceType);
+					if (UIHelper::CreateCullModeCombo("##cui_culltype", data->CullFaceType))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -501,7 +535,8 @@ namespace ed
 					ImGui::Text("Counter clockwise:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_ccw", &isCCW);
+					if (ImGui::Checkbox("##cui_ccw", &isCCW))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -514,7 +549,8 @@ namespace ed
 					ImGui::Text("Depth test:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_depth", &data->DepthTest);
+					if (ImGui::Checkbox("##cui_depth", &data->DepthTest))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -529,7 +565,8 @@ namespace ed
 					ImGui::Text("Depth clip:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_depthclip", &data->DepthClamp);
+					if (ImGui::Checkbox("##cui_depthclip", &data->DepthClamp))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -538,7 +575,8 @@ namespace ed
 					ImGui::Text("Depth mask:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_depthmask", &data->DepthMask);
+					if (ImGui::Checkbox("##cui_depthmask", &data->DepthMask))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -547,7 +585,8 @@ namespace ed
 					ImGui::Text("Depth function:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateComparisonFunctionCombo("##cui_depthop", data->DepthFunction);
+					if (UIHelper::CreateComparisonFunctionCombo("##cui_depthop", data->DepthFunction))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -556,7 +595,8 @@ namespace ed
 					ImGui::Text("Depth bias:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::DragFloat("##cui_depthbias", &data->DepthBias);
+					if (ImGui::DragFloat("##cui_depthbias", &data->DepthBias))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -574,7 +614,8 @@ namespace ed
 					ImGui::Text("Blending:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_blend", &data->Blend);
+					if (ImGui::Checkbox("##cui_blend", &data->Blend))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -589,7 +630,8 @@ namespace ed
 					ImGui::Text("Alpha to coverage:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_alphacov", &data->AlphaToCoverage);
+					if (ImGui::Checkbox("##cui_alphacov", &data->AlphaToCoverage))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -598,7 +640,8 @@ namespace ed
 					ImGui::Text("Source blend factor:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendCombo("##cui_srcblend", data->BlendSourceFactorRGB);
+					if (UIHelper::CreateBlendCombo("##cui_srcblend", data->BlendSourceFactorRGB))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -607,7 +650,8 @@ namespace ed
 					ImGui::Text("Blend operator:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendOperatorCombo("##cui_blendop", data->BlendFunctionColor);
+					if (UIHelper::CreateBlendOperatorCombo("##cui_blendop", data->BlendFunctionColor))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -616,7 +660,8 @@ namespace ed
 					ImGui::Text("Destination blend factor:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendCombo("##cui_destblend", data->BlendDestinationFactorRGB);
+					if (UIHelper::CreateBlendCombo("##cui_destblend", data->BlendDestinationFactorRGB))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -625,7 +670,8 @@ namespace ed
 					ImGui::Text("Source alpha blend factor:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendCombo("##cui_srcalphablend", data->BlendSourceFactorAlpha);
+					if (UIHelper::CreateBlendCombo("##cui_srcalphablend", data->BlendSourceFactorAlpha))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -634,7 +680,8 @@ namespace ed
 					ImGui::Text("Alpha blend operator:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", data->BlendFunctionAlpha);
+					if (UIHelper::CreateBlendOperatorCombo("##cui_blendopalpha", data->BlendFunctionAlpha))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -643,7 +690,8 @@ namespace ed
 					ImGui::Text("Destination alpha blend factor:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateBlendCombo("##cui_destalphablend", data->BlendDestinationFactorAlpha);
+					if (UIHelper::CreateBlendCombo("##cui_destalphablend", data->BlendDestinationFactorAlpha))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -652,7 +700,8 @@ namespace ed
 					ImGui::Text("Custom blend factor:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::ColorEdit4("##cui_blendfactor", glm::value_ptr(data->BlendFactor));
+					if (ImGui::ColorEdit4("##cui_blendfactor", glm::value_ptr(data->BlendFactor)))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -670,7 +719,8 @@ namespace ed
 					ImGui::Text("Stencil test:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::Checkbox("##cui_stencil", &data->StencilTest);
+					if (ImGui::Checkbox("##cui_stencil", &data->StencilTest))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -685,7 +735,8 @@ namespace ed
 					ImGui::Text("Stencil mask:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::InputInt("##cui_stencilmask", (int*)& data->StencilMask);
+					if (ImGui::InputInt("##cui_stencilmask", (int*)& data->StencilMask))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -699,7 +750,8 @@ namespace ed
 					ImGui::Text("Stencil reference:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					ImGui::InputInt("##cui_sref", (int*)& data->StencilReference); // TODO: imgui uint input??
+					if (ImGui::InputInt("##cui_sref", (int*)& data->StencilReference))
+						m_data->Parser.ModifyProject(); // TODO: imgui uint input??
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -713,7 +765,8 @@ namespace ed
 					ImGui::Text("Stencil front face function:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", data->StencilFrontFaceFunction);
+					if (UIHelper::CreateComparisonFunctionCombo("##cui_ffunc", data->StencilFrontFaceFunction))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -722,7 +775,8 @@ namespace ed
 					ImGui::Text("Stencil front face pass:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_fpass", data->StencilFrontFaceOpPass);
+					if (UIHelper::CreateStencilOperationCombo("##cui_fpass", data->StencilFrontFaceOpPass))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -731,7 +785,8 @@ namespace ed
 					ImGui::Text("Stencil front face fail:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_ffail", data->StencilFrontFaceOpStencilFail);
+					if (UIHelper::CreateStencilOperationCombo("##cui_ffail", data->StencilFrontFaceOpStencilFail))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -740,7 +795,8 @@ namespace ed
 					ImGui::Text("Depth front face fail:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_fdfail", data->StencilFrontFaceOpDepthFail);
+					if (UIHelper::CreateStencilOperationCombo("##cui_fdfail", data->StencilFrontFaceOpDepthFail))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -749,7 +805,8 @@ namespace ed
 					ImGui::Text("Stencil back face function:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", data->StencilBackFaceFunction);
+					if (UIHelper::CreateComparisonFunctionCombo("##cui_bfunc", data->StencilBackFaceFunction))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -758,7 +815,8 @@ namespace ed
 					ImGui::Text("Stencil back face pass:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_bpass", data->StencilBackFaceOpPass);
+					if (UIHelper::CreateStencilOperationCombo("##cui_bpass", data->StencilBackFaceOpPass))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -767,7 +825,8 @@ namespace ed
 					ImGui::Text("Stencil back face fail:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_bfail", data->StencilBackFaceOpStencilFail);
+					if (UIHelper::CreateStencilOperationCombo("##cui_bfail", data->StencilBackFaceOpStencilFail))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -776,7 +835,8 @@ namespace ed
 					ImGui::Text("Depth back face fail:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					UIHelper::CreateStencilOperationCombo("##cui_bdfail", data->StencilBackFaceOpDepthFail);
+					if (UIHelper::CreateStencilOperationCombo("##cui_bdfail", data->StencilBackFaceOpDepthFail))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 
@@ -794,7 +854,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f);
+					if (ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -804,7 +865,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f);
+					if (ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -815,7 +877,8 @@ namespace ed
 
 					ImGui::PushItemWidth(-1);
 					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
-					ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f);
+					if (ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f))
+						m_data->Parser.ModifyProject();
 					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
@@ -825,7 +888,8 @@ namespace ed
 					ImGui::Text("Instanced:");
 					ImGui::NextColumn();
 
-					ImGui::Checkbox("##pui_mdlinst", &item->Instanced);
+					if (ImGui::Checkbox("##pui_mdlinst", &item->Instanced))
+						m_data->Parser.ModifyProject();
 					ImGui::NextColumn();
 					ImGui::Separator();
 
@@ -834,7 +898,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					ImGui::InputInt("##pui_mdlinstcount", &item->InstanceCount);
+					if (ImGui::InputInt("##pui_mdlinstcount", &item->InstanceCount))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -855,6 +920,8 @@ namespace ed
 
 							for (auto& mesh : item->Data->Meshes)
 								gl::CreateVAO(mesh.VAO, mesh.VBO, ownerData->InputLayout, mesh.EBO);
+
+							m_data->Parser.ModifyProject();
 						}
 
 						for (const auto& buf : bufList) {
@@ -867,6 +934,8 @@ namespace ed
 
 								for (auto& mesh : item->Data->Meshes)
 									gl::CreateVAO(mesh.VAO, mesh.VBO, ownerData->InputLayout, mesh.EBO, buf.second->ID, fmtList);
+								
+								m_data->Parser.ModifyProject();
 							}
 						}
 
@@ -940,7 +1009,8 @@ namespace ed
 				ImGui::Text("Clear:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				ImGui::Checkbox("##pui_gsuse", &m_currentRT->Clear);
+				if (ImGui::Checkbox("##pui_gsuse", &m_currentRT->Clear))
+					m_data->Parser.ModifyProject();
 				ImGui::NextColumn();
 				ImGui::Separator();
 		
@@ -955,7 +1025,8 @@ namespace ed
 				}
 
 				ImGui::PushItemWidth(-1);
-				ImGui::ColorEdit4("##prop_rt_color", glm::value_ptr(m_currentRT->ClearColor));
+				if (ImGui::ColorEdit4("##prop_rt_color", glm::value_ptr(m_currentRT->ClearColor)))
+					m_data->Parser.ModifyProject();
 				ImGui::PopItemWidth();
 
 				if (!m_currentRT->Clear) {
@@ -1010,8 +1081,10 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				if (ImGui::Checkbox("##pui_write", &m_currentImg->Write))
-					if (!m_currentImg->Read && !m_currentImg->Write)
+					if (!m_currentImg->Read && !m_currentImg->Write) {
 						m_currentImg->Write = true;
+						m_data->Parser.ModifyProject();
+					}
 				ImGui::NextColumn();
 				ImGui::Separator();
 
@@ -1020,8 +1093,10 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				if (ImGui::Checkbox("##pui_read", &m_currentImg->Read))
-					if (!m_currentImg->Read && !m_currentImg->Write)
+					if (!m_currentImg->Read && !m_currentImg->Write) {
 						m_currentImg->Read = true;
+						m_data->Parser.ModifyProject();
+					}
 			}
 
 			ImGui::NextColumn();

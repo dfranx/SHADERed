@@ -12,11 +12,11 @@ namespace ed
 		inline void Close() { m_var = nullptr; }
 		inline ed::ShaderVariable* GetVariable() { return m_var; }
 
-		void Update();
+		bool Update();
 
 	private:
-		void m_drawRegular();
-		void m_drawFunction();
+		bool m_drawRegular();
+		bool m_drawFunction();
 
 		ed::ShaderVariable* m_var;
 	};

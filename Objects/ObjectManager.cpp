@@ -76,6 +76,8 @@ namespace ed
 			return false;
 		}
 
+		m_parser->ModifyProject();
+
 		m_isCube[name] = false;
 		m_items.push_back(name);
 
@@ -115,6 +117,8 @@ namespace ed
 			return false;
 		}
 
+		m_parser->ModifyProject();
+
 		m_items.push_back(file);
 
 		std::string path = m_parser->GetProjectPath(file);
@@ -153,6 +157,8 @@ namespace ed
 			Logger::Get().Log("Cannot create a cubemap " + name + " because cubemap with such name already exists in the project", true);
 			return false;
 		}
+
+		m_parser->ModifyProject();
 
 		m_isCube[name] = true;
 		m_items.push_back(name);
@@ -241,6 +247,8 @@ namespace ed
 			return false;
 		}
 
+		m_parser->ModifyProject();
+
 		m_audioData[file] = new sf::SoundBuffer();
 		bool loaded = m_audioData[file]->loadFromFile(m_parser->GetProjectPath(file));
 		if (!loaded) {
@@ -278,6 +286,8 @@ namespace ed
 			return false;
 		}
 
+		m_parser->ModifyProject();
+
 		m_items.push_back(name);
 
 		ed::BufferObject* bObj = m_bufs[name] = new ed::BufferObject();
@@ -298,11 +308,12 @@ namespace ed
 	{
 		Logger::Get().Log("Creating an image " + name + " ...");
 
-		if (Exists(name))
-		{
+		if (Exists(name)) {
 			Logger::Get().Log("Cannot create the image " + name + " because an item with exact name already exists", true);
 			return false;
 		}
+
+		m_parser->ModifyProject();
 
 		m_items.push_back(name);
 		ed::ImageObject *iObj = m_images[name] = new ImageObject();
@@ -410,6 +421,8 @@ namespace ed
 	}
 	void ObjectManager::Remove(const std::string & file)
 	{
+		m_parser->ModifyProject();
+
 		if (!IsBuffer(file)) {
 			GLuint srv = m_texs[file];
 			for (auto& i : m_binds)
@@ -468,6 +481,8 @@ namespace ed
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{
 		if (IsBound(file, pass) == -1) {
+			m_parser->ModifyProject();
+
 			if (IsImage(file))
 				m_binds[pass].push_back(m_images[file]->Texture);
 			else
@@ -481,6 +496,8 @@ namespace ed
 
 		for (int i = 0; i < srvs.size(); i++)
 			if (srvs[i] == srv) {
+				m_parser->ModifyProject();
+
 				srvs.erase(srvs.begin() + i);
 				return;
 			}
@@ -505,8 +522,10 @@ namespace ed
 	}
 	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
 	{
-		if (IsUniformBound(file, pass) == -1)
+		if (IsUniformBound(file, pass) == -1) {
 			m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
+			m_parser->ModifyProject();
+		}
 	}
 	void ObjectManager::UnbindUniform(const std::string & file, PipelineItem * pass)
 	{
@@ -516,6 +535,7 @@ namespace ed
 		for (int i = 0; i < ubos.size(); i++)
 			if (ubos[i] == obj->ID) {
 				ubos.erase(ubos.begin() + i);
+				m_parser->ModifyProject();
 				return;
 			}
 	}
@@ -586,6 +606,9 @@ namespace ed
 	{
 		RenderTextureObject* rtObj = this->GetRenderTexture(m_texs[name]);
 
+		if (rtObj->RatioSize.x == -1 && rtObj->RatioSize.y == -1)
+			m_parser->ModifyProject();
+
 		glBindTexture(GL_TEXTURE_2D, m_texs[name]);
 		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
@@ -596,6 +619,8 @@ namespace ed
 	void ObjectManager::ResizeImage(const std::string &name, glm::ivec2 size)
 	{
 		ImageObject *iobj = m_images[name];
+
+		m_parser->ModifyProject();
 
 		iobj->Size = size;
 

@@ -60,6 +60,8 @@ namespace ed
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
 
+		int AreYouSure();
+
 		bool SaveAsProject(bool restoreCached = false);
 		void Open(const std::string& file);
 
@@ -83,6 +85,8 @@ namespace ed
 		int m_cachedFontSize;
 		bool m_fontNeedsUpdate;
 		float m_cacheUIScale;
+
+		bool m_cacheProjectModified;
 
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
