@@ -3,8 +3,10 @@
 + add input layout
 + add tangent, bitangent and color vertex attributes
 + add ability to export your shader to an image sequence
++ add support for drag & drop
 + add "Hide menu bar in performance mode" option
 + add glslang error messages when preprocessing fails
++ add CamerPosition3 and CameraDirection3 variables
 + fix a bug which would crash whole app on deleting last variable
 + fix a bug where variable name was limited to 16chars when being created
 + fix a bug where SHADERed would use absolute paths even if project and shader file are on the same drive

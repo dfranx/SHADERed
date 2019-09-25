@@ -177,8 +177,27 @@ namespace ed
 					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
 			}
 		}
-		else if (e.type == SDL_MOUSEMOTION) {
+		else if (e.type == SDL_MOUSEMOTION)
 			m_perfModeClock.restart();
+		else if (e.type == SDL_DROPFILE) {
+			char* droppedFile = e.drop.file;
+			
+			std::string file = m_data->Parser.GetRelativePath(droppedFile);
+			size_t dotPos = file.find_last_of('.');
+
+			if (!file.empty() && dotPos != std::string::npos) {
+				std::string ext = file.substr(dotPos + 1);
+
+				const std::vector<std::string> imgExt = { "png", "jpeg", "jpg", "bmp", "gif", "psd", "pic", "pnm", "hdr", "tga" };
+				const std::vector<std::string> sndExt = { "ogg", "wav", "flac", "aiff", "raw" }; // TODO: more file ext
+				
+				if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
+					m_data->Objects.CreateTexture(file);
+				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
+					m_data->Objects.CreateAudio(file);
+			}
+
+			SDL_free(droppedFile);
 		}
 
 		if (m_optionsOpened)

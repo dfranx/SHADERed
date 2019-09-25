@@ -10,5 +10,5 @@ SamplerState smp : register(s0);
 
 float4 main(PSInput pin) : SV_TARGET
 {
-	return pin.Color * tex.Sample(smp, pin.UV);
+	return tex.Sample(smp, pin.UV);
 }

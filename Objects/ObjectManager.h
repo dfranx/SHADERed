@@ -113,7 +113,7 @@ namespace ed
 		int IsBound(const std::string& file, PipelineItem* pass);
 		inline std::vector<GLuint>& GetBindList(PipelineItem* pass) {
 			if (m_binds.count(pass) > 0) return m_binds[pass];
-			return std::vector<GLuint>();
+			return m_emptyResVec;
 		}
 
 		void BindUniform(const std::string& file, PipelineItem* pass);
@@ -121,7 +121,7 @@ namespace ed
 		int IsUniformBound(const std::string& file, PipelineItem* pass);
 		inline std::vector<GLuint>& GetUniformBindList(PipelineItem* pass) {
 			if (m_uniformBinds.count(pass) > 0) return m_uniformBinds[pass];
-			return std::vector<GLuint>();
+			return m_emptyResVec;
 		}
 
 		inline bool Exists(const std::string& name) { return std::count(m_items.begin(), m_items.end(), name) > 0; }
@@ -135,6 +135,7 @@ namespace ed
 		ProjectParser* m_parser;
 
 		std::vector<std::string> m_items;
+		std::vector<GLuint> m_emptyResVec;
 
 		// TODO: lower down the number of maps
 		std::unordered_map<std::string, std::pair<int, int>> m_imgSize; // TODO: use glm::ivec2
