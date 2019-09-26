@@ -52,8 +52,6 @@ namespace ed
 	{
 		glm::ivec2 Size;
 		GLuint Format;
-		bool Read,Write;
-
 		GLuint Texture;
 	};
 

@@ -349,8 +349,6 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		iObj->Size = size;
-		iObj->Read = true;
-		iObj->Write = true;
 		iObj->Format = GL_RGBA32F;
 
 		return true;
@@ -546,17 +544,26 @@ namespace ed
 	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
 	{
 		if (IsUniformBound(file, pass) == -1) {
-			m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
+			if (IsBuffer(file)) 
+				m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
+			else //it's an image
+				m_uniformBinds[pass].push_back(GetImage(file)->Texture);
+
 			m_parser->ModifyProject();
 		}
 	}
 	void ObjectManager::UnbindUniform(const std::string & file, PipelineItem * pass)
 	{
 		std::vector<GLuint>& ubos = m_uniformBinds[pass];
-		BufferObject* obj = GetBuffer(file);
+		GLuint itemID = 0;
+
+		if (IsBuffer(file)) 
+			itemID = GetBuffer(file)->ID;
+		else //it's an image
+			itemID = GetImage(file)->Texture;
 		
 		for (int i = 0; i < ubos.size(); i++)
-			if (ubos[i] == obj->ID) {
+			if (ubos[i] == itemID) {
 				ubos.erase(ubos.begin() + i);
 				m_parser->ModifyProject();
 				return;
@@ -567,10 +574,14 @@ namespace ed
 		if (m_uniformBinds.count(pass) == 0)
 			return -1;
 
-		BufferObject* bobj = GetBuffer(file);
+		GLuint itemID = 0;
+		if (IsBuffer(file)) 
+			itemID = GetBuffer(file)->ID;
+		else //it's an image
+			itemID = GetImage(file)->Texture;
 
 		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
-			if (m_uniformBinds[pass][i] == bobj->ID)
+			if (m_uniformBinds[pass][i] == itemID)
 				return i;
 
 		return -1;

@@ -1073,30 +1073,6 @@ namespace ed
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* WRITE? */
-				ImGui::Text("Write:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (ImGui::Checkbox("##pui_write", &m_currentImg->Write))
-					if (!m_currentImg->Read && !m_currentImg->Write) {
-						m_currentImg->Write = true;
-						m_data->Parser.ModifyProject();
-					}
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* READ? */
-				ImGui::Text("Read:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (ImGui::Checkbox("##pui_read", &m_currentImg->Read))
-					if (!m_currentImg->Read && !m_currentImg->Write) {
-						m_currentImg->Read = true;
-						m_data->Parser.ModifyProject();
-					}
 			}
 
 			ImGui::NextColumn();

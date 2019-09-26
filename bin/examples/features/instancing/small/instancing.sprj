@@ -39,7 +39,7 @@
 		<entry type="camera" fp="false">
 			<distance>16</distance>
 			<pitch>52</pitch>
-			<yaw>9</yaw>
+			<yaw>351</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

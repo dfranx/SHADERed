@@ -524,8 +524,6 @@ namespace ed
 
 					textureNode.append_attribute("width").set_value(iobj->Size.x);
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
-					textureNode.append_attribute("read").set_value(iobj->Read);
-					textureNode.append_attribute("write").set_value(iobj->Write);
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 
@@ -543,19 +541,47 @@ namespace ed
 					bufWrite.write((char*)bobj->Data, bobj->Size);
 					bufWrite.close();
 
-
 					for (int j = 0; j < passItems.size(); j++) {
 						const std::vector<GLuint>& bound = m_objects->GetUniformBindList(passItems[j]);
 
+						for (int slot = 0; slot < bound.size(); slot++) {
+							if (!m_objects->IsImage(bound[slot])) {
+								if (m_objects->GetBufferNameByID(bound[slot]) == texs[i]) {
+									pugi::xml_node bindNode = textureNode.append_child("bind");
+									bindNode.append_attribute("slot").set_value(slot);
+									bindNode.append_attribute("name").set_value(passItems[j]->Name);
+								}
+							}
+						}
+					}
+				} else if (isImage) {
+					for (int j = 0; j < passItems.size(); j++) {
+						// as image2D
+						const std::vector<GLuint>& boundUBO = m_objects->GetUniformBindList(passItems[j]);
+						for (int slot = 0; slot < boundUBO.size(); slot++) {
+							if (m_objects->IsImage(boundUBO[slot])) {
+								if (m_objects->GetImageNameByID(boundUBO[slot]) == texs[i]) {
+									pugi::xml_node bindNode = textureNode.append_child("bind");
+									bindNode.append_attribute("slot").set_value(slot);
+									bindNode.append_attribute("name").set_value(passItems[j]->Name);
+									bindNode.append_attribute("uav").set_value(1);
+								}
+							}
+						}
+
+						// as sampler2D
+						GLuint myTex = m_objects->GetImage(texs[i])->Texture;
+						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
 						for (int slot = 0; slot < bound.size(); slot++)
-							if (m_objects->GetBufferNameByID(bound[slot]) == texs[i]) {
+							if (bound[slot] == myTex) {
 								pugi::xml_node bindNode = textureNode.append_child("bind");
 								bindNode.append_attribute("slot").set_value(slot);
 								bindNode.append_attribute("name").set_value(passItems[j]->Name);
+								bindNode.append_attribute("uav").set_value(0);
 							}
 					}
 				} else {
-					GLuint myTex = isImage ? m_objects->GetImage(texs[i])->Texture : m_objects->GetTexture(texs[i]);
+					GLuint myTex = m_objects->GetTexture(texs[i]);
 
 					for (int j = 0; j < passItems.size(); j++) {
 						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
@@ -2167,31 +2193,34 @@ namespace ed
 					iobj->Size.y = objectNode.attribute("height").as_int();
 				m_objects->ResizeImage(objName, iobj->Size);
 
-				// load write flag
-				iobj->Write = true;
-				if (!objectNode.attribute("write").empty())
-					iobj->Write = objectNode.attribute("write").as_bool();
-
-				// load read flag
-				iobj->Read = true;
-				if (!objectNode.attribute("read").empty())
-					iobj->Read = objectNode.attribute("read").as_bool();
-
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind"))
 				{
 					const pugi::char_t *passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
+					int isUAV = -1;
+					if (!bindNode.attribute("uav").empty())
+						isUAV = bindNode.attribute("uav").as_int();
 
-					for (auto pass : passes)
-					{
-						if (strcmp(pass->Name, passBindName) == 0)
-						{
-							if (boundTextures[pass].size() <= slot)
-								boundTextures[pass].resize(slot + 1);
+					for (auto pass : passes) {
+						// bind as sampler2D
+						if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ShaderPass) || isUAV == 0) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundTextures[pass].size() <= slot)
+									boundTextures[pass].resize(slot + 1);
 
-							boundTextures[pass][slot] = objName;
-							break;
+								boundTextures[pass][slot] = objName;
+								break;
+							}
+						// bind as image2D
+						} else if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ComputePass) || isUAV == 1) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundUBOs[pass].size() <= slot)
+									boundUBOs[pass].resize(slot + 1);
+
+								boundUBOs[pass][slot] = objName;
+								break;
+							}
 						}
 					}
 				}

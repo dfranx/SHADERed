@@ -208,6 +208,15 @@ namespace ed
 						} else
 							systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
+						// turn off culling for these two geometry types
+						bool wasCullOn = false;
+						if (geoData->Type == pipe::GeometryItem::Rectangle ||
+							geoData->Type == pipe::GeometryItem::ScreenQuadNDC)
+						{
+							wasCullOn = glIsEnabled(GL_CULL_FACE);
+							glDisable(GL_CULL_FACE);
+						}
+
 						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 
 						// bind variables
@@ -218,6 +227,13 @@ namespace ed
 							glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
 						else
 							glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+
+						// turn back on or of
+						if ((geoData->Type == pipe::GeometryItem::Rectangle ||
+							geoData->Type == pipe::GeometryItem::ScreenQuadNDC) && wasCullOn)
+						{
+							glEnable(GL_CULL_FACE);
+						}
 					}
 					else if (item->Type == PipelineItem::ItemType::Model) {
 						pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
@@ -306,24 +322,24 @@ namespace ed
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++)
 				{
-					if (m_objects->IsImage(srvs[j])) {
-						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(srvs[j])); // TODO: GetImageByID
-						glBindImageTexture(j, srvs[j], 0, GL_FALSE, 0, (iobj->Write * GL_WRITE_ONLY) | (iobj->Read * GL_READ_ONLY), iobj->Format);
-					} else { 
-						glActiveTexture(GL_TEXTURE0 + j);
-						if (m_objects->IsCubeMap(srvs[j]))
-							glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-						else
-							glBindTexture(GL_TEXTURE_2D, srvs[j]);
+					glActiveTexture(GL_TEXTURE0 + j);
+					if (m_objects->IsCubeMap(srvs[j]))
+						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+					else
+						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-						if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
-							data->Variables.UpdateTexture(m_shaders[i], j);
-					}
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+						data->Variables.UpdateTexture(m_shaders[i], j);
 				}
 
 				// bind buffers
-				for (int j = 0; j < ubos.size(); j++)
-					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
+				for (int j = 0; j < ubos.size(); j++) {
+					if (m_objects->IsImage(ubos[j])) {
+						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(ubos[j])); // TODO: GetImageByID
+						glBindImageTexture(j, ubos[j], 0, GL_FALSE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
+					} else
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
+				}
 				
 				// bind variables
 				data->Variables.Bind();
@@ -372,8 +388,6 @@ namespace ed
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 		
-		printf("%s\n", name);
-
 		GLchar cMsg[1024];
 
 		int d3dCounter = 0;

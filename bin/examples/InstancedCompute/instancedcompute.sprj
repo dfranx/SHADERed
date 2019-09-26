@@ -45,9 +45,9 @@
 	<settings>
 		<entry type="property" name="Instance" item="pipe" />
 		<entry type="camera" fp="false">
-			<distance>47</distance>
+			<distance>48</distance>
 			<pitch>2</pitch>
-			<yaw>173</yaw>
+			<yaw>271</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

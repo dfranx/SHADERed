@@ -84,6 +84,25 @@ namespace ed
 
 				ImGui::Separator();
 
+				if (m_data->Objects.IsImage(items[i])) {
+					if (ImGui::BeginMenu("Bind UAV/image2D")) {
+						for (int j = 0; j < passes.size(); j++) {
+							if (passes[j]->Type == PipelineItem::ItemType::ComputePass) {
+								int boundID = m_data->Objects.IsUniformBound(items[i], passes[j]);
+								size_t boundItemCount = m_data->Objects.GetUniformBindList(passes[j]).size();
+								bool isBound = boundID != -1;
+								if (ImGui::MenuItem(passes[j]->Name, ("(" + std::to_string(boundID == -1 ? boundItemCount : boundID) + ")").c_str(), isBound)) {
+									if (!isBound)
+										m_data->Objects.BindUniform(items[i], passes[j]);
+									else
+										m_data->Objects.UnbindUniform(items[i], passes[j]);
+								}
+							}
+						}
+						ImGui::EndMenu();
+					}
+				}
+
 				if (ImGui::BeginMenu("Bind")) {
 					if (isBuf) {
 						for (int j = 0; j < passes.size(); j++) {
