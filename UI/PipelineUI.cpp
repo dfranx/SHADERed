@@ -105,6 +105,10 @@ namespace ed
 			ImGui::OpenPopup("Input layout##pui_input_layout");
 			m_isInpLayoutManagerOpened = false;
 		}
+		if (m_isResourceManagerOpened) {
+			ImGui::OpenPopup("Resource manager##pui_res_manager");
+			m_isResourceManagerOpened = false;
+		}
 
 		// Shader Variable manager
 		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
@@ -184,6 +188,15 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(400 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Change Variables##pui_render_variables")) {
 			m_renderChangeVariablesUI();
+
+			if (ImGui::Button("Ok")) m_closePopup();
+			ImGui::EndPopup();
+		}
+
+		// 
+		ImGui::SetNextWindowSize(ImVec2(600 * Settings::Instance().DPIScale, 240 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Resource manager##pui_res_manager")) {
+			m_renderResourceManagerUI();
 
 			if (ImGui::Button("Ok")) m_closePopup();
 			ImGui::EndPopup();
@@ -317,6 +330,11 @@ namespace ed
 
 				if (ImGui::MenuItem("Macros")) {
 					m_isMacroManagerOpened = true;
+					m_modalItem = items[index];
+				}
+
+				if (ImGui::MenuItem("Resources")) {
+					m_isResourceManagerOpened = true;
 					m_modalItem = items[index];
 				}
 			}
@@ -935,7 +953,166 @@ namespace ed
 		ImGui::EndChild();
 		ImGui::Columns(1);
 	}
-	
+	void PipelineUI::m_renderResourceManagerUI()
+	{
+		ImGui::TextWrapped("List of all bound textures, images, etc...\n");
+		
+		ObjectManager* objs = &m_data->Objects;
+
+		ImGui::BeginChild("##pui_res_ubo_table", ImVec2(0, -25));
+
+		// SRVs
+		{
+			ImGui::Text("SRV");
+			ImGui::Separator();
+			ImGui::Columns(4);
+
+			// TODO: remove this after imgui fixes the table/column system
+			static bool isColumnWidthSet = false;
+			if (!isColumnWidthSet) {
+				ImGui::SetColumnWidth(0, 80);
+				ImGui::SetColumnWidth(1, 60);
+				ImGui::SetColumnWidth(2, 80);
+
+				isColumnWidthSet = true;
+			}
+
+			ImGui::Text("Controls"); ImGui::NextColumn();
+			ImGui::Text("Unit"); ImGui::NextColumn();
+			ImGui::Text("Type"); ImGui::NextColumn();
+			ImGui::Text("Name"); ImGui::NextColumn();
+
+			ImGui::Separator();
+
+			int id = 0;
+			std::vector<GLuint> &els = m_data->Objects.GetBindList(m_modalItem);
+			const std::vector<std::string> &items = m_data->Objects.GetObjects();
+
+			/* EXISTING VARIABLES */
+			for (auto el : els) {
+				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
+
+				/* CONTROLS */
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				/* UP BUTTON */
+				if (ImGui::Button((UI_ICON_ARROW_UP "##s" + std::to_string(id)).c_str()) && id != 0) {
+					GLuint temp = els[id - 1];
+					els[id - 1] = el;
+					els[id] = temp;
+					m_data->Parser.ModifyProject();
+				}
+				ImGui::SameLine(0,0);
+				/* DOWN BUTTON */
+				if (ImGui::Button((UI_ICON_ARROW_DOWN "##s" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+					GLuint temp = els[id + 1];
+					els[id + 1] = el;
+					els[id] = temp;
+					m_data->Parser.ModifyProject();
+				}
+				ImGui::PopStyleColor();
+				ImGui::NextColumn();
+
+				/* ACTIVE */
+				ImGui::Text("%d", id);
+				ImGui::NextColumn();
+
+				/* NAME */
+				if (objs->IsImage(itemName)) ImGui::Text("image");
+				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
+				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
+				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
+				else if (objs->IsCubeMap(itemName)) ImGui::Text("cubemap");
+				else ImGui::Text("texture");
+				ImGui::NextColumn();
+
+				/* VALUE */
+				ImGui::Text("%s", itemName.c_str());
+				ImGui::NextColumn();
+
+				id++;
+			}
+
+			ImGui::Columns(1);
+		}
+
+		ImGui::NewLine();
+
+		// UAVs
+		{
+			ImGui::Text("UAVs / UBOs");
+			ImGui::Separator();
+			ImGui::Columns(4);
+
+			// TODO: remove this after imgui fixes the table/column system
+			static bool isColumnWidthSet = false;
+			if (!isColumnWidthSet) {
+				ImGui::SetColumnWidth(0, 80);
+				ImGui::SetColumnWidth(1, 60);
+				ImGui::SetColumnWidth(2, 80);
+
+				isColumnWidthSet = true;
+			}
+
+			ImGui::Text("Controls"); ImGui::NextColumn();
+			ImGui::Text("Unit"); ImGui::NextColumn();
+			ImGui::Text("Type"); ImGui::NextColumn();
+			ImGui::Text("Name"); ImGui::NextColumn();
+
+			ImGui::Separator();
+
+			int id = 0;
+			std::vector<GLuint> &els = m_data->Objects.GetUniformBindList(m_modalItem);
+			const std::vector<std::string> &items = m_data->Objects.GetObjects();
+
+			/* EXISTING VARIABLES */
+			for (auto el : els) {
+				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
+
+				/* CONTROLS */
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				/* UP BUTTON */
+				if (ImGui::Button((UI_ICON_ARROW_UP "##u" + std::to_string(id)).c_str()) && id != 0) {
+					GLuint temp = els[id - 1];
+					els[id - 1] = el;
+					els[id] = temp;
+					m_data->Parser.ModifyProject();
+				}
+				ImGui::SameLine(0,0);
+				/* DOWN BUTTON */
+				if (ImGui::Button((UI_ICON_ARROW_DOWN "##u" + std::to_string(id)).c_str()) && id != els.size() - 1) {
+					GLuint temp = els[id + 1];
+					els[id + 1] = el;
+					els[id] = temp;
+					m_data->Parser.ModifyProject();
+				}
+				ImGui::PopStyleColor();
+				ImGui::NextColumn();
+
+				/* ACTIVE */
+				ImGui::Text("%d", id);
+				ImGui::NextColumn();
+
+				/* NAME */
+				if (objs->IsImage(itemName)) ImGui::Text("image");
+				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
+				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
+				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
+				else if (objs->IsCubeMap(itemName)) ImGui::Text("cubemap");
+				else ImGui::Text("texture");
+				ImGui::NextColumn();
+
+				/* VALUE */
+				ImGui::Text("%s", itemName.c_str());
+				ImGui::NextColumn();
+
+				id++;
+			}
+
+			ImGui::Columns(1);
+		}
+		
+		ImGui::EndChild();
+	}
 	void PipelineUI::m_renderMacroManagerUI()
 	{
 		static ShaderMacro addMacro = { true, "\0", "\0" };

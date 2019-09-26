@@ -586,6 +586,20 @@ namespace ed
 
 		return -1;
 	}
+	std::string ObjectManager::GetItemNameByTextureID(GLuint texID)
+	{
+		for (const auto& t : m_texs)
+			if (t.second == texID)
+				return t.first;
+		
+		for (const auto& b : m_bufs)
+			if (b.second->ID == texID)
+				return b.first;
+		
+		for (const auto& i : m_images)
+			if (i.second->Texture == texID)
+				return i.first;
+	}
 	glm::ivec2 ObjectManager::GetRenderTextureSize(const std::string & name)
 	{
 		if (m_rts[name]->FixedSize.x < 0) return glm::ivec2(m_rts[name]->RatioSize.x * m_renderer->GetLastRenderSize().x, m_rts[name]->RatioSize.y * m_renderer->GetLastRenderSize().y);

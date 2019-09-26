@@ -104,6 +104,8 @@ namespace ed
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
 
+		std::string GetItemNameByTextureID(GLuint texID);
+
 		std::vector<ed::ShaderVariable::ValueType> ParseBufferFormat(const std::string& str);
 
 		void Bind(const std::string& file, PipelineItem* pass);

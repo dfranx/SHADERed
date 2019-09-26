@@ -15,6 +15,7 @@ namespace ed
 			m_itemMenuOpened = false;
 			m_isMacroManagerOpened = false;
 			m_isInpLayoutManagerOpened = false;
+			m_isResourceManagerOpened = false;
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -30,6 +31,7 @@ namespace ed
 		bool m_isMacroManagerOpened;
 		bool m_isVarManagerOpened;
 		bool m_isInpLayoutManagerOpened;
+		bool m_isResourceManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
 		bool m_itemMenuOpened;
@@ -49,6 +51,7 @@ namespace ed
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderVariableManagerUI();
 		void m_renderInputLayoutManagerUI();
+		void m_renderResourceManagerUI();
 		void m_renderChangeVariablesUI();
 		void m_renderMacroManagerUI();
 
