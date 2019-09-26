@@ -21,7 +21,7 @@
 	#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 #endif
 
-#define STATUSBAR_HEIGHT 18 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT 20 * Settings::Instance().DPIScale
 
 const std::string EDITOR_SHORTCUT_NAMES[] =
 {
@@ -701,6 +701,9 @@ namespace ed
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
+			for (int j = 0; j < m_trackedNeedsUpdate.size(); j++)
+				m_trackedNeedsUpdate[j] = false;
+
 			// check if user added/changed shader paths
 			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
 			bool needsUpdate = false;
@@ -779,6 +782,7 @@ namespace ed
 				// get all paths to all shaders
 				passes = nPasses;
 				gsUsed.resize(passes.size());
+				m_trackedNeedsUpdate.resize(passes.size());
 				for (auto pass : passes) {
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
@@ -876,8 +880,13 @@ namespace ed
 							std::string updatedFile(paths[pathIndex] + filename);
 
 							for (int i = 0; i < allFiles.size(); i++)
-								if (allFiles[i] == updatedFile)
+								if (allFiles[i] == updatedFile) {
 									m_trackedShaderPasses.push_back(allPasses[i]);
+
+									for (int j = 0; j < passes.size(); j++)
+										if (allPasses[i] == passes[j]->Name)
+											m_trackedNeedsUpdate[j] = true;
+								}
 						}
 					}
 				}
@@ -905,6 +914,9 @@ namespace ed
 		while (m_trackerRunning)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+			for (int j = 0; j < m_trackedNeedsUpdate.size(); j++)
+				m_trackedNeedsUpdate[j] = false;
 
 			// TODO: some of these parts can be used on other os too - merge this
 
@@ -995,6 +1007,7 @@ namespace ed
 				// get all paths to all shaders
 				passes = nPasses;
 				gsUsed.resize(passes.size());
+				m_trackedNeedsUpdate.resize(passes.size());
 				for (auto pass : passes) {
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass *data = (pipe::ShaderPass *)pass->Data;
@@ -1118,8 +1131,13 @@ namespace ed
 						std::string updatedFile(paths[dwWaitStatus - WAIT_OBJECT_0] + std::string(filename));
 
 						for (int i = 0; i < allFiles.size(); i++)
-							if (allFiles[i] == updatedFile)
+							if (allFiles[i] == updatedFile) {
 								m_trackedShaderPasses.push_back(allPasses[i]);
+
+								for (int j = 0; j < passes.size(); j++)
+									if (allPasses[i] == passes[j]->Name)
+										m_trackedNeedsUpdate[j] = true;
+							}
 					}
 
 					bufferOffset += notif->NextEntryOffset;

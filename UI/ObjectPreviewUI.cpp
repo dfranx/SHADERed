@@ -86,7 +86,8 @@ namespace ed
                     
                     ImGui::Text("Format:");
                     ImGui::SameLine();
-                    ImGui::InputText("##objprev_formatinp", buf->ViewFormat, 256);
+                    if (ImGui::InputText("##objprev_formatinp", buf->ViewFormat, 256))
+                        m_data->Parser.ModifyProject();
                     ImGui::SameLine();
                     if (ImGui::Button("APPLY##objprev_applyfmt"))
                         item->CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
@@ -111,6 +112,8 @@ namespace ed
                         glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
                         glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
                         glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+                        m_data->Parser.ModifyProject();
                     }
                     if (ImGui::Button("CLEAR##objprev_clearbuf")) {
                         memset(buf->Data, 0, buf->Size);
@@ -118,6 +121,8 @@ namespace ed
                         glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
                         glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
                         glBindBuffer(GL_UNIFORM_BUFFER, 0);
+                        
+                        m_data->Parser.ModifyProject();
                     }
 
                     // update buffer data every 330ms
@@ -148,6 +153,8 @@ namespace ed
                                     glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
 					                glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
 					                glBindBuffer(GL_UNIFORM_BUFFER, 0);
+                                    
+                                    m_data->Parser.ModifyProject();
                                 }
                                 curColOffset += ShaderVariable::GetSize(item->CachedFormat[j]);
                                 ImGui::NextColumn();

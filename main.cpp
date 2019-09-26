@@ -196,7 +196,6 @@ int main(int argc, char* argv[])
 		while (SDL_PollEvent(&event))
 		{
 			if (event.type == SDL_QUIT) {
-
 				bool cont = true;
 				if (engine.Interface().Parser.IsProjectModified()) {
 					int btnID = engine.UI().AreYouSure();

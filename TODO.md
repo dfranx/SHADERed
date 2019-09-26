@@ -23,7 +23,9 @@ List of features I want to implement:
 Except those features, I am also looking to do some small QoL changes and fixes:
  - find and replace in code editor
  - right click in code editor
+ - fix for u0 and t0 compute
 
+ - file "Compile" option compiles shader pass twice (one with the Recompile and another time if the "Recompile on file change" is on)
  - rework variables (so that the type can be changed)
  - list all system variables
  - openning Sobel after Edge -> doesn't render anything

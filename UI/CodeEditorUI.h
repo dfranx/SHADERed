@@ -121,6 +121,7 @@ namespace ed
 		inline bool TrackedFilesNeedUpdate() { return m_trackedShaderPasses.size() > 0; }
 		inline void EmptyTrackedFiles() { m_trackedShaderPasses.clear(); }
 		inline std::vector<std::string> TrackedFiles() { return m_trackedShaderPasses; }
+		inline std::vector<bool> TrackedNeedsUpdate() { return m_trackedNeedsUpdate; }
 
 		void CloseAll();
 
@@ -206,6 +207,8 @@ namespace ed
 		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
 
 		// all the variables needed for the file change notifications
+		std::vector<bool> m_trackedNeedsUpdate;
+
 		bool m_trackFileChanges;
 		std::atomic<bool> m_trackerRunning;
 		std::thread* m_trackThread;

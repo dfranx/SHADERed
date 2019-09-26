@@ -371,6 +371,8 @@ namespace ed
 		
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
+		
+		printf("%s\n", name);
 
 		GLchar cMsg[1024];
 

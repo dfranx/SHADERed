@@ -10,12 +10,16 @@
 + add CamerPosition3 and CameraDirection3 variables
 + fix a bug which would crash whole app on deleting last variable
 + fix a bug where variable name was limited to 16chars when being created
-+ fix a bug where SHADERed would use absolute paths even if project and shader file are on the same drive
++ fix a bug where SHADERed would use absolute paths even if project and shader file were on the same drive
++ fix file "Compile" option so that it only recompiles the correct shader pass
++ fix "Recompile on file change" so that it only recompiles correct shaders
 + fix non resizable columns
 + fix a bug where SHADERed would sometimes crash on exit
 + fix a bug where no actual error messages show up with the auto recompile on HLSL and Vulkan GLSL shaders
 + fix "Edge" example
-+ save performance mode state on exit
++ fix for two vertical scrollbars in CodeEditorUI
++ fix for loading textures with improper size
++ save "performance mode" state on exit
 + increase variable name length from 32 to 256
 + color the "Name:" label red when user tries to use already existing item name
 

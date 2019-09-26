@@ -124,7 +124,8 @@ namespace ed
 		std::string path = m_parser->GetProjectPath(file);
 		int width, height, nrChannels;
 		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-		
+		unsigned char* paddedData = nullptr;
+
 		if (data == nullptr)
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
 
@@ -136,14 +137,36 @@ namespace ed
 		else if (nrChannels == 1)
 			fmt = GL_LUMINANCE;
 
+		if (nrChannels != 4) {
+			paddedData = (unsigned char*)malloc(width * height * 4);
+			for (int x = 0; x < width; x++) {
+				for (int y = 0; y < height; y++) {
+					if (nrChannels == 3) {
+						paddedData[(y * width + x) * 4 + 0] = data[(y * width + x) * 3 + 0];
+						paddedData[(y * width + x) * 4 + 1] = data[(y * width + x) * 3 + 1];
+						paddedData[(y * width + x) * 4 + 2] = data[(y * width + x) * 3 + 2];
+					} else if (nrChannels == 1) {
+						unsigned char val = data[(y * width + x) * 1 + 0];
+						paddedData[(y * width + x) * 4 + 0] = val;
+						paddedData[(y * width + x) * 4 + 1] = val;
+						paddedData[(y * width + x) * 4 + 2] = val;
+					}
+					paddedData[(y * width + x) * 4 + 3] = 255;
+				}
+			}
+		}
+
 		glGenTextures(1, &m_texs[file]);
 		glBindTexture(GL_TEXTURE_2D, m_texs[file]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		m_imgSize[file] = std::make_pair(width, height);
+
+		if (paddedData != nullptr)
+			free(paddedData);
 
 		stbi_image_free(data);
 
