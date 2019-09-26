@@ -8,6 +8,7 @@ Editor.AutocompleteSelect Tab
 Editor.AutocompleteSelectActive Return
 Editor.AutocompleteUp Up
 Editor.Copy CTRL C
+Editor.Find CTRL F
 Editor.Cut CTRL X
 Editor.MoveBottom CTRL End
 Editor.MoveDownBlock PageDown

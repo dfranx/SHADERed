@@ -428,8 +428,6 @@ namespace ed
 			}
 		}
 
-		//printf("%s\n\n\n", source.c_str());
-
 		ed::Logger::Get().Log("Finished transcompiling the shader");
 		
 		return source;

@@ -21,10 +21,6 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - find and replace in code editor
- - right click in code editor
- - resource input manager
-
  - file "Compile" option compiles shader pass twice (one with the Recompile and another time if the "Recompile on file change" is on)
  - rework variables (so that the type can be changed)
  - list all system variables
@@ -42,6 +38,7 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - when loading a texture it might not be loaded if not bound to any shader pass
  - ability to change warning, message and error text colors
  - lower down std::map and std::unordered_map usage
+ - right click in code editor
  - why isn't first arg in CodeEditorUI::m_open a pointer?
  - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - ability to edit the buttons that show up in the toolbar

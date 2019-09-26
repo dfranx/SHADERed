@@ -50,7 +50,8 @@ const std::string EDITOR_SHORTCUT_NAMES[] =
 	"AutocompleteUp",
 	"AutocompleteDown",
 	"NewLine",
-	"IndentShift"
+	"IndentShift",
+	"Find"
 };
 
 namespace ed

@@ -1,10 +1,12 @@
 [v1.2.2]
 + rework image objects (you can choose how to bind them & removed Read & Write flags) - **some old projects with compute shaders may not work**
 + add support for Vulkan GLSL
-+ add input layout
++ add input layout manager
++ add CTRL+F in code editor
 + add tangent, bitangent and color vertex attributes
 + add ability to export your shader to an image sequence
 + add support for drag & drop
++ add resource manager
 + add project change detection & "Are you sure?" message box
 + add "Hide menu bar in performance mode" option
 + add glslang error messages when preprocessing fails
