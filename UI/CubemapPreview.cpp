@@ -4,6 +4,7 @@
 #include "../Engine/GLUtils.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 const char* CUBEMAP_VS_CODE = R"(
 #version 330
