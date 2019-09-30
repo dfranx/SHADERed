@@ -118,9 +118,8 @@ namespace ed
 
 
 		void SetTrackFileChanges(bool track);
-		inline bool TrackedFilesNeedUpdate() { return m_trackedShaderPasses.size() > 0; }
-		inline void EmptyTrackedFiles() { m_trackedShaderPasses.clear(); }
-		inline std::vector<std::string> TrackedFiles() { return m_trackedShaderPasses; }
+		inline bool TrackedFilesNeedUpdate() { return m_trackUpdatesNeeded > 0; }
+		inline void EmptyTrackedFiles() { m_trackUpdatesNeeded = 0; }
 		inline std::vector<bool> TrackedNeedsUpdate() { return m_trackedNeedsUpdate; }
 
 		void CloseAll();
@@ -211,8 +210,9 @@ namespace ed
 
 		bool m_trackFileChanges;
 		std::atomic<bool> m_trackerRunning;
+		std::atomic<int> m_trackUpdatesNeeded;
+		std::vector<std::string> m_trackIgnore;
 		std::thread* m_trackThread;
-		std::vector<std::string> m_trackedShaderPasses;
 		std::mutex m_trackFilesMutex;
 		void m_trackWorker();
 	};

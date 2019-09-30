@@ -21,26 +21,25 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - file "Compile" option compiles shader pass twice (one with the Recompile and another time if the "Recompile on file change" is on)
  - rework variables (so that the type can be changed)
+ - lower down std::map and std::unordered_map usage
  - list all system variables
- - openning Sobel after Edge -> doesn't render anything
+ - bring all Preview tools to ObjectPreview window
+ - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
+ - right click in code editor & fix copy paste
+---
+ - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - crashes when opening cubemap example only on Linux and only in Release mode!
  - prevent crashes (loading wrong 3d model, compute shaders not supported, etc...)
  - color compute shader labels light/dark green
- - bring all Preview tools to ObjectPreview window
+ - recompile the shader after we change shader path in a shader pass
+ - when loading a texture it might not be loaded if not bound to any shader pass
+ - when adding a shader pass, decompile the shader and detect input variables
+ - why isn't first arg in CodeEditorUI::m_open a pointer?
+ - ability to change warning, message and error text colors
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - move 3D models to ObjectManager
  - show tips on startup & 'whats new' on first startup
- - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
- - recompile the shader after we change shader path in a shader pass
- - when adding a shader pass, decompile the shader and detect input variables
- - when loading a texture it might not be loaded if not bound to any shader pass
- - ability to change warning, message and error text colors
- - lower down std::map and std::unordered_map usage
- - right click in code editor
- - why isn't first arg in CodeEditorUI::m_open a pointer?
- - PipelineUI::GetSelectedShaderPass() -> add Geometry and other options under "Create" menu item in GUIManager
  - ability to edit the buttons that show up in the toolbar
  - shift+drag with right click to move ArcBallCamera focus point
  - add an option to hide and/or lock certain shader pass

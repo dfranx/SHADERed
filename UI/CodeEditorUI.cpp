@@ -480,8 +480,12 @@ namespace ed
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
-		m_save(id);
+		if (m_trackerRunning) {
+			std::lock_guard<std::mutex> lock(m_trackFilesMutex);
+			m_trackIgnore.push_back(m_items[id].Name);
+		}
 
+		m_save(id);
 		m_data->Renderer.Recompile(m_items[id].Name);
 	}
 	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
@@ -682,8 +686,10 @@ namespace ed
 		std::vector<std::string> allPasses;		// list of shader pass names that correspond to the file name
 		std::vector<std::string> paths;			// list of all paths that we should have "notifications turned on"
 
+		m_trackUpdatesNeeded = 0;
+
 	#if defined(__APPLE__)
-		// no implementation for macos (cant test)
+		// TODO: implementation for macos (cant test)
 	#elif defined(__linux__) || defined(__unix__)
 	
 		int bufLength, bufIndex = 0;
@@ -696,7 +702,20 @@ namespace ed
 			// TODO: log from this thread!
 			return;
 		}
-		
+
+	#elif defined(_WIN32)
+		// variables for storing all the handles
+		std::vector<HANDLE> events(paths.size());
+		std::vector<HANDLE> hDirs(paths.size());
+		std::vector<OVERLAPPED> pOverlap(paths.size());
+
+		// buffer data
+		const int bufferLen = 2048;
+		char buffer[bufferLen];
+		DWORD bytesReturned;
+		char filename[MAX_PATH];
+	#endif
+
 		// run this loop until we close the thread
 		while (m_trackerRunning)
 		{
@@ -771,13 +790,24 @@ namespace ed
 
 			// update our file collection if needed
 			if (nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
+		#if defined(__APPLE__)
+				// TODO: implementation for macos
+		#elif defined(__linux__) || defined(__unix__)
 				for (int i = 0; i < notifyIDs.size(); i++)
 					inotify_rm_watch(notifyEngine, notifyIDs[i]);
+				notifyIDs.clear();
+		#elif defined(_WIN32)
+				for (int i = 0; i < paths.size(); i++) {
+					CloseHandle(hDirs[i]);
+					CloseHandle(events[i]);
+				}
+				events.clear();
+				hDirs.clear();
+		#endif
 
 				allFiles.clear();
 				allPasses.clear();
 				paths.clear();
-				notifyIDs.clear();
 				curProject = m_data->Parser.GetOpenedFile();
 				
 				// get all paths to all shaders
@@ -840,10 +870,34 @@ namespace ed
 						}
 				}
 
+		#if defined(__APPLE__)
+						// TODO: implementation for macos
+		#elif defined(__linux__) || defined(__unix__)
 				// create HANDLE to all tracked directories
 				notifyIDs.resize(paths.size());
 				for (int i = 0; i < paths.size(); i++)
 					notifyIDs[i] = inotify_add_watch(notifyEngine, paths[i].c_str(), IN_MODIFY);
+		#elif defined(_WIN32)
+				events.resize(paths.size());
+				hDirs.resize(paths.size());
+				pOverlap.resize(paths.size());
+
+				// create HANDLE to all tracked directories
+				for (int i = 0; i < paths.size(); i++) {
+					hDirs[i] = CreateFileA(paths[i].c_str(), GENERIC_READ | FILE_LIST_DIRECTORY,
+						FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+						NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+						NULL);
+
+					if (hDirs[i] == INVALID_HANDLE_VALUE)
+						return;
+
+					pOverlap[i].OffsetHigh = 0;
+					pOverlap[i].hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+					events[i] = pOverlap[i].hEvent;
+				}
+		#endif
 			}
 
 			if (paths.size() == 0) {
@@ -851,6 +905,9 @@ namespace ed
 				continue;
 			}
 
+		#if defined(__APPLE__)
+					// TODO: implementation for macos
+		#elif defined(__linux__) || defined(__unix__)
 			fd_set rfds;
 			int eCount = select(notifyEngine+1, &rfds, NULL, NULL, NULL);
 			
@@ -882,11 +939,22 @@ namespace ed
 
 							for (int i = 0; i < allFiles.size(); i++)
 								if (allFiles[i] == updatedFile) {
-									m_trackedShaderPasses.push_back(allPasses[i]);
+									// did we modify this file through "Compile" option?
+									bool shouldBeIgnored = false;
+									for (int j = 0; j < m_trackIgnore.size(); j++)
+										if (m_trackIgnore[j] == allPasses[i]) {
+											shouldBeIgnored = true;
+											m_trackIgnore.erase(m_trackIgnore.begin() + j);
+											break;
+										}
 
-									for (int j = 0; j < passes.size(); j++)
-										if (allPasses[i] == passes[j]->Name)
-											m_trackedNeedsUpdate[j] = true;
+									if (!shouldBeIgnored) {
+										m_trackUpdatesNeeded++;
+
+										for (int j = 0; j < passes.size(); j++)
+											if (allPasses[i] == passes[j]->Name)
+												m_trackedNeedsUpdate[j] = true;
+									}
 								}
 						}
 					}
@@ -900,199 +968,6 @@ namespace ed
 			inotify_rm_watch(notifyEngine, notifyIDs[i]);
 		close(notifyEngine);
 	#elif defined(_WIN32)
-		// variables for storing all the handles
-		std::vector<HANDLE> events(paths.size());
-		std::vector<HANDLE> hDirs(paths.size());
-		std::vector<OVERLAPPED> pOverlap(paths.size());
-
-		// buffer data
-		const int bufferLen = 2048;
-		char buffer[bufferLen];
-		DWORD bytesReturned;
-		char filename[MAX_PATH];
-
-		// run this loop until we close the thread
-		while (m_trackerRunning)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-			for (int j = 0; j < m_trackedNeedsUpdate.size(); j++)
-				m_trackedNeedsUpdate[j] = false;
-
-			// TODO: some of these parts can be used on other os too - merge this
-
-			// check if user added/changed shader paths
-			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
-			bool needsUpdate = false;
-			for (auto pass : nPasses) {
-				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
-					pipe::ShaderPass *data = (pipe::ShaderPass *)pass->Data;
-
-					bool foundVS = false, foundPS = false, foundGS = false;
-
-					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
-
-					for (auto &f : allFiles) {
-						if (f == vsPath) {
-							foundVS = true;
-							if (foundPS)
-								break;
-						}
-						else if (f == psPath) {
-							foundPS = true;
-							if (foundVS)
-								break;
-						}
-					}
-
-					if (data->GSUsed) {
-						std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
-						for (auto &f : allFiles)
-							if (f == gsPath) {
-								foundGS = true;
-								break;
-							}
-					}
-					else
-						foundGS = true;
-
-					if (!foundGS || !foundVS || !foundPS) {
-						needsUpdate = true;
-						break;
-					}
-				}
-				else if (pass->Type == PipelineItem::ItemType::ComputePass) {
-					pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
-
-					bool found = false;
-
-					std::string path(m_data->Parser.GetProjectPath(data->Path));
-
-					for (auto &f : allFiles)
-						if (f == path)
-							found = true;
-
-					if (!found) {
-						needsUpdate = true;
-						break;
-					}
-				}
-			}
-
-			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
-				if (nPasses[i]->Type == PipelineItem::ItemType::ShaderPass) {
-					bool used = ((pipe::ShaderPass *)nPasses[i]->Data)->GSUsed;
-					if (gsUsed[i] != used) {
-						gsUsed[i] = used;
-						needsUpdate = true;
-					}
-				}
-			}
-
-			// update our file collection if needed
-			if (nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
-				for (int i = 0; i < paths.size(); i++) {
-					CloseHandle(hDirs[i]);
-					CloseHandle(events[i]);
-				}
-
-				allFiles.clear();
-				allPasses.clear();
-				paths.clear();
-				events.clear();
-				hDirs.clear();
-				pOverlap.clear();
-				curProject = m_data->Parser.GetOpenedFile();
-				
-				// get all paths to all shaders
-				passes = nPasses;
-				gsUsed.resize(passes.size());
-				m_trackedNeedsUpdate.resize(passes.size());
-				for (auto pass : passes) {
-					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass *data = (pipe::ShaderPass *)pass->Data;
-
-						std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
-						std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
-
-						allFiles.push_back(vsPath);
-						paths.push_back(vsPath.substr(0, vsPath.find_last_of("/\\") + 1));
-						allPasses.push_back(pass->Name);
-
-						allFiles.push_back(psPath);
-						paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
-						allPasses.push_back(pass->Name);
-
-						if (data->GSUsed) {
-							std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
-
-							allFiles.push_back(gsPath);
-							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
-							allPasses.push_back(pass->Name);
-						}
-					}
-					else if (pass->Type == PipelineItem::ItemType::ComputePass) {
-						pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
-
-						std::string path(m_data->Parser.GetProjectPath(data->Path));
-
-						allFiles.push_back(path);
-						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
-						allPasses.push_back(pass->Name);
-					}
-				}
-
-				// delete directories that appear twice or that are subdirectories
-				{
-					std::vector<bool> toDelete(paths.size(), false);
-
-					for (int i = 0; i < paths.size(); i++) {
-						if (toDelete[i]) continue;
-
-						for (int j = 0; j < paths.size(); j++) {
-							if (j == i || toDelete[j]) continue;
-
-							if (paths[j].find(paths[i]) != std::string::npos)
-								toDelete[j] = true;
-						}
-					}
-
-					for (int i = 0; i < paths.size(); i++)
-						if (toDelete[i]) {
-							paths.erase(paths.begin() + i);
-							toDelete.erase(toDelete.begin() + i);
-							i--;
-						}
-				}
-
-
-				events.resize(paths.size());
-				hDirs.resize(paths.size());
-				pOverlap.resize(paths.size());
-
-				// create HANDLE to all tracked directories
-				for (int i = 0; i < paths.size(); i++) {
-					hDirs[i] = CreateFileA(paths[i].c_str(), GENERIC_READ | FILE_LIST_DIRECTORY,
-						FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-						NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-						NULL);
-
-					if (hDirs[i] == INVALID_HANDLE_VALUE)
-						return;
-
-					pOverlap[i].OffsetHigh = 0;
-					pOverlap[i].hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-					events[i] = pOverlap[i].hEvent;
-				}
-			}
-
-			if (paths.size() == 0) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-				continue;
-			}
-
 			// notification data
 			FILE_NOTIFY_INFORMATION* notif;
 			int bufferOffset;
@@ -1133,11 +1008,22 @@ namespace ed
 
 						for (int i = 0; i < allFiles.size(); i++)
 							if (allFiles[i] == updatedFile) {
-								m_trackedShaderPasses.push_back(allPasses[i]);
+								// did we modify this file through "Compile" option?
+								bool shouldBeIgnored = false;
+								for (int j = 0; j < m_trackIgnore.size(); j++)
+									if (m_trackIgnore[j] == allPasses[i]) {
+										shouldBeIgnored = true;
+										m_trackIgnore.erase(m_trackIgnore.begin() + j);
+										break;
+									}
 
-								for (int j = 0; j < passes.size(); j++)
-									if (allPasses[i] == passes[j]->Name)
-										m_trackedNeedsUpdate[j] = true;
+								if (!shouldBeIgnored) {
+									m_trackUpdatesNeeded++;
+
+									for (int j = 0; j < passes.size(); j++)
+										if (allPasses[i] == passes[j]->Name)
+											m_trackedNeedsUpdate[j] = true;
+								}
 							}
 					}
 
@@ -1145,6 +1031,12 @@ namespace ed
 				} while (notif->NextEntryOffset);
 			}
 		}
+		for (int i = 0; i < hDirs.size(); i++)
+			CloseHandle(hDirs[i]);
+		for (int i = 0; i < events.size(); i++)
+			CloseHandle(events[i]);
+		events.clear();
+		hDirs.clear();
 	#endif
 	}
 

@@ -138,6 +138,8 @@ namespace ed
 		std::vector<GLuint> m_emptyResVec;
 
 		// TODO: lower down the number of maps
+		// HOW: create ObjectManagerItem structure
+		// which will merge all these into one std::vector
 		std::unordered_map<std::string, std::pair<int, int>> m_imgSize; // TODO: use glm::ivec2
 		std::unordered_map<std::string, GLuint> m_texs;
 		std::unordered_map<std::string, bool> m_isCube;

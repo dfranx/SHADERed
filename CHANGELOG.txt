@@ -1,3 +1,6 @@
+[v1.2.3]
++ fix a bug where SHADERed would recompile file two times after clicking "Compile" button
+
 [v1.2.2]
 + rework image objects (you can choose how to bind them & removed Read & Write flags) - **some old projects with compute shaders may not work**
 + add support for Vulkan GLSL
