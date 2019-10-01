@@ -701,7 +701,10 @@ namespace ed
 
 			/* TYPE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			ImGui::Text(VARIABLE_TYPE_NAMES[(int)el->GetType()]);
+			ShaderVariable::ValueType tempType = el->GetType();
+			if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&tempType), VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES)))
+				if (tempType != el->GetType())
+					el->SetType(tempType);
 			ImGui::NextColumn();
 
 			/* NAME */

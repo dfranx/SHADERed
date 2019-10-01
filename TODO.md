@@ -21,12 +21,11 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - rework variables (so that the type can be changed)
- - lower down std::map and std::unordered_map usage
+ - lower down std::map and std::unordered_map usa
  - list all system variables
  - bring all Preview tools to ObjectPreview window
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
- - right click in code editor & fix copy paste
+ - right click in code editor, fix copy&paste
 ---
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - crashes when opening cubemap example only on Linux and only in Release mode!

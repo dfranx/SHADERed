@@ -141,6 +141,21 @@ namespace ed
 		inline void SetBooleanValue(bool value, int index = 0) { *AsBooleanPtr(index) = value; }
 		inline void SetFloat(float value, int col = 0, int row = 0) { *AsFloatPtr(col, row) = value; }
 
+		inline void SetType(ValueType newType) {
+			System = SystemShaderVariable::None;
+			Function = FunctionShaderVariable::None;
+			Flags = (char)Flag::None;
+
+			if (Arguments != nullptr) {
+				free(Arguments);
+				Arguments = nullptr;
+			}
+
+			m_type = newType;
+			char* tempData = (char*)realloc(Data, ShaderVariable::GetSize(m_type));
+			if (tempData != nullptr)
+				Data = tempData;
+		}
 		inline ValueType GetType() { return m_type; }
 		inline int GetColumnCount()
 		{
