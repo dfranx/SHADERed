@@ -72,6 +72,7 @@ namespace ed
 		m_wasPausedPrior = true;
 		m_savePreviewSeq = false;
 		m_cacheProjectModified = false;
+		m_isInfoOpened = false;
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
 
@@ -706,7 +707,8 @@ namespace ed
 						ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
 					#endif
 				}
-				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true;}
+				if (ImGui::MenuItem("Information")) { m_isInfoOpened = true; }
+				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true; }
 
 				ImGui::EndMenu();
 			}
@@ -831,6 +833,12 @@ namespace ed
 		if (m_isAboutOpen) {
 			ImGui::OpenPopup("About##main_about");
 			m_isAboutOpen = false;
+		}
+
+		// open tips window
+		if (m_isInfoOpened) {
+			ImGui::OpenPopup("Information##main_info");
+			m_isInfoOpened = false;
 		}
 
 		// Create Item popup
@@ -973,7 +981,7 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 180 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
 			ImGui::TextWrapped("(C) 2019 dfranx");
-			ImGui::TextWrapped("Version 1.2.2");
+			ImGui::TextWrapped("Version 1.2.3");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");
@@ -986,6 +994,53 @@ namespace ed
 				#elif defined(_WIN32)
 					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
 				#endif
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Ok"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create "Tips" popup
+		ImGui::SetNextWindowSize(ImVec2(550 * Settings::Instance().DPIScale, 560 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Information##main_info")) {
+			ImGui::TextWrapped("You can find random information on various features");
+
+			ImGui::TextWrapped("System variables");
+			ImGui::Separator();
+			ImGui::TextWrapped("Time (float) - time elapsed since app start");
+			ImGui::TextWrapped("TimeDelta (float) - render time");
+			ImGui::TextWrapped("FrameIndex (uint) - current frame index");
+			ImGui::TextWrapped("ViewportSize (vec2) - rendering window size");
+			ImGui::TextWrapped("MousePosition (vec2) - normalized mouse position in the Preview window");
+			ImGui::TextWrapped("View (mat4) - a built-in camera matrix");
+			ImGui::TextWrapped("Projection (mat4) - a built-in projection matrix");
+			ImGui::TextWrapped("ViewProjection (mat4) - View*Projection matrix");
+			ImGui::TextWrapped("Orthographic (mat4) - an orthographic matrix");
+			ImGui::TextWrapped("ViewOrthographic (mat4) - View*Orthographic");
+			ImGui::TextWrapped("GeometryTransform (mat4) - applies Scale, Rotation and Position to geometry");
+			ImGui::TextWrapped("IsPicked (bool) - check if current item is selected");
+			ImGui::TextWrapped("CameraPosition (vec4) - current camera position");
+			ImGui::TextWrapped("CameraPosition3 (vec3) - current camera position");
+			ImGui::TextWrapped("CameraDirection3 (vec3) - camera view direction");
+			ImGui::TextWrapped("KeysWASD (vec4) - W, A, S or D keys state");
+			ImGui::TextWrapped("Mouse (vec4) - vec4(x,y,left,right) updated every frame");
+			ImGui::TextWrapped("MouseButton (vec4) - vec4(x,y,left,right) updated only when mouse button pressed");
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TextWrapped("Have an idea for a feature that's missing? Suggest it ");
+			ImGui::SameLine();
+			if (ImGui::Button("here")) {
+#if defined(__APPLE__)
+				system("open https://github.com/dfranx/SHADERed/issues"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+				system("xdg-open https://github.com/dfranx/SHADERed/issues");
+#elif defined(_WIN32)
+				ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
+#endif
 			}
 
 			ImGui::Separator();

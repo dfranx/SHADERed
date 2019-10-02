@@ -22,7 +22,6 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - lower down std::map and std::unordered_map usa
- - list all system variables
  - bring all Preview tools to ObjectPreview window
  - create UI/Tools directory (for CubemapPreview, Magnifier, PixelInspect, etc...)
  - right click in code editor, fix copy&paste

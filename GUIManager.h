@@ -90,7 +90,8 @@ namespace ed
 
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
-			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened;
+			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
+			m_isInfoOpened;
 
 		bool m_isUpdateNotificationOpened;
 		sf::Clock m_updateNotifyClock;
