@@ -1,6 +1,8 @@
 [v1.2.3]
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
++ add magnifier tool to texture/image preview window
++ fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
 
 [v1.2.2]

@@ -1006,7 +1006,7 @@ namespace ed
 		// Create "Tips" popup
 		ImGui::SetNextWindowSize(ImVec2(550 * Settings::Instance().DPIScale, 560 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Information##main_info")) {
-			ImGui::TextWrapped("You can find random information on various features");
+			ImGui::TextWrapped("Here you can find random information about various features");
 
 			ImGui::TextWrapped("System variables");
 			ImGui::Separator();

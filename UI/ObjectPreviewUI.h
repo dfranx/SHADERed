@@ -1,7 +1,9 @@
 #pragma once
 #include "UIView.h"
 #include "../Objects/PipelineItem.h"
-#include "CubemapPreview.h"
+#include "Tools/CubemapPreview.h"
+#include "Tools/Magnifier.h"
+#include "../Engine/GLUtils.h"
 
 namespace ed
 {
@@ -12,8 +14,13 @@ namespace ed
 			UIView(ui, objects, name, visible)
 		{
             m_cubePrev.Init(256, 192);
+            m_curHoveredItem = -1;
+            m_lastZoomSize = glm::vec2(0,0);
+            m_zoomFBO = 0;
+            m_zoomRT = 0;
+            m_zoomDepth = 0;
         }
-		~ObjectPreviewUI() { }
+		~ObjectPreviewUI() { gl::FreeSimpleFramebuffer(m_zoomFBO, m_zoomRT, m_zoomDepth); }
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
@@ -47,7 +54,16 @@ namespace ed
         bool m_drawBufferElement(int row, int col, void *data, ShaderVariable::ValueType type);
         std::vector<mItem> m_items;
         ed::AudioAnalyzer m_audioAnalyzer;
-		CubemapPreview m_cubePrev;
         float m_samples[512], m_fft[512];
+        
+		// tools
+		CubemapPreview m_cubePrev;
+        
+        // for each item opened
+        int m_curHoveredItem;
+		glm::vec2 m_lastZoomSize; 
+		std::vector<Magnifier> m_zoom;
+        GLuint m_zoomFBO, m_zoomRT, m_zoomDepth;
+		void m_renderZoom(int ind, glm::vec2 itemSize);
 	};
 }

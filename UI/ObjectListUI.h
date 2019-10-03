@@ -1,6 +1,6 @@
 #pragma once
 #include "UIView.h"
-#include "CubemapPreview.h"
+#include "Tools/CubemapPreview.h"
 
 namespace ed
 {

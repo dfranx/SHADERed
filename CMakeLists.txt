@@ -37,10 +37,13 @@ set(SOURCES
 	Objects/ThemeContainer.cpp
 	Objects/UpdateChecker.cpp
 
+# UI Tools
+	UI/Tools/CubemapPreview.cpp
+	UI/Tools/Magnifier.cpp
+
 # UI
 	UI/CodeEditorUI.cpp
 	UI/CreateItemUI.cpp
-	UI/CubemapPreview.cpp
 	UI/MessageOutputUI.cpp
 	UI/ObjectListUI.cpp
 	UI/ObjectPreviewUI.cpp

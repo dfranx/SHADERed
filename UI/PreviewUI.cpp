@@ -136,14 +136,10 @@ namespace ed
 			}
 
 			if (isAltDown && m_mouseHovers) {
-				m_zoomPosStart = m_mousePos;
-				m_zoomPosStart.y = 1 - m_zoomPosStart.y;
 				if (e.button.button == SDL_BUTTON_LEFT)
-					m_zoomSelecting = true;
-				if (e.button.button == SDL_BUTTON_RIGHT) {
-					m_zoomDragging = true;
-					m_lastZoomDrag = m_zoomPosStart;
-				}
+					m_zoom.StartMouseAction(true);
+				if (e.button.button == SDL_BUTTON_RIGHT)
+					m_zoom.StartMouseAction(false);
 			}
 		} else if (e.type == SDL_MOUSEMOTION) {
 			if (Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
@@ -153,23 +149,7 @@ namespace ed
 				m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
 			}
 			
-			if (m_zoomDragging) {
-				float mpy = 1 - m_mousePos.y;
-				float mpx = m_mousePos.x;
-
-				float moveY = (mpy - m_lastZoomDrag.y) * m_zoomWidth;
-				float moveX = (m_lastZoomDrag.x - mpx) * m_zoomHeight;
-
-				m_zoomX = std::max<float>(moveX + m_zoomX, 0.0f);
-				m_zoomY = std::max<float>(moveY + m_zoomY, 0.0f);
-
-				m_lastZoomDrag = glm::vec2(mpx, mpy);
-
-				if (m_zoomX + m_zoomWidth > 1.0f)
-					m_zoomX = 1 - m_zoomWidth;
-				if (m_zoomY + m_zoomHeight > 1.0f)
-					m_zoomY = 1 - m_zoomHeight;
-			}
+			m_zoom.Drag();
 		}
 		else if (e.type == SDL_MOUSEBUTTONUP) {
 			SDL_CaptureMouse(SDL_FALSE);
@@ -177,44 +157,7 @@ namespace ed
 			if (Settings::Instance().Preview.Gizmo)
 				m_gizmo.UnselectAxis();
 
-			if (m_zoomSelecting && m_mousePos.x != m_zoomPosStart.x && m_mousePos.y != 1-m_zoomPosStart.y) {
-				float mpy = 1-m_mousePos.y;
-				float mpx = m_mousePos.x;
-
-				if (mpy > m_zoomPosStart.y) {
-					float temp = m_zoomPosStart.y;
-					m_zoomPosStart.y = mpy;
-					mpy = temp;
-				}
-				if (mpx < m_zoomPosStart.x) {
-					float temp = m_zoomPosStart.x;
-					m_zoomPosStart.x = mpx;
-					mpx = temp;
-				}
-
-				m_zoomX = m_zoomX + m_zoomWidth * m_zoomPosStart.x;
-				m_zoomY = m_zoomY + m_zoomHeight * (1-m_zoomPosStart.y);
-				m_zoomWidth = (mpx - m_zoomPosStart.x) * m_zoomWidth;
-				m_zoomHeight = (m_zoomPosStart.y - mpy) * m_zoomHeight;
-				if (m_zoomWidth >= m_zoomHeight)
-					m_zoomHeight = m_zoomWidth;
-				if (m_zoomHeight >= m_zoomWidth)
-					m_zoomWidth = m_zoomHeight;
-
-				m_zoomWidth = std::max<float>(std::min<float>(m_zoomWidth, 1.0f), 25.0f / m_lastSize.x);
-				m_zoomHeight = std::max<float>(std::min<float>(m_zoomHeight, 1.0f), 25.0f / m_lastSize.x);
-
-				if (m_zoomX + m_zoomWidth > 1.0f)
-					m_zoomX = 1 - m_zoomWidth;
-				if (m_zoomY + m_zoomHeight > 1.0f)
-					m_zoomY = 1 - m_zoomHeight;
-				if (m_zoomX < 0.0f)
-					m_zoomX = 0.0f;
-				if (m_zoomY < 0.0f)
-					m_zoomY = 0.0f;
-			}
-			m_zoomSelecting = false;
-			m_zoomDragging = false;
+			m_zoom.EndMouseAction();
 		}
 	}
 	void PreviewUI::Pick(PipelineItem* item, bool add)
@@ -298,6 +241,13 @@ namespace ed
 		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
 		ed::RenderEngine* renderer = &m_data->Renderer;
 
+		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
+			m_zoomLastSize.x = imageSize.x;
+			m_zoomLastSize.y = imageSize.y;
+
+			m_zoom.RebuildVBO(imageSize.x, imageSize.y);
+		}
+
 		m_fpsUpdateTime += delta;
 		m_elapsedTime += delta;
 		if (capWholeApp || m_fpsLimit <= 0 || m_elapsedTime >= 1.0f / m_fpsLimit) {
@@ -318,19 +268,19 @@ namespace ed
 		GLuint rtView = renderer->GetTexture();
 
 		// display the image on the imgui window
-		ImGui::Image((void*)rtView, imageSize, ImVec2(m_zoomX,m_zoomY+m_zoomHeight), ImVec2(m_zoomX+m_zoomWidth,m_zoomY));
+		const glm::vec2& zPos = m_zoom.GetZoomPosition();
+		const glm::vec2& zSize = m_zoom.GetZoomSize();
+		ImGui::Image((void*)rtView, imageSize, ImVec2(zPos.x,zPos.y+zSize.y), ImVec2(zPos.x+zSize.x,zPos.y));
 
 		m_hasFocus = ImGui::IsWindowFocused();
 		
 		// render the gizmo/bounding box/zoom area if necessary
 		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) ||
-			m_zoomSelecting) {
+			m_zoom.IsSelecting()) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != (int)imageSize.x || m_lastSize.y != (int)imageSize.y) {
 				m_lastSize.x = imageSize.x;
 				m_lastSize.y = imageSize.y;
-
-				m_buildZoomRect(imageSize.x, imageSize.y);
 
 				gl::FreeSimpleFramebuffer(m_overlayFBO, m_overlayColor, m_overlayDepth);
 				m_overlayFBO = gl::CreateSimpleFramebuffer(imageSize.x, imageSize.y, m_overlayColor, m_overlayDepth);
@@ -348,39 +298,19 @@ namespace ed
 			if (settings.Preview.BoundingBox && m_picks.size() != 0)
 				m_renderBoundingBox();
 
-			if (m_zoomSelecting) {
-				glUseProgram(m_boxShader);
-
-				float mpy = 1 - m_mousePos.y;
-				float mpx = m_mousePos.x;
-				float zx = m_zoomX + m_zoomWidth*m_zoomPosStart.x;
-				float zy = 1 - (m_zoomY + m_zoomHeight * (1 - m_zoomPosStart.y));
-				float zw = (mpx - m_zoomPosStart.x) * m_zoomWidth;
-				float zh = (mpy - m_zoomPosStart.y) * m_zoomHeight;
-
-				glm::mat4 zMatWorld = glm::translate(glm::mat4(1), glm::vec3(zx * imageSize.x, zy * imageSize.y, 0.0f))
-					* glm::scale(glm::mat4(1), glm::vec3(zw, zh, 1.0f));
-
-				glm::mat4 zMatProj = glm::ortho(0.0f, imageSize.x, imageSize.y, 0.0f, 0.1f, 100.0f);
-
-				glUniformMatrix4fv(m_uMatWVPLoc, 1, GL_FALSE, glm::value_ptr(zMatProj * zMatWorld));
-				glUniform4fv(m_uColorLoc, 1, glm::value_ptr(glm::vec4(0, 120.f/255.f, 215.f/255.f, 0.5f)));
-				glDisable(GL_CULL_FACE);
-
-				glBindVertexArray(m_zoomVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-			
-				glEnable(GL_CULL_FACE);
-			}
+			if (m_zoom.IsSelecting())
+				m_zoom.Render();
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
-			ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(m_zoomX, m_zoomY + m_zoomHeight), ImVec2(m_zoomX + m_zoomWidth, m_zoomY));
+			ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 		}
 
 		m_mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
 				1 - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+		m_zoom.SetCurrentMousePosition(m_mousePos);
+
 		if (!m_data->Renderer.IsPaused()) {
 			// update wasd key state
 			SystemVariableManager::Instance().SetKeysWASD(ImGui::IsKeyDown(SDL_SCANCODE_W), ImGui::IsKeyDown(SDL_SCANCODE_A), ImGui::IsKeyDown(SDL_SCANCODE_S), ImGui::IsKeyDown(SDL_SCANCODE_D));
@@ -478,12 +408,8 @@ namespace ed
 
 			// rt zoom in/out
 			if (ImGui::GetIO().KeyAlt) {
-				if (ImGui::IsMouseDoubleClicked(0)) {
-					m_zoomX = 0;
-					m_zoomY = 0;
-					m_zoomWidth = 1;
-					m_zoomHeight = 1;
-				}
+				if (ImGui::IsMouseDoubleClicked(0))
+					m_zoom.Reset();
 
 				if (ImGui::GetIO().KeyCtrl) {
 					float wheelDelta = ImGui::GetIO().MouseWheel;
@@ -491,21 +417,9 @@ namespace ed
 						if (wheelDelta < 0)
 							wheelDelta = -wheelDelta * 2;
 						else
-							wheelDelta = wheelDelta / 2;
+							wheelDelta = wheelDelta / 2; // TODO: does this work if wheelDelta > 2 ?
 
-						float oldZoomWidth = m_zoomWidth, oldZoomHeight = m_zoomHeight;
-
-						m_zoomWidth = std::max<float>(std::min<float>(m_zoomWidth * wheelDelta, 1.0f), 25.0f / imageSize.x);
-						m_zoomHeight = std::max<float>(std::min<float>(m_zoomHeight * wheelDelta, 1.0f), 25.0f / imageSize.x);
-						float zx = (m_zoomX + oldZoomWidth * m_mousePos.x) - m_zoomWidth/2;
-						float zy = (m_zoomY + oldZoomHeight * m_mousePos.y) - m_zoomHeight / 2;
-						m_zoomX = std::max<float>(zx, 0.0f);
-						m_zoomY = std::max<float>(zy, 0.0f);
-
-						if (m_zoomX + m_zoomWidth >= 1.0f)
-							m_zoomX = 1.0f - m_zoomWidth;
-						if (m_zoomY + m_zoomHeight >= 1.0f)
-							m_zoomY = 1.0f - m_zoomHeight;
+						m_zoom.Zoom(wheelDelta);
 					}
 				}
 			}
@@ -521,7 +435,7 @@ namespace ed
 				!ImGui::GetIO().KeyAlt)
 			{
 				// screen space position
-				glm::vec2 s(m_zoomX + m_zoomWidth*m_mousePos.x, m_zoomY + m_zoomHeight * m_mousePos.y);
+				glm::vec2 s(zPos.x + zSize.x*m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 				
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
@@ -546,7 +460,7 @@ namespace ed
 			// handle right mouse dragging - camera
 			if (((ImGui::IsMouseDown(0) && settings.Preview.SwitchLeftRightClick) ||
 				(ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick))
-				&& !m_zoomDragging)
+				&& !m_zoom.IsDragging())
 			{
 				m_startWrap = true;
 				SDL_CaptureMouse(SDL_TRUE);
@@ -576,7 +490,7 @@ namespace ed
 			// handle left mouse dragging - moving objects if selected
 			else if (((ImGui::IsMouseDown(0) && !settings.Preview.SwitchLeftRightClick) ||
 				(ImGui::IsMouseDown(1) && settings.Preview.SwitchLeftRightClick)) &&
-				settings.Preview.Gizmo && !m_zoomSelecting)
+				settings.Preview.Gizmo && !m_zoom.IsSelecting())
 			{
 				// screen space position
 				glm::vec2 s = m_mousePos;
@@ -756,7 +670,7 @@ namespace ed
 		ImGui::SameLine();
 
 		ImGui::SameLine(240 * Settings::Instance().DPIScale);
-		ImGui::Text("Zoom: %d%%", (int)((1.0f/m_zoomWidth)*100.0f));
+		ImGui::Text("Zoom: %d%%", (int)((1.0f/m_zoom.GetZoomSize().x)*100.0f));
 		ImGui::SameLine();
 
 		ImGui::SameLine(340 * Settings::Instance().DPIScale);
@@ -836,33 +750,11 @@ namespace ed
 
 		float zoomStartX = width - (ICON_BUTTON_WIDTH * 3) - BUTTON_INDENT * 3;
 		ImGui::SetCursorPosX(zoomStartX);
-		if (ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
-			float curZoomWidth = m_zoomWidth;
-			float curZoomHeight = m_zoomHeight;
-			m_zoomWidth = std::max<float>(m_zoomWidth / 2, 25.0f/width);
-			m_zoomHeight = std::max<float>(m_zoomHeight / 2,25.0f/width);
-			m_zoomX += (curZoomWidth - m_zoomWidth)/2;
-			m_zoomY += (curZoomHeight - m_zoomHeight) / 2;
-
-			if (m_zoomX + m_zoomWidth >= 1.0f)
-				m_zoomX = 1.0f - m_zoomWidth;
-			if (m_zoomY + m_zoomHeight >= 1.0f)
-				m_zoomY = 1.0f - m_zoomHeight;
-		}
+		if (ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
+			m_zoom.Zoom(0.5f, false);
 		ImGui::SameLine(0,BUTTON_INDENT);
-		if (ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
-			float curZoomWidth = m_zoomWidth;
-			float curZoomHeight = m_zoomHeight;
-			m_zoomWidth = std::min<float>(m_zoomWidth * 2, 1.0f);
-			m_zoomHeight = std::min<float>(m_zoomHeight * 2, 1.0f);
-			m_zoomX = std::max<float>(m_zoomX - (m_zoomWidth-curZoomWidth) / 2, 0.0f);
-			m_zoomY = std::max<float>(m_zoomY - (m_zoomHeight-curZoomHeight) / 2, 0.0f);
-
-			if (m_zoomX + m_zoomWidth >= 1.0f)
-				m_zoomX = 1.0f - m_zoomWidth;
-			if (m_zoomY + m_zoomHeight >= 1.0f)
-				m_zoomY = 1.0f - m_zoomHeight;
-		}
+		if (ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
+			m_zoom.Zoom(2, false);
 		ImGui::SameLine(0,BUTTON_INDENT);
 		if (m_ui->IsPerformanceMode())
 			ImGui::PopStyleColor();
@@ -871,42 +763,6 @@ namespace ed
 
 		if (!m_ui->IsPerformanceMode())
 			ImGui::PopStyleColor();
-	}
-
-	void PreviewUI::m_buildZoomRect(float width, float height)
-	{
-		Logger::Get().Log("Building the zoom area rectangle...");
-
-		// lines
-		std::vector<glm::vec3> verts = {
-			{ glm::vec3(0, 0, -1) },
-			{ glm::vec3(width, height, -1) },
-			{ glm::vec3(0, height, -1) },
-			{ glm::vec3(width, 0, -1) },
-			{ glm::vec3(width, height, -1) },
-			{ glm::vec3(0, 0, -1) },
-		};
-
-		if (m_zoomVBO != 0)
-			glDeleteBuffers(1, &m_zoomVBO);
-		if (m_zoomVAO != 0)
-			glDeleteVertexArrays(1, &m_zoomVAO);
-
-		// create vbo
-		glGenBuffers(1, &m_zoomVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_zoomVBO);
-		glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec3), verts.data(), GL_STATIC_DRAW);
-
-		// create vao
-		glGenVertexArrays(1, &m_zoomVAO);
-		glBindVertexArray(m_zoomVAO);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		// unbind
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	void PreviewUI::m_setupBoundingBox()
@@ -1089,7 +945,7 @@ namespace ed
 		float avgClear = ((float)clearClr.r + clearClr.g + clearClr.b) / 3.0f;
 		ImVec4 wndBg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 		float avgWndBg = (wndBg.x + wndBg.y + wndBg.z) / 3;
-		float clearAlpha = clearClr.a / 255.0f;
+		float clearAlpha = Settings::Instance().Project.UseAlphaChannel ? (clearClr.a / 255.0f) : 1;
 		float color = avgClear * clearAlpha + avgWndBg * (1 - clearAlpha);
 		if (color >= 0.5f)
 			m_boxColor = glm::vec4(0, 0, 0, 1);

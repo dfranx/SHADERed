@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include "../Objects/GizmoObject.h"
+#include "Tools/Magnifier.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -20,19 +21,15 @@ namespace ed
 			m_lastSize(-1, -1) {
 			m_setupShortcuts();
 			m_setupBoundingBox();
-			m_zoomX = 0, m_zoomY = 0, m_zoomWidth = 1, m_zoomHeight = 1;
 			m_fpsLimit = m_elapsedTime = 0;
 			m_hasFocus = false;
 			m_startWrap = false;
-			m_zoomSelecting = false;
-			m_zoomDragging = false;
 			m_mouseHovers = false;
 		}
 		~PreviewUI() {
 			glDeleteBuffers(1, &m_boxVBO);
 			glDeleteVertexArrays(1, &m_boxVAO);
-			glDeleteBuffers(1, &m_zoomVBO);
-			glDeleteVertexArrays(1, &m_zoomVAO);
+			glDeleteShader(m_boxShader);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -52,12 +49,7 @@ namespace ed
 		void m_renderBoundingBox();
 
 		// zoom info
-		float m_zoomX, m_zoomY, m_zoomWidth, m_zoomHeight;
-		glm::vec2 m_zoomPosStart, m_lastZoomDrag;
-		bool m_zoomSelecting;
-		bool m_zoomDragging;
-		GLuint m_zoomVAO, m_zoomVBO;
-		void m_buildZoomRect(float width, float height);
+		Magnifier m_zoom;
 
 		// mouse position
 		ImVec2 m_mouseContact;
@@ -75,7 +67,7 @@ namespace ed
 		float m_fpsUpdateTime; // check if 0.5s passed then update the fps widget
 
 		GLuint m_overlayFBO, m_overlayColor, m_overlayDepth;
-		glm::ivec2 m_lastSize;
+		glm::ivec2 m_lastSize, m_zoomLastSize;
 		bool m_hasFocus;
 		bool m_mouseHovers;
 

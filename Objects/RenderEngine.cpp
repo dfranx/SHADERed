@@ -385,8 +385,6 @@ namespace ed
 	{
 		Logger::Get().Log("Recompiling " + std::string(name)); 
 
-		printf("rec: %s\n", name);
-		
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 		
