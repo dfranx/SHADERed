@@ -16,11 +16,8 @@ namespace ed
             m_cubePrev.Init(256, 192);
             m_curHoveredItem = -1;
             m_lastZoomSize = glm::vec2(0,0);
-            m_zoomFBO = 0;
-            m_zoomRT = 0;
-            m_zoomDepth = 0;
         }
-		~ObjectPreviewUI() { gl::FreeSimpleFramebuffer(m_zoomFBO, m_zoomRT, m_zoomDepth); }
+		~ObjectPreviewUI() { }
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
@@ -63,7 +60,6 @@ namespace ed
         int m_curHoveredItem;
 		glm::vec2 m_lastZoomSize; 
 		std::vector<Magnifier> m_zoom;
-        GLuint m_zoomFBO, m_zoomRT, m_zoomDepth;
 		void m_renderZoom(int ind, glm::vec2 itemSize);
 	};
 }

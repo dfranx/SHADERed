@@ -55,6 +55,25 @@ namespace ed
 		GLuint Texture;
 	};
 
+	/*
+	Use this to remove all the maps:
+	struct ObjectManagerItem
+	{
+		std::pair<int, int> ImageSize; // TODO: use glm::ivec2
+		GLuint Texture;
+		bool IsCube;
+		std::vector<std::string> CubemapPaths;
+		
+		sf::SoundBuffer* SoundBuffer;
+		sf::Sound* Sound;
+		bool SoundMuted;
+
+		RenderTextureObject* RT;
+		BufferObject* Buffer;
+		ImageObject* Image;
+	};
+	*/
+
 	class ObjectManager
 	{
 	public:

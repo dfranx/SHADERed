@@ -22,7 +22,6 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - lower down std::map and std::unordered_map usage
- - fix zooming in the ObjectPreviewUI
 ---
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - crashes when opening cubemap example only on Linux and only in Release mode!
