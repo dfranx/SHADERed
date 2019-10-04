@@ -51,7 +51,8 @@ const std::string EDITOR_SHORTCUT_NAMES[] =
 	"AutocompleteDown",
 	"NewLine",
 	"IndentShift",
-	"Find"
+	"Find",
+	"Replace"
 };
 
 namespace ed

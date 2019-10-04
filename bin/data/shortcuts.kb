@@ -9,6 +9,7 @@ Editor.AutocompleteSelectActive Return
 Editor.AutocompleteUp Up
 Editor.Copy CTRL C
 Editor.Find CTRL F
+Editor.Replace CTRL H
 Editor.Cut CTRL X
 Editor.MoveBottom CTRL End
 Editor.MoveDownBlock PageDown
@@ -42,7 +43,7 @@ Project.NewShaderPass CTRL N P
 Project.NewTexture CTRL N T
 Project.Open CTRL O
 Project.Rebuild CTRL F5
-Project.Save CTRL P S
+Project.Save CTRL S
 Project.SaveAs CTRL P A
 Window.Exit ALT F4
 Workspace.Help CTRL H

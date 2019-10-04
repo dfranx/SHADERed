@@ -2,6 +2,9 @@
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
 + add magnifier tool to texture/image preview window
++ add find and replace feature in the text editor
++ add right click context menu in the text editor
++ fix copy and paste
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
 + any form of project saving should also now save all shader code modifications
