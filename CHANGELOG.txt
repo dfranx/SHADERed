@@ -5,6 +5,7 @@
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
 + any form of project saving should also now save all shader code modifications
++ shader code modifications now also count as project modifications (now you will get "Are you sure" message box on exit)
 
 [v1.2.2]
 + rework image objects (you can choose how to bind them & removed Read & Write flags) - **some old projects with compute shaders may not work**
