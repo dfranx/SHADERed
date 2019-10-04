@@ -62,6 +62,7 @@ namespace ed
 
 		int AreYouSure();
 
+		bool Save();
 		bool SaveAsProject(bool restoreCached = false);
 		void Open(const std::string& file);
 

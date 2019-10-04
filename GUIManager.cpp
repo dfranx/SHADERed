@@ -268,12 +268,8 @@ namespace ed
 		}
 		m_tooltip("Open a project");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_SAVE)) {					// SAVE
-			if (m_data->Parser.GetOpenedFile() == "")
-				SaveAsProject();
-			else
-				m_data->Parser.Save();
-		}
+		if (ImGui::Button(UI_ICON_SAVE))					// SAVE
+			Save();
 		m_tooltip("Save project");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_FILE)) { // EMPTY PROJECT
@@ -389,12 +385,8 @@ namespace ed
 			return -1;
 		}
 
-		if (buttonid == 0) { // save
-			if (m_data->Parser.GetOpenedFile() == "")
-				SaveAsProject();
-			else
-				m_data->Parser.Save();
-		}
+		if (buttonid == 0) // save
+			Save();
 
 		return buttonid;
 	}
@@ -587,14 +579,10 @@ namespace ed
 							Open(file);
 					}
 				}
-				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str())) {
-					if (m_data->Parser.GetOpenedFile() == "")
-						SaveAsProject();
-					else
-						m_data->Parser.Save();
-				}
+				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str()))
+					this->Save();
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
-					SaveAsProject();
+					SaveAsProject(true);
 				if (ImGui::MenuItem("Save Preview as Image", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
 					m_savePreviewPopupOpened = true;
 				if (ImGui::MenuItem("Open project directory")) {
@@ -1482,6 +1470,21 @@ into the actual video");
 	{
 		ImGui_ImplSDL2_ProcessEvent(&e);
 	}
+	bool GUIManager::Save()
+	{
+		if (m_data->Parser.GetOpenedFile() == "")
+			return SaveAsProject(true);
+		
+		m_data->Parser.Save();
+
+		((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
+
+		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+		for (PipelineItem*& pass : passes)
+			m_data->Renderer.Recompile(pass->Name);
+
+		return true;
+	}
 	bool GUIManager::SaveAsProject(bool restoreCached)
 	{
 		std::string file;
@@ -1526,6 +1529,7 @@ into the actual video");
 						editor->OpenGS(*item);
 				}
 				editor->SetOpenedFilesData(filesData);
+				editor->SaveAll();
 			}
 		}
 
@@ -1594,13 +1598,10 @@ into the actual video");
 				m_data->Renderer.Recompile(pass->Name);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.Save", [=]() {
-			if (m_data->Parser.GetOpenedFile() == "")
-				SaveAsProject();
-			else
-				m_data->Parser.Save();
+			this->Save();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.SaveAs", [=]() {
-			SaveAsProject();
+			SaveAsProject(true);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.ToggleToolbar", [=]() {
 			Settings::Instance().General.Toolbar ^= 1;

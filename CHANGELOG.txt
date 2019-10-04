@@ -4,6 +4,7 @@
 + add magnifier tool to texture/image preview window
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
++ any form of project saving should also now save all shader code modifications
 
 [v1.2.2]
 + rework image objects (you can choose how to bind them & removed Read & Write flags) - **some old projects with compute shaders may not work**
