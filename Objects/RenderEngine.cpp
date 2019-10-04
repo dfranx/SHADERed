@@ -29,6 +29,8 @@ namespace ed
 		m_fbosNeedUpdate(false),
 		m_wasMultiPick(false)
 	{
+		m_paused = false;
+
 		glGenTextures(1, &m_rtColor);
 		glGenTextures(1, &m_rtDepth);
 	}

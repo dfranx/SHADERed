@@ -146,6 +146,8 @@ namespace ed
 
 			m_pos.x = m_pos.x + m_size.x * m_posStart.x;
 			m_pos.y = m_pos.y + m_size.y * (1-m_posStart.y);
+
+			glm::vec2 oldSize = m_size;
 			m_size.x = (mpx - m_posStart.x) * m_size.x;
 			m_size.y = (m_posStart.y - mpy) * m_size.y;
 			if (m_size.x >= m_size.y)
@@ -153,6 +155,9 @@ namespace ed
 			if (m_size.y >= m_size.x)
 				m_size.x = m_size.y;
 
+			if (m_size.x < 25.0f / m_w && m_size.y < 25.0f / m_h)
+				m_size = oldSize;
+			
 			m_size.x = std::max<float>(std::min<float>(m_size.x, 1.0f), 25.0f / m_w);
 			m_size.y = std::max<float>(std::min<float>(m_size.y, 1.0f), 25.0f / m_w);
 

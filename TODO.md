@@ -22,7 +22,6 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - lower down std::map and std::unordered_map usage
- - prevent ALT+selecting a small area (count that as cancel)
  - right click in code editor, fix copy&paste, find&replace, fix zooming in the ObjectPreviewUI
 ---
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
