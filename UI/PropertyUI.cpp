@@ -462,7 +462,7 @@ namespace ed
 					ImGui::Text("Instance input buffer:");
 					ImGui::NextColumn();
 
-					auto& bufList = m_data->Objects.GetItemDataList();
+					const auto& bufList = m_data->Objects.GetItemDataList();
 					auto& bufNames = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
 					if (ImGui::BeginCombo("##pui_geo_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->InstanceBuffer)->ID).c_str())))) {
@@ -914,7 +914,7 @@ namespace ed
 					ImGui::Text("Instance input buffer:");
 					ImGui::NextColumn();
 
-					auto& bufList = m_data->Objects.GetItemDataList();
+					const auto& bufList = m_data->Objects.GetItemDataList();
 					auto& bufNames = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
 					if (ImGui::BeginCombo("##pui_mdl_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->InstanceBuffer)->ID).c_str())))) {

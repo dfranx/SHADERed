@@ -7,10 +7,17 @@ Editor.AutocompleteOpen CTRL Space
 Editor.AutocompleteSelect Tab
 Editor.AutocompleteSelectActive Return
 Editor.AutocompleteUp Up
+Editor.BackwardDelete Backspace
+Editor.ForwardDelete Delete
+Editor.IndentShift SHIFT Tab
+Editor.MoveDown Down
+Editor.MoveUp Up
+Editor.MoveLeft Left
+Editor.MoveRight Right
+Editor.NewLine Return
 Editor.Copy CTRL C
-Editor.Find CTRL F
-Editor.Replace CTRL H
 Editor.Cut CTRL X
+Editor.Find CTRL F
 Editor.MoveBottom CTRL End
 Editor.MoveDownBlock PageDown
 Editor.MoveEndLine End
@@ -20,6 +27,7 @@ Editor.MoveUpBlock PageUp
 Editor.OverwriteCursor Insert
 Editor.Paste CTRL V
 Editor.Redo CTRL Y
+Editor.Replace CTRL H
 Editor.SelectAll CTRL A
 Editor.Undo CTRL Z
 Gizmo.Position CTRL G P
