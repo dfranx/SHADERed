@@ -54,8 +54,8 @@ namespace ed
 			}
 			else {
 				auto img = m_data->Objects.GetTextureSize(items[i]);
-				imgWH = (float)img.second / img.first;
-				imgSize = glm::vec2(img.first, img.second);
+				imgWH = (float)img.y / img.x;
+				imgSize = glm::vec2(img);
 			}
 
 			size_t lastSlash = items[i].find_last_of("/\\");

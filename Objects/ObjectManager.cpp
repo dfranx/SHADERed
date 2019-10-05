@@ -14,10 +14,7 @@ namespace ed
 	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd) :
 		m_parser(parser), m_renderer(rnd)
 	{
-		m_bufs.clear();
-		m_rts.clear();
 		m_binds.clear();
-		m_imgSize.clear();
 	}
 	ObjectManager::~ObjectManager()
 	{
@@ -27,45 +24,15 @@ namespace ed
 	void ObjectManager::Clear()
 	{
 		Logger::Get().Log("Clearing ObjectManager contents...");
-
-		for (auto str : m_items) {
-			if (IsBuffer(str)) {
-				glDeleteBuffers(1, &m_bufs[str]->ID);
-				glDeleteBuffers(1, &m_bufs[str]->ID);
-				free(m_bufs[str]->Data);
-			} else if (IsImage(str)) {
-				glDeleteTextures(1, &m_images[str]->Texture);
-				delete m_images[str];
-			}
-			else
-				glDeleteTextures(1, &m_texs[str]);
-
-			if (IsAudio(str)) {
-				if (m_audioPlayer[str]->getStatus() == sf::Sound::Playing)
-					m_audioPlayer[str]->stop();
-				delete m_audioPlayer[str];
-				delete m_audioData[str];
-			}
-			else if (IsRenderTexture(str)) {
-				glDeleteTextures(1, &m_rts[str]->DepthStencilBuffer);
-				delete m_rts[str];
-			}
+		
+		for (int i = 0; i < m_itemData.size(); i++) {
+			delete m_itemData[i];
 		}
 		
-		m_rts.clear();
-		m_bufs.clear();
-		m_imgSize.clear();
-		m_images.clear();
-		m_texs.clear();
 		m_binds.clear();
 		m_uniformBinds.clear();
-
-		m_audioData.clear();
-		m_audioPlayer.clear();
-		m_audioMute.clear();
-
 		m_items.clear();
-		m_isCube.clear();
+		m_itemData.clear();
 	}
 	bool ObjectManager::CreateRenderTexture(const std::string & name)
 	{
@@ -78,10 +45,11 @@ namespace ed
 
 		m_parser->ModifyProject();
 
-		m_isCube[name] = false;
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_items.push_back(name);
 
-		ed::RenderTextureObject* rtObj = m_rts[name] = new ed::RenderTextureObject();
+		ed::RenderTextureObject* rtObj = item->RT = new ed::RenderTextureObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
 		rtObj->FixedSize = size;
@@ -91,8 +59,8 @@ namespace ed
 		rtObj->Format = GL_RGBA;
 
 		// color texture
-		glGenTextures(1, &m_texs[name]);
-		glBindTexture(GL_TEXTURE_2D, m_texs[name]);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -119,6 +87,8 @@ namespace ed
 
 		m_parser->ModifyProject();
 
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_items.push_back(file);
 
 		std::string path = m_parser->GetProjectPath(file);
@@ -128,8 +98,6 @@ namespace ed
 
 		if (data == nullptr)
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
-
-		m_isCube[file] = false;
 
 		GLenum fmt = GL_RGB;
 		if (nrChannels == 4)
@@ -156,14 +124,14 @@ namespace ed
 			}
 		}
 
-		glGenTextures(1, &m_texs[file]);
-		glBindTexture(GL_TEXTURE_2D, m_texs[file]);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		m_imgSize[file] = std::make_pair(width, height);
+		item->ImageSize = glm::ivec2(width, height);
 
 		if (paddedData != nullptr)
 			free(paddedData);
@@ -183,15 +151,18 @@ namespace ed
 
 		m_parser->ModifyProject();
 
-		m_isCube[name] = true;
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_items.push_back(name);
-		int width, height, nrChannels;
 
-		glGenTextures(1, &m_texs[name]);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_texs[name]);
+		item->IsCube = true;
+
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, item->Texture);
 
 
 		// left face
+		int width, height, nrChannels;
 		unsigned char* data = stbi_load(m_parser->GetProjectPath(left).c_str(), &width, &height, &nrChannels, 0);
 		GLenum fmt = GL_RGB; // get format only once -- maybe fix this in future
 		if (nrChannels == 4)
@@ -202,7 +173,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(left);
+		item->CubemapPaths.push_back(left);
 		stbi_image_free(data);
 
 		// top
@@ -211,7 +182,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(top);
+		item->CubemapPaths.push_back(top);
 		stbi_image_free(data);
 
 		// front
@@ -220,7 +191,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(front);
+		item->CubemapPaths.push_back(front);
 		stbi_image_free(data);
 
 		// bottom
@@ -229,7 +200,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(bottom);
+		item->CubemapPaths.push_back(bottom);
 		stbi_image_free(data);
 
 		// right
@@ -238,7 +209,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(right);
+		item->CubemapPaths.push_back(right);
 		stbi_image_free(data);
 
 		// back
@@ -247,7 +218,7 @@ namespace ed
 			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
 		);
-		m_cubemaps[name].push_back(back);
+		item->CubemapPaths.push_back(back);
 		stbi_image_free(data);
 
 		// properties
@@ -259,7 +230,7 @@ namespace ed
 		
 		// clean up
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-		m_imgSize[name] = std::make_pair(width, height);
+		item->ImageSize = glm::ivec2(width, height);
 	}
 	bool ObjectManager::CreateAudio(const std::string& file)
 	{
@@ -270,19 +241,21 @@ namespace ed
 			return false;
 		}
 
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_parser->ModifyProject();
 
-		m_audioData[file] = new sf::SoundBuffer();
-		bool loaded = m_audioData[file]->loadFromFile(m_parser->GetProjectPath(file));
+		item->SoundBuffer = new sf::SoundBuffer();
+		bool loaded = item->SoundBuffer->loadFromFile(m_parser->GetProjectPath(file));
 		if (!loaded) {
-			delete m_audioData[file];
-			m_audioData.erase(file);
+			delete item;
 			ed::Logger::Get().Log("Failed to load an audio file " + file, true);
 			return false;
 		}
+		m_items.push_back(file);
 
-		glGenTextures(1, &m_texs[file]);
-		glBindTexture(GL_TEXTURE_2D, m_texs[file]);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -290,13 +263,11 @@ namespace ed
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 2, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		m_items.push_back(file);
-
-		m_audioPlayer[file] = new sf::Sound();
-		m_audioPlayer[file]->setBuffer(*m_audioData[file]);
-		m_audioPlayer[file]->setLoop(true);
-		m_audioPlayer[file]->play();
-		m_audioMute[file] = false;
+		item->Sound = new sf::Sound();
+		item->Sound->setBuffer(*(item->SoundBuffer));
+		item->Sound->setLoop(true);
+		item->Sound->play();
+		item->SoundMuted = false;
 
 		return true;
 	}
@@ -311,9 +282,11 @@ namespace ed
 
 		m_parser->ModifyProject();
 
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_items.push_back(name);
 
-		ed::BufferObject* bObj = m_bufs[name] = new ed::BufferObject();
+		ed::BufferObject* bObj = item->Buffer = new ed::BufferObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
 		bObj->Size = 0;
@@ -338,8 +311,11 @@ namespace ed
 
 		m_parser->ModifyProject();
 
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
 		m_items.push_back(name);
-		ed::ImageObject *iObj = m_images[name] = new ImageObject();
+
+		ed::ImageObject *iObj = item->Image = new ImageObject();
 
 		glGenTextures(1, &iObj->Texture);
 		glBindTexture(GL_TEXTURE_2D, iObj->Texture);
@@ -417,16 +393,19 @@ namespace ed
 	
 	void ObjectManager::Update(float delta)
 	{
-		for (auto& it : m_audioData) {
+		for (auto& it : m_itemData) {
+			if (it->SoundBuffer == nullptr)
+				continue;
+
 			// get samples and fft data
-			sf::Sound* player = m_audioPlayer[it.first];
-			int channels = it.second->getChannelCount();
-			int perChannel = it.second->getSampleCount() / channels;
-			int curSample = (int)((player->getPlayingOffset().asSeconds() / it.second->getDuration().asSeconds()) * perChannel);
+			sf::Sound* player = it->Sound;
+			int channels = it->SoundBuffer->getChannelCount();
+			int perChannel = it->SoundBuffer->getSampleCount() / channels;
+			int curSample = (int)((player->getPlayingOffset().asSeconds() / it->SoundBuffer->getDuration().asSeconds()) * perChannel);
 
-			double* fftData = m_audioAnalyzer.FFT(*it.second, curSample);
+			double* fftData = m_audioAnalyzer.FFT(*(it->SoundBuffer), curSample);
 
-			const sf::Int16* samples = it.second->getSamples();
+			const sf::Int16* samples = it->SoundBuffer->getSamples();
 			for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
 				sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
 				float sf = (float)s / (float)INT16_MAX;
@@ -435,7 +414,7 @@ namespace ed
 				m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf* 0.5f + 0.5f;
 			}
 
-			glBindTexture(GL_TEXTURE_2D, m_texs[it.first]);
+			glBindTexture(GL_TEXTURE_2D, it->Texture);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 2, 0, GL_RED, GL_FLOAT, m_audioTempTexData);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -445,7 +424,7 @@ namespace ed
 		m_parser->ModifyProject();
 
 		if (!IsBuffer(file)) {
-			GLuint srv = m_texs[file];
+			GLuint srv = GetTexture(file);
 			for (auto& i : m_binds)
 				for (int j = 0; j < i.second.size(); j++)
 					if (i.second[j] == srv) {
@@ -461,59 +440,30 @@ namespace ed
 					}
 		}
 		
-		if (IsBuffer(file)) {
-			glDeleteBuffers(1, &m_bufs[file]->ID);
-			free(m_bufs[file]->Data);
-			m_bufs.erase(file);
-		} else if (IsImage(file)) {
-			glDeleteTextures(1, &m_images[file]->Texture);
-			delete m_images[file];
-			m_images.erase(file);
-		} else
-			glDeleteTextures(1, &m_texs[file]);
+		int index = 0;
+		for (; index < m_items.size(); index++)
+			if (m_items[index] == file) break;
 		
-		if (IsRenderTexture(file)) {
-			glDeleteTextures(1, &m_rts[file]->DepthStencilBuffer);
-
-			delete m_rts[file];
-			m_rts.erase(file);
-		} else if (IsAudio(file)) {
-			if (m_audioPlayer[file]->getStatus() == sf::Sound::Playing)
-				m_audioPlayer[file]->stop();
-
-			delete m_audioData[file];
-			delete m_audioPlayer[file];
-			m_audioData.erase(file);
-			m_audioPlayer.erase(file);
-			m_audioMute.erase(file);
-		} else
-			m_imgSize.erase(file);
-
-
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file) {
-				m_items.erase(m_items.begin() + i);
-				break;
-			}
-
-		m_texs.erase(file);
-		m_isCube.erase(file);
+		delete m_itemData[index];
+		m_itemData.erase(m_itemData.begin() + index);
+		m_items.erase(m_items.begin() + index);
 	}
+
 	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
 	{
 		if (IsBound(file, pass) == -1) {
 			m_parser->ModifyProject();
 
 			if (IsImage(file))
-				m_binds[pass].push_back(m_images[file]->Texture);
+				m_binds[pass].push_back(GetImage(file)->Texture);
 			else
-				m_binds[pass].push_back(m_texs[file]);
+				m_binds[pass].push_back(GetTexture(file));
 		}
 	}
 	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
 	{
 		std::vector<GLuint>& srvs = m_binds[pass];
-		GLuint srv = IsImage(file) ? m_images[file]->Texture : m_texs[file];
+		GLuint srv = IsImage(file) ? GetImage(file)->Texture : GetTexture(file);
 
 		for (int i = 0; i < srvs.size(); i++)
 			if (srvs[i] == srv) {
@@ -528,19 +478,19 @@ namespace ed
 		if (m_binds.count(pass) == 0)
 			return -1;
 
-		if (IsImage(file))
-		{
+		if (IsImage(file)) {
 			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == m_images[file]->Texture)
+				if (m_binds[pass][i] == GetImage(file)->Texture)
 					return i;
 		} else {
 			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == m_texs[file])
+				if (m_binds[pass][i] == GetTexture(file))
 					return i;
 		}
 
 		return -1;
 	}
+
 	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
 	{
 		if (IsUniformBound(file, pass) == -1) {
@@ -586,78 +536,200 @@ namespace ed
 
 		return -1;
 	}
+
 	std::string ObjectManager::GetItemNameByTextureID(GLuint texID)
 	{
-		for (const auto& t : m_texs)
-			if (t.second == texID)
-				return t.first;
-		
-		for (const auto& b : m_bufs)
-			if (b.second->ID == texID)
-				return b.first;
-		
-		for (const auto& i : m_images)
-			if (i.second->Texture == texID)
-				return i.first;
+		for (int i = 0; i < m_itemData.size(); i++) {
+			ObjectManagerItem* item = m_itemData[i];
+			if (item->Texture == texID ||
+				(item->Image != nullptr && item->Image->Texture == texID) ||
+				(item->Buffer != nullptr && item->Buffer->ID == texID))
+			{
+				return m_items[i];
+			}
+		}
+
+		return "";
 	}
 	glm::ivec2 ObjectManager::GetRenderTextureSize(const std::string & name)
 	{
-		if (m_rts[name]->FixedSize.x < 0) return glm::ivec2(m_rts[name]->RatioSize.x * m_renderer->GetLastRenderSize().x, m_rts[name]->RatioSize.y * m_renderer->GetLastRenderSize().y);
-		return m_rts[name]->FixedSize;
+		RenderTextureObject* rt = GetRenderTexture(name);
+		if (rt->FixedSize.x < 0) return glm::ivec2(rt->RatioSize.x * m_renderer->GetLastRenderSize().x, rt->RatioSize.y * m_renderer->GetLastRenderSize().y);
+		return rt->FixedSize;
+	}
+	const std::vector<std::string>& ObjectManager::GetCubemapTextures(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->CubemapPaths;
+		return m_emptyCBTexs;
+	}
+
+	bool ObjectManager::IsRenderTexture(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->RT != nullptr;
+		return false;
+	}
+	bool ObjectManager::IsCubeMap(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->IsCube;
+		return false;
+	}
+	bool ObjectManager::IsAudio(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Sound != nullptr;
+		return false;
+	}
+	bool ObjectManager::IsAudioMuted(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->SoundMuted;
+		return false;
+	}
+	bool ObjectManager::IsBuffer(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Buffer != nullptr;
+		return false;
+	}
+	bool ObjectManager::IsImage(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image != nullptr;
+		return false;
 	}
 	bool ObjectManager::IsCubeMap(GLuint id)
 	{
-		for (auto& i : m_texs)
-			if (i.second == id)
-				return m_isCube[i.first];
+		for (const auto& i : m_itemData)
+			if (i->Texture == id)
+				return i->IsCube;
 		return false;
 	}
 	bool ObjectManager::IsImage(GLuint id)
 	{
-		for (auto &i : m_images)
-			if (i.second->Texture == id)
+		for (const auto &i : m_itemData)
+			if (i->Image != nullptr && i->Image->Texture == id)
 				return true;
 		return false;
 	}
+
+	GLuint ObjectManager::GetTexture(const std::string& file)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == file)
+				return m_itemData[i]->Texture;
+		return 0;
+	}
+	glm::ivec2 ObjectManager::GetTextureSize(const std::string& file)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == file)
+				return m_itemData[i]->ImageSize;
+		return glm::ivec2(0,0);
+	}
+	sf::SoundBuffer* ObjectManager::GetSoundBuffer(const std::string& file)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == file)
+				return m_itemData[i]->SoundBuffer;
+		return nullptr;
+	}
+	sf::Sound* ObjectManager::GetAudioPlayer(const std::string& file)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == file)
+				return m_itemData[i]->Sound;
+		return nullptr;
+	}
+	BufferObject* ObjectManager::GetBuffer(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Buffer;
+		return nullptr;
+	}
+	ImageObject* ObjectManager::GetImage(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image;
+		return nullptr;
+	}
+	glm::ivec2 ObjectManager::GetImageSize(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image->Size;
+		return glm::ivec2(0,0);
+	}
+	RenderTextureObject* ObjectManager::GetRenderTexture(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->RT;
+		return nullptr;
+	}
+
 	RenderTextureObject* ObjectManager::GetRenderTexture(GLuint tex)
 	{
-		for (const auto& str : m_items)
-			if (m_texs[str] == tex)
-				return m_rts[str];
+		for (const auto& i : m_itemData)
+			if (i->Texture == tex)
+				return i->RT;
 		return nullptr;
 	}
 	std::string ObjectManager::GetBufferNameByID(int id)
 	{
-		for (const auto& buf : m_bufs)
-			if (buf.second->ID == id)
-				return buf.first;
-		return nullptr;
+		for (int i = 0; i < m_itemData.size(); i++)
+			if (m_itemData[i]->Buffer != nullptr && m_itemData[i]->Buffer->ID == id)
+				return m_items[i];
+		return "";
 	}
 	std::string ObjectManager::GetImageNameByID(GLuint id)
 	{
-		for (const auto& buf : m_images)
-			if (buf.second->Texture == id)
-				return buf.first;
-		return nullptr;
+		for (int i = 0; i < m_itemData.size(); i++)
+			if (m_itemData[i]->Image != nullptr && m_itemData[i]->Image->Texture == id)
+				return m_items[i];
+		return "";
 	}
+
 	void ObjectManager::Mute(const std::string& name)
 	{
-		m_audioPlayer[name]->setVolume(0);
-		m_audioMute[name] = true;
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i] == name) {
+				m_itemData[i]->SoundMuted = true;
+				m_itemData[i]->Sound->setVolume(0);
+				break;
+			}
+		}
 	}
 	void ObjectManager::Unmute(const std::string& name)
 	{
-		m_audioPlayer[name]->setVolume(100);
-		m_audioMute[name] = false;
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i] == name) {
+				m_itemData[i]->SoundMuted = false;
+				m_itemData[i]->Sound->setVolume(100);
+				break;
+			}
+		}
 	}
+
 	void ObjectManager::ResizeRenderTexture(const std::string & name, glm::ivec2 size)
 	{
-		RenderTextureObject* rtObj = this->GetRenderTexture(m_texs[name]);
+		RenderTextureObject* rtObj = GetRenderTexture(name);
 
 		if (rtObj->RatioSize.x == -1 && rtObj->RatioSize.y == -1)
 			m_parser->ModifyProject();
 
-		glBindTexture(GL_TEXTURE_2D, m_texs[name]);
+		glBindTexture(GL_TEXTURE_2D, GetTexture(name));
 		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
@@ -666,7 +738,7 @@ namespace ed
 	}
 	void ObjectManager::ResizeImage(const std::string &name, glm::ivec2 size)
 	{
-		ImageObject *iobj = m_images[name];
+		ImageObject *iobj = GetImage(name);
 
 		m_parser->ModifyProject();
 

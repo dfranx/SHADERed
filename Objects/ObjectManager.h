@@ -55,11 +55,52 @@ namespace ed
 		GLuint Texture;
 	};
 
-	/*
-	Use this to remove all the maps: the
-	struct ObjectManagerItem
+	/* Use this to remove all the maps */
+	class ObjectManagerItem
 	{
-		std::pair<int, int> ImageSize; // TODO: use glm::ivec2
+	public:
+		ObjectManagerItem() {
+			ImageSize = glm::ivec2(0, 0);
+			Texture = 0;
+			IsCube = false;
+			CubemapPaths.clear();
+			SoundBuffer = nullptr;
+			Sound = nullptr;
+			SoundMuted = false;
+			RT = nullptr;
+			Buffer = nullptr;
+			Image = nullptr;
+		}
+		~ObjectManagerItem() {
+			if (Buffer != nullptr) {
+				glDeleteBuffers(1, &Buffer->ID);
+				free(Buffer->Data);
+				delete Buffer;
+			}
+			else if (Image != nullptr) {
+				glDeleteTextures(1, &Image->Texture);
+				delete Image;
+			}
+
+			if (RT != nullptr) {
+				glDeleteTextures(1, &RT->DepthStencilBuffer);
+				delete RT;
+			}
+			else if (Sound != nullptr) {
+				if (Sound->getStatus() == sf::Sound::Playing)
+					Sound->stop();
+
+				delete SoundBuffer;
+				delete Sound;
+			}
+
+
+			if (Texture != 0)
+				glDeleteTextures(1, &Texture);
+			CubemapPaths.clear();
+		}
+
+		glm::ivec2 ImageSize;
 		GLuint Texture;
 		bool IsCube;
 		std::vector<std::string> CubemapPaths;
@@ -72,7 +113,6 @@ namespace ed
 		BufferObject* Buffer;
 		ImageObject* Image;
 	};
-	*/
 
 	class ObjectManager
 	{
@@ -93,12 +133,12 @@ namespace ed
 		
 		glm::ivec2 GetRenderTextureSize(const std::string& name);
 		RenderTextureObject* GetRenderTexture(GLuint tex);
-		inline bool IsRenderTexture(const std::string& name) { return m_rts.count(name) > 0; }
-		inline bool IsCubeMap(const std::string& name) { return m_isCube.count(name) > 0 && m_isCube[name]; }
-		inline bool IsAudio(const std::string& name) { return m_audioData.count(name) > 0; }
-		inline bool IsAudioMuted(const std::string& name) { return m_audioMute[name]; }
-		inline bool IsBuffer(const std::string &name) { return m_bufs.count(name) > 0; }
-		inline bool IsImage(const std::string &name) { return m_images.count(name) > 0; }
+		bool IsRenderTexture(const std::string& name);
+		bool IsCubeMap(const std::string& name);
+		bool IsAudio(const std::string& name);
+		bool IsAudioMuted(const std::string& name);
+		bool IsBuffer(const std::string& name);
+		bool IsImage(const std::string& name);
 		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
 
@@ -107,15 +147,15 @@ namespace ed
 
 		void Clear();
 
-		inline const std::vector<std::string>& GetObjects() { return m_items; }
-		inline GLuint GetTexture(const std::string& file) { return m_texs[file]; }
-		inline std::pair<int, int> GetTextureSize(const std::string& file) { return m_imgSize[file]; }
-		inline sf::SoundBuffer* GetSoundBuffer(const std::string& file) { return m_audioData[file]; }
-		inline sf::Sound* GetAudioPlayer(const std::string& file) { return m_audioPlayer[file]; }
-		inline BufferObject* GetBuffer(const std::string& name) { return m_bufs[name]; }
-		inline std::unordered_map<std::string, BufferObject*>& GetBuffers() { return m_bufs; }
-		inline ImageObject* GetImage(const std::string& name) { return m_images[name]; }
-		inline glm::ivec2 GetImageSize(const std::string &name) { return m_images[name]->Size; }
+		const std::vector<std::string>& GetObjects() { return m_items; }
+		GLuint GetTexture(const std::string& file);
+		glm::ivec2 GetTextureSize(const std::string& file);
+		sf::SoundBuffer* GetSoundBuffer(const std::string& file);
+		sf::Sound* GetAudioPlayer(const std::string& file);
+		BufferObject* GetBuffer(const std::string& name);
+		ImageObject* GetImage(const std::string& name);
+		RenderTextureObject* GetRenderTexture(const std::string& name);
+		glm::ivec2 GetImageSize(const std::string& name);
 
 		std::string GetBufferNameByID(int id);
 		std::string GetImageNameByID(GLuint id);
@@ -145,34 +185,21 @@ namespace ed
 
 		inline bool Exists(const std::string& name) { return std::count(m_items.begin(), m_items.end(), name) > 0; }
 
-		inline std::vector<std::string> GetCubemapTextures(const std::string& name) {
-			return m_cubemaps[name];
-		}
+		const std::vector<std::string>& GetCubemapTextures(const std::string& name);
+		inline std::vector<ObjectManagerItem*> GetItemDataList() { return m_itemData; }
 
 	private:
 		RenderEngine* m_renderer;
 		ProjectParser* m_parser;
 
-		std::vector<std::string> m_items;
-		std::vector<GLuint> m_emptyResVec;
+		std::vector<std::string> m_items; // TODO: move item name to item data
+		std::vector<ObjectManagerItem*> m_itemData; 
 
-		// TODO: lower down the number of maps
-		// HOW: create ObjectManagerItem structure
-		// which will merge all these into one std::vector
-		std::unordered_map<std::string, std::pair<int, int>> m_imgSize; // TODO: use glm::ivec2
-		std::unordered_map<std::string, GLuint> m_texs;
-		std::unordered_map<std::string, bool> m_isCube;
-		std::unordered_map<std::string, std::vector<std::string>> m_cubemaps;
+		std::vector<GLuint> m_emptyResVec;
+		std::vector<std::string> m_emptyCBTexs;
 
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_audioTempTexData[ed::AudioAnalyzer::SampleCount * 2];
-		std::unordered_map<std::string, sf::SoundBuffer*> m_audioData;
-		std::unordered_map<std::string, sf::Sound*> m_audioPlayer;
-		std::unordered_map<std::string, bool> m_audioMute;
-
-		std::unordered_map<std::string, RenderTextureObject *> m_rts;
-		std::unordered_map<std::string, BufferObject *> m_bufs;
-		std::unordered_map<std::string, ImageObject *> m_images;
 
 		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_binds;
 		std::unordered_map<PipelineItem*, std::vector<GLuint>> m_uniformBinds;
