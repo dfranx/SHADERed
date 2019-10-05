@@ -5,7 +5,7 @@ open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both
 
 <img src="./Screenshots/IMG2.png"/>
 
-## Partners/sponsors
+## Partners / Sponsors / Users
 ...
 
 Contact: **dfranx00 at gmail dot com**

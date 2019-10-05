@@ -23,38 +23,6 @@
 
 #define STATUSBAR_HEIGHT 20 * Settings::Instance().DPIScale
 
-const std::string EDITOR_SHORTCUT_NAMES[] =
-{
-	"Undo",
-	"Redo",
-	"MoveUp",
-	"MoveDown",
-	"MoveLeft",
-	"MoveRight",
-	"MoveTop",
-	"MoveBottom",
-	"MoveUpBlock",
-	"MoveDownBlock",
-	"MoveEndLine",
-	"MoveStartLine",
-	"ForwardDelete",
-	"BackwardDelete",
-	"OverwriteCursor",
-	"Copy",
-	"Paste",
-	"Cut",
-	"SelectAll",
-	"AutocompleteOpen",
-	"AutocompleteSelect",
-	"AutocompleteSelectActive",
-	"AutocompleteUp",
-	"AutocompleteDown",
-	"NewLine",
-	"IndentShift",
-	"Find",
-	"Replace"
-};
-
 namespace ed
 {
 	CodeEditorUI::~CodeEditorUI() {

@@ -1,5 +1,7 @@
 #include "KeyboardShortcuts.h"
 #include "Logger.h"
+#include "Names.h"
+
 #include <fstream>
 #include <sstream>
 
@@ -40,6 +42,17 @@ namespace ed
 					else if (m_data[name].Key2 == -1)
 						m_data[name].Key2 = SDL_GetKeyFromName(token.c_str());
 				}				
+			}
+		}
+
+		// create space for editor shortcuts if they don't exist
+		for (int i = 0; i < sizeof(EDITOR_SHORTCUT_NAMES) / sizeof(*EDITOR_SHORTCUT_NAMES); i++) {
+			std::string actName = "Editor." + std::string(EDITOR_SHORTCUT_NAMES[i]);
+			if (m_data.count(actName) == 0) {
+				ed::KeyboardShortcuts::Shortcut* sct = &m_data[actName];
+				sct->Key1 = -1;
+				sct->Key2 = -1;
+				sct->Alt = sct->Ctrl = sct->Shift = false;
 			}
 		}
 

@@ -56,7 +56,7 @@ namespace ed
 	};
 
 	/*
-	Use this to remove all the maps:
+	Use this to remove all the maps: the
 	struct ObjectManagerItem
 	{
 		std::pair<int, int> ImageSize; // TODO: use glm::ivec2
