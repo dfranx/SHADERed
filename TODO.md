@@ -22,7 +22,6 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - color compute shader labels light/dark green
- - recompile the shader after we change shader path in a shader pass
  - ability to change warning, message and error text colors
  - why isn't first arg in CodeEditorUI::m_open a pointer?
  - when adding a shader pass, decompile the shader and detect input variables

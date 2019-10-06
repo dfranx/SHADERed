@@ -189,8 +189,10 @@ namespace ed
 
 							m_data->Parser.ModifyProject();
 
-							if (m_data->Parser.FileExists(file))
+							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
+								m_data->Renderer.Recompile(m_current->Name);
+							}
 							else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Vertex shader file doesnt exist");
 						}
@@ -234,8 +236,10 @@ namespace ed
 
 							m_data->Parser.ModifyProject();
 
-							if (m_data->Parser.FileExists(file))
+							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
+								m_data->Renderer.Recompile(m_current->Name);
+							}
 							else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Pixel shader file doesnt exist");
 						}
@@ -288,8 +292,10 @@ namespace ed
 
 							m_data->Parser.ModifyProject();
 
-							if (m_data->Parser.FileExists(file))
+							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
+								m_data->Renderer.Recompile(m_current->Name);
+							}
 							else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Geometry shader file doesnt exist");
 						}
@@ -336,8 +342,10 @@ namespace ed
 
 							m_data->Parser.ModifyProject();
 
-							if (m_data->Parser.FileExists(file))
+							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
+								m_data->Renderer.Recompile(m_current->Name);
+							}
 							else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Compute shader file doesnt exist");
 						}
