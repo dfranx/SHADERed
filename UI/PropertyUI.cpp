@@ -76,7 +76,6 @@ namespace ed
 						ImGui::OpenPopup("ERROR##pui_itemname_short");
 					else if (m_current != nullptr) {
 						m_data->Messages.RenameGroup(m_current->Name, m_itemName);
-						((CodeEditorUI*)m_ui->Get(ViewID::Code))->RenameShaderPass(m_current->Name, m_itemName);
 						memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
 						m_data->Parser.ModifyProject();
 					}

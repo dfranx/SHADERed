@@ -1522,11 +1522,11 @@ into the actual video");
 					PipelineItem* item = m_data->Pipeline.Get(file.first.c_str());
 
 					if (file.second == 0)
-						editor->OpenVS(*item);
+						editor->OpenVS(item);
 					else if (file.second == 1)
-						editor->OpenPS(*item);
+						editor->OpenPS(item);
 					else if (file.second == 2)
-						editor->OpenGS(*item);
+						editor->OpenGS(item);
 				}
 				editor->SetOpenedFilesData(filesData);
 				editor->SaveAll();

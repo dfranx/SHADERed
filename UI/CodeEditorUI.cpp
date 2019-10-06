@@ -66,7 +66,7 @@ namespace ed
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
 				std::string shaderType = m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : (m_shaderTypeId[i] == 2 ? "GS" : "CS"));
-				std::string windowName(std::string(m_items[i].Name) + " (" + shaderType + ")");
+				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 				
 				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
@@ -81,7 +81,7 @@ namespace ed
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(&m_items[i], m_editor[i].GetText(), m_shaderTypeId[i]);
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(m_items[i], m_editor[i].GetText(), m_shaderTypeId[i]);
 							
 							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].IsActive = false;
 							ImGui::Separator();
@@ -108,7 +108,7 @@ namespace ed
 						int groupMsg = 0;
 						TextEditor::ErrorMarkers groupErrs;
 						for (int j = 0; j < msgs.size(); j++)
-							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i].Name && msgs[j].Shader == m_shaderTypeId[i])
+							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i]->Name && msgs[j].Shader == m_shaderTypeId[i])
 								groupErrs[msgs[j].Line] = msgs[j].Text;
 						m_editor[i].SetErrorMarkers(groupErrs);
 
@@ -124,15 +124,15 @@ namespace ed
 							auto cursor = m_editor[i].GetCursorPosition();
 							char* path = "\0";
 
-							if (m_items[i].Type == PipelineItem::ItemType::ShaderPass) {
-								ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+							if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+								ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i]->Data);
 								path = shader->VSPath;
 								if (m_shaderTypeId[i] == 1)
 									path = shader->PSPath;
 								else if (m_shaderTypeId[i] == 2)
 									path = shader->GSPath;
 							} else {
-								ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i].Data);
+								ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i]->Data);
 								path = shader->Path;
 							}
 
@@ -146,7 +146,7 @@ namespace ed
 				}
 
 				if (m_focusWindow) {
-					if (m_focusItem == m_items[i].Name && m_focusSID == m_shaderTypeId[i]) {
+					if (m_focusItem == m_items[i]->Name && m_focusSID == m_shaderTypeId[i]) {
 						ImGui::SetWindowFocus();
 						m_focusWindow = false;
 					}
@@ -206,16 +206,10 @@ namespace ed
 			}
 		}
 	}
-	void CodeEditorUI::RenameShaderPass(const std::string& name, const std::string& newName)
+	void CodeEditorUI::m_open(PipelineItem* item, int sid)
 	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (name == m_items[i].Name)
-				strcpy(m_items[i].Name, newName.c_str());
-	}
-	void CodeEditorUI::m_open(PipelineItem item, int sid)
-	{
-		if (item.Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item.Data);
+		if (item->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item->Data);
 
 			if (Settings::Instance().General.UseExternalEditor) {
 				std::string path = "";
@@ -240,7 +234,7 @@ namespace ed
 			// check if already opened
 			for (int i = 0; i < m_items.size(); i++) {
 				if (m_shaderTypeId[i] == sid) {
-					ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i].Data);
+					ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i]->Data);
 					bool match = false;
 					if (sid == 0 && (strcmp(shader->VSPath, sData->VSPath) == 0 || strcmp(shader->VSPath, sData->PSPath) == 0 || strcmp(shader->VSPath, sData->GSPath) == 0))
 						match = true;
@@ -252,7 +246,7 @@ namespace ed
 					if (match) {
 						m_focusWindow = true;
 						m_focusSID = sid;
-						m_focusItem = m_items[i].Name;
+						m_focusItem = m_items[i]->Name;
 						return;
 					}
 				}
@@ -301,9 +295,9 @@ namespace ed
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
-		else if (item.Type == PipelineItem::ItemType::ComputePass)
+		else if (item->Type == PipelineItem::ItemType::ComputePass)
 		{
-			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(item.Data);
+			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(item->Data);
 
 			if (Settings::Instance().General.UseExternalEditor)
 			{
@@ -321,9 +315,9 @@ namespace ed
 			// check if already opened
 			for (int i = 0; i < m_items.size(); i++)
 			{
-				if (m_shaderTypeId[i] == 3 && m_items[i].Type == PipelineItem::ItemType::ComputePass)
+				if (m_shaderTypeId[i] == 3 && m_items[i]->Type == PipelineItem::ItemType::ComputePass)
 				{
-					ed::pipe::ComputePass *sData = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i].Data);
+					ed::pipe::ComputePass *sData = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i]->Data);
 					bool match = false;
 					if (sid == 3 && strcmp(shader->Path, sData->Path) == 0)
 						match = true;
@@ -332,7 +326,7 @@ namespace ed
 					{
 						m_focusWindow = true;
 						m_focusSID = sid;
-						m_focusItem = m_items[i].Name;
+						m_focusItem = m_items[i]->Name;
 						return;
 					}
 				}
@@ -371,19 +365,19 @@ namespace ed
 			editor->ResetTextChanged();
 		}
 	}
-	void CodeEditorUI::OpenVS(PipelineItem item)
+	void CodeEditorUI::OpenVS(PipelineItem* item)
 	{
 		m_open(item, 0);
 	}
-	void CodeEditorUI::OpenPS(PipelineItem item)
+	void CodeEditorUI::OpenPS(PipelineItem* item)
 	{
 		m_open(item, 1);
 	}
-	void CodeEditorUI::OpenGS(PipelineItem item)
+	void CodeEditorUI::OpenGS(PipelineItem* item)
 	{
 		m_open(item, 2);
 	}
-	void CodeEditorUI::OpenCS(PipelineItem item)
+	void CodeEditorUI::OpenCS(PipelineItem* item)
 	{
 		m_open(item, 3);
 	}
@@ -408,7 +402,7 @@ namespace ed
 	{
 		std::vector<std::pair<std::string, int>> ret;
 		for (int i = 0; i < m_items.size(); i++)
-			ret.push_back(std::make_pair(std::string(m_items[i].Name), m_shaderTypeId[i]));
+			ret.push_back(std::make_pair(std::string(m_items[i]->Name), m_shaderTypeId[i]));
 		return ret;
 	}
 	std::vector<std::string> CodeEditorUI::GetOpenedFilesData()
@@ -433,8 +427,8 @@ namespace ed
 		if (!canSave)
 			return;
 
-		if (m_items[id].Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass *shader = reinterpret_cast<ed::pipe::ShaderPass *>(m_items[id].Data);
+		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass *shader = reinterpret_cast<ed::pipe::ShaderPass *>(m_items[id]->Data);
 
 			m_editor[id].ResetTextChanged();
 
@@ -444,8 +438,8 @@ namespace ed
 				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
 			else if (m_shaderTypeId[id] == 2)
 				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
-		} else if (m_items[id].Type == PipelineItem::ItemType::ComputePass) {
-			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[id].Data);
+		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[id]->Data);
 			m_editor[id].ResetTextChanged();
 			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
 		}
@@ -454,11 +448,11 @@ namespace ed
 	{
 		if (m_trackerRunning) {
 			std::lock_guard<std::mutex> lock(m_trackFilesMutex);
-			m_trackIgnore.push_back(m_items[id].Name);
+			m_trackIgnore.push_back(m_items[id]->Name);
 		}
 
 		m_save(id);
-		m_data->Renderer.Recompile(m_items[id].Name);
+		m_data->Renderer.Recompile(m_items[id]->Name);
 	}
 	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
 	{
@@ -548,9 +542,9 @@ namespace ed
 				if (!m_editor[i].IsTextChanged())
 					continue;
 
-				if (m_items[i].Type == PipelineItem::ItemType::ShaderPass) {
-					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i].Name];
-					pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i].Data;
+				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
 					inf->SPass = pass;
 					inf->CPass = nullptr;
 					
@@ -564,9 +558,9 @@ namespace ed
 						inf->GS = m_editor[i].GetText();
 						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
-				} else if (m_items[i].Type == PipelineItem::ItemType::ComputePass) {
-					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i].Name];
-					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i].Data;
+				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
+					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i]->Name];
+					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i]->Data;
 					inf->CPass = pass;
 					inf->SPass = nullptr;
 					

@@ -290,29 +290,29 @@ namespace ed
 						pipe::ShaderPass *passData = (pipe::ShaderPass *)(items[index]->Data);
 
 						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(items[index]);
 						}
 						else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
 						}
 						else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(items[index]);
 						}
 						else if (ImGui::MenuItem("All")) {
 							if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(*items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(items[index]);
 
 							if (m_data->Parser.FileExists(passData->PSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(*items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
 
 							if (m_data->Parser.FileExists(passData->VSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(*items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(items[index]);
 						}
 					} else if (items[index]->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass *passData = (pipe::ComputePass *)(items[index]->Data);
 
 						if (ImGui::MenuItem("Compute Shader") && m_data->Parser.FileExists(passData->Path))
-							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenCS(*items[index]);
+							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenCS(items[index]);
 					}
 
 						ImGui::EndMenu();
@@ -1285,13 +1285,13 @@ namespace ed
 					{
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->VSPath))
-							editor->OpenVS(*item);
+							editor->OpenVS(item);
 
 						if (m_data->Parser.FileExists(data->PSPath))
-							editor->OpenPS(*item);
+							editor->OpenPS(item);
 
 						if (data->GSUsed && strlen(data->GSPath) > 0 && m_data->Parser.FileExists(data->GSPath))
-							editor->OpenGS(*item);
+							editor->OpenGS(item);
 					}
 				}
 
@@ -1328,7 +1328,7 @@ namespace ed
 					{
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
-							editor->OpenCS(*item);
+							editor->OpenCS(item);
 					}
 				}
 

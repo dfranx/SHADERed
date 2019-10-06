@@ -48,12 +48,10 @@ namespace ed
 
 		void SaveAll();
 
-		void OpenVS(PipelineItem item);
-		void OpenPS(PipelineItem item);
-		void OpenGS(PipelineItem item);
-		void OpenCS(PipelineItem item);
-
-		void RenameShaderPass(const std::string& name, const std::string& newName);
+		void OpenVS(PipelineItem* item);
+		void OpenPS(PipelineItem* item);
+		void OpenGS(PipelineItem* item);
+		void OpenCS(PipelineItem* item);
 
 		inline bool HasFocus() { return m_selectedItem != -1; }
 
@@ -148,7 +146,7 @@ namespace ed
 
 
 	private:
-		void m_open(PipelineItem item, int shaderTypeID); // TODO: add pointer to the pipelineitem
+		void m_open(PipelineItem* item, int shaderTypeID); // TODO: add pointer to the pipelineitem
 		void m_setupShortcuts();
 
 		void m_loadEditorShortcuts(TextEditor* editor);
@@ -162,7 +160,7 @@ namespace ed
 		//void m_fetchStats(int id);
 		//void m_renderStats(int id);
 
-		std::vector<PipelineItem> m_items;
+		std::vector<PipelineItem*> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
 		std::vector<int> m_shaderTypeId;

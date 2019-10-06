@@ -21,7 +21,6 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - why isn't first arg in CodeEditorUI::m_open a pointer?
  - when adding a shader pass, decompile the shader and detect input variables
  - when loading a texture it might not be loaded if not bound to any shader pass (or loaded multiple times if bound to two passes)
  - shift+drag with right click to move ArcBallCamera focus point

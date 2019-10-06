@@ -1433,11 +1433,11 @@ namespace ed
 							path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
 						if (strcmp(shaderType, "vs") == 0 && FileExists(path))
-							editor->OpenVS(*item);
+							editor->OpenVS(item);
 						else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
-							editor->OpenPS(*item);
+							editor->OpenPS(item);
 						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
-							editor->OpenGS(*item);
+							editor->OpenGS(item);
 					}
 				}
 				else if (type == "pinned") {
@@ -2363,16 +2363,16 @@ namespace ed
 								path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
 							if (strcmp(shaderType, "vs") == 0 && FileExists(path))
-								editor->OpenVS(*item);
+								editor->OpenVS(item);
 							else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
-								editor->OpenPS(*item);
+								editor->OpenPS(item);
 							else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
-								editor->OpenGS(*item);
+								editor->OpenGS(item);
 						} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 							std::string path = ((ed::pipe::ComputePass *)item->Data)->Path;
 
 							if (strcmp(shaderType, "cs") == 0 && FileExists(path))
-								editor->OpenCS(*item);
+								editor->OpenCS(item);
 						}
 					}
 				}
