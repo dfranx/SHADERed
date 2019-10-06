@@ -7,6 +7,7 @@
 #include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/KeyboardShortcuts.h"
+#include "../Objects/ThemeContainer.h"
 #include "../Engine/GeometryFactory.h"
 #include "../Engine/GLUtils.h"
 
@@ -224,7 +225,7 @@ namespace ed
 	void PreviewUI::Update(float delta)
 	{
 		if (!m_data->Messages.CanRenderPreview()) {
-			ImGui::TextColored(IMGUI_ERROR_COLOR, "Can not display preview - there are some errors you should fix.");
+			ImGui::TextColored(ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ErrorMessage, "Can not display preview - there are some errors you should fix.");
 			return;
 		}
 

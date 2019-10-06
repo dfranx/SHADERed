@@ -403,10 +403,10 @@ namespace ed
 				pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
 				std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
 				std::vector<ShaderVariable *> &vars = passData->Variables.GetVariables();
-				for (auto itemVal : itemValues)
+				for (const auto& itemVal : itemValues)
 				{
 					bool found = false;
-					for (auto passChild : passData->Items)
+					for (const auto& passChild : passData->Items)
 						if (passChild == itemVal.Item)
 						{
 							found = true;
@@ -624,7 +624,7 @@ namespace ed
 			// pinned ui
 			PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 			std::vector<ShaderVariable*> pinnedVars = pinned->GetAll();
-			for (auto var : pinnedVars) {
+			for (const auto& var : pinnedVars) {
 				pugi::xml_node varNode = settingsNode.append_child("entry");
 				varNode.append_attribute("type").set_value("pinned");
 				varNode.append_attribute("name").set_value(var->Name);
@@ -851,7 +851,7 @@ namespace ed
 	{
 		if (vars.size() > 0) {
 			pugi::xml_node varsNodes = node.append_child("variables");
-			for (auto var : vars) {
+			for (const auto& var : vars) {
 				pugi::xml_node varNode = varsNodes.append_child("variable");
 				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var->GetType()]);
 				varNode.append_attribute("name").set_value(var->Name);
@@ -1308,7 +1308,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot+1);
@@ -1367,7 +1367,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot + 1);
@@ -1388,7 +1388,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot + 1);
@@ -1402,8 +1402,8 @@ namespace ed
 		}
 		
 		// bind objects
-		for (auto b : boundTextures)
-			for (auto id : b.second)
+		for (const auto& b : boundTextures)
+			for (const auto& id : b.second)
 				if (!id.empty())
 					m_objects->Bind(id, b.first);
 
@@ -1449,7 +1449,7 @@ namespace ed
 
 						std::vector<ShaderVariable*> vars = owner->Variables.GetVariables();
 
-						for (auto var : vars)
+						for (const auto& var : vars)
 							if (strcmp(var->Name, item) == 0) {
 								pinned->Add(var);
 								break;
@@ -2083,7 +2083,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot + 1);
@@ -2157,7 +2157,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot + 1);
@@ -2203,7 +2203,7 @@ namespace ed
 					if (!bindNode.attribute("uav").empty())
 						isUAV = bindNode.attribute("uav").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						// bind as sampler2D
 						if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ShaderPass) || isUAV == 0) {
 							if (strcmp(pass->Name, passBindName) == 0) {
@@ -2236,7 +2236,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
 								boundTextures[pass].resize(slot + 1);
@@ -2274,7 +2274,7 @@ namespace ed
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 
-					for (auto pass : passes) {
+					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundUBOs[pass].size() <= slot)
 								boundUBOs[pass].resize(slot + 1);
@@ -2390,7 +2390,7 @@ namespace ed
 						else if (owner->Type == PipelineItem::ItemType::ComputePass)
 							vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
 
-						for (auto var : vars)
+						for (const auto& var : vars)
 							if (strcmp(var->Name, item) == 0) {
 								pinned->Add(var);
 								break;

@@ -1,4 +1,5 @@
 #include "MessageOutputUI.h"
+#include "../Objects/ThemeContainer.h"
 #include "../Objects/Settings.h"
 #include "../Options.h"
 #include <imgui/imgui.h>
@@ -23,14 +24,16 @@ namespace ed
 		ImGui::Text("Message"); ImGui::NextColumn();
 		ImGui::Separator();
 
+		ed::CustomColors clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
+
 		for (int i = 0; i < msgs.size(); i++) {
 			const MessageStack::Message* m = &msgs[i];
 
-			ImVec4 color = IMGUI_MESSAGE_COLOR;
+			ImVec4 color = clrs.InfoMessage;
 			if (m->MType == MessageStack::Type::Error)
-				color = IMGUI_ERROR_COLOR;
+				color = clrs.ErrorMessage;
 			else if (m->MType == MessageStack::Type::Warning)
-				color = IMGUI_WARNING_COLOR;
+				color = clrs.WarningMessage;
 
 			ImGui::Text(m->Group.c_str());
 			ImGui::NextColumn();

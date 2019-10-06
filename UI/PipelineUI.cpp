@@ -763,7 +763,7 @@ namespace ed
 		if (ImGui::Button(UI_ICON_ADD)) {
 			// cant have two variables with same name
 			bool exists = false;
-			for (auto el : els)
+			for (const auto& el : els)
 				if (strcmp(el->Name, iVariable.Name) == 0)
 					exists = true;
 
@@ -992,7 +992,7 @@ namespace ed
 			const std::vector<std::string> &items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
-			for (auto el : els) {
+			for (const auto& el : els) {
 				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
 
 				/* CONTROLS */
@@ -1068,7 +1068,7 @@ namespace ed
 			const std::vector<std::string> &items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
-			for (auto el : els) {
+			for (const auto& el : els) {
 				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
 
 				/* CONTROLS */
@@ -1313,6 +1313,8 @@ namespace ed
 		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
 		if (ewCount > 0)
 			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
+		else
+			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ComputePass);
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
@@ -1337,10 +1339,7 @@ namespace ed
 				}
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
-
-
-		if (ewCount > 0)
-			ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
 	}
 	void PipelineUI::m_addItem(ed::PipelineItem* item)
 	{

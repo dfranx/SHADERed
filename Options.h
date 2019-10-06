@@ -9,9 +9,6 @@
 
 #define SDL_GLSL_VERSION "#version 330"
 #define IMGUI_INI_FILE "data/workspace.dat"
-#define IMGUI_ERROR_COLOR ImVec4(1.0f, 0.17f, 0.13f, 1.0f)
-#define IMGUI_WARNING_COLOR ImVec4(1.0f, 0.8f, 0.0f, 1.0f)
-#define IMGUI_MESSAGE_COLOR ImVec4(0.106f, 0.631f, 0.886f, 1.0f)
 
 // TODO: maybe dont use MAX_PATH but rather custom define?
 #ifdef MAX_PATH

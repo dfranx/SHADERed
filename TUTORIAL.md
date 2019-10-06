@@ -158,7 +158,7 @@ ButtonHovered, ButtonActive, Header, HeaderHovered, HeaderActive, Separator, Sep
 SeparatorActive, ResizeGrip, ResizeGripHovered, ResizeGripActive, Tab, TabHovered, TabActive,
 TabUnfocused, TabUnfocusedActive, DockingPreview, DockingEmptyBg, PlotLines, PlotLinesHovered,
 PlotHistogram, PlotHistogramHovered, TextSelectedBg, DragDropTarget, NavHighlight, NavWindowingHighlight,
-NavWindowingDimBg, ModalWindowDimBg
+NavWindowingDimBg, ModalWindowDimBg, ComputePass, OutputError, OutputWarning, OutputMessage
 ```
 All of these variables under the `[colors]` have to have 4 float values in the range [0.0, 1.0] splitted with the comma.
 

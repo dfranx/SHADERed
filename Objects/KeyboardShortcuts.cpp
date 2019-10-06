@@ -130,7 +130,7 @@ namespace ed
 	std::vector<std::string> KeyboardShortcuts::GetNameList()
 	{
 		std::vector<std::string> ret;
-		for (auto i : m_data)
+		for (const auto& i : m_data)
 			ret.push_back(i.first);
 		return ret;
 	}
@@ -149,7 +149,7 @@ namespace ed
 
 		bool resetSecond = false, resetFirst = false;
 
-		for (auto hotkey : m_data) {
+		for (const auto& hotkey : m_data) {
 			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos || hotkey.first == "Project.Save"))
 				continue;
 
@@ -165,7 +165,7 @@ namespace ed
 					bool found = false;
 					int key1 = m_keys[0];
 					if (key1 != -1)
-						for (auto clone : m_data)
+						for (const auto& clone : m_data)
 							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift &&
 								clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1)
 							{

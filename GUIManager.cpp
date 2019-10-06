@@ -154,7 +154,7 @@ namespace ed
 
 		Logger::Get().Log("Shutting down UI");
 
-		for (auto view : m_views)
+		for (auto& view : m_views)
 			delete view;
 
 		delete m_options;
@@ -209,7 +209,7 @@ namespace ed
 		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
 			m_objectPrev->OnEvent(e);
 
-		for (auto view : m_views)
+		for (auto& view : m_views)
 			view->OnEvent(e);
 	}
 	void GUIManager::m_tooltip(const std::string &text)
@@ -638,7 +638,7 @@ namespace ed
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
-				for (auto view : m_views) {
+				for (auto& view : m_views) {
 					if (view->Name != "Code") // dont show the "Code" UI view in this menu
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
@@ -733,7 +733,7 @@ namespace ed
 			int wndW, wndH;
 			SDL_GetWindowSize(m_wnd, &wndW, &wndH);
 			
-			for (auto view : m_views)
+			for (auto& view : m_views)
 				if (view->Visible) {
 					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(wndW, wndH));
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
@@ -1446,7 +1446,7 @@ into the actual video");
 	{
 		std::ofstream data("data/gui.dat");
 
-		for (auto view : m_views)
+		for (auto& view : m_views)
 			data.put(view->Visible);
 
 		data.close();
@@ -1456,7 +1456,7 @@ into the actual video");
 		std::ifstream data("data/gui.dat");
 
 		if (data.is_open()) {
-			for (auto view : m_views)
+			for (auto& view : m_views)
 				view->Visible = data.get();
 
 			data.close();

@@ -699,7 +699,7 @@ namespace ed
 			// check if user added/changed shader paths
 			std::vector<PipelineItem*> nPasses = m_data->Pipeline.GetList();
 			bool needsUpdate = false;
-			for (auto pass : nPasses) {
+			for (auto& pass : nPasses) {
 				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
@@ -786,7 +786,7 @@ namespace ed
 				passes = nPasses;
 				gsUsed.resize(passes.size());
 				m_trackedNeedsUpdate.resize(passes.size());
-				for (auto pass : passes) {
+				for (const auto& pass : passes) {
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 

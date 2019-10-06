@@ -11,7 +11,7 @@ namespace ed
 	}
 	void PinnedUI::Update(float delta)
 	{
-		for (auto var : m_pinnedVars) {
+		for (auto& var : m_pinnedVars) {
 			m_editor.Open(var);
 			if (m_editor.Update())
 				m_data->Parser.ModifyProject();
@@ -57,7 +57,7 @@ namespace ed
 	}
 	bool PinnedUI::Contains(const char* data)
 	{
-		for (auto var : m_pinnedVars)
+		for (auto& var : m_pinnedVars)
 			if (strcmp(var->Name, data) == 0)
 				return true;
 		return false;

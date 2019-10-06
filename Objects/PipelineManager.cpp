@@ -35,7 +35,7 @@ namespace ed
 			if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 				// delete pass' child items and their data
 				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
-				for (auto passItem : pass->Items) {
+				for (auto& passItem : pass->Items) {
 					if (passItem->Type == PipelineItem::ItemType::Geometry) {
 						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 						glDeleteVertexArrays(1, &geo->VAO);
@@ -65,7 +65,7 @@ namespace ed
 		
 		Logger::Get().Log("Adding a pipeline item " + std::string(name) + " to the project");
 
-		for (auto item : m_items)
+		for (const auto& item : m_items)
 			if (strcmpcase(item->Name, name) == 0) {
 				Logger::Get().Log("Item " + std::string(name) + " not added - name already taken", true);
 				return false;
@@ -73,7 +73,7 @@ namespace ed
 
 		m_project->ModifyProject();
 
-		for (auto item : m_items) {
+		for (auto& item : m_items) {
 			if (strcmp(item->Name, owner) != 0)
 				continue;
 
@@ -138,7 +138,7 @@ namespace ed
 					glDeleteFramebuffers(1, &data->FBO);
 
 					// TODO: add this part to m_freeShaderPass method
-					for (auto passItem : data->Items) {
+					for (auto& passItem : data->Items) {
 						if (passItem->Type == PipelineItem::ItemType::Geometry) {
 							pipe::GeometryItem *geo = (pipe::GeometryItem *)passItem->Data;
 							glDeleteVertexArrays(1, &geo->VAO);
