@@ -350,6 +350,8 @@ namespace ed
 
 			if (ImGui::Selectable("Delete")) {
 
+				(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAllFrom(items[index]);
+
 				// check if it is opened in property viewer
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)

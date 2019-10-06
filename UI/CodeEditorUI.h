@@ -121,6 +121,7 @@ namespace ed
 		inline std::vector<bool> TrackedNeedsUpdate() { return m_trackedNeedsUpdate; }
 
 		void CloseAll();
+		void CloseAllFrom(PipelineItem* item);
 
 		std::vector<std::pair<std::string, int>> GetOpenedFiles();
 		std::vector<std::string> GetOpenedFilesData();

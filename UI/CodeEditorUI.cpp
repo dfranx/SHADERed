@@ -393,6 +393,19 @@ namespace ed
 			i--;
 		}
 	}
+	void CodeEditorUI::CloseAllFrom(PipelineItem* item)
+	{
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i] == item) {
+				m_items.erase(m_items.begin() + i);
+				m_editor.erase(m_editor.begin() + i);
+				m_editorOpen.erase(m_editorOpen.begin() + i);
+				m_stats.erase(m_stats.begin() + i);
+				m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
+				i--;
+			}
+		}
+	}
 	void CodeEditorUI::SaveAll()
 	{
 		for (int i = 0; i < m_items.size(); i++)
