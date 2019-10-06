@@ -7,6 +7,8 @@
 + fix copy and paste
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
++ fix "GeometryShader" example
++ fix a bug where "Outline" example wouldn't work after Edge/Sobel examples
 + any form of project saving should also now save all shader code modifications
 + shader code modifications now also count as project modifications (now you will get "Are you sure" message box on exit)
 + internal changes

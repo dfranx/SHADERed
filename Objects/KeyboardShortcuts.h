@@ -26,6 +26,7 @@ namespace ed
 			std::function<void()> Function;
 
 			Shortcut() : Key1(-1), Key2(-1), Alt(false), Ctrl(false), Shift(false), Function(nullptr) { }
+			Shortcut(int k1, int k2, bool alt, bool ctrl, bool shift) : Key1(k1), Key2(k2), Alt(alt), Ctrl(ctrl), Shift(shift) { }
 		};
 
 

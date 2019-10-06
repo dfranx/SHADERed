@@ -70,8 +70,6 @@ namespace ed
 			}
 		}
 
-		//glEnable(GL_CULL_FACE);
-
 		// cache elements
 		m_cache();
 
@@ -81,7 +79,6 @@ namespace ed
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
 		bool clearedWindow = false;
-		bool changedState = true;
 
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
@@ -181,10 +178,7 @@ namespace ed
 				//	m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);
 
 				// bind default states for each shader pass
-				if (changedState) {
-					DefaultState::Bind();
-					changedState = false;
-				}
+				DefaultState::Bind();
 
 				// render pipeline items
 				for (int j = 0; j < data->Items.size(); j++) {
@@ -250,8 +244,7 @@ namespace ed
 					}
 					else if (item->Type == PipelineItem::ItemType::RenderState) {
 						pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
-						changedState = true;
-
+						
 						// depth clamp
 						if (state->DepthClamp)
 							glEnable(GL_DEPTH_CLAMP);
@@ -309,7 +302,8 @@ namespace ed
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
 				}
-			} else if (it->Type == PipelineItem::ItemType::ComputePass) {
+			}
+			else if (it->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -360,10 +354,6 @@ namespace ed
 			systemVM.CopyState();
 			systemVM.SetFrameIndex(systemVM.GetFrameIndex() + 1);
 		}
-
-		// bind default state after rendering everything
-		if (changedState)
-			DefaultState::Bind();
 
 		// restore real render target view
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

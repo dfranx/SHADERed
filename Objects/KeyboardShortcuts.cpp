@@ -20,14 +20,6 @@ namespace ed
 		std::ifstream file("data/shortcuts.kb");
 		std::string str;
 
-		// create space for editor shortcuts if they don't exist
-		for (int i = 0; i < sizeof(EDITOR_SHORTCUT_NAMES) / sizeof(*EDITOR_SHORTCUT_NAMES); i++) {
-			std::string actName = "Editor." + std::string(EDITOR_SHORTCUT_NAMES[i]);
-			if (m_data.count(actName) == 0) {
-				ed::KeyboardShortcuts::Shortcut sct = m_data[actName];
-			}
-		}
-
 		while (std::getline(file, str)) {
 			std::stringstream ss(str);
 			std::string name, token;
@@ -36,21 +28,23 @@ namespace ed
 
 			if (name.empty()) continue;
 
-			m_data[name].Key1 = -1;
-			m_data[name].Key2 = -1;
+			int vk1 = -1, vk2 = -1;
+			bool alt = false, ctrl = false, shift = false;
 			while (ss >> token)
 			{
-				if (token == "CTRL") m_data[name].Ctrl = true;
-				else if (token == "ALT") m_data[name].Alt = true;
-				else if (token == "SHIFT") m_data[name].Shift = true;
+				if (token == "CTRL") ctrl = true;
+				else if (token == "ALT") alt = true;
+				else if (token == "SHIFT") shift = true;
 				else if (token == "NONE") break;
 				else {
-					if (m_data[name].Key1 == -1)
-						m_data[name].Key1 = SDL_GetKeyFromName(token.c_str());
+					if (vk1 == -1)
+						vk1 = SDL_GetKeyFromName(token.c_str());
 					else if (m_data[name].Key2 == -1)
-						m_data[name].Key2 = SDL_GetKeyFromName(token.c_str());
+						vk2 = SDL_GetKeyFromName(token.c_str());
 				}				
 			}
+
+			Set(name, vk1, vk2, alt, ctrl, shift);
 		}
 
 		ed::Logger::Get().Log("Loaded shortcut information");

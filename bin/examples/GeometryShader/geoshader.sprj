@@ -2,9 +2,9 @@
 <project version="2">
 	<pipeline>
 		<pass name="Light" type="shader">
-			<shader type="vs" path="shaders/LightVS.glsl" entry="main" />
-			<shader type="ps" path="shaders/LightPS.glsl" entry="main" />
-			<shader used="true" type="gs" path="shaders/LightGS.glsl" entry="main" />
+			<shader type="vs" path="shaders\LightVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\LightPS.glsl" entry="main" />
+			<shader used="true" type="gs" path="shaders\LightGS.glsl" entry="main" />
 			<inputlayout>
 				<item value="Position" semantic="POSITION" />
 				<item value="Normal" semantic="NORMAL" />
@@ -41,8 +41,8 @@
 		<entry type="file" name="Light" shader="gs" />
 		<entry type="camera" fp="false">
 			<distance>8</distance>
-			<pitch>16</pitch>
-			<yaw>185</yaw>
+			<pitch>-6</pitch>
+			<yaw>196</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

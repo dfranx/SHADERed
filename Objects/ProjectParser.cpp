@@ -7,6 +7,7 @@
 #include "ShaderTranscompiler.h"
 #include "Names.h"
 #include "Logger.h"
+#include "DefaultState.h"
 
 #include "../UI/PinnedUI.h"
 #include "../UI/PropertyUI.h"
@@ -97,7 +98,7 @@ namespace ed
 
 		// reset time, frame index, etc...
 		SystemVariableManager::Instance().Reset();
-	
+			
 		Logger::Get().Log("Finished with parsing a project file");
 	}
 	void ProjectParser::OpenTemplate()
