@@ -334,33 +334,33 @@ namespace ed
 	{
 		if (name == "bool")
 			return ShaderVariable::ValueType::Boolean1;
-		else if (name == "bvec2")
+		else if (name == "bvec2" || name == "bool2")
 			return ShaderVariable::ValueType::Boolean2;
-		else if (name == "bvec3")
+		else if (name == "bvec3" || name == "bool3")
 			return ShaderVariable::ValueType::Boolean3;
-		else if (name == "bvec4")
+		else if (name == "bvec4" || name == "bool4")
 			return ShaderVariable::ValueType::Boolean4;
 		else if (name == "int")
 			return ShaderVariable::ValueType::Integer1;
-		else if (name == "ivec2")
+		else if (name == "ivec2" || name == "int2")
 			return ShaderVariable::ValueType::Integer2;
-		else if (name == "ivec3")
+		else if (name == "ivec3" || name == "int3")
 			return ShaderVariable::ValueType::Integer3;
-		else if (name == "ivec4")
+		else if (name == "ivec4" || name == "int4")
 			return ShaderVariable::ValueType::Integer4;
 		else if (name == "float")
 			return ShaderVariable::ValueType::Float1;
-		else if (name == "vec2")
+		else if (name == "vec2" || name == "float2")
 			return ShaderVariable::ValueType::Float2;
-		else if (name == "vec3")
+		else if (name == "vec3" || name == "float3")
 			return ShaderVariable::ValueType::Float3;
-		else if (name == "vec4")
+		else if (name == "vec4" || name == "float4")
 			return ShaderVariable::ValueType::Float4;
-		else if (name == "mat2")
+		else if (name == "mat2" || name == "float2x2")
 			return ShaderVariable::ValueType::Float2x2;
-		else if (name == "mat3")
+		else if (name == "mat3" || name == "float3x3")
 			return ShaderVariable::ValueType::Float3x3;
-		else if (name == "mat4")
+		else if (name == "mat4" || name == "float4x4")
 			return ShaderVariable::ValueType::Float4x4;
 
 		return ShaderVariable::ValueType::Float1;

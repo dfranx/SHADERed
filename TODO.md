@@ -21,7 +21,6 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - add HLSL stuff in getValueType
  - color compute shader labels light/dark green
  - recompile the shader after we change shader path in a shader pass
  - ability to change warning, message and error text colors

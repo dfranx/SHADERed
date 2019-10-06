@@ -4,6 +4,7 @@
 + add magnifier tool to texture/image preview window
 + add find and replace feature in the text editor
 + add right click context menu in the text editor
++ add support for HLSL types in the buffer format
 + fix copy and paste
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
