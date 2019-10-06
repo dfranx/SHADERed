@@ -1,6 +1,7 @@
 #pragma once
 #include "UIView.h"
 #include "../Objects/PipelineItem.h"
+#include "../Objects/ShaderVariable.h"
 
 namespace ed
 {
@@ -23,6 +24,9 @@ namespace ed
 		bool Create();
 
 	private:
+		void m_autoVariablePopulate(pipe::ShaderPass* pass);
+		ed::SystemShaderVariable m_autoSystemValue(const std::string& name);
+
 		std::vector<std::string> m_groups;
 		int m_selectedGroup;
 

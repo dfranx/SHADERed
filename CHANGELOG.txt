@@ -4,6 +4,7 @@
 + add magnifier tool to texture/image preview window
 + add find and replace feature in the text editor
 + add right click context menu in the text editor
++ add feature that automatically adds variables on shader pass creation
 + add support for HLSL types in the buffer format
 + add ability to change warning, message and error text colors in the theme files
 + fix copy and paste

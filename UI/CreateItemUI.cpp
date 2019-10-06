@@ -4,6 +4,8 @@
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ThemeContainer.h"
+#include "../Objects/ShaderTranscompiler.h"
+#include "../Objects/SystemVariableManager.h"
 #include "../Engine/GeometryFactory.h"
 #include "../Engine/Model.h"
 #include "../Engine/GLUtils.h"
@@ -666,6 +668,147 @@ namespace ed
 			m_item.Data = allocatedData;
 		}
 	}
+	void CreateItemUI::m_autoVariablePopulate(pipe::ShaderPass* shader)
+	{
+		if (m_data->Parser.FileExists(shader->VSPath)) {
+			std::string psContent = "", vsContent = "",
+				vsEntry = shader->VSEntry,
+				psEntry = shader->PSEntry;
+
+			// pixel shader
+			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
+				psContent = m_data->Parser.LoadProjectFile(shader->PSPath);
+			else {
+				psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_data->Parser.GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, nullptr);
+				psEntry = "main";
+			}
+			GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
+
+			// vertex shader
+			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL)
+				vsContent = m_data->Parser.LoadProjectFile(shader->VSPath);
+			else {
+				vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_data->Parser.GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, nullptr);
+				vsEntry = "main";
+			}
+			GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
+
+			// geometry shader
+			GLuint gs = 0;
+			if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
+				std::string gsContent = "",
+					gsEntry = shader->GSEntry;
+
+				if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
+					gsContent = m_data->Parser.LoadProjectFile(shader->GSPath);
+				else { // HLSL / VK
+					gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_data->Parser.GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, nullptr);
+					gsEntry = "main";
+				}
+
+				gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
+			}
+
+			GLuint prog = glCreateProgram();
+			glAttachShader(prog, vs);
+			glAttachShader(prog, ps);
+			if (shader->GSUsed) glAttachShader(prog, gs);
+			glLinkProgram(prog);
+
+			if (prog != 0) {
+				GLint count;
+
+				const GLsizei bufSize = 64; // maximum name length
+				GLchar name[bufSize]; // variable name in GLSL
+				GLsizei length; // name length
+				GLuint samplerLoc = 0;
+
+				glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &count);
+				for (GLuint i = 0; i < count; i++)
+				{
+					GLint size;
+					GLenum type;
+
+					glGetActiveUniform(prog, (GLuint)i, bufSize, &length, &size, &type, name);
+
+					ShaderVariable::ValueType valType = ShaderVariable::ValueType::Count;
+
+					if (type == GL_FLOAT)
+						valType = ShaderVariable::ValueType::Float1;
+					else if (type == GL_FLOAT_VEC2)
+						valType = ShaderVariable::ValueType::Float2;
+					else if (type == GL_FLOAT_VEC3)
+						valType = ShaderVariable::ValueType::Float3;
+					else if (type == GL_FLOAT_VEC4)
+						valType = ShaderVariable::ValueType::Float4;
+					else if (type == GL_INT)
+						valType = ShaderVariable::ValueType::Integer1;
+					else if (type == GL_INT_VEC2)
+						valType = ShaderVariable::ValueType::Integer2;
+					else if (type == GL_INT_VEC3)
+						valType = ShaderVariable::ValueType::Integer3;
+					else if (type == GL_INT_VEC4)
+						valType = ShaderVariable::ValueType::Integer4;
+					else if (type == GL_BOOL)
+						valType = ShaderVariable::ValueType::Boolean1;
+					else if (type == GL_BOOL_VEC2)
+						valType = ShaderVariable::ValueType::Boolean2;
+					else if (type == GL_BOOL_VEC3)
+						valType = ShaderVariable::ValueType::Boolean3;
+					else if (type == GL_BOOL_VEC4)
+						valType = ShaderVariable::ValueType::Boolean4;
+					else if (type == GL_FLOAT_MAT2)
+						valType = ShaderVariable::ValueType::Float2x2;
+					else if (type == GL_FLOAT_MAT3)
+						valType = ShaderVariable::ValueType::Float3x3;
+					else if (type == GL_FLOAT_MAT4)
+						valType = ShaderVariable::ValueType::Float4x4;
+
+					if (valType != ShaderVariable::ValueType::Count) {
+						ed::SystemShaderVariable sysType = m_autoSystemValue(name);
+						if (SystemVariableManager::GetType(sysType) != valType)
+							sysType = SystemShaderVariable::None;
+						shader->Variables.Add(new ed::ShaderVariable(valType, name, sysType));
+					}
+				}
+			}
+		}
+	}
+	ed::SystemShaderVariable CreateItemUI::m_autoSystemValue(const std::string& name)
+	{
+		std::string vname = name;
+		std::transform(vname.begin(), vname.end(), vname.begin(), tolower);
+
+		// list of rules for detection:
+		if (vname.find("time") != std::string::npos && vname.find("d") == std::string::npos && vname.find("del") == std::string::npos && vname.find("delta") == std::string::npos)
+			return SystemShaderVariable::Time;
+		else if (vname.find("time") != std::string::npos && (vname.find("d") != std::string::npos || vname.find("del") != std::string::npos || vname.find("delta") != std::string::npos))
+			return SystemShaderVariable::TimeDelta;
+		else if (vname.find("frame") != std::string::npos || vname.find("index") != std::string::npos)
+			return SystemShaderVariable::FrameIndex;
+		else if (vname.find("size") != std::string::npos || vname.find("window") != std::string::npos || vname.find("viewport") != std::string::npos)
+			return SystemShaderVariable::ViewportSize;
+		else if (vname.find("mouse") != std::string::npos || vname == "mpos")
+			return SystemShaderVariable::MousePosition;
+		else if (vname == "view" || vname == "matview" || vname == "matv" || vname == "mview")
+			return SystemShaderVariable::View;
+		else if (vname == "proj" || vname == "matproj" || vname == "matp" || vname == "mproj" || vname == "projection" || vname == "matprojection" || vname == "mprojection")
+			return SystemShaderVariable::Projection;
+		else if (vname == "matvp" || vname == "matviewproj" || vname == "matviewprojection" || vname == "viewprojection" || vname == "viewproj" || vname == "mvp")
+			return SystemShaderVariable::ViewProjection;
+		else if (vname.find("ortho") != std::string::npos)
+			return SystemShaderVariable::Orthographic;
+		else if (vname.find("geo") != std::string::npos || vname.find("model") != std::string::npos)
+			return SystemShaderVariable::GeometryTransform;
+		else if (vname.find("pick") != std::string::npos)
+			return SystemShaderVariable::IsPicked;
+		else if (vname.find("cam") != std::string::npos)
+			return SystemShaderVariable::CameraPosition3;
+		else if (vname.find("keys") != std::string::npos || vname.find("wasd") != std::string::npos)
+			return SystemShaderVariable::KeysWASD;
+
+		return SystemShaderVariable::None;
+	}
 	bool CreateItemUI::Create()
 	{
 		if (strlen(m_item.Name) < 2) {
@@ -687,6 +830,8 @@ namespace ed
 			data->RenderTextures[0] = origData->RenderTextures[0];
 			data->RTCount = 1;
 			data->InputLayout = gl::CreateDefaultInputLayout();
+
+			m_autoVariablePopulate(data);
 
 			m_errorOccured = !m_data->Pipeline.AddShaderPass(m_item.Name, data);
 			return !m_errorOccured;

@@ -21,14 +21,13 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - when adding a shader pass, decompile the shader and detect input variables
  - when loading a texture it might not be loaded if not bound to any shader pass (or loaded multiple times if bound to two passes)
- - shift+drag with right click to move ArcBallCamera focus point
- - fix memory leaks if any
  - prevent crashes (loading wrong 3d model, loading wrong project file, compute shaders not supported, etc...)
- - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
+ - fix memory leaks if any
  - crashes when opening cubemap example only on Linux and only in Release mode!
+ - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - CodeEditorUI loses focus when pressing ALT keys on linux
+ - shift+drag with right click to move ArcBallCamera focus point
 ---
  - dragging items from one pass to another, duplicating them, etc...
  - improve the overall code (enum for shader type, etc...)

@@ -482,7 +482,8 @@ namespace ed
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
-				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+				}
+				else if (item->Type == PipelineItem::ItemType::ComputePass) {
 					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
 
 					m_msgs->ClearGroup(name);

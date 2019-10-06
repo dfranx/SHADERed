@@ -134,7 +134,8 @@ namespace ed
 
 		if (!file.is_open())
 		{
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
+			if (msgs != nullptr)
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
 			file.close();
 			return "errorFile";
 		}
@@ -198,8 +199,10 @@ namespace ed
 
 		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer))
 		{
-			msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
+			if (msgs != nullptr) {
+				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
+			}
 			return "error";
 		}
 
@@ -210,7 +213,8 @@ namespace ed
 		// parse
 		if (!shader.parse(&res, 100, false, messages))
 		{
-			msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
+			if (msgs != nullptr)
+				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
 			return "error";
 		}
 
@@ -220,7 +224,8 @@ namespace ed
 
 		if (!prog.link(messages))
 		{
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
+			if (msgs != nullptr)
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
 			return "error";
 		}
 
@@ -279,7 +284,8 @@ namespace ed
 			glsl.build_combined_image_samplers();
 		} catch (spirv_cross::CompilerError& e) {
 			ed::Logger::Get().Log("An exception occured: " + std::string(e.what()), true);
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
+			if (msgs != nullptr)
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
 			return "error";
 		}
 
@@ -289,7 +295,8 @@ namespace ed
 			source = glsl.compile();
 		} catch (spirv_cross::CompilerError& e) {
 			ed::Logger::Get().Log("Transcompiler threw an exception: " + std::string(e.what()), true);
-			msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
+			if (msgs != nullptr)
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Transcompiling failed", -1, sType);
 			return "error";
 		}
 
