@@ -273,7 +273,8 @@ const char* EDITOR_SHORTCUT_NAMES[] =
 	"NewLine",
 	"IndentShift",
 	"Find",
-	"Replace"
+	"Replace",
+	"FindNext"
 };
 
 

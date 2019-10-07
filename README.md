@@ -5,7 +5,7 @@ open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both
 
 <img src="./Screenshots/IMG2.png"/>
 
-## Partners / Sponsors / Users
+## Partners / Sponsors
 ...
 
 Contact: **dfranx00 at gmail dot com**
@@ -168,6 +168,9 @@ Run:
 ## Tutorial
 Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
 detailed steps on how to do so.
+
+## Used by
+[<img width="250" src="./logo/arkaos.png">](https://www.arkaos.com/)
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)

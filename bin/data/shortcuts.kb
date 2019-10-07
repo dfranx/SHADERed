@@ -18,6 +18,7 @@ Editor.NewLine Return
 Editor.Copy CTRL C
 Editor.Cut CTRL X
 Editor.Find CTRL F
+Editor.FindNext F3
 Editor.MoveBottom CTRL End
 Editor.MoveDownBlock PageDown
 Editor.MoveEndLine End

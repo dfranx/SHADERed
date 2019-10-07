@@ -7,6 +7,7 @@
 + add feature that automatically adds variables on shader pass creation
 + add support for HLSL types in the buffer format
 + add ability to change warning, message and error text colors in the theme files
++ add Editor.FindNext shortcut
 + fix copy and paste
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
@@ -17,6 +18,7 @@
 + recompile shader pass after we change it's shader path
 + close code editors after a shader pass has been deleted
 + color compute shader labels light/dark green (can be changed)
++ improve CTRL+F
 + internal changes
 
 [v1.2.2]

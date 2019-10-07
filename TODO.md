@@ -22,7 +22,7 @@ List of features I want to implement:
 
 Except those features, I am also looking to do some small QoL changes and fixes:
  - when loading a texture it might not be loaded if not bound to any shader pass (or loaded multiple times if bound to two passes)
- - prevent crashes (loading wrong 3d model, loading wrong project file, compute shaders not supported, etc...)
+ - prevent crashes (loading wrong 3d model, loading wrong project file - open empty, compute shaders not supported, etc...)
  - fix memory leaks if any
  - crashes when opening cubemap example only on Linux and only in Release mode!
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
