@@ -55,6 +55,7 @@ namespace ed
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }
 		inline void CreateNewBuffer() { m_isCreateBufferOpened = true; }
 		inline void CreateNewImage() { m_isCreateImgOpened = true; }
+		inline void CreateNewImage3D() { m_isCreateImg3DOpened = true; }
 		void CreateNewComputePass();
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
@@ -75,6 +76,8 @@ namespace ed
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;
 
+		int m_width, m_height;
+
 		void m_renderOptions();
 		bool m_optionsOpened;
 		int m_optGroup;
@@ -92,7 +95,7 @@ namespace ed
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
 			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
-			m_isInfoOpened;
+			m_isInfoOpened, m_isCreateImg3DOpened;
 
 		bool m_isUpdateNotificationOpened;
 		sf::Clock m_updateNotifyClock;

@@ -300,7 +300,7 @@ namespace ed
 
 		return true;
 	}
-	bool ObjectManager::CreateImage(const std::string &name, glm::ivec2 size)
+	bool ObjectManager::CreateImage(const std::string& name, glm::ivec2 size)
 	{
 		Logger::Get().Log("Creating an image " + name + " ...");
 
@@ -315,7 +315,7 @@ namespace ed
 		m_itemData.push_back(item);
 		m_items.push_back(name);
 
-		ed::ImageObject *iObj = item->Image = new ImageObject();
+		ed::ImageObject* iObj = item->Image = new ImageObject();
 
 		glGenTextures(1, &iObj->Texture);
 		glBindTexture(GL_TEXTURE_2D, iObj->Texture);
@@ -326,6 +326,34 @@ namespace ed
 
 		iObj->Size = size;
 		iObj->Format = GL_RGBA32F;
+
+		return true;
+	}
+	bool ObjectManager::CreateImage3D(const std::string& name, glm::ivec3 size)
+	{
+		Logger::Get().Log("Creating an image " + name + " ...");
+
+		if (Exists(name)) {
+			Logger::Get().Log("Cannot create the image " + name + " because an item with exact name already exists", true);
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
+		m_items.push_back(name);
+
+		ed::Image3DObject* iObj = item->Image3D = new Image3DObject();
+		iObj->Size = size;
+		iObj->Format = GL_RGBA32F;
+
+		glGenTextures(1, &iObj->Texture);
+		glBindTexture(GL_TEXTURE_3D, iObj->Texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage3D(GL_TEXTURE_3D, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_3D, 0);
 
 		return true;
 	}
@@ -423,22 +451,26 @@ namespace ed
 	{
 		m_parser->ModifyProject();
 
-		if (!IsBuffer(file)) {
-			GLuint srv = GetTexture(file);
-			for (auto& i : m_binds)
-				for (int j = 0; j < i.second.size(); j++)
-					if (i.second[j] == srv) {
-						i.second.erase(i.second.begin() + j);
-						j--;
-					}
-		} else {
-			for (auto& i : m_uniformBinds)
-				for (int j = 0; j < i.second.size(); j++)
-					if (GetBufferNameByID(i.second[j]) == file) {
-						i.second.erase(i.second.begin() + j);
-						j--;
-					}
-		}
+		GLuint srv = GetTexture(file);
+		if (IsImage3D(file))
+			srv = GetImage3D(file)->Texture;
+		else if (IsImage(file))
+			srv = GetImage(file)->Texture;
+		else if (IsBuffer(file))
+			srv = GetBuffer(file)->ID;
+
+		for (auto& i : m_binds)
+			for (int j = 0; j < i.second.size(); j++)
+				if (i.second[j] == srv) {
+					i.second.erase(i.second.begin() + j);
+					j--;
+				}
+		for (auto& i : m_uniformBinds)
+			for (int j = 0; j < i.second.size(); j++)
+				if (i.second[j] == srv) {
+					i.second.erase(i.second.begin() + j);
+					j--;
+				}
 		
 		int index = 0;
 		for (; index < m_items.size(); index++)
@@ -456,6 +488,8 @@ namespace ed
 
 			if (IsImage(file))
 				m_binds[pass].push_back(GetImage(file)->Texture);
+			else if (IsImage3D(file))
+				m_binds[pass].push_back(GetImage3D(file)->Texture);
 			else
 				m_binds[pass].push_back(GetTexture(file));
 		}
@@ -463,7 +497,12 @@ namespace ed
 	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
 	{
 		std::vector<GLuint>& srvs = m_binds[pass];
-		GLuint srv = IsImage(file) ? GetImage(file)->Texture : GetTexture(file);
+
+		GLuint srv = GetTexture(file);
+		if (IsImage(file))
+			srv = GetImage(file)->Texture;
+		else if (IsImage3D(file))
+			srv = GetImage3D(file)->Texture;
 
 		for (int i = 0; i < srvs.size(); i++)
 			if (srvs[i] == srv) {
@@ -482,7 +521,12 @@ namespace ed
 			for (int i = 0; i < m_binds[pass].size(); i++)
 				if (m_binds[pass][i] == GetImage(file)->Texture)
 					return i;
-		} else {
+		} else if (IsImage3D(file)) {
+			for (int i = 0; i < m_binds[pass].size(); i++)
+				if (m_binds[pass][i] == GetImage3D(file)->Texture)
+					return i;
+		}
+		else {
 			for (int i = 0; i < m_binds[pass].size(); i++)
 				if (m_binds[pass][i] == GetTexture(file))
 					return i;
@@ -496,7 +540,9 @@ namespace ed
 		if (IsUniformBound(file, pass) == -1) {
 			if (IsBuffer(file)) 
 				m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
-			else //it's an image
+			else if (IsImage3D(file))
+				m_uniformBinds[pass].push_back(GetImage3D(file)->Texture);
+			else
 				m_uniformBinds[pass].push_back(GetImage(file)->Texture);
 
 			m_parser->ModifyProject();
@@ -509,7 +555,9 @@ namespace ed
 
 		if (IsBuffer(file)) 
 			itemID = GetBuffer(file)->ID;
-		else //it's an image
+		else if (IsImage3D(file))
+			itemID = GetImage3D(file)->Texture;
+		else
 			itemID = GetImage(file)->Texture;
 		
 		for (int i = 0; i < ubos.size(); i++)
@@ -527,7 +575,9 @@ namespace ed
 		GLuint itemID = 0;
 		if (IsBuffer(file)) 
 			itemID = GetBuffer(file)->ID;
-		else //it's an image
+		else if (IsImage3D(file))
+			itemID = GetImage3D(file)->Texture;
+		else
 			itemID = GetImage(file)->Texture;
 
 		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
@@ -543,6 +593,7 @@ namespace ed
 			ObjectManagerItem* item = m_itemData[i];
 			if (item->Texture == texID ||
 				(item->Image != nullptr && item->Image->Texture == texID) ||
+				(item->Image3D != nullptr && item->Image3D->Texture == texID) ||
 				(item->Buffer != nullptr && item->Buffer->ID == texID))
 			{
 				return m_items[i];
@@ -607,6 +658,13 @@ namespace ed
 				return m_itemData[i]->Image != nullptr;
 		return false;
 	}
+	bool ObjectManager::IsImage3D(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image3D != nullptr;
+		return false;
+	}
 	bool ObjectManager::IsCubeMap(GLuint id)
 	{
 		for (const auto& i : m_itemData)
@@ -616,8 +674,15 @@ namespace ed
 	}
 	bool ObjectManager::IsImage(GLuint id)
 	{
-		for (const auto &i : m_itemData)
+		for (const auto& i : m_itemData)
 			if (i->Image != nullptr && i->Image->Texture == id)
+				return true;
+		return false;
+	}
+	bool ObjectManager::IsImage3D(GLuint id)
+	{
+		for (const auto& i : m_itemData)
+			if (i->Image3D != nullptr && i->Image3D->Texture == id)
 				return true;
 		return false;
 	}
@@ -664,12 +729,26 @@ namespace ed
 				return m_itemData[i]->Image;
 		return nullptr;
 	}
+	Image3DObject* ObjectManager::GetImage3D(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image3D;
+		return nullptr;
+	}
 	glm::ivec2 ObjectManager::GetImageSize(const std::string& name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == name)
 				return m_itemData[i]->Image->Size;
 		return glm::ivec2(0,0);
+	}
+	glm::ivec3 ObjectManager::GetImage3DSize(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Image3D->Size;
+		return glm::ivec3(0, 0, 0);
 	}
 	RenderTextureObject* ObjectManager::GetRenderTexture(const std::string& name)
 	{
@@ -697,6 +776,13 @@ namespace ed
 	{
 		for (int i = 0; i < m_itemData.size(); i++)
 			if (m_itemData[i]->Image != nullptr && m_itemData[i]->Image->Texture == id)
+				return m_items[i];
+		return "";
+	}
+	std::string ObjectManager::GetImage3DNameByID(GLuint id)
+	{
+		for (int i = 0; i < m_itemData.size(); i++)
+			if (m_itemData[i]->Image3D != nullptr && m_itemData[i]->Image3D->Texture == id)
 				return m_items[i];
 		return "";
 	}
@@ -736,9 +822,9 @@ namespace ed
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, size.x, size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	void ObjectManager::ResizeImage(const std::string &name, glm::ivec2 size)
+	void ObjectManager::ResizeImage(const std::string& name, glm::ivec2 size)
 	{
-		ImageObject *iobj = GetImage(name);
+		ImageObject* iobj = GetImage(name);
 
 		m_parser->ModifyProject();
 
@@ -747,5 +833,17 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, iobj->Texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	void ObjectManager::ResizeImage3D(const std::string& name, glm::ivec3 size)
+	{
+		Image3DObject* iobj = GetImage3D(name);
+
+		m_parser->ModifyProject();
+
+		iobj->Size = size;
+
+		glBindTexture(GL_TEXTURE_3D, iobj->Texture);
+		glTexImage3D(GL_TEXTURE_3D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, iobj->Size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_3D, 0);
 	}
 }

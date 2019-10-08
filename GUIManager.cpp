@@ -72,6 +72,7 @@ namespace ed
 		m_wasPausedPrior = true;
 		m_savePreviewSeq = false;
 		m_cacheProjectModified = false;
+		m_isCreateImg3DOpened = false;
 		m_isInfoOpened = false;
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
@@ -201,6 +202,14 @@ namespace ed
 			}
 
 			SDL_free(droppedFile);
+		}
+		else if (e.type == SDL_WINDOWEVENT) {
+			if (e.window.event == SDL_WINDOWEVENT_MOVED ||
+				e.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
+				e.window.event == SDL_WINDOWEVENT_RESIZED)
+			{
+				SDL_GetWindowSize(m_wnd, &m_width, &m_height);
+			}
 		}
 
 		if (m_optionsOpened)
@@ -631,6 +640,8 @@ namespace ed
 						this->CreateNewBuffer();
 					if (ImGui::MenuItem("Empty image", KeyboardShortcuts::Instance().GetString("Project.NewImage").c_str()))
 						this->CreateNewImage();
+					if (ImGui::MenuItem("Empty 3D image", KeyboardShortcuts::Instance().GetString("Project.NewImage3D").c_str()))
+						this->CreateNewImage3D();
 					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Reset time"))
@@ -730,12 +741,9 @@ namespace ed
 
 
 		if (!m_performanceMode) {
-			int wndW, wndH;
-			SDL_GetWindowSize(m_wnd, &wndW, &wndH);
-			
 			for (auto& view : m_views)
 				if (view->Visible) {
-					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(wndW, wndH));
+					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width*2, m_height*2));
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 					ImGui::End();
 				}
@@ -803,6 +811,12 @@ namespace ed
 		if (m_isCreateImgOpened) {
 			ImGui::OpenPopup("Create image##main_create_img");
 			m_isCreateImgOpened = false;
+		}
+
+		// open popup for creating image3D
+		if (m_isCreateImg3DOpened) {
+			ImGui::OpenPopup("Create 3D image##main_create_img3D");
+			m_isCreateImg3DOpened = false;
 		}
 
 		// open popup for creating render texture
@@ -964,6 +978,31 @@ namespace ed
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
+
+		// Create empty 3D image
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Create 3D image##main_create_img3D"))
+		{
+			static char buf[65] = { 0 };
+			static glm::ivec3 size(0, 0, 0);
+
+			ImGui::InputText("Name", buf, 64);
+			ImGui::DragInt3("Size", glm::value_ptr(size));
+			if (size.x <= 0) size.x = 1;
+			if (size.y <= 0) size.y = 1;
+			if (size.z <= 0) size.z = 1;
+
+			if (ImGui::Button("Ok"))
+			{
+				if (m_data->Objects.CreateImage3D(buf, size))
+					ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
 
 		// Create about popup
 		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 180 * Settings::Instance().DPIScale), ImGuiCond_Once);

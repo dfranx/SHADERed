@@ -60,7 +60,7 @@ namespace ed
 
             std::string& name = item->Name;
 			m_zoom[i].SetCurrentMousePosition(SystemVariableManager::Instance().GetMousePosition());
-			
+
             if (ImGui::Begin((name + "###objprev" + std::to_string(i)).c_str(), &item->IsOpen)) {
                 ImVec2 aSize = ImGui::GetContentRegionAvail();
                 
@@ -301,7 +301,7 @@ namespace ed
     {
         for (int i = 0; i < m_items.size(); i++) {
             if (m_items[i].Name == name) {
-                m_items.erase(m_items.begin() + 1);
+                m_items.erase(m_items.begin() + i);
                 i--;
             }
         }

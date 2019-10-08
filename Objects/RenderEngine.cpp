@@ -163,6 +163,8 @@ namespace ed
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (m_objects->IsCubeMap(srvs[j]))
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+					else if (m_objects->IsImage3D(srvs[j]))
+						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -204,15 +206,6 @@ namespace ed
 						} else
 							systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
-						// turn off culling for these two geometry types
-						bool wasCullOn = false;
-						if (geoData->Type == pipe::GeometryItem::Rectangle ||
-							geoData->Type == pipe::GeometryItem::ScreenQuadNDC)
-						{
-							wasCullOn = glIsEnabled(GL_CULL_FACE);
-							glDisable(GL_CULL_FACE);
-						}
-
 						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 
 						// bind variables
@@ -223,13 +216,6 @@ namespace ed
 							glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
 						else
 							glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
-
-						// turn back on or of
-						if ((geoData->Type == pipe::GeometryItem::Rectangle ||
-							geoData->Type == pipe::GeometryItem::ScreenQuadNDC) && wasCullOn)
-						{
-							glEnable(GL_CULL_FACE);
-						}
 					}
 					else if (item->Type == PipelineItem::ItemType::Model) {
 						pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
@@ -321,6 +307,8 @@ namespace ed
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (m_objects->IsCubeMap(srvs[j]))
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+					else if (m_objects->IsImage3D(srvs[j]))
+						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -333,6 +321,10 @@ namespace ed
 					if (m_objects->IsImage(ubos[j])) {
 						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(ubos[j])); // TODO: GetImageByID
 						glBindImageTexture(j, ubos[j], 0, GL_FALSE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
+					}
+					else if (m_objects->IsImage3D(ubos[j])) {
+						Image3DObject* iobj = m_objects->GetImage3D(m_objects->GetImage3DNameByID(ubos[j]));
+						glBindImageTexture(j, ubos[j], 0, GL_TRUE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
 					} else
 						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				}

@@ -55,6 +55,13 @@ namespace ed
 		GLuint Texture;
 	};
 
+	struct Image3DObject
+	{
+		glm::ivec3 Size;
+		GLuint Format;
+		GLuint Texture;
+	};
+
 	/* Use this to remove all the maps */
 	class ObjectManagerItem
 	{
@@ -70,6 +77,7 @@ namespace ed
 			RT = nullptr;
 			Buffer = nullptr;
 			Image = nullptr;
+			Image3D = nullptr;
 		}
 		~ObjectManagerItem() {
 			if (Buffer != nullptr) {
@@ -80,6 +88,10 @@ namespace ed
 			else if (Image != nullptr) {
 				glDeleteTextures(1, &Image->Texture);
 				delete Image;
+			}
+			else if (Image3D != nullptr) {
+				glDeleteTextures(1, &Image3D->Texture);
+				delete Image3D;
 			}
 
 			if (RT != nullptr) {
@@ -112,6 +124,7 @@ namespace ed
 		RenderTextureObject* RT;
 		BufferObject* Buffer;
 		ImageObject* Image;
+		Image3DObject* Image3D;
 	};
 
 	class ObjectManager
@@ -125,7 +138,8 @@ namespace ed
 		bool CreateAudio(const std::string& file);
 		bool CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back);
 		bool CreateBuffer(const std::string& file);
-		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1,1));
+		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1, 1));
+		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1));
 
 		void Update(float delta);
 
@@ -139,11 +153,14 @@ namespace ed
 		bool IsAudioMuted(const std::string& name);
 		bool IsBuffer(const std::string& name);
 		bool IsImage(const std::string& name);
+		bool IsImage3D(const std::string& name);
+		bool IsImage3D(GLuint id);
 		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
 
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);
 		void ResizeImage(const std::string& name, glm::ivec2 size);
+		void ResizeImage3D(const std::string& name, glm::ivec3 size);
 
 		void Clear();
 
@@ -154,11 +171,14 @@ namespace ed
 		sf::Sound* GetAudioPlayer(const std::string& file);
 		BufferObject* GetBuffer(const std::string& name);
 		ImageObject* GetImage(const std::string& name);
+		Image3DObject* GetImage3D(const std::string& name);
 		RenderTextureObject* GetRenderTexture(const std::string& name);
 		glm::ivec2 GetImageSize(const std::string& name);
+		glm::ivec3 GetImage3DSize(const std::string& name);
 
 		std::string GetBufferNameByID(int id);
 		std::string GetImageNameByID(GLuint id);
+		std::string GetImage3DNameByID(GLuint id);
 		
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
@@ -196,6 +216,7 @@ namespace ed
 		std::vector<ObjectManagerItem*> m_itemData; 
 
 		std::vector<GLuint> m_emptyResVec;
+		std::vector<char> m_emptyResVecChar;
 		std::vector<std::string> m_emptyCBTexs;
 
 		ed::AudioAnalyzer m_audioAnalyzer;

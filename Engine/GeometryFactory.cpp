@@ -370,12 +370,12 @@ namespace ed
 		unsigned int GeometryFactory::CreateScreenQuadNDC(unsigned int& vbo, const std::vector<InputLayoutItem>& inp)
 		{
 			GLfloat sqData[] = {
-				1, 1, 1.0f, 1.0f,
-				1, -1, 1.0f, 0.0f,
 				-1, -1, 0.0f, 0.0f,
-				-1, 1, 0.0f, 1.0f,
+				1, -1, 1.0f, 0.0f,
 				1, 1, 1.0f, 1.0f,
-				-1, -1, 0.0f, 0.0f
+				-1, -1, 0.0f, 0.0f,
+				1, 1, 1.0f, 1.0f,
+				-1, 1, 0.0f, 1.0f,
 			};
 
 			GLuint vao;

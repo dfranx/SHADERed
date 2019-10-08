@@ -31,7 +31,11 @@ namespace ed
 			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
 
 		for (int i = 0; i < items.size(); i++) {
-			GLuint tex = m_data->Objects.IsImage(items[i]) ? m_data->Objects.GetImage(items[i])->Texture : m_data->Objects.GetTexture(items[i]);
+			GLuint tex = m_data->Objects.GetTexture(items[i]);
+			if (m_data->Objects.IsImage(items[i]))
+				tex = m_data->Objects.GetImage(items[i])->Texture;
+			else if (m_data->Objects.IsImage3D(items[i]))
+				tex = m_data->Objects.GetImage3D(items[i])->Texture;
 
 			float imgWH = 0.0f;
 			glm::vec2 imgSize(0,0);
@@ -52,6 +56,10 @@ namespace ed
 				imgSize = m_data->Objects.GetImageSize(items[i]);
 				imgWH = imgSize.y / imgSize.x;
 			}
+			else if (m_data->Objects.IsImage3D(items[i])) {
+				imgSize = m_data->Objects.GetImage3DSize(items[i]);
+				imgWH = imgSize.y / imgSize.x;
+			}
 			else {
 				auto img = m_data->Objects.GetTextureSize(items[i]);
 				imgWH = (float)img.y / img.x;
@@ -69,7 +77,8 @@ namespace ed
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
 				bool isBuf = m_data->Objects.IsBuffer(items[i]);
-				if (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview")) {
+				bool isImg3D = m_data->Objects.IsImage3D(items[i]);
+				if (!isImg3D && (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview"))) {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex,
 							m_data->Objects.IsCubeMap(items[i]),
 							m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr,
@@ -79,13 +88,13 @@ namespace ed
 				if (m_data->Objects.IsCubeMap(items[i])) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
-				} else if (!isBuf)
+				} else if (!isBuf && !isImg3D)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
 
 				ImGui::Separator();
 
-				if (m_data->Objects.IsImage(items[i])) {
-					if (ImGui::BeginMenu("Bind UAV/image2D")) {
+				if (m_data->Objects.IsImage(items[i]) || isImg3D) {
+					if (ImGui::BeginMenu(isImg3D ? "Bind UAV/image3D" : "Bind UAV/image2D")) {
 						for (int j = 0; j < passes.size(); j++) {
 							if (passes[j]->Type == PipelineItem::ItemType::ComputePass) {
 								int boundID = m_data->Objects.IsUniformBound(items[i], passes[j]);
@@ -133,7 +142,8 @@ namespace ed
 				}
 
 				if (m_data->Objects.IsRenderTexture(items[i]) ||
-					m_data->Objects.IsImage(items[i])) {
+					m_data->Objects.IsImage(items[i]) ||
+					isImg3D) {
 					if (ImGui::Selectable("Properties")) {
 						if (m_data->Objects.IsImage(items[i]))
 							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage(items[i]));
@@ -218,7 +228,10 @@ namespace ed
 					}
 
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Close(items[i]);
-					((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties
+					
+					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
+					if (props->CurrentItemName() == itemText)
+						props->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties
 					m_data->Objects.Remove(items[i]);
 				}
 
@@ -235,6 +248,7 @@ namespace ed
 			if (ImGui::Selectable("Create Audio")) { m_ui->CreateNewAudio(); }
 			if (ImGui::Selectable("Create Buffer")) { m_ui->CreateNewBuffer(); }
 			if (ImGui::Selectable("Create Empty Image")) m_ui->CreateNewImage();
+			if (ImGui::Selectable("Create Empty 3D Image")) m_ui->CreateNewImage3D();
 
 			ImGui::EndPopup();
 		}

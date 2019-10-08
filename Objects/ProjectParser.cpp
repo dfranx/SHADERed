@@ -483,12 +483,13 @@ namespace ed
 				bool isCube = m_objects->IsCubeMap(texs[i]);
 				bool isBuffer = m_objects->IsBuffer(texs[i]);
 				bool isImage = m_objects->IsImage(texs[i]);
+				bool isImage3D = m_objects->IsImage3D(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : "texture"))));
-				textureNode.append_attribute((isRT || isCube || isBuffer || isImage) ? "name" : "path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : "texture")))));
+				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D) ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT && !isAudio && !isBuffer && !isImage && isCube)
+				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && isCube)
 					textureNode.append_attribute("cube").set_value(isCube);
 
 				if (isRT) {
@@ -527,6 +528,14 @@ namespace ed
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
+				if (isImage3D) {
+					Image3DObject* iobj = m_objects->GetImage3D(texs[i]);
+
+					textureNode.append_attribute("width").set_value(iobj->Size.x);
+					textureNode.append_attribute("height").set_value(iobj->Size.y);
+					textureNode.append_attribute("depth").set_value(iobj->Size.z);
+					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
+				}
 
 				if (isBuffer) {
 					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
@@ -555,13 +564,21 @@ namespace ed
 							}
 						}
 					}
-				} else if (isImage) {
+				}
+				else if (isImage || isImage3D) {
 					for (int j = 0; j < passItems.size(); j++) {
+
+						GLuint myTex = 0;
+						if (isImage)
+							myTex = m_objects->GetImage(texs[i])->Texture;
+						if (isImage3D)
+							myTex = m_objects->GetImage3D(texs[i])->Texture;
+
 						// as image2D
 						const std::vector<GLuint>& boundUBO = m_objects->GetUniformBindList(passItems[j]);
 						for (int slot = 0; slot < boundUBO.size(); slot++) {
-							if (m_objects->IsImage(boundUBO[slot])) {
-								if (m_objects->GetImageNameByID(boundUBO[slot]) == texs[i]) {
+							if (m_objects->IsImage(boundUBO[slot]) || m_objects->IsImage3D(boundUBO[slot])) {
+								if (boundUBO[slot] == myTex) {
 									pugi::xml_node bindNode = textureNode.append_child("bind");
 									bindNode.append_attribute("slot").set_value(slot);
 									bindNode.append_attribute("name").set_value(passItems[j]->Name);
@@ -571,7 +588,6 @@ namespace ed
 						}
 
 						// as sampler2D
-						GLuint myTex = m_objects->GetImage(texs[i])->Texture;
 						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
 						for (int slot = 0; slot < bound.size(); slot++)
 							if (bound[slot] == myTex) {
@@ -581,7 +597,8 @@ namespace ed
 								bindNode.append_attribute("uav").set_value(0);
 							}
 					}
-				} else {
+				} 
+				else {
 					GLuint myTex = m_objects->GetTexture(texs[i]);
 
 					for (int j = 0; j < passItems.size(); j++) {
@@ -2193,6 +2210,66 @@ namespace ed
 				if (!objectNode.attribute("height").empty())
 					iobj->Size.y = objectNode.attribute("height").as_int();
 				m_objects->ResizeImage(objName, iobj->Size);
+
+				// load binds
+				for (pugi::xml_node bindNode : objectNode.children("bind"))
+				{
+					const pugi::char_t *passBindName = bindNode.attribute("name").as_string();
+					int slot = bindNode.attribute("slot").as_int();
+					int isUAV = -1;
+					if (!bindNode.attribute("uav").empty())
+						isUAV = bindNode.attribute("uav").as_int();
+
+					for (const auto& pass : passes) {
+						// bind as sampler2D
+						if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ShaderPass) || isUAV == 0) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundTextures[pass].size() <= slot)
+									boundTextures[pass].resize(slot + 1);
+
+								boundTextures[pass][slot] = objName;
+								break;
+							}
+						// bind as image2D
+						} else if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ComputePass) || isUAV == 1) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundUBOs[pass].size() <= slot)
+									boundUBOs[pass].resize(slot + 1);
+
+								boundUBOs[pass][slot] = objName;
+								break;
+							}
+						}
+					}
+				}
+			}
+			else if (strcmp(objType, "image3d") == 0)
+			{
+				const pugi::char_t *objName = objectNode.attribute("name").as_string();
+
+				m_objects->CreateImage3D(objName);
+				Image3DObject* iobj = m_objects->GetImage3D(objName);
+
+				// load format
+				if (!objectNode.attribute("format").empty())
+				{
+					auto formatName = objectNode.attribute("format").as_string();
+					for (int i = 0; i < HARRAYSIZE(FORMAT_NAMES); i++)
+						if (strcmp(formatName, FORMAT_NAMES[i]) == 0)
+						{
+							iobj->Format = FORMAT_VALUES[i];
+							break;
+						}
+				}
+
+				// load size
+				if (!objectNode.attribute("width").empty())
+					iobj->Size.x = objectNode.attribute("width").as_int();
+				if (!objectNode.attribute("height").empty())
+					iobj->Size.y = objectNode.attribute("height").as_int();
+				if (!objectNode.attribute("depth").empty())
+					iobj->Size.z = objectNode.attribute("depth").as_int();
+				m_objects->ResizeImage3D(objName, iobj->Size);
 
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind"))
