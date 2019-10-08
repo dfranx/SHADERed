@@ -646,6 +646,14 @@ namespace ed
 				}
 				if (ImGui::MenuItem("Reset time"))
 					SystemVariableManager::Instance().Reset();
+				if (ImGui::MenuItem("Options")) {
+					m_optionsOpened = true;
+					((OptionsUI*)m_options)->SetGroup(ed::OptionsUI::Page::Project);
+					m_optGroup = (int)OptionsUI::Page::Project;
+					*m_settingsBkp = settings;
+					m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
+				}
+				
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {

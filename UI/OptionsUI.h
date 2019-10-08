@@ -31,6 +31,7 @@ namespace ed
 			if (m_page ==Page::General)
 				m_loadThemeList();
 		}
+		Page GetGroup() { return m_page; }
 
 		void ApplyTheme();
 
