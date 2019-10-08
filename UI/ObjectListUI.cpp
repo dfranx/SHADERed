@@ -147,6 +147,8 @@ namespace ed
 					if (ImGui::Selectable("Properties")) {
 						if (m_data->Objects.IsImage(items[i]))
 							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage(items[i]));
+						else if (m_data->Objects.IsImage3D(items[i]))
+							((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage3D(items[i]));
 						else
 							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(tex));
 					}

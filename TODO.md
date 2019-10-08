@@ -28,7 +28,6 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - CodeEditorUI loses focus when pressing ALT keys on linux
  - shift+drag with right click to move ArcBallCamera focus point
- - menu Project->Settings
  - multi camera system
  - update all 3rd party libs
 ---

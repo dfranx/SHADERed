@@ -625,7 +625,7 @@ namespace ed
 				pugi::xml_node propNode = settingsNode.append_child("entry");
 				propNode.append_attribute("type").set_value("property");
 				propNode.append_attribute("name").set_value(name.c_str());
-				propNode.append_attribute("item").set_value(props->IsPipelineItem() ? "pipe" : (props->IsRenderTexture() ? "rt" : "image"));
+				propNode.append_attribute("item").set_value(props->IsPipelineItem() ? "pipe" : (props->IsRenderTexture() ? "rt" : (props->IsImage() ? "image" : "image3D")));
 			}
 
 			// code editor ui

@@ -21,13 +21,14 @@ namespace ed
 		m_current = nullptr;
 		m_currentRT = nullptr;
 		m_currentImg = nullptr;
+		m_currentImg3D = nullptr;
 		memset(m_itemName, 0, 64 * sizeof(char));
 	}
 	void PropertyUI::OnEvent(const SDL_Event& e)
 	{}
 	void PropertyUI::Update(float delta)
 	{
-		if (m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr) {
+		if (m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr || m_currentImg3D != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			if (m_current != nullptr) {
 				ImGui::Text(m_current->Name);
@@ -45,6 +46,10 @@ namespace ed
 				ImGui::Text(m_data->Objects.GetImageNameByID(m_currentImg->Texture).c_str());
 				ImGui::Text("Image");
 			}
+			else if (m_currentImg3D != nullptr) {
+				ImGui::Text(m_data->Objects.GetImage3DNameByID(m_currentImg3D->Texture).c_str());
+				ImGui::Text("Image3D");
+			}
 			else
 				ImGui::Text("nullptr");
 
@@ -61,7 +66,7 @@ namespace ed
 
 			ImGui::Separator();
 			
-			if (m_currentRT == nullptr && m_currentImg == nullptr) {
+			if (m_currentRT == nullptr && m_currentImg == nullptr && m_currentImg3D == nullptr) {
 				ImGui::Text("Name:");
 				ImGui::NextColumn();
 
@@ -962,7 +967,8 @@ namespace ed
 					}
 					ImGui::PopItemWidth();
 				}
-			} else if (m_currentRT != nullptr) {
+			}
+			else if (m_currentRT != nullptr) {
 				/* FIXED SIZE */
 				ImGui::Text("Fixed size:");
 				ImGui::NextColumn();
@@ -1052,7 +1058,8 @@ namespace ed
 					ImGui::PopStyleVar();
 					ImGui::PopItemFlag();
 				}
-			} else if (m_currentImg != nullptr) {
+			}
+			else if (m_currentImg != nullptr) {
 				/* SIZE */
 				ImGui::Text("Size:");
 				ImGui::NextColumn();
@@ -1093,6 +1100,49 @@ namespace ed
 				}
 				ImGui::PopItemWidth();
 			}
+			else if (m_currentImg3D != nullptr) {
+				/* SIZE */
+				ImGui::Text("Size:");
+				ImGui::NextColumn();
+
+				ImGui::PushItemWidth(-1);
+				if (ImGui::DragInt3("##prop_rt_fsize", glm::value_ptr(m_currentImg3D->Size), 1))
+				{
+					if (m_currentImg3D->Size.x <= 0)
+						m_currentImg3D->Size.x = 1;
+					if (m_currentImg3D->Size.y <= 0)
+						m_currentImg3D->Size.y = 1;
+					if (m_currentImg3D->Size.z <= 0)
+						m_currentImg3D->Size.z = 1;
+
+					m_data->Objects.ResizeImage3D(std::string(m_itemName), m_currentImg3D->Size);
+				}
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* FORMAT */
+				ImGui::Text("Format:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg3D->Format)))
+				{
+					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
+					for (int i = 0; i < len; i++)
+					{
+						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg3D->Format))
+						{
+							m_currentImg3D->Format = FORMAT_VALUES[i];
+							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
+
+							m_data->Objects.ResizeImage3D(std::string(m_itemName), m_currentImg3D->Size);
+						}
+					}
+
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+			}
 
 			ImGui::NextColumn();
 			ImGui::Separator();
@@ -1116,6 +1166,7 @@ namespace ed
 
 		m_currentImg = nullptr;
 		m_currentRT = nullptr;
+		m_currentImg3D = nullptr;
 		m_current = item;
 	}
 	void PropertyUI::Open(const std::string &name, ed::RenderTextureObject *obj)
@@ -1127,9 +1178,10 @@ namespace ed
 
 		m_currentImg = nullptr;
 		m_current = nullptr;
+		m_currentImg3D = nullptr;
 		m_currentRT = obj;
 	}
-	void PropertyUI::Open(const std::string &name, ed::ImageObject *obj)
+	void PropertyUI::Open(const std::string& name, ed::ImageObject* obj)
 	{
 		Logger::Get().Log("Openning an image in the PropertyUI");
 
@@ -1137,6 +1189,20 @@ namespace ed
 		memcpy(m_itemName, name.c_str(), name.size());
 
 		m_current = nullptr;
+		m_currentRT = nullptr;
+		m_currentImg3D = nullptr;
 		m_currentImg = obj;
+	}
+	void PropertyUI::Open(const std::string& name, ed::Image3DObject* obj)
+	{
+		Logger::Get().Log("Openning an image in the PropertyUI");
+
+		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
+		memcpy(m_itemName, name.c_str(), name.size());
+
+		m_current = nullptr;
+		m_currentImg = nullptr;
+		m_currentRT = nullptr;
+		m_currentImg3D = obj;
 	}
 }

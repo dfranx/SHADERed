@@ -1023,6 +1023,7 @@ namespace ed
 
 				/* NAME */
 				if (objs->IsImage(itemName)) ImGui::Text("image");
+				else if (objs->IsImage3D(itemName)) ImGui::Text("image3D");
 				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
 				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
 				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
@@ -1099,6 +1100,7 @@ namespace ed
 
 				/* NAME */
 				if (objs->IsImage(itemName)) ImGui::Text("image");
+				else if (objs->IsImage3D(itemName)) ImGui::Text("image3D");
 				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
 				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
 				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
