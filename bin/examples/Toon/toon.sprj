@@ -1,10 +1,26 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Simple">
+		<pass name="Simple" type="shader">
 			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture />
+			<items>
+				<item name="Teapot" type="model">
+					<filepath>..\Common\Teapot.obj</filepath>
+					<grouponly>false</grouponly>
+					<scaleX>0.200000003</scaleX>
+					<scaleY>0.200000003</scaleY>
+					<scaleZ>0.200000003</scaleZ>
+					<x>0.021748757</x>
+				</item>
+			</items>
+			<itemvalues />
 			<variables>
 				<variable type="float4x4" name="matView" system="View" />
 				<variable type="float4x4" name="matVP" system="ViewProjection" />
@@ -17,17 +33,7 @@
 					</row>
 				</variable>
 			</variables>
-			<items>
-				<item name="Teapot" type="model">
-					<filepath>..\Common\Teapot.obj</filepath>
-					<grouponly>false</grouponly>
-					<scaleX>0.200000003</scaleX>
-					<scaleY>0.200000003</scaleY>
-					<scaleZ>0.200000003</scaleZ>
-					<x>0.021748757</x>
-				</item>
-			</items>
-			<itemvalues />
+			<macros />
 		</pass>
 	</pipeline>
 	<objects>
@@ -36,12 +42,16 @@
 		</object>
 	</objects>
 	<settings>
+		<entry type="property" name="Simple" item="pipe" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>2</distance>
-			<pitch>15</pitch>
-			<yaw>143</yaw>
+			<pitch>-5</pitch>
+			<yaw>186</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
 	</settings>
 </project>

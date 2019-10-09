@@ -1321,6 +1321,11 @@ namespace ed
 				} else
 					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
+				if (isCube)
+					m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
+				else
+					m_objects->CreateTexture(name);
+
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
@@ -1331,11 +1336,6 @@ namespace ed
 								boundTextures[pass].resize(slot+1);
 
 							boundTextures[pass][slot] = name;
-							// TODO: test binding textures that were unbound before opening the project:
-							if (isCube)
-								m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
-							else
-								m_objects->CreateTexture(name);
 							break;
 						}
 					}
@@ -2095,7 +2095,12 @@ namespace ed
 				}
 				else
 					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
-				
+
+				if (isCube)
+					m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
+				else
+					m_objects->CreateTexture(name);
+
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
@@ -2106,11 +2111,7 @@ namespace ed
 								boundTextures[pass].resize(slot + 1);
 
 							boundTextures[pass][slot] = name;
-							// TODO: test binding textures that were unbound before opening the project:
-							if (isCube)
-								m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
-							else
-								m_objects->CreateTexture(name);
+
 							break;
 						}
 					}

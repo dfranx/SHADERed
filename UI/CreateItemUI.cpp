@@ -786,7 +786,7 @@ namespace ed
 			return SystemShaderVariable::TimeDelta;
 		else if (vname.find("frame") != std::string::npos || vname.find("index") != std::string::npos)
 			return SystemShaderVariable::FrameIndex;
-		else if (vname.find("size") != std::string::npos || vname.find("window") != std::string::npos || vname.find("viewport") != std::string::npos)
+		else if (vname.find("size") != std::string::npos || vname.find("window") != std::string::npos || vname.find("viewport") != std::string::npos || vname.find("resolution") != std::string::npos || vname.find("res") != std::string::npos)
 			return SystemShaderVariable::ViewportSize;
 		else if (vname.find("mouse") != std::string::npos || vname == "mpos")
 			return SystemShaderVariable::MousePosition;

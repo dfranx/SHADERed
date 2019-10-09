@@ -21,18 +21,18 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - when loading a texture it might not be loaded if not bound to any shader pass (or loaded multiple times if bound to two passes)
  - prevent crashes (loading wrong 3d model, loading wrong project file - open empty, compute shaders not supported, etc...)
- - fix memory leaks if any
  - crashes when opening cubemap example only on Linux and only in Release mode!
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - CodeEditorUI loses focus when pressing ALT keys on linux
- - shift+drag with right click to move ArcBallCamera focus point
  - multi camera system
+ - audio shader pass
  - update all 3rd party libs
 ---
  - dragging items from one pass to another, duplicating them, etc...
  - improve the overall code (enum for shader type, etc...)
+ - fix memory leaks (if there are any)
+ - shift+drag with right click to move ArcBallCamera focus point
  - move 3D models to ObjectManager
  - languages (english, croatian, etc...)
  - undo/redo

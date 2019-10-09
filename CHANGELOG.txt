@@ -12,6 +12,7 @@
 + fix copy and paste
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
++ fix texture loading
 + fix "GeometryShader" example
 + fix a bug where "Outline" example wouldn't work after Edge/Sobel examples
 + fix ObjectPreviewUI::Close()

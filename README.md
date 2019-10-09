@@ -58,13 +58,13 @@ around the scene:
 You can modify rasterizer, blend and depth-stencil states. Using these states you can: turn on wireframe mode,
 disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
 
-### 3D models, textures & audio files
+### 3D models, textures (2D, 3D, cubemaps) & audio files
 You can add music and create amazing visualizers!
 
 Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
 full screen quads, etc...
 
-Load textures from files and bind them to your shader. SHADERed also supports cubemaps.
+Load textures from files and bind them to your shader. SHADERed also supports cubemaps & 3D textures.
 <p align="center">
     <img width="260" src="./Screenshots/texture.jpg">
 </p>
