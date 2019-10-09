@@ -185,6 +185,7 @@ int main(int argc, char* argv[])
 	}
 
 	engine.UI().SetPerformanceMode(perfMode);
+	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
 
 	// timer for time delta
 	ed::eng::Timer timer;

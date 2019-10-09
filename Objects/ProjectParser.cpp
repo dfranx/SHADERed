@@ -54,6 +54,13 @@ namespace ed
 	{
 		Logger::Get().Log("Openning a project file " + file);
 
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_file(file.c_str());
+		if (!result) {
+			Logger::Get().Log("Failed to parse a project file", true);
+			return;
+		}
+
 		m_file = file;
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
@@ -66,13 +73,6 @@ namespace ed
 			}
 		}
 		m_models.clear();
-
-		pugi::xml_document doc;
-		pugi::xml_parse_result result = doc.load_file(file.c_str());
-		if (!result) {
-			Logger::Get().Log("Failed to parse a project file", true);
-			return;
-		}
 
 		m_pipe->Clear();
 		m_objects->Clear();
@@ -761,8 +761,10 @@ namespace ed
 		// load the model
 		std::string path = GetProjectPath(file);
 		bool loaded = m_models[m_models.size() - 1].second->LoadFromFile(path);
-		if (!loaded)
+		if (!loaded) {
+			m_models.erase(m_models.begin() + (m_models.size() - 1));
 			return nullptr;
+		}
 
 		return m_models[m_models.size() - 1].second;
 	}

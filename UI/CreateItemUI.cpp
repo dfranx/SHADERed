@@ -575,7 +575,9 @@ namespace ed
 					strcpy(data->Filename, file.c_str());
 
 					eng::Model* mdl = m_data->Parser.LoadModel(data->Filename);
-					m_groups = mdl->GetMeshNames();
+
+					if (mdl != nullptr)
+						m_groups = mdl->GetMeshNames();
 				}
 			}
 			ImGui::NextColumn();

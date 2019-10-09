@@ -27,6 +27,7 @@ namespace ed
 		m_rtColor(0),
 		m_rtDepth(0),
 		m_fbosNeedUpdate(false),
+		m_computeSupported(true),
 		m_wasMultiPick(false)
 	{
 		m_paused = false;
@@ -289,7 +290,7 @@ namespace ed
 
 				}
 			}
-			else if (it->Type == PipelineItem::ItemType::ComputePass) {
+			else if (it->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -334,7 +335,7 @@ namespace ed
 
 				// call compute shader
 				glDispatchCompute(data->WorkX, data->WorkY, data->WorkZ);
-				
+
 				// wait until it finishes
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -475,7 +476,7 @@ namespace ed
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
 				}
-				else if (item->Type == PipelineItem::ItemType::ComputePass) {
+				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
 
 					m_msgs->ClearGroup(name);
@@ -605,7 +606,7 @@ namespace ed
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
 				}
-				else if (item->Type == PipelineItem::ItemType::ComputePass) {
+				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
 					m_msgs->ClearGroup(name);
 
@@ -956,7 +957,7 @@ namespace ed
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
-				} else if (items[i]->Type == PipelineItem::ItemType::ComputePass) {
+				} else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass *data = reinterpret_cast<ed::pipe::ComputePass *>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);

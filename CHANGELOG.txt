@@ -20,6 +20,7 @@
 + shader code modifications now also count as project modifications (now you will get "Are you sure" message box on exit)
 + recompile shader pass after we change it's shader path
 + close code editors after a shader pass has been deleted
++ prevent various crashes (loading wrong 3D model file, wrong project file, compute shaders not supported, etc...)
 + color compute shader labels light/dark green (can be changed)
 + improve CTRL+F
 + internal changes

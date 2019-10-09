@@ -36,6 +36,8 @@ namespace ed
 		void FlushCache();
 		void AddPickedItem(PipelineItem* pipe, bool multiPick = false);
 
+		inline void AllowComputeShaders(bool cs) { m_computeSupported = cs; }
+
 		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1,1); }
 		inline GLuint GetTexture() { return m_rtColor; }
 		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
@@ -81,6 +83,9 @@ namespace ed
 		ObjectManager* m_objects;
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
+
+		// are compute shaders supported?
+		bool m_computeSupported;
 
 		// paused time?
 		bool m_paused;

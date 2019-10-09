@@ -85,16 +85,19 @@ namespace ed
 			return false;
 		}
 
+		std::string path = m_parser->GetProjectPath(file);
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char* paddedData = nullptr;
+
+		if (data == nullptr)
+			return false;
+
 		m_parser->ModifyProject();
 
 		ObjectManagerItem* item = new ObjectManagerItem();
 		m_itemData.push_back(item);
 		m_items.push_back(file);
-
-		std::string path = m_parser->GetProjectPath(file);
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-		unsigned char* paddedData = nullptr;
 
 		if (data == nullptr)
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
@@ -242,8 +245,6 @@ namespace ed
 		}
 
 		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_parser->ModifyProject();
 
 		item->SoundBuffer = new sf::SoundBuffer();
 		bool loaded = item->SoundBuffer->loadFromFile(m_parser->GetProjectPath(file));
@@ -252,6 +253,9 @@ namespace ed
 			ed::Logger::Get().Log("Failed to load an audio file " + file, true);
 			return false;
 		}
+
+		m_itemData.push_back(item);
+		m_parser->ModifyProject();
 		m_items.push_back(file);
 
 		glGenTextures(1, &item->Texture);
