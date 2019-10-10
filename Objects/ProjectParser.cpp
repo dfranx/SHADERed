@@ -2,6 +2,7 @@
 #include "RenderEngine.h"
 #include "ObjectManager.h"
 #include "PipelineManager.h"
+#include "CameraSnapshots.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
 #include "ShaderTranscompiler.h"
@@ -60,6 +61,8 @@ namespace ed
 			Logger::Get().Log("Failed to parse a project file", true);
 			return;
 		}
+
+		CameraSnapshots::Clear();
 
 		m_file = file;
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
@@ -172,6 +175,7 @@ namespace ed
 		projectNode.append_attribute("version").set_value(2);
 		pugi::xml_node pipelineNode = projectNode.append_child("pipeline");
 		pugi::xml_node objectsNode = projectNode.append_child("objects");
+		pugi::xml_node camsnapsNode = projectNode.append_child("cameras");
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
 
 		// shader passes
@@ -469,6 +473,27 @@ namespace ed
 					macroNode.append_attribute("name").set_value(macro.Name);
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
+				}
+			}
+		}
+
+		// camera snapshots
+		{
+			auto& names = CameraSnapshots::GetList();
+			for (const auto& name : names) {
+				pugi::xml_node camsnapNode = camsnapsNode.append_child("camera");
+				camsnapNode.append_attribute("name").set_value(name.c_str());
+
+				pugi::xml_node valueRowNode = camsnapNode.append_child("row");
+				glm::mat4 cammat = CameraSnapshots::Get(name);
+				int rowID = 0;
+				for (int i = 0; i < 16; i++) {
+					valueRowNode.append_child("value").text().set(cammat[i%4][rowID]);
+
+					if ((i+1)%4 == 0 && i != 0) {
+						valueRowNode = camsnapNode.append_child("row");
+						rowID++;
+					}
 				}
 			}
 		}
@@ -819,6 +844,8 @@ namespace ed
 				if (var->Function != FunctionShaderVariable::None) {
 					if (var->Function == FunctionShaderVariable::Pointer) {
 						strcpy(var->Arguments, value.text().as_string());
+					} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
+						strcpy(var->Arguments, value.text().as_string());
 					} else {
 						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
 					}
@@ -832,6 +859,7 @@ namespace ed
 				}
 
 			}
+			colID = colID % var->GetColumnCount();
 			rowID++;
 		}
 	}
@@ -841,7 +869,8 @@ namespace ed
 
 		if (var->Function == FunctionShaderVariable::None) {
 			int rowID = 0;
-			for (int i = 0; i < ShaderVariable::GetSize(var->GetType()) / 4; i++) {
+			int limit = ShaderVariable::GetSize(var->GetType()) / 4;
+			for (int i = 0; i < limit; i++) {
 				if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
 					valueRowNode.append_child("value").text().set(var->AsBoolean(i));
 				else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
@@ -849,7 +878,7 @@ namespace ed
 				else
 					valueRowNode.append_child("value").text().set(var->AsFloat(i%var->GetColumnCount(), rowID));
 
-				if (i%var->GetColumnCount() == 0 && i != 0) {
+				if ((i+1)%var->GetColumnCount() == 0 && i != 0 && i != limit-1) {
 					valueRowNode = node.append_child("row");
 					rowID++;
 				}
@@ -858,7 +887,11 @@ namespace ed
 		else {
 			if (var->Function == FunctionShaderVariable::Pointer) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
-			} else {
+			} 
+			else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
+				valueRowNode.append_child("value").text().set(var->Arguments);
+			}
+			else {
 				// save arguments
 				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
 					valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
@@ -2069,6 +2102,27 @@ namespace ed
 				// add the item
 				m_pipe->AddComputePass(name, data);
 			}
+		}
+
+		// camera snapshots
+		for (pugi::xml_node camNode : projectNode.child("cameras").children("camera")) {
+			std::string camName = "";
+			glm::mat4 camMat(1);
+
+			if (!camNode.attribute("name").empty())
+				camName = camNode.attribute("name").as_string();
+			
+			int rowID = 0;
+			for (pugi::xml_node row : camNode.children("row")) {
+				int colID = 0;
+				for (pugi::xml_node value : row.children("value")) {
+					camMat[colID][rowID] = value.text().as_float();
+					colID = (colID + 1) % 4;
+				}
+				rowID++;
+			}
+
+			CameraSnapshots::Add(camName, camMat);
 		}
 
 		// objects

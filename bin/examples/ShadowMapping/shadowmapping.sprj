@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="ShadowRender" type="shader">
+			<shader type="vs" path="shaders\SimpleVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.glsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
+			<rendertexture name="DepthMap" />
+			<items>
+				<item name="SGround" type="geometry">
+					<type>Plane</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<scaleX>10</scaleX>
+					<scaleY>10</scaleY>
+					<pitch>1.57079637</pitch>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="CullFront" type="renderstate">
+					<cullfront>true</cullfront>
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+				</item>
+				<item name="SBox" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<y>1.25</y>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matView" function="CameraSnapshot">
+					<row>
+						<value>LightView</value>
+					</row>
+				</variable>
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float4x4" name="matProj" system="Projection" />
+			</variables>
+			<macros />
+		</pass>
+		<pass name="GeometryRender" type="shader">
+			<shader type="vs" path="shaders\GeometryRenderVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\GeometryRenderPS.glsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
+			<rendertexture />
+			<items>
+				<item name="Box" type="geometry">
+					<type>Cube</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<pitch>1.57079637</pitch>
+					<y>1.25</y>
+					<topology>TriangleList</topology>
+				</item>
+				<item name="Ground" type="geometry">
+					<type>Plane</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<scaleX>10</scaleX>
+					<scaleY>10</scaleY>
+					<pitch>1.57079637</pitch>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues>
+				<value variable="objColor" for="Box">
+					<row>
+						<value>1</value>
+						<value>0</value>
+						<value>0</value>
+						<value>1</value>
+					</row>
+				</value>
+				<value variable="objColor" for="Ground">
+					<row>
+						<value>0</value>
+						<value>0.600000024</value>
+						<value>1</value>
+						<value>1</value>
+					</row>
+				</value>
+			</itemvalues>
+			<variables>
+				<variable type="float4x4" name="matCamView" system="View" />
+				<variable type="float4x4" name="matProj" system="Projection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float4x4" name="matLightView" function="CameraSnapshot">
+					<row>
+						<value>LightView</value>
+					</row>
+				</variable>
+				<variable type="float4" name="objColor">
+					<row>
+						<value>0</value>
+						<value>0</value>
+						<value>0</value>
+						<value>0</value>
+					</row>
+				</variable>
+			</variables>
+			<macros />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="rendertexture" name="DepthMap" format="R32G32B32A32_FLOAT" rsize="1.000000,1.000000" clear="true">
+			<bind slot="0" name="GeometryRender" />
+		</object>
+	</objects>
+	<cameras>
+		<camera name="LightView">
+			<row>
+				<value>0.754709601</value>
+				<value>-1.34110451e-07</value>
+				<value>0.656059027</value>
+				<value>9.53674316e-07</value>
+			</row>
+			<row>
+				<value>0.385621905</value>
+				<value>0.809017062</value>
+				<value>-0.443607122</value>
+				<value>-9.53674316e-07</value>
+			</row>
+			<row>
+				<value>-0.530762851</value>
+				<value>0.587785244</value>
+				<value>0.610572934</value>
+				<value>-32</value>
+			</row>
+			<row>
+				<value>0</value>
+				<value>0</value>
+				<value>0</value>
+				<value>1</value>
+			</row>
+			<row />
+		</camera>
+	</cameras>
+	<settings>
+		<entry type="camera" fp="false">
+			<distance>22</distance>
+			<pitch>36</pitch>
+			<yaw>309</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
+	</settings>
+</project>

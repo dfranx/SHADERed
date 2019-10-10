@@ -1,5 +1,6 @@
 [v1.2.3]
 + add 3D textures
++ add multi-camera system / camera snapshots
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
 + add magnifier tool to texture/image preview window
@@ -10,6 +11,8 @@
 + add ability to change warning, message and error text colors in the theme files
 + add Editor.FindNext shortcut
 + fix copy and paste
++ fix matrix variable exporting & importing
++ fix RT size after it has been created
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
 + fix texture loading

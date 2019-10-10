@@ -7,9 +7,6 @@
  
 # TODO
 List of features I want to implement:
- - multiple cameras
-   - this feature would allow you to render same scene from multiple angles
-   - maybe add it as "Camera snapshot" and have a variable value function that takes in cam snapshot name
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
    - a place where you can upload your shaders or themes and see other peoples creations
@@ -24,7 +21,6 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - crashes when opening cubemap example only on Linux and only in Release mode!
  - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
  - CodeEditorUI loses focus when pressing ALT keys on linux
- - multi camera system
  - audio shader pass
  - update all 3rd party libs
 ---

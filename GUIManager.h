@@ -56,6 +56,7 @@ namespace ed
 		inline void CreateNewBuffer() { m_isCreateBufferOpened = true; }
 		inline void CreateNewImage() { m_isCreateImgOpened = true; }
 		inline void CreateNewImage3D() { m_isCreateImg3DOpened = true; }
+		inline void CreateNewCameraSnapshot() { m_isRecordCameraSnapshotOpened = true; }
 		void CreateNewComputePass();
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
@@ -95,7 +96,7 @@ namespace ed
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
 			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
-			m_isInfoOpened, m_isCreateImg3DOpened;
+			m_isInfoOpened, m_isCreateImg3DOpened, m_isRecordCameraSnapshotOpened;
 
 		bool m_isUpdateNotificationOpened;
 		sf::Clock m_updateNotifyClock;

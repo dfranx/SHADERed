@@ -53,6 +53,7 @@ namespace ed
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
 		rtObj->FixedSize = size;
+		rtObj->RatioSize = glm::vec2(-1, -1);
 		rtObj->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		rtObj->Name = name;
 		rtObj->Clear = true;

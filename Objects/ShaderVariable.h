@@ -34,6 +34,7 @@ namespace ed
 	{
 		None,					// using user input instead of built-in functions
 		Pointer,
+		CameraSnapshot,
 		MatrixIdentity,
 		MatrixLookAtLH,
 		MatrixLookToLH,

@@ -1,6 +1,7 @@
 #include "VariableValueEdit.h"
 #include "Icons.h"
 #include "../Objects/FunctionVariableManager.h"
+#include "../Objects/CameraSnapshots.h"
 #include "../Objects/Names.h"
 
 #include <imgui/imgui.h>
@@ -202,6 +203,27 @@ namespace ed
 						bool is_selected = strcmp(m_var->Arguments, varList[n]->Name) == 0;
 						if (ImGui::Selectable(varList[n]->Name, is_selected)) {
 							strcpy(m_var->Arguments, varList[n]->Name);
+							ret = true;
+						}
+						if (is_selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+				ImGui::NextColumn();
+			} break;
+
+			case FunctionShaderVariable::CameraSnapshot:
+			{
+				ImGui::Text("Camera:");
+				ImGui::NextColumn();
+
+				auto& camList = CameraSnapshots::GetList();
+				if (ImGui::BeginCombo(("##ptrCams" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
+					for (int n = 0; n < camList.size(); n++) {
+						bool is_selected = strcmp(m_var->Arguments, camList[n].c_str()) == 0;
+						if (ImGui::Selectable(camList[n].c_str(), is_selected)) {
+							strcpy(m_var->Arguments, camList[n].c_str());
 							ret = true;
 						}
 						if (is_selected)

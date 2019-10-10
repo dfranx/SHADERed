@@ -20,6 +20,7 @@
 #include "Objects/Names.h"
 #include "Objects/Settings.h"
 #include "Objects/ThemeContainer.h"
+#include "Objects/CameraSnapshots.h"
 #include "Objects/KeyboardShortcuts.h"
 #include "Objects/FunctionVariableManager.h"
 #include "Objects/SystemVariableManager.h"
@@ -67,6 +68,7 @@ namespace ed
 		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isUpdateNotificationOpened = false;
+		m_isRecordCameraSnapshotOpened = false;
 		m_isCreateImgOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
@@ -644,6 +646,17 @@ namespace ed
 						this->CreateNewImage3D();
 					ImGui::EndMenu();
 				}
+				if (ImGui::BeginMenu("Camera snapshots")) {
+					if (ImGui::MenuItem("Add", KeyboardShortcuts::Instance().GetString("Project.CameraSnapshot").c_str())) CreateNewCameraSnapshot();
+					if (ImGui::BeginMenu("Delete")) {
+						auto& names = CameraSnapshots::GetList();
+						for (const auto& name : names)
+							if (ImGui::MenuItem(name.c_str()))
+								CameraSnapshots::Remove(name);
+						ImGui::EndMenu();
+					}
+					ImGui::EndMenu();
+				}
 				if (ImGui::MenuItem("Reset time"))
 					SystemVariableManager::Instance().Reset();
 				if (ImGui::MenuItem("Options")) {
@@ -827,6 +840,12 @@ namespace ed
 			m_isCreateImg3DOpened = false;
 		}
 
+		// open popup for creating camera snapshot
+		if (m_isRecordCameraSnapshotOpened) {
+			ImGui::OpenPopup("Camera snapshot name##main_camsnap_name");
+			m_isRecordCameraSnapshotOpened = false;
+		}
+
 		// open popup for creating render texture
 		if (m_isCreateRTOpened) {
 			ImGui::OpenPopup("Create RT##main_create_rt");
@@ -941,6 +960,32 @@ namespace ed
 			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateRenderTexture(buf)) {
 					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetRenderTexture(m_data->Objects.GetTexture(buf)));
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Record cam snapshot
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Camera snapshot name##main_camsnap_name")) {
+			static char buf[65] = { 0 };
+			ImGui::InputText("Name", buf, 64);
+
+			if (ImGui::Button("Ok")) {
+				bool exists = false;
+				auto& names = CameraSnapshots::GetList();
+				for (const auto& name : names) {
+					if (strcmp(buf, name.c_str()) == 0) {
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists) {
+					CameraSnapshots::Add(buf, SystemVariableManager::Instance().GetViewMatrix());
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -1103,6 +1148,7 @@ namespace ed
 						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 						((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+						CameraSnapshots::Clear();
 						m_data->Pipeline.New(false);
 
 						SDL_SetWindowTitle(m_wnd, "SHADERed");
@@ -1699,6 +1745,9 @@ into the actual video");
 		KeyboardShortcuts::Instance().SetCallback("Project.NewImage", [=]() {
 			CreateNewImage();
 		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewImage3D", [=]() {
+			CreateNewImage3D();
+		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
 			CreateNewCubemap();
 		});
@@ -1713,6 +1762,9 @@ into the actual video");
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewComputePass", [=]() {
 			CreateNewComputePass();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.CameraSnapshot", [=]() {
+			CreateNewCameraSnapshot();
 		});
 
 		// PREVIEW

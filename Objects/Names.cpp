@@ -71,6 +71,7 @@ const char* VARIABLE_TYPE_NAMES[] = {
 const char* FUNCTION_NAMES[] = {
 	"None",
 	"Pointer",
+	"CameraSnapshot",
 	"MatrixIdentity",
 	"MatrixLookAtLH",
 	"MatrixLookToLH",

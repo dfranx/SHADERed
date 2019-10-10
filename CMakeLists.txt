@@ -17,6 +17,7 @@ set(SOURCES
 # objects:
 	Objects/ArcBallCamera.cpp
 	Objects/AudioAnalyzer.cpp
+	Objects/CameraSnapshots.cpp
 	Objects/DefaultState.cpp
 	Objects/FirstPersonCamera.cpp
 	Objects/FunctionVariableManager.cpp
