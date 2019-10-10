@@ -1,6 +1,6 @@
 [v1.2.3]
 + add 3D textures
-+ add multi-camera system / camera snapshots
++ add ability to have multiple cameras / camera snapshots
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
 + add magnifier tool to texture/image preview window
