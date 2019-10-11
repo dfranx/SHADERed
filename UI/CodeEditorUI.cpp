@@ -131,8 +131,11 @@ namespace ed
 									path = shader->PSPath;
 								else if (m_shaderTypeId[i] == 2)
 									path = shader->GSPath;
-							} else {
+							} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
 								ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i]->Data);
+								path = shader->Path;
+							} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+								ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(m_items[i]->Data);
 								path = shader->Path;
 							}
 
@@ -364,6 +367,75 @@ namespace ed
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
+		else if (item->Type == PipelineItem::ItemType::AudioPass)
+		{
+			ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(item->Data);
+
+			if (Settings::Instance().General.UseExternalEditor)
+			{
+				std::string path = m_data->Parser.GetProjectPath(shader->Path);
+#if defined(__APPLE__)
+				system(("open " + path).c_str());
+#elif defined(__linux__) || defined(__unix__)
+				system(("xdg-open " + path).c_str());
+#elif defined(_WIN32)
+				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+#endif
+				return;
+			}
+
+			// check if already opened
+			for (int i = 0; i < m_items.size(); i++)
+			{
+				if (m_shaderTypeId[i] == 1 && m_items[i]->Type == PipelineItem::ItemType::AudioPass)
+				{
+					ed::pipe::AudioPass *sData = reinterpret_cast<ed::pipe::AudioPass *>(m_items[i]->Data);
+					bool match = false;
+					if (sid == 1 && strcmp(shader->Path, sData->Path) == 0)
+						match = true;
+
+					if (match)
+					{
+						m_focusWindow = true;
+						m_focusSID = sid;
+						m_focusItem = m_items[i]->Name;
+						return;
+					}
+				}
+			}
+
+			// TODO: some of this can be moved outside of the if() {} block
+			m_items.push_back(item);
+			m_editor.push_back(TextEditor());
+			m_editorOpen.push_back(true);
+			m_stats.push_back(StatsPage(m_data));
+
+			TextEditor *editor = &m_editor[m_editor.size() - 1];
+
+			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
+			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
+
+			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+			editor->SetTabSize(Settings::Instance().Editor.TabSize);
+			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			m_loadEditorShortcuts(editor);
+
+			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
+			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
+
+			m_shaderTypeId.push_back(sid);
+
+			std::string shaderContent = m_data->Parser.LoadProjectFile(shader->Path);
+			editor->SetText(shaderContent);
+			editor->ResetTextChanged();
+		}
 	}
 	void CodeEditorUI::OpenVS(PipelineItem* item)
 	{
@@ -455,6 +527,10 @@ namespace ed
 			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[id]->Data);
 			m_editor[id].ResetTextChanged();
 			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
+		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(m_items[id]->Data);
+			m_editor[id].ResetTextChanged();
+			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
 		}
 	}
 	void CodeEditorUI::m_compile(int id)
@@ -499,8 +575,10 @@ namespace ed
 			for (const auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr)
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
-				else
+				else if (it.second.CPass != nullptr)
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.CS);
+				else if (it.second.APass != nullptr)
+					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.AS);
 			}
 			if (m_autoRecompileCachedMsgs.size() > 0)
 				m_data->Messages.Add(m_autoRecompileCachedMsgs);
@@ -560,6 +638,7 @@ namespace ed
 					pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
 					inf->SPass = pass;
 					inf->CPass = nullptr;
+					inf->APass = nullptr;
 					
 					if (m_shaderTypeId[i] == 0) {
 						inf->VS = m_editor[i].GetText();
@@ -576,9 +655,18 @@ namespace ed
 					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i]->Data;
 					inf->CPass = pass;
 					inf->SPass = nullptr;
+					inf->APass = nullptr;
 					
 					inf->CS = m_editor[i].GetText();
 					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
+				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i]->Name];
+					pipe::AudioPass *pass = (pipe::AudioPass *)m_items[i]->Data;
+					inf->APass = pass;
+					inf->SPass = nullptr;
+					inf->CPass = nullptr;
+					
+					inf->AS = m_editor[i].GetText();
 				}
 			}
 
@@ -754,6 +842,21 @@ namespace ed
 						needsUpdate = true;
 						break;
 					}
+				} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass *data = (pipe::AudioPass *)pass->Data;
+
+					bool found = false;
+
+					std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+					for (auto &f : allFiles)
+						if (f == path)
+							found = true;
+
+					if (!found) {
+						needsUpdate = true;
+						break;
+					}
 				}
 			}
 
@@ -817,6 +920,14 @@ namespace ed
 						}
 					} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass *data = (pipe::ComputePass*)pass->Data;
+
+						std::string path(m_data->Parser.GetProjectPath(data->Path));
+
+						allFiles.push_back(path);
+						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
+						allPasses.push_back(pass->Name);
+					} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass *data = (pipe::AudioPass*)pass->Data;
 
 						std::string path(m_data->Parser.GetProjectPath(data->Path));
 

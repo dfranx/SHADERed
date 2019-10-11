@@ -48,6 +48,9 @@ namespace ed
 				pass->Items.clear();
 
 				glDeleteFramebuffers(1, &pass->FBO);
+			} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
+				pass->Stream.stop();
 			}
 
 			// delete passes and their data
@@ -62,6 +65,8 @@ namespace ed
 			return AddShaderPass(name, (pipe::ShaderPass*)data);
 		else if (type == PipelineItem::ItemType::ComputePass)
 			return AddComputePass(name, (pipe::ComputePass*)data);
+		else if (type == PipelineItem::ItemType::AudioPass)
+			return AddAudioPass(name, (pipe::AudioPass*)data);
 		
 		Logger::Get().Log("Adding a pipeline item " + std::string(name) + " to the project");
 
@@ -120,9 +125,25 @@ namespace ed
 
 		m_project->ModifyProject();
 
-		Logger::Get().Log("Added a shader pass " + std::string(name) + " to the project");
+		Logger::Get().Log("Added a compute pass " + std::string(name) + " to the project");
 
 		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::ComputePass, data));
+		strcpy(m_items.at(m_items.size() - 1)->Name, name);
+
+		return true;
+	}
+	bool PipelineManager::AddAudioPass(const char *name, pipe::AudioPass *data)
+	{
+		if (Has(name)) {
+			Logger::Get().Log("Compute pass " + std::string(name) + " not added - name already taken", true);
+			return false;
+		}
+
+		m_project->ModifyProject();
+
+		Logger::Get().Log("Added a audio pass " + std::string(name) + " to the project");
+
+		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::AudioPass, data));
 		strcpy(m_items.at(m_items.size() - 1)->Name, name);
 
 		return true;
@@ -149,6 +170,10 @@ namespace ed
 						delete passItem;
 					}
 					data->Items.clear();
+				}
+				else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
+					pass->Stream.stop();
 				}
 
 				delete m_items[i]->Data;

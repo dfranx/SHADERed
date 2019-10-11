@@ -201,6 +201,9 @@ namespace ed
 			std::string CS;
 			ShaderLanguage CS_SLang;
 			pipe::ComputePass* CPass;
+
+			std::string AS;
+			pipe::AudioPass* APass;
 		};
 		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
 

@@ -97,7 +97,8 @@ namespace ed
 
 		// apply macros to GLSL source code
 		void m_applyMacros(std::string& source, pipe::ShaderPass* pass);
-		void m_applyMacros(std::string& source, pipe::ComputePass* pass); // TODO: merge this function with the one above
+		void m_applyMacros(std::string& source, pipe::ComputePass* pass);
+		void m_applyMacros(std::string& source, pipe::AudioPass* pass); // TODO: merge this function with the ones above
 		
 		/* picking */
 		bool m_pickAwaiting;

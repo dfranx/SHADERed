@@ -166,6 +166,15 @@ namespace ed
 					ghc::filesystem::copy_file(cs, shadersDir + "/" + passItem->Name + "CS." + csExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
+				} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass *passData = (pipe::AudioPass*)passItem->Data;
+
+					std::string ss = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
+					std::string ssExt = getExtension(ss);
+
+					ghc::filesystem::copy_file(ss, shadersDir + "/" + passItem->Name + "SS." + ssExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					if (errc)
+						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 				}
 			}
 		}
@@ -474,6 +483,34 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
+			} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass *passData = (pipe::AudioPass *)passItem->Data;
+
+				passNode.append_attribute("type").set_value("audio");
+
+				// compute shader
+				pugi::xml_node ssNode = passNode.append_child("shader");
+				std::string relativePath = (ghc::filesystem::path(passData->Path).is_absolute()) ? passData->Path : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->Path));
+				if (copyFiles) {
+					std::string ssExt = getExtension(passData->Path);
+					relativePath = "shaders/" + std::string(passItem->Name) + "SS." + ssExt;
+				}
+
+				ssNode.append_attribute("type").set_value("ss");
+				ssNode.append_attribute("path").set_value(relativePath.c_str());
+
+				// variables -> now global in pass element [V2]
+				m_exportShaderVariables(passNode, passData->Variables.GetVariables());
+
+				// macros
+				pugi::xml_node macrosNode = passNode.append_child("macros");
+				for (auto &macro : passData->Macros)
+				{
+					pugi::xml_node macroNode = macrosNode.append_child("define");
+					macroNode.append_attribute("name").set_value(macro.Name);
+					macroNode.append_attribute("active").set_value(macro.Active);
+					macroNode.text().set(macro.Value);
+				}
 			}
 		}
 
@@ -680,6 +717,9 @@ namespace ed
 						vars = data->Variables.GetVariables();
 					} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass *data = (pipe::ComputePass *)passItem->Data;
+						vars = data->Variables.GetVariables();
+					} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass *data = (pipe::AudioPass*)passItem->Data;
 						vars = data->Variables.GetVariables();
 					}
 
@@ -1579,6 +1619,8 @@ namespace ed
 			if (!passNode.attribute("type").empty()) {
 				if (strcmp(passNode.attribute("type").as_string(), "compute") == 0)
 					type = ed::PipelineItem::ItemType::ComputePass;
+				if (strcmp(passNode.attribute("type").as_string(), "audio") == 0)
+					type = ed::PipelineItem::ItemType::AudioPass;
 			}
 
 			if (type == PipelineItem::ItemType::ShaderPass) {
@@ -2101,6 +2143,104 @@ namespace ed
 
 				// add the item
 				m_pipe->AddComputePass(name, data);
+			} else if (type == PipelineItem::ItemType::AudioPass) {
+				ed::pipe::AudioPass *data = new ed::pipe::AudioPass();
+
+				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
+				for (pugi::xml_node shaderNode : passNode.children("shader"))
+				{
+					// parse path and type
+					pugi::char_t shaderPath[MAX_PATH];
+					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
+					
+					strcpy(data->Path, shaderPath);
+
+					if (!FileExists(shaderPath))
+						m_msgs->Add(ed::MessageStack::Type::Error, name, "Audio shader does not exist.");
+				}
+
+				// parse variables
+				for (pugi::xml_node variableNode : passNode.child("variables").children("variable"))
+				{
+					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
+					SystemShaderVariable system = SystemShaderVariable::None;
+					FunctionShaderVariable func = FunctionShaderVariable::None;
+					char flags = 0;
+
+					/* FLAGS */
+					bool isInvert = false, isLastFrame = false;
+
+					if (!variableNode.attribute("invert").empty())
+						isInvert = variableNode.attribute("invert").as_bool();
+					if (!variableNode.attribute("lastframe").empty())
+						isLastFrame = variableNode.attribute("lastframe").as_bool();
+
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
+							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+
+					/* TYPE */
+					if (!variableNode.attribute("type").empty())
+					{
+						const char *myType = variableNode.attribute("type").as_string();
+						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0)
+							{
+								type = (ed::ShaderVariable::ValueType)i;
+								break;
+							}
+					}
+					if (!variableNode.attribute("system").empty())
+					{
+						const char *mySystem = variableNode.attribute("system").as_string();
+						for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0)
+							{
+								system = (ed::SystemShaderVariable)i;
+								break;
+							}
+						if (SystemVariableManager::GetType(system) != type)
+							system = ed::SystemShaderVariable::None;
+					}
+					if (!variableNode.attribute("function").empty())
+					{
+						const char *myFunc = variableNode.attribute("function").as_string();
+						for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0)
+							{
+								func = (FunctionShaderVariable)i;
+								break;
+							}
+						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+							func = FunctionShaderVariable::None;
+					}
+
+					ShaderVariable *var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+					var->Flags = flags;
+					FunctionVariableManager::AllocateArgumentSpace(var, func);
+
+					// parse value
+					if (system == SystemShaderVariable::None)
+						m_parseVariableValue(variableNode, var);
+
+					data->Variables.Add(var);
+				}
+
+				// macros
+				for (pugi::xml_node macroNode : passNode.child("macros").children("define"))
+				{
+					ShaderMacro newMacro;
+					if (!macroNode.attribute("name").empty())
+						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
+
+					newMacro.Active = true;
+					if (!macroNode.attribute("active").empty())
+						newMacro.Active = macroNode.attribute("active").as_bool();
+					strcpy(newMacro.Value, macroNode.text().get());
+					data->Macros.push_back(newMacro);
+				}
+
+				// add the item
+				m_pipe->AddAudioPass(name, data);
 			}
 		}
 
@@ -2507,6 +2647,9 @@ namespace ed
 
 							if (strcmp(shaderType, "cs") == 0 && FileExists(path))
 								editor->OpenCS(item);
+						} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+							std::string path = ((ed::pipe::AudioPass *)item->Data)->Path;
+							editor->OpenPS(item);
 						}
 					}
 				}
@@ -2523,6 +2666,8 @@ namespace ed
 							vars = ((pipe::ShaderPass *)owner->Data)->Variables.GetVariables();
 						else if (owner->Type == PipelineItem::ItemType::ComputePass)
 							vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
+						else if (owner->Type == PipelineItem::ItemType::AudioPass)
+							vars = ((pipe::AudioPass*)owner->Data)->Variables.GetVariables();
 
 						for (const auto& var : vars)
 							if (strcmp(var->Name, item) == 0) {

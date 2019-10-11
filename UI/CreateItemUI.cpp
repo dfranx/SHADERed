@@ -253,6 +253,36 @@ namespace ed
 			data->WorkY = std::max<int>(groupSize.y, 1);
 			data->WorkZ = std::max<int>(groupSize.z, 1);
 		}
+		else if (m_item.Type == PipelineItem::ItemType::AudioPass)
+		{
+			pipe::AudioPass *data = (pipe::AudioPass *)m_item.Data;
+
+			// ss path
+			ImGui::Text("Shader path:");
+			ImGui::NextColumn();
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushItemWidth(PATH_SPACE_LEFT);
+			ImGui::InputText("##cui_appath", data->Path, MAX_PATH);
+			ImGui::PopItemWidth();
+			ImGui::PopItemFlag();
+			ImGui::SameLine();
+			if (ImGui::Button("...##cui_appath", ImVec2(-1, 0)))
+			{
+				std::string file;
+				bool success = UIHelper::GetOpenFileDialog(file);
+				if (success)
+				{
+					file = m_data->Parser.GetRelativePath(file);
+					strcpy(data->Path, file.c_str());
+
+					if (m_data->Parser.FileExists(file))
+						m_data->Messages.ClearGroup(m_item.Name);
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, "Audio shader file doesnt exist");
+				}
+			}
+			ImGui::NextColumn();
+		}
 		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			pipe::RenderState* data = (pipe::RenderState*)m_item.Data;
 
@@ -651,6 +681,11 @@ namespace ed
 			pipe::ComputePass *allocatedData = new pipe::ComputePass();
 			strcpy(allocatedData->Entry, "main");
 			m_item.Data = allocatedData;
+		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+			Logger::Get().Log("Opening a CreateItemUI for creating AudioPass object...");
+
+			pipe::AudioPass *allocatedData = new pipe::AudioPass();
+			m_item.Data = allocatedData;
 		}
 		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			Logger::Get().Log("Opening a CreateItemUI for creating RenderState object...");
@@ -850,6 +885,16 @@ namespace ed
 			data->WorkZ = origData->WorkZ;
 
 			m_errorOccured = !m_data->Pipeline.AddComputePass(m_item.Name, data);
+			return !m_errorOccured;
+		}
+		else if (m_item.Type == PipelineItem::ItemType::AudioPass)
+		{
+			pipe::AudioPass *data = new pipe::AudioPass();
+			pipe::AudioPass *origData = (pipe::AudioPass *)m_item.Data;
+
+			strcpy(data->Path, origData->Path);
+
+			m_errorOccured = !m_data->Pipeline.AddAudioPass(m_item.Name, data);
 			return !m_errorOccured;
 		}
 		else if (m_owner[0] != 0) {

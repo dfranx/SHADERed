@@ -4,6 +4,7 @@
 
 #include <SDL2/SDL.h>
 #include <glslang/Public/ShaderLang.h>
+#include "Objects/AudioShaderStream.h"
 #include "Objects/Settings.h"
 #include "Objects/Logger.h"
 #include "EditorEngine.h"

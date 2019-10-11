@@ -630,6 +630,9 @@ namespace ed
 						this->CreateNewShaderPass();
 					if (ImGui::MenuItem("Compute Pass", KeyboardShortcuts::Instance().GetString("Project.NewComputePass").c_str()))
 						this->CreateNewComputePass();
+					if (ImGui::MenuItem("Audio Pass", KeyboardShortcuts::Instance().GetString("Project.NewAudioPass").c_str()))
+						this->CreateNewAudioPass();
+					ImGui::Separator();
 					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str()))
 						this->CreateNewTexture();
 					if (ImGui::MenuItem("Cubemap", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str()))
@@ -1656,6 +1659,10 @@ into the actual video");
 		m_createUI->SetType(PipelineItem::ItemType::ComputePass);
 		m_isCreateItemPopupOpened = true;
 	}
+	void GUIManager::CreateNewAudioPass() {
+		m_createUI->SetType(PipelineItem::ItemType::AudioPass);
+		m_isCreateItemPopupOpened = true;
+	}
 	void GUIManager::CreateNewTexture() {
 		std::string path;
 		bool success = UIHelper::GetOpenFileDialog(path, "png;jpg;jpeg;bmp");
@@ -1762,6 +1769,9 @@ into the actual video");
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewComputePass", [=]() {
 			CreateNewComputePass();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewAudioPass", [=]() {
+			CreateNewAudioPass();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.CameraSnapshot", [=]() {
 			CreateNewCameraSnapshot();

@@ -18,7 +18,7 @@ namespace ed
 {
 	namespace gl
 	{
-		GLuint CreateSimpleFramebuffer(GLint width, GLint height, GLuint& texColor, GLuint& texDepth);
+		GLuint CreateSimpleFramebuffer(GLint width, GLint height, GLuint& texColor, GLuint& texDepth, GLuint fmt = GL_RGBA);
 		void FreeSimpleFramebuffer(GLuint& fbo, GLuint& color, GLuint& depth);
 
 		GLuint CompileShader(GLenum type, const GLchar* str);

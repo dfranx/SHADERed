@@ -389,6 +389,40 @@ namespace ed
 						m_data->Parser.ModifyProject();
 					}
 				}
+				else if (m_current->Type == ed::PipelineItem::ItemType::AudioPass)
+				{
+					ed::pipe::AudioPass *item = reinterpret_cast<ed::pipe::AudioPass *>(m_current->Data);
+
+					/* audio shader path */
+					ImGui::Text("Path:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::InputText("##pui_sspath", item->Path, MAX_PATH);
+					ImGui::PopItemFlag();
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("...##pui_ssbtn", ImVec2(-1, 0)))
+					{
+						std::string file;
+						bool success = UIHelper::GetOpenFileDialog(file);
+						if (success)
+						{
+							file = m_data->Parser.GetRelativePath(file);
+							strcpy(item->Path, file.c_str());
+
+							m_data->Parser.ModifyProject();
+
+							if (m_data->Parser.FileExists(file)) {
+								m_data->Messages.ClearGroup(m_current->Name);
+								m_data->Renderer.Recompile(m_current->Name);
+							}
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Compute shader file doesnt exist");
+						}
+					}
+				}
 				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 

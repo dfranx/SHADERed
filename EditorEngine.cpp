@@ -35,6 +35,7 @@ namespace ed
 	}
 	void EditorEngine::Destroy()
 	{
+		m_interface.Pipeline.Clear();
 		m_ui.SaveSettings();
 		Settings::Instance().Save();
 	}

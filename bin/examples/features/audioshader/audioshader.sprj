@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Audio" type="audio">
+			<shader type="ss" path="shaders/audio.hlsl" />
+			<macros />
+		</pass>
+	</pipeline>
+	<objects />
+	<cameras />
+	<settings>
+		<entry type="property" name="Audio" item="pipe" />
+		<entry type="file" name="Audio" shader="ps" />
+		<entry type="camera" fp="false">
+			<distance>3</distance>
+			<pitch>28</pitch>
+			<yaw>43</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
+	</settings>
+</project>

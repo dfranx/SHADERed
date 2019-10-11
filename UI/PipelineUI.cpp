@@ -65,8 +65,14 @@ namespace ed
 						}
 					}
 				}
-			} else {
+			} else if (items[i]->Type == PipelineItem::ItemType::ComputePass) {
 				m_addComputePass(items[i]);
+				if (m_renderItemContext(items, i)) {
+					i--;
+					continue;
+				}
+			} else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
+				m_addAudioPass(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
 					continue;
@@ -80,6 +86,7 @@ namespace ed
 		if (!m_itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_pipeline")) {
 			if (ImGui::Selectable("Create Shader Pass")) m_ui->CreateNewShaderPass();
 			if (ImGui::Selectable("Create Compute Pass")) m_ui->CreateNewComputePass();
+			if (ImGui::Selectable("Create Audio Pass")) m_ui->CreateNewAudioPass();
 			ImGui::EndPopup();
 		}
 		m_itemMenuOpened = false;
@@ -258,7 +265,8 @@ namespace ed
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
 			m_itemMenuOpened = true;
 			if (items[index]->Type == PipelineItem::ItemType::ShaderPass ||
-				items[index]->Type == PipelineItem::ItemType::ComputePass)
+				items[index]->Type == PipelineItem::ItemType::ComputePass ||
+				items[index]->Type == PipelineItem::ItemType::AudioPass)
 			{
 				if (ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
@@ -313,9 +321,14 @@ namespace ed
 
 						if (ImGui::MenuItem("Compute Shader") && m_data->Parser.FileExists(passData->Path))
 							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenCS(items[index]);
-					}
+					} else if (items[index]->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass *passData = (pipe::AudioPass *)(items[index]->Data);
 
-						ImGui::EndMenu();
+						if (ImGui::MenuItem("Audio Shader") && m_data->Parser.FileExists(passData->Path))
+							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
+					}
+					
+					ImGui::EndMenu();
 				}
 
 				if (ImGui::MenuItem("Variables")) {
@@ -574,6 +587,7 @@ namespace ed
 
 		void *itemData = m_modalItem->Data;
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
+		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
 
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 
@@ -599,7 +613,7 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable *> &els = isCompute ? ((pipe::ComputePass*)itemData)->Variables.GetVariables() : ((pipe::ShaderPass*)itemData)->Variables.GetVariables();
+		std::vector<ed::ShaderVariable *> &els = isCompute ? ((pipe::ComputePass*)itemData)->Variables.GetVariables() : (isAudio ? ((pipe::AudioPass*)itemData)->Variables.GetVariables() : ((pipe::ShaderPass*)itemData)->Variables.GetVariables());
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -665,6 +679,8 @@ namespace ed
 
 				if (isCompute)
 					((pipe::ComputePass*)itemData)->Variables.Remove(el->Name);
+				else if (isAudio)
+					((pipe::AudioPass*)itemData)->Variables.Remove(el->Name);
 				else
 					((pipe::ShaderPass*)itemData)->Variables.Remove(el->Name);
 
@@ -773,6 +789,8 @@ namespace ed
 			if (!exists) {
 				if (isCompute)
 					((pipe::ComputePass *)itemData)->Variables.AddCopy(iVariable);
+				else if (isAudio)
+					((pipe::AudioPass *)itemData)->Variables.AddCopy(iVariable);
 				else
 					((pipe::ShaderPass *)itemData)->Variables.AddCopy(iVariable);
 
@@ -1141,7 +1159,8 @@ namespace ed
 
 		int id = 0;
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
-		std::vector<ShaderMacro> &els = isCompute ? ((ed::pipe::ComputePass*)m_modalItem->Data)->Macros : ((ed::pipe::ShaderPass*)m_modalItem->Data)->Macros;
+		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
+		std::vector<ShaderMacro> &els = isCompute ? ((ed::pipe::ComputePass*)m_modalItem->Data)->Macros : (isAudio ? ((ed::pipe::AudioPass*)m_modalItem->Data)->Macros : ((ed::pipe::ShaderPass*)m_modalItem->Data)->Macros);
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -1333,6 +1352,41 @@ namespace ed
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
 							editor->OpenCS(item);
+					}
+				}
+
+				if (Settings::Instance().General.ItemPropsOnDblCLk)
+				{
+					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
+					props->Open(item);
+				}
+			}
+		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
+		ImGui::PopStyleColor();
+	}
+	void PipelineUI::m_addAudioPass(ed::PipelineItem *item)
+	{
+		ed::pipe::AudioPass *data = (ed::pipe::AudioPass *)item->Data;
+
+		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
+		if (ewCount > 0)
+			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
+		else
+			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ComputePass);
+
+		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
+		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+			if (ImGui::IsMouseDoubleClicked(0))
+			{
+				if (Settings::Instance().General.OpenShadersOnDblClk)
+				{
+					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
+						m_ui->SaveAsProject(true);
+					else
+					{
+						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
+						if (m_data->Parser.FileExists(data->Path))
+							editor->OpenPS(item);
 					}
 				}
 

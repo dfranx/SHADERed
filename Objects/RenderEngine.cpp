@@ -340,6 +340,38 @@ namespace ed
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
+			else if (it->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass *data = (pipe::AudioPass *)it->Data;
+
+				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
+				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
+
+				// bind shader resource views
+				for (int j = 0; j < srvs.size(); j++)
+				{
+					glActiveTexture(GL_TEXTURE0 + j);
+					if (m_objects->IsCubeMap(srvs[j]))
+						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+					else if (m_objects->IsImage3D(srvs[j]))
+						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+					else
+						glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+						data->Variables.UpdateTexture(m_shaders[i], j);
+				}
+
+				// bind buffers
+				for (int j = 0; j < ubos.size(); j++) {
+					if (m_objects->IsBuffer(m_objects->GetBufferNameByID(ubos[j])))
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
+				}
+				
+				// bind variables
+				data->Variables.Bind();
+
+				data->Stream.renderAudio();
+			}
 		}
 
 		// update frame index
@@ -520,6 +552,21 @@ namespace ed
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
 				}
+				else if (item->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass *shader = (pipe::AudioPass *)item->Data;
+
+					m_msgs->ClearGroup(name);
+
+					std::string content = m_project->LoadProjectFile(shader->Path);
+
+					// compute shader
+					m_msgs->CurrentItemType = 1;
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
+						m_applyMacros(content, shader);
+					
+					shader->Stream.compileFromShaderSource(m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
+					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
+				}
 			}
 		}
 	}
@@ -645,6 +692,18 @@ namespace ed
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
 
 					glDeleteShader(cs);
+				}
+				else if (item->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass *shader = (pipe::AudioPass *)item->Data;
+					m_msgs->ClearGroup(name);
+
+					bool compiled = false;
+					GLuint ss = 0;
+
+					// audio shader
+					if (vssrc.size() > 0)
+						shader->Stream.compileFromShaderSource(m_msgs, vssrc, shader->Macros, true);
+					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
 				}
 			}
 		}
@@ -1018,6 +1077,27 @@ namespace ed
 					m_shaderSources[i].VS = 0;
 					m_shaderSources[i].PS = 0;
 					m_shaderSources[i].GS = 0;
+				} else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass *data = reinterpret_cast<ed::pipe::AudioPass *>(items[i]->Data);
+
+					m_items.insert(m_items.begin() + i, items[i]);
+					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+
+					/*
+						ITEM CACHING
+					*/
+
+					m_msgs->CurrentItem = items[i]->Name;
+					std::string content = m_project->LoadProjectFile(data->Path);
+
+					// vertex shader
+					m_msgs->CurrentItemType = 1;
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
+						m_applyMacros(content, data);
+					data->Stream.compileFromShaderSource(m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
+						
+					data->Variables.UpdateUniformInfo(data->Stream.getShader());
 				}
 			}
 		}
@@ -1089,6 +1169,23 @@ namespace ed
 			src.insert(lineLoc, strMacro);
 	}
 	void RenderEngine::m_applyMacros(std::string &src, pipe::ComputePass *pass)
+	{
+		size_t verLoc = src.find_first_of("#version");
+		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
+		std::string strMacro = "";
+
+		for (auto &macro : pass->Macros)
+		{
+			if (!macro.Active)
+				continue;
+
+			strMacro += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+		}
+
+		if (strMacro.size() > 0)
+			src.insert(lineLoc, strMacro);
+	}
+	void RenderEngine::m_applyMacros(std::string &src, pipe::AudioPass *pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;

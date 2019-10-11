@@ -1,6 +1,7 @@
 #pragma once
 #include "../Engine/Model.h"
 #include "ShaderVariableContainer.h"
+#include "AudioShaderStream.h"
 #include "ShaderMacro.h"
 #include "InputLayout.h"
 #include "../Options.h"
@@ -28,6 +29,7 @@ namespace ed
 			RenderState,
 			Model,
 			ComputePass,
+			AudioPass,
 			Count
 		};
 
@@ -59,6 +61,19 @@ namespace ed
 			char Entry[32];
 
 			GLuint WorkX, WorkY, WorkZ;
+			ShaderVariableContainer Variables;
+			std::vector<ShaderMacro> Macros;
+		};
+
+		struct AudioPass
+		{
+			AudioPass() {
+				Macros.clear();
+				memset(Path, 0, sizeof(char) * MAX_PATH);
+			}
+
+			ed::AudioShaderStream Stream;
+			char Path[MAX_PATH];
 			ShaderVariableContainer Variables;
 			std::vector<ShaderMacro> Macros;
 		};

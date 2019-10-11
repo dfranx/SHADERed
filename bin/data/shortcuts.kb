@@ -2,33 +2,16 @@ CodeUI.Compile F5
 CodeUI.Save CTRL S
 CodeUI.SwitchView ALT F2
 CodeUI.ToggleStatusbar CTRL SHIFT F2
-Editor.AutocompleteDown Down
 Editor.AutocompleteOpen CTRL Space
-Editor.AutocompleteSelect Tab
-Editor.AutocompleteSelectActive Return
-Editor.AutocompleteUp Up
-Editor.BackwardDelete Backspace
-Editor.ForwardDelete Delete
-Editor.IndentShift SHIFT Tab
-Editor.MoveDown Down
-Editor.MoveUp Up
-Editor.MoveLeft Left
-Editor.MoveRight Right
-Editor.NewLine Return
 Editor.Copy CTRL C
 Editor.Cut CTRL X
 Editor.Find CTRL F
 Editor.FindNext F3
+Editor.IndentShift SHIFT Tab
 Editor.MoveBottom CTRL End
-Editor.MoveDownBlock PageDown
-Editor.MoveEndLine End
-Editor.MoveStartLine Home
 Editor.MoveTop CTRL Home
-Editor.MoveUpBlock PageUp
-Editor.OverwriteCursor Insert
 Editor.Paste CTRL V
 Editor.Redo CTRL Y
-Editor.Replace CTRL H
 Editor.SelectAll CTRL A
 Editor.Undo CTRL Z
 Gizmo.Position CTRL G P
@@ -57,7 +40,6 @@ Project.SaveAs CTRL P A
 Window.Exit ALT F4
 Workspace.Help CTRL H
 Workspace.HideEditor CTRL W E
-Workspace.HideOutput CTRL W O
 Workspace.HidePinned CTRL W N
 Workspace.HidePipeline CTRL W L
 Workspace.HidePreview CTRL W P

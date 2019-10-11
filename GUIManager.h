@@ -58,6 +58,7 @@ namespace ed
 		inline void CreateNewImage3D() { m_isCreateImg3DOpened = true; }
 		inline void CreateNewCameraSnapshot() { m_isRecordCameraSnapshotOpened = true; }
 		void CreateNewComputePass();
+		void CreateNewAudioPass();
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
