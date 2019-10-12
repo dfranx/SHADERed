@@ -27,6 +27,5 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - show tips on startup & 'whats new' on first startup
  - add an option to hide and/or lock certain shader pass
 
- **KNOWN BUGS:**
- - crashes when opening cubemap example only on Linux and only in Release mode!
+ **BUGS:**
  - CodeEditorUI loses focus when pressing ALT keys on linux

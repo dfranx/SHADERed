@@ -21,6 +21,41 @@ namespace ed
 		Clear();
 	}
 
+	void loadCubemapFace(GLuint face, const std::string& path, int& w, int& h)
+	{
+		int nrChannels = 0;
+		unsigned char* data = stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
+		unsigned char* paddedData = nullptr;
+
+		if (nrChannels != 4) {
+			paddedData = (unsigned char*)malloc(w * h * 4);
+			for (int x = 0; x < w; x++) {
+				for (int y = 0; y < h; y++) {
+					if (nrChannels == 3) {
+						paddedData[(y * w + x) * 4 + 0] = data[(y * w + x) * 3 + 0];
+						paddedData[(y * w + x) * 4 + 1] = data[(y * w + x) * 3 + 1];
+						paddedData[(y * w + x) * 4 + 2] = data[(y * w + x) * 3 + 2];
+					} else if (nrChannels == 1) {
+						unsigned char val = data[(y * w + x) * 1 + 0];
+						paddedData[(y * w + x) * 4 + 0] = val;
+						paddedData[(y * w + x) * 4 + 1] = val;
+						paddedData[(y * w + x) * 4 + 2] = val;
+					}
+					paddedData[(y * w + x) * 4 + 3] = 255;
+				}
+			}
+		}
+
+		glTexImage2D(
+			face,
+			0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData
+		);
+
+		if (paddedData != nullptr)
+			free(paddedData);
+		stbi_image_free(data);
+	}
+
 	void ObjectManager::Clear()
 	{
 		Logger::Get().Log("Clearing ObjectManager contents...");
@@ -163,67 +198,7 @@ namespace ed
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, item->Texture);
-
-
-		// left face
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(m_parser->GetProjectPath(left).c_str(), &width, &height, &nrChannels, 0);
-		GLenum fmt = GL_RGB; // get format only once -- maybe fix this in future
-		if (nrChannels == 4)
-			fmt = GL_RGBA;
-		else if (nrChannels == 1)
-			fmt = GL_LUMINANCE;
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(left);
-		stbi_image_free(data);
-
-		// top
-		data = stbi_load(m_parser->GetProjectPath(top).c_str(), &width, &height, &nrChannels, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(top);
-		stbi_image_free(data);
-
-		// front
-		data = stbi_load(m_parser->GetProjectPath(front).c_str(), &width, &height, &nrChannels, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(front);
-		stbi_image_free(data);
-
-		// bottom
-		data = stbi_load(m_parser->GetProjectPath(bottom).c_str(), &width, &height, &nrChannels, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(bottom);
-		stbi_image_free(data);
-
-		// right
-		data = stbi_load(m_parser->GetProjectPath(right).c_str(), &width, &height, &nrChannels, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(right);
-		stbi_image_free(data);
-
-		// back
-		data = stbi_load(m_parser->GetProjectPath(back).c_str(), &width, &height, &nrChannels, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-			0, GL_RGBA, width, height, 0, fmt, GL_UNSIGNED_BYTE, data
-		);
-		item->CubemapPaths.push_back(back);
-		stbi_image_free(data);
+		int width, height;
 
 		// properties
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -232,9 +207,35 @@ namespace ed
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		
+		// left face
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_parser->GetProjectPath(left), width, height);
+		item->CubemapPaths.push_back(left);
+
+		// top
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, m_parser->GetProjectPath(top), width, height);
+		item->CubemapPaths.push_back(top);
+
+		// front
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, m_parser->GetProjectPath(front), width, height);
+		item->CubemapPaths.push_back(front);
+
+		// bottom
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, m_parser->GetProjectPath(bottom), width, height);
+		item->CubemapPaths.push_back(bottom);
+
+		// right
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_parser->GetProjectPath(right), width, height);
+		item->CubemapPaths.push_back(right);
+
+		// back
+		loadCubemapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_parser->GetProjectPath(back), width, height);
+		item->CubemapPaths.push_back(back);
+		
 		// clean up
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		item->ImageSize = glm::ivec2(width, height);
+
+		return true;
 	}
 	bool ObjectManager::CreateAudio(const std::string& file)
 	{
