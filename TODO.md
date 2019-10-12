@@ -13,12 +13,10 @@ List of features I want to implement:
  - "Export as DirectX/OpenGL application" option (.cpp file)
  - "import from ShaderToy" option
  - render your shader to a video file
- - pixel inspector
- - debugger
+ - debugger & pixel inspector
+ - godot shaders
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - update all 3rd party libs
----
  - dragging items from one pass to another, duplicating them, etc...
  - improve the overall code (enum for shader type, etc...)
  - fix memory leaks (if there are any)
