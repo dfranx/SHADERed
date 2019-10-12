@@ -874,6 +874,8 @@ namespace ed
 			glDeleteShader(m_shaderSources[i].GS);
 		}
 		
+		m_fbos.clear();
+		m_fboCount.clear();
 		m_items.clear();
 		m_shaders.clear();
 		m_shaderSources.clear();

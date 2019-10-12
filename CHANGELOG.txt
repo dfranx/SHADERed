@@ -1,6 +1,6 @@
 [v1.2.3]
 + add 3D textures
-+ add audio shaders
++ add audio shaders (GLSL synthesized audio)
 + add ability to have multiple cameras / camera snapshots
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
@@ -13,11 +13,12 @@
 + add Editor.FindNext shortcut
 + fix copy and paste
 + fix matrix variable exporting & importing
-+ fix RT size after it has been created
++ fix a bug where openning Sobel -> Edge -> Sobel examples would break the rendered
++ fix RT default size
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
 + fix texture loading
-+ fix "GeometryShader" example
++ fix "GeometryShader" & "VulkanSimple" example
 + fix a bug where "Outline" example wouldn't work after Edge/Sobel examples
 + fix ObjectPreviewUI::Close()
 + any form of project saving should also now save all shader code modifications
