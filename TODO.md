@@ -17,9 +17,6 @@ List of features I want to implement:
  - debugger
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - crashes when opening cubemap example only on Linux and only in Release mode!
- - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
- - CodeEditorUI loses focus when pressing ALT keys on linux
  - update all 3rd party libs
 ---
  - dragging items from one pass to another, duplicating them, etc...
@@ -31,3 +28,8 @@ Except those features, I am also looking to do some small QoL changes and fixes:
  - undo/redo
  - show tips on startup & 'whats new' on first startup
  - add an option to hide and/or lock certain shader pass
+
+ **KNOWN BUGS:**
+ - crashes when opening cubemap example only on Linux and only in Release mode!
+ - openning Edge->Sobel->Edge or Sobel->Edge->Sobel breaks SHADERed
+ - CodeEditorUI loses focus when pressing ALT keys on linux

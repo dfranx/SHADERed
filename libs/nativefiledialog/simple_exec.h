@@ -28,7 +28,7 @@ int runCommandArray(char** stdOut, int* stdOutByteCount, int* returnCode, int in
 #include <stdarg.h>
 #include <fcntl.h>
 
-#define release_assert(x) do { int __release_assert_tmp__ = (x); assert(__release_assert_tmp__); } while(0)
+#define release_assert(exp) { if (!(exp)) { abort(); } }
 
 enum PIPE_FILE_DESCRIPTORS
 {
@@ -70,6 +70,7 @@ int runCommandArray(char** stdOut, int* stdOutByteCount, int* returnCode, int in
         case -1:
         {
             release_assert(0 && "Fork failed");
+            break;
         }
 
         case 0: // child
@@ -96,7 +97,8 @@ int runCommandArray(char** stdOut, int* stdOutByteCount, int* returnCode, int in
             execvp(command, allArgs);
 
             char err = 1;
-            write(errPipe[WRITE_FD], &err, 1);
+            ssize_t result = write(errPipe[WRITE_FD], &err, 1);
+            release_assert(result != -1);
             
             close(errPipe[WRITE_FD]);
             close(parentToChild[READ_FD]);
@@ -128,7 +130,8 @@ int runCommandArray(char** stdOut, int* stdOutByteCount, int* returnCode, int in
                         release_assert(close(childToParent[READ_FD]) == 0);
 
                         char errChar = 0;
-                        read(errPipe[READ_FD], &errChar, 1);
+                        ssize_t result = read(errPipe[READ_FD], &errChar, 1);
+                        release_assert(result != -1);
                         close(errPipe[READ_FD]);
 
                         if(errChar)
@@ -156,6 +159,7 @@ int runCommandArray(char** stdOut, int* stdOutByteCount, int* returnCode, int in
                     case -1:
                     {
                         release_assert(0 && "read() failed");
+                        break;
                     }
 
                     default:
