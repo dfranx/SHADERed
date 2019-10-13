@@ -191,6 +191,8 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     /* Set the default path */
     SetDefaultPath(dialog, defaultPath);
 
+    gtk_window_set_keep_above(GTK_WINDOW(dialog), 1);
+
     result = NFD_CANCEL;
     if ( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT )
     {
@@ -296,6 +298,8 @@ nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
     /* Set the default path */
     SetDefaultPath(dialog, defaultPath);
     
+	gtk_window_set_keep_above(GTK_WINDOW(dialog), 1);
+
     result = NFD_CANCEL;    
     if ( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT )
     {
@@ -349,6 +353,8 @@ nfdresult_t NFD_PickFolder(const nfdchar_t *defaultPath,
     /* Set the default path */
     SetDefaultPath(dialog, defaultPath);
     
+	gtk_window_set_keep_above(GTK_WINDOW(dialog), 1);
+
     result = NFD_CANCEL;    
     if ( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT )
     {

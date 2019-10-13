@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Simple">
+		<pass name="Simple" type="shader">
 			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture />
-			<variables>
-				<variable type="float4x4" name="matVP" system="ViewProjection" />
-				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
-			</variables>
 			<items>
 				<item name="StencilWrite" type="renderstate">
 					<depthtest>true</depthtest>
@@ -46,15 +47,21 @@
 				</item>
 			</items>
 			<itemvalues />
-		</pass>
-		<pass name="OutlinePass">
-			<shader type="vs" path="shaders/OutlinePassVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders/OutlinePassPS.hlsl" entry="main" />
-			<rendertexture />
 			<variables>
 				<variable type="float4x4" name="matVP" system="ViewProjection" />
 				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
 			</variables>
+			<macros />
+		</pass>
+		<pass name="OutlinePass" type="shader">
+			<shader type="vs" path="shaders/OutlinePassVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders/OutlinePassPS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
+			<rendertexture />
 			<items>
 				<item name="StencilOutline" type="renderstate">
 					<depthtest>true</depthtest>
@@ -98,17 +105,24 @@
 				</item>
 			</items>
 			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<macros />
 		</pass>
 	</pipeline>
 	<objects />
+	<cameras />
 	<settings>
-		<entry type="property" name="StencilOutline" />
+		<entry type="property" name="StencilOutline" item="pipe" />
 		<entry type="camera" fp="false">
 			<distance>8</distance>
 			<pitch>19</pitch>
-			<yaw>73</yaw>
+			<yaw>287</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
 	</settings>
 </project>

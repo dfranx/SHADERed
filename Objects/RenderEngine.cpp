@@ -881,6 +881,13 @@ namespace ed
 		m_shaderSources.clear();
 		m_fbosNeedUpdate = true;
 
+		// clear textures
+		glBindTexture(GL_TEXTURE_2D, m_rtColor);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lastSize.x, m_lastSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, m_rtDepth);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_lastSize.x, m_lastSize.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	
 		m_lastSize = glm::ivec2(1,1); // recreate window rt!
 	}
 	void RenderEngine::m_cache()
