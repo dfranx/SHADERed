@@ -7,6 +7,7 @@
  
  **BUGS:**
  - CodeEditorUI loses focus when pressing ALT keys on linux
+ - Home/End is buggy
 
 # TODO
 List of features I want to implement:
