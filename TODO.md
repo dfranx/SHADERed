@@ -7,8 +7,6 @@
  
  **BUGS:**
  - CodeEditorUI loses focus when pressing ALT keys on linux
- - Home/End is buggy
- - Editor.Replace is bound to SHIFT+H and not CTRL+H
 
 # TODO
 List of features I want to implement:

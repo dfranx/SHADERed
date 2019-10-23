@@ -149,6 +149,7 @@ namespace ed
 				m_updateNotifyClock.restart();
 			});
 		}
+
 	}
 	GUIManager::~GUIManager()
 	{
