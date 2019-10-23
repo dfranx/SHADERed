@@ -1,3 +1,8 @@
+[v1.2.4]
++ fix Find tool's highlighting
++ scroll to Find tool's selection
++ Editor.Replace is now bound to CTRL+H (instead of SHIFT+H)
+
 [v1.2.3]
 + add 3D textures
 + add audio shaders (GLSL synthesized audio)

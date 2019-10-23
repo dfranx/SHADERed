@@ -38,7 +38,6 @@ Project.Rebuild CTRL F5
 Project.Save CTRL S
 Project.SaveAs CTRL P A
 Window.Exit ALT F4
-Workspace.Help CTRL H
 Workspace.HideEditor CTRL W E
 Workspace.HidePinned CTRL W N
 Workspace.HidePipeline CTRL W L
