@@ -144,9 +144,15 @@ namespace ed
 			}
 		} else if (e.type == SDL_MOUSEMOTION) {
 			if (Settings::Instance().Preview.Gizmo && m_picks.size() != 0) {
-				glm::vec2 s = m_mousePos;
+				const glm::vec2& zPos = m_zoom.GetZoomPosition();
+				const glm::vec2& zSize = m_zoom.GetZoomSize();
+
+				// screen space position
+				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+
 				s.x *= m_lastSize.x;
 				s.y *= m_lastSize.y;
+
 				m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
 			}
 			
@@ -437,14 +443,14 @@ namespace ed
 			{
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x*m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
-				
+
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
 				bool shiftPickBegan = ImGui::GetIO().KeyShift;
 
 				if ((settings.Preview.BoundingBox && !settings.Preview.Gizmo) ||
-					(m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, m_lastSize.x, m_lastSize.y) == -1) ||
+					(m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, imageSize.x, imageSize.y) == -1) ||
 					m_picks.size() == 0)
 				{
 					renderer->Pick(s.x, s.y, shiftPickBegan, [&](PipelineItem* item) {

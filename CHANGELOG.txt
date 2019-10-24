@@ -1,5 +1,6 @@
 [v1.2.4]
 + fix Home/End in TextEditor
++ fix gizmo interaction when preview is zoomed in
 + fix Find tool's highlighting
 + scroll to Find tool's selection
 + Editor.Replace is now bound to CTRL+H (instead of SHIFT+H)
