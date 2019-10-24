@@ -11,6 +11,7 @@
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/ThemeContainer.h"
 #include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -1324,6 +1325,119 @@ namespace ed
 					props->Open(item);
 				}
 			}
+
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload"))
+			{
+				// TODO: m_data->Pipeline.DuplicateItem() ?
+				ed::PipelineItem* dropItem = *(reinterpret_cast<ed::PipelineItem**>(payload->Data));
+				bool duplicate = ImGui::GetIO().KeyCtrl;
+
+				// first find a name that is not used
+				std::string name = std::string(dropItem->Name);
+
+				if (duplicate) { // change
+					// remove numbers at the end of the string
+					size_t lastOfLetter = std::string::npos;
+					for (size_t j = name.size() - 1; j > 0; j--)
+						if (!std::isdigit(name[j])) {
+							lastOfLetter = j + 1;
+							break;
+						}
+					if (lastOfLetter != std::string::npos)
+						name = name.substr(0, lastOfLetter);
+
+					// add number to the string and check if it already exists
+					for (size_t j = 2; /*WE WILL BRAKE FROM INSIDE ONCE WE FIND THE NAME*/; j++) {
+						std::string newName = name + std::to_string(j);
+						bool has = m_data->Pipeline.Has(newName.c_str());
+
+						if (!has) {
+							name = newName;
+							break;
+						}
+					}
+				}
+
+				// get item owner
+				void* itemData = nullptr;
+
+				// once we found a name, duplicate the properties:
+				// duplicate geometry object:
+				if (dropItem->Type == PipelineItem::ItemType::Geometry) {
+					pipe::GeometryItem* newData = new pipe::GeometryItem();
+					pipe::GeometryItem* origData = (pipe::GeometryItem*)dropItem->Data;
+					
+					newData->Position = origData->Position;
+					newData->Rotation = origData->Rotation;
+					newData->Scale = origData->Scale;
+					newData->Size = origData->Size;
+					newData->Topology = origData->Topology;
+					newData->Type = origData->Type;
+
+					if (newData->Type == pipe::GeometryItem::GeometryType::Cube)
+						newData->VAO = eng::GeometryFactory::CreateCube(newData->VBO, newData->Size.x, newData->Size.y, newData->Size.z, data->InputLayout);
+					else if (newData->Type == pipe::GeometryItem::Circle) {
+						newData->VAO = eng::GeometryFactory::CreateCircle(newData->VBO, newData->Size.x, newData->Size.y, data->InputLayout);
+						newData->Topology = GL_TRIANGLE_STRIP;
+					}
+					else if (newData->Type == pipe::GeometryItem::Plane)
+						newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, newData->Size.x, newData->Size.y, data->InputLayout);
+					else if (newData->Type == pipe::GeometryItem::Rectangle)
+						newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, 1, 1, data->InputLayout);
+					else if (newData->Type == pipe::GeometryItem::Sphere)
+						newData->VAO = eng::GeometryFactory::CreateSphere(newData->VBO, newData->Size.x, data->InputLayout);
+					else if (newData->Type == pipe::GeometryItem::Triangle)
+						newData->VAO = eng::GeometryFactory::CreateTriangle(newData->VBO, newData->Size.x, data->InputLayout);
+					else if (newData->Type == pipe::GeometryItem::ScreenQuadNDC)
+						newData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(newData->VBO, data->InputLayout);
+					
+					itemData = newData;
+				}
+
+				// duplicate Model:
+				else if (dropItem->Type == PipelineItem::ItemType::Model) {
+					pipe::Model* newData = new pipe::Model();
+					pipe::Model* origData = (pipe::Model*)dropItem->Data;
+
+					strcpy(newData->Filename, origData->Filename);
+					strcpy(newData->GroupName, origData->GroupName);
+					newData->OnlyGroup = origData->OnlyGroup;
+					newData->Scale = origData->Scale;
+					newData->Position = origData->Position;
+					newData->Rotation = origData->Rotation;
+
+
+					if (strlen(newData->Filename) > 0) {
+						std::string objMem = m_data->Parser.LoadProjectFile(newData->Filename);
+						eng::Model* mdl = m_data->Parser.LoadModel(newData->Filename);
+
+						bool loaded = mdl != nullptr;
+						if (loaded)
+							newData->Data = mdl;
+						else m_data->Messages.Add(ed::MessageStack::Type::Error, item->Name, "Failed to create .obj model " + std::string(item->Name));
+					}
+
+					itemData = newData;
+				}
+
+				if (!duplicate) {
+					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
+					if (props->HasItemSelected() && props->CurrentItemName() == dropItem->Name)
+						props->Open(nullptr);
+
+					PreviewUI* prev = ((PreviewUI*)m_ui->Get(ViewID::Preview));
+					if (prev->IsPicked(dropItem))
+						prev->Pick(nullptr);
+
+					m_data->Pipeline.Remove(dropItem->Name);
+				}
+
+				m_data->Pipeline.AddItem(item->Name, name.c_str(), dropItem->Type, itemData);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 
 		if (ewCount > 0)
@@ -1426,6 +1540,11 @@ namespace ed
 					}
 				}
 			}
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+		{
+			ImGui::SetDragDropPayload("PipelineItemPayload", &item, sizeof(ed::PipelineItem**));
+			ImGui::EndDragDropSource();
+		}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
 	}
 }

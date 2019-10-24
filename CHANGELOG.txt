@@ -1,4 +1,5 @@
 [v1.2.4]
++ add drag & drop to PipelineUI
 + fix Home/End in TextEditor
 + fix gizmo interaction when preview is zoomed in
 + fix Find tool's highlighting
