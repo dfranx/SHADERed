@@ -86,6 +86,7 @@ namespace ed
 				FBO = 0;
 				RTCount = 0;
 				GSUsed = false;
+				Active = true;
 				Macros.clear();
 				memset(VSPath, 0, sizeof(char) * MAX_PATH);
 				memset(PSPath, 0, sizeof(char) * MAX_PATH);
@@ -99,6 +100,8 @@ namespace ed
 			GLuint RenderTextures[MAX_RENDER_TEXTURES];
 			GLuint DepthTexture; // pointer to actual depth & stencil texture
 			GLuint FBO; // actual framebuffer
+
+			bool Active;
 
 			char VSPath[MAX_PATH];
 			char VSEntry[32];

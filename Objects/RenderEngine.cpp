@@ -87,7 +87,7 @@ namespace ed
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-				if (data->Items.size() <= 0)
+				if (!data->Active || data->Items.size() <= 0)
 					continue;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);

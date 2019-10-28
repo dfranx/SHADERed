@@ -196,6 +196,7 @@ namespace ed
 				pipe::ShaderPass *passData = (pipe::ShaderPass *)passItem->Data;
 
 				passNode.append_attribute("type").set_value("shader");
+				passNode.append_attribute("active").set_value(passData->Active);
 
 				/* collapsed="true" attribute */
 				for (int i = 0; i < collapsedSP.size(); i++)
@@ -1629,6 +1630,10 @@ namespace ed
 				data->RenderTextures[0] = m_renderer->GetTexture();
 				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
 					data->RenderTextures[i] = 0;
+
+				data->Active = true;
+				if (!passNode.attribute("active").empty())
+					data->Active = passNode.attribute("active").as_bool();
 
 				// check if it should be collapsed
 				if (!passNode.attribute("collapsed").empty()) {

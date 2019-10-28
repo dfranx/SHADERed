@@ -20,10 +20,8 @@ List of features I want to implement:
  - "import from ShaderToy" option
 
 Except those features, I am also looking to do some small QoL changes and fixes:
+ - shift+drag with right click to move ArcBallCamera focus point
+ - undo/redo
  - improve the overall code (enum for shader type, etc...)
  - fix memory leaks
- - shift+drag with right click to move ArcBallCamera focus point
- - move 3D models to ObjectManager
- - undo/redo
  - show tips on startup & 'whats new' on first startup
- - add an option to hide and/or lock certain shader pass

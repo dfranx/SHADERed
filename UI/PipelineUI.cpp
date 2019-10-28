@@ -18,8 +18,8 @@
 #include <algorithm>
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
-#define PIPELINE_SHADER_PASS_INDENT 75 * Settings::Instance().DPIScale
-#define PIPELINE_ITEM_INDENT 85 * Settings::Instance().DPIScale
+#define PIPELINE_SHADER_PASS_INDENT 95 * Settings::Instance().DPIScale
+#define PIPELINE_ITEM_INDENT 105 * Settings::Instance().DPIScale
 #define BUTTON_ICON_SIZE ImVec2(20 * Settings::Instance().DPIScale, 0)
 
 namespace ed
@@ -41,12 +41,14 @@ namespace ed
 			m_renderItemUpDown(items, i);
 
 			if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+				
 				m_addShaderPass(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
 					continue;
 				}
 
+				bool isShaderPassActive = ((pipe::ShaderPass*)items[i]->Data)->Active;
 				ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
 
 				bool showItems = true;
@@ -59,7 +61,13 @@ namespace ed
 				if (showItems) {
 					for (int j = 0; j < data->Items.size(); j++) {
 						m_renderItemUpDown(data->Items, j);
+						
+						if (!isShaderPassActive)
+							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 						m_addItem(data->Items[j]);
+						if (!isShaderPassActive)
+							ImGui::PopStyleVar();
+
 						if (m_renderItemContext(data->Items, j)) {
 							j--;
 							continue;
@@ -1276,6 +1284,12 @@ namespace ed
 		expandTxt += "##passexp_" + std::string(item->Name);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		if (ImGui::Button(std::string(std::string(data->Active ? UI_ICON_EYE : UI_ICON_EYE_BLOCKED) + "##hide" + std::string(item->Name)).c_str(), BUTTON_ICON_SIZE))
+		{
+			data->Active = !data->Active;
+			m_data->Parser.ModifyProject();
+		}
+		ImGui::SameLine(0,0);
 		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE))
 		{
 			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos)
@@ -1297,6 +1311,9 @@ namespace ed
 		if (ewCount > 0)
 			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
 		
+		if (!data->Active)
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 			if (ImGui::IsMouseDoubleClicked(0))
@@ -1439,7 +1456,10 @@ namespace ed
 		}
 
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
-
+		
+		if (!data->Active)
+			ImGui::PopStyleVar();
+			
 		if (ewCount > 0)
 			ImGui::PopStyleColor();
 	}
