@@ -92,7 +92,8 @@ You can also change shader variable value only for a specific 3D object. No prog
 Working on an antialiasing shader? You can zoom in and inspect edges of 3D objects.
 Hold ALT and select an area that you want to look at in more detail
 <p align="center">
-    <img width="400" src="./Screenshots/zoomin.gif">
+    <img width="400" src="./Screenshots/zoomin.gif"><br/>
+    <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
 </p>
 
 ### Workspace
@@ -179,6 +180,8 @@ detailed steps on how to do so.
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)
+    <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
+
 ![](https://user-images.githubusercontent.com/3957610/64245795-e54b0680-cf0b-11e9-8799-ea7ace785190.png)
 
 Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!

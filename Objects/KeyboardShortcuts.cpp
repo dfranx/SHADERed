@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <ImGuiColorTextEdit/TextEditor.h>
 #include <SDL2/SDL_keyboard.h>
 
 namespace ed
@@ -19,6 +20,12 @@ namespace ed
 
 		std::ifstream file("data/shortcuts.kb");
 		std::string str;
+
+		// pre setup Editor shortcuts (TODO: improve this... TextEditor::GetDefaultShortcuts())
+		std::vector<TextEditor::Shortcut> eds = TextEditor::GetDefaultShortcuts();
+		for (int i = 0; i < eds.size(); i++)
+			Set(std::string("Editor." + std::string(EDITOR_SHORTCUT_NAMES[i])).c_str(), eds[i].Key1, eds[i].Key2, eds[i].Alt, eds[i].Ctrl, eds[i].Shift);
+
 
 		while (std::getline(file, str)) {
 			std::stringstream ss(str);
@@ -90,7 +97,9 @@ namespace ed
 		for (auto& i : m_data)
 			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
 				if (!(name == "CodeUI.Save" && i.first == "Project.Save") &&
-					!(name == "Project.Save" && i.first == "CodeUI.Save"))
+					!(name == "Project.Save" && i.first == "CodeUI.Save") &&
+					((name.substr(0, 6) != "Editor" && i.first.substr(0,6) != "Editor") ||
+					 (name.substr(0, 6) == "Editor" && i.first.substr(0, 6) == "Editor")))
 				{
 					i.second.Ctrl = i.second.Alt = i.second.Shift = false;
 					i.second.Key1 = i.second.Key2 = -1;

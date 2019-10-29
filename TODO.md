@@ -20,7 +20,6 @@ List of features I want to implement:
  - "import from ShaderToy" option
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - rework TextEditor shortcuts ( by splitting (CTRL)+(SHIFT)+ARROW shortcut into several separate shortcuts ARROW, CTRL+ARROW, SHIFT+ARROW, CTRL+SHIFT+ARROW, etc... )
  - shift+drag with right click to move ArcBallCamera focus point
  - improve the overall code (enum for shader type, etc...)
  - fix memory leaks
