@@ -83,6 +83,8 @@ namespace ed
 
 			SystemVariableManager::Instance().AdvanceTimer(deltaTime); // add one second to timer
 			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 1);
+		
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.IncreaseTimeFast", [=]() {
 			if (!m_data->Renderer.IsPaused())
@@ -93,6 +95,8 @@ namespace ed
 			SystemVariableManager::Instance().AdvanceTimer(0.1f); // add one second to timer
 			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
 					0.1f/deltaTime); // add estimated number of frames
+
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.TogglePause", [=]() {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
@@ -237,6 +241,7 @@ namespace ed
 
 		ed::Settings& settings = Settings::Instance();
 
+		bool paused = m_data->Renderer.IsPaused();
 		bool capWholeApp = settings.Preview.ApplyFPSLimitToApp;
 		bool statusbar = settings.Preview.StatusBar;
 		float fpsLimit = settings.Preview.FPSLimit;
@@ -245,7 +250,7 @@ namespace ed
 			m_fpsLimit = fpsLimit;
 		}
 
-		ImVec2 imageSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
+		ImVec2 imageSize = m_imgSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
 		ed::RenderEngine* renderer = &m_data->Renderer;
 
 		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
@@ -258,7 +263,8 @@ namespace ed
 		m_fpsUpdateTime += delta;
 		m_elapsedTime += delta;
 		if (capWholeApp || m_fpsLimit <= 0 || m_elapsedTime >= 1.0f / m_fpsLimit) {
-			renderer->Render(imageSize.x, imageSize.y);
+			if (!paused)
+				renderer->Render(imageSize.x, imageSize.y);
 
 			float fps = m_fpsTimer.Restart();
 			if (m_fpsUpdateTime > FPS_UPDATE_RATE) {
@@ -318,7 +324,7 @@ namespace ed
 				1 - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 		m_zoom.SetCurrentMousePosition(m_mousePos);
 
-		if (!m_data->Renderer.IsPaused()) {
+		if (!paused) {
 			// update wasd key state
 			SystemVariableManager::Instance().SetKeysWASD(ImGui::IsKeyDown(SDL_SCANCODE_W), ImGui::IsKeyDown(SDL_SCANCODE_A), ImGui::IsKeyDown(SDL_SCANCODE_S), ImGui::IsKeyDown(SDL_SCANCODE_D));
 
@@ -410,7 +416,7 @@ namespace ed
 
 		// mouse controls for preview window
 		m_mouseHovers = ImGui::IsItemHovered();
-		if (m_mouseHovers) {
+		if (m_mouseHovers && !paused) {
 			bool fp = settings.Project.FPCamera;
 
 			// rt zoom in/out
@@ -752,6 +758,8 @@ namespace ed
 				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
 					0.1f/deltaTime); // add estimated number of frames
 			}
+
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		}
 		ImGui::SameLine();
 
