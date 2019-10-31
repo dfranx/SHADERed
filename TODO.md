@@ -2,9 +2,6 @@
  1.3    -> shader debugger
 
  1.3.*  -> improve debugger
- 
- **BUGS:**
- - CodeEditorUI loses focus when pressing ALT keys on linux
 
 # TODO
 List of features I want to implement:
