@@ -3,7 +3,6 @@
 [v1.2.4]
 + add drag & drop to PipelineUI
 + add ability to "hide/deactivate" certain shader pass
-+ fix a bug where TextEditor would lose focus on ALT key press
 + fix TextEditor shortcut system (**please update your shortcuts.kb file**)
 + fix Home/End in TextEditor
 + fix gizmo interaction when preview is zoomed in
