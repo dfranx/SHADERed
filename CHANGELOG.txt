@@ -1,3 +1,5 @@
+[v1.3]
+
 [v1.2.4]
 + add drag & drop to PipelineUI
 + add ability to "hide/deactivate" certain shader pass

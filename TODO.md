@@ -1,6 +1,4 @@
 # PLAN
- 1.2.*  -> polishing & fixing
-
  1.3    -> shader debugger
 
  1.3.*  -> improve debugger
@@ -11,7 +9,7 @@
 # TODO
 List of features I want to implement:
  - debugger & pixel inspect tool
- - godot shaders
+ - plugin API, godot shaders
  - ability to render your shader to a video file
  - node shader editor that can export to GLSL and HLSL
  - shader & theme "store"
@@ -20,7 +18,6 @@ List of features I want to implement:
  - "import from ShaderToy" option
 
 Except those features, I am also looking to do some small QoL changes and fixes:
- - shift+drag with right click to move ArcBallCamera focus point
  - improve the overall code (enum for shader type, etc...)
  - fix memory leaks
  - show tips on startup & 'whats new' on first startup, splash screen
