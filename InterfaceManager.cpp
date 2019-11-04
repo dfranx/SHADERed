@@ -11,6 +11,12 @@ namespace ed
 		Parser(&Pipeline, &Objects, &Renderer, &Messages, gui)
 	{
 		m_ui = gui;
+
+		Plugins.Init(); // load plugins (TODO: maybe move this to the splash screen)
+	}
+	InterfaceManager::~InterfaceManager()
+	{
+		Plugins.Destroy();
 	}
 	void InterfaceManager::OnEvent(const SDL_Event& e)
 	{}

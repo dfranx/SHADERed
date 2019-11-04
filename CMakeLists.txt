@@ -15,6 +15,7 @@ set(SOURCES
 	InterfaceManager.cpp
 
 # objects:
+	Objects/PluginAPI/PluginManager.cpp
 	Objects/ArcBallCamera.cpp
 	Objects/AudioAnalyzer.cpp
 	Objects/AudioShaderStream.cpp

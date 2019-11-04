@@ -1,4 +1,5 @@
 #pragma once
+#include "Objects/PluginAPI/PluginManager.h"
 #include "Objects/PipelineManager.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/ProjectParser.h"
@@ -14,10 +15,12 @@ namespace ed
 	{
 	public:
 		InterfaceManager(GUIManager* gui);
+		~InterfaceManager();
 
 		void OnEvent(const SDL_Event& e);
 		void Update(float delta);
 
+		PluginManager Plugins;
 		RenderEngine Renderer;
 		PipelineManager Pipeline;
 		ObjectManager Objects;

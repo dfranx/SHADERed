@@ -608,6 +608,13 @@ namespace ed
 					#endif
 				}
 
+				for (const auto& plugin : m_data->Plugins.Plugins()) {
+					if (plugin->HasMenuFileItems()) {
+						ImGui::Separator();
+						plugin->ShowMenuFileItems();
+					}
+				}
+
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
 					SDL_DestroyWindow(m_wnd);
