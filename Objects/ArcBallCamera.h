@@ -41,6 +41,7 @@ namespace ed
 			this->m_yaw = arc.m_yaw;
 			this->m_pitch = arc.m_pitch;
 			this->m_roll = arc.m_roll;
+			return *this;
 		}
 
 	private:
