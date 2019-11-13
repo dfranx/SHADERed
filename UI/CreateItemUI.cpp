@@ -652,10 +652,33 @@ namespace ed
 	void CreateItemUI::SetType(PipelineItem::ItemType type)
 	{
 		m_errorOccured = false;
+		
+		//TODO: make it type-safe.
+		if (m_item.Data != nullptr) {
+			switch (m_item.Type) {
+				case PipelineItem::ItemType::Geometry:
+					delete (pipe::GeometryItem*)m_item.Data;
+					break;
+				case PipelineItem::ItemType::ShaderPass:
+					delete (pipe::ShaderPass*)m_item.Data;
+					break;
+				case PipelineItem::ItemType::RenderState:
+					delete (pipe::RenderState *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::Model:
+					delete (pipe::Model *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::ComputePass:
+					delete (pipe::ComputePass *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::AudioPass:
+					delete (pipe::AudioPass *)m_item.Data;
+					break;
+			}
+			m_item.Data = nullptr;
+		}
+		
 		m_item.Type = type;
-
-		if (m_item.Data != nullptr)
-			delete m_item.Data;
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
 			Logger::Get().Log("Opening a CreateItemUI for creating Geometry object...");
