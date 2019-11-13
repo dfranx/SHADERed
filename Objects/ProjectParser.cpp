@@ -766,21 +766,34 @@ namespace ed
 				}
 			}
 
+			ed::Settings& settings = Settings::Instance();
+
 			// clear color
 			{
 				pugi::xml_node colorNode = settingsNode.append_child("entry");
 				colorNode.append_attribute("type").set_value("clearcolor");
-				colorNode.append_attribute("r").set_value(Settings::Instance().Project.ClearColor.r);
-				colorNode.append_attribute("g").set_value(Settings::Instance().Project.ClearColor.g);
-				colorNode.append_attribute("b").set_value(Settings::Instance().Project.ClearColor.b);
-				colorNode.append_attribute("a").set_value(Settings::Instance().Project.ClearColor.a);
+				colorNode.append_attribute("r").set_value(settings.Project.ClearColor.r);
+				colorNode.append_attribute("g").set_value(settings.Project.ClearColor.g);
+				colorNode.append_attribute("b").set_value(settings.Project.ClearColor.b);
+				colorNode.append_attribute("a").set_value(settings.Project.ClearColor.a);
 			}
 
 			// usealpha
 			{
 				pugi::xml_node alphaNode = settingsNode.append_child("entry");
 				alphaNode.append_attribute("type").set_value("usealpha");
-				alphaNode.append_attribute("val").set_value(Settings::Instance().Project.UseAlphaChannel);
+				alphaNode.append_attribute("val").set_value(settings.Project.UseAlphaChannel);
+			}
+
+			// include paths
+			if (settings.Project.IncludePaths.size() > 0) {
+				pugi::xml_node pathsNode = settingsNode.append_child("entry");
+				pathsNode.append_attribute("type").set_value("ipaths");
+
+				for (int j = 0; j < settings.Project.IncludePaths.size(); j++) {
+					pugi::xml_node ipath = pathsNode.append_child("path");
+					ipath.text().set(settings.Project.IncludePaths[j].c_str());
+				}
 			}
 		}
 
@@ -1006,6 +1019,8 @@ namespace ed
 		Logger::Get().Log("Parsing a V1 project file...");
 
 		std::map<pipe::ShaderPass*, std::vector<std::string>> fbos;
+
+		Settings::Instance().Project.IncludePaths.clear();
 
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
@@ -1603,6 +1618,8 @@ namespace ed
 	void ProjectParser::m_parseV2(pugi::xml_node& projectNode)
 	{
 		Logger::Get().Log("Parsing a V2 project file...");
+
+		Settings::Instance().Project.IncludePaths.clear();
 
 		std::map<pipe::ShaderPass*, std::vector<std::string>> fbos;
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>> geoUBOs; // buffers that are bound to pipeline items
@@ -2725,6 +2742,11 @@ namespace ed
 						Settings::Instance().Project.UseAlphaChannel = settingItem.attribute("val").as_bool();
 					else 
 						Settings::Instance().Project.UseAlphaChannel = false;
+				}
+				else if (type == "ipaths") {
+					Settings::Instance().Project.IncludePaths.clear();
+					for (pugi::xml_node pathNode : settingItem.children("path"))
+						Settings::Instance().Project.IncludePaths.push_back(pathNode.text().as_string());
 				}
 			}
 		}

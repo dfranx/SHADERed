@@ -10,6 +10,22 @@
 
 namespace ed
 {
+	bool UIHelper::GetOpenDirectoryDialog(std::string& outPath)
+	{
+		nfdchar_t* path = NULL;
+		nfdresult_t result = NFD_PickFolder(NULL, &path);
+		setlocale(LC_ALL, "C");
+
+		outPath = "";
+		if (result == NFD_OKAY) {
+			outPath = std::string(path);
+			return true;
+		}
+		else if (result == NFD_ERROR)
+			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
+
+		return false;
+	}
 	bool UIHelper::GetOpenFileDialog(std::string& outPath, const std::string& files)
 	{
 		nfdchar_t *path = NULL;

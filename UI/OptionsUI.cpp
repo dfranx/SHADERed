@@ -2,6 +2,7 @@
 #include "CodeEditorUI.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include "../Options.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ThemeContainer.h"
@@ -661,5 +662,45 @@ namespace ed
 		if (ImGui::ColorEdit4("##optpr_clrclr", glm::value_ptr(settings->Project.ClearColor)))
 			m_data->Parser.ModifyProject();
 		ImGui::PopItemWidth();
+
+		/* INCLUDE PATHS: */
+		ImGui::Text("Include directories: ");
+		ImGui::SameLine();
+		ImGui::Indent(150 * settings->DPIScale);
+		static char ipathEntry[MAX_PATH] = { 0 };
+		if (ImGui::ListBoxHeader("##optpr_ipaths", ImVec2(0, 250 * settings->DPIScale))) {
+			for (auto& ext : settings->Project.IncludePaths)
+				if (ImGui::Selectable(ext.c_str()))
+					strcpy(ipathEntry, ext.c_str());
+			ImGui::ListBoxFooter();
+		}
+		ImGui::PushItemWidth(250 * settings->DPIScale);
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::InputText("##optpr_ipath_inp", ipathEntry, MAX_PATH);
+		ImGui::PopItemFlag();
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("ADD##optpr_btnaddext")) {
+			bool exists = false;
+			std::string newIPath = "";
+			bool isAdded =UIHelper::GetOpenDirectoryDialog(newIPath);
+			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
+				if (settings->Project.IncludePaths[i] == newIPath) {
+					exists = true;
+					break;
+				}
+			if (!exists && isAdded)
+				settings->Project.IncludePaths.push_back(m_data->Parser.GetRelativePath(newIPath));
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("REMOVE##optpr_btnremext")) {
+			std::string glslExtEntryStr(ipathEntry);
+			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
+				if (settings->Project.IncludePaths[i] == glslExtEntryStr) {
+					settings->Project.IncludePaths.erase(settings->Project.IncludePaths.begin() + i);
+					break;
+				}
+		}
+		ImGui::Unindent(250 * settings->DPIScale);
 	}
 }

@@ -11,6 +11,7 @@
 #include "../Engine/Ray.h"
 
 #include <algorithm>
+#include <ghc/filesystem.hpp>
 #include <glm/gtx/intersect.hpp>
 
 static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
@@ -433,6 +434,7 @@ namespace ed
 						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs);
 						psEntry = "main";
 					}
+					m_includeCheck(psContent, std::vector<std::string>());
 
 					shader->Variables.UpdateTextureList(psContent);
 					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
@@ -450,6 +452,7 @@ namespace ed
 						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
 						vsEntry = "main";
 					}
+					m_includeCheck(vsContent, std::vector<std::string>());
 
 					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
@@ -475,6 +478,7 @@ namespace ed
 							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
 							m_msgs->Add(MessageStack::Type::Warning, name, "HLSL geometry shaders are currently not supported by glslang");
 						}
+						m_includeCheck(gsContent, std::vector<std::string>());
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
@@ -524,6 +528,7 @@ namespace ed
 						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path), m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs);
 						entry = "main";
 					}
+					m_includeCheck(content, std::vector<std::string>());
 
 					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
 					GLuint cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
@@ -955,6 +960,7 @@ namespace ed
 						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs);
 						vsEntry = "main";
 					}
+					m_includeCheck(vsContent, std::vector<std::string>());
 					
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
@@ -971,6 +977,7 @@ namespace ed
 						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath), m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs);
 						psEntry = "main";
 					}
+					m_includeCheck(psContent, std::vector<std::string>());
 
 					data->Variables.UpdateTextureList(psContent);
 					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
@@ -993,6 +1000,7 @@ namespace ed
 							
 							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
+						m_includeCheck(gsContent, std::vector<std::string>());
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
@@ -1056,6 +1064,7 @@ namespace ed
 						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->Path), m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs);
 						entry = "main";
 					}
+					m_includeCheck(content, std::vector<std::string>());
 
 					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
 					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
@@ -1210,6 +1219,52 @@ namespace ed
 
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
+	}
+	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack)
+	{
+		size_t incLoc = src.find("#include");
+		Settings& settings = Settings::Instance();
+
+		std::vector<std::string> paths = settings.Project.IncludePaths;
+		paths.push_back(".");
+
+		while (incLoc != std::string::npos) {
+			bool isAfterNewline = true;
+			if (incLoc != 0)
+				if (src[incLoc - 1] != '\n')
+					isAfterNewline = false;
+
+			if (!isAfterNewline) {
+				incLoc = src.find("#include", incLoc + 1);
+				continue;
+			}
+
+			size_t quotePos = src.find_first_of("\"<", incLoc);
+			size_t quoteEnd = src.find_first_of("\">", quotePos + 1);
+			std::string fileName = src.substr(quotePos+1, quoteEnd - quotePos-1);
+
+			for (int i = 0; i < paths.size(); i++) {
+				std::string ipath = paths[i];
+				char last = ipath[ipath.size() - 1];
+				if (last != '\\' && last != '/')
+					ipath += "/";
+
+				ipath += fileName;
+
+				if (m_project->FileExists(ipath) && std::count(includeStack.begin(), includeStack.end(), ipath) == 0) {
+					std::string incFileSrc = m_project->LoadProjectFile(ipath);
+
+					m_includeCheck(incFileSrc, includeStack);
+
+					src.erase(incLoc, src.find_first_of('\n', incLoc)-incLoc);
+					src.insert(incLoc, incFileSrc);
+
+					break;
+				}
+			}
+
+			incLoc = src.find("#include", incLoc + 1);
+		}
 	}
 	void RenderEngine::m_updatePassFBO(ed::pipe::ShaderPass* pass)
 	{
