@@ -32,6 +32,7 @@ namespace ed
 			this->m_pos = fp.m_pos;
 			this->m_yaw = fp.m_yaw;
 			this->m_pitch = fp.m_pitch;
+			return *this;
 		}
 
 	private:
