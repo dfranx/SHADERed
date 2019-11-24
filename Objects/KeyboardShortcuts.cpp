@@ -91,15 +91,13 @@ namespace ed
 		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && !m_canSolo(name, VK1)))
 			return false;
 
-		// TODO: maybe this log is too much?
-		Logger::Get().Log("Set keyboard shortcut (" + name + ")");
-
 		for (auto& i : m_data)
 			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
 				if (!(name == "CodeUI.Save" && i.first == "Project.Save") &&
 					!(name == "Project.Save" && i.first == "CodeUI.Save") &&
-					((name.substr(0, 6) != "Editor" && i.first.substr(0,6) != "Editor") ||
-					 (name.substr(0, 6) == "Editor" && i.first.substr(0, 6) == "Editor")))
+					((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) ||
+					 (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor 
+						(name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos)))) 
 				{
 					i.second.Ctrl = i.second.Alt = i.second.Shift = false;
 					i.second.Key1 = i.second.Key2 = -1;
@@ -206,6 +204,7 @@ namespace ed
 	}
 	bool KeyboardShortcuts::m_canSolo(const std::string& name, int k)
 	{
-		return (k >= SDLK_F1 && k <= SDLK_F12) || (k >= SDLK_F13 && k <= SDLK_F24) || (name.find("Editor") == std::string::npos);
+		bool isEditorSpecial = (name.find("Editor") != std::string::npos) && !((k >= SDLK_0 && k <= SDLK_9) || (k >= SDLK_a && k <= SDLK_z)); // the key can go solo if it's a "special" key
+		return (k >= SDLK_F1 && k <= SDLK_F12) || (k >= SDLK_F13 && k <= SDLK_F24) || isEditorSpecial || (name.find("Editor") == std::string::npos);
 	}
 }
