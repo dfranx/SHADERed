@@ -42,7 +42,7 @@ namespace ed
 
 		return true;
 	}
-	void AudioShaderStream::compileFromShaderSource(MessageStack* m_msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL)
+	void AudioShaderStream::compileFromShaderSource(ProjectParser* project, MessageStack* m_msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL)
 	{
 		if (getStatus() != sf::SoundSource::Status::Playing)
 			stop();
@@ -87,7 +87,7 @@ namespace ed
 		
 		std::string psTrans = "";
 		if (isHLSL)
-			psTrans = ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, 1, "main", macros, false, m_msgs);
+			psTrans = ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, 1, "main", macros, false, m_msgs, project);
 		const char* psSource = isHLSL ? psTrans.c_str() : psCodeIn.c_str();
 
 		GLint success = 0;

@@ -6,6 +6,7 @@
 
 #include "Logger.h"
 #include "Settings.h"
+#include "HLSLFileIncluder.h"
 #include "ShaderTranscompiler.h"
 #include <glslang/glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
@@ -125,7 +126,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
 
 namespace ed
 {
-	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string &filename, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs)
+	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string &filename, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs, ProjectParser* project)
 	{
 		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
 
@@ -145,9 +146,9 @@ namespace ed
 
 		file.close();
 
-		return ShaderTranscompiler::TranscompileSource(inLang, filename, inputHLSL, sType, entry, macros, gsUsed, msgs);
+		return ShaderTranscompiler::TranscompileSource(inLang, filename, inputHLSL, sType, entry, macros, gsUsed, msgs, project);
 	}
-	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string &filename, const std::string &inputHLSL, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs)
+	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string &filename, const std::string &inputHLSL, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs, ProjectParser* project)
 	{
 		const char* inputStr = inputHLSL.c_str();
 
@@ -168,14 +169,14 @@ namespace ed
 		shader.setStrings(&inputStr, 1);
 
 		// set macros
-		std::string macroStr = "";
+		std::string preambleStr = "#extension GL_GOOGLE_include_directive : enable\n";
 		for (auto& macro : macros) {
 			if (!macro.Active)
 				continue;
-			macroStr += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+			preambleStr += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
 		}
-		if (macroStr.size() > 0)
-			shader.setPreamble(macroStr.c_str());
+		if (preambleStr.size() > 0)
+			shader.setPreamble(preambleStr.c_str());
 
 		// set up
 		int sVersion = (sType == 3) ? 430 : 330;
@@ -192,8 +193,11 @@ namespace ed
 		const int defVersion = sVersion;
 
 		// includer
-		DirStackFileIncluder includer;
+		ed::HLSLFileIncluder includer;
 		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
+		if (project != nullptr)
+			for (auto& str : Settings::Instance().Project.IncludePaths)
+				includer.pushExternalLocalDirectory(project->GetProjectPath(str));
 
 		std::string processedShader;
 

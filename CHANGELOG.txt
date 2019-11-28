@@ -1,5 +1,5 @@
 [v1.3]
-+ add support for #include
++ add support for #include keyword
 
 [v1.2.4]
 + add drag & drop to PipelineUI

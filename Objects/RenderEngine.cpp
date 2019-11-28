@@ -429,12 +429,12 @@ namespace ed
 					m_msgs->CurrentItemType = 1;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL) {// GLSL
 						psContent = m_project->LoadProjectFile(shader->PSPath);
+						m_includeCheck(psContent, std::vector<std::string>());
 						m_applyMacros(psContent, shader);
 					} else { // HLSL / VK
-						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs);
+						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
 						psEntry = "main";
 					}
-					m_includeCheck(psContent, std::vector<std::string>());
 
 					shader->Variables.UpdateTextureList(psContent);
 					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
@@ -447,12 +447,12 @@ namespace ed
 					m_msgs->CurrentItemType = 0;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL) {// GLSL
 						vsContent = m_project->LoadProjectFile(shader->VSPath);
+						m_includeCheck(vsContent, std::vector<std::string>());
 						m_applyMacros(vsContent, shader);
 					} else { // HLSL / VK
-						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs);
+						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
 						vsEntry = "main";
 					}
-					m_includeCheck(vsContent, std::vector<std::string>());
 
 					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
@@ -470,15 +470,15 @@ namespace ed
 						m_msgs->CurrentItemType = 2;
 						if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL) {// GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
+							m_includeCheck(gsContent, std::vector<std::string>());
 							m_applyMacros(gsContent, shader);
 						} else { // HLSL / VK
-							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs);
+							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
 							gsEntry = "main";
 
 							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
 							m_msgs->Add(MessageStack::Type::Warning, name, "HLSL geometry shaders are currently not supported by glslang");
 						}
-						m_includeCheck(gsContent, std::vector<std::string>());
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
@@ -523,12 +523,12 @@ namespace ed
 					m_msgs->CurrentItemType = 3;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL) {// GLSL
 						content = m_project->LoadProjectFile(shader->Path);
+						m_includeCheck(content, std::vector<std::string>());
 						m_applyMacros(content, shader);
 					} else { // HLSL / VK
-						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path), m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs);
+						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path), m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs, m_project);
 						entry = "main";
 					}
-					m_includeCheck(content, std::vector<std::string>());
 
 					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
 					GLuint cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
@@ -569,7 +569,7 @@ namespace ed
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, shader);
 					
-					shader->Stream.compileFromShaderSource(m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
+					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
 				}
 			}
@@ -707,7 +707,7 @@ namespace ed
 
 					// audio shader
 					if (vssrc.size() > 0)
-						shader->Stream.compileFromShaderSource(m_msgs, vssrc, shader->Macros, true);
+						shader->Stream.compileFromShaderSource(m_project, m_msgs, vssrc, shader->Macros, true);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
 				}
 			}
@@ -955,12 +955,12 @@ namespace ed
 					m_msgs->CurrentItemType = 0;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath) == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(data->VSPath);
+						m_includeCheck(vsContent, std::vector<std::string>());
 						m_applyMacros(vsContent, data);
 					} else { // HLSL / VK
-						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs);
+						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
 						vsEntry = "main";
 					}
-					m_includeCheck(vsContent, std::vector<std::string>());
 					
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
@@ -972,12 +972,12 @@ namespace ed
 					m_msgs->CurrentItemType = 1;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(data->PSPath);
+						m_includeCheck(psContent, std::vector<std::string>());
 						m_applyMacros(psContent, data);
 					} else { // HLSL / VK
-						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath), m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs);
+						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath), m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
 						psEntry = "main";
 					}
-					m_includeCheck(psContent, std::vector<std::string>());
 
 					data->Variables.UpdateTextureList(psContent);
 					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
@@ -993,14 +993,14 @@ namespace ed
 						m_msgs->CurrentItemType = 2;
 						if (ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(data->GSPath);
+							m_includeCheck(gsContent, std::vector<std::string>());
 							m_applyMacros(gsContent, data);
 						} else { // HLSL
-							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath), m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs);
+							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath), m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
 							gsEntry = "main";
 							
 							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
-						m_includeCheck(gsContent, std::vector<std::string>());
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
@@ -1059,12 +1059,12 @@ namespace ed
 					m_msgs->CurrentItemType = 3;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(data->Path);
+						m_includeCheck(content, std::vector<std::string>());
 						m_applyMacros(content, data);
 					} else { // HLSL / VK
-						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->Path), m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs);
+						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->Path), m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs, m_project);
 						entry = "main";
 					}
-					m_includeCheck(content, std::vector<std::string>());
 
 					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
 					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
@@ -1113,7 +1113,7 @@ namespace ed
 					m_msgs->CurrentItemType = 1;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, data);
-					data->Stream.compileFromShaderSource(m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
+					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
 						
 					data->Variables.UpdateUniformInfo(data->Stream.getShader());
 				}
@@ -1252,6 +1252,8 @@ namespace ed
 				ipath += fileName;
 
 				if (m_project->FileExists(ipath) && std::count(includeStack.begin(), includeStack.end(), ipath) == 0) {
+					includeStack.push_back(ipath);
+
 					std::string incFileSrc = m_project->LoadProjectFile(ipath);
 
 					m_includeCheck(incFileSrc, includeStack);
