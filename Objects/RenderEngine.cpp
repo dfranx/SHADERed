@@ -424,12 +424,13 @@ namespace ed
 					std::string psContent = "", vsContent = "",
 						vsEntry = shader->VSEntry,
 						psEntry = shader->PSEntry;
+					int lineBias = 0;
 
 					// pixel shader
 					m_msgs->CurrentItemType = 1;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL) {// GLSL
 						psContent = m_project->LoadProjectFile(shader->PSPath);
-						m_includeCheck(psContent, std::vector<std::string>());
+						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, shader);
 					} else { // HLSL / VK
 						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
@@ -441,13 +442,14 @@ namespace ed
 					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 
 					if (!psCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
+						m_msgs->Add(gl::ParseMessages(name, 1, cMsg, lineBias));
 
 					// vertex shader
 					m_msgs->CurrentItemType = 0;
+					lineBias = 0;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL) {// GLSL
 						vsContent = m_project->LoadProjectFile(shader->VSPath);
-						m_includeCheck(vsContent, std::vector<std::string>());
+						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, shader);
 					} else { // HLSL / VK
 						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
@@ -458,7 +460,7 @@ namespace ed
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
 
 					if (!vsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
+						m_msgs->Add(gl::ParseMessages(name, 0, cMsg, lineBias));
 
 					// geometry shader
 					bool gsCompiled = true;
@@ -468,9 +470,10 @@ namespace ed
 							gsEntry = shader->GSEntry;
 
 						m_msgs->CurrentItemType = 2;
+						lineBias = 0;
 						if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL) {// GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
-							m_includeCheck(gsContent, std::vector<std::string>());
+							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
 						} else { // HLSL / VK
 							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
@@ -484,7 +487,7 @@ namespace ed
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
 
 						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
+							m_msgs->Add(gl::ParseMessages(name, 2, cMsg, lineBias));
 					}
 
 					if (m_shaders[i] != 0)
@@ -518,12 +521,13 @@ namespace ed
 					m_msgs->ClearGroup(name);
 
 					std::string content = "", entry = shader->Entry;
+					int lineBias = 0;
 
 					// compute shader
 					m_msgs->CurrentItemType = 3;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL) {// GLSL
 						content = m_project->LoadProjectFile(shader->Path);
-						m_includeCheck(content, std::vector<std::string>());
+						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, shader);
 					} else { // HLSL / VK
 						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path), m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs, m_project);
@@ -535,7 +539,7 @@ namespace ed
 					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
 
 					if (!compiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 3, cMsg));
+						m_msgs->Add(gl::ParseMessages(name, 3, cMsg, lineBias));
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
@@ -950,12 +954,13 @@ namespace ed
 					std::string psContent = "", vsContent = "",
 						vsEntry = data->VSEntry,
 						psEntry = data->PSEntry;
+					int lineBias = 0;
 
 					// vertex shader
 					m_msgs->CurrentItemType = 0;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath) == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(data->VSPath);
-						m_includeCheck(vsContent, std::vector<std::string>());
+						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, data);
 					} else { // HLSL / VK
 						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
@@ -966,13 +971,14 @@ namespace ed
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
 
 					if (!vsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 0, cMsg));
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 0, cMsg, lineBias));
 
 					// pixel shader
 					m_msgs->CurrentItemType = 1;
+					lineBias = 0;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(data->PSPath);
-						m_includeCheck(psContent, std::vector<std::string>());
+						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, data);
 					} else { // HLSL / VK
 						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath), m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
@@ -984,16 +990,17 @@ namespace ed
 					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
 
 					if (!psCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 1, cMsg)); 
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 1, cMsg, lineBias));
 
 					// geometry shader
+					lineBias = 0;
 					bool gsCompiled = true;
 					if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
 						std::string gsContent = "", gsEntry = data->GSEntry;
 						m_msgs->CurrentItemType = 2;
 						if (ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(data->GSPath);
-							m_includeCheck(gsContent, std::vector<std::string>());
+							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, data);
 						} else { // HLSL
 							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath), m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
@@ -1006,7 +1013,7 @@ namespace ed
 						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
 
 						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg));
+							m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg, lineBias));
 
 					}
 
@@ -1054,12 +1061,13 @@ namespace ed
 					m_msgs->CurrentItem = items[i]->Name;
 
 					std::string content = "", entry = data->Entry;
+					int lineBias = 0;
 
 					// vertex shader
 					m_msgs->CurrentItemType = 3;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(data->Path);
-						m_includeCheck(content, std::vector<std::string>());
+						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, data);
 					} else { // HLSL / VK
 						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->Path), m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs, m_project);
@@ -1070,7 +1078,7 @@ namespace ed
 					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
 
 					if (!compiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 3, cMsg));
+						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 3, cMsg, lineBias));
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
@@ -1220,7 +1228,7 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack)
+	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack, int& lineBias)
 	{
 		size_t incLoc = src.find("#include");
 		Settings& settings = Settings::Instance();
@@ -1255,8 +1263,9 @@ namespace ed
 					includeStack.push_back(ipath);
 
 					std::string incFileSrc = m_project->LoadProjectFile(ipath);
+					lineBias = std::count(incFileSrc.begin(), incFileSrc.end(), '\n');
 
-					m_includeCheck(incFileSrc, includeStack);
+					m_includeCheck(incFileSrc, includeStack, lineBias);
 
 					src.erase(incLoc, src.find_first_of('\n', incLoc)-incLoc);
 					src.insert(incLoc, incFileSrc);

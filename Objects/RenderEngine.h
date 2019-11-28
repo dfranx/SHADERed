@@ -96,7 +96,7 @@ namespace ed
 		bool m_fbosNeedUpdate;
 
 		// check for the #include's & change the source code accordingly (includeStack == prevent recursion)
-		void m_includeCheck(std::string& src, std::vector<std::string> includeStack);
+		void m_includeCheck(std::string& src, std::vector<std::string> includeStack, int& lineBias);
 
 		// apply macros to GLSL source code
 		void m_applyMacros(std::string& source, pipe::ShaderPass* pass);

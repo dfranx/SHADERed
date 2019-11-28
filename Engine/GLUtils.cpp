@@ -142,7 +142,7 @@ namespace ed
 			return ret;
 		}
 
-		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str)
+		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias)
 		{
 			std::vector< MessageStack::Message > ret;
 
@@ -152,7 +152,7 @@ namespace ed
 				if (line.find("error") != std::string::npos) {
 					size_t firstPar = line.find_first_of('(');
 					size_t lastPar = line.find_first_of(')', firstPar);
-					int lineNr = std::stoi(line.substr(firstPar+1, lastPar - (firstPar + 1)));
+					int lineNr = std::stoi(line.substr(firstPar+1, lastPar - (firstPar + 1))) - lineBias;
 					std::string msg = line.substr(line.find_first_of(':') + 2);
 					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
 				}
