@@ -652,10 +652,33 @@ namespace ed
 	void CreateItemUI::SetType(PipelineItem::ItemType type)
 	{
 		m_errorOccured = false;
+		
+		//TODO: make it type-safe.
+		if (m_item.Data != nullptr) {
+			switch (m_item.Type) {
+				case PipelineItem::ItemType::Geometry:
+					delete (pipe::GeometryItem*)m_item.Data;
+					break;
+				case PipelineItem::ItemType::ShaderPass:
+					delete (pipe::ShaderPass*)m_item.Data;
+					break;
+				case PipelineItem::ItemType::RenderState:
+					delete (pipe::RenderState *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::Model:
+					delete (pipe::Model *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::ComputePass:
+					delete (pipe::ComputePass *)m_item.Data;
+					break;
+				case PipelineItem::ItemType::AudioPass:
+					delete (pipe::AudioPass *)m_item.Data;
+					break;
+			}
+			m_item.Data = nullptr;
+		}
+		
 		m_item.Type = type;
-
-		if (m_item.Data != nullptr)
-			delete m_item.Data;
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
 			Logger::Get().Log("Opening a CreateItemUI for creating Geometry object...");
@@ -716,7 +739,7 @@ namespace ed
 			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
 				psContent = m_data->Parser.LoadProjectFile(shader->PSPath);
 			else {
-				psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_data->Parser.GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, nullptr);
+				psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_data->Parser.GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
 				psEntry = "main";
 			}
 			GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
@@ -725,7 +748,7 @@ namespace ed
 			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL)
 				vsContent = m_data->Parser.LoadProjectFile(shader->VSPath);
 			else {
-				vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_data->Parser.GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, nullptr);
+				vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_data->Parser.GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
 				vsEntry = "main";
 			}
 			GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
@@ -739,7 +762,7 @@ namespace ed
 				if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
 					gsContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 				else { // HLSL / VK
-					gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_data->Parser.GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, nullptr);
+					gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_data->Parser.GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
 					gsEntry = "main";
 				}
 

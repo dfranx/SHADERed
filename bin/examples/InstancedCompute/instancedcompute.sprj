@@ -9,7 +9,7 @@
 			</variables>
 			<macros />
 		</pass>
-		<pass name="Instance" type="shader">
+		<pass name="Instance" type="shader" active="true">
 			<shader type="vs" path="shaders\InstanceVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\InstancePS.hlsl" entry="main" />
 			<inputlayout>
@@ -42,12 +42,14 @@
 			<bind slot="0" name="Compute" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
-		<entry type="property" name="Instance" item="pipe" />
+		<entry type="property" name="Compute" item="pipe" />
+		<entry type="file" name="Compute" shader="cs" />
 		<entry type="camera" fp="false">
-			<distance>48</distance>
-			<pitch>2</pitch>
-			<yaw>271</yaw>
+			<distance>34</distance>
+			<pitch>-8</pitch>
+			<yaw>84</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

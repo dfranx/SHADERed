@@ -32,8 +32,3 @@ void main( uint3 id : SV_DispatchThreadID )
 		data[id.x].Position.z = 9.9f * sign(pos.z);
 	}
 }
-
-
-
-
-

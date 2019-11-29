@@ -77,6 +77,7 @@ namespace ed
 			bool FPCamera;
 			bool UseAlphaChannel;
 			glm::vec4 ClearColor;
+			std::vector<std::string> IncludePaths;
 		} Project;
 
 		static inline Settings& Instance()

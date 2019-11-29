@@ -12,6 +12,7 @@
 
 #include "MessageStack.h"
 #include "ShaderMacro.h"
+#include "ProjectParser.h"
 
 namespace ed
 {
@@ -24,7 +25,7 @@ namespace ed
 		AudioShaderStream();
 		~AudioShaderStream();
 
-		void compileFromShaderSource(MessageStack* msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL = false);
+		void compileFromShaderSource(ProjectParser* project, MessageStack* msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL = false);
 		void renderAudio();
 
 		inline GLuint getShader() { return m_shader; }

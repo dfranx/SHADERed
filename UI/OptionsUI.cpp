@@ -2,6 +2,7 @@
 #include "CodeEditorUI.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include "../Options.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ThemeContainer.h"
@@ -494,9 +495,28 @@ namespace ed
 	{
 		std::vector<std::string> names = KeyboardShortcuts::Instance().GetNameList();
 
+		ImGui::Text("Search: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputText("##shortcut_search", m_shortcutSearch, 256);
+		ImGui::PopItemWidth();
+		ImGui::Separator();
+
 		ImGui::Columns(2);
 
+		std::string searchQuery(m_shortcutSearch);
+		std::transform(searchQuery.begin(), searchQuery.end(), searchQuery.begin(), tolower);
+		bool isEmpty = searchQuery.find_first_not_of(' ') == std::string::npos;
+
 		for (int i = 0; i < names.size(); i++) {
+			if (!isEmpty) {
+				std::string nameLowercase = names[i];
+				std::transform(nameLowercase.begin(), nameLowercase.end(), nameLowercase.begin(), tolower);
+
+				if (nameLowercase.find(searchQuery) == std::string::npos)
+					continue;
+			}
+
 			ImGui::Text(names[i].c_str());
 			ImGui::NextColumn();
 
@@ -661,5 +681,45 @@ namespace ed
 		if (ImGui::ColorEdit4("##optpr_clrclr", glm::value_ptr(settings->Project.ClearColor)))
 			m_data->Parser.ModifyProject();
 		ImGui::PopItemWidth();
+
+		/* INCLUDE PATHS: */
+		ImGui::Text("Include directories: ");
+		ImGui::SameLine();
+		ImGui::Indent(150 * settings->DPIScale);
+		static char ipathEntry[MAX_PATH] = { 0 };
+		if (ImGui::ListBoxHeader("##optpr_ipaths", ImVec2(0, 250 * settings->DPIScale))) {
+			for (auto& ext : settings->Project.IncludePaths)
+				if (ImGui::Selectable(ext.c_str()))
+					strcpy(ipathEntry, ext.c_str());
+			ImGui::ListBoxFooter();
+		}
+		ImGui::PushItemWidth(250 * settings->DPIScale);
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::InputText("##optpr_ipath_inp", ipathEntry, MAX_PATH);
+		ImGui::PopItemFlag();
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		if (ImGui::Button("ADD##optpr_btnaddext")) {
+			bool exists = false;
+			std::string newIPath = "";
+			bool isAdded =UIHelper::GetOpenDirectoryDialog(newIPath);
+			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
+				if (settings->Project.IncludePaths[i] == newIPath) {
+					exists = true;
+					break;
+				}
+			if (!exists && isAdded)
+				settings->Project.IncludePaths.push_back(m_data->Parser.GetRelativePath(newIPath));
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("REMOVE##optpr_btnremext")) {
+			std::string glslExtEntryStr(ipathEntry);
+			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
+				if (settings->Project.IncludePaths[i] == glslExtEntryStr) {
+					settings->Project.IncludePaths.erase(settings->Project.IncludePaths.begin() + i);
+					break;
+				}
+		}
+		ImGui::Unindent(250 * settings->DPIScale);
 	}
 }

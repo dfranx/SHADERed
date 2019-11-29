@@ -17,7 +17,7 @@
 
 #define STATUSBAR_HEIGHT 28 * Settings::Instance().DPIScale
 #define BUTTON_SIZE 20 * Settings::Instance().DPIScale
-#define ICON_BUTTON_WIDTH 20 * Settings::Instance().DPIScale
+#define ICON_BUTTON_WIDTH 25 * Settings::Instance().DPIScale
 #define BUTTON_INDENT 5 * Settings::Instance().DPIScale
 #define FPS_UPDATE_RATE 0.3f
 #define BOUNDING_BOX_PADDING 0.01f

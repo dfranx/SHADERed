@@ -1,0 +1,1 @@
+To install plugins, just place a folder containing plugin.dll here.

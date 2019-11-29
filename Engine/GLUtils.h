@@ -24,7 +24,7 @@ namespace ed
 		GLuint CompileShader(GLenum type, const GLchar* str);
 		bool CheckShaderCompilationStatus(GLuint shader, GLchar* msg);
 
-		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str);
+		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias = 0);
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
 
 		void CreateVAO(GLuint &geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem> &ilayout, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
