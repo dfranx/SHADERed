@@ -15,7 +15,7 @@
 #include <thread>
 #include <imgui/imgui_internal.h>
 
-#define STATUSBAR_HEIGHT 28 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT 30 * Settings::Instance().DPIScale
 #define BUTTON_SIZE 20 * Settings::Instance().DPIScale
 #define ICON_BUTTON_WIDTH 25 * Settings::Instance().DPIScale
 #define BUTTON_INDENT 5 * Settings::Instance().DPIScale

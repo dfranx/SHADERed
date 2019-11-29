@@ -246,6 +246,8 @@ namespace ed
 
 		for (auto& view : m_views)
 			view->OnEvent(e);
+
+		m_data->Plugins.OnEvent(e);
 	}
 	void GUIManager::m_tooltip(const std::string &text)
 	{
@@ -594,6 +596,9 @@ namespace ed
 								m_isNewProjectPopupOpened = true;
 							}
 						}
+
+					m_data->Plugins.ShowMenuItems("newproject");
+
 					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Create shader file")) {
@@ -639,13 +644,8 @@ namespace ed
 						ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
 					#endif
 				}
-
-				for (const auto& plugin : m_data->Plugins.Plugins()) {
-					if (plugin->HasMenuFileItems()) {
-						ImGui::Separator();
-						plugin->ShowMenuFileItems();
-					}
-				}
+				
+				m_data->Plugins.ShowMenuItems("file");
 
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
@@ -687,6 +687,9 @@ namespace ed
 						this->CreateNewImage();
 					if (ImGui::MenuItem("Empty 3D image", KeyboardShortcuts::Instance().GetString("Project.NewImage3D").c_str()))
 						this->CreateNewImage3D();
+
+					m_data->Plugins.ShowMenuItems("createitem");
+
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Camera snapshots")) {
@@ -709,6 +712,8 @@ namespace ed
 					*m_settingsBkp = settings;
 					m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
 				}
+
+				m_data->Plugins.ShowMenuItems("project");
 				
 				ImGui::EndMenu();
 			}
@@ -717,10 +722,12 @@ namespace ed
 					if (view->Name != "Code") // dont show the "Code" UI view in this menu
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
-				ImGui::Separator();
-				
-				ImGui::MenuItem("Performance Mode", KeyboardShortcuts::Instance().GetString("Workspace.PerformanceMode").c_str(), &m_perfModeFake);
 
+				m_data->Plugins.ShowMenuItems("window");
+
+				ImGui::Separator();
+
+				ImGui::MenuItem("Performance Mode", KeyboardShortcuts::Instance().GetString("Workspace.PerformanceMode").c_str(), &m_perfModeFake);
 				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
 					*m_settingsBkp = settings;
@@ -795,6 +802,7 @@ namespace ed
 
 				ImGui::EndMenu();
 			}
+			m_data->Plugins.ShowCustomMenu();
 			ImGui::EndMainMenuBar();
 		}
 
@@ -812,6 +820,7 @@ namespace ed
 					ImGui::End();
 				}
 
+			m_data->Plugins.Update(delta);
 			Get(ViewID::Code)->Update(delta);
 		}
 

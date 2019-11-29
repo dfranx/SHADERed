@@ -12,7 +12,6 @@ namespace ed
 	{
 		m_ui = gui;
 
-		Plugins.Init(); // load plugins (TODO: maybe move this to the splash screen)
 	}
 	InterfaceManager::~InterfaceManager()
 	{

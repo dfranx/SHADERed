@@ -41,16 +41,17 @@ void setIcon(SDL_Window* wnd)
 	Uint32 pixel_format;
 	if (req_format == STBI_rgb) {
 		depth = 24;
-		pitch = 3*width; // 3 bytes per pixel * pixels per row
+		pitch = 3 * width; // 3 bytes per pixel * pixels per row
 		pixel_format = SDL_PIXELFORMAT_RGB24;
-	} else { // STBI_rgb_alpha (RGBA)
+	}
+	else { // STBI_rgb_alpha (RGBA)
 		depth = 32;
-		pitch = 4*width;
+		pitch = 4 * width;
 		pixel_format = SDL_PIXELFORMAT_RGBA32;
 	}
 
 	SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormatFrom((void*)data, width, height,
-														depth, pitch, pixel_format);
+		depth, pitch, pixel_format);
 
 	if (surf == NULL) {
 		ed::Logger::Get().Log("Failed to create icon SDL_Surface", true);
@@ -65,6 +66,9 @@ void setIcon(SDL_Window* wnd)
 
 	stbi_set_flip_vertically_on_load(1);
 }
+
+#include <stdio.h>
+#include <string.h>
 
 int main(int argc, char* argv[])
 {

@@ -1,4 +1,5 @@
 #pragma once
+#include <SDL2/SDL.h>
 #include "Plugin.h"
 #include <vector>
 #include <string>
@@ -12,6 +13,13 @@ namespace ed
 	public:
 		void Init(); // load all the plugins here
 		void Destroy(); // destroy all the plugins
+		void Update(float delta);
+
+		void ShowCustomMenu();
+		void ShowMenuItems(const std::string& menu);
+		void ShowContextItems(const std::string& menu);
+
+		void OnEvent(const SDL_Event& e);
 
 		inline const std::vector<IPlugin*>& Plugins() { return m_plugins; }
 

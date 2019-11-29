@@ -96,6 +96,7 @@ namespace ed
 			if (ImGui::Selectable("Create Shader Pass")) m_ui->CreateNewShaderPass();
 			if (ImGui::Selectable("Create Compute Pass")) m_ui->CreateNewComputePass();
 			if (ImGui::Selectable("Create Audio Pass")) m_ui->CreateNewAudioPass();
+			m_data->Plugins.ShowContextItems("pipeline");
 			ImGui::EndPopup();
 		}
 		m_itemMenuOpened = false;
@@ -298,6 +299,8 @@ namespace ed
 						m_createUI.SetType(PipelineItem::ItemType::RenderState);
 					}
 
+					m_data->Plugins.ShowContextItems("shaderpass_add");
+
 					ImGui::EndMenu();
 				}
 
@@ -359,6 +362,7 @@ namespace ed
 					m_isResourceManagerOpened = true;
 					m_modalItem = items[index];
 				}
+
 			}
 			else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model) {
 				if (ImGui::MenuItem("Change Variables")) {

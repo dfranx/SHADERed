@@ -252,6 +252,8 @@ namespace ed
 			if (ImGui::Selectable("Create Empty Image")) m_ui->CreateNewImage();
 			if (ImGui::Selectable("Create Empty 3D Image")) m_ui->CreateNewImage3D();
 
+			m_data->Plugins.ShowContextItems("objects");
+
 			ImGui::EndPopup();
 		}
 	}

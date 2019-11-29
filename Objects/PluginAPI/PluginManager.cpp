@@ -1,15 +1,55 @@
 #include "../Objects/PluginAPI/PluginManager.h" // TODO: reorganize SHADERed source code & add_include_dir(inc)
+#include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
 namespace ed
 {
-	typedef IPlugin* (*CreatePluginFn)();
+	typedef IPlugin* (*CreatePluginFn)(ImGuiContext* ctx);
 	typedef void (*DestroyPluginFn)(IPlugin* plugin);
 	typedef int (*GetPluginAPIVersionFn)();
 	typedef const char* (*GetPluginNameFn)();
 
+	void PluginManager::OnEvent(const SDL_Event& e)
+	{
+		for (const auto& plugin : m_plugins)
+			plugin->OnEvent((void*)&e);
+	}
+	void PluginManager::Update(float delta)
+	{
+		for (const auto& plugin : m_plugins)
+			plugin->Update(delta);
+	}
+	void PluginManager::ShowContextItems(const std::string& menu)
+	{
+		for (const auto& plugin : m_plugins) {
+			if (plugin->HasContextItems(menu.c_str())) {
+				ImGui::Separator();
+				plugin->ShowContextItems(menu.c_str());
+			}
+		}
+	}
+	void PluginManager::ShowMenuItems(const std::string& menu)
+	{
+		for (const auto& plugin : m_plugins) {
+			if (plugin->HasMenuItems(menu.c_str())) {
+				ImGui::Separator();
+				plugin->ShowMenuItems(menu.c_str());
+			}
+		}
+	}
+	void PluginManager::ShowCustomMenu()
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_plugins[i]->HasCustomMenu())
+				if (ImGui::BeginMenu(m_names[i].c_str())) {
+					m_plugins[i]->ShowMenuItems("custom");
+					ImGui::EndMenu();
+				}
+	}
 	void PluginManager::Init()
 	{
+		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
+
 		// TODO: linux & error messages
 		for (const auto& entry : ghc::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {
@@ -48,7 +88,7 @@ namespace ed
 				}
 
 				// create the actual plugin
-				IPlugin* plugin = (*fnCreatePlugin)();
+				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
 				if (plugin == nullptr) {
 					FreeLibrary(procDLL);
 					continue;
