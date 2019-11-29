@@ -208,8 +208,20 @@ namespace ed
 
 				const std::vector<std::string> imgExt = { "png", "jpeg", "jpg", "bmp", "gif", "psd", "pic", "pnm", "hdr", "tga" };
 				const std::vector<std::string> sndExt = { "ogg", "wav", "flac", "aiff", "raw" }; // TODO: more file ext
+				const std::vector<std::string> projExt = { "sprj" };
 
-				if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
+				if (std::count(projExt.begin(), projExt.end(), ext) > 0) {
+					bool cont = true;
+					if (m_data->Parser.IsProjectModified()) {
+						int btnID = this->AreYouSure();
+						if (btnID == 2)
+							cont = false;
+					}
+
+					if (cont)
+						Open(m_data->Parser.GetProjectPath(file));
+				}
+				else if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
 					m_data->Objects.CreateTexture(file);
 				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
 					m_data->Objects.CreateAudio(file);
