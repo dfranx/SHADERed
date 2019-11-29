@@ -297,9 +297,18 @@ namespace ed
 		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
 		// repetitions
 		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) {		// OPEN PROJECT
-			std::string file;
-			if (UIHelper::GetOpenFileDialog(file, "sprj"))
-				Open(file);
+			bool cont = true;
+			if (m_data->Parser.IsProjectModified()) {
+				int btnID = this->AreYouSure();
+				if (btnID == 2)
+					cont = false;
+			}
+
+			if (cont) {
+				std::string file;
+				if (UIHelper::GetOpenFileDialog(file, "sprj"))
+					Open(file);
+			}
 		}
 		m_tooltip("Open a project");
 		ImGui::SameLine();

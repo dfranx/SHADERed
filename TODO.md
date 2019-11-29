@@ -3,7 +3,6 @@
  - shader debugger & pixel inspect tool
  - plugin API
  - godot shaders
- - drag and drop project loading
  - ability to override font using themes (+ option to choose between my or theme font)
  - show tips on startup & 'whats new' on first startup (can be turned off)
  - splash screen (for loading plugins, etc...)
