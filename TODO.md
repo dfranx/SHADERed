@@ -6,7 +6,6 @@
  - ability to override font using themes (+ option to choose between my or theme font)
  - show tips on startup & 'whats new' on first startup (can be turned off)
  - splash screen (for loading plugins, etc...)
- - fix autocomplete background color
  - update third party libraries
 
 ## v1.3.*
