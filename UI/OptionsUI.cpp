@@ -495,9 +495,28 @@ namespace ed
 	{
 		std::vector<std::string> names = KeyboardShortcuts::Instance().GetNameList();
 
+		ImGui::Text("Search: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputText("##shortcut_search", m_shortcutSearch, 256);
+		ImGui::PopItemWidth();
+		ImGui::Separator();
+
 		ImGui::Columns(2);
 
+		std::string searchQuery(m_shortcutSearch);
+		std::transform(searchQuery.begin(), searchQuery.end(), searchQuery.begin(), tolower);
+		bool isEmpty = searchQuery.find_first_not_of(' ') == std::string::npos;
+
 		for (int i = 0; i < names.size(); i++) {
+			if (!isEmpty) {
+				std::string nameLowercase = names[i];
+				std::transform(nameLowercase.begin(), nameLowercase.end(), nameLowercase.begin(), tolower);
+
+				if (nameLowercase.find(searchQuery) == std::string::npos)
+					continue;
+			}
+
 			ImGui::Text(names[i].c_str());
 			ImGui::NextColumn();
 

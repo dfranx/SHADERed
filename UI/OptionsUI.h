@@ -18,7 +18,9 @@ namespace ed
 
 		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
 			UIView(ui, objects, name, visible),
-			m_selectedShortcut(-1), m_page(Page::General) { }
+			m_selectedShortcut(-1), m_page(Page::General) {
+			memset(m_shortcutSearch, 0, 256);
+		}
 		//using UIView::UIView;
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -40,6 +42,7 @@ namespace ed
 	private:
 		Page m_page;
 
+		char m_shortcutSearch[256];
 		int m_selectedShortcut;
 		KeyboardShortcuts::Shortcut m_newShortcut;
 		std::string m_getShortcutString();
