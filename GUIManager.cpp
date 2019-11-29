@@ -28,6 +28,14 @@
 #include <fstream>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
+
+#define STBIR_DEFAULT_FILTER_DOWNSAMPLE   STBIR_FILTER_CATMULLROM
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb/stb_image_resize.h>
+/*	STBIR_FILTER_CUBICBSPLINE
+	STBIR_FILTER_CATMULLROM
+	STBIR_FILTER_MITCHELL		*/
+
 #include <ghc/filesystem.hpp>
 
 #if defined(__APPLE__)
@@ -40,6 +48,8 @@
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 #define TOOLBAR_HEIGHT 48
+
+#define getByte(value, n) (value >> (n*8) & 0xFF)
 
 namespace ed
 {
@@ -78,6 +88,7 @@ namespace ed
 		m_isInfoOpened = false;
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
+		m_savePreviewSupersample = 0;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -814,6 +825,7 @@ namespace ed
 			m_savePreviewWASD[0] = wasd.x; m_savePreviewWASD[1] = wasd.y;
 			m_savePreviewWASD[2] = wasd.z; m_savePreviewWASD[3] = wasd.w;
 			m_savePreviewMouse = SystemVariableManager::Instance().GetMouse();
+			m_savePreviewSupersample = 0;
 			
 			m_savePreviewSeq = false;
 			
@@ -1199,7 +1211,7 @@ namespace ed
 		}
 
 		// Save preview
-		ImGui::SetNextWindowSize(ImVec2(400, 180), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(450, 250), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
@@ -1208,15 +1220,21 @@ namespace ed
 			
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
-			ImGui::Indent(55);
+			ImGui::Indent(105);
 			ImGui::InputInt("##save_prev_sizew", &m_previewSaveSize.x);
-			ImGui::Unindent(55);
+			ImGui::Unindent(105);
 
 			ImGui::Text("Height: ");
 			ImGui::SameLine();
-			ImGui::Indent(55);
+			ImGui::Indent(105);
 			ImGui::InputInt("##save_prev_sizeh", &m_previewSaveSize.y);
-			ImGui::Unindent(55);
+			ImGui::Unindent(105);
+
+			ImGui::Text("Supersampling: ");
+			ImGui::SameLine();
+			ImGui::Indent(105);
+			ImGui::Combo("##save_prev_ssmp", &m_savePreviewSupersample, " 1x\0 2x\0 4x\0 8x\0");
+			ImGui::Unindent(105);
 
 			ImGui::Separator();
 			if (ImGui::CollapsingHeader("Sequence")) {
@@ -1303,9 +1321,18 @@ namespace ed
 			ImGui::Separator();
 
 			if (ImGui::Button("Save")) {
+				int sizeMulti = 1;
+				switch (m_savePreviewSupersample) {
+				case 1: sizeMulti = 2; break;
+				case 2: sizeMulti = 4; break;
+				case 3: sizeMulti = 8; break;
+				}
+				int actualSizeX = m_previewSaveSize.x * sizeMulti;
+				int actualSizeY = m_previewSaveSize.y * sizeMulti;
+
 				// normal render
 				if (!m_savePreviewSeq) {
-					if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
+					if (actualSizeX > 0 && actualSizeY > 0) {
 						SystemVariableManager::Instance().CopyState();
 						
 						SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
@@ -1314,35 +1341,50 @@ namespace ed
 						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
 						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
 						
-						m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+						m_data->Renderer.Render(actualSizeX, actualSizeY);
 
 						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
 					}
+
+					unsigned char* pixels = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
+					unsigned char* outPixels = nullptr;
 					
+					if (sizeMulti != 1)
+						outPixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+					else outPixels = pixels;
+
+
+
 					GLuint tex = m_data->Renderer.GetTexture();
 					glBindTexture(GL_TEXTURE_2D, tex);
-					unsigned char *pixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
 					glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 					glBindTexture(GL_TEXTURE_2D, 0);
 
-					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
-					
-					if (ext == "jpg" || ext == "jpeg")
-						stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, 100);
-					else if (ext == "bmp")
-						stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
-					else if (ext == "tga")
-						stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels);
-					else
-						stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, pixels, m_previewSaveSize.x * 4);
+					// resize image
+					if (sizeMulti != 1) {
+						stbir_resize_uint8(pixels, actualSizeX, actualSizeY, actualSizeX * 4,
+							outPixels, m_previewSaveSize.x, m_previewSaveSize.y, m_previewSaveSize.x * 4, 4);
+					}
 
+					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+
+					if (ext == "jpg" || ext == "jpeg")
+						stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, 100);
+					else if (ext == "bmp")
+						stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
+					else if (ext == "tga")
+						stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
+					else
+						stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, m_previewSaveSize.x * 4);
+
+					if (sizeMulti != 1) free(outPixels);
 					free(pixels);
 				}
 				else { // sequence render
 
 					float seqDelta = 1.0f / m_savePreviewSeqFPS;
 
-					if (m_previewSaveSize.x > 0 && m_previewSaveSize.y > 0) {
+					if (actualSizeX > 0 && actualSizeY > 0) {
 						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
 						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
 						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
@@ -1396,6 +1438,7 @@ namespace ed
 						tCount = tCount == 0 ? 2 : tCount;
 
 						unsigned char** pixels = new unsigned char*[tCount];
+						unsigned char** outPixels = new unsigned char* [tCount];
 						int* curFrame = new int[tCount];
 						bool* needsUpdate = new bool[tCount];
 						std::thread** threadPool = new std::thread*[tCount];
@@ -1404,23 +1447,33 @@ namespace ed
 						for (int i = 0; i < tCount; i++) {
 							curFrame[i] = 0;
 							needsUpdate[i] = true;
-							pixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-							threadPool[i] = new std::thread([ext, filename, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
+							pixels[i] = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
+							
+							if (sizeMulti != 1) outPixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+							else outPixels[i] = nullptr;
+
+							threadPool[i] = new std::thread([ext, filename, sizeMulti, actualSizeX, actualSizeY, &outPixels, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
 								char prevSavePath[MAX_PATH];
 								while (!isOver) {
 									if (needsUpdate[worker])
 										continue;
 
+									// resize image
+									if (sizeMulti != 1) {
+										stbir_resize_uint8(pixels[worker], actualSizeX, actualSizeY, actualSizeX * 4,
+											outPixels[worker], w, h, w * 4, 4);
+									} else outPixels[worker] = pixels[worker];
+
 									sprintf(prevSavePath, filename.c_str(), curFrame[worker]);
 									
 									if (ext == "jpg" || ext == "jpeg")
-										stbi_write_jpg(prevSavePath, w, h, 4, pixels[worker], 100);
+										stbi_write_jpg(prevSavePath, w, h, 4, outPixels[worker], 100);
 									else if (ext == "bmp")
-										stbi_write_bmp(prevSavePath, w, h, 4, pixels[worker]);
+										stbi_write_bmp(prevSavePath, w, h, 4, outPixels[worker]);
 									else if (ext == "tga")
-										stbi_write_tga(prevSavePath, w, h, 4, pixels[worker]);
+										stbi_write_tga(prevSavePath, w, h, 4, outPixels[worker]);
 									else
-										stbi_write_png(prevSavePath, w, h, 4, pixels[worker], w * 4);
+										stbi_write_png(prevSavePath, w, h, 4, outPixels[worker], w * 4);
 								
 									needsUpdate[worker] = true;
 								}
@@ -1442,7 +1495,7 @@ namespace ed
 							SystemVariableManager::Instance().CopyState();
 							SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex + globalFrame);
 							
-							m_data->Renderer.Render(m_previewSaveSize.x, m_previewSaveSize.y);
+							m_data->Renderer.Render(actualSizeX, actualSizeY);
 
 							glBindTexture(GL_TEXTURE_2D, tex);
 							glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels[hasWork]);
@@ -1461,9 +1514,12 @@ namespace ed
 							if (threadPool[i]->joinable())
 								threadPool[i]->join();
 							free(pixels[i]);
+							if (sizeMulti != 1)
+								free(outPixels[i]);
 							delete threadPool[i];
 						}
 						delete[] pixels;
+						delete[] outPixels;
 						delete[] curFrame;
 						delete[] needsUpdate;
 						delete[] threadPool;
