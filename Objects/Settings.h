@@ -71,6 +71,7 @@ namespace ed
 			int FPSLimit;
 			bool ApplyFPSLimitToApp; // apply FPSLimit to whole app, not only preview
 			bool LostFocusLimitFPS; // limit to 30FPS when app loses focus
+			int MSAA; // 1 (off), 2, 4, 8
 		} Preview;
 
 		struct strProject {

@@ -92,7 +92,7 @@ namespace ed
 
 		/* 'window' FBO */
 		glm::ivec2 m_lastSize;
-		GLuint m_rtColor, m_rtDepth;
+		GLuint m_rtColor, m_rtDepth, m_rtColorMS, m_rtDepthMS;
 		bool m_fbosNeedUpdate;
 
 		// check for the #include's & change the source code accordingly (includeStack == prevent recursion)
@@ -117,6 +117,7 @@ namespace ed
 		std::vector<PipelineItem*> m_items;
 		std::vector<GLuint> m_shaders;
 		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
+		std::map<pipe::ShaderPass*, GLuint> m_fboMS; // multisampled fbo's
 		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
 		struct ShaderPack {ShaderPack() {VS=GS=PS=0;} GLuint VS, PS, GS;};
 		std::vector<ShaderPack> m_shaderSources;

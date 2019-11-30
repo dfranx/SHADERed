@@ -35,16 +35,25 @@ namespace ed
 
 		glGenTextures(1, &m_rtColor);
 		glGenTextures(1, &m_rtDepth);
+		glGenTextures(1, &m_rtColorMS);
+		glGenTextures(1, &m_rtDepthMS);
 	}
 	RenderEngine::~RenderEngine()
 	{
 
 		glDeleteTextures(1, &m_rtColor);
 		glDeleteTextures(1, &m_rtDepth);
+		glDeleteTextures(1, &m_rtColorMS);
+		glDeleteTextures(1, &m_rtDepthMS);
 		FlushCache();
 	}
 	void RenderEngine::Render(int width, int height)
 	{
+		bool isMSAA = Settings::Instance().Preview.MSAA != 1;
+
+		if (isMSAA)
+			glEnable(GL_MULTISAMPLE);
+
 		// recreate render texture if size has changed
 		if (m_lastSize.x != width || m_lastSize.y != height) {
 			m_lastSize = glm::vec2(width, height);
@@ -60,6 +69,13 @@ namespace ed
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_rtColorMS);
+			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, Settings::Instance().Project.UseAlphaChannel ? GL_RGBA : GL_RGB, width, height, true);
+			
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_rtDepthMS);
+			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, width, height, true);
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 			// update
 			std::vector<std::string> objs = m_objects->GetObjects();
@@ -104,7 +120,7 @@ namespace ed
 					continue;
 
 				// bind fbo and buffers
-				glBindFramebuffer(GL_FRAMEBUFFER, data->FBO);
+				glBindFramebuffer(GL_FRAMEBUFFER, isMSAA ? m_fboMS[data] : data->FBO);
 				glDrawBuffers(data->RTCount, fboBuffers);
 
 				// clear depth texture
@@ -290,6 +306,18 @@ namespace ed
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
 				}
+
+				if (isMSAA) {
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboMS[data]);
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, data->FBO);
+					glDrawBuffer(GL_BACK);
+					for (unsigned int i = 0; i < data->RTCount; i++)
+					{
+						glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+						glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+						glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+					}
+				}
 			}
 			else if (it->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
@@ -389,6 +417,9 @@ namespace ed
 		if (m_pickAwaiting && m_pickHandle != nullptr)
 			m_pickHandle(m_pick.size() == 0 ? nullptr : m_pick[m_pick.size()-1]);
 		m_pickAwaiting = false;
+
+		if (isMSAA)
+			glDisable(GL_MULTISAMPLE);
 	}
 	void RenderEngine::Pause(bool pause)
 	{
@@ -1301,12 +1332,16 @@ namespace ed
 
 		GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
 		GLuint depthID = lastID == m_rtColor ? m_rtDepth : m_objects->GetRenderTexture(lastID)->DepthStencilBuffer;
+		GLuint depthMSID = lastID == m_rtColor ? m_rtDepthMS : m_objects->GetRenderTexture(lastID)->DepthStencilBufferMS;
 
 		pass->DepthTexture = depthID;
 
-		if (pass->FBO != 0)
+		if (pass->FBO != 0) {
 			glDeleteFramebuffers(1, &pass->FBO);
+			glDeleteFramebuffers(1, &m_fboMS[pass]);
+		}
 
+		// normal FBO
 		glGenFramebuffers(1, &pass->FBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)pass->FBO);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthID, 0);
@@ -1318,6 +1353,26 @@ namespace ed
 			// attach
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texID, 0);
 		}
+		GLenum retval = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		// MSAA fbo
+		glGenFramebuffers(1, &m_fboMS[pass]);
+		glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)m_fboMS[pass]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depthMSID, 0);
+		for (int i = 0; i < pass->RTCount; i++) {
+			GLuint texID = pass->RenderTextures[i];
+
+			if (texID == 0) continue;
+
+			if (texID == m_rtColor) texID = m_rtColorMS;
+			else texID = m_objects->GetRenderTexture(texID)->BufferMS;
+
+			// attach
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, texID, 0);
+		}
+		retval = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		m_fbosNeedUpdate = false;

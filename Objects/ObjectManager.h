@@ -17,7 +17,7 @@ namespace ed
 
 	struct RenderTextureObject
 	{
-		GLuint DepthStencilBuffer; // ColorBuffer is stored in ObjectManager
+		GLuint DepthStencilBuffer, DepthStencilBufferMS, BufferMS; // ColorBuffer is stored in ObjectManager
 		glm::ivec2 FixedSize;
 		glm::vec2 RatioSize;
 		glm::vec4 ClearColor;

@@ -560,6 +560,20 @@ namespace ed
 	{
 		Settings* settings = &Settings::Instance();
 
+		/* MSAA: */
+		ImGui::Text("MSAA: ");
+		ImGui::SameLine();
+		if (ImGui::Combo("##optp_msaa", &m_msaaChoice, " 1x\0 2x\0 4x\0 8x\0")) {
+			switch (m_msaaChoice) {
+			case 0: settings->Preview.MSAA = 1; break;
+			case 1: settings->Preview.MSAA = 2; break;
+			case 2: settings->Preview.MSAA = 4; break;
+			case 3: settings->Preview.MSAA = 8; break;
+			default: settings->Preview.MSAA = 1; break;
+			}
+			m_data->Renderer.RequestTextureResize();
+		}
+
 		/* SWITCH LEFT AND RIGHT: */
 		ImGui::Text("Switch what left and right clicks do: ");
 		ImGui::SameLine();

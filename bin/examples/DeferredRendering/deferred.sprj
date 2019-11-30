@@ -1,24 +1,17 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="GBuffer">
-			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+		<pass name="GBuffer" type="shader" active="true">
+			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture name="positionRT" />
 			<rendertexture name="normalRT" />
 			<rendertexture name="diffuseRT" />
-			<variables>
-				<variable type="float4x4" name="matVP" system="ViewProjection" />
-				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
-				<variable type="float3" name="objColor">
-					<row>
-						<value>1</value>
-						<value>0</value>
-						<value>0</value>
-					</row>
-				</variable>
-			</variables>
-			<macros />
 			<items>
 				<item name="Box" type="geometry">
 					<type>Cube</type>
@@ -34,7 +27,7 @@
 					<width>1</width>
 					<height>1</height>
 					<depth>1</depth>
-					<x>-0.649654806</x>
+					<x>1.52012587</x>
 					<z>-1.69406605</z>
 					<topology>TriangleList</topology>
 				</item>
@@ -48,11 +41,38 @@
 					</row>
 				</value>
 			</itemvalues>
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float3" name="objColor">
+					<row>
+						<value>1</value>
+						<value>0</value>
+						<value>0</value>
+					</row>
+				</variable>
+			</variables>
+			<macros />
 		</pass>
-		<pass name="Processing">
-			<shader type="vs" path="shaders/ProcessingVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders/ProcessingPS.hlsl" entry="main" />
+		<pass name="Processing" type="shader" active="true">
+			<shader type="vs" path="shaders\ProcessingVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\ProcessingPS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture />
+			<items>
+				<item name="Fullscreen" type="geometry">
+					<type>ScreenQuad</type>
+					<width>1</width>
+					<height>1</height>
+					<depth>1</depth>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
 			<variables>
 				<variable type="float4x4" name="matVP" system="Orthographic" />
 				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
@@ -65,16 +85,6 @@
 				</variable>
 			</variables>
 			<macros />
-			<items>
-				<item name="Fullscreen" type="geometry">
-					<type>ScreenQuad</type>
-					<width>1</width>
-					<height>1</height>
-					<depth>1</depth>
-					<topology>TriangleList</topology>
-				</item>
-			</items>
-			<itemvalues />
 		</pass>
 	</pipeline>
 	<objects>
@@ -88,13 +98,14 @@
 			<bind slot="2" name="Processing" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
-		<entry type="property" name="Processing" />
+		<entry type="property" name="GBuffer" item="pipe" />
 		<entry type="pinned" name="lightPos" owner="Processing" />
 		<entry type="camera" fp="false">
-			<distance>9</distance>
-			<pitch>27</pitch>
-			<yaw>325</yaw>
+			<distance>6</distance>
+			<pitch>20</pitch>
+			<yaw>86</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
