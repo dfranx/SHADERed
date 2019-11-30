@@ -48,7 +48,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"CameraDirection3",
 	"KeysWASD",
 	"Mouse",
-	"MouseButton"
+	"MouseButton",
+	"PluginVariable"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",

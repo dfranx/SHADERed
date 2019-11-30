@@ -109,6 +109,11 @@ namespace ed
 						glm::ivec4 raw = SystemVariableManager::Instance().GetKeysWASD();
 						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::ivec4));
 					} break;
+					case ed::SystemShaderVariable::PluginVariable:
+					{
+						PluginSystemVariableData* pvData = &var->PluginSystemVarData;
+						pvData->Owner->UpdateSystemVariableValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
+					} break;
 				}
 			} else {
 				glm::mat4 rawMatrix;
@@ -201,6 +206,11 @@ namespace ed
 					{
 						glm::ivec4 raw = m_prevState.WASD;
 						memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::ivec4));
+					} break;
+					case ed::SystemShaderVariable::PluginVariable:
+					{
+						PluginSystemVariableData* pvData = &var->PluginSystemVarData;
+						pvData->Owner->UpdateSystemVariableValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
 					} break;
 				}
 			}

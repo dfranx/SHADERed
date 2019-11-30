@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include "Plugin.h"
+#include "../ShaderVariable.h"
 #include <vector>
 #include <string>
 
@@ -15,9 +16,15 @@ namespace ed
 		void Destroy(); // destroy all the plugins
 		void Update(float delta);
 
+		IPlugin* GetPlugin(const std::string& plugin);
+		std::string GetPluginName(IPlugin* plugin);
+		int GetPluginVersion(const std::string& plugin);
+
 		void ShowCustomMenu();
 		void ShowMenuItems(const std::string& menu);
 		void ShowContextItems(const std::string& menu);
+
+		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 
 		void OnEvent(const SDL_Event& e);
 
@@ -28,5 +35,6 @@ namespace ed
 		std::vector<IPlugin*> m_plugins;
 		std::vector<bool> m_isActive;
 		std::vector<std::string> m_names;
+		std::vector<int> m_versions;
 	};
 }

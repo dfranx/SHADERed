@@ -8,7 +8,7 @@ namespace ed
 		Renderer(&Pipeline, &Objects, &Parser, &Messages),
 		Pipeline(&Parser),
 		Objects(&Parser, &Renderer),
-		Parser(&Pipeline, &Objects, &Renderer, &Messages, gui)
+		Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, gui)
 	{
 		m_ui = gui;
 

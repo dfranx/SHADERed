@@ -14,38 +14,6 @@ namespace ed
 		for (const auto& plugin : m_plugins)
 			plugin->OnEvent((void*)&e);
 	}
-	void PluginManager::Update(float delta)
-	{
-		for (const auto& plugin : m_plugins)
-			plugin->Update(delta);
-	}
-	void PluginManager::ShowContextItems(const std::string& menu)
-	{
-		for (const auto& plugin : m_plugins) {
-			if (plugin->HasContextItems(menu.c_str())) {
-				ImGui::Separator();
-				plugin->ShowContextItems(menu.c_str());
-			}
-		}
-	}
-	void PluginManager::ShowMenuItems(const std::string& menu)
-	{
-		for (const auto& plugin : m_plugins) {
-			if (plugin->HasMenuItems(menu.c_str())) {
-				ImGui::Separator();
-				plugin->ShowMenuItems(menu.c_str());
-			}
-		}
-	}
-	void PluginManager::ShowCustomMenu()
-	{
-		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_plugins[i]->HasCustomMenu())
-				if (ImGui::BeginMenu(m_names[i].c_str())) {
-					m_plugins[i]->ShowMenuItems("custom");
-					ImGui::EndMenu();
-				}
-	}
 	void PluginManager::Init()
 	{
 		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
@@ -68,10 +36,7 @@ namespace ed
 				}
 
 				int pver = (*fnGetPluginAPIVersion)();
-				if (pver != CURRENT_PLUGINAPI_VERSION) {
-					FreeLibrary(procDLL);
-					continue;
-				}
+				m_versions.push_back(pver);
 
 				// CreatePlugin() function
 				CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
@@ -118,5 +83,83 @@ namespace ed
 		}
 
 		m_plugins.clear();
+	}
+	void PluginManager::Update(float delta)
+	{
+		for (const auto& plugin : m_plugins)
+			plugin->Update(delta);
+	}
+
+	IPlugin* PluginManager::GetPlugin(const std::string& plugin)
+	{
+		for (int i = 0; i < m_names.size(); i++)
+			if (m_names[i] == plugin)
+				return m_plugins[i];
+
+		return nullptr;
+	}
+	std::string PluginManager::GetPluginName(IPlugin* plugin)
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_plugins[i] == plugin)
+				return m_names[i];
+
+		return "";
+	}
+	int PluginManager::GetPluginVersion(const std::string& plugin)
+	{
+		for (int i = 0; i < m_names.size(); i++)
+			if (m_names[i] == plugin)
+				return m_versions[i];
+
+		return 0;
+	}
+
+	void PluginManager::ShowContextItems(const std::string& menu)
+	{
+		for (const auto& plugin : m_plugins) {
+			if (plugin->HasContextItems(menu.c_str())) {
+				ImGui::Separator();
+				plugin->ShowContextItems(menu.c_str());
+			}
+		}
+	}
+	void PluginManager::ShowMenuItems(const std::string& menu)
+	{
+		for (const auto& plugin : m_plugins) {
+			if (plugin->HasMenuItems(menu.c_str())) {
+				ImGui::Separator();
+				plugin->ShowMenuItems(menu.c_str());
+			}
+		}
+	}
+	void PluginManager::ShowCustomMenu()
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_plugins[i]->HasCustomMenu())
+				if (ImGui::BeginMenu(m_names[i].c_str())) {
+					m_plugins[i]->ShowMenuItems("custom");
+					ImGui::EndMenu();
+				}
+	}
+	bool PluginManager::ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type)
+	{
+		bool ret = false;
+		for (const auto& plugin : m_plugins) {
+			if (plugin->HasSystemVariables((plugin::VariableType)type)) {
+				int nameCount = plugin->GetSystemVariableNameCount((plugin::VariableType)type);
+
+				for (int j = 0; j < nameCount; j++) {
+					const char* name = plugin->GetSystemVariableName((plugin::VariableType)type, j);
+					if (ImGui::Selectable(name)) {
+						data->Owner = plugin;
+						strcpy(data->Name, name);
+						ret = true;
+					}
+				}
+			}
+		}
+
+		return ret;
 	}
 }

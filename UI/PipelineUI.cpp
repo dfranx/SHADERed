@@ -426,6 +426,9 @@ namespace ed
 		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
 		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::IsPicked && var->System != ed::SystemShaderVariable::ViewportSize;
 
+		if (var->System == ed::SystemShaderVariable::PluginVariable)
+			canLastFrame = canLastFrame || var->PluginSystemVarData.Owner->HasLastFrame(var->PluginSystemVarData.Name, (plugin::VariableType)var->GetType());
+
 		bool isInvert = var->Flags & (char)ShaderVariable::Flag::Inverse;
 		bool isLastFrame = var->Flags & (char)ShaderVariable::Flag::LastFrame;
 
@@ -747,15 +750,24 @@ namespace ed
 
 			/* SYSTEM VALUE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-			const char* systemComboPreview = SYSTEM_VARIABLE_NAMES[(int)el->System];
+			const char* systemComboPreview = el->System == SystemShaderVariable::PluginVariable ? (el->PluginSystemVarData.Name) : (SYSTEM_VARIABLE_NAMES[(int)el->System]);
+
 			if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), systemComboPreview)) {
 				for (int n = 0; n < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
 					bool is_selected = (n == (int)el->System);
-					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el->GetType())
-						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected)) {
+					if (n != (int)SystemShaderVariable::PluginVariable) {
+						if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == el->GetType())
+							&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected)) {
 							el->System = (ed::SystemShaderVariable)n;
 							m_data->Parser.ModifyProject();
 						}
+					} else {
+						bool modified = m_data->Plugins.ShowSystemVariables(&el->PluginSystemVarData, el->GetType());
+						if (modified) {
+							m_data->Parser.ModifyProject();
+							el->System = SystemShaderVariable::PluginVariable;
+						}
+					}
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}
@@ -844,13 +856,21 @@ namespace ed
 
 		/* SYSTEM */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		const char* inputComboPreview = SYSTEM_VARIABLE_NAMES[(int)iVariable.System];
+		const char* inputComboPreview = iVariable.System == SystemShaderVariable::PluginVariable ? 
+			iVariable.PluginSystemVarData.Name :
+			SYSTEM_VARIABLE_NAMES[(int)iVariable.System];
 		if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), inputComboPreview)) {
 			for (int n = 0; n < (int)SystemShaderVariable::Count; n++) {
 				bool is_selected = (n == (int)iVariable.System);
-				if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == iVariable.GetType())
-					&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
+				if (n != (int)SystemShaderVariable::PluginVariable) {
+					if ((n == 0 || ed::SystemVariableManager::GetType((ed::SystemShaderVariable)n) == iVariable.GetType())
+						&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected))
 						iVariable.System = (ed::SystemShaderVariable)n;
+				} else {
+					bool modified = m_data->Plugins.ShowSystemVariables(&iVariable.PluginSystemVarData, iVariable.GetType());
+					if (modified) iVariable.System = SystemShaderVariable::PluginVariable;
+				}
+
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
 			}

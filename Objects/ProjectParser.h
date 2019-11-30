@@ -21,11 +21,12 @@ namespace ed
 	class PipelineManager;
 	class RenderEngine;
 	class ObjectManager;
+	class PluginManager;
 
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, MessageStack* msgs, GUIManager* gui);
+		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, PluginManager* plugins, MessageStack* msgs, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -73,11 +74,15 @@ namespace ed
 		GUIManager* m_ui;
 		PipelineManager* m_pipe;
 		ObjectManager* m_objects;
+		PluginManager* m_plugins;
 		RenderEngine* m_renderer;
 		MessageStack* m_msgs;
 		std::string m_file;
 		std::string m_projectPath;
 		std::string m_template;
+
+		std::vector<std::string> m_pluginList;
+		void m_addPlugin(const std::string& name);
 
 		std::vector<std::pair<std::string, eng::Model*>> m_models;
 	};

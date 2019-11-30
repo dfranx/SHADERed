@@ -1,4 +1,5 @@
 #pragma once
+#include "PluginData.h"
 
 namespace ed
 {
@@ -20,5 +21,12 @@ namespace ed
 		/* list: pipeline, shaderpass_add, objects */
 		virtual bool HasContextItems(const char* name) = 0;
 		virtual void ShowContextItems(const char* name) = 0;
+
+		// system variable methods
+		virtual bool HasSystemVariables(plugin::VariableType varType) = 0;
+		virtual int GetSystemVariableNameCount(plugin::VariableType varType) = 0;
+		virtual const char* GetSystemVariableName(plugin::VariableType varType, int index) = 0;
+		virtual bool HasLastFrame(char* name, plugin::VariableType varType) = 0;
+		virtual void UpdateSystemVariableValue(char* data, char* name, plugin::VariableType varType, bool isLastFrame) = 0;
 	};
 }

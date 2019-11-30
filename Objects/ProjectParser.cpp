@@ -9,6 +9,7 @@
 #include "Names.h"
 #include "Logger.h"
 #include "DefaultState.h"
+#include "PluginAPI/PluginManager.h"
 
 #include "../UI/PinnedUI.h"
 #include "../UI/PropertyUI.h"
@@ -42,8 +43,8 @@ namespace ed
 		return ret;
 	}
 
-	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, MessageStack* msgs, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs)
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins)
 	{
 
 		ResetProjectDirectory();
@@ -76,6 +77,8 @@ namespace ed
 			}
 		}
 		m_models.clear();
+
+		m_pluginList.clear();
 
 		m_pipe->Clear();
 		m_objects->Clear();
@@ -117,6 +120,7 @@ namespace ed
 	{
 		Logger::Get().Log("Saving project file...");
 
+		m_pluginList.clear();
 		m_modified = false;
 		m_file = file;
 		std::string oldProjectPath = m_projectPath;
@@ -449,7 +453,8 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+			}
+			else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass *passData = (pipe::ComputePass *)passItem->Data;
 
 				passNode.append_attribute("type").set_value("compute");
@@ -484,7 +489,8 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+			}
+			else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
 				pipe::AudioPass *passData = (pipe::AudioPass *)passItem->Data;
 
 				passNode.append_attribute("type").set_value("audio");
@@ -797,6 +803,15 @@ namespace ed
 			}
 		}
 
+		if (m_pluginList.size() > 0) {
+			pugi::xml_node pluginsNode = projectNode.append_child("plugins");
+			for (const auto& pname : m_pluginList) {
+				pugi::xml_node pnode = pluginsNode.append_child("entry");
+				pnode.append_attribute("name").set_value(pname.c_str());
+				pnode.append_attribute("ver").set_value(m_plugins->GetPluginVersion(pname));
+			}
+		}
+
 		doc.save_file(file.c_str());
 	}
 	std::string ProjectParser::LoadProjectFile(const std::string & file)
@@ -967,8 +982,14 @@ namespace ed
 				if (isInvert) varNode.append_attribute("invert").set_value(isInvert);
 				if (isLastFrame) varNode.append_attribute("lastframe").set_value(isLastFrame);
 
-				if (var->System != SystemShaderVariable::None)
+				if (var->System != SystemShaderVariable::None) {
 					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var->System]);
+					if (var->System == SystemShaderVariable::PluginVariable) {
+						m_addPlugin(m_plugins->GetPluginName(var->PluginSystemVarData.Owner));
+						varNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(var->PluginSystemVarData.Owner).c_str());
+						varNode.append_attribute("itemname").set_value(var->PluginSystemVarData.Name);
+					}
+				}
 				else if (var->Function != FunctionShaderVariable::None)
 					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var->Function]);
 
@@ -1011,6 +1032,12 @@ namespace ed
 			if (strcmp(str, CULL_MODE_NAMES[k]) == 0)
 				return CULL_MODE_VALUES[k];
 		return GL_BACK;
+	}
+
+	void ProjectParser::m_addPlugin(const std::string& name)
+	{
+		if (std::count(m_pluginList.begin(), m_pluginList.end(), name) == 0)
+			m_pluginList.push_back(name);
 	}
 
 	// parser versions
@@ -1707,6 +1734,7 @@ namespace ed
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
+					ed::PluginSystemVariableData pluginSysData;
 					char flags = 0;
 
 					/* FLAGS */
@@ -1736,7 +1764,12 @@ namespace ed
 								system = (ed::SystemShaderVariable)i;
 								break;
 							}
-						if (SystemVariableManager::GetType(system) != type)
+						if (system == SystemShaderVariable::PluginVariable) {
+							const char* ownerName = variableNode.attribute("plugin").as_string();
+							const char* psVarName = variableNode.attribute("itemname").as_string();
+							strcpy(pluginSysData.Name, psVarName);
+							pluginSysData.Owner = m_plugins->GetPlugin(ownerName);							
+						} else if (SystemVariableManager::GetType(system) != type)
 							system = ed::SystemShaderVariable::None;
 					}
 					if (!variableNode.attribute("function").empty()) {
@@ -1752,6 +1785,7 @@ namespace ed
 
 					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
 					var->Flags = flags;
+					memcpy(&var->PluginSystemVarData, &pluginSysData, sizeof(PluginSystemVariableData));
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 					// parse value
