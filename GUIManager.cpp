@@ -1144,7 +1144,7 @@ namespace ed
 			ImGui::TextWrapped("CameraDirection3 (vec3) - camera view direction");
 			ImGui::TextWrapped("KeysWASD (vec4) - W, A, S or D keys state");
 			ImGui::TextWrapped("Mouse (vec4) - vec4(x,y,left,right) updated every frame");
-			ImGui::TextWrapped("MouseButton (vec4) - vec4(x,y,left,right) updated only when mouse button pressed");
+			ImGui::TextWrapped("MouseButton (vec4) - vec4(x,y,clickX,clickY) updated only when left mouse button is down");
 
 			ImGui::NewLine();
 			ImGui::Separator();

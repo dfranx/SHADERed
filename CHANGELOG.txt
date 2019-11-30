@@ -5,6 +5,7 @@
 + add ability to load projects by drag and dropping them
 + add search in Options -> Shortcuts
 + change default font & theme
++ change how MouseButton works
 
 [v1.2.4]
 + add drag & drop to PipelineUI
