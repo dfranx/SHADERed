@@ -809,7 +809,7 @@ namespace ed
 		}
 
 		// object preview
-		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
+		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun() && !m_performanceMode)
 			m_objectPrev->Update(delta);
 
 		// handle the "build occured" event
