@@ -6,6 +6,7 @@
 + add search in Options -> Shortcuts
 + change default font & theme
 + change how MouseButton works
++ various fixes
 
 [v1.2.4]
 + add drag & drop to PipelineUI
