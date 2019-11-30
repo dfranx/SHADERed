@@ -110,30 +110,46 @@ namespace ed
 					ImGui::Text("RT:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					std::vector<std::string> rts = m_data->Objects.GetObjects();
-					bool windowAlreadyBound = false;
-					for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
-						if (item->RenderTextures[i] == 0)
-							continue;
-						
-						if (!windowAlreadyBound && item->RenderTextures[i] == m_data->Renderer.GetTexture()) {
-							windowAlreadyBound = true;
-							break;
-						}
-
-						for (int j = 0; j < rts.size(); j++) {
-							if (!m_data->Objects.IsRenderTexture(rts[j]) || (m_data->Objects.IsRenderTexture(rts[j]) && item->RenderTextures[i] == m_data->Objects.GetTexture(rts[j]))) {
-								rts.erase(rts.begin() + j);
-								j--;
-							}
-						}
-					}
 					for (item->RTCount = 0; item->RTCount < MAX_RENDER_TEXTURES; item->RTCount++) {
 						int i = item->RTCount;
 						GLuint rtID = item->RenderTextures[i];
 						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetRenderTexture(rtID)->Name);
 						
 						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), name.c_str())) {
+							std::vector<std::string> rts = m_data->Objects.GetObjects();
+							bool windowAlreadyBound = false;
+							for (int k = 0; k < MAX_RENDER_TEXTURES; k++) {
+								if (item->RenderTextures[k] == 0)
+									continue;
+
+								if (!windowAlreadyBound && item->RenderTextures[k] == m_data->Renderer.GetTexture()) {
+									windowAlreadyBound = true;
+									break;
+								}
+
+								for (int j = 0; j < rts.size(); j++) {
+									if (!m_data->Objects.IsRenderTexture(rts[j]) || (m_data->Objects.IsRenderTexture(rts[j]) && item->RenderTextures[k] == m_data->Objects.GetTexture(rts[j]))) {
+										rts.erase(rts.begin() + j);
+										j--;
+									}
+								}
+							}
+
+							// prevent duplicates
+							for (int j = 0; j < MAX_RENDER_TEXTURES; j++) {
+								if (item->RenderTextures[j] == 0)
+									break;
+
+								std::string name = item->RenderTextures[j] == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetRenderTexture(item->RenderTextures[j])->Name;
+
+								for (int k = 0; k < rts.size(); k++) {
+									if (rts[k] == name) {
+										rts.erase(rts.begin() + k);
+										k--;
+									}
+								}
+							}
+
 							// null element
 							if (i != 0 && rtID != 0) {
 								if (ImGui::Selectable("NULL", rtID == 0)) {

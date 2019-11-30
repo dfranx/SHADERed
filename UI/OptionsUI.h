@@ -1,5 +1,6 @@
 #pragma once
 #include "UIView.h"
+#include "../Objects/Settings.h"
 #include "../Objects/KeyboardShortcuts.h"
 
 namespace ed
@@ -30,8 +31,17 @@ namespace ed
 
 		inline void SetGroup(Page grp) {
 			m_page = grp;
-			if (m_page ==Page::General)
+			if (m_page == Page::General)
 				m_loadThemeList();
+			else if (m_page == Page::Preview) {
+				switch (Settings::Instance().Preview.MSAA) {
+				case 1: m_msaaChoice = 0; break;
+				case 2: m_msaaChoice = 1; break;
+				case 4: m_msaaChoice = 2; break;
+				case 8: m_msaaChoice = 3; break;
+				default: m_msaaChoice = 0; break;
+				}
+			}
 		}
 		Page GetGroup() { return m_page; }
 
@@ -46,6 +56,8 @@ namespace ed
 		int m_selectedShortcut;
 		KeyboardShortcuts::Shortcut m_newShortcut;
 		std::string m_getShortcutString();
+
+		int m_msaaChoice;
 
 		std::vector<std::string> m_themes;
 		void m_loadThemeList();

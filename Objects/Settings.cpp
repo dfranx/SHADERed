@@ -61,6 +61,7 @@ namespace ed
 		Preview.FPSLimit = -1;
 		Preview.ApplyFPSLimitToApp = false;
 		Preview.LostFocusLimitFPS = false;
+		Preview.MSAA = 1;
 	}
 	void Settings::Load()
 	{
@@ -128,6 +129,11 @@ namespace ed
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
 		Preview.ApplyFPSLimitToApp = ini.GetBoolean("preview", "fpslimitwholeapp", false);
 		Preview.LostFocusLimitFPS = ini.GetBoolean("preview", "fpslimitlostfocus", false);
+		Preview.MSAA = ini.GetInteger("preview", "msaa", 1);
+		
+		if (Preview.MSAA != 1 && Preview.MSAA != 2 && Preview.MSAA != 4 &&
+			Preview.MSAA != 8 && Preview.MSAA != 16 && Preview.MSAA != 32)
+			Preview.MSAA = 1;
 
 		if (Preview.ApplyFPSLimitToApp)
 			Preview.LostFocusLimitFPS = false;
@@ -191,6 +197,7 @@ namespace ed
 		ini << "fpslimit=" << Preview.FPSLimit << std::endl;
 		ini << "fpslimitwholeapp=" << Preview.ApplyFPSLimitToApp << std::endl;
 		ini << "fpslimitlostfocus=" << Preview.LostFocusLimitFPS << std::endl;
+		ini << "msaa=" << Preview.MSAA << std::endl;
 
 		ini << "[editor]" << std::endl;
 		ini << "smartpred=" << Editor.SmartPredictions << std::endl;

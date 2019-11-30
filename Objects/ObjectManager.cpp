@@ -1,5 +1,6 @@
 #include "ObjectManager.h"
 #include "RenderEngine.h"
+#include "Settings.h"
 #include "Logger.h"
 #include "../Engine/GLUtils.h"
 
@@ -61,6 +62,21 @@ namespace ed
 		Logger::Get().Log("Clearing ObjectManager contents...");
 		
 		for (int i = 0; i < m_itemData.size(); i++) {
+			if (m_itemData[i]->Buffer != nullptr)
+				glDeleteBuffers(1, &m_itemData[i]->Buffer->ID);
+			if (m_itemData[i]->Image != nullptr)
+				glDeleteTextures(1, &m_itemData[i]->Image->Texture);
+			if (m_itemData[i]->Image3D != nullptr)
+				glDeleteTextures(1, &m_itemData[i]->Image3D->Texture);
+			if (m_itemData[i]->RT != nullptr) {
+				glDeleteTextures(1, &m_itemData[i]->RT->BufferMS);
+				glDeleteTextures(1, &m_itemData[i]->RT->DepthStencilBuffer);
+				glDeleteTextures(1, &m_itemData[i]->RT->DepthStencilBufferMS);
+			}
+			if (m_itemData[i]->Sound != nullptr) {
+				delete m_itemData[i]->Sound;
+				delete m_itemData[i]->SoundBuffer;
+			}
 			delete m_itemData[i];
 		}
 		
@@ -109,6 +125,17 @@ namespace ed
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// color texture ms
+		glGenTextures(1, &rtObj->BufferMS);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rtObj->BufferMS);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, rtObj->Format, size.x, size.y, true);
+
+		// depth texture ms
+		glGenTextures(1, &rtObj->DepthStencilBufferMS);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rtObj->DepthStencilBufferMS);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, size.x, size.y, true);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 		return true;
 	}
@@ -481,7 +508,22 @@ namespace ed
 		int index = 0;
 		for (; index < m_items.size(); index++)
 			if (m_items[index] == file) break;
-		
+
+		if (m_itemData[index]->Buffer != nullptr)
+			glDeleteBuffers(1, &m_itemData[index]->Buffer->ID);
+		if (m_itemData[index]->Image != nullptr)
+			glDeleteTextures(1, &m_itemData[index]->Image->Texture);
+		if (m_itemData[index]->Image3D != nullptr)
+			glDeleteTextures(1, &m_itemData[index]->Image3D->Texture);
+		if (m_itemData[index]->RT != nullptr) {
+			glDeleteTextures(1, &m_itemData[index]->RT->BufferMS);
+			glDeleteTextures(1, &m_itemData[index]->RT->DepthStencilBuffer);
+			glDeleteTextures(1, &m_itemData[index]->RT->DepthStencilBufferMS);
+		}
+		if (m_itemData[index]->Sound != nullptr) {
+			delete m_itemData[index]->Sound;
+			delete m_itemData[index]->SoundBuffer;
+		}
 		delete m_itemData[index];
 		m_itemData.erase(m_itemData.begin() + index);
 		m_items.erase(m_items.begin() + index);
@@ -827,6 +869,13 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, size.x, size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rtObj->BufferMS);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, rtObj->Format, size.x, size.y, true);
+
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rtObj->DepthStencilBufferMS);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, size.x, size.y, true);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	}
 	void ObjectManager::ResizeImage(const std::string& name, glm::ivec2 size)
 	{

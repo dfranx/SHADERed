@@ -2721,9 +2721,9 @@ namespace ed
 					else {
 						ed::ArcBallCamera* ab = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 						ab->SetDistance(std::stof(settingItem.child("distance").text().get()));
-						ab->Yaw(std::stof(settingItem.child("yaw").text().get()));
-						ab->Pitch(std::stof(settingItem.child("pitch").text().get()));
-						ab->Roll(std::stof(settingItem.child("roll").text().get()));
+						ab->SetYaw(std::stof(settingItem.child("yaw").text().get()));
+						ab->SetPitch(std::stof(settingItem.child("pitch").text().get()));
+						ab->SetRoll(std::stof(settingItem.child("roll").text().get()));
 					}
 
 				}

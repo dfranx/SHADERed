@@ -135,9 +135,9 @@ namespace ed
 			m_mouseContact = ImVec2(e.button.x, e.button.y);
 		
 			if (!m_data->Renderer.IsPaused() &&
-			   (e.button.button == SDL_BUTTON_LEFT || e.button.button == SDL_BUTTON_RIGHT) &&
+			   (e.button.button == SDL_BUTTON_LEFT) &&
 				!isAltDown) {
-					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
+					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, e.button.x, e.button.y);
 			}
 
 			if (isAltDown && m_mouseHovers) {
@@ -329,6 +329,11 @@ namespace ed
 			SystemVariableManager::Instance().SetKeysWASD(ImGui::IsKeyDown(SDL_SCANCODE_W), ImGui::IsKeyDown(SDL_SCANCODE_A), ImGui::IsKeyDown(SDL_SCANCODE_S), ImGui::IsKeyDown(SDL_SCANCODE_D));
 
 			// update system variable mouse position value
+			if (ImGui::IsMouseDown(0)) {
+				glm::vec4 mbtnlast = SystemVariableManager::Instance().GetMouseButton();
+				SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, mbtnlast.z, mbtnlast.w);
+			}
+
 			SystemVariableManager::Instance().SetMousePosition(m_mousePos.x, m_mousePos.y);
 			SystemVariableManager::Instance().SetMouse(m_mousePos.x, m_mousePos.y, ImGui::IsMouseDown(0), ImGui::IsMouseDown(1));
 		}

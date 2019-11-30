@@ -1,9 +1,12 @@
 [v1.3]
-+ add option for supersampling when rendering to an image
++ add MSAA
++ add option for supersampling when rendering to an image file
 + add support for #include keyword
 + add ability to load projects by drag and dropping them
 + add search in Options -> Shortcuts
 + change default font & theme
++ change how MouseButton works
++ various fixes
 
 [v1.2.4]
 + add drag & drop to PipelineUI
