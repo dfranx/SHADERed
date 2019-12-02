@@ -83,7 +83,7 @@ namespace ed
 
 		std::vector<std::string> m_pluginList;
 		void m_addPlugin(const std::string& name);
-
+		
 		std::vector<std::pair<std::string, eng::Model*>> m_models;
 	};
 }

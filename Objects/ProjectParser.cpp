@@ -63,6 +63,76 @@ namespace ed
 			return;
 		}
 
+		// check if user has all required plugins
+		m_pluginList.clear();
+		bool pluginTest = true;
+		pugi::xml_node pluginsContainerNode = doc.child("project").child("plugins");
+		for (pugi::xml_node pluginNode : pluginsContainerNode.children("entry")) {
+			std::string pname = pluginNode.attribute("name").as_string();
+			int pver = pluginNode.attribute("ver").as_int();
+
+			IPlugin* plugin = m_plugins->GetPlugin(pname);
+			if (plugin == nullptr) {
+				pluginTest = false;
+
+				std::string msg = "The project you are trying to open requires plugin " + pname + ".\nDo you want to install the plugin?";
+
+				const SDL_MessageBoxButtonData buttons[] = {
+					{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+				};
+				const SDL_MessageBoxData messageboxdata = {
+					SDL_MESSAGEBOX_INFORMATION, /* .flags */
+					m_ui->GetSDLWindow(), /* .window */
+					"SHADERed", /* .title */
+					msg.c_str(), /* .message */
+					SDL_arraysize(buttons), /* .numbuttons */
+					buttons, /* .buttons */
+					NULL /* .colorScheme */
+				};
+				int buttonid;
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+
+				if (buttonid == 0) {
+					// TODO: redirect to .../plugin?name=pname
+				}
+			} 
+			else {
+				int instPVer = m_plugins->GetPluginVersion(pname);
+				if (instPVer < pver) {
+					pluginTest = false;
+
+					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + 
+						" while you have version " + std::to_string(instPVer) + " installed.\nDo you want to update your plugin?";
+
+					const SDL_MessageBoxButtonData buttons[] = {
+						{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+						{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+					};
+					const SDL_MessageBoxData messageboxdata = {
+						SDL_MESSAGEBOX_INFORMATION, /* .flags */
+						m_ui->GetSDLWindow(), /* .window */
+						"SHADERed", /* .title */
+						msg.c_str(), /* .message */
+						SDL_arraysize(buttons), /* .numbuttons */
+						buttons, /* .buttons */
+						NULL /* .colorScheme */
+					};
+					int buttonid;
+					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+
+					if (buttonid == 0) {
+						// TODO: redirect to .../plugin?name=pname
+					}
+				}
+			}
+		}
+		
+		if (!pluginTest) {
+			Logger::Get().Log("Missing plugin - project not loaded", true);
+			return;
+		}
+
 		CameraSnapshots::Clear();
 
 		m_file = file;
@@ -77,8 +147,6 @@ namespace ed
 			}
 		}
 		m_models.clear();
-
-		m_pluginList.clear();
 
 		m_pipe->Clear();
 		m_objects->Clear();
