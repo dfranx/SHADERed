@@ -1,4 +1,5 @@
-#include "../Objects/PluginAPI/PluginManager.h" // TODO: reorganize SHADERed source code & add_include_dir(inc)
+#include "PluginManager.h"
+#include "../Settings.h"
 #include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
@@ -61,12 +62,17 @@ namespace ed
 
 				printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
 
+				// list of loaded plugins
+				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
+				std::string pname = (*fnGetPluginName)();
+
+
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
 				plugin->Init();
 				m_plugins.push_back(plugin);
 				m_proc.push_back(procDLL);
-				m_isActive.push_back(true);
-				m_names.push_back((*fnGetPluginName)());
+				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
+				m_names.push_back(pname);
 			}
 		}
 	}
@@ -86,8 +92,9 @@ namespace ed
 	}
 	void PluginManager::Update(float delta)
 	{
-		for (const auto& plugin : m_plugins)
-			plugin->Update(delta);
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i])
+				m_plugins[i]->Update(delta);
 	}
 
 	IPlugin* PluginManager::GetPlugin(const std::string& plugin)
@@ -117,26 +124,24 @@ namespace ed
 
 	void PluginManager::ShowContextItems(const std::string& menu)
 	{
-		for (const auto& plugin : m_plugins) {
-			if (plugin->HasContextItems(menu.c_str())) {
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i] && m_plugins[i]->HasContextItems(menu.c_str())) {
 				ImGui::Separator();
-				plugin->ShowContextItems(menu.c_str());
+				m_plugins[i]->ShowContextItems(menu.c_str());
 			}
-		}
 	}
 	void PluginManager::ShowMenuItems(const std::string& menu)
 	{
-		for (const auto& plugin : m_plugins) {
-			if (plugin->HasMenuItems(menu.c_str())) {
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i] && m_plugins[i]->HasMenuItems(menu.c_str())) {
 				ImGui::Separator();
-				plugin->ShowMenuItems(menu.c_str());
+				m_plugins[i]->ShowMenuItems(menu.c_str());
 			}
-		}
 	}
 	void PluginManager::ShowCustomMenu()
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_plugins[i]->HasCustomMenu())
+			if (m_isActive[i] && m_plugins[i]->HasCustomMenu())
 				if (ImGui::BeginMenu(m_names[i].c_str())) {
 					m_plugins[i]->ShowMenuItems("custom");
 					ImGui::EndMenu();
@@ -145,20 +150,19 @@ namespace ed
 	bool PluginManager::ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type)
 	{
 		bool ret = false;
-		for (const auto& plugin : m_plugins) {
-			if (plugin->HasSystemVariables((plugin::VariableType)type)) {
-				int nameCount = plugin->GetSystemVariableNameCount((plugin::VariableType)type);
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i] && m_plugins[i]->HasSystemVariables((plugin::VariableType)type)) {
+				int nameCount = m_plugins[i]->GetSystemVariableNameCount((plugin::VariableType)type);
 
 				for (int j = 0; j < nameCount; j++) {
-					const char* name = plugin->GetSystemVariableName((plugin::VariableType)type, j);
+					const char* name = m_plugins[i]->GetSystemVariableName((plugin::VariableType)type, j);
 					if (ImGui::Selectable(name)) {
-						data->Owner = plugin;
+						data->Owner = m_plugins[i];
 						strcpy(data->Name, name);
 						ret = true;
 					}
 				}
 			}
-		}
 
 		return ret;
 	}

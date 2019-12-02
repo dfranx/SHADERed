@@ -81,6 +81,10 @@ namespace ed
 			std::vector<std::string> IncludePaths;
 		} Project;
 
+		struct strPlugins {
+			std::vector<std::string> NotLoaded;
+		} Plugins;
+
 		static inline Settings& Instance()
 		{
 			static Settings ret;

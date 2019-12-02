@@ -96,6 +96,8 @@ namespace ed
 				if (buttonid == 0) {
 					// TODO: redirect to .../plugin?name=pname
 				}
+
+				break;
 			} 
 			else {
 				int instPVer = m_plugins->GetPluginVersion(pname);
@@ -124,6 +126,8 @@ namespace ed
 					if (buttonid == 0) {
 						// TODO: redirect to .../plugin?name=pname
 					}
+
+					break;
 				}
 			}
 		}

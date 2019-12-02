@@ -1619,11 +1619,12 @@ namespace ed
 	void GUIManager::m_renderOptions()
 	{
 		OptionsUI* options = (OptionsUI*)m_options;
-		static const char* optGroups[5] = {
+		static const char* optGroups[6] = {
 			"General",
 			"Editor",
 			"Shortcuts",
 			"Preview",
+			"Plugins",
 			"Project"
 		};
 
@@ -1639,7 +1640,7 @@ namespace ed
 		}
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-		ImGui::PushItemWidth(100 * Settings::Instance().DPIScale);
+		ImGui::PushItemWidth(-1);
 		if (ImGui::ListBox("##optiongroups", &m_optGroup, optGroups, HARRAYSIZE(optGroups), height))
 			options->SetGroup((OptionsUI::Page)m_optGroup);
 		ImGui::PopStyleColor();

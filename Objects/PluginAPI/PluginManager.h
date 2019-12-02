@@ -20,6 +20,8 @@ namespace ed
 		std::string GetPluginName(IPlugin* plugin);
 		int GetPluginVersion(const std::string& plugin);
 
+		inline const std::vector<std::string>& GetPluginList() { return m_names; }
+
 		void ShowCustomMenu();
 		void ShowMenuItems(const std::string& menu);
 		void ShowContextItems(const std::string& menu);
