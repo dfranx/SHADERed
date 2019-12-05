@@ -91,7 +91,8 @@ int main(int argc, char* argv[])
 			exePath = std::string(dirname(result));
 
 		std::vector<std::string> toCheck = { 
-			"/../share/SHADERed"
+			"/../share/SHADERed",
+			"/../share/shadered"
 			// TODO: maybe more paths here?
 		};
 
