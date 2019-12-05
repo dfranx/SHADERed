@@ -985,8 +985,12 @@ namespace ed
 				if (var->Function != FunctionShaderVariable::None) {
 					if (var->Function == FunctionShaderVariable::Pointer) {
 						strcpy(var->Arguments, value.text().as_string());
-					} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
+					}
+					else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 						strcpy(var->Arguments, value.text().as_string());
+					}
+					else if (var->Function == FunctionShaderVariable::PluginFunction) {
+						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, value.text().as_string());
 					} else {
 						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
 					}
@@ -1032,6 +1036,10 @@ namespace ed
 			else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
 			}
+			else if (var->Function == FunctionShaderVariable::PluginFunction) {
+				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
+				valueRowNode.append_child("value").text().set(var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments));
+			}
 			else {
 				// save arguments
 				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
@@ -1062,8 +1070,15 @@ namespace ed
 						varNode.append_attribute("itemname").set_value(var->PluginSystemVarData.Name);
 					}
 				}
-				else if (var->Function != FunctionShaderVariable::None)
+				else if (var->Function != FunctionShaderVariable::None) {
 					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var->Function]);
+
+					if (var->Function == FunctionShaderVariable::PluginFunction) {
+						m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
+						varNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(var->PluginFuncData.Owner).c_str());
+						varNode.append_attribute("funcname").set_value(var->PluginFuncData.Name);
+					}
+				}
 
 				if (var->System == SystemShaderVariable::None)
 					m_exportVariableValue(varNode, var);
@@ -1806,7 +1821,9 @@ namespace ed
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
-					ed::PluginSystemVariableData pluginSysData;
+					PluginSystemVariableData pluginSysData;
+					PluginFunctionData pluginFuncData;
+
 					char flags = 0;
 
 					/* FLAGS */
@@ -1851,13 +1868,21 @@ namespace ed
 								func = (FunctionShaderVariable)i;
 								break;
 							}
-						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
-							func = FunctionShaderVariable::None;
+						if (func == FunctionShaderVariable::PluginFunction) {
+							const char* ownerName = variableNode.attribute("plugin").as_string();
+							const char* pfuncName = variableNode.attribute("funcname").as_string();
+							strcpy(pluginFuncData.Name, pfuncName);
+							pluginFuncData.Owner = m_plugins->GetPlugin(ownerName);
+						} else {
+							if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+								func = FunctionShaderVariable::None;
+						}
 					}
 
 					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
 					var->Flags = flags;
 					memcpy(&var->PluginSystemVarData, &pluginSysData, sizeof(PluginSystemVariableData));
+					memcpy(&var->PluginFuncData, &pluginFuncData, sizeof(PluginFunctionData));
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 					// parse value

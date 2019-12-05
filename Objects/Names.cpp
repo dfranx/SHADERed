@@ -91,7 +91,8 @@ const char* FUNCTION_NAMES[] = {
 	"MatrixTranslation",
 	"ScalarCos",
 	"ScalarSin",
-	"VectorNormalize"
+	"VectorNormalize",
+	"PluginFunction"
 };
 
 const char* GEOMETRY_NAMES[] = {

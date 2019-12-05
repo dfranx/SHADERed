@@ -27,6 +27,7 @@ namespace ed
 		void ShowContextItems(const std::string& menu);
 
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
+		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);
 
 		void OnEvent(const SDL_Event& e);
 

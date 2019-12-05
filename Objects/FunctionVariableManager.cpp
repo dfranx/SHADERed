@@ -308,6 +308,8 @@ namespace ed
 			}
 			memcpy(var->Data, &vector, ShaderVariable::GetSize(var->GetType()));
 		}
+		else if (var->Function == FunctionShaderVariable::PluginFunction)
+			var->PluginFuncData.Owner->UpdateVariableFunctionValue(var->Data, var->Arguments, var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
 	}
 	void FunctionVariableManager::ClearVariableList()
 	{

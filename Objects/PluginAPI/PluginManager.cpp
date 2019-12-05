@@ -166,4 +166,23 @@ namespace ed
 
 		return ret;
 	}
+	bool PluginManager::ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type)
+	{
+		bool ret = false;
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i] && m_plugins[i]->HasVariableFunctions((plugin::VariableType)type)) {
+				int nameCount = m_plugins[i]->GetVariableFunctionNameCount((plugin::VariableType)type);
+
+				for (int j = 0; j < nameCount; j++) {
+					const char* name = m_plugins[i]->GetVariableFunctionName((plugin::VariableType)type, j);
+					if (ImGui::Selectable(name)) {
+						data->Owner = m_plugins[i];
+						strcpy(data->Name, name);
+						ret = true;
+					}
+				}
+			}
+
+		return ret;
+	}
 }

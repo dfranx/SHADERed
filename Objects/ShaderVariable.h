@@ -12,6 +12,12 @@ namespace ed
 		IPlugin* Owner;
 	};
 
+	struct PluginFunctionData
+	{
+		char Name[64];
+		IPlugin* Owner;
+	};
+
 	// TODO: add these to TUTORIAL.md / wiki
 	enum class SystemShaderVariable
 	{
@@ -62,6 +68,7 @@ namespace ed
 		ScalarCos,
 		ScalarSin,
 		VectorNormalize,
+		PluginFunction,			// a function that is executed by the plugin
 		Count					// not usable - this value just tells us number of all functions
 	};
 
@@ -137,6 +144,7 @@ namespace ed
 		char* Arguments;	// space to store arguments for function - allocated if not null!!!
 		char Flags;
 		PluginSystemVariableData PluginSystemVarData;
+		PluginFunctionData PluginFuncData;
 
 		inline int AsInteger(int index = 0) { return *AsIntegerPtr(index); }
 		inline bool AsBoolean(int index = 0) { return *AsBooleanPtr(index); }
