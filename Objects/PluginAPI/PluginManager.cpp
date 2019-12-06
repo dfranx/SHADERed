@@ -3,6 +3,10 @@
 #include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
+#if defined(__linux__) || defined(__unix__)
+	#include <dlfcn.h>
+#endif
+
 namespace ed
 {
 	typedef IPlugin* (*CreatePluginFn)(ImGuiContext* ctx);
@@ -24,55 +28,107 @@ namespace ed
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().native();
 
-				HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
+				#if defined(__linux__) || defined(__unix__)
+					void* procDLL = dlopen(("./plugins/" + pdir + "/plugin.so").c_str(), RTLD_NOW);
 
-				if (!procDLL)
-					continue;
+					if (!procDLL)
+						continue;
 
-				// GetPluginAPIVersion() function
-				GetPluginAPIVersionFn fnGetPluginAPIVersion = (GetPluginAPIVersionFn)GetProcAddress(procDLL, "GetPluginAPIVersion");
-				if (!fnGetPluginAPIVersion) {
-					FreeLibrary(procDLL);
-					continue;
-				}
+					// GetPluginAPIVersion() function
+					GetPluginAPIVersionFn fnGetPluginAPIVersion = (GetPluginAPIVersionFn)dlsym(procDLL, "GetPluginAPIVersion");
+					if (!fnGetPluginAPIVersion) {
+						dlclose(procDLL);
+						continue;
+					}
 
-				int pver = (*fnGetPluginAPIVersion)();
-				m_versions.push_back(pver);
+					int pver = (*fnGetPluginAPIVersion)();
+					m_versions.push_back(pver);
 
-				// CreatePlugin() function
-				CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
-				if (!fnCreatePlugin) {
-					FreeLibrary(procDLL);
-					continue;
-				}
+					// CreatePlugin() function
+					CreatePluginFn fnCreatePlugin = (CreatePluginFn)dlsym(procDLL, "CreatePlugin");
+					if (!fnCreatePlugin) {
+						dlclose(procDLL);
+						continue;
+					}
 
-				// GetPluginName() function
-				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)GetProcAddress(procDLL, "GetPluginName");
-				if (!fnGetPluginName) {
-					FreeLibrary(procDLL);
-					continue;
-				}
+					// GetPluginName() function
+					GetPluginNameFn fnGetPluginName = (GetPluginNameFn)dlsym(procDLL, "GetPluginName");
+					if (!fnGetPluginName) {
+						dlclose(procDLL);
+						continue;
+					}
 
-				// create the actual plugin
-				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
-				if (plugin == nullptr) {
-					FreeLibrary(procDLL);
-					continue;
-				}
+					// create the actual plugin
+					IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
+					if (plugin == nullptr) {
+						dlclose(procDLL);
+						continue;
+					}
 
-				printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
+					printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
 
-				// list of loaded plugins
-				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
-				std::string pname = (*fnGetPluginName)();
+					// list of loaded plugins
+					std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
+					std::string pname = (*fnGetPluginName)();
 
 
-				// now we can add the plugin and the proc to the list, init the plugin, etc...
-				plugin->Init();
-				m_plugins.push_back(plugin);
-				m_proc.push_back(procDLL);
-				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
-				m_names.push_back(pname);
+					// now we can add the plugin and the proc to the list, init the plugin, etc...
+					plugin->Init();
+					m_plugins.push_back(plugin);
+					m_proc.push_back(procDLL);
+					m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
+					m_names.push_back(pname);
+				#else
+					HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
+
+					if (!procDLL)
+						continue;
+
+					// GetPluginAPIVersion() function
+					GetPluginAPIVersionFn fnGetPluginAPIVersion = (GetPluginAPIVersionFn)GetProcAddress(procDLL, "GetPluginAPIVersion");
+					if (!fnGetPluginAPIVersion) {
+						FreeLibrary(procDLL);
+						continue;
+					}
+
+					int pver = (*fnGetPluginAPIVersion)();
+					m_versions.push_back(pver);
+
+					// CreatePlugin() function
+					CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
+					if (!fnCreatePlugin) {
+						FreeLibrary(procDLL);
+						continue;
+					}
+
+					// GetPluginName() function
+					GetPluginNameFn fnGetPluginName = (GetPluginNameFn)GetProcAddress(procDLL, "GetPluginName");
+					if (!fnGetPluginName) {
+						FreeLibrary(procDLL);
+						continue;
+					}
+
+					// create the actual plugin
+					IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
+					if (plugin == nullptr) {
+						FreeLibrary(procDLL);
+						continue;
+					}
+
+					printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
+
+					// list of loaded plugins
+					std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
+					std::string pname = (*fnGetPluginName)();
+
+
+					// now we can add the plugin and the proc to the list, init the plugin, etc...
+					plugin->Init();
+					m_plugins.push_back(plugin);
+					m_proc.push_back(procDLL);
+					m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
+					m_names.push_back(pname);
+				#endif
 			}
 		}
 	}
@@ -80,12 +136,19 @@ namespace ed
 	{
 		for (int i = 0; i < m_plugins.size(); i++) {
 			m_plugins[i]->Destroy();
+			#if defined(__linux__) || defined(__unix__)
+				DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(m_proc[i], "DestroyPlugin");
+				if (fnDestroyPlugin)
+					(*fnDestroyPlugin)(m_plugins[i]);
 
-			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)GetProcAddress((HINSTANCE)m_proc[i], "DestroyPlugin");
-			if (fnDestroyPlugin)
-				(*fnDestroyPlugin)(m_plugins[i]);
+				dlclose(m_proc[i]);
+			#else
+				DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)GetProcAddress((HINSTANCE)m_proc[i], "DestroyPlugin");
+				if (fnDestroyPlugin)
+					(*fnDestroyPlugin)(m_plugins[i]);
 
-			FreeLibrary((HINSTANCE)m_proc[i]);
+				FreeLibrary((HINSTANCE)m_proc[i]);
+			#endif
 		}
 
 		m_plugins.clear();
