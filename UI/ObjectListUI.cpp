@@ -31,6 +31,8 @@ namespace ed
 			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
 
 		for (int i = 0; i < items.size(); i++) {
+			bool isPluginOwner = m_data->Objects.IsPluginObject(items[i]);
+
 			GLuint tex = m_data->Objects.GetTexture(items[i]);
 			if (m_data->Objects.IsImage(items[i]))
 				tex = m_data->Objects.GetImage(items[i])->Texture;
@@ -60,7 +62,7 @@ namespace ed
 				imgSize = m_data->Objects.GetImage3DSize(items[i]);
 				imgWH = imgSize.y / imgSize.x;
 			}
-			else {
+			else if (!isPluginOwner) {
 				auto img = m_data->Objects.GetTextureSize(items[i]);
 				imgWH = (float)img.y / img.x;
 				imgSize = glm::vec2(img);
@@ -69,27 +71,36 @@ namespace ed
 			size_t lastSlash = items[i].find_last_of("/\\");
 			std::string itemText = items[i];
 
-			if (lastSlash != std::string::npos)
+			if (lastSlash != std::string::npos && !isPluginOwner)
 				itemText = itemText.substr(lastSlash + 1);
 
 			ImGui::Selectable(itemText.c_str());
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
+
+				PluginObject* pobj = m_data->Objects.GetPluginObject(items[i]);
+
 				bool isBuf = m_data->Objects.IsBuffer(items[i]);
 				bool isImg3D = m_data->Objects.IsImage3D(items[i]);
-				if (!isImg3D && (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview"))) {
+				bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
+				if ((hasPluginExtendedPreview || !isPluginOwner) && !isImg3D && (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview"))) {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex,
 							m_data->Objects.IsCubeMap(items[i]),
 							m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr,
 							m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr,
-							isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr);
+							isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr,
+							isPluginOwner ? pobj : nullptr);
 				}
+
+				bool hasPluginPreview = isPluginOwner && pobj->Owner->HasObjectPreview(pobj->Type);
 				if (m_data->Objects.IsCubeMap(items[i])) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
-				} else if (!isBuf && !isImg3D)
+				} else if (!isBuf && !isImg3D && !isPluginOwner)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
+				else if (hasPluginPreview)
+					pobj->Owner->ShowObjectPreview(pobj->Type, pobj->Data, pobj->ID);
 
 				ImGui::Separator();
 
@@ -112,8 +123,11 @@ namespace ed
 					}
 				}
 
-				if (ImGui::BeginMenu("Bind")) {
-					if (isBuf) {
+				bool isPluginObjBindable = isPluginOwner && (pobj->Owner->IsObjectBindable(pobj->Type) || pobj->Owner->IsObjectBindableUAV(pobj->Type));
+				if ((isPluginObjBindable || !isPluginOwner) && ImGui::BeginMenu("Bind")) {
+					bool isPluginObjUAV = isPluginOwner && pobj->Owner->IsObjectBindableUAV(pobj->Type);
+
+					if (isBuf || isPluginObjUAV) {
 						for (int j = 0; j < passes.size(); j++) {
 							int boundID = m_data->Objects.IsUniformBound(items[i], passes[j]);
 							size_t boundItemCount = m_data->Objects.GetUniformBindList(passes[j]).size();
@@ -143,15 +157,11 @@ namespace ed
 
 				if (m_data->Objects.IsRenderTexture(items[i]) ||
 					m_data->Objects.IsImage(items[i]) ||
-					isImg3D) {
-					if (ImGui::Selectable("Properties")) {
-						if (m_data->Objects.IsImage(items[i]))
-							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage(items[i]));
-						else if (m_data->Objects.IsImage3D(items[i]))
-							((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetImage3D(items[i]));
-						else
-							((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetRenderTexture(tex));
-					}
+					isImg3D ||
+					(isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type)))
+				{
+					if (ImGui::Selectable("Properties"))
+						((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
 				}
 
 				if (m_data->Objects.IsAudio(items[i])) {

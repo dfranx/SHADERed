@@ -1012,7 +1012,7 @@ namespace ed
 
 			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateRenderTexture(buf)) {
-					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetRenderTexture(m_data->Objects.GetTexture(buf)));
+					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetObjectManagerItem(buf));
 					ImGui::CloseCurrentPopup();
 				}
 			}

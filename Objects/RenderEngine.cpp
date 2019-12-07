@@ -183,6 +183,10 @@ namespace ed
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 					else if (m_objects->IsImage3D(srvs[j]))
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+					else if (m_objects->IsPluginObject(srvs[j])) {
+						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+					}
 					else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -355,6 +359,10 @@ namespace ed
 					else if (m_objects->IsImage3D(ubos[j])) {
 						Image3DObject* iobj = m_objects->GetImage3D(m_objects->GetImage3DNameByID(ubos[j]));
 						glBindImageTexture(j, ubos[j], 0, GL_TRUE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
+					}
+					else if (m_objects->IsPluginObject(srvs[j])) {
+						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
 					} else
 						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				}
@@ -383,6 +391,10 @@ namespace ed
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 					else if (m_objects->IsImage3D(srvs[j]))
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+					else if (m_objects->IsPluginObject(srvs[j])) {
+						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+					}
 					else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 

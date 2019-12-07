@@ -1,5 +1,7 @@
 #include "PluginManager.h"
 #include "../Settings.h"
+#include "../ObjectManager.h"
+
 #include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
@@ -19,7 +21,7 @@ namespace ed
 		for (const auto& plugin : m_plugins)
 			plugin->OnEvent((void*)&e);
 	}
-	void PluginManager::Init()
+	void PluginManager::Init(ObjectManager* objManager)
 	{
 		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
 
@@ -64,20 +66,6 @@ namespace ed
 						dlclose(procDLL);
 						continue;
 					}
-
-					printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
-
-					// list of loaded plugins
-					std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
-					std::string pname = (*fnGetPluginName)();
-
-
-					// now we can add the plugin and the proc to the list, init the plugin, etc...
-					plugin->Init();
-					m_plugins.push_back(plugin);
-					m_proc.push_back(procDLL);
-					m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
-					m_names.push_back(pname);
 				#else
 					HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
 
@@ -114,21 +102,27 @@ namespace ed
 						FreeLibrary(procDLL);
 						continue;
 					}
-
-					printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
-
-					// list of loaded plugins
-					std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
-					std::string pname = (*fnGetPluginName)();
-
-
-					// now we can add the plugin and the proc to the list, init the plugin, etc...
-					plugin->Init();
-					m_plugins.push_back(plugin);
-					m_proc.push_back(procDLL);
-					m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
-					m_names.push_back(pname);
 				#endif
+
+				printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
+
+				// list of loaded plugins
+				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
+				std::string pname = (*fnGetPluginName)();
+
+				// set up pointers to app functions
+				plugin->ObjectManager = (void*)objManager;
+				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
+					ObjectManager* objm = (ObjectManager*)objectManager;
+					objm->CreatePluginItem(name, type, data, id, (IPlugin*)owner);
+				};
+
+				// now we can add the plugin and the proc to the list, init the plugin, etc...
+				plugin->Init();
+				m_plugins.push_back(plugin);
+				m_proc.push_back(procDLL);
+				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
+				m_names.push_back(pname);
 			}
 		}
 	}

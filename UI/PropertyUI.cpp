@@ -19,16 +19,14 @@ namespace ed
 	void PropertyUI::m_init()
 	{
 		m_current = nullptr;
-		m_currentRT = nullptr;
-		m_currentImg = nullptr;
-		m_currentImg3D = nullptr;
+		m_currentObj = nullptr;
 		memset(m_itemName, 0, 64 * sizeof(char));
 	}
 	void PropertyUI::OnEvent(const SDL_Event& e)
 	{}
 	void PropertyUI::Update(float delta)
 	{
-		if (m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr || m_currentImg3D != nullptr) {
+		if (m_current != nullptr || m_currentObj != nullptr) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			if (m_current != nullptr) {
 				ImGui::Text(m_current->Name);
@@ -38,17 +36,18 @@ namespace ed
 					ImGui::Text(("(" + std::string(GEOMETRY_NAMES[(int)((pipe::GeometryItem*)m_current->Data)->Type]) + ")").c_str());
 				}
 			}
-			else if (m_currentRT != nullptr) {
-				ImGui::Text(m_currentRT->Name.c_str());
-				ImGui::Text("Render Texture");
-			}
-			else if (m_currentImg != nullptr) {
-				ImGui::Text(m_data->Objects.GetImageNameByID(m_currentImg->Texture).c_str());
-				ImGui::Text("Image");
-			}
-			else if (m_currentImg3D != nullptr) {
-				ImGui::Text(m_data->Objects.GetImage3DNameByID(m_currentImg3D->Texture).c_str());
-				ImGui::Text("Image3D");
+			else if (m_currentObj != nullptr) {
+				ImGui::Text(m_data->Objects.GetObjectManagerItemName(m_currentObj).c_str());
+				if (IsRenderTexture())
+					ImGui::Text("Render Texture");
+				else if (IsImage())
+					ImGui::Text("Image");
+				else if (IsImage3D())
+					ImGui::Text("Image3D");
+				else if (IsPlugin())
+					ImGui::Text(m_currentObj->Plugin->Type);
+				else
+					ImGui::Text("ObjectManagerItem");
 			}
 			else
 				ImGui::Text("nullptr");
@@ -66,7 +65,7 @@ namespace ed
 
 			ImGui::Separator();
 			
-			if (m_currentRT == nullptr && m_currentImg == nullptr && m_currentImg3D == nullptr) {
+			if (m_currentObj == nullptr) {
 				ImGui::Text("Name:");
 				ImGui::NextColumn();
 
@@ -1018,7 +1017,9 @@ namespace ed
 					ImGui::PopItemWidth();
 				}
 			}
-			else if (m_currentRT != nullptr) {
+			else if (IsRenderTexture()) {
+				ed::RenderTextureObject* m_currentRT = m_currentObj->RT;
+
 				/* FIXED SIZE */
 				ImGui::Text("Fixed size:");
 				ImGui::NextColumn();
@@ -1109,7 +1110,9 @@ namespace ed
 					ImGui::PopItemFlag();
 				}
 			}
-			else if (m_currentImg != nullptr) {
+			else if (IsImage()) {
+				ed::ImageObject* m_currentImg = m_currentObj->Image;
+
 				/* SIZE */
 				ImGui::Text("Size:");
 				ImGui::NextColumn();
@@ -1150,7 +1153,9 @@ namespace ed
 				}
 				ImGui::PopItemWidth();
 			}
-			else if (m_currentImg3D != nullptr) {
+			else if (IsImage3D()) {
+				ed::Image3DObject* m_currentImg3D = m_currentObj->Image3D;
+
 				/* SIZE */
 				ImGui::Text("Size:");
 				ImGui::NextColumn();
@@ -1193,6 +1198,11 @@ namespace ed
 				}
 				ImGui::PopItemWidth();
 			}
+			else if (IsPlugin()) {
+				ImGui::Columns(1);
+
+				m_currentObj->Plugin->Owner->ShowObjectProperties(m_currentObj->Plugin->Type, m_currentObj->Plugin->Data, m_currentObj->Plugin->ID);
+			}
 
 			ImGui::NextColumn();
 			ImGui::Separator();
@@ -1214,45 +1224,17 @@ namespace ed
 
 		Logger::Get().Log("Openning a pipeline item in the PropertyUI");
 
-		m_currentImg = nullptr;
-		m_currentRT = nullptr;
-		m_currentImg3D = nullptr;
 		m_current = item;
+		m_currentObj = nullptr;
 	}
-	void PropertyUI::Open(const std::string &name, ed::RenderTextureObject *obj)
+	void PropertyUI::Open(const std::string &name, ObjectManagerItem *obj)
 	{
-		Logger::Get().Log("Openning a render texutre in the PropertyUI");
-
-		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
-		memcpy(m_itemName, name.c_str(), name.size());
-
-		m_currentImg = nullptr;
-		m_current = nullptr;
-		m_currentImg3D = nullptr;
-		m_currentRT = obj;
-	}
-	void PropertyUI::Open(const std::string& name, ed::ImageObject* obj)
-	{
-		Logger::Get().Log("Openning an image in the PropertyUI");
+		Logger::Get().Log("Openning an ObjectManager item in the PropertyUI");
 
 		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
 		memcpy(m_itemName, name.c_str(), name.size());
 
 		m_current = nullptr;
-		m_currentRT = nullptr;
-		m_currentImg3D = nullptr;
-		m_currentImg = obj;
-	}
-	void PropertyUI::Open(const std::string& name, ed::Image3DObject* obj)
-	{
-		Logger::Get().Log("Openning an image in the PropertyUI");
-
-		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
-		memcpy(m_itemName, name.c_str(), name.size());
-
-		m_current = nullptr;
-		m_currentImg = nullptr;
-		m_currentRT = nullptr;
-		m_currentImg3D = obj;
+		m_currentObj = obj;
 	}
 }

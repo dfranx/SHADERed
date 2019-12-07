@@ -35,6 +35,14 @@ namespace ed
 
 		return "glsl";
 	}
+	std::string getInnerXML(const pugi::xml_node& node)
+	{
+		std::ostringstream pxmlStream;
+		for (pugi::xml_node_iterator it = node.begin(); it != node.end(); ++it)
+			it->print(pxmlStream);
+
+		return pxmlStream.str();
+	}
 
 	std::string toGenericPath(const std::string& p)
 	{
@@ -625,12 +633,13 @@ namespace ed
 				bool isBuffer = m_objects->IsBuffer(texs[i]);
 				bool isImage = m_objects->IsImage(texs[i]);
 				bool isImage3D = m_objects->IsImage3D(texs[i]);
+				bool isPluginOwner = m_objects->IsPluginObject(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : "texture")))));
-				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D) ? "name" : "path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
+				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D || isPluginOwner) ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && isCube)
+				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && !isPluginOwner && isCube)
 					textureNode.append_attribute("cube").set_value(isCube);
 
 				if (isRT) {
@@ -678,6 +687,19 @@ namespace ed
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 
+				PluginObject* pluginObj = (PluginObject*)m_objects->GetPluginObject(texs[i]);
+				bool isPluginObjectUAV = isPluginOwner && pluginObj->Owner->IsObjectBindableUAV(pluginObj->Type);
+
+				if (isPluginOwner) {
+					m_addPlugin(m_plugins->GetPluginName(pluginObj->Owner));
+
+					textureNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(pluginObj->Owner).c_str());
+					textureNode.append_attribute("objecttype").set_value(pluginObj->Type);
+
+					const char* pObjectSrc = pluginObj->Owner->ExportObject(pluginObj->Type, pluginObj->Data, pluginObj->ID);
+					textureNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
+				}
+
 				if (isBuffer) {
 					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
 					
@@ -706,7 +728,7 @@ namespace ed
 						}
 					}
 				}
-				else if (isImage || isImage3D) {
+				else if (isImage || isImage3D || isPluginObjectUAV) {
 					for (int j = 0; j < passItems.size(); j++) {
 
 						GLuint myTex = 0;
@@ -741,6 +763,8 @@ namespace ed
 				} 
 				else {
 					GLuint myTex = m_objects->GetTexture(texs[i]);
+					if (isPluginOwner)
+						myTex = pluginObj->ID;
 
 					for (int j = 0; j < passItems.size(); j++) {
 						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
@@ -990,7 +1014,7 @@ namespace ed
 						strcpy(var->Arguments, value.text().as_string());
 					}
 					else if (var->Function == FunctionShaderVariable::PluginFunction) {
-						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, value.text().as_string());
+						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, getInnerXML(value).c_str());
 					} else {
 						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
 					}
@@ -1038,7 +1062,9 @@ namespace ed
 			}
 			else if (var->Function == FunctionShaderVariable::PluginFunction) {
 				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
-				valueRowNode.append_child("value").text().set(var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments));
+
+				const char* valNode = var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments);
+				valueRowNode.append_child("value").append_buffer(valNode, strlen(valNode));
 			}
 			else {
 				// save arguments
@@ -2712,6 +2738,47 @@ namespace ed
 					}
 				}
 			}
+			else if (strcmp(objType, "pluginobject") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
+			
+				IPlugin* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
+				std::string otype(objectNode.attribute("objecttype").as_string());
+
+				plugin->ImportObject(objName, otype.c_str(), getInnerXML(objectNode).c_str());
+
+				if (plugin->IsObjectBindableUAV(otype.c_str())) {
+					for (pugi::xml_node bindNode : objectNode.children("bind")) {
+						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+						int slot = bindNode.attribute("slot").as_int();
+
+						for (const auto& pass : passes) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundUBOs[pass].size() <= slot)
+									boundUBOs[pass].resize(slot + 1);
+
+								boundUBOs[pass][slot] = objName;
+								break;
+							}
+						}
+					}
+				} else {
+					for (pugi::xml_node bindNode : objectNode.children("bind")) {
+						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+						int slot = bindNode.attribute("slot").as_int();
+
+						for (const auto& pass : passes) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundTextures[pass].size() <= slot)
+									boundTextures[pass].resize(slot + 1);
+
+								boundTextures[pass][slot] = objName;
+
+								break;
+							}
+						}
+					}
+				}
+			}
 		}
 
 		// bind ARRAY_BUFFERS
@@ -2766,13 +2833,8 @@ namespace ed
 						if (type == 0) {
 							PipelineItem *item = m_pipe->Get(itemName);
 							props->Open(item);
-						} else if (type == 1) {
-							RenderTextureObject *item = m_objects->GetRenderTexture(m_objects->GetTexture(itemName));
-							props->Open(itemName, item);
-						} else if (type == 2) {
-							ImageObject* item = m_objects->GetImage(itemName);
-							props->Open(itemName, item);
-						}
+						} else
+							props->Open(itemName, m_objects->GetObjectManagerItem(itemName));
 					}
 				}
 				else if (type == "file" && Settings::Instance().General.ReopenShaders) {

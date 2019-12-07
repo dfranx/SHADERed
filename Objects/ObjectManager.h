@@ -62,6 +62,15 @@ namespace ed
 		GLuint Texture;
 	};
 
+	struct PluginObject
+	{
+		char Type[128];
+		IPlugin* Owner;
+
+		GLuint ID;
+		void* Data;
+	};
+
 	/* Use this to remove all the maps */
 	class ObjectManagerItem
 	{
@@ -78,6 +87,7 @@ namespace ed
 			Buffer = nullptr;
 			Image = nullptr;
 			Image3D = nullptr;
+			Plugin = nullptr;
 		}
 		~ObjectManagerItem() {
 			if (Buffer != nullptr) {
@@ -85,11 +95,11 @@ namespace ed
 				free(Buffer->Data);
 				delete Buffer;
 			}
-			else if (Image != nullptr) {
+			if (Image != nullptr) {
 				glDeleteTextures(1, &Image->Texture);
 				delete Image;
 			}
-			else if (Image3D != nullptr) {
+			if (Image3D != nullptr) {
 				glDeleteTextures(1, &Image3D->Texture);
 				delete Image3D;
 			}
@@ -98,12 +108,15 @@ namespace ed
 				glDeleteTextures(1, &RT->DepthStencilBuffer);
 				delete RT;
 			}
-			else if (Sound != nullptr) {
+			if (Sound != nullptr) {
 				if (Sound->getStatus() == sf::Sound::Playing)
 					Sound->stop();
 
 				delete SoundBuffer;
 				delete Sound;
+			}
+			if (Plugin != nullptr) {
+				delete Plugin;
 			}
 
 
@@ -125,6 +138,8 @@ namespace ed
 		BufferObject* Buffer;
 		ImageObject* Image;
 		Image3DObject* Image3D;
+
+		PluginObject* Plugin;
 	};
 
 	class ObjectManager
@@ -140,6 +155,7 @@ namespace ed
 		bool CreateBuffer(const std::string& file);
 		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1, 1));
 		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1));
+		bool CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin* owner);
 
 		void Update(float delta);
 
@@ -154,6 +170,8 @@ namespace ed
 		bool IsBuffer(const std::string& name);
 		bool IsImage(const std::string& name);
 		bool IsImage3D(const std::string& name);
+		bool IsPluginObject(const std::string& name);
+		bool IsPluginObject(GLuint id);
 		bool IsImage3D(GLuint id);
 		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
@@ -173,12 +191,17 @@ namespace ed
 		ImageObject* GetImage(const std::string& name);
 		Image3DObject* GetImage3D(const std::string& name);
 		RenderTextureObject* GetRenderTexture(const std::string& name);
+		PluginObject* GetPluginObject(const std::string& name);
 		glm::ivec2 GetImageSize(const std::string& name);
 		glm::ivec3 GetImage3DSize(const std::string& name);
 
+		PluginObject* GetPluginObject(GLuint id);
 		std::string GetBufferNameByID(int id);
 		std::string GetImageNameByID(GLuint id);
 		std::string GetImage3DNameByID(GLuint id);
+
+		ObjectManagerItem* GetObjectManagerItem(const std::string& name);
+		std::string GetObjectManagerItemName(ObjectManagerItem* item);
 		
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);

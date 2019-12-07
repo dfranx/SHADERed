@@ -9,10 +9,12 @@
 
 namespace ed
 {
+	class ObjectManager;
+
 	class PluginManager
 	{
 	public:
-		void Init(); // load all the plugins here
+		void Init(ObjectManager* objs); // load all the plugins here
 		void Destroy(); // destroy all the plugins
 		void Update(float delta);
 

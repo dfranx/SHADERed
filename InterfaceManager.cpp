@@ -15,6 +15,7 @@ namespace ed
 	}
 	InterfaceManager::~InterfaceManager()
 	{
+		Objects.Clear();
 		Plugins.Destroy();
 	}
 	void InterfaceManager::OnEvent(const SDL_Event& e)

@@ -5,7 +5,7 @@
 
 namespace ed
 {
-    void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer)
+    void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
     {
         mItem i;
         i.Name = name;
@@ -19,6 +19,7 @@ namespace ed
         i.Buffer = buffer;
         i.CachedFormat.clear();
         i.CachedSize = 0;
+		i.Plugin = plugin;
 
         if (buffer != nullptr) {
             BufferObject* buf = (BufferObject*)buffer;
@@ -61,159 +62,167 @@ namespace ed
             std::string& name = item->Name;
 			m_zoom[i].SetCurrentMousePosition(SystemVariableManager::Instance().GetMousePosition());
 
-            if (ImGui::Begin((name + "###objprev" + std::to_string(i)).c_str(), &item->IsOpen)) {
-                ImVec2 aSize = ImGui::GetContentRegionAvail();
-                
-                glm::ivec2 iSize(item->Width, item->Height);
-                if (item->RT != nullptr)
-                    iSize = m_data->Objects.GetRenderTextureSize(name);
+			if (ImGui::Begin((name + "###objprev" + std::to_string(i)).c_str(), &item->IsOpen)) {
+				ImVec2 aSize = ImGui::GetContentRegionAvail();
 
-                float scale = std::min<float>(aSize.x/iSize.x, aSize.y/iSize.y);
-                aSize.x = iSize.x * scale;
-                aSize.y = iSize.y * scale;
+				if (item->Plugin != nullptr) {
+					PluginObject* pobj = ((PluginObject*)item->Plugin);
+					pobj->Owner->ShowObjectExtendedPreview(pobj->Type, pobj->Data, pobj->ID);
+				} else {
+					glm::ivec2 iSize(item->Width, item->Height);
+					if (item->RT != nullptr)
+						iSize = m_data->Objects.GetRenderTextureSize(name);
 
-                if (item->IsCube) {
-                    ImVec2 posSize = ImGui::GetContentRegionAvail();
-                    float posX = (posSize.x - aSize.x) / 2;
-                    float posY = (posSize.y - aSize.y) / 2;
-                    ImGui::SetCursorPosX(posX);
-                    ImGui::SetCursorPosY(posY);
-                    
-                    m_cubePrev.Draw(item->Texture);
-                    const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
-                    const glm::vec2& zSize = m_zoom[i].GetZoomSize();
-                    ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), aSize, ImVec2(zPos.x,zPos.y+zSize.y), ImVec2(zPos.x+zSize.x,zPos.y));
-                    
-					if (ImGui::IsItemHovered()) m_curHoveredItem = i;
-					if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
-						m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
-						m_zoom[i].RebuildVBO(aSize.x, aSize.y);
+					float scale = std::min<float>(aSize.x / iSize.x, aSize.y / iSize.y);
+					aSize.x = iSize.x * scale;
+					aSize.y = iSize.y * scale;
+
+					if (item->IsCube) {
+						ImVec2 posSize = ImGui::GetContentRegionAvail();
+						float posX = (posSize.x - aSize.x) / 2;
+						float posY = (posSize.y - aSize.y) / 2;
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+
+						m_cubePrev.Draw(item->Texture);
+						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
+						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
+						ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+
+						if (ImGui::IsItemHovered()) m_curHoveredItem = i;
+						if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
+							m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
+							m_zoom[i].RebuildVBO(aSize.x, aSize.y);
+						}
+						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
+							m_zoom[i].Reset();
 					}
-					if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
-						m_zoom[i].Reset();
-                } else if (item->Audio != nullptr) {
-                    sf::Sound* player = m_data->Objects.GetAudioPlayer(item->Name);
-                    sf::SoundBuffer* buffer = (sf::SoundBuffer*)item->Audio;
-                    int channels = buffer->getChannelCount();
-                    int perChannel = buffer->getSampleCount() / channels;
-                    int curSample = (int)((player->getPlayingOffset().asSeconds() / buffer->getDuration().asSeconds()) * perChannel);
+					else if (item->Audio != nullptr) {
+						sf::Sound* player = m_data->Objects.GetAudioPlayer(item->Name);
+						sf::SoundBuffer* buffer = (sf::SoundBuffer*)item->Audio;
+						int channels = buffer->getChannelCount();
+						int perChannel = buffer->getSampleCount() / channels;
+						int curSample = (int)((player->getPlayingOffset().asSeconds() / buffer->getDuration().asSeconds()) * perChannel);
 
-                    double* fftData = m_audioAnalyzer.FFT(*buffer, curSample);
-                    
-                    const sf::Int16* samples = buffer->getSamples();
-                    for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
-                        sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
-                        float sf = (float)s / (float)INT16_MAX;
+						double* fftData = m_audioAnalyzer.FFT(*buffer, curSample);
 
-                        m_fft[i] = fftData[i / 2];
-                        m_samples[i] = sf* 0.5f + 0.5f;
-                    }
-                    
-                    ImGui::PlotHistogram("Frequencies", m_fft, IM_ARRAYSIZE(m_fft), 0, NULL, 0.0f, 1.0f, ImVec2(0,80));
-                    ImGui::PlotHistogram("Samples", m_samples, IM_ARRAYSIZE(m_samples), 0, NULL, 0.0f, 1.0f, ImVec2(0,80));
-                } else if (item->Buffer != nullptr) {
-                    BufferObject* buf = (BufferObject*)item->Buffer;
-                    
-                    ImGui::Text("Format:");
-                    ImGui::SameLine();
-                    if (ImGui::InputText("##objprev_formatinp", buf->ViewFormat, 256))
-                        m_data->Parser.ModifyProject();
-                    ImGui::SameLine();
-                    if (ImGui::Button("APPLY##objprev_applyfmt"))
-                        item->CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
-                
-                    int perRow = 0;
-                    for (int i = 0; i < item->CachedFormat.size(); i++)
-                        perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
-                    ImGui::Text("Size per row: %d bytes", perRow);
+						const sf::Int16* samples = buffer->getSamples();
+						for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
+							sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
+							float sf = (float)s / (float)INT16_MAX;
 
-                    ImGui::Text("Size in bytes:");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(200);
-                    ImGui::InputInt("##objprev_bsize", &item->CachedSize, 1, 100, ImGuiInputTextFlags_AlwaysInsertMode);
-                    ImGui::PopItemWidth();
-                    ImGui::SameLine();
-                    if (ImGui::Button("APPLY##objprev_applysize")) {
-                        buf->Size = item->CachedSize;
-                        if (buf->Size < 0) buf->Size = 0;
+							m_fft[i] = fftData[i / 2];
+							m_samples[i] = sf * 0.5f + 0.5f;
+						}
 
-                        buf->Data = realloc(buf->Data, buf->Size);
-
-                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
-                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
-                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-                        m_data->Parser.ModifyProject();
-                    }
-                    if (ImGui::Button("CLEAR##objprev_clearbuf")) {
-                        memset(buf->Data, 0, buf->Size);
-                        
-                        glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
-                        glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
-                        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-                        
-                        m_data->Parser.ModifyProject();
-                    }
-
-                    // update buffer data every 330ms
-                    ImGui::Text("Buffer view is updated every 330ms");
-                    if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) {
-                        glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
-                        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
-                        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-                        m_bufUpdateClock.restart();
-                    }
-
-                    if (perRow != 0) {
-                        ImGui::Separator();
-
-                        int rows = buf->Size / perRow;
-                        ImGui::Columns(item->CachedFormat.size());
-
-                        for (int j = 0; j < item->CachedFormat.size(); j++) {
-                            ImGui::Text(VARIABLE_TYPE_NAMES[(int)item->CachedFormat[j]]);
-                            ImGui::NextColumn();
-                        }
-                        
-                        for (int i = 0; i < rows; i++) {
-                            int curColOffset = 0;
-                            for (int j = 0; j < item->CachedFormat.size(); j++) {
-                                int dOffset = i * perRow + curColOffset;
-                                if (m_drawBufferElement(i, j, (void*)(((char*)buf->Data) + dOffset), item->CachedFormat[j])) {
-                                    glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
-					                glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
-					                glBindBuffer(GL_UNIFORM_BUFFER, 0);
-                                    
-                                    m_data->Parser.ModifyProject();
-                                }
-                                curColOffset += ShaderVariable::GetSize(item->CachedFormat[j]);
-                                ImGui::NextColumn();
-                            }
-                        }
-
-                        ImGui::Columns(1);
-                    }
-                    
-                } else {
-                    ImVec2 posSize = ImGui::GetContentRegionAvail();
-                    float posX = (posSize.x - aSize.x) / 2;
-                    float posY = (posSize.y - aSize.y) / 2;
-                    ImGui::SetCursorPosX(posX);
-                    ImGui::SetCursorPosY(posY);
-                
-                    const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
-                    const glm::vec2& zSize = m_zoom[i].GetZoomSize();
-                    ImGui::Image((void*)(intptr_t)item->Texture, aSize, ImVec2(zPos.x,zPos.y+zSize.y), ImVec2(zPos.x+zSize.x,zPos.y));
-                    
-					if (ImGui::IsItemHovered()) m_curHoveredItem = i;
-					if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
-						m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
-						m_zoom[i].RebuildVBO(aSize.x, aSize.y);
+						ImGui::PlotHistogram("Frequencies", m_fft, IM_ARRAYSIZE(m_fft), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
+						ImGui::PlotHistogram("Samples", m_samples, IM_ARRAYSIZE(m_samples), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
 					}
-					if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
-						m_zoom[i].Reset();
-                }
-            }
+					else if (item->Buffer != nullptr) {
+						BufferObject* buf = (BufferObject*)item->Buffer;
+
+						ImGui::Text("Format:");
+						ImGui::SameLine();
+						if (ImGui::InputText("##objprev_formatinp", buf->ViewFormat, 256))
+							m_data->Parser.ModifyProject();
+						ImGui::SameLine();
+						if (ImGui::Button("APPLY##objprev_applyfmt"))
+							item->CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+
+						int perRow = 0;
+						for (int i = 0; i < item->CachedFormat.size(); i++)
+							perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
+						ImGui::Text("Size per row: %d bytes", perRow);
+
+						ImGui::Text("Size in bytes:");
+						ImGui::SameLine();
+						ImGui::PushItemWidth(200);
+						ImGui::InputInt("##objprev_bsize", &item->CachedSize, 1, 100, ImGuiInputTextFlags_AlwaysInsertMode);
+						ImGui::PopItemWidth();
+						ImGui::SameLine();
+						if (ImGui::Button("APPLY##objprev_applysize")) {
+							buf->Size = item->CachedSize;
+							if (buf->Size < 0) buf->Size = 0;
+
+							buf->Data = realloc(buf->Data, buf->Size);
+
+							glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+							glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
+							glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+							m_data->Parser.ModifyProject();
+						}
+						if (ImGui::Button("CLEAR##objprev_clearbuf")) {
+							memset(buf->Data, 0, buf->Size);
+
+							glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+							glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
+							glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+							m_data->Parser.ModifyProject();
+						}
+
+						// update buffer data every 330ms
+						ImGui::Text("Buffer view is updated every 330ms");
+						if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) {
+							glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
+							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
+							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+							m_bufUpdateClock.restart();
+						}
+
+						if (perRow != 0) {
+							ImGui::Separator();
+
+							int rows = buf->Size / perRow;
+							ImGui::Columns(item->CachedFormat.size());
+
+							for (int j = 0; j < item->CachedFormat.size(); j++) {
+								ImGui::Text(VARIABLE_TYPE_NAMES[(int)item->CachedFormat[j]]);
+								ImGui::NextColumn();
+							}
+
+							for (int i = 0; i < rows; i++) {
+								int curColOffset = 0;
+								for (int j = 0; j < item->CachedFormat.size(); j++) {
+									int dOffset = i * perRow + curColOffset;
+									if (m_drawBufferElement(i, j, (void*)(((char*)buf->Data) + dOffset), item->CachedFormat[j])) {
+										glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+										glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
+										glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+										m_data->Parser.ModifyProject();
+									}
+									curColOffset += ShaderVariable::GetSize(item->CachedFormat[j]);
+									ImGui::NextColumn();
+								}
+							}
+
+							ImGui::Columns(1);
+						}
+
+					}
+					else {
+						ImVec2 posSize = ImGui::GetContentRegionAvail();
+						float posX = (posSize.x - aSize.x) / 2;
+						float posY = (posSize.y - aSize.y) / 2;
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+
+						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
+						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
+						ImGui::Image((void*)(intptr_t)item->Texture, aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+
+						if (ImGui::IsItemHovered()) m_curHoveredItem = i;
+						if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
+							m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
+							m_zoom[i].RebuildVBO(aSize.x, aSize.y);
+						}
+						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
+							m_zoom[i].Reset();
+					}
+				}
+			}
             ImGui::End();
 
             if (!item->IsOpen) {
