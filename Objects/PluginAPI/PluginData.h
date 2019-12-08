@@ -4,6 +4,18 @@ namespace ed
 {
 	namespace plugin
 	{
+		enum class PipelineItemType
+		{
+			ShaderPass,
+			Geometry,
+			RenderState,
+			Model,
+			ComputePass,
+			AudioPass,
+			PluginItem,
+			Count
+		};
+
 		enum class VariableType
 		{
 			Boolean1,
@@ -22,6 +34,31 @@ namespace ed
 			Float3x3,
 			Float4x4,
 			Count
+		};
+
+		enum class InputLayoutValue
+		{
+			Position,
+			Normal,
+			Texcoord,
+			Tangent,
+			Binormal,
+			Color,
+			MaxCount
+		};
+
+		enum class MessageType
+		{
+			Error,
+			Warning,
+			Message
+		};
+
+		class InputLayoutItem
+		{
+		public:
+			InputLayoutValue Value;
+			char Semantic[64];
 		};
 	}
 }

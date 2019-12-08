@@ -30,6 +30,7 @@ namespace ed
 			Model,
 			ComputePass,
 			AudioPass,
+			PluginItem,
 			Count
 		};
 
@@ -47,6 +48,15 @@ namespace ed
 
 	namespace pipe
 	{
+		struct PluginItemData
+		{
+			char Type[64];
+			IPlugin* Owner;
+			void* PluginData;
+
+			std::vector<PipelineItem*> Items;
+		};
+
 		struct ComputePass
 		{
 			ComputePass() {

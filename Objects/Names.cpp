@@ -112,7 +112,8 @@ const char* PIPELINE_ITEM_NAMES[] =
 	"Render State",
 	"Model",
 	"Compute Pass",
-	"Audio Pass"
+	"Audio Pass",
+	"Plugin Item"
 };
 
 const char* BLEND_NAMES[] = {

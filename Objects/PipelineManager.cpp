@@ -41,20 +41,45 @@ namespace ed
 						glDeleteVertexArrays(1, &geo->VAO);
 						glDeleteVertexArrays(1, &geo->VBO);
 					}
+					else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
+						pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
+					}
 
-					delete passItem->Data;
+					FreeData(passItem->Data, passItem->Type);
 					delete passItem;
 				}
 				pass->Items.clear();
 
 				glDeleteFramebuffers(1, &pass->FBO);
-			} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+			}
+			else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 				pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
 				pass->Stream.stop();
 			}
+			else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
+				pdata->Owner->RemovePipelineItem(m_items[i]->Name, pdata->Type, pdata->PluginData);
+
+				// TODO: add this part to m_freeShaderPass method
+				for (auto& passItem : pdata->Items) {
+					if (passItem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
+						glDeleteVertexArrays(1, &geo->VAO);
+						glDeleteVertexArrays(1, &geo->VBO);
+					}
+					else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
+						pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
+					}
+
+					FreeData(passItem->Data, passItem->Type);
+					delete passItem;
+				}
+			}
 
 			// delete passes and their data
-			delete m_items[i]->Data;
+			FreeData(m_items[i]->Data, m_items[i]->Type);
 			delete m_items[i];
 		}
 		m_items.clear();
@@ -67,6 +92,10 @@ namespace ed
 			return AddComputePass(name, (pipe::ComputePass*)data);
 		else if (type == PipelineItem::ItemType::AudioPass)
 			return AddAudioPass(name, (pipe::AudioPass*)data);
+		else if (type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* pdata = (pipe::PluginItemData*)data;
+			return AddPluginItem(const_cast<char*>(owner), name, pdata->Type, pdata->PluginData, pdata->Owner);
+		}
 		
 		Logger::Get().Log("Adding a pipeline item " + std::string(name) + " to the project");
 
@@ -82,19 +111,84 @@ namespace ed
 			if (strcmp(item->Name, owner) != 0)
 				continue;
 
-			pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+			if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* pdata = (pipe::PluginItemData*)item->Data;
 
-			for (auto& i : pass->Items)
-				if (strcmpcase(i->Name, name) == 0) {
-					Logger::Get().Log("Item " + std::string(name) + " not added - name already taken", true);
-					return false;
+				pdata->Items.push_back(new PipelineItem("\0", type, data));
+				strcpy(pdata->Items.at(pdata->Items.size() - 1)->Name, name);
+
+				pdata->Owner->AddPipelineItemChild(owner, name, (plugin::PipelineItemType)type, data);
+
+				return true;
+			}
+			else if (item->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+
+				for (auto& i : pass->Items)
+					if (strcmpcase(i->Name, name) == 0) {
+						Logger::Get().Log("Item " + std::string(name) + " not added - name already taken", true);
+						return false;
+					}
+
+				pass->Items.push_back(new PipelineItem("\0", type, data));
+				strcpy(pass->Items.at(pass->Items.size() - 1)->Name, name);
+
+				Logger::Get().Log("Item " + std::string(name) + " added to the project");
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	bool PipelineManager::AddPluginItem(char* owner, const char* name, const char* type, void* data, IPlugin* plugin)
+	{
+		Logger::Get().Log("Adding a plugin pipeline item " + std::string(name) + " to the project");
+
+		if (Has(name)) {
+			Logger::Get().Log("Item " + std::string(name) + " not added - name already taken", true);
+			return false;
+		}
+
+		m_project->ModifyProject();
+
+		if (owner != nullptr) {
+			for (auto& item : m_items) {
+				if (strcmp(item->Name, owner) != 0)
+					continue;
+
+
+				pipe::PluginItemData* pdata = new pipe::PluginItemData();
+				pdata->PluginData = data;
+				pdata->Owner = plugin;
+				strcpy(pdata->Type, type);
+
+				PipelineItem* pitem = new PipelineItem("\0", PipelineItem::ItemType::PluginItem, pdata);
+				strcpy(pitem->Name, name);
+
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+					pass->Items.push_back(pitem);
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* plPass = (pipe::PluginItemData*)item->Data;
+					plPass->Items.push_back(pitem);
+					plPass->Owner->AddPipelineItemChild(owner, pitem->Name, plugin::PipelineItemType::PluginItem, data);
 				}
 
-			pass->Items.push_back(new PipelineItem("\0", type, data));
-			strcpy(pass->Items.at(pass->Items.size() - 1)->Name, name);
+				Logger::Get().Log("Item " + std::string(name) + " added to the project");
 
-			Logger::Get().Log("Item " + std::string(name) + " added to the project");
-			
+				return true;
+			}
+		} else {
+			pipe::PluginItemData* pdata = new pipe::PluginItemData();
+			pdata->PluginData = data;
+			pdata->Owner = plugin;
+			strcpy(pdata->Type, type);
+
+			PipelineItem* pitem = new PipelineItem("\0", PipelineItem::ItemType::PluginItem, pdata);
+			m_items.push_back(pitem);
+			strcpy(pitem->Name, name);
+
 			return true;
 		}
 
@@ -152,7 +246,7 @@ namespace ed
 	{
 		Logger::Get().Log("Deleting item " + std::string(name));
 		
-		for (int i = 0; i < m_items.size(); i++)
+		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmp(m_items[i]->Name, name) == 0) {
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
@@ -161,12 +255,16 @@ namespace ed
 					// TODO: add this part to m_freeShaderPass method
 					for (auto& passItem : data->Items) {
 						if (passItem->Type == PipelineItem::ItemType::Geometry) {
-							pipe::GeometryItem *geo = (pipe::GeometryItem *)passItem->Data;
+							pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 							glDeleteVertexArrays(1, &geo->VAO);
 							glDeleteVertexArrays(1, &geo->VBO);
 						}
+						else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+							pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
+							pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
+						}
 
-						delete passItem->Data;
+						FreeData(passItem->Data, passItem->Type);
 						delete passItem;
 					}
 					data->Items.clear();
@@ -175,12 +273,33 @@ namespace ed
 					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
 					pass->Stream.stop();
 				}
+				else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
+					pdata->Owner->RemovePipelineItem(m_items[i]->Name, pdata->Type, pdata->PluginData);
 
-				delete m_items[i]->Data;
+					for (auto& passItem : pdata->Items) {
+						if (passItem->Type == PipelineItem::ItemType::Geometry) {
+							pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
+							glDeleteVertexArrays(1, &geo->VAO);
+							glDeleteVertexArrays(1, &geo->VBO);
+						}
+						else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+							pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
+							pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
+						}
+
+						FreeData(passItem->Data, passItem->Type);
+						delete passItem;
+					}
+					pdata->Items.clear();
+				}
+
+				FreeData(m_items[i]->Data, m_items[i]->Type);
 				m_items[i]->Data = nullptr;
 				m_items.erase(m_items.begin() + i);
 				break;
-			} else {
+			}
+			else {
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
 					for (int j = 0; j < data->Items.size(); j++) {
@@ -192,7 +311,36 @@ namespace ed
 								glDeleteVertexArrays(1, &geo->VBO);
 							}
 
-							delete data->Items[j]->Data;
+							if (data->Items[j]->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* pdata = (pipe::PluginItemData*)data->Items[j]->Data;
+								pdata->Owner->RemovePipelineItem(data->Items[j]->Name, pdata->Type, pdata->PluginData);
+							}
+
+							FreeData(data->Items[j]->Data, data->Items[j]->Type);
+							data->Items[j]->Data = nullptr;
+							data->Items.erase(data->Items.begin() + j);
+							break;
+						}
+					}
+				}
+				// TODO: clean this up and free some space
+				else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)m_items[i]->Data;
+					for (int j = 0; j < data->Items.size(); j++) {
+						if (strcmp(data->Items[j]->Name, name) == 0) {
+							ed::PipelineItem* child = data->Items[j];
+							if (child->Type == PipelineItem::ItemType::Geometry) {
+								pipe::GeometryItem* geo = (pipe::GeometryItem*)child->Data;
+								glDeleteVertexArrays(1, &geo->VAO);
+								glDeleteVertexArrays(1, &geo->VBO);
+							}
+
+							if (data->Items[j]->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* pdata = (pipe::PluginItemData*)data->Items[j]->Data;
+								pdata->Owner->RemovePipelineItem(data->Items[j]->Name, pdata->Type, pdata->PluginData);
+							}
+
+							FreeData(data->Items[j]->Data, data->Items[j]->Type);
 							data->Items[j]->Data = nullptr;
 							data->Items.erase(data->Items.begin() + j);
 							break;
@@ -200,7 +348,7 @@ namespace ed
 					}
 				}
 			}
-
+		}
 			
 		m_project->ModifyProject();
 	}
@@ -261,5 +409,35 @@ namespace ed
 		
 		// reset time, frame index, etc...
 		SystemVariableManager::Instance().Reset();
+	}
+	void PipelineManager::FreeData(void* data, PipelineItem::ItemType type)
+	{
+		//TODO: make it type-safe.
+		if (data != nullptr) {
+			switch (type) {
+			case PipelineItem::ItemType::Geometry:
+				delete (pipe::GeometryItem*)data;
+				break;
+			case PipelineItem::ItemType::ShaderPass:
+				delete (pipe::ShaderPass*)data;
+				break;
+			case PipelineItem::ItemType::RenderState:
+				delete (pipe::RenderState*)data;
+				break;
+			case PipelineItem::ItemType::Model:
+				delete (pipe::Model*)data;
+				break;
+			case PipelineItem::ItemType::ComputePass:
+				delete (pipe::ComputePass*)data;
+				break;
+			case PipelineItem::ItemType::AudioPass:
+				delete (pipe::AudioPass*)data;
+				break;
+			case PipelineItem::ItemType::PluginItem:
+				delete (pipe::PluginItemData*)data;
+				break;
+			}
+			data = nullptr;
+		}
 	}
 }

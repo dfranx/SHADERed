@@ -34,6 +34,9 @@ namespace ed
 				if (m_current->Type == PipelineItem::ItemType::Geometry) {
 					ImGui::SameLine();
 					ImGui::Text(("(" + std::string(GEOMETRY_NAMES[(int)((pipe::GeometryItem*)m_current->Data)->Type]) + ")").c_str());
+				} else if (m_current->Type == PipelineItem::ItemType::PluginItem) {
+					ImGui::SameLine();
+					ImGui::Text(("(" + std::string(((pipe::PluginItemData*)m_current->Data)->Type) + ")").c_str());
 				}
 			}
 			else if (m_currentObj != nullptr) {
@@ -79,6 +82,11 @@ namespace ed
 					else if (strlen(m_itemName) <= 2)
 						ImGui::OpenPopup("ERROR##pui_itemname_short");
 					else if (m_current != nullptr) {
+						if (m_current->Type == PipelineItem::ItemType::PluginItem) {
+							pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
+							pdata->Owner->RenamePipelineItem(m_current->Name, m_itemName);
+						}
+
 						m_data->Messages.RenameGroup(m_current->Name, m_itemName);
 						memcpy(m_current->Name, m_itemName, PIPELINE_ITEM_NAME_LENGTH);
 						m_data->Parser.ModifyProject();
@@ -1016,6 +1024,12 @@ namespace ed
 					}
 					ImGui::PopItemWidth();
 				}
+				else if (m_current->Type == ed::PipelineItem::ItemType::PluginItem) {
+					ImGui::Columns(1);
+
+					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
+					pdata->Owner->ShowPipelineItemProperties(pdata->Type, pdata->PluginData);
+				}
 			}
 			else if (IsRenderTexture()) {
 				ed::RenderTextureObject* m_currentRT = m_currentObj->RT;
@@ -1214,6 +1228,12 @@ namespace ed
 	void PropertyUI::Open(ed::PipelineItem * item)
 	{
 		if (item != nullptr) {
+			if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
+				if (!pldata->Owner->HasPipelineItemProperties(pldata->Type))
+					return; // doesnt support properties
+			}
+
 			memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
 
 			if (item->Type == PipelineItem::ItemType::ComputePass) {

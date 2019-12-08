@@ -40,7 +40,6 @@ namespace ed
 	}
 	RenderEngine::~RenderEngine()
 	{
-
 		glDeleteTextures(1, &m_rtColor);
 		glDeleteTextures(1, &m_rtDepth);
 		glDeleteTextures(1, &m_rtColorMS);
@@ -302,6 +301,19 @@ namespace ed
 						else
 							glDisable(GL_STENCIL_TEST);
 					}
+					else if (item->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+						if (m_pickAwaiting && pldata->Owner->IsPipelineItemPickable(pldata->Type))
+							m_pickItem(item, m_wasMultiPick);
+
+						if (pldata->Owner->IsPipelineItemPickable(pldata->Type))
+							systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+						else
+							systemVM.SetPicked(false);
+
+						pldata->Owner->ExecutePipelineItem(data, pldata->Type, pldata->PluginData);
+					}
 
 					// set the old value back
 					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
@@ -412,6 +424,10 @@ namespace ed
 				data->Variables.Bind();
 
 				data->Stream.renderAudio();
+			}
+			else if (it->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
+				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
 			}
 		}
 
@@ -796,6 +812,14 @@ namespace ed
 			
 			world = glm::translate(glm::mat4(1), obj->Position) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
 		}
+		else if (item->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
+
+			float plMat[16];
+			pldata->Owner->GetPipelineItemWorldMatrix(item->Name, plMat);
+			world = glm::make_mat4(plMat);
+		}
+
 		glm::mat4 invWorld = glm::inverse(world);
 		
 		glm::vec4 rayOrigin = invWorld * glm::vec4(m_pickOrigin, 1);
@@ -841,7 +865,6 @@ namespace ed
 					myDist = hit;
 			}
 			else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
-
 				glm::vec3 b1(-geo->Size.x * geo->Scale.x, -geo->Size.y * geo->Scale.y, -0.0001f);
 				glm::vec3 b2(geo->Size.x * geo->Scale.x, geo->Size.y * geo->Scale.y, 0.0001f);
 
@@ -883,6 +906,13 @@ namespace ed
 				}
 				else myDist = triDist;
 			}
+		}
+		else if (item->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
+
+			float hit;
+			if (obj->Owner->IntersectPipelineItem(glm::value_ptr(vec3Origin), glm::value_ptr(vec3Dir), hit))
+				myDist = hit;
 		}
 
 		// did we actually pick sth that is closer?

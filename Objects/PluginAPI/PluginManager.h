@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include "Plugin.h"
 #include "../ShaderVariable.h"
+#include "../InputLayout.h"
 #include <vector>
 #include <string>
 
@@ -9,12 +10,12 @@
 
 namespace ed
 {
-	class ObjectManager;
+	class InterfaceManager;
 
 	class PluginManager
 	{
 	public:
-		void Init(ObjectManager* objs); // load all the plugins here
+		void Init(InterfaceManager* data); // load all the plugins here
 		void Destroy(); // destroy all the plugins
 		void Update(float delta);
 
@@ -26,10 +27,13 @@ namespace ed
 
 		void ShowCustomMenu();
 		void ShowMenuItems(const std::string& menu);
-		void ShowContextItems(const std::string& menu);
+		void ShowContextItems(const std::string& menu, void* owner = nullptr);
+		void ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner = nullptr);
 
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);
+
+		std::vector<InputLayoutItem> BuildInputLayout(IPlugin* plugin, const char* itemName);
 
 		void OnEvent(const SDL_Event& e);
 

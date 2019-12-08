@@ -63,6 +63,7 @@ namespace ed
 		void m_addShaderPass(ed::PipelineItem* data);
 		void m_addComputePass(ed::PipelineItem* data);
 		void m_addAudioPass(ed::PipelineItem* data);
+		void m_addPluginItem(ed::PipelineItem* data);
 		void m_addItem(ed::PipelineItem* name);
 	};
 }
