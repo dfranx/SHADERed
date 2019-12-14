@@ -22,6 +22,7 @@ namespace ed
 			UIView(ui, objects, name, visible),
 			m_selectedShortcut(-1), m_page(Page::General) {
 			memset(m_shortcutSearch, 0, 256);
+			memset(m_pluginSearch, 0, 256);
 			m_pluginNotLoadedLB = 0;
 			m_pluginLoadedLB = 0;
 		}
@@ -65,6 +66,7 @@ namespace ed
 
 		int m_msaaChoice;
 
+		char m_pluginSearch[256];
 		std::vector<std::string> m_pluginsNotLoaded, m_pluginsLoaded;
 		int m_pluginNotLoadedLB,
 			m_pluginLoadedLB;

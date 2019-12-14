@@ -312,7 +312,7 @@ namespace ed
 						else
 							systemVM.SetPicked(false);
 
-						pldata->Owner->ExecutePipelineItem(data, pldata->Type, pldata->PluginData);
+						pldata->Owner->ExecutePipelineItem(data, plugin::PipelineItemType::ShaderPass, pldata->Type, pldata->PluginData);
 					}
 
 					// set the old value back
@@ -911,7 +911,7 @@ namespace ed
 			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
 
 			float hit;
-			if (obj->Owner->IntersectPipelineItem(glm::value_ptr(vec3Origin), glm::value_ptr(vec3Dir), hit))
+			if (obj->Owner->IntersectPipelineItem(obj->Type, obj->PluginData, glm::value_ptr(vec3Origin), glm::value_ptr(vec3Dir), hit))
 				myDist = hit;
 		}
 

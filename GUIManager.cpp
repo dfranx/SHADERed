@@ -198,6 +198,7 @@ namespace ed
 		else if (e.type == SDL_MOUSEMOTION)
 			m_perfModeClock.restart();
 		else if (e.type == SDL_DROPFILE) {
+			
 			char* droppedFile = e.drop.file;
 			
 			std::string file = m_data->Parser.GetRelativePath(droppedFile);
@@ -225,6 +226,7 @@ namespace ed
 					m_data->Objects.CreateTexture(file);
 				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
 					m_data->Objects.CreateAudio(file);
+				else m_data->Plugins.HandleDropFile(file.c_str());
 			}
 
 			SDL_free(droppedFile);

@@ -22,6 +22,9 @@ namespace ed
 	class RenderEngine;
 	class ObjectManager;
 	class PluginManager;
+	class InputLayoutItem;
+	struct PipelineItem;
+	namespace pipe { struct ShaderPass; struct GeometryItem; struct Model; }
 
 	class ProjectParser
 	{
@@ -68,6 +71,11 @@ namespace ed
 		GLenum m_toComparisonFunc(const char* str);
 		GLenum m_toStencilOp(const char* str);
 		GLenum m_toCullMode(const char* str);
+
+		void m_exportItems(pugi::xml_node& node, std::vector<PipelineItem*>& items, const std::string& oldProjectPath);
+		void m_importItems(const char* owner, pipe::ShaderPass* data, pugi::xml_node& node, std::vector<InputLayoutItem>& inpLayout,
+			std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
+			std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs);
 
 		bool m_modified;
 

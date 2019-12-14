@@ -1,9 +1,11 @@
 #include "PluginManager.h"
 #include "../Settings.h"
+#include "../SystemVariableManager.h"
 #include "../../InterfaceManager.h"
 #include "../../GUIManager.h"
 #include "../../UI/PreviewUI.h"
 
+#include <algorithm>
 #include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
@@ -223,6 +225,61 @@ namespace ed
 					RenderEngine* rend = (RenderEngine*)renderer;
 					rend->Render(w, h);
 				};
+				plugin->ExistsPipelineItem = [](void* pipeline, const char* name) -> bool {
+					PipelineManager* pipe = (PipelineManager*)pipeline;
+					return pipe->Has(name);
+				};
+				plugin->GetPipelineItem = [](void* pipeline, const char* name) -> void* {
+					PipelineManager* pipe = (PipelineManager*)pipeline;
+					return (void*)pipe->Get(name);
+				};
+				plugin->BindShaderPassVariables = [](void* shaderpass, void* item) {
+					pipe::ShaderPass* data = (pipe::ShaderPass*)shaderpass;
+					data->Variables.Bind(item);
+				};
+				plugin->GetViewMatrix = [](float* out) {
+					glm::mat4 viewm = SystemVariableManager::Instance().GetViewMatrix();
+					memcpy(out, glm::value_ptr(viewm), sizeof(float) * 4 * 4);
+				};
+				plugin->GetProjectionMatrix = [](float* out) {
+					glm::mat4 projm = SystemVariableManager::Instance().GetProjectionMatrix();
+					memcpy(out, glm::value_ptr(projm), sizeof(float) * 4 * 4);
+				};
+				plugin->GetOrthographicMatrix = [](float* out) {
+					glm::mat4 orthom = SystemVariableManager::Instance().GetOrthographicMatrix();
+					memcpy(out, glm::value_ptr(orthom), sizeof(float) * 4 * 4);
+				};
+				plugin->GetViewportSize = [](float& w, float& h) {
+					glm::vec2 viewsize = SystemVariableManager::Instance().GetViewportSize();
+					w = viewsize.x;
+					h = viewsize.y;
+				};
+				plugin->AdvanceTimer = [](float t) {
+					SystemVariableManager::Instance().AdvanceTimer(t);
+				};
+				plugin->GetMousePosition = [](float& x, float& y) {
+					glm::vec2 mpos = SystemVariableManager::Instance().GetMousePosition();
+					x = mpos.x;
+					y = mpos.y;
+				};
+				plugin->GetFrameIndex = []() -> int {
+					return SystemVariableManager::Instance().GetFrameIndex();
+				};
+				plugin->GetTime = []() -> float {
+					return SystemVariableManager::Instance().GetTime();
+				};
+				plugin->SetGeometryTransform = [](void* item, float scale[3], float rota[3], float pos[3]) {
+					SystemVariableManager::Instance().SetGeometryTransform((PipelineItem*)item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
+				};
+				plugin->SetMousePosition = [](float x, float y) {
+					SystemVariableManager::Instance().SetMousePosition(x,y);
+				};
+				plugin->SetKeysWASD = [](bool w, bool a, bool s, bool d) {
+					SystemVariableManager::Instance().SetKeysWASD(w,a,s,d);
+				};
+				plugin->SetFrameIndex = [](int findex) {
+					SystemVariableManager::Instance().SetFrameIndex(findex);
+				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
 				plugin->Init();
@@ -304,6 +361,13 @@ namespace ed
 		return 0;
 	}
 
+	void PluginManager::HandleDropFile(const char* filename)
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i] && m_plugins[i]->HandleDropFile(filename))
+				break;
+	}
+
 	void PluginManager::ShowContextItems(const std::string& menu, void* owner)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
@@ -335,6 +399,22 @@ namespace ed
 					m_plugins[i]->ShowMenuItems("custom");
 					ImGui::EndMenu();
 				}
+	}
+	void PluginManager::ShowOptions(const std::string& searchString)
+	{
+		std::string qLower = searchString;
+		std::transform(qLower.begin(), qLower.end(), qLower.begin(), tolower);
+
+		for (int i = 0; i < m_plugins.size(); i++) {
+			if (m_isActive[i] && m_plugins[i]->HasSectionInOptions()) {
+				std::string pluginName = m_names[i];
+				std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), tolower);
+				if (qLower.empty() || pluginName.find(qLower) != std::string::npos) {
+					if (ImGui::CollapsingHeader(m_names[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+						m_plugins[i]->ShowOptions();
+				}
+			}
+		}
 	}
 	bool PluginManager::ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type)
 	{

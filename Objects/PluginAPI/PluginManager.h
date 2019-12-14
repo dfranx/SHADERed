@@ -29,6 +29,9 @@ namespace ed
 		void ShowMenuItems(const std::string& menu);
 		void ShowContextItems(const std::string& menu, void* owner = nullptr);
 		void ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner = nullptr);
+		void ShowOptions(const std::string& searchString = "");
+
+		void HandleDropFile(const char* filename);
 
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);

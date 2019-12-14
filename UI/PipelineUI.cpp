@@ -291,14 +291,15 @@ namespace ed
 	{
 		bool ret = false; // false == we didnt delete an item
 
-		bool isPlugin = items[index]->Type == PipelineItem::ItemType::PluginItem;
-		pipe::PluginItemData* pldata = (pipe::PluginItemData*)items[index]->Data;
-
-		bool hasPluginProperties = isPlugin && pldata->Owner->HasPipelineItemProperties(pldata->Type);
-		bool hasPluginAddMenu = isPlugin && pldata->Owner->CanPipelineItemHaveChildren(pldata->Type);
-		bool hasPluginShaders = isPlugin && pldata->Owner->HasPipelineItemShaders(pldata->Type);
-
 		if (ImGui::BeginPopupContextItem(("##context_" + std::string(items[index]->Name)).c_str())) {
+			bool isPlugin = items[index]->Type == PipelineItem::ItemType::PluginItem;
+			pipe::PluginItemData* pldata = (pipe::PluginItemData*)items[index]->Data;
+
+			bool hasPluginProperties = isPlugin && pldata->Owner->HasPipelineItemProperties(pldata->Type);
+			bool hasPluginAddMenu = isPlugin && pldata->Owner->CanPipelineItemHaveChildren(pldata->Type);
+			bool hasPluginShaders = isPlugin && pldata->Owner->HasPipelineItemShaders(pldata->Type);
+			bool hasPluginContext = isPlugin && pldata->Owner->HasPipelineItemContext(pldata->Type);
+
 			m_itemMenuOpened = true;
 			if (items[index]->Type == PipelineItem::ItemType::ShaderPass ||
 				items[index]->Type == PipelineItem::ItemType::ComputePass ||
@@ -408,6 +409,12 @@ namespace ed
 					m_isChangeVarsOpened = true;
 					m_modalItem = items[index];
 				}
+			}
+
+			if (hasPluginContext) {
+				ImGui::Separator();
+				pldata->Owner->ShowPipelineItemContext(pldata->Type, pldata->PluginData);
+				ImGui::Separator();
 			}
 
 			if ((hasPluginProperties || !isPlugin) && ImGui::Selectable("Properties"))

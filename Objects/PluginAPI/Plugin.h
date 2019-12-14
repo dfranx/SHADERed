@@ -32,6 +32,23 @@ namespace ed
 		typedef void (*GetRenderTextureFn)(void* renderer, unsigned int& out);
 		typedef void (*GetLastRenderSizeFn)(void* renderer, int& w, int& h);
 		typedef void (*RenderFn)(void* renderer, int w, int h);
+
+		typedef bool (*ExistsPipelineItemFn)(void* pipeline, const char* name);
+		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
+
+		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
+		typedef void (*GetViewMatrixFn)(float* out);
+		typedef void (*GetProjectionMatrixFn)(float* out);
+		typedef void (*GetOrthographicMatrixFn)(float* out);
+		typedef void (*GetViewportSizeFn)(float& w, float& h);
+		typedef void (*AdvanceTimerFn)(float t);
+		typedef void (*GetMousePositionFn)(float& x, float& y);
+		typedef int  (*GetFrameIndexFn)();
+		typedef float (*GetTimeFn)();
+		typedef void (*SetGeometryTransformFn)(void* item, float scale[3], float rota[3], float pos[3]);
+		typedef void (*SetMousePositionFn)(float x, float y);
+		typedef void (*SetKeysWASDFn)(bool w, bool a, bool s, bool d);
+		typedef void (*SetFrameIndexFn)(int findex);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginName()
@@ -43,6 +60,7 @@ namespace ed
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;
 
+		virtual void CopyFilesOnSave(const char* dir) = 0;
 		virtual bool HasCustomMenu() = 0;
 
 		/* list: file, newproject, project, createitem, window, custom */
@@ -86,6 +104,8 @@ namespace ed
 		virtual void BindObject(const char* type, void* data, unsigned int id) = 0;
 		virtual const char* ExportObject(char* type, void* data, unsigned int id) = 0;
 		virtual void ImportObject(const char* name, const char* type, const char* argsString) = 0;
+		virtual bool HasObjectContext(const char* type) = 0;
+		virtual void ShowObjectContext(const char* type, void* data) = 0;
 
 		// pipeline item stuff
 		void* PipelineManager;
@@ -103,11 +123,22 @@ namespace ed
 		virtual bool AddPipelineItemChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
 		virtual bool CanPipelineItemHaveChildren(const char* type) = 0;
 		virtual void* CopyPipelineItemData(const char* type, void* data) = 0;
-		virtual void ExecutePipelineItem(void* ShaderPass, const char* type, void* data) = 0;
+		virtual void ExecutePipelineItem(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(const char* type, void* data, void* children, int count) = 0;
 		virtual void GetPipelineItemWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
-		virtual bool IntersectPipelineItem(const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
+		virtual bool IntersectPipelineItem(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
 		virtual void GetPipelineItemBoundingBox(const char* name, float(&minPos)[3], float(&maxPos)[3]) = 0;
+		virtual bool HasPipelineItemContext(const char* type) = 0;
+		virtual void ShowPipelineItemContext(const char* type, void* data) = 0;
+		virtual const char* ExportPipelineItem(const char* type, void* data) = 0;
+		virtual void* ImportPipelineItem(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
+
+		// options
+		virtual bool HasSectionInOptions() = 0;
+		virtual void ShowOptions() = 0;
+
+		// misc
+		virtual bool HandleDropFile(const char* filename) = 0;
 
 		// some functions exported from SHADERed
 		void *Renderer, *Messages, *Project;
@@ -132,5 +163,20 @@ namespace ed
 		pluginfn::GetRenderTextureFn GetRenderTexture;
 		pluginfn::GetLastRenderSizeFn GetLastRenderSize;
 		pluginfn::RenderFn Render;
+		pluginfn::ExistsPipelineItemFn ExistsPipelineItem;
+		pluginfn::GetPipelineItemFn GetPipelineItem;
+		pluginfn::BindShaderPassVariablesFn BindShaderPassVariables;
+		pluginfn::GetViewMatrixFn GetViewMatrix;
+		pluginfn::GetProjectionMatrixFn GetProjectionMatrix;
+		pluginfn::GetOrthographicMatrixFn GetOrthographicMatrix;
+		pluginfn::GetViewportSizeFn GetViewportSize;
+		pluginfn::AdvanceTimerFn AdvanceTimer;
+		pluginfn::GetMousePositionFn GetMousePosition;
+		pluginfn::GetFrameIndexFn GetFrameIndex;
+		pluginfn::GetTimeFn GetTime;
+		pluginfn::SetGeometryTransformFn SetGeometryTransform;
+		pluginfn::SetMousePositionFn SetMousePosition;
+		pluginfn::SetKeysWASDFn SetKeysWASD;
+		pluginfn::SetFrameIndexFn SetFrameIndex;
 	};
 }

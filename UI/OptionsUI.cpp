@@ -737,6 +737,15 @@ namespace ed
 		ImGui::PopItemWidth();
 
 		ImGui::Columns(1);
+
+		ImGui::Text("Search: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputText("##plugin_search", m_pluginSearch, 256);
+		ImGui::PopItemWidth();
+		ImGui::Separator();
+
+		m_data->Plugins.ShowOptions(m_pluginSearch);
 	}
 	void OptionsUI::m_renderProject()
 	{

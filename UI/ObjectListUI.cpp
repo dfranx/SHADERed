@@ -155,6 +155,13 @@ namespace ed
 					ImGui::EndMenu();
 				}
 
+				bool hasPluginContext = isPluginOwner && pobj->Owner->HasObjectContext(pobj->Type);
+				if (hasPluginContext) {
+					ImGui::Separator();
+					pobj->Owner->ShowObjectContext(pobj->Type, pobj->Data);
+					ImGui::Separator();
+				}
+
 				if (m_data->Objects.IsRenderTexture(items[i]) ||
 					m_data->Objects.IsImage(items[i]) ||
 					isImg3D ||
