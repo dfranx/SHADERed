@@ -93,7 +93,7 @@ namespace ed
 		else if (type == PipelineItem::ItemType::AudioPass)
 			return AddAudioPass(name, (pipe::AudioPass*)data);
 		else if (type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* pdata = (pipe::PluginItemData*)data;
+			pipe::PluginItemData* pdata = (pipe::PluginItemData*)data; // TODO: memory leak here?
 			return AddPluginItem(const_cast<char*>(owner), name, pdata->Type, pdata->PluginData, pdata->Owner);
 		}
 		

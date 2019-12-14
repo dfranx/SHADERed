@@ -18,6 +18,7 @@ namespace ed
 	typedef IPlugin* (*CreatePluginFn)(ImGuiContext* ctx);
 	typedef void (*DestroyPluginFn)(IPlugin* plugin);
 	typedef int (*GetPluginAPIVersionFn)();
+	typedef int (*GetPluginVersionFn)();
 	typedef const char* (*GetPluginNameFn)();
 
 	void PluginManager::OnEvent(const SDL_Event& e)
@@ -34,6 +35,7 @@ namespace ed
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().native();
 
+				// TODO: linux
 #if defined(__linux__) || defined(__unix__)
 				void* procDLL = dlopen(("./plugins/" + pdir + "/plugin.so").c_str(), RTLD_NOW);
 
@@ -47,8 +49,18 @@ namespace ed
 					continue;
 				}
 
-				int pver = (*fnGetPluginAPIVersion)();
-				m_versions.push_back(pver);
+				int apiVer = (*fnGetPluginAPIVersion)();
+				m_apiVersion.push_back(apiVer);
+
+				// GetPluginAPIVersion() function
+				GetPluginVersionFn fnGetPluginVersion = (GetPluginVersionFn)dlsym(procDLL, "GetPluginVersion");
+				if (!fnGetPluginVersion) {
+					dlclose(procDLL);
+					continue;
+				}
+
+				int pluginVersion = (*fnGetPluginVersion)();
+				m_pluginVersion.push_back(pluginVersion);
 
 				// CreatePlugin() function
 				CreatePluginFn fnCreatePlugin = (CreatePluginFn)dlsym(procDLL, "CreatePlugin");
@@ -83,8 +95,18 @@ namespace ed
 					continue;
 				}
 
-				int pver = (*fnGetPluginAPIVersion)();
-				m_versions.push_back(pver);
+				int apiVer = (*fnGetPluginAPIVersion)();
+				m_apiVersion.push_back(apiVer);
+
+				// GetPluginVersion() function
+				GetPluginVersionFn fnGetPluginVersion = (GetPluginAPIVersionFn)GetProcAddress(procDLL, "GetPluginVersion");
+				if (!fnGetPluginVersion) {
+					FreeLibrary(procDLL);
+					continue;
+				}
+
+				int pluginVer = (*fnGetPluginVersion)();
+				m_pluginVersion.push_back(pluginVer);
 
 				// CreatePlugin() function
 				CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
@@ -356,9 +378,25 @@ namespace ed
 	{
 		for (int i = 0; i < m_names.size(); i++)
 			if (m_names[i] == plugin)
-				return m_versions[i];
+				return m_pluginVersion[i];
 
 		return 0;
+	}
+	int PluginManager::GetPluginAPIVersion(const std::string& plugin)
+	{
+		for (int i = 0; i < m_names.size(); i++)
+			if (m_names[i] == plugin)
+				return m_apiVersion[i];
+
+		return 0;
+	}
+	bool PluginManager::IsActive(const std::string& plugin)
+	{
+		for (int i = 0; i < m_names.size(); i++)
+			if (m_names[i] == plugin)
+				return m_isActive[i];
+
+		return false;
 	}
 
 	void PluginManager::HandleDropFile(const char* filename)

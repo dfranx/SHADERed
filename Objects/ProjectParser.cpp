@@ -109,6 +109,31 @@ namespace ed
 
 				break;
 			} 
+			else if (!m_plugins->IsActive(pname)) {
+
+				pluginTest = false;
+
+				std::string msg = "The project you are trying to open requires plugin " + pname + " which you have installed.\nEnable the plugin in the options.";
+
+				const SDL_MessageBoxButtonData buttons[] = {
+					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+				};
+				const SDL_MessageBoxData messageboxdata = {
+					SDL_MESSAGEBOX_INFORMATION, /* .flags */
+					m_ui->GetSDLWindow(), /* .window */
+					"SHADERed", /* .title */
+					msg.c_str(), /* .message */
+					SDL_arraysize(buttons), /* .numbuttons */
+					buttons, /* .buttons */
+					NULL /* .colorScheme */
+				};
+				int buttonid;
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+
+				if (buttonid == 0) { }
+
+				pluginTest = false;
+			}
 			else {
 				int instPVer = m_plugins->GetPluginVersion(pname);
 				if (instPVer < pver) {

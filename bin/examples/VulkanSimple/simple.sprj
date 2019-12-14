@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Simple" type="shader">
-			<shader type="vs" path="shaders/SimpleVS.vk" entry="main" />
-			<shader type="ps" path="shaders/SimplePS.vk" entry="main" />
+		<pass name="Simple" type="shader" active="true">
+			<shader type="vs" path="shaders\SimpleVS.vk" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.vk" entry="main" />
 			<inputlayout>
 				<item value="Position" semantic="POSITION" />
 				<item value="Normal" semantic="NORMAL" />
@@ -31,6 +31,8 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Simple" item="pipe" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>4</distance>
 			<pitch>34</pitch>

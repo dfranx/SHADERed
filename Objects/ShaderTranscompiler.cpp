@@ -169,7 +169,7 @@ namespace ed
 		shader.setStrings(&inputStr, 1);
 
 		// set macros
-		std::string preambleStr = "#extension GL_GOOGLE_include_directive : enable\n";
+		std::string preambleStr = (inLang == ShaderLanguage::VulkanGLSL) ? "" : "#extension GL_GOOGLE_include_directive : enable\n";
 		for (auto& macro : macros) {
 			if (!macro.Active)
 				continue;

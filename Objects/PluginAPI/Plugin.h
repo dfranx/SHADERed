@@ -51,7 +51,7 @@ namespace ed
 		typedef void (*SetFrameIndexFn)(int findex);
 	}
 
-	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginName()
+	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
 	class IPlugin
 	{
 	public:
