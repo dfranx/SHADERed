@@ -2,6 +2,54 @@ CodeUI.Compile F5
 CodeUI.Save CTRL S
 CodeUI.SwitchView ALT F2
 CodeUI.ToggleStatusbar CTRL SHIFT F2
+Editor.AutocompleteDown Down
+Editor.AutocompleteOpen CTRL Space
+Editor.AutocompleteSelect Tab
+Editor.AutocompleteSelectActive Return
+Editor.AutocompleteUp Up
+Editor.BackwardDelete Backspace
+Editor.BackwardDeleteWord CTRL Backspace
+Editor.Copy CTRL C
+Editor.Cut CTRL X
+Editor.DeleteLeft SHIFT Backspace
+Editor.DeleteRight SHIFT Delete
+Editor.Find CTRL F
+Editor.FindNext F3
+Editor.ForwardDelete Delete
+Editor.ForwardDeleteWord CTRL Delete
+Editor.Indent Tab
+Editor.MoveBottom CTRL End
+Editor.MoveDown Down
+Editor.MoveDownBlock PageDown
+Editor.MoveEndLine End
+Editor.MoveLeft Left
+Editor.MoveRight Right
+Editor.MoveStartLine Home
+Editor.MoveTop CTRL Home
+Editor.MoveUp Up
+Editor.MoveUpBlock PageUp
+Editor.MoveWordLeft CTRL Left
+Editor.MoveWordRight CTRL Right
+Editor.NewLine Return
+Editor.OverwriteCursor Insert
+Editor.Paste CTRL V
+Editor.Redo CTRL Y
+Editor.Replace CTRL H
+Editor.SelectAll CTRL A
+Editor.SelectBottom CTRL SHIFT End
+Editor.SelectDown SHIFT Down
+Editor.SelectDownBlock SHIFT PageDown
+Editor.SelectEndLine SHIFT End
+Editor.SelectLeft SHIFT Left
+Editor.SelectRight SHIFT Right
+Editor.SelectStartLine SHIFT Home
+Editor.SelectTop CTRL SHIFT Home
+Editor.SelectUp SHIFT Up
+Editor.SelectUpBlock SHIFT PageUp
+Editor.SelectWordLeft CTRL SHIFT Left
+Editor.SelectWordRight CTRL SHIFT Right
+Editor.Undo CTRL Z
+Editor.Unindent SHIFT Tab
 Gizmo.Position CTRL G P
 Gizmo.Rotation CTRL G R
 Gizmo.Scale CTRL G S

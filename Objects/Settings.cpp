@@ -130,6 +130,8 @@ namespace ed
 		Preview.ApplyFPSLimitToApp = ini.GetBoolean("preview", "fpslimitwholeapp", false);
 		Preview.LostFocusLimitFPS = ini.GetBoolean("preview", "fpslimitlostfocus", false);
 		Preview.MSAA = ini.GetInteger("preview", "msaa", 1);
+
+		m_parseExt(ini.Get("plugins", "notloaded", ""), Plugins.NotLoaded);
 		
 		if (Preview.MSAA != 1 && Preview.MSAA != 2 && Preview.MSAA != 4 &&
 			Preview.MSAA != 8 && Preview.MSAA != 16 && Preview.MSAA != 32)
@@ -212,6 +214,17 @@ namespace ed
 		ini << "smartindent=" << Editor.SmartIndent << std::endl;
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
+
+
+		ini << "[plugins]" << std::endl;
+		ini << "notloaded=";
+		for (int i = 0; i < Plugins.NotLoaded.size(); i++) {
+			ini << Plugins.NotLoaded[i];
+			if (i != Plugins.NotLoaded.size() - 1)
+				ini << " ";
+		}
+		ini << std::endl;
+
 
 	}
 

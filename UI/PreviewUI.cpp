@@ -590,7 +590,7 @@ namespace ed
 				name = name.substr(0, lastOfLetter);
 
 			// add number to the string and check if it already exists
-			for (size_t j = 2; /*WE WILL BRAKE FROM INSIDE ONCE WE FIND THE NAME*/;j++) {
+			for (size_t j = 2; /*WE WILL BREAK FROM INSIDE ONCE WE FIND THE NAME*/;j++) {
 				std::string newName = name + std::to_string(j);
 				bool has = m_data->Pipeline.Has(newName.c_str());
 
@@ -877,6 +877,16 @@ namespace ed
 
 				rota = model->Rotation;
 				pos = model->Position;
+			}
+			else if (item->Type == ed::PipelineItem::ItemType::PluginItem)
+			{
+				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
+
+				float minPos[3], maxPos[3];
+				pldata->Owner->GetPipelineItemBoundingBox(item->Name, minPos, maxPos);
+
+				minPosItem = glm::make_vec3(minPos);
+				maxPosItem = glm::make_vec3(maxPos);
 			}
 
 			// 8 points

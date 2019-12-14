@@ -7,7 +7,11 @@ namespace ed
 	class PinnedUI : public UIView
 	{
 	public:
-		using UIView::UIView;
+		PinnedUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) : 
+			UIView(ui, objects, name, visible),
+			m_editor(objects)
+		{
+		}
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);

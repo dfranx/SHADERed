@@ -47,7 +47,9 @@ namespace ed
 			ImGui::NextColumn();
 
 			ImGui::TextColored(color, m->Text.c_str());
-			ImGui::NextColumn();
+
+			if (i != msgs.size()-1)
+				ImGui::NextColumn();
 		}
 		ImGui::Columns(1);
 	}

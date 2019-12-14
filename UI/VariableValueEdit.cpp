@@ -9,8 +9,9 @@
 
 namespace ed
 {
-	VariableValueEditUI::VariableValueEditUI()
+	VariableValueEditUI::VariableValueEditUI(ed::InterfaceManager* data)
 	{
+		m_data = data;
 		Close();
 	}
 	bool VariableValueEditUI::Update()
@@ -39,11 +40,15 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button((UI_ICON_FX "##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0))) {
 				// find first function that is compatible with this value type
-				for (int i = 0; i < (int)FunctionShaderVariable::Count; i++)
+				for (int i = 0; i < (int)FunctionShaderVariable::Count; i++) {
+					if (m_var->Function == FunctionShaderVariable::PluginFunction)
+						break;
+
 					if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)i)) {
 						FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)i);
 						break;
 					}
+				}
 			}
 
 			if (state == FunctionShaderVariable::None)
@@ -164,13 +169,23 @@ namespace ed
 		ImGui::Text("Function:");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
-		const char* inputComboPreview = FUNCTION_NAMES[(int)m_var->Function];
+		const char* inputComboPreview = m_var->Function == FunctionShaderVariable::PluginFunction ? m_var->PluginFuncData.Name : FUNCTION_NAMES[(int)m_var->Function];
 		if (ImGui::BeginCombo(("##func" + std::string(m_var->Name)).c_str(), inputComboPreview)) {
 			for (int n = 1; n < (int)FunctionShaderVariable::Count; n++) {
 				bool is_selected = (n == (int)m_var->Function);
-				if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)n) && ImGui::Selectable(FUNCTION_NAMES[n], is_selected)) {
-					FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)n);
-					ret = true;
+				if (n != (int)FunctionShaderVariable::PluginFunction) {
+					if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)n) && ImGui::Selectable(FUNCTION_NAMES[n], is_selected)) {
+						FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)n);
+						ret = true;
+					}
+				} else {
+					bool modified = m_data->Plugins.ShowVariableFunctions(&m_var->PluginFuncData, m_var->GetType());
+					if (modified) {
+						m_data->Parser.ModifyProject();
+						m_var->Function = FunctionShaderVariable::PluginFunction;
+						m_var->Arguments = (char*)malloc(m_var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(m_var->PluginFuncData.Name, (plugin::VariableType)m_var->GetType()));
+						m_var->PluginFuncData.Owner->InitVariableFunctionArguments(m_var->Arguments, m_var->PluginFuncData.Name, (plugin::VariableType)m_var->GetType());
+					}
 				}
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
@@ -551,6 +566,11 @@ namespace ed
 				}
 
 				ImGui::NextColumn();
+			} break;
+
+			case FunctionShaderVariable::PluginFunction:
+			{
+				m_var->PluginFuncData.Owner->ShowFunctionArgumentEdit(m_var->PluginFuncData.Name, m_var->Arguments, (plugin::VariableType)m_var->GetType());
 			} break;
 		}
 		ImGui::Unindent(15);

@@ -39,6 +39,8 @@ namespace ed
 	void FunctionVariableManager::AllocateArgumentSpace(ed::ShaderVariable* var, ed::FunctionShaderVariable func)
 	{
 		size_t args = GetArgumentCount(func) * sizeof(float);
+		if (func == FunctionShaderVariable::PluginFunction)
+			args = var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
 		var->Function = func;
 
 		if (func == ed::FunctionShaderVariable::Pointer || func == ed::FunctionShaderVariable::CameraSnapshot)
@@ -308,6 +310,8 @@ namespace ed
 			}
 			memcpy(var->Data, &vector, ShaderVariable::GetSize(var->GetType()));
 		}
+		else if (var->Function == FunctionShaderVariable::PluginFunction)
+			var->PluginFuncData.Owner->UpdateVariableFunctionValue(var->Data, var->Arguments, var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
 	}
 	void FunctionVariableManager::ClearVariableList()
 	{

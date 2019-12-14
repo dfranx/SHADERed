@@ -11,7 +11,8 @@ namespace ed
 		PipelineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) :
 			UIView(ui, objects, name, visible), m_isChangeVarsOpened(false),
 			m_isCreateViewOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
-			m_createUI(ui, objects) {
+			m_createUI(ui, objects), m_valueEdit(objects)
+		{
 			m_itemMenuOpened = false;
 			m_isMacroManagerOpened = false;
 			m_isInpLayoutManagerOpened = false;
@@ -62,6 +63,7 @@ namespace ed
 		void m_addShaderPass(ed::PipelineItem* data);
 		void m_addComputePass(ed::PipelineItem* data);
 		void m_addAudioPass(ed::PipelineItem* data);
+		void m_addPluginItem(ed::PipelineItem* data);
 		void m_addItem(ed::PipelineItem* name);
 	};
 }

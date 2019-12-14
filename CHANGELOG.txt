@@ -1,4 +1,5 @@
 [v1.3]
++ add plugin API
 + add MSAA
 + add option for supersampling when rendering to an image file
 + add support for #include keyword

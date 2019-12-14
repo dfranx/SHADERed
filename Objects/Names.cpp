@@ -48,7 +48,8 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"CameraDirection3",
 	"KeysWASD",
 	"Mouse",
-	"MouseButton"
+	"MouseButton",
+	"PluginVariable"
 };
 const char* VARIABLE_TYPE_NAMES[] = {
 	"bool",
@@ -90,7 +91,8 @@ const char* FUNCTION_NAMES[] = {
 	"MatrixTranslation",
 	"ScalarCos",
 	"ScalarSin",
-	"VectorNormalize"
+	"VectorNormalize",
+	"PluginFunction"
 };
 
 const char* GEOMETRY_NAMES[] = {
@@ -110,7 +112,8 @@ const char* PIPELINE_ITEM_NAMES[] =
 	"Render State",
 	"Model",
 	"Compute Pass",
-	"Audio Pass"
+	"Audio Pass",
+	"Plugin Item"
 };
 
 const char* BLEND_NAMES[] = {

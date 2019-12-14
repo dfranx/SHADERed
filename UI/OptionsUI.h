@@ -14,6 +14,7 @@ namespace ed
 			Editor,
 			Shortcuts,
 			Preview,
+			Plugins,
 			Project
 		};
 
@@ -21,6 +22,9 @@ namespace ed
 			UIView(ui, objects, name, visible),
 			m_selectedShortcut(-1), m_page(Page::General) {
 			memset(m_shortcutSearch, 0, 256);
+			memset(m_pluginSearch, 0, 256);
+			m_pluginNotLoadedLB = 0;
+			m_pluginLoadedLB = 0;
 		}
 		//using UIView::UIView;
 
@@ -42,6 +46,9 @@ namespace ed
 				default: m_msaaChoice = 0; break;
 				}
 			}
+			else if (m_page == Page::Plugins) {
+				m_loadPluginList();
+			}
 		}
 		Page GetGroup() { return m_page; }
 
@@ -59,6 +66,12 @@ namespace ed
 
 		int m_msaaChoice;
 
+		char m_pluginSearch[256];
+		std::vector<std::string> m_pluginsNotLoaded, m_pluginsLoaded;
+		int m_pluginNotLoadedLB,
+			m_pluginLoadedLB;
+		void m_loadPluginList();
+
 		std::vector<std::string> m_themes;
 		void m_loadThemeList();
 
@@ -66,6 +79,7 @@ namespace ed
 		void m_renderEditor();
 		void m_renderShortcuts();
 		void m_renderPreview();
+		void m_renderPlugins();
 		void m_renderProject();
 	};
 }

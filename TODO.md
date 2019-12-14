@@ -1,14 +1,12 @@
 # PLAN
 ## v1.3
  - shader debugger & pixel inspect tool
- - plugin API
  - godot shaders
- - ability to override font using themes (+ option to choose between my or theme font)
  - show tips on startup & 'whats new' on first startup (can be turned off)
- - splash screen (for loading plugins, etc...)
  - update third party libraries
 
 ## v1.3.*
+ - splash screen (for loading plugins, etc...)
  - try to compile using emscripten
  - improve the overall code (enum for shader type, etc...)
  - fix memory leaks

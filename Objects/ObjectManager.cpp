@@ -62,21 +62,11 @@ namespace ed
 		Logger::Get().Log("Clearing ObjectManager contents...");
 		
 		for (int i = 0; i < m_itemData.size(); i++) {
-			if (m_itemData[i]->Buffer != nullptr)
-				glDeleteBuffers(1, &m_itemData[i]->Buffer->ID);
-			if (m_itemData[i]->Image != nullptr)
-				glDeleteTextures(1, &m_itemData[i]->Image->Texture);
-			if (m_itemData[i]->Image3D != nullptr)
-				glDeleteTextures(1, &m_itemData[i]->Image3D->Texture);
-			if (m_itemData[i]->RT != nullptr) {
-				glDeleteTextures(1, &m_itemData[i]->RT->BufferMS);
-				glDeleteTextures(1, &m_itemData[i]->RT->DepthStencilBuffer);
-				glDeleteTextures(1, &m_itemData[i]->RT->DepthStencilBufferMS);
+			if (m_itemData[i]->Plugin != nullptr) {
+				PluginObject* pobj = m_itemData[i]->Plugin;
+				pobj->Owner->RemoveObject(m_items[i].c_str(), pobj->Type, pobj->Data, pobj->ID);
 			}
-			if (m_itemData[i]->Sound != nullptr) {
-				delete m_itemData[i]->Sound;
-				delete m_itemData[i]->SoundBuffer;
-			}
+			
 			delete m_itemData[i];
 		}
 		
@@ -390,6 +380,29 @@ namespace ed
 
 		return true;
 	}
+	bool ObjectManager::CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin* owner)
+	{
+		Logger::Get().Log("Creating a plugin object " + name + " of type " + objtype + "...");
+
+		if (Exists(name)) {
+			Logger::Get().Log("Cannot create the plugin object " + name + " because an item with that name already exists", true);
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
+		m_items.push_back(name);
+
+		PluginObject* pObj = item->Plugin = new PluginObject();
+		strcpy(pObj->Type, objtype.c_str());
+		pObj->Owner = owner;
+		pObj->Data = data;
+		pObj->ID = id;
+		
+		return true;
+	}
 
 	ShaderVariable::ValueType getValueType(const std::string& name)
 	{
@@ -491,6 +504,8 @@ namespace ed
 			srv = GetImage(file)->Texture;
 		else if (IsBuffer(file))
 			srv = GetBuffer(file)->ID;
+		else if (IsPluginObject(file))
+			srv = GetPluginObject(file)->ID;
 
 		for (auto& i : m_binds)
 			for (int j = 0; j < i.second.size(); j++)
@@ -509,21 +524,11 @@ namespace ed
 		for (; index < m_items.size(); index++)
 			if (m_items[index] == file) break;
 
-		if (m_itemData[index]->Buffer != nullptr)
-			glDeleteBuffers(1, &m_itemData[index]->Buffer->ID);
-		if (m_itemData[index]->Image != nullptr)
-			glDeleteTextures(1, &m_itemData[index]->Image->Texture);
-		if (m_itemData[index]->Image3D != nullptr)
-			glDeleteTextures(1, &m_itemData[index]->Image3D->Texture);
-		if (m_itemData[index]->RT != nullptr) {
-			glDeleteTextures(1, &m_itemData[index]->RT->BufferMS);
-			glDeleteTextures(1, &m_itemData[index]->RT->DepthStencilBuffer);
-			glDeleteTextures(1, &m_itemData[index]->RT->DepthStencilBufferMS);
+		if (IsPluginObject(file)) {
+			PluginObject* pobj = GetPluginObject(file);
+			pobj->Owner->RemoveObject(file.c_str(), pobj->Type, pobj->Data, pobj->ID);
 		}
-		if (m_itemData[index]->Sound != nullptr) {
-			delete m_itemData[index]->Sound;
-			delete m_itemData[index]->SoundBuffer;
-		}
+
 		delete m_itemData[index];
 		m_itemData.erase(m_itemData.begin() + index);
 		m_items.erase(m_items.begin() + index);
@@ -538,6 +543,8 @@ namespace ed
 				m_binds[pass].push_back(GetImage(file)->Texture);
 			else if (IsImage3D(file))
 				m_binds[pass].push_back(GetImage3D(file)->Texture);
+			else if (IsPluginObject(file))
+				m_binds[pass].push_back(GetPluginObject(file)->ID);
 			else
 				m_binds[pass].push_back(GetTexture(file));
 		}
@@ -551,6 +558,8 @@ namespace ed
 			srv = GetImage(file)->Texture;
 		else if (IsImage3D(file))
 			srv = GetImage3D(file)->Texture;
+		else if (IsPluginObject(file))
+			srv = GetPluginObject(file)->ID;
 
 		for (int i = 0; i < srvs.size(); i++)
 			if (srvs[i] == srv) {
@@ -573,8 +582,11 @@ namespace ed
 			for (int i = 0; i < m_binds[pass].size(); i++)
 				if (m_binds[pass][i] == GetImage3D(file)->Texture)
 					return i;
-		}
-		else {
+		} else if (IsPluginObject(file)) {
+			for (int i = 0; i < m_binds[pass].size(); i++)
+				if (m_binds[pass][i] == GetPluginObject(file)->ID)
+					return i;
+		} else {
 			for (int i = 0; i < m_binds[pass].size(); i++)
 				if (m_binds[pass][i] == GetTexture(file))
 					return i;
@@ -590,6 +602,8 @@ namespace ed
 				m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
 			else if (IsImage3D(file))
 				m_uniformBinds[pass].push_back(GetImage3D(file)->Texture);
+			else if (IsPluginObject(file))
+				m_uniformBinds[pass].push_back(GetPluginObject(file)->ID);
 			else
 				m_uniformBinds[pass].push_back(GetImage(file)->Texture);
 
@@ -605,6 +619,8 @@ namespace ed
 			itemID = GetBuffer(file)->ID;
 		else if (IsImage3D(file))
 			itemID = GetImage3D(file)->Texture;
+		else if (IsPluginObject(file))
+			itemID = GetPluginObject(file)->ID;
 		else
 			itemID = GetImage(file)->Texture;
 		
@@ -625,6 +641,8 @@ namespace ed
 			itemID = GetBuffer(file)->ID;
 		else if (IsImage3D(file))
 			itemID = GetImage3D(file)->Texture;
+		else if (IsPluginObject(file))
+			itemID = GetPluginObject(file)->ID;
 		else
 			itemID = GetImage(file)->Texture;
 
@@ -711,6 +729,20 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == name)
 				return m_itemData[i]->Image3D != nullptr;
+		return false;
+	}
+	bool ObjectManager::IsPluginObject(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Plugin != nullptr;
+		return false;
+	}
+	bool ObjectManager::IsPluginObject(GLuint id)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_itemData[i]->Plugin != nullptr && m_itemData[i]->Plugin->ID == id)
+				return true;
 		return false;
 	}
 	bool ObjectManager::IsCubeMap(GLuint id)
@@ -805,6 +837,20 @@ namespace ed
 				return m_itemData[i]->RT;
 		return nullptr;
 	}
+	PluginObject* ObjectManager::GetPluginObject(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->Plugin;
+		return nullptr;
+	}
+	PluginObject* ObjectManager::GetPluginObject(GLuint id)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_itemData[i]->Plugin != nullptr && m_itemData[i]->Plugin->ID == id)
+				return m_itemData[i]->Plugin;
+		return nullptr;
+	}
 
 	RenderTextureObject* ObjectManager::GetRenderTexture(GLuint tex)
 	{
@@ -831,6 +877,21 @@ namespace ed
 	{
 		for (int i = 0; i < m_itemData.size(); i++)
 			if (m_itemData[i]->Image3D != nullptr && m_itemData[i]->Image3D->Texture == id)
+				return m_items[i];
+		return "";
+	}
+
+	ObjectManagerItem* ObjectManager::GetObjectManagerItem(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i];
+		return nullptr;
+	}
+	std::string ObjectManager::GetObjectManagerItemName(ObjectManagerItem* item)
+	{
+		for (int i = 0; i < m_itemData.size(); i++)
+			if (m_itemData[i] == item)
 				return m_items[i];
 		return "";
 	}

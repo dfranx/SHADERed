@@ -654,29 +654,7 @@ namespace ed
 		m_errorOccured = false;
 		
 		//TODO: make it type-safe.
-		if (m_item.Data != nullptr) {
-			switch (m_item.Type) {
-				case PipelineItem::ItemType::Geometry:
-					delete (pipe::GeometryItem*)m_item.Data;
-					break;
-				case PipelineItem::ItemType::ShaderPass:
-					delete (pipe::ShaderPass*)m_item.Data;
-					break;
-				case PipelineItem::ItemType::RenderState:
-					delete (pipe::RenderState *)m_item.Data;
-					break;
-				case PipelineItem::ItemType::Model:
-					delete (pipe::Model *)m_item.Data;
-					break;
-				case PipelineItem::ItemType::ComputePass:
-					delete (pipe::ComputePass *)m_item.Data;
-					break;
-				case PipelineItem::ItemType::AudioPass:
-					delete (pipe::AudioPass *)m_item.Data;
-					break;
-			}
-			m_item.Data = nullptr;
-		}
+		m_data->Pipeline.FreeData(m_item.Data, m_item.Type);
 		
 		m_item.Type = type;
 
@@ -925,7 +903,12 @@ namespace ed
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)m_item.Data;
 
-				pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(m_owner)->Data);
+				std::vector<InputLayoutItem> inpLayout;
+				PipelineItem* ownerItem = m_data->Pipeline.Get(m_owner);
+				if (ownerItem->Type == PipelineItem::ItemType::ShaderPass)
+					inpLayout = ((pipe::ShaderPass*)(ownerItem->Data))->InputLayout;
+				else if (ownerItem->Type == PipelineItem::ItemType::PluginItem)
+					inpLayout = m_data->Plugins.BuildInputLayout(((pipe::PluginItemData*)ownerItem->Data)->Owner, m_owner);
 
 				data->Position = glm::vec3(0, 0, 0);
 				data->Rotation = glm::vec3(0, 0, 0);
@@ -935,21 +918,21 @@ namespace ed
 				data->Type = origData->Type;
 
 				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
-					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Circle) {
-					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, inpLayout);
 					data->Topology = GL_TRIANGLE_STRIP;
 				}
 				else if (data->Type == pipe::GeometryItem::Plane)
-					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO,data->Size.x, data->Size.y, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO,data->Size.x, data->Size.y, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
-					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Sphere)
-					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Triangle)
-					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO, data->Size.x, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO, data->Size.x, inpLayout);
 				else if (data->Type == pipe::GeometryItem::ScreenQuadNDC)
-					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO, inpLayout);
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 				return !m_errorOccured;

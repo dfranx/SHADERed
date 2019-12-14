@@ -6,7 +6,7 @@
 namespace ed
 {
 	// i know, ewww, unfortunately the only reason i made every method static is because of the FunctionVariableManager...
-	// TODO: convert to nonstatic methods (in FunctionVariableManager too) 
+	// TODO: convert to nonstatic methods (FunctionVariableManager too) 
 	class CameraSnapshots
 	{
 	public:

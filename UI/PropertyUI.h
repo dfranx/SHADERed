@@ -15,16 +15,15 @@ namespace ed
 		virtual void Update(float delta);
 
 		void Open(PipelineItem *item);
-		void Open(const std::string &name, RenderTextureObject *obj);
-		void Open(const std::string& name, ImageObject* obj);
-		void Open(const std::string& name, Image3DObject* obj);
-		inline std::string CurrentItemName() { return m_current != nullptr ? m_current->Name : (m_currentRT != nullptr ? m_currentRT->Name : (m_currentImg3D != nullptr ? m_data->Objects.GetImage3DNameByID(m_currentImg3D->Texture) : m_data->Objects.GetImageNameByID(m_currentImg->Texture))); }
-		inline bool HasItemSelected() { return m_current != nullptr || m_currentRT != nullptr || m_currentImg != nullptr || m_currentImg3D != nullptr; }
+		void Open(const std::string &name, ObjectManagerItem* obj);
+		inline std::string CurrentItemName() { return m_current != nullptr ? m_current->Name : (m_currentObj != nullptr ? m_data->Objects.GetObjectManagerItemName(m_currentObj) : ""); }
+		inline bool HasItemSelected() { return m_current != nullptr || m_currentObj != nullptr; }
 
 		inline bool IsPipelineItem() { return m_current != nullptr; }
-		inline bool IsRenderTexture() { return m_currentRT != nullptr; }
-		inline bool IsImage() { return m_currentImg != nullptr; }
-		inline bool IsImage3D() { return m_currentImg3D != nullptr; }
+		inline bool IsRenderTexture() { return m_currentObj != nullptr && m_currentObj->RT != nullptr; }
+		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Image != nullptr; }
+		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Image3D != nullptr; }
+		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Plugin != nullptr; }
 
 	private:
 		char m_itemName[64];
@@ -32,9 +31,7 @@ namespace ed
 		void m_init();
 
 		PipelineItem* m_current;
-		RenderTextureObject* m_currentRT;
-		ImageObject* m_currentImg;
-		Image3DObject* m_currentImg3D;
+		ObjectManagerItem* m_currentObj;
 
 		glm::ivec3 m_cachedGroupSize;
 	};

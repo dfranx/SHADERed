@@ -1,11 +1,24 @@
 #pragma once
 #include "../Options.h"
+#include "PluginAPI/Plugin.h"
 #include <string>
 #include <string.h>
 
 namespace ed
 {
-	// TODO: add these to TUTORIAL.md
+	struct PluginSystemVariableData
+	{
+		char Name[64];
+		IPlugin* Owner;
+	};
+
+	struct PluginFunctionData
+	{
+		char Name[64];
+		IPlugin* Owner;
+	};
+
+	// TODO: add these to TUTORIAL.md / wiki
 	enum class SystemShaderVariable
 	{
 		None,				// not using system value
@@ -27,6 +40,7 @@ namespace ed
 		KeysWASD,			// vec4 - are W, A, S or D keys pressed
 		Mouse,				// vec4 - (x,y,left,right) updated every frame
 		MouseButton,		// vec4 - (x,y,left,right) updated only when mouse button pressed
+		PluginVariable,		// a value that is updated by some plugin
 		Count
 	};
 
@@ -54,6 +68,7 @@ namespace ed
 		ScalarCos,
 		ScalarSin,
 		VectorNormalize,
+		PluginFunction,			// a function that is executed by the plugin
 		Count					// not usable - this value just tells us number of all functions
 	};
 
@@ -128,6 +143,8 @@ namespace ed
 		char* Data;			// allocated with malloc()
 		char* Arguments;	// space to store arguments for function - allocated if not null!!!
 		char Flags;
+		PluginSystemVariableData PluginSystemVarData;
+		PluginFunctionData PluginFuncData;
 
 		inline int AsInteger(int index = 0) { return *AsIntegerPtr(index); }
 		inline bool AsBoolean(int index = 0) { return *AsBooleanPtr(index); }

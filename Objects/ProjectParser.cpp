@@ -2,13 +2,16 @@
 #include "RenderEngine.h"
 #include "ObjectManager.h"
 #include "PipelineManager.h"
+#include "PipelineItem.h"
 #include "CameraSnapshots.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
 #include "ShaderTranscompiler.h"
+#include "InputLayout.h"
 #include "Names.h"
 #include "Logger.h"
 #include "DefaultState.h"
+#include "PluginAPI/PluginManager.h"
 
 #include "../UI/PinnedUI.h"
 #include "../UI/PropertyUI.h"
@@ -34,6 +37,14 @@ namespace ed
 
 		return "glsl";
 	}
+	std::string getInnerXML(const pugi::xml_node& node)
+	{
+		std::ostringstream pxmlStream;
+		for (pugi::xml_node_iterator it = node.begin(); it != node.end(); ++it)
+			it->print(pxmlStream);
+
+		return pxmlStream.str();
+	}
 
 	std::string toGenericPath(const std::string& p)
 	{
@@ -42,8 +53,8 @@ namespace ed
 		return ret;
 	}
 
-	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, MessageStack* msgs, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs)
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins)
 	{
 
 		ResetProjectDirectory();
@@ -59,6 +70,105 @@ namespace ed
 		pugi::xml_parse_result result = doc.load_file(file.c_str());
 		if (!result) {
 			Logger::Get().Log("Failed to parse a project file", true);
+			return;
+		}
+
+		// check if user has all required plugins
+		m_pluginList.clear();
+		bool pluginTest = true;
+		pugi::xml_node pluginsContainerNode = doc.child("project").child("plugins");
+		for (pugi::xml_node pluginNode : pluginsContainerNode.children("entry")) {
+			std::string pname = pluginNode.attribute("name").as_string();
+			int pver = pluginNode.attribute("ver").as_int();
+
+			IPlugin* plugin = m_plugins->GetPlugin(pname);
+			if (plugin == nullptr) {
+				pluginTest = false;
+
+				std::string msg = "The project you are trying to open requires plugin " + pname + ".\nDo you want to install the plugin?";
+
+				const SDL_MessageBoxButtonData buttons[] = {
+					{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+				};
+				const SDL_MessageBoxData messageboxdata = {
+					SDL_MESSAGEBOX_INFORMATION, /* .flags */
+					m_ui->GetSDLWindow(), /* .window */
+					"SHADERed", /* .title */
+					msg.c_str(), /* .message */
+					SDL_arraysize(buttons), /* .numbuttons */
+					buttons, /* .buttons */
+					NULL /* .colorScheme */
+				};
+				int buttonid;
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+
+				if (buttonid == 0) {
+					// TODO: redirect to .../plugin?name=pname
+				}
+
+				break;
+			} 
+			else if (!m_plugins->IsActive(pname)) {
+
+				pluginTest = false;
+
+				std::string msg = "The project you are trying to open requires plugin " + pname + " which you have installed.\nEnable the plugin in the options.";
+
+				const SDL_MessageBoxButtonData buttons[] = {
+					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+				};
+				const SDL_MessageBoxData messageboxdata = {
+					SDL_MESSAGEBOX_INFORMATION, /* .flags */
+					m_ui->GetSDLWindow(), /* .window */
+					"SHADERed", /* .title */
+					msg.c_str(), /* .message */
+					SDL_arraysize(buttons), /* .numbuttons */
+					buttons, /* .buttons */
+					NULL /* .colorScheme */
+				};
+				int buttonid;
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+
+				if (buttonid == 0) { }
+
+				pluginTest = false;
+			}
+			else {
+				int instPVer = m_plugins->GetPluginVersion(pname);
+				if (instPVer < pver) {
+					pluginTest = false;
+
+					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + 
+						" while you have version " + std::to_string(instPVer) + " installed.\nDo you want to update your plugin?";
+
+					const SDL_MessageBoxButtonData buttons[] = {
+						{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+						{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+					};
+					const SDL_MessageBoxData messageboxdata = {
+						SDL_MESSAGEBOX_INFORMATION, /* .flags */
+						m_ui->GetSDLWindow(), /* .window */
+						"SHADERed", /* .title */
+						msg.c_str(), /* .message */
+						SDL_arraysize(buttons), /* .numbuttons */
+						buttons, /* .buttons */
+						NULL /* .colorScheme */
+					};
+					int buttonid;
+					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+
+					if (buttonid == 0) {
+						// TODO: redirect to .../plugin?name=pname
+					}
+
+					break;
+				}
+			}
+		}
+		
+		if (!pluginTest) {
+			Logger::Get().Log("Missing plugin - project not loaded", true);
 			return;
 		}
 
@@ -117,6 +227,7 @@ namespace ed
 	{
 		Logger::Get().Log("Saving project file...");
 
+		m_pluginList.clear();
 		m_modified = false;
 		m_file = file;
 		std::string oldProjectPath = m_projectPath;
@@ -157,7 +268,8 @@ namespace ed
 
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
-				} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+				} 
+				else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
 					pipe::ComputePass *passData = (pipe::ComputePass*)passItem->Data;
 
 					std::string cs = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
@@ -166,7 +278,8 @@ namespace ed
 					ghc::filesystem::copy_file(cs, shadersDir + "/" + passItem->Name + "CS." + csExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
-				} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass *passData = (pipe::AudioPass*)passItem->Data;
 
 					std::string ss = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
@@ -175,6 +288,12 @@ namespace ed
 					ghc::filesystem::copy_file(ss, shadersDir + "/" + passItem->Name + "SS." + ssExt, ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
+				}
+				else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
+					m_addPlugin(m_plugins->GetPluginName(pdata->Owner));
+
+					pdata->Owner->CopyFilesOnSave(m_projectPath.c_str());
 				}
 			}
 		}
@@ -268,150 +387,7 @@ namespace ed
 
 				// pass items
 				pugi::xml_node itemsNode = passNode.append_child("items");
-				for (PipelineItem *item : passData->Items)
-				{
-					pugi::xml_node itemNode = itemsNode.append_child("item");
-					itemNode.append_attribute("name").set_value(item->Name);
-
-					if (item->Type == PipelineItem::ItemType::Geometry)
-					{
-						itemNode.append_attribute("type").set_value("geometry");
-
-						ed::pipe::GeometryItem *tData = reinterpret_cast<ed::pipe::GeometryItem *>(item->Data);
-
-						itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
-						itemNode.append_child("width").text().set(tData->Size.x);
-						itemNode.append_child("height").text().set(tData->Size.y);
-						itemNode.append_child("depth").text().set(tData->Size.z);
-						if (tData->Scale.x != 1.0f)
-							itemNode.append_child("scaleX").text().set(tData->Scale.x);
-						if (tData->Scale.y != 1.0f)
-							itemNode.append_child("scaleY").text().set(tData->Scale.y);
-						if (tData->Scale.z != 1.0f)
-							itemNode.append_child("scaleZ").text().set(tData->Scale.z);
-						if (tData->Rotation.z != 0.0f)
-							itemNode.append_child("roll").text().set(tData->Rotation.z);
-						if (tData->Rotation.x != 0.0f)
-							itemNode.append_child("pitch").text().set(tData->Rotation.x);
-						if (tData->Rotation.y != 0.0f)
-							itemNode.append_child("yaw").text().set(tData->Rotation.y);
-						if (tData->Position.x != 0.0f)
-							itemNode.append_child("x").text().set(tData->Position.x);
-						if (tData->Position.y != 0.0f)
-							itemNode.append_child("y").text().set(tData->Position.y);
-						if (tData->Position.z != 0.0f)
-							itemNode.append_child("z").text().set(tData->Position.z);
-						if (tData->Instanced)
-							itemNode.append_child("instanced").text().set(tData->Instanced);
-						if (tData->InstanceCount > 0)
-							itemNode.append_child("instancecount").text().set(tData->InstanceCount);
-						if (tData->InstanceBuffer != nullptr)
-							itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject *)tData->InstanceBuffer)->ID).c_str());
-						for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++)
-						{
-							if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology)
-							{
-								itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
-								break;
-							}
-						}
-					}
-					else if (item->Type == PipelineItem::ItemType::RenderState)
-					{
-						itemNode.append_attribute("type").set_value("renderstate");
-
-						ed::pipe::RenderState *s = reinterpret_cast<ed::pipe::RenderState *>(item->Data);
-
-						if (s->PolygonMode != GL_FILL)
-							itemNode.append_child("wireframe").text().set(s->PolygonMode == GL_LINE);
-						if (!s->CullFace)
-							itemNode.append_child("cull").text().set(s->CullFace);
-						if (s->CullFaceType != GL_BACK)
-							itemNode.append_child("cullfront").text().set(true);
-						if (s->FrontFace != GL_CCW)
-							itemNode.append_child("ccw").text().set(false);
-
-						if (s->Blend)
-						{
-							itemNode.append_child("blend").text().set(true);
-
-							if (s->AlphaToCoverage)
-								itemNode.append_child("alpha2coverage").text().set(true);
-
-							itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
-							itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
-							itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
-							itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
-							itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
-							itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
-							itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
-							itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
-							itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
-							itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
-						}
-
-						if (s->DepthTest)
-						{
-							itemNode.append_child("depthtest").text().set(true);
-							itemNode.append_child("depthclamp").text().set(s->DepthClamp);
-							itemNode.append_child("depthmask").text().set(s->DepthMask);
-							itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
-							itemNode.append_child("depthbias").text().set(s->DepthBias);
-						}
-
-						if (s->StencilTest)
-						{
-							itemNode.append_child("stenciltest").text().set(true);
-							itemNode.append_child("stencilmask").text().set(s->StencilMask);
-							itemNode.append_child("stencilref").text().set(s->StencilReference);
-							itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
-							itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
-							itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
-							itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
-							itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
-							itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
-							itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
-							itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
-						}
-					}
-					else if (item->Type == PipelineItem::ItemType::Model)
-					{
-						itemNode.append_attribute("type").set_value("model");
-
-						ed::pipe::Model *data = reinterpret_cast<ed::pipe::Model *>(item->Data);
-
-						std::string opath = (ghc::filesystem::path(data->Filename).is_absolute()) ? data->Filename : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(data->Filename));
-
-						itemNode.append_child("filepath").text().set(opath.c_str());
-						itemNode.append_child("grouponly").text().set(data->OnlyGroup);
-						if (data->OnlyGroup)
-							itemNode.append_child("group").text().set(data->GroupName);
-						if (data->Scale.x != 1.0f)
-							itemNode.append_child("scaleX").text().set(data->Scale.x);
-						if (data->Scale.y != 1.0f)
-							itemNode.append_child("scaleY").text().set(data->Scale.y);
-						if (data->Scale.z != 1.0f)
-							itemNode.append_child("scaleZ").text().set(data->Scale.z);
-						if (data->Rotation.z != 0.0f)
-							itemNode.append_child("roll").text().set(data->Rotation.z);
-						if (data->Rotation.x != 0.0f)
-							itemNode.append_child("pitch").text().set(data->Rotation.x);
-						if (data->Rotation.y != 0.0f)
-							itemNode.append_child("yaw").text().set(data->Rotation.y);
-						if (data->Position.x != 0.0f)
-							itemNode.append_child("x").text().set(data->Position.x);
-						if (data->Position.y != 0.0f)
-							itemNode.append_child("y").text().set(data->Position.y);
-						if (data->Position.z != 0.0f)
-							itemNode.append_child("z").text().set(data->Position.z);
-						if (data->Instanced)
-							itemNode.append_child("instanced").text().set(data->Instanced);
-						if (data->InstanceCount > 0)
-							itemNode.append_child("instancecount").text().set(data->InstanceCount);
-						if (data->InstanceBuffer != nullptr)
-							itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject *)data->InstanceBuffer)->ID).c_str());
-					}
-				}
+				m_exportItems(itemsNode, passData->Items, oldProjectPath);
 
 				// item variable values
 				pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
@@ -449,7 +425,8 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+			}
+			else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass *passData = (pipe::ComputePass *)passItem->Data;
 
 				passNode.append_attribute("type").set_value("compute");
@@ -484,7 +461,8 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+			}
+			else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
 				pipe::AudioPass *passData = (pipe::AudioPass *)passItem->Data;
 
 				passNode.append_attribute("type").set_value("audio");
@@ -512,6 +490,23 @@ namespace ed
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
+			}
+			else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* plData = (pipe::PluginItemData*)passItem->Data;
+				m_addPlugin(m_plugins->GetPluginName(plData->Owner));
+				
+				passNode.append_attribute("type").set_value("plugin");
+				passNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(plData->Owner).c_str());
+				passNode.append_attribute("itemtype").set_value(plData->Type);
+
+				if (plData->Items.size() > 0) {
+					pugi::xml_node itemsNode = passNode.append_child("items");
+					m_exportItems(itemsNode, plData->Items, oldProjectPath);
+				}
+
+				pugi::xml_node dataNode = passNode.append_child("data");
+				const char* pObjectSrc = plData->Owner->ExportPipelineItem(plData->Type, plData->PluginData);
+				dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
 			}
 		}
 
@@ -547,12 +542,13 @@ namespace ed
 				bool isBuffer = m_objects->IsBuffer(texs[i]);
 				bool isImage = m_objects->IsImage(texs[i]);
 				bool isImage3D = m_objects->IsImage3D(texs[i]);
+				bool isPluginOwner = m_objects->IsPluginObject(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : "texture")))));
-				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D) ? "name" : "path").set_value(texs[i].c_str());
+				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
+				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D || isPluginOwner) ? "name" : "path").set_value(texs[i].c_str());
 
-				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && isCube)
+				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && !isPluginOwner && isCube)
 					textureNode.append_attribute("cube").set_value(isCube);
 
 				if (isRT) {
@@ -600,6 +596,19 @@ namespace ed
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 
+				PluginObject* pluginObj = (PluginObject*)m_objects->GetPluginObject(texs[i]);
+				bool isPluginObjectUAV = isPluginOwner && pluginObj->Owner->IsObjectBindableUAV(pluginObj->Type);
+
+				if (isPluginOwner) {
+					m_addPlugin(m_plugins->GetPluginName(pluginObj->Owner));
+
+					textureNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(pluginObj->Owner).c_str());
+					textureNode.append_attribute("objecttype").set_value(pluginObj->Type);
+
+					const char* pObjectSrc = pluginObj->Owner->ExportObject(pluginObj->Type, pluginObj->Data, pluginObj->ID);
+					textureNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
+				}
+
 				if (isBuffer) {
 					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
 					
@@ -628,7 +637,7 @@ namespace ed
 						}
 					}
 				}
-				else if (isImage || isImage3D) {
+				else if (isImage || isImage3D || isPluginObjectUAV) {
 					for (int j = 0; j < passItems.size(); j++) {
 
 						GLuint myTex = 0;
@@ -663,6 +672,8 @@ namespace ed
 				} 
 				else {
 					GLuint myTex = m_objects->GetTexture(texs[i]);
+					if (isPluginOwner)
+						myTex = pluginObj->ID;
 
 					for (int j = 0; j < passItems.size(); j++) {
 						std::vector<GLuint> bound = m_objects->GetBindList(passItems[j]);
@@ -797,6 +808,15 @@ namespace ed
 			}
 		}
 
+		if (m_pluginList.size() > 0) {
+			pugi::xml_node pluginsNode = projectNode.append_child("plugins");
+			for (const auto& pname : m_pluginList) {
+				pugi::xml_node pnode = pluginsNode.append_child("entry");
+				pnode.append_attribute("name").set_value(pname.c_str());
+				pnode.append_attribute("ver").set_value(m_plugins->GetPluginVersion(pname));
+			}
+		}
+
 		doc.save_file(file.c_str());
 	}
 	std::string ProjectParser::LoadProjectFile(const std::string & file)
@@ -896,13 +916,14 @@ namespace ed
 			int colID = 0;
 			for (pugi::xml_node value : row.children("value")) {
 				if (var->Function != FunctionShaderVariable::None) {
-					if (var->Function == FunctionShaderVariable::Pointer) {
+					if (var->Function == FunctionShaderVariable::Pointer)
 						strcpy(var->Arguments, value.text().as_string());
-					} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
+					else if (var->Function == FunctionShaderVariable::CameraSnapshot)
 						strcpy(var->Arguments, value.text().as_string());
-					} else {
+					else if (var->Function == FunctionShaderVariable::PluginFunction)
+						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, getInnerXML(value).c_str());
+					else
 						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
-					}
 				} else {
 					if (var->GetType() >= ShaderVariable::ValueType::Boolean1 && var->GetType() <= ShaderVariable::ValueType::Boolean4)
 						var->SetBooleanValue(value.text().as_bool(), colID++);
@@ -945,6 +966,12 @@ namespace ed
 			else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
 			}
+			else if (var->Function == FunctionShaderVariable::PluginFunction) {
+				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
+
+				const char* valNode = var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments);
+				valueRowNode.append_child("value").append_buffer(valNode, strlen(valNode));
+			}
 			else {
 				// save arguments
 				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
@@ -967,10 +994,23 @@ namespace ed
 				if (isInvert) varNode.append_attribute("invert").set_value(isInvert);
 				if (isLastFrame) varNode.append_attribute("lastframe").set_value(isLastFrame);
 
-				if (var->System != SystemShaderVariable::None)
+				if (var->System != SystemShaderVariable::None) {
 					varNode.append_attribute("system").set_value(SYSTEM_VARIABLE_NAMES[(int)var->System]);
-				else if (var->Function != FunctionShaderVariable::None)
+					if (var->System == SystemShaderVariable::PluginVariable) {
+						m_addPlugin(m_plugins->GetPluginName(var->PluginSystemVarData.Owner));
+						varNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(var->PluginSystemVarData.Owner).c_str());
+						varNode.append_attribute("itemname").set_value(var->PluginSystemVarData.Name);
+					}
+				}
+				else if (var->Function != FunctionShaderVariable::None) {
 					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var->Function]);
+
+					if (var->Function == FunctionShaderVariable::PluginFunction) {
+						m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
+						varNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(var->PluginFuncData.Owner).c_str());
+						varNode.append_attribute("funcname").set_value(var->PluginFuncData.Name);
+					}
+				}
 
 				if (var->System == SystemShaderVariable::None)
 					m_exportVariableValue(varNode, var);
@@ -1011,6 +1051,419 @@ namespace ed
 			if (strcmp(str, CULL_MODE_NAMES[k]) == 0)
 				return CULL_MODE_VALUES[k];
 		return GL_BACK;
+	}
+
+	void ProjectParser::m_exportItems(pugi::xml_node& node, std::vector<PipelineItem*>& items, const std::string& oldProjectPath)
+	{
+		for (PipelineItem* item : items)
+		{
+			pugi::xml_node itemNode = node.append_child("item");
+			itemNode.append_attribute("name").set_value(item->Name);
+
+			if (item->Type == PipelineItem::ItemType::Geometry)
+			{
+				itemNode.append_attribute("type").set_value("geometry");
+
+				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
+
+				itemNode.append_child("type").text().set(GEOMETRY_NAMES[tData->Type]);
+				itemNode.append_child("width").text().set(tData->Size.x);
+				itemNode.append_child("height").text().set(tData->Size.y);
+				itemNode.append_child("depth").text().set(tData->Size.z);
+				if (tData->Scale.x != 1.0f)
+					itemNode.append_child("scaleX").text().set(tData->Scale.x);
+				if (tData->Scale.y != 1.0f)
+					itemNode.append_child("scaleY").text().set(tData->Scale.y);
+				if (tData->Scale.z != 1.0f)
+					itemNode.append_child("scaleZ").text().set(tData->Scale.z);
+				if (tData->Rotation.z != 0.0f)
+					itemNode.append_child("roll").text().set(tData->Rotation.z);
+				if (tData->Rotation.x != 0.0f)
+					itemNode.append_child("pitch").text().set(tData->Rotation.x);
+				if (tData->Rotation.y != 0.0f)
+					itemNode.append_child("yaw").text().set(tData->Rotation.y);
+				if (tData->Position.x != 0.0f)
+					itemNode.append_child("x").text().set(tData->Position.x);
+				if (tData->Position.y != 0.0f)
+					itemNode.append_child("y").text().set(tData->Position.y);
+				if (tData->Position.z != 0.0f)
+					itemNode.append_child("z").text().set(tData->Position.z);
+				if (tData->Instanced)
+					itemNode.append_child("instanced").text().set(tData->Instanced);
+				if (tData->InstanceCount > 0)
+					itemNode.append_child("instancecount").text().set(tData->InstanceCount);
+				if (tData->InstanceBuffer != nullptr)
+					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)tData->InstanceBuffer)->ID).c_str());
+				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++)
+				{
+					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology)
+					{
+						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
+						break;
+					}
+				}
+			}
+			else if (item->Type == PipelineItem::ItemType::RenderState)
+			{
+				itemNode.append_attribute("type").set_value("renderstate");
+
+				ed::pipe::RenderState* s = reinterpret_cast<ed::pipe::RenderState*>(item->Data);
+
+				if (s->PolygonMode != GL_FILL)
+					itemNode.append_child("wireframe").text().set(s->PolygonMode == GL_LINE);
+				if (!s->CullFace)
+					itemNode.append_child("cull").text().set(s->CullFace);
+				if (s->CullFaceType != GL_BACK)
+					itemNode.append_child("cullfront").text().set(true);
+				if (s->FrontFace != GL_CCW)
+					itemNode.append_child("ccw").text().set(false);
+
+				if (s->Blend)
+				{
+					itemNode.append_child("blend").text().set(true);
+
+					if (s->AlphaToCoverage)
+						itemNode.append_child("alpha2coverage").text().set(true);
+
+					itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
+					itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
+					itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
+					itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
+					itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
+					itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
+					itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
+					itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
+					itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
+					itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
+				}
+
+				if (s->DepthTest)
+				{
+					itemNode.append_child("depthtest").text().set(true);
+					itemNode.append_child("depthclamp").text().set(s->DepthClamp);
+					itemNode.append_child("depthmask").text().set(s->DepthMask);
+					itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
+					itemNode.append_child("depthbias").text().set(s->DepthBias);
+				}
+
+				if (s->StencilTest)
+				{
+					itemNode.append_child("stenciltest").text().set(true);
+					itemNode.append_child("stencilmask").text().set(s->StencilMask);
+					itemNode.append_child("stencilref").text().set(s->StencilReference);
+					itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
+					itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
+					itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
+					itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
+					itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
+					itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
+					itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
+					itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
+				}
+			}
+			else if (item->Type == PipelineItem::ItemType::Model)
+			{
+				itemNode.append_attribute("type").set_value("model");
+
+				ed::pipe::Model* data = reinterpret_cast<ed::pipe::Model*>(item->Data);
+
+				std::string opath = (ghc::filesystem::path(data->Filename).is_absolute()) ? data->Filename : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(data->Filename));
+
+				itemNode.append_child("filepath").text().set(opath.c_str());
+				itemNode.append_child("grouponly").text().set(data->OnlyGroup);
+				if (data->OnlyGroup)
+					itemNode.append_child("group").text().set(data->GroupName);
+				if (data->Scale.x != 1.0f)
+					itemNode.append_child("scaleX").text().set(data->Scale.x);
+				if (data->Scale.y != 1.0f)
+					itemNode.append_child("scaleY").text().set(data->Scale.y);
+				if (data->Scale.z != 1.0f)
+					itemNode.append_child("scaleZ").text().set(data->Scale.z);
+				if (data->Rotation.z != 0.0f)
+					itemNode.append_child("roll").text().set(data->Rotation.z);
+				if (data->Rotation.x != 0.0f)
+					itemNode.append_child("pitch").text().set(data->Rotation.x);
+				if (data->Rotation.y != 0.0f)
+					itemNode.append_child("yaw").text().set(data->Rotation.y);
+				if (data->Position.x != 0.0f)
+					itemNode.append_child("x").text().set(data->Position.x);
+				if (data->Position.y != 0.0f)
+					itemNode.append_child("y").text().set(data->Position.y);
+				if (data->Position.z != 0.0f)
+					itemNode.append_child("z").text().set(data->Position.z);
+				if (data->Instanced)
+					itemNode.append_child("instanced").text().set(data->Instanced);
+				if (data->InstanceCount > 0)
+					itemNode.append_child("instancecount").text().set(data->InstanceCount);
+				if (data->InstanceBuffer != nullptr)
+					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
+			}
+			else if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* plData = (pipe::PluginItemData*)item->Data;
+				m_addPlugin(m_plugins->GetPluginName(plData->Owner));
+
+				itemNode.append_attribute("type").set_value("plugin");
+				itemNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(plData->Owner).c_str());
+				itemNode.append_attribute("itemtype").set_value(plData->Type);
+
+				pugi::xml_node dataNode = itemNode.append_child("data");
+				const char* pObjectSrc = plData->Owner->ExportPipelineItem(plData->Type, plData->PluginData);
+				dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
+			}
+		}
+
+	}
+	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
+		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
+		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs)
+	{
+		for (pugi::xml_node itemNode : node.children()) {
+			char itemName[PIPELINE_ITEM_NAME_LENGTH];
+			ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
+			void* itemData = nullptr;
+
+			strcpy(itemName, itemNode.attribute("name").as_string());
+
+			// parse the inner content of the item
+			if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
+				itemType = ed::PipelineItem::ItemType::Geometry;
+				itemData = new pipe::GeometryItem;
+				pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
+
+				tData->Scale = glm::vec3(1, 1, 1);
+				tData->Position = glm::vec3(0, 0, 0);
+				tData->Rotation = glm::vec3(0, 0, 0);
+				tData->Instanced = false;
+				tData->InstanceCount = 0;
+				tData->InstanceBuffer = nullptr;
+
+				for (pugi::xml_node attrNode : itemNode.children()) {
+					if (strcmp(attrNode.name(), "width") == 0)
+						tData->Size.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "height") == 0)
+						tData->Size.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "depth") == 0)
+						tData->Size.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleX") == 0)
+						tData->Scale.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleY") == 0)
+						tData->Scale.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleZ") == 0)
+						tData->Scale.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "roll") == 0)
+						tData->Rotation.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "yaw") == 0)
+						tData->Rotation.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "pitch") == 0)
+						tData->Rotation.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "x") == 0)
+						tData->Position.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "y") == 0)
+						tData->Position.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "z") == 0)
+						tData->Position.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "instanced") == 0)
+						tData->Instanced = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "instancecount") == 0)
+						tData->InstanceCount = attrNode.text().as_int();
+					else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+						geoUBOs[tData] = std::make_pair(attrNode.text().as_string(), data);
+					else if (strcmp(attrNode.name(), "topology") == 0) {
+						for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
+							if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
+								tData->Topology = TOPOLOGY_ITEM_VALUES[k];
+					}
+					else if (strcmp(attrNode.name(), "type") == 0) {
+						for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
+							if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
+								tData->Type = (pipe::GeometryItem::GeometryType)k;
+					}
+				}
+			}
+			else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
+				itemType = ed::PipelineItem::ItemType::RenderState;
+				itemData = new pipe::RenderState;
+
+				pipe::RenderState* tData = (pipe::RenderState*)itemData;
+
+				for (pugi::xml_node attrNode : itemNode.children()) {
+					// rasterizer
+					if (strcmp(attrNode.name(), "wireframe") == 0)
+						tData->PolygonMode = attrNode.text().as_bool() ? GL_LINE : GL_FILL;
+					else if (strcmp(attrNode.name(), "cull") == 0)
+						tData->CullFace = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "cullfront") == 0)
+						tData->CullFaceType = attrNode.text().as_bool() ? GL_FRONT : GL_BACK;
+					else if (strcmp(attrNode.name(), "ccw") == 0)
+						tData->FrontFace = attrNode.text().as_bool() ? GL_CCW : GL_CW;
+
+					// blend
+					else if (strcmp(attrNode.name(), "blend") == 0)
+						tData->Blend = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "colorsrcfactor") == 0)
+						tData->BlendSourceFactorRGB = m_toBlend(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "colorfunc") == 0)
+						tData->BlendFunctionColor = m_toBlendOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "colordstfactor") == 0)
+						tData->BlendDestinationFactorRGB = m_toBlend(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "alphasrcfactor") == 0)
+						tData->BlendSourceFactorAlpha = m_toBlend(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "alphafunc") == 0)
+						tData->BlendFunctionAlpha = m_toBlendOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "alphadstfactor") == 0)
+						tData->BlendDestinationFactorAlpha = m_toBlend(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "alpha2coverage") == 0)
+						tData->AlphaToCoverage = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "blendfactor_r") == 0)
+						tData->BlendFactor.r = attrNode.text().as_uint();
+					else if (strcmp(attrNode.name(), "blendfactor_g") == 0)
+						tData->BlendFactor.g = attrNode.text().as_uint();
+					else if (strcmp(attrNode.name(), "blendfactor_b") == 0)
+						tData->BlendFactor.b = attrNode.text().as_uint();
+					else if (strcmp(attrNode.name(), "blendfactor_a") == 0)
+						tData->BlendFactor.a = attrNode.text().as_uint();
+
+					// depth
+					else if (strcmp(attrNode.name(), "depthtest") == 0)
+						tData->DepthTest = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "depthfunc") == 0)
+						tData->DepthFunction = m_toComparisonFunc(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "depthbias") == 0)
+						tData->DepthBias = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "depthclamp") == 0)
+						tData->DepthClamp = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "depthmask") == 0)
+						tData->DepthMask = attrNode.text().as_bool();
+
+					// stencil
+					else if (strcmp(attrNode.name(), "stenciltest") == 0)
+						tData->StencilTest = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "stencilmask") == 0)
+						tData->StencilMask = attrNode.text().as_uint();
+					else if (strcmp(attrNode.name(), "stencilref") == 0)
+						tData->StencilReference = attrNode.text().as_uint();
+					else if (strcmp(attrNode.name(), "stencilfrontfunc") == 0)
+						tData->StencilFrontFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "stencilfrontpass") == 0)
+						tData->StencilFrontFaceOpPass = m_toStencilOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "stencilfrontfail") == 0)
+						tData->StencilFrontFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "stencilbackfunc") == 0)
+						tData->StencilBackFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "stencilbackpass") == 0)
+						tData->StencilBackFaceOpPass = m_toStencilOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "stencilbackfail") == 0)
+						tData->StencilBackFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "depthfrontfail") == 0)
+						tData->StencilFrontFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "depthbackfail") == 0)
+						tData->StencilBackFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
+				}
+			}
+			else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
+				itemType = ed::PipelineItem::ItemType::Model;
+				itemData = new pipe::Model;
+
+				pipe::Model* mdata = (pipe::Model*)itemData;
+
+				mdata->OnlyGroup = false;
+				mdata->Scale = glm::vec3(1, 1, 1);
+				mdata->Position = glm::vec3(0, 0, 0);
+				mdata->Rotation = glm::vec3(0, 0, 0);
+				mdata->InstanceBuffer = nullptr;
+				mdata->Instanced = false;
+				mdata->InstanceCount = 0;
+
+				modelUBOs[mdata] = std::make_pair("", data);
+
+				for (pugi::xml_node attrNode : itemNode.children()) {
+					if (strcmp(attrNode.name(), "filepath") == 0)
+						strcpy(mdata->Filename, attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "group") == 0)
+						strcpy(mdata->GroupName, attrNode.text().as_string());
+					else if (strcmp(attrNode.name(), "grouponly") == 0)
+						mdata->OnlyGroup = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "scaleX") == 0)
+						mdata->Scale.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleY") == 0)
+						mdata->Scale.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleZ") == 0)
+						mdata->Scale.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "roll") == 0)
+						mdata->Rotation.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "yaw") == 0)
+						mdata->Rotation.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "pitch") == 0)
+						mdata->Rotation.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "x") == 0)
+						mdata->Position.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "y") == 0)
+						mdata->Position.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "z") == 0)
+						mdata->Position.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "instanced") == 0)
+						mdata->Instanced = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "instancecount") == 0)
+						mdata->InstanceCount = attrNode.text().as_int();
+					else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+						modelUBOs[mdata] = std::make_pair(attrNode.text().as_string(), data);
+				}
+
+				if (strlen(mdata->Filename) > 0)
+					strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
+			}
+			else if (strcmp(itemNode.attribute("type").as_string(), "plugin") == 0) {
+				itemType = PipelineItem::ItemType::PluginItem;
+				itemData = new pipe::PluginItemData;
+				pipe::PluginItemData* tData = (pipe::PluginItemData*)itemData;
+
+				IPlugin* plugin = m_plugins->GetPlugin(itemNode.attribute("plugin").as_string());
+				std::string otype(itemNode.attribute("itemtype").as_string());
+
+				tData->Items.clear();
+				tData->Owner = plugin;
+				strcpy(tData->Type, otype.c_str());
+				tData->PluginData = plugin->ImportPipelineItem(name, itemName, otype.c_str(), getInnerXML(itemNode.child("data")).c_str());
+			}
+
+			// create and modify if needed
+			if (itemType == ed::PipelineItem::ItemType::Geometry) {
+				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
+				if (tData->Type == pipe::GeometryItem::Cube)
+					tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::Circle)
+					tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::Plane)
+					tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::Rectangle)
+					tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::Sphere)
+					tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::Triangle)
+					tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, inpLayout);
+				else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
+					tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, inpLayout);
+			}
+			else if (itemType == ed::PipelineItem::ItemType::Model) {
+				pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
+
+				//std::string objMem = LoadProjectFile(tData->Filename);
+				eng::Model* ptrObject = LoadModel(tData->Filename);
+				bool loaded = ptrObject != nullptr;
+
+				if (loaded)
+					tData->Data = ptrObject;
+				else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
+			}
+
+			m_pipe->AddItem(name, itemName, itemType, itemData);
+		}
+	}
+
+	void ProjectParser::m_addPlugin(const std::string& name)
+	{
+		if (std::count(m_pluginList.begin(), m_pluginList.end(), name) == 0)
+			m_pluginList.push_back(name);
 	}
 
 	// parser versions
@@ -1637,13 +2090,15 @@ namespace ed
 			if (!passNode.attribute("type").empty()) {
 				if (strcmp(passNode.attribute("type").as_string(), "compute") == 0)
 					type = ed::PipelineItem::ItemType::ComputePass;
-				if (strcmp(passNode.attribute("type").as_string(), "audio") == 0)
+				else if (strcmp(passNode.attribute("type").as_string(), "audio") == 0)
 					type = ed::PipelineItem::ItemType::AudioPass;
+				else if (strcmp(passNode.attribute("type").as_string(), "plugin") == 0)
+					type = ed::PipelineItem::ItemType::PluginItem;
 			}
 
 			if (type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = new ed::pipe::ShaderPass();
-
+				
 				data->RenderTextures[0] = m_renderer->GetTexture();
 				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
 					data->RenderTextures[i] = 0;
@@ -1707,6 +2162,9 @@ namespace ed
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
+					PluginSystemVariableData pluginSysData;
+					PluginFunctionData pluginFuncData;
+
 					char flags = 0;
 
 					/* FLAGS */
@@ -1736,7 +2194,12 @@ namespace ed
 								system = (ed::SystemShaderVariable)i;
 								break;
 							}
-						if (SystemVariableManager::GetType(system) != type)
+						if (system == SystemShaderVariable::PluginVariable) {
+							const char* ownerName = variableNode.attribute("plugin").as_string();
+							const char* psVarName = variableNode.attribute("itemname").as_string();
+							strcpy(pluginSysData.Name, psVarName);
+							pluginSysData.Owner = m_plugins->GetPlugin(ownerName);							
+						} else if (SystemVariableManager::GetType(system) != type)
 							system = ed::SystemShaderVariable::None;
 					}
 					if (!variableNode.attribute("function").empty()) {
@@ -1746,12 +2209,21 @@ namespace ed
 								func = (FunctionShaderVariable)i;
 								break;
 							}
-						if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
-							func = FunctionShaderVariable::None;
+						if (func == FunctionShaderVariable::PluginFunction) {
+							const char* ownerName = variableNode.attribute("plugin").as_string();
+							const char* pfuncName = variableNode.attribute("funcname").as_string();
+							strcpy(pluginFuncData.Name, pfuncName);
+							pluginFuncData.Owner = m_plugins->GetPlugin(ownerName);
+						} else {
+							if (system != SystemShaderVariable::None || !FunctionVariableManager::HasValidReturnType(type, func))
+								func = FunctionShaderVariable::None;
+						}
 					}
 
 					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
 					var->Flags = flags;
+					memcpy(&var->PluginSystemVarData, &pluginSysData, sizeof(PluginSystemVariableData));
+					memcpy(&var->PluginFuncData, &pluginFuncData, sizeof(PluginFunctionData));
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
 					// parse value
@@ -1797,234 +2269,7 @@ namespace ed
 				}
 
 				// parse items
-				for (pugi::xml_node itemNode : passNode.child("items").children()) {
-					char itemName[PIPELINE_ITEM_NAME_LENGTH];
-					ed::PipelineItem::ItemType itemType = ed::PipelineItem::ItemType::Geometry;
-					void* itemData = nullptr;
-
-					strcpy(itemName, itemNode.attribute("name").as_string());
-
-					// parse the inner content of the item
-					if (strcmp(itemNode.attribute("type").as_string(), "geometry") == 0) {
-						itemType = ed::PipelineItem::ItemType::Geometry;
-						itemData = new pipe::GeometryItem;
-						pipe::GeometryItem* tData = (pipe::GeometryItem*)itemData;
-
-						tData->Scale = glm::vec3(1, 1, 1);
-						tData->Position = glm::vec3(0, 0, 0);
-						tData->Rotation = glm::vec3(0, 0, 0);
-						tData->Instanced = false;
-						tData->InstanceCount = 0;
-						tData->InstanceBuffer = nullptr;
-
-						for (pugi::xml_node attrNode : itemNode.children()) {
-							if (strcmp(attrNode.name(), "width") == 0)
-								tData->Size.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "height") == 0)
-								tData->Size.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "depth") == 0)
-								tData->Size.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "scaleX") == 0)
-								tData->Scale.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "scaleY") == 0)
-								tData->Scale.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "scaleZ") == 0)
-								tData->Scale.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "roll") == 0)
-								tData->Rotation.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "yaw") == 0)
-								tData->Rotation.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "pitch") == 0)
-								tData->Rotation.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "x") == 0)
-								tData->Position.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "y") == 0)
-								tData->Position.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "z") == 0)
-								tData->Position.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "instanced") == 0)
-								tData->Instanced = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "instancecount") == 0)
-								tData->InstanceCount = attrNode.text().as_int();
-							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-								geoUBOs[tData] = std::make_pair(attrNode.text().as_string(), data);
-							else if (strcmp(attrNode.name(), "topology") == 0) {
-								for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
-									if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
-										tData->Topology = TOPOLOGY_ITEM_VALUES[k];
-							}
-							else if (strcmp(attrNode.name(), "type") == 0) {
-								for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
-									if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
-										tData->Type = (pipe::GeometryItem::GeometryType)k;
-							}
-						}
-					}
-					else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
-						itemType = ed::PipelineItem::ItemType::RenderState;
-						itemData = new pipe::RenderState;
-
-						pipe::RenderState* tData = (pipe::RenderState*)itemData;
-
-						for (pugi::xml_node attrNode : itemNode.children()) {
-							// rasterizer
-							if (strcmp(attrNode.name(), "wireframe") == 0)
-								tData->PolygonMode = attrNode.text().as_bool() ? GL_LINE : GL_FILL;
-							else if (strcmp(attrNode.name(), "cull") == 0)
-								tData->CullFace = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "cullfront") == 0)
-								tData->CullFaceType = attrNode.text().as_bool() ? GL_FRONT : GL_BACK;
-							else if (strcmp(attrNode.name(), "ccw") == 0)
-								tData->FrontFace = attrNode.text().as_bool() ? GL_CCW : GL_CW;
-
-							// blend
-							else if (strcmp(attrNode.name(), "blend") == 0)
-								tData->Blend = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "colorsrcfactor") == 0)
-								tData->BlendSourceFactorRGB = m_toBlend(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "colorfunc") == 0)
-								tData->BlendFunctionColor = m_toBlendOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "colordstfactor") == 0)
-								tData->BlendDestinationFactorRGB = m_toBlend(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "alphasrcfactor") == 0)
-								tData->BlendSourceFactorAlpha = m_toBlend(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "alphafunc") == 0)
-								tData->BlendFunctionAlpha = m_toBlendOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "alphadstfactor") == 0)
-								tData->BlendDestinationFactorAlpha = m_toBlend(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "alpha2coverage") == 0)
-								tData->AlphaToCoverage = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "blendfactor_r") == 0)
-								tData->BlendFactor.r = attrNode.text().as_uint();
-							else if (strcmp(attrNode.name(), "blendfactor_g") == 0)
-								tData->BlendFactor.g = attrNode.text().as_uint();
-							else if (strcmp(attrNode.name(), "blendfactor_b") == 0)
-								tData->BlendFactor.b = attrNode.text().as_uint();
-							else if (strcmp(attrNode.name(), "blendfactor_a") == 0)
-								tData->BlendFactor.a = attrNode.text().as_uint();
-
-							// depth
-							else if (strcmp(attrNode.name(), "depthtest") == 0)
-								tData->DepthTest = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "depthfunc") == 0)
-								tData->DepthFunction = m_toComparisonFunc(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "depthbias") == 0)
-								tData->DepthBias = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "depthclamp") == 0)
-								tData->DepthClamp = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "depthmask") == 0)
-								tData->DepthMask = attrNode.text().as_bool();
-
-							// stencil
-							else if (strcmp(attrNode.name(), "stenciltest") == 0)
-								tData->StencilTest = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "stencilmask") == 0)
-								tData->StencilMask = attrNode.text().as_uint();
-							else if (strcmp(attrNode.name(), "stencilref") == 0)
-								tData->StencilReference = attrNode.text().as_uint();
-							else if (strcmp(attrNode.name(), "stencilfrontfunc") == 0)
-								tData->StencilFrontFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "stencilfrontpass") == 0)
-								tData->StencilFrontFaceOpPass = m_toStencilOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "stencilfrontfail") == 0)
-								tData->StencilFrontFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "stencilbackfunc") == 0)
-								tData->StencilBackFaceFunction = m_toComparisonFunc(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "stencilbackpass") == 0)
-								tData->StencilBackFaceOpPass = m_toStencilOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "stencilbackfail") == 0)
-								tData->StencilBackFaceOpStencilFail = m_toStencilOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "depthfrontfail") == 0)
-								tData->StencilFrontFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "depthbackfail") == 0)
-								tData->StencilBackFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
-						}
-					}
-					else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
-						itemType = ed::PipelineItem::ItemType::Model;
-						itemData = new pipe::Model;
-
-						pipe::Model* mdata = (pipe::Model*)itemData;
-
-						mdata->OnlyGroup = false;
-						mdata->Scale = glm::vec3(1, 1, 1);
-						mdata->Position = glm::vec3(0, 0, 0);
-						mdata->Rotation = glm::vec3(0, 0, 0);
-						mdata->InstanceBuffer = nullptr;
-						mdata->Instanced = false;
-						mdata->InstanceCount = 0;
-
-						modelUBOs[mdata] = std::make_pair("", data);
-
-						for (pugi::xml_node attrNode : itemNode.children()) {
-							if (strcmp(attrNode.name(), "filepath") == 0)
-								strcpy(mdata->Filename, attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "group") == 0)
-								strcpy(mdata->GroupName, attrNode.text().as_string());
-							else if (strcmp(attrNode.name(), "grouponly") == 0)
-								mdata->OnlyGroup = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "scaleX") == 0)
-								mdata->Scale.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "scaleY") == 0)
-								mdata->Scale.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "scaleZ") == 0)
-								mdata->Scale.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "roll") == 0)
-								mdata->Rotation.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "yaw") == 0)
-								mdata->Rotation.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "pitch") == 0)
-								mdata->Rotation.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "x") == 0)
-								mdata->Position.x = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "y") == 0)
-								mdata->Position.y = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "z") == 0)
-								mdata->Position.z = attrNode.text().as_float();
-							else if (strcmp(attrNode.name(), "instanced") == 0)
-								mdata->Instanced = attrNode.text().as_bool();
-							else if (strcmp(attrNode.name(), "instancecount") == 0)
-								mdata->InstanceCount = attrNode.text().as_int();
-							else if (strcmp(attrNode.name(), "instancebuffer") == 0)
-								modelUBOs[mdata] = std::make_pair(attrNode.text().as_string(), data);
-						}
-
-						if (strlen(mdata->Filename) > 0)
-							strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
-					}
-
-					// create and modify if needed
-					if (itemType == ed::PipelineItem::ItemType::Geometry) {
-						ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
-						if (tData->Type == pipe::GeometryItem::Cube)
-							tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::Circle)
-							tData->VAO = eng::GeometryFactory::CreateCircle(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::Plane)
-							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, tData->Size.x, tData->Size.y, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::Rectangle)
-							tData->VAO = eng::GeometryFactory::CreatePlane(tData->VBO, 1, 1, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::Sphere)
-							tData->VAO = eng::GeometryFactory::CreateSphere(tData->VBO, tData->Size.x, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::Triangle)
-							tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, data->InputLayout);
-						else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
-							tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, data->InputLayout);
-					}
-					else if (itemType == ed::PipelineItem::ItemType::Model) {
-						pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
-
-						//std::string objMem = LoadProjectFile(tData->Filename);
-						eng::Model* ptrObject = LoadModel(tData->Filename);
-						bool loaded = ptrObject != nullptr;
-
-						if (loaded)
-							tData->Data = ptrObject;
-						else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
-					}
-
-					m_pipe->AddItem(name, itemName, itemType, itemData);
-				}
+				m_importItems(name, data, passNode.child("items"), data->InputLayout, geoUBOs, modelUBOs);
 
 				// parse item values
 				for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
@@ -2056,7 +2301,8 @@ namespace ed
 						m_renderer->AddItemVariableValue(ival);
 					}
 				}
-			} else if (type == PipelineItem::ItemType::ComputePass) {
+			} 
+			else if (type == PipelineItem::ItemType::ComputePass) {
 				ed::pipe::ComputePass *data = new ed::pipe::ComputePass();
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
@@ -2165,7 +2411,8 @@ namespace ed
 
 				// add the item
 				m_pipe->AddComputePass(name, data);
-			} else if (type == PipelineItem::ItemType::AudioPass) {
+			} 
+			else if (type == PipelineItem::ItemType::AudioPass) {
 				ed::pipe::AudioPass *data = new ed::pipe::AudioPass();
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
@@ -2263,6 +2510,17 @@ namespace ed
 
 				// add the item
 				m_pipe->AddAudioPass(name, data);
+			}
+			else if (type == PipelineItem::ItemType::PluginItem) {
+				IPlugin* plugin = m_plugins->GetPlugin(passNode.attribute("plugin").as_string());
+				std::string otype(passNode.attribute("itemtype").as_string());
+
+				void* pluginData = plugin->ImportPipelineItem(nullptr, name, otype.c_str(), getInnerXML(passNode.child("data")).c_str());
+
+				// add the item
+				m_pipe->AddPluginItem(nullptr, name, otype.c_str(), pluginData, plugin);
+
+				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, name), geoUBOs, modelUBOs);
 			}
 		}
 
@@ -2581,6 +2839,48 @@ namespace ed
 					}
 				}
 			}
+			else if (strcmp(objType, "pluginobject") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
+			
+				IPlugin* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
+				std::string otype(objectNode.attribute("objecttype").as_string());
+
+				plugin->ImportObject(objName, otype.c_str(), getInnerXML(objectNode).c_str());
+
+				if (plugin->IsObjectBindableUAV(otype.c_str())) {
+					for (pugi::xml_node bindNode : objectNode.children("bind")) {
+						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+						int slot = bindNode.attribute("slot").as_int();
+
+						for (const auto& pass : passes) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundUBOs[pass].size() <= slot)
+									boundUBOs[pass].resize(slot + 1);
+
+								boundUBOs[pass][slot] = objName;
+								break;
+							}
+						}
+					}
+				} 
+				else {
+					for (pugi::xml_node bindNode : objectNode.children("bind")) {
+						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
+						int slot = bindNode.attribute("slot").as_int();
+
+						for (const auto& pass : passes) {
+							if (strcmp(pass->Name, passBindName) == 0) {
+								if (boundTextures[pass].size() <= slot)
+									boundTextures[pass].resize(slot + 1);
+
+								boundTextures[pass][slot] = objName;
+
+								break;
+							}
+						}
+					}
+				}
+			}
 		}
 
 		// bind ARRAY_BUFFERS
@@ -2635,13 +2935,8 @@ namespace ed
 						if (type == 0) {
 							PipelineItem *item = m_pipe->Get(itemName);
 							props->Open(item);
-						} else if (type == 1) {
-							RenderTextureObject *item = m_objects->GetRenderTexture(m_objects->GetTexture(itemName));
-							props->Open(itemName, item);
-						} else if (type == 2) {
-							ImageObject* item = m_objects->GetImage(itemName);
-							props->Open(itemName, item);
-						}
+						} else
+							props->Open(itemName, m_objects->GetObjectManagerItem(itemName));
 					}
 				}
 				else if (type == "file" && Settings::Instance().General.ReopenShaders) {

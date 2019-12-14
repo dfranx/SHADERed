@@ -17,6 +17,14 @@
 
 namespace ed
 {
+	static auto vector_getter = [](void* vec, int idx, const char** out_text)
+	{
+		auto& vector = *static_cast<std::vector<std::string>*>(vec);
+		if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+		*out_text = vector.at(idx).c_str();
+		return true;
+	};
+
 	void OptionsUI::OnEvent(const SDL_Event& e)
 	{
 		if (m_page == Page::Shortcuts && m_selectedShortcut != -1) {
@@ -62,6 +70,8 @@ namespace ed
 			m_renderShortcuts();
 		else if (m_page == Page::Preview)
 			m_renderPreview();
+		else if (m_page == Page::Plugins)
+			m_renderPlugins();
 		else if (m_page == Page::Project)
 			m_renderProject();
 
@@ -116,6 +126,20 @@ namespace ed
 		return ret.substr(0, ret.size() - 1);
 	}
 
+	void OptionsUI::m_loadPluginList()
+	{
+		m_pluginsNotLoaded = Settings::Instance().Plugins.NotLoaded;
+		m_pluginsLoaded = m_data->Plugins.GetPluginList();
+
+		for (int i = 0; i < m_pluginsNotLoaded.size(); i++) {
+			for (int j = 0; j < m_pluginsLoaded.size(); j++) {
+				if (m_pluginsLoaded[j] == m_pluginsNotLoaded[i]) {
+					m_pluginsLoaded.erase(m_pluginsLoaded.begin() + j);
+					j--;
+				}
+			}
+		}
+	}
 	void OptionsUI::m_loadThemeList()
 	{
 		Logger::Get().Log("Loading a theme list...");
@@ -669,6 +693,59 @@ namespace ed
 			ImGui::PopItemFlag();
 		}
 
+	}
+	void OptionsUI::m_renderPlugins()
+	{
+		Settings* settings = &Settings::Instance();
+
+		ImGui::TextWrapped("Choose which plugins you want to load on startup (changes require restart):");
+
+		ImGui::Columns(3);
+
+		ImGui::Text("Plugins that aren't loaded:");
+
+		ImGui::PushItemWidth(-1);
+		ImGui::ListBox("##optpl_notloaded", &m_pluginNotLoadedLB, vector_getter, (void*)(&m_pluginsNotLoaded), m_pluginsNotLoaded.size(), 10);
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+
+		ImGui::SetCursorPosY(100 * Settings::Instance().DPIScale);
+		ImGui::Indent(100 * Settings::Instance().DPIScale);
+		if (ImGui::Button(">>") && m_pluginNotLoadedLB < m_pluginsNotLoaded.size()) {
+			m_pluginsLoaded.push_back(m_pluginsNotLoaded[m_pluginNotLoadedLB]);
+			settings->Plugins.NotLoaded.erase(settings->Plugins.NotLoaded.begin() + m_pluginNotLoadedLB);
+			m_pluginsNotLoaded.erase(m_pluginsNotLoaded.begin() + m_pluginNotLoadedLB);
+
+			m_pluginNotLoadedLB = std::max<int>(0, m_pluginNotLoadedLB - 1);
+		}
+		if (ImGui::Button("<<") && m_pluginLoadedLB < m_pluginsLoaded.size()) {
+			settings->Plugins.NotLoaded.push_back(m_pluginsLoaded[m_pluginLoadedLB]);
+			m_pluginsNotLoaded.push_back(m_pluginsLoaded[m_pluginLoadedLB]);
+			m_pluginsLoaded.erase(m_pluginsLoaded.begin() + m_pluginLoadedLB);
+
+			m_pluginLoadedLB = std::max<int>(0, m_pluginLoadedLB - 1);
+		}
+		ImGui::Unindent(100 * Settings::Instance().DPIScale);
+		ImGui::NextColumn();
+
+
+		ImGui::Text("Plugins that are loaded:");
+
+		ImGui::PushItemWidth(-1);
+		ImGui::ListBox("##optpl_loaded", &m_pluginLoadedLB, vector_getter, (void*)(&m_pluginsLoaded), m_pluginsLoaded.size(), 10);
+		ImGui::PopItemWidth();
+
+		ImGui::Columns(1);
+
+		ImGui::Text("Search: ");
+		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputText("##plugin_search", m_pluginSearch, 256);
+		ImGui::PopItemWidth();
+		ImGui::Separator();
+
+		m_data->Plugins.ShowOptions(m_pluginSearch);
 	}
 	void OptionsUI::m_renderProject()
 	{
