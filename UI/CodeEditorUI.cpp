@@ -677,14 +677,14 @@ namespace ed
 			for (auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr) {
 					if (it.second.VS_SLang != ShaderLanguage::GLSL)
-						it.second.VS = ShaderTranscompiler::TranscompileSource(it.second.VS_SLang, it.second.SPass->VSPath, it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
+						it.second.VS = ShaderTranscompiler::TranscompileSource(it.second.VS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->VSPath), it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
 					if (it.second.PS_SLang != ShaderLanguage::GLSL)
-						it.second.PS = ShaderTranscompiler::TranscompileSource(it.second.PS_SLang, it.second.SPass->PSPath, it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
+						it.second.PS = ShaderTranscompiler::TranscompileSource(it.second.PS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->PSPath), it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
 					if (it.second.GS_SLang != ShaderLanguage::GLSL)
-						it.second.GS = ShaderTranscompiler::TranscompileSource(it.second.GS_SLang, it.second.SPass->GSPath, it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
+						it.second.GS = ShaderTranscompiler::TranscompileSource(it.second.GS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->GSPath), it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
 				} else if (it.second.CPass != nullptr) {
 					if (it.second.CS_SLang != ShaderLanguage::GLSL)
-						it.second.CS = ShaderTranscompiler::TranscompileSource(it.second.CS_SLang, it.second.CPass->Path, it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages, &m_data->Parser);
+						it.second.CS = ShaderTranscompiler::TranscompileSource(it.second.CS_SLang, m_data->Parser.GetProjectPath(it.second.CPass->Path), it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages, &m_data->Parser);
 				}
 			}
 
