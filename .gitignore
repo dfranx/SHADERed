@@ -1,4 +1,5 @@
 Debug*
+install_manifest.txt
 Release*
 *.vcxproj.*
 .vs

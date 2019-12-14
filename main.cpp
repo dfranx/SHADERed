@@ -18,6 +18,10 @@
 #include <stb/stb_image_write.h>
 #include <stb/stb_image.h>
 
+#if defined(__linux__) || defined(__unix__)
+#include <libgen.h>
+#endif
+
 #if defined(NDEBUG) && defined(_WIN32)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
@@ -73,21 +77,44 @@ void setIcon(SDL_Window* wnd)
 int main(int argc, char* argv[])
 {
 	if (argc > 0) {
-		ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
-		
-		// delete log.txt on startup
-		if (ghc::filesystem::exists("./log.txt")) {
-			std::error_code errCode;
-			ghc::filesystem::remove("./log.txt", errCode);
+		if (ghc::filesystem::exists(ghc::filesystem::path(argv[0]).parent_path())) {
+			ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
+			
+			ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
 		}
-
-		ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
 	}
-	else if (ghc::filesystem::exists("./log.txt")) {
+
+#if defined(__linux__) || defined(__unix__)
+	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
+	// TODO: if more arguments get added, use different methods to check if working directory is being set explicitly
+	if (argc <= 1) { 
+		char result[PATH_MAX];
+		ssize_t readlinkRes = readlink("/proc/self/exe", result, PATH_MAX);
+		std::string exePath = "";
+		if (readlinkRes != -1)
+			exePath = std::string(dirname(result));
+
+		std::vector<std::string> toCheck = { 
+			"/../share/SHADERed",
+			"/../share/shadered"
+			// TODO: maybe more paths here?
+		};
+
+		for (const auto& wrkpath : toCheck) {
+			if (ghc::filesystem::exists(exePath + wrkpath)) {
+				ghc::filesystem::current_path(exePath + wrkpath);
+				ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
+				break;
+			}
+		}
+	}
+#endif
+
+	// delete log.txt on startup
+	if (ghc::filesystem::exists("./log.txt")) {
 		std::error_code errCode;
 		ghc::filesystem::remove("./log.txt", errCode);
 	}
-
 
 	// set stb_image flags
 	stbi_flip_vertically_on_write(1);
