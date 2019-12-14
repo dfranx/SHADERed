@@ -21,6 +21,7 @@ bin/log.txt
 bin/*.dll
 bin/*.ilk
 bin/*.pdb
+bin/plugins/*
 VSProject
 vsproject32
 test

@@ -81,12 +81,12 @@ DockId=0x0000000A,1
 
 [Window][##toolbar]
 Pos=0,25
-Size=32,50
+Size=1654,50
 Collapsed=0
 
 [Window][###objprev0]
-Pos=334,22
-Size=651,993
+Pos=299,25
+Size=666,990
 Collapsed=0
 DockId=0x00000017,0
 

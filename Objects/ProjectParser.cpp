@@ -1213,7 +1213,7 @@ namespace ed
 		}
 
 	}
-	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, pugi::xml_node& node, std::vector<InputLayoutItem>& inpLayout,
+	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
 		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs)
 	{
