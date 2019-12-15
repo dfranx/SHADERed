@@ -1,4 +1,5 @@
 #include "PluginManager.h"
+#include "../Logger.h"
 #include "../Settings.h"
 #include "../SystemVariableManager.h"
 #include "../../InterfaceManager.h"
@@ -129,8 +130,6 @@ namespace ed
 					continue;
 				}
 #endif
-
-				printf("[DEBUG] Loaded plugin %s\n", pdir.c_str());
 
 				// list of loaded plugins
 				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
@@ -301,6 +300,20 @@ namespace ed
 				};
 				plugin->SetFrameIndex = [](int findex) {
 					SystemVariableManager::Instance().SetFrameIndex(findex);
+				};
+				plugin->GetDPI = []() -> float {
+					return Settings::Instance().DPIScale;
+				};
+				plugin->FileExists = [](void* project, const char* filename) -> bool {
+					ProjectParser* proj = (ProjectParser*)project;
+					return proj->FileExists(filename);
+				};
+				plugin->ClearMessageGroup = [](void* project, const char* group) {
+					MessageStack* msgs = (MessageStack*)project;
+					msgs->ClearGroup(group);
+				};
+				plugin->Log = [](const char* msg, bool error, const char* file, int line) {
+					ed::Logger::Get().Log(msg, error, file, line);
 				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...

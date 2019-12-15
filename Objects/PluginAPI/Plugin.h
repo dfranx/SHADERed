@@ -7,7 +7,7 @@ namespace ed
 	{
 		typedef void (*AddObjectFn)(void* objects, const char* name, const char* type, void* data, unsigned int id, void* owner);
 		typedef bool (*AddCustomPipelineItemFn)(void* pipeline, void* parent, const char* name, const char* type, void* data, void* owner);
-		
+
 		typedef void (*AddMessageFn)(void* messages, plugin::MessageType mtype, const char* group, const char* txt);
 
 		typedef bool (*CreateRenderTextureFn)(void* objects, const char* name);
@@ -49,6 +49,11 @@ namespace ed
 		typedef void (*SetMousePositionFn)(float x, float y);
 		typedef void (*SetKeysWASDFn)(bool w, bool a, bool s, bool d);
 		typedef void (*SetFrameIndexFn)(int findex);
+
+		typedef float (*GetDPIFn)();
+		typedef bool (*FileExistsFn)(void* project, const char* path);
+		typedef void (*ClearMessageGroupFn)(void* messages, const char* group);
+		typedef void (*LogFn)(const char* msg, bool error, const char* file, int line);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -69,7 +74,7 @@ namespace ed
 
 		/* list: pipeline, shaderpass_add (owner = ShaderPass), pluginitem_add (owner = char* ItemType) objects, editcode (owner = char* ItemName) */
 		virtual bool HasContextItems(const char* name) = 0;
-		virtual void ShowContextItems(const char* name, void* owner = nullptr) = 0; 
+		virtual void ShowContextItems(const char* name, void* owner = nullptr) = 0;
 
 		// system variable methods
 		virtual bool HasSystemVariables(plugin::VariableType varType) = 0;
@@ -125,7 +130,7 @@ namespace ed
 		virtual void* CopyPipelineItemData(const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(const char* type, void* data, void* children, int count) = 0;
-		virtual void GetPipelineItemWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
+		virtual void GetPipelineItemWorldMatrix(const char* name, float(&pMat)[16]) = 0; //must be implemented if item is pickable
 		virtual bool IntersectPipelineItem(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
 		virtual void GetPipelineItemBoundingBox(const char* name, float(&minPos)[3], float(&maxPos)[3]) = 0;
 		virtual bool HasPipelineItemContext(const char* type) = 0;
@@ -141,7 +146,7 @@ namespace ed
 		virtual bool HandleDropFile(const char* filename) = 0;
 
 		// some functions exported from SHADERed
-		void *Renderer, *Messages, *Project;
+		void* Renderer, * Messages, * Project;
 		pluginfn::AddMessageFn AddMessage;
 		pluginfn::CreateRenderTextureFn CreateRenderTexture;
 		pluginfn::CreateImageFn CreateImage;
@@ -178,5 +183,9 @@ namespace ed
 		pluginfn::SetMousePositionFn SetMousePosition;
 		pluginfn::SetKeysWASDFn SetKeysWASD;
 		pluginfn::SetFrameIndexFn SetFrameIndex;
+		pluginfn::GetDPIFn GetDPI;
+		pluginfn::FileExistsFn FileExists;
+		pluginfn::ClearMessageGroupFn ClearMessageGroup;
+		pluginfn::LogFn Log;
 	};
 }
