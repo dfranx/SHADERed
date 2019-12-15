@@ -67,9 +67,9 @@ namespace ed
 		virtual bool HasMenuItems(const char* name) = 0;
 		virtual void ShowMenuItems(const char* name) = 0;
 
-		/* list: pipeline, shaderpass_add (owner = ShaderPass), objects, editcode (owner = char* ItemName) */
+		/* list: pipeline, shaderpass_add (owner = ShaderPass), pluginitem_add (owner = char* ItemType) objects, editcode (owner = char* ItemName) */
 		virtual bool HasContextItems(const char* name) = 0;
-		virtual void ShowContextItems(const char* name, void* owner = nullptr) = 0; // owner is type of PipelineItem when shaderpass_add
+		virtual void ShowContextItems(const char* name, void* owner = nullptr) = 0; 
 
 		// system variable methods
 		virtual bool HasSystemVariables(plugin::VariableType varType) = 0;

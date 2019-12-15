@@ -333,8 +333,10 @@ namespace ed
 						m_createUI.SetType(PipelineItem::ItemType::RenderState);
 					}
 					
-					if (!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::PluginItem))
+					if (!isPlugin)
 						m_data->Plugins.ShowContextItems("shaderpass_add", (void*)items[index]);
+					else if (pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::PluginItem))
+						m_data->Plugins.ShowContextItems("pluginitem_add", (void*)((pipe::PluginItemData*)items[index]->Data)->Type);
 
 					ImGui::EndMenu();
 				}
