@@ -79,6 +79,7 @@ namespace ed
 			ImageSize = glm::ivec2(0, 0);
 			Texture = 0;
 			IsCube = false;
+			IsTexture = false;
 			CubemapPaths.clear();
 			SoundBuffer = nullptr;
 			Sound = nullptr;
@@ -128,6 +129,7 @@ namespace ed
 		glm::ivec2 ImageSize;
 		GLuint Texture;
 		bool IsCube;
+		bool IsTexture;
 		std::vector<std::string> CubemapPaths;
 		
 		sf::SoundBuffer* SoundBuffer;

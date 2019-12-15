@@ -363,6 +363,11 @@ namespace ed
 					for (int j = 0; j < data->Items.size(); j++)
 						if (strcmpcase(data->Items[j]->Name, name) == 0)
 							return true;
+				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)m_items[i]->Data;
+					for (int j = 0; j < data->Items.size(); j++)
+						if (strcmpcase(data->Items[j]->Name, name) == 0)
+							return true;
 				}
 			}
 		}

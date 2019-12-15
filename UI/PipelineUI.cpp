@@ -335,8 +335,11 @@ namespace ed
 					
 					if (!isPlugin)
 						m_data->Plugins.ShowContextItems("shaderpass_add", (void*)items[index]);
-					else if (pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::PluginItem))
-						m_data->Plugins.ShowContextItems("pluginitem_add", (void*)((pipe::PluginItemData*)items[index]->Data)->Type);
+					else if (pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::PluginItem)) {
+						pipe::PluginItemData* piData = ((pipe::PluginItemData*)items[index]->Data);
+
+						m_data->Plugins.ShowContextItems("pluginitem_add", (void*)piData->Type, piData->PluginData);
+					}
 
 					ImGui::EndMenu();
 				}

@@ -152,6 +152,8 @@ namespace ed
 		m_itemData.push_back(item);
 		m_items.push_back(file);
 
+		item->IsTexture = true;
+
 		if (data == nullptr)
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
 

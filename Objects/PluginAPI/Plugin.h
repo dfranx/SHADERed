@@ -54,6 +54,13 @@ namespace ed
 		typedef bool (*FileExistsFn)(void* project, const char* path);
 		typedef void (*ClearMessageGroupFn)(void* messages, const char* group);
 		typedef void (*LogFn)(const char* msg, bool error, const char* file, int line);
+
+		typedef int (*GetObjectCountFn)(void* objects);
+		typedef const char* (*GetObjectNameFn)(void* objects, int index);
+		typedef bool (*IsTextureFn)(void* objects, const char* name);
+		typedef unsigned int (*GetTextureFn)(void* objects, const char* name);
+		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
+
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -72,9 +79,9 @@ namespace ed
 		virtual bool HasMenuItems(const char* name) = 0;
 		virtual void ShowMenuItems(const char* name) = 0;
 
-		/* list: pipeline, shaderpass_add (owner = ShaderPass), pluginitem_add (owner = char* ItemType) objects, editcode (owner = char* ItemName) */
+		/* list: pipeline, shaderpass_add (owner = ShaderPass), pluginitem_add (owner = char* ItemType, extraData = PluginItemData) objects, editcode (owner = char* ItemName) */
 		virtual bool HasContextItems(const char* name) = 0;
-		virtual void ShowContextItems(const char* name, void* owner = nullptr) = 0;
+		virtual void ShowContextItems(const char* name, void* owner = nullptr, void* extraData = nullptr) = 0;
 
 		// system variable methods
 		virtual bool HasSystemVariables(plugin::VariableType varType) = 0;
@@ -125,7 +132,7 @@ namespace ed
 		virtual void GetPipelineItemInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
 		virtual void RemovePipelineItem(const char* itemName, const char* type, void* data) = 0;
 		virtual void RenamePipelineItem(const char* oldName, const char* newName) = 0;
-		virtual bool AddPipelineItemChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
+		virtual void AddPipelineItemChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
 		virtual bool CanPipelineItemHaveChildren(const char* type) = 0;
 		virtual void* CopyPipelineItemData(const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
@@ -187,5 +194,10 @@ namespace ed
 		pluginfn::FileExistsFn FileExists;
 		pluginfn::ClearMessageGroupFn ClearMessageGroup;
 		pluginfn::LogFn Log;
+		pluginfn::GetObjectCountFn GetObjectCount;
+		pluginfn::GetObjectNameFn GetObjectName;
+		pluginfn::IsTextureFn IsTexture;
+		pluginfn::GetTextureFn GetTexture;
+		pluginfn::GetTextureSizeFn GetTextureSize;
 	};
 }

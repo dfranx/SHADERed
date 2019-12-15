@@ -29,7 +29,7 @@ namespace ed
 
 		void ShowCustomMenu();
 		void ShowMenuItems(const std::string& menu);
-		void ShowContextItems(const std::string& menu, void* owner = nullptr);
+		void ShowContextItems(const std::string& menu, void* owner = nullptr, void* extraData = nullptr);
 		void ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner = nullptr);
 		void ShowOptions(const std::string& searchString = "");
 

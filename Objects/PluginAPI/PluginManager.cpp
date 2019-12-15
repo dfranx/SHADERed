@@ -313,7 +313,40 @@ namespace ed
 					msgs->ClearGroup(group);
 				};
 				plugin->Log = [](const char* msg, bool error, const char* file, int line) {
-					ed::Logger::Get().Log(msg, error, file, line);
+					printf(msg);
+					//ed::Logger::Get().Log(msg, error, file, line);
+				};
+				plugin->GetObjectCount = [](void* objects) -> int {
+					ObjectManager* obj = (ObjectManager*)objects;
+					return obj->GetObjects().size();
+				};
+				plugin->GetObjectName = [](void* objects, int index) -> const char* {
+					ObjectManager* obj = (ObjectManager*)objects;
+					return obj->GetObjects()[index].c_str();
+				};
+				plugin->IsTexture = [](void* objects, const char* name) -> bool {
+					ObjectManager* obj = (ObjectManager*)objects;
+					const auto& itemList = obj->GetItemDataList();
+					const auto& itemNames = obj->GetObjects();
+					int nameIndex = 0;
+
+					for (const auto& item : itemList) {
+						if (itemNames[nameIndex] == name)
+								return item->IsTexture;
+						nameIndex++;
+					}
+
+					return false;
+				};
+				plugin->GetTexture = [](void* objects, const char* name) -> unsigned int {
+					ObjectManager* obj = (ObjectManager*)objects;
+					return obj->GetTexture(name);
+				};
+				plugin->GetTextureSize = [](void* objects, const char* name, int& w, int& h) {
+					ObjectManager* obj = (ObjectManager*)objects;
+					glm::ivec2 tsize = obj->GetTextureSize(name);
+					w = tsize.x;
+					h = tsize.y;
 				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
@@ -419,12 +452,12 @@ namespace ed
 				break;
 	}
 
-	void PluginManager::ShowContextItems(const std::string& menu, void* owner)
+	void PluginManager::ShowContextItems(const std::string& menu, void* owner, void* extraData)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
 			if (m_isActive[i] && m_plugins[i]->HasContextItems(menu.c_str())) {
 				ImGui::Separator();
-				m_plugins[i]->ShowContextItems(menu.c_str(), owner);
+				m_plugins[i]->ShowContextItems(menu.c_str(), owner, extraData);
 			}
 	}
 	void PluginManager::ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner)
