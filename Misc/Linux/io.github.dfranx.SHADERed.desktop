@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=SHADERed
+GenericName=Shader editor
+GenericName[fr]=Éditeur de shaders
+Comment=Tool for creating and testing HLSL and GLSL shaders
+Comment[fr]=Outil pour créer et tester des shaders HLSL et GLSL
+Exec=shadered
+Icon=shadered
+Terminal=false
+Type=Application
+Categories=Development;

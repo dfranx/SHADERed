@@ -99,7 +99,7 @@ else()
 		"${SOURCES}"
 		libs/nativefiledialog/nfd_gtk.c
 	)
-	
+
 	# link gtk on linux
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(GTK REQUIRED gtk+-3.0)
@@ -107,7 +107,7 @@ else()
 	add_definitions(${GTK_CFLAGS})
 endif()
 
-# cmake toolchain 
+# cmake toolchain
 if(CMAKE_TOOLCHAIN_FILE)
     include(${CMAKE_TOOLCHAIN_FILE})
 endif(CMAKE_TOOLCHAIN_FILE)
@@ -184,3 +184,8 @@ set(RESOURCE_INST_DESTINATION "share/shadered")
 install(PROGRAMS bin/SHADERed DESTINATION "${BINARY_INST_DESTINATION}" RENAME shadered)
 install(DIRECTORY bin/data bin/templates bin/themes DESTINATION "${RESOURCE_INST_DESTINATION}")
 
+if (UNIX AND NOT APPLE)
+	# install XDG desktop file and icon on Linux/BSD
+	install(FILES Misc/Linux/io.github.dfranx.SHADERed.desktop DESTINATION "share/applications" RENAME shadered.desktop)
+	install(FILES bin/icon.png DESTINATION "share/icons/hicolor/64x64/apps" RENAME shadered.png)
+endif()
