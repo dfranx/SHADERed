@@ -4,6 +4,7 @@
  - godot shaders
  - show tips on startup & 'whats new' on first startup (can be turned off)
  - update third party libraries
+ - move Screenshots directory into the Misc directory
 
 ## v1.3.*
  - splash screen (for loading plugins, etc...)

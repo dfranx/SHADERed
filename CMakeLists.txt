@@ -182,7 +182,7 @@ endif()
 set(BINARY_INST_DESTINATION "bin")
 set(RESOURCE_INST_DESTINATION "share/shadered")
 install(PROGRAMS bin/SHADERed DESTINATION "${BINARY_INST_DESTINATION}" RENAME shadered)
-install(DIRECTORY bin/data bin/templates bin/themes DESTINATION "${RESOURCE_INST_DESTINATION}")
+install(DIRECTORY bin/data bin/templates bin/themes bin/plugins DESTINATION "${RESOURCE_INST_DESTINATION}")
 
 if (UNIX AND NOT APPLE)
 	# install XDG desktop file and icon on Linux/BSD
