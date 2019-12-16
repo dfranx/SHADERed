@@ -18,11 +18,12 @@ static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
 
 namespace ed
 {
-	RenderEngine::RenderEngine(PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs) :
+	RenderEngine::RenderEngine(PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins) :
 		m_pipeline(pipeline),
 		m_objects(objects),
 		m_project(project),
 		m_msgs(msgs),
+		m_plugins(plugins),
 		m_lastSize(0, 0),
 		m_pickAwaiting(false),
 		m_rtColor(0),
@@ -96,6 +97,8 @@ namespace ed
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
 		bool clearedWindow = false;
+
+		m_plugins->BeginRender();
 
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
@@ -430,6 +433,8 @@ namespace ed
 				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
 			}
 		}
+
+		m_plugins->EndRender();
 
 		// update frame index
 		if (!m_paused) {

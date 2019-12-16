@@ -232,9 +232,13 @@ namespace ed
 					RenderEngine* rend = (RenderEngine*)renderer;
 					rend->Pause(state);
 				};
-				plugin->GetRenderTexture = [](void* renderer, unsigned int& out) {
+				plugin->GetWindowColorTexture = [](void* renderer) -> unsigned int {
 					RenderEngine* rend = (RenderEngine*)renderer;
-					out = rend->GetTexture();
+					return rend->GetTexture();
+				};
+				plugin->GetWindowDepthTexture = [](void* renderer) -> unsigned int {
+					RenderEngine* rend = (RenderEngine*)renderer;
+					return rend->GetDepthTexture();
 				};
 				plugin->GetLastRenderSize = [](void* renderer, int& w, int& h) {
 					RenderEngine* rend = (RenderEngine*)renderer;
@@ -384,6 +388,19 @@ namespace ed
 		for (int i = 0; i < m_plugins.size(); i++)
 			if (m_isActive[i])
 				m_plugins[i]->Update(delta);
+	}
+
+	void PluginManager::BeginRender()
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i])
+				m_plugins[i]->BeginRender();
+	}
+	void PluginManager::EndRender()
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			if (m_isActive[i])
+				m_plugins[i]->EndRender();
 	}
 
 	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin* plugin, const char* itemName)

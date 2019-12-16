@@ -19,6 +19,9 @@ namespace ed
 		void Destroy(); // destroy all the plugins
 		void Update(float delta);
 
+		void BeginRender();
+		void EndRender();
+
 		IPlugin* GetPlugin(const std::string& plugin);
 		std::string GetPluginName(IPlugin* plugin);
 		int GetPluginVersion(const std::string& plugin);

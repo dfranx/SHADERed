@@ -2,6 +2,7 @@
 #include "PipelineManager.h"
 #include "ProjectParser.h"
 #include "MessageStack.h"
+#include "PluginAPI/PluginManager.h"
 #include "../Engine/Timer.h"
 
 #include <unordered_map>
@@ -25,7 +26,7 @@ namespace ed
 	class RenderEngine
 	{
 	public:
-		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages);
+		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins);
 		~RenderEngine();
 
 		void Render(int width, int height);
@@ -40,6 +41,7 @@ namespace ed
 
 		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1,1); }
 		inline GLuint GetTexture() { return m_rtColor; }
+		inline GLuint GetDepthTexture() { return m_rtDepth; }
 		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
 
 		inline bool IsPaused() { return m_paused; }
@@ -83,6 +85,7 @@ namespace ed
 		ObjectManager* m_objects;
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
+		PluginManager* m_plugins;
 
 		// are compute shaders supported?
 		bool m_computeSupported;

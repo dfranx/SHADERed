@@ -29,7 +29,8 @@ namespace ed
 
 		typedef bool (*IsPausedFn)(void* renderer);
 		typedef void (*PauseFn)(void* renderer, bool state);
-		typedef void (*GetRenderTextureFn)(void* renderer, unsigned int& out);
+		typedef unsigned int (*GetWindowColorTextureFn)(void* renderer);
+		typedef unsigned int (*GetWindowDepthTextureFn)(void* renderer);
 		typedef void (*GetLastRenderSizeFn)(void* renderer, int& w, int& h);
 		typedef void (*RenderFn)(void* renderer, int w, int h);
 
@@ -71,6 +72,9 @@ namespace ed
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;
+
+		virtual void BeginRender() = 0;
+		virtual void EndRender() = 0;
 
 		virtual void CopyFilesOnSave(const char* dir) = 0;
 		virtual bool HasCustomMenu() = 0;
@@ -172,7 +176,8 @@ namespace ed
 		pluginfn::SaveAsProjectFn SaveAsProject;
 		pluginfn::IsPausedFn IsPaused;
 		pluginfn::PauseFn Pause;
-		pluginfn::GetRenderTextureFn GetRenderTexture;
+		pluginfn::GetWindowColorTextureFn GetWindowColorTexture;
+		pluginfn::GetWindowDepthTextureFn GetWindowDepthTexture;
 		pluginfn::GetLastRenderSizeFn GetLastRenderSize;
 		pluginfn::RenderFn Render;
 		pluginfn::ExistsPipelineItemFn ExistsPipelineItem;
