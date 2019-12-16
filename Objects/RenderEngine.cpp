@@ -430,6 +430,7 @@ namespace ed
 			}
 			else if (it->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
+
 				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
 			}
 		}
@@ -1118,7 +1119,8 @@ namespace ed
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
-				} else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+				} 
+				else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass *data = reinterpret_cast<ed::pipe::ComputePass *>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);
@@ -1181,7 +1183,8 @@ namespace ed
 					m_shaderSources[i].VS = 0;
 					m_shaderSources[i].PS = 0;
 					m_shaderSources[i].GS = 0;
-				} else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass *data = reinterpret_cast<ed::pipe::AudioPass *>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);
@@ -1202,6 +1205,13 @@ namespace ed
 					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
 						
 					data->Variables.UpdateUniformInfo(data->Stream.getShader());
+				}
+				else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData *data = reinterpret_cast<pipe::PluginItemData*>(items[i]->Data);
+
+					m_items.insert(m_items.begin() + i, items[i]);
+					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 				}
 			}
 		}
