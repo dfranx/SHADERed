@@ -2035,8 +2035,11 @@ namespace ed
 			((OptionsUI*)m_options)->ApplyTheme();
 		});
 
-		KeyboardShortcuts::Instance().SetCallback("Window.Exit", [=]() {
-			SDL_DestroyWindow(m_wnd);
+		KeyboardShortcuts::Instance().SetCallback("Window.Fullscreen", [=]() {
+			Uint32 wndFlags = SDL_GetWindowFlags(m_wnd);
+			bool isFullscreen = wndFlags & SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+			SDL_SetWindowFullscreen(m_wnd, (!isFullscreen) * SDL_WINDOW_FULLSCREEN_DESKTOP);
 		});
 	}
 	void GUIManager::m_loadTemplateList()

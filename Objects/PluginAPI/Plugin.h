@@ -61,7 +61,8 @@ namespace ed
 		typedef bool (*IsTextureFn)(void* objects, const char* name);
 		typedef unsigned int (*GetTextureFn)(void* objects, const char* name);
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
-
+		
+		typedef void (*BindDefaultStateFn)();
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -204,5 +205,6 @@ namespace ed
 		pluginfn::IsTextureFn IsTexture;
 		pluginfn::GetTextureFn GetTexture;
 		pluginfn::GetTextureSizeFn GetTextureSize;
+		pluginfn::BindDefaultStateFn BindDefaultState;
 	};
 }

@@ -271,6 +271,8 @@ int main(int argc, char* argv[])
 			engine.OnEvent(event);
 		}
 
+		if (!run) break;
+
 		float delta = timer.Restart();
 		engine.Update(delta);
 

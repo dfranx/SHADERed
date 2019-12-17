@@ -1,6 +1,7 @@
 #include "PluginManager.h"
 #include "../Logger.h"
 #include "../Settings.h"
+#include "../DefaultState.h"
 #include "../SystemVariableManager.h"
 #include "../../InterfaceManager.h"
 #include "../../GUIManager.h"
@@ -369,6 +370,9 @@ namespace ed
 					glm::ivec2 tsize = obj->GetTextureSize(name);
 					w = tsize.x;
 					h = tsize.y;
+				};
+				plugin->BindDefaultState = []() {
+					DefaultState::Bind();
 				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
