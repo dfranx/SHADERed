@@ -11,11 +11,12 @@
 namespace ed
 {
 	class InterfaceManager;
+	class GUIManager;
 
 	class PluginManager
 	{
 	public:
-		void Init(InterfaceManager* data); // load all the plugins here
+		void Init(InterfaceManager* data, GUIManager* ui); // load all the plugins here
 		void Destroy(); // destroy all the plugins
 		void Update(float delta);
 

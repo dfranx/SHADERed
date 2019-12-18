@@ -63,6 +63,7 @@ namespace ed
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
 		
 		typedef void (*BindDefaultStateFn)();
+		typedef void (*OpenInCodeEditorFn)(void* CodeEditorUI, void* item, const char* filename, int id);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -154,16 +155,34 @@ namespace ed
 		virtual bool HasSectionInOptions() = 0;
 		virtual void ShowOptions() = 0;
 
+		// code editor
+		virtual bool IsOpenedInCodeEditor(const char* filename) = 0;
+		virtual void SaveCodeEditorItem(const char* src, int srcLen, int sid, const char* itemType) = 0;
+		virtual void CloseCodeEditorItem(int sid, const char* itemType) = 0;
+		virtual int GetLanguageDefinitionKeywordCount(int sid, const char* type, const char* path) = 0;
+		virtual const char** GetLanguageDefinitionKeywords(int sid, const char* type, const char* path) = 0;
+		virtual int GetLanguageDefinitionTokenRegexCount(int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int sid, const char* type, const char* path) = 0;
+		virtual int GetLanguageDefinitionIdentifierCount(int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionIdentifier(int index, int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionIdentifierDesc(int index, int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionCommentStart(int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionCommentEnd(int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionLineComment(int sid, const char* type, const char* path) = 0;
+		virtual bool IsLanguageDefinitionCaseSensitive(int sid, const char* type, const char* path) = 0;
+		virtual bool GetLanguageDefinitionAutoIndent(int sid, const char* type, const char* path) = 0;
+		virtual const char* GetLanguageDefinitionName(int sid, const char* type, const char* path) = 0;
+
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
-		virtual void HandleRecompile() = 0;
+		virtual void HandleRecompile(const char* itemName) = 0;
 		virtual int GetShaderFilePathCount() = 0; // for file change checks
 		virtual const char* GetShaderFilePath(int index) = 0;
 		virtual bool HasShaderFilePathChanged() = 0;
 		virtual void UpdateShaderFilePath() = 0;
 
 		// some functions exported from SHADERed
-		void* Renderer, * Messages, * Project;
+		void* Renderer, * Messages, * Project, * CodeEditor;
 		pluginfn::AddMessageFn AddMessage;
 		pluginfn::CreateRenderTextureFn CreateRenderTexture;
 		pluginfn::CreateImageFn CreateImage;
@@ -211,5 +230,6 @@ namespace ed
 		pluginfn::GetTextureFn GetTexture;
 		pluginfn::GetTextureSizeFn GetTextureSize;
 		pluginfn::BindDefaultStateFn BindDefaultState;
+		pluginfn::OpenInCodeEditorFn OpenInCodeEditor;
 	};
 }

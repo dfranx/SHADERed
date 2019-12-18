@@ -644,7 +644,7 @@ namespace ed
 				else if (item->Type == PipelineItem::ItemType::PluginItem)
 				{
 					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
-					idata->Owner->HandleRecompile();
+					idata->Owner->HandleRecompile(name);
 				}
 			}
 		}

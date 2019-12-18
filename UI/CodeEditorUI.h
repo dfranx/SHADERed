@@ -53,6 +53,8 @@ namespace ed
 		void OpenGS(PipelineItem* item);
 		void OpenCS(PipelineItem* item);
 
+		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
+
 		inline bool HasFocus() { return m_selectedItem != -1; }
 
 		inline void SetTheme(const TextEditor::Palette& colors) {
@@ -149,6 +151,8 @@ namespace ed
 	private:
 		void m_open(PipelineItem* item, int shaderTypeID); // TODO: add pointer to the pipelineitem
 		void m_setupShortcuts();
+
+		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin* plugin, int sid, const char* itemType, const char* filePath);
 
 		void m_loadEditorShortcuts(TextEditor* editor);
 

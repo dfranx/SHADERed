@@ -5,7 +5,7 @@
 #include "../SystemVariableManager.h"
 #include "../../InterfaceManager.h"
 #include "../../GUIManager.h"
-#include "../../UI/PreviewUI.h"
+#include "../../UI/CodeEditorUI.h"
 
 #include <algorithm>
 #include <imgui/imgui.h>
@@ -28,7 +28,7 @@ namespace ed
 		for (const auto& plugin : m_plugins)
 			plugin->OnEvent((void*)&e);
 	}
-	void PluginManager::Init(InterfaceManager* data)
+	void PluginManager::Init(InterfaceManager* data, GUIManager* ui)
 	{
 		if (!ghc::filesystem::exists("./plugins/")) {
 			ed::Logger::Get().Log("Directory for plugins doesn't exist");
@@ -160,6 +160,7 @@ namespace ed
 				plugin->Renderer = (void*)&data->Renderer;
 				plugin->Messages = (void*)&data->Messages;
 				plugin->Project = (void*)&data->Parser;
+				plugin->CodeEditor = (void*)(ui->Get(ViewID::Code));
 
 				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
 					ObjectManager* objm = (ObjectManager*)objectManager;
@@ -373,6 +374,10 @@ namespace ed
 				};
 				plugin->BindDefaultState = []() {
 					DefaultState::Bind();
+				};
+				plugin->OpenInCodeEditor = [](void* codeed, void* item, const char* filename, int id) {
+					CodeEditorUI* editor = (CodeEditorUI*)codeed;
+					editor->OpenPluginCode((PipelineItem*)item, filename, id);
 				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...

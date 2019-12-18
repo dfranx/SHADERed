@@ -60,5 +60,32 @@ namespace ed
 			InputLayoutValue Value;
 			char Semantic[64];
 		};
+
+		enum class TextEditorPaletteIndex
+		{
+			Default,
+			Keyword,
+			Number,
+			String,
+			CharLiteral,
+			Punctuation,
+			Preprocessor,
+			Identifier,
+			KnownIdentifier,
+			PreprocIdentifier,
+			Comment,
+			MultiLineComment,
+			Background,
+			Cursor,
+			Selection,
+			ErrorMarker,
+			Breakpoint,
+			LineNumber,
+			CurrentLineFill,
+			CurrentLineFillInactive,
+			CurrentLineEdge,
+			ErrorMessage,
+			Max
+		};
 	}
 }

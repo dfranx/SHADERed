@@ -8,7 +8,7 @@ namespace ed
 		m_ui(&m_interface, wnd, gl),
 		m_interface(&m_ui)
 	{
-		m_interface.Plugins.Init(&m_interface); // load plugins (TODO: maybe move this to the splash screen)
+		m_interface.Plugins.Init(&m_interface, &m_ui); // load plugins (TODO: maybe move this to the splash screen)
 	}
 	void EditorEngine::Create()
 	{
