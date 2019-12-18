@@ -641,6 +641,11 @@ namespace ed
 					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
 				}
+				else if (item->Type == PipelineItem::ItemType::PluginItem)
+				{
+					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
+					idata->Owner->HandleRecompile();
+				}
 			}
 		}
 	}

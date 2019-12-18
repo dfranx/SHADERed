@@ -827,7 +827,8 @@ namespace ed
 						needsUpdate = true;
 						break;
 					}
-				} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+				}
+				else if (pass->Type == PipelineItem::ItemType::ComputePass) {
 					pipe::ComputePass *data = (pipe::ComputePass *)pass->Data;
 
 					bool found = false;
@@ -842,7 +843,8 @@ namespace ed
 						needsUpdate = true;
 						break;
 					}
-				} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (pass->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass *data = (pipe::AudioPass *)pass->Data;
 
 					bool found = false;
@@ -858,6 +860,14 @@ namespace ed
 						break;
 					}
 				}
+				else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
+
+					if (data->Owner->HasShaderFilePathChanged()) {
+						needsUpdate = true;
+						data->Owner->UpdateShaderFilePath();
+					}
+				}
 			}
 
 			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
@@ -871,7 +881,7 @@ namespace ed
 			}
 
 			// update our file collection if needed
-			if (nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
+			if (needsUpdate || nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
 		#if defined(__APPLE__)
 				// TODO: implementation for macos
 		#elif defined(__linux__) || defined(__unix__)
@@ -918,7 +928,8 @@ namespace ed
 							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
 							allPasses.push_back(pass->Name);
 						}
-					} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+					} 
+					else if (pass->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass *data = (pipe::ComputePass*)pass->Data;
 
 						std::string path(m_data->Parser.GetProjectPath(data->Path));
@@ -926,7 +937,8 @@ namespace ed
 						allFiles.push_back(path);
 						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
-					} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+					} 
+					else if (pass->Type == PipelineItem::ItemType::AudioPass) {
 						pipe::AudioPass *data = (pipe::AudioPass*)pass->Data;
 
 						std::string path(m_data->Parser.GetProjectPath(data->Path));
@@ -934,6 +946,20 @@ namespace ed
 						allFiles.push_back(path);
 						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
+					}
+					else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
+
+
+						int count = data->Owner->GetShaderFilePathCount();
+
+						for (int i = 0; i < count; i++) {
+							std::string path(m_data->Parser.GetProjectPath(data->Owner->GetShaderFilePath(i)));
+
+							allFiles.push_back(path);
+							paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
+							allPasses.push_back(pass->Name);
+						}
 					}
 				}
 

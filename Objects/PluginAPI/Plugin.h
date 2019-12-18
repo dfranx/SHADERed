@@ -156,6 +156,11 @@ namespace ed
 
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
+		virtual void HandleRecompile() = 0;
+		virtual int GetShaderFilePathCount() = 0; // for file change checks
+		virtual const char* GetShaderFilePath(int index) = 0;
+		virtual bool HasShaderFilePathChanged() = 0;
+		virtual void UpdateShaderFilePath() = 0;
 
 		// some functions exported from SHADERed
 		void* Renderer, * Messages, * Project;

@@ -1530,7 +1530,6 @@ namespace ed
 					strcpy(newData->Type, origData->Type);
 					newData->Items = origData->Items; // even tho this should be empty
 					newData->Owner = origData->Owner;
-					newData->PluginData = origData->PluginData;
 
 					newData->PluginData = origData->Owner->CopyPipelineItemData(origData->Type, origData->PluginData);
 
