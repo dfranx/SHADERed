@@ -89,6 +89,7 @@ namespace ed
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
 		m_savePreviewSupersample = 0;
+		m_iconFontLarge = nullptr;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -2048,12 +2049,14 @@ namespace ed
 
 		Logger::Get().Log("Loading template list");
 		
-		for (const auto & entry : ghc::filesystem::directory_iterator("templates")) {
-			std::string file = entry.path().filename().native();
-			m_templates.push_back(file);
-			
-			if (file == Settings::Instance().General.StartUpTemplate)
-				m_selectedTemplate = file;
+		if (ghc::filesystem::exists("./templates/")) {
+			for (const auto& entry : ghc::filesystem::directory_iterator("./templates/")) {
+				std::string file = entry.path().filename().native();
+				m_templates.push_back(file);
+
+				if (file == Settings::Instance().General.StartUpTemplate)
+					m_selectedTemplate = file;
+			}
 		}
 
 		if (m_selectedTemplate.size() == 0) {

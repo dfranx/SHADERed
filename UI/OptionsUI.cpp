@@ -148,9 +148,11 @@ namespace ed
 		m_themes.push_back("Dark");
 		m_themes.push_back("Light");
 
-		for (const auto & entry : ghc::filesystem::directory_iterator("./themes/")) {
-			std::string file = entry.path().filename().native();
-			m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
+		if (ghc::filesystem::exists("./themes/")) {
+			for (const auto& entry : ghc::filesystem::directory_iterator("./themes/")) {
+				std::string file = entry.path().filename().native();
+				m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
+			}
 		}
 	}
 

@@ -69,11 +69,6 @@ namespace ed
 
 		INIReader ini("data/settings.ini");
 
-		if (ini.ParseError() != 0) {
-			Logger::Get().Log("Failed to parse data/settings.ini", true);
-			return;
-		}
-
 		General.HLSLExtensions.clear();
 		General.VulkanGLSLExtensions.clear();
 

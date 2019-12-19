@@ -28,7 +28,7 @@ namespace ed
 			m_curState.FrameIndex = 0;
 			m_curState.IsPicked = false;
 			m_curState.WASD = glm::vec4(0,0,0,0);
-			m_curState.Viewport = glm::vec2(0,0);
+			m_curState.Viewport = glm::vec2(0,1);
 			m_curState.MousePosition = glm::vec2(0,0);
 			m_curState.DeltaTime = 0.0f;
 			m_curGeoTransform.clear();
