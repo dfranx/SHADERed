@@ -176,9 +176,9 @@ namespace ed
 
 					return pipe->AddPluginItem(parentName, name, type, data, (IPlugin*)owner);
 				};
-				plugin->AddMessage = [](void* messages, plugin::MessageType mtype, const char* group, const char* txt) {
+				plugin->AddMessage = [](void* messages, plugin::MessageType mtype, const char* group, const char* txt, int ln) {
 					MessageStack* msgs = (MessageStack*)messages;
-					msgs->Add((MessageStack::Type)mtype, group, txt);
+					msgs->Add((MessageStack::Type)mtype, group, txt, ln);
 				};
 				plugin->CreateRenderTexture = [](void* objects, const char* name) -> bool {
 					ObjectManager* objs = (ObjectManager*)objects;
@@ -365,6 +365,10 @@ namespace ed
 				plugin->GetTexture = [](void* objects, const char* name) -> unsigned int {
 					ObjectManager* obj = (ObjectManager*)objects;
 					return obj->GetTexture(name);
+				};
+				plugin->GetFlippedTexture = [](void* objects, const char* name) -> unsigned int {
+					ObjectManager* obj = (ObjectManager*)objects;
+					return obj->GetFlippedTexture(name);
 				};
 				plugin->GetTextureSize = [](void* objects, const char* name, int& w, int& h) {
 					ObjectManager* obj = (ObjectManager*)objects;

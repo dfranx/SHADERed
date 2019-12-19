@@ -188,7 +188,7 @@ namespace ed
 				if (!m_editorOpen[i]) {
 					if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-						shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i], shader->Type);
+						shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
 					}
 
 					m_items.erase(m_items.begin() + i);
@@ -458,22 +458,14 @@ namespace ed
 			}
 
 			// check if already opened
-			for (int i = 0; i < m_items.size(); i++)
+			for (int i = 0; i < m_paths.size(); i++)
 			{
-				if (m_shaderTypeId[i] == sid && m_items[i]->Type == PipelineItem::ItemType::PluginItem)
+				if (m_paths[i] == filepath)
 				{
-					pipe::PluginItemData* sData = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-					bool match = false;
-					if (sData->Owner == shader->Owner && shader->Owner->IsOpenedInCodeEditor(filepath))
-						match = true;
-
-					if (match)
-					{
-						m_focusWindow = true;
-						m_focusSID = sid;
-						m_focusItem = m_items[i]->Name;
-						return;
-					}
+					m_focusWindow = true;
+					m_focusSID = sid;
+					m_focusItem = m_items[i]->Name;
+					return;
 				}
 			}
 
@@ -531,7 +523,7 @@ namespace ed
 		for (int i = 0; i < m_editorOpen.size(); i++) {
 			if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-				shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i], shader->Type);
+				shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
 			}
 
 			m_items.erase(m_items.begin() + i);
@@ -549,7 +541,7 @@ namespace ed
 			if (m_items[i] == item) {
 				if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-					shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i], shader->Type);
+					shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
 				}
 
 				m_items.erase(m_items.begin() + i);
@@ -624,7 +616,7 @@ namespace ed
 			
 			std::string edsrc = m_editor[id].GetText();
 
-			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), m_shaderTypeId[id], shader->Type);
+			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), m_shaderTypeId[id]);
 		}
 	}
 	void CodeEditorUI::m_compile(int id)
@@ -1278,35 +1270,35 @@ namespace ed
 
 		TextEditor::LanguageDefinition langDef;
 
-		int keywordCount = plugin->GetLanguageDefinitionKeywordCount(sid, itemType, filePath);
-		const char** keywords = plugin->GetLanguageDefinitionKeywords(sid, itemType, filePath);
+		int keywordCount = plugin->GetLanguageDefinitionKeywordCount(sid);
+		const char** keywords = plugin->GetLanguageDefinitionKeywords(sid);
 
 		for (int i = 0; i < keywordCount; i++)
 			langDef.mKeywords.insert(keywords[i]);
 
-		int identifierCount = plugin->GetLanguageDefinitionIdentifierCount(sid, itemType, filePath);
+		int identifierCount = plugin->GetLanguageDefinitionIdentifierCount(sid);
 		for (int i = 0; i < identifierCount; i++) {
-			const char* ident = plugin->GetLanguageDefinitionIdentifier(i, sid, itemType, filePath);
-			const char* identDesc = plugin->GetLanguageDefinitionIdentifierDesc(i, sid, itemType, filePath);
+			const char* ident = plugin->GetLanguageDefinitionIdentifier(i, sid);
+			const char* identDesc = plugin->GetLanguageDefinitionIdentifierDesc(i, sid);
 			langDef.mIdentifiers.insert(std::make_pair(ident, desc(identDesc)));
 		}
 		// m_GLSLDocumentation(langDef.mIdentifiers);
 
-		int tokenRegexs = plugin->GetLanguageDefinitionTokenRegexCount(sid, itemType, filePath);
+		int tokenRegexs = plugin->GetLanguageDefinitionTokenRegexCount(sid);
 		for (int i = 0; i < tokenRegexs; i++) {
 			plugin::TextEditorPaletteIndex palIndex;
-			const char* regStr = plugin->GetLanguageDefinitionTokenRegex(i, palIndex, sid, itemType, filePath);
+			const char* regStr = plugin->GetLanguageDefinitionTokenRegex(i, palIndex, sid);
 			langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, TextEditor::PaletteIndex>(regStr, (TextEditor::PaletteIndex)palIndex));
 		}
 
-		langDef.mCommentStart = plugin->GetLanguageDefinitionCommentStart(sid, itemType, filePath);
-		langDef.mCommentEnd = plugin->GetLanguageDefinitionCommentEnd(sid, itemType, filePath);
-		langDef.mSingleLineComment = plugin->GetLanguageDefinitionLineComment(sid, itemType, filePath);
+		langDef.mCommentStart = plugin->GetLanguageDefinitionCommentStart(sid);
+		langDef.mCommentEnd = plugin->GetLanguageDefinitionCommentEnd(sid);
+		langDef.mSingleLineComment = plugin->GetLanguageDefinitionLineComment(sid);
 
-		langDef.mCaseSensitive = plugin->IsLanguageDefinitionCaseSensitive(sid, itemType, filePath);
-		langDef.mAutoIndentation = plugin->GetLanguageDefinitionAutoIndent(sid, itemType, filePath);
+		langDef.mCaseSensitive = plugin->IsLanguageDefinitionCaseSensitive(sid);
+		langDef.mAutoIndentation = plugin->GetLanguageDefinitionAutoIndent(sid);
 
-		langDef.mName = plugin->GetLanguageDefinitionName(sid, itemType, filePath);
+		langDef.mName = plugin->GetLanguageDefinitionName(sid);
 
 		return langDef;
 	}

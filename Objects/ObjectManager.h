@@ -78,6 +78,7 @@ namespace ed
 		ObjectManagerItem() {
 			ImageSize = glm::ivec2(0, 0);
 			Texture = 0;
+			FlippedTexture = 0;
 			IsCube = false;
 			IsTexture = false;
 			CubemapPaths.clear();
@@ -123,11 +124,13 @@ namespace ed
 
 			if (Texture != 0)
 				glDeleteTextures(1, &Texture);
+			if (FlippedTexture != 0)
+				glDeleteTextures(1, &FlippedTexture);
 			CubemapPaths.clear();
 		}
 
 		glm::ivec2 ImageSize;
-		GLuint Texture;
+		GLuint Texture, FlippedTexture;
 		bool IsCube;
 		bool IsTexture;
 		std::vector<std::string> CubemapPaths;
@@ -186,6 +189,7 @@ namespace ed
 
 		const std::vector<std::string>& GetObjects() { return m_items; }
 		GLuint GetTexture(const std::string& file);
+		GLuint GetFlippedTexture(const std::string& file);
 		glm::ivec2 GetTextureSize(const std::string& file);
 		sf::SoundBuffer* GetSoundBuffer(const std::string& file);
 		sf::Sound* GetAudioPlayer(const std::string& file);

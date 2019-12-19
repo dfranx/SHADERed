@@ -8,7 +8,7 @@ namespace ed
 		typedef void (*AddObjectFn)(void* objects, const char* name, const char* type, void* data, unsigned int id, void* owner);
 		typedef bool (*AddCustomPipelineItemFn)(void* pipeline, void* parent, const char* name, const char* type, void* data, void* owner);
 
-		typedef void (*AddMessageFn)(void* messages, plugin::MessageType mtype, const char* group, const char* txt);
+		typedef void (*AddMessageFn)(void* messages, plugin::MessageType mtype, const char* group, const char* txt, int ln);
 
 		typedef bool (*CreateRenderTextureFn)(void* objects, const char* name);
 		typedef bool (*CreateImageFn)(void* objects, const char* name, int width, int height);
@@ -60,6 +60,7 @@ namespace ed
 		typedef const char* (*GetObjectNameFn)(void* objects, int index);
 		typedef bool (*IsTextureFn)(void* objects, const char* name);
 		typedef unsigned int (*GetTextureFn)(void* objects, const char* name);
+		typedef unsigned int (*GetFlippedTextureFn)(void* objects, const char* name);
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
 		
 		typedef void (*BindDefaultStateFn)();
@@ -156,22 +157,21 @@ namespace ed
 		virtual void ShowOptions() = 0;
 
 		// code editor
-		virtual bool IsOpenedInCodeEditor(const char* filename) = 0;
-		virtual void SaveCodeEditorItem(const char* src, int srcLen, int sid, const char* itemType) = 0;
-		virtual void CloseCodeEditorItem(int sid, const char* itemType) = 0;
-		virtual int GetLanguageDefinitionKeywordCount(int sid, const char* type, const char* path) = 0;
-		virtual const char** GetLanguageDefinitionKeywords(int sid, const char* type, const char* path) = 0;
-		virtual int GetLanguageDefinitionTokenRegexCount(int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int sid, const char* type, const char* path) = 0;
-		virtual int GetLanguageDefinitionIdentifierCount(int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionIdentifier(int index, int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionIdentifierDesc(int index, int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionCommentStart(int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionCommentEnd(int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionLineComment(int sid, const char* type, const char* path) = 0;
-		virtual bool IsLanguageDefinitionCaseSensitive(int sid, const char* type, const char* path) = 0;
-		virtual bool GetLanguageDefinitionAutoIndent(int sid, const char* type, const char* path) = 0;
-		virtual const char* GetLanguageDefinitionName(int sid, const char* type, const char* path) = 0;
+		virtual void SaveCodeEditorItem(const char* src, int srcLen, int id) = 0;
+		virtual void CloseCodeEditorItem(int id) = 0;
+		virtual int GetLanguageDefinitionKeywordCount(int id) = 0;
+		virtual const char** GetLanguageDefinitionKeywords(int id) = 0;
+		virtual int GetLanguageDefinitionTokenRegexCount(int id) = 0;
+		virtual const char* GetLanguageDefinitionTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int id) = 0;
+		virtual int GetLanguageDefinitionIdentifierCount(int id) = 0;
+		virtual const char* GetLanguageDefinitionIdentifier(int index, int id) = 0;
+		virtual const char* GetLanguageDefinitionIdentifierDesc(int index, int id) = 0;
+		virtual const char* GetLanguageDefinitionCommentStart(int id) = 0;
+		virtual const char* GetLanguageDefinitionCommentEnd(int id) = 0;
+		virtual const char* GetLanguageDefinitionLineComment(int id) = 0;
+		virtual bool IsLanguageDefinitionCaseSensitive(int id) = 0;
+		virtual bool GetLanguageDefinitionAutoIndent(int id) = 0;
+		virtual const char* GetLanguageDefinitionName(int id) = 0;
 
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
@@ -229,6 +229,7 @@ namespace ed
 		pluginfn::GetObjectNameFn GetObjectName;
 		pluginfn::IsTextureFn IsTexture;
 		pluginfn::GetTextureFn GetTexture;
+		pluginfn::GetFlippedTextureFn GetFlippedTexture;
 		pluginfn::GetTextureSizeFn GetTextureSize;
 		pluginfn::BindDefaultStateFn BindDefaultState;
 		pluginfn::OpenInCodeEditorFn OpenInCodeEditor;

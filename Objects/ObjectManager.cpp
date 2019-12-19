@@ -182,6 +182,7 @@ namespace ed
 			}
 		}
 
+		// normal texture
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -189,8 +190,39 @@ namespace ed
 		glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+
+
+		// flipped texture
+		unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
+
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				if (nrChannels == 4) { // use data
+					flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
+					flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
+					flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
+					flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
+				} else { // use paddedData
+					flippedData[(y * width + x) * 4 + 0] = paddedData[((height - y - 1) * width + x) * 4 + 0];
+					flippedData[(y * width + x) * 4 + 1] = paddedData[((height - y - 1) * width + x) * 4 + 1];
+					flippedData[(y * width + x) * 4 + 2] = paddedData[((height - y - 1) * width + x) * 4 + 2];
+					flippedData[(y * width + x) * 4 + 3] = paddedData[((height - y - 1) * width + x) * 4 + 3];
+				}
+			}
+		}
+
+		glGenTextures(1, &item->FlippedTexture);
+		glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+
+
 		item->ImageSize = glm::ivec2(width, height);
 
+		free(flippedData);
 		if (paddedData != nullptr)
 			free(paddedData);
 
@@ -774,6 +806,13 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == file)
 				return m_itemData[i]->Texture;
+		return 0;
+	}
+	GLuint ObjectManager::GetFlippedTexture(const std::string& file)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == file)
+				return m_itemData[i]->FlippedTexture;
 		return 0;
 	}
 	glm::ivec2 ObjectManager::GetTextureSize(const std::string& file)
