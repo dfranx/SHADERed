@@ -125,27 +125,9 @@ namespace ed
 						// status bar
 						if (statusbar) {
 							auto cursor = m_editor[i].GetCursorPosition();
-							char* path = "\0";
-
-							if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
-								ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i]->Data);
-								path = shader->VSPath;
-								if (m_shaderTypeId[i] == 1)
-									path = shader->PSPath;
-								else if (m_shaderTypeId[i] == 2)
-									path = shader->GSPath;
-							} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
-								ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i]->Data);
-								path = shader->Path;
-							}
-							else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
-								ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[i]->Data);
-								path = shader->Path;
-							}
-							else path = ""; // TODO: paths for plugin shaders
 
 							ImGui::Separator();
-							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i].GetLanguageDefinition().mName.c_str(), path);
+							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i].GetLanguageDefinition().mName.c_str(), m_paths[i].c_str());
 						}
 					}
 
@@ -213,6 +195,7 @@ namespace ed
 					m_editor.erase(m_editor.begin() + i);
 					m_editorOpen.erase(m_editorOpen.begin() + i);
 					m_stats.erase(m_stats.begin() + i);
+					m_paths.erase(m_paths.begin() + i);
 					m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 					i--;
 				}
@@ -299,12 +282,18 @@ namespace ed
 			m_shaderTypeId.push_back(sid);
 
 			std::string shaderContent = "";
-			if (sid == 0)
+			if (sid == 0) {
 				shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
-			else if (sid == 1)
+				m_paths.push_back(shader->VSPath);
+			}
+			else if (sid == 1) {
 				shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
-			else if (sid == 2)
+				m_paths.push_back(shader->PSPath);
+			}
+			else if (sid == 2) {
 				shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
+				m_paths.push_back(shader->GSPath);
+			}
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
@@ -350,6 +339,7 @@ namespace ed
 			m_editor.push_back(TextEditor());
 			m_editorOpen.push_back(true);
 			m_stats.push_back(StatsPage(m_data));
+			m_paths.push_back(shader->Path);
 
 			TextEditor *editor = &m_editor[m_editor.size() - 1];
 
@@ -419,6 +409,7 @@ namespace ed
 			m_editor.push_back(TextEditor());
 			m_editorOpen.push_back(true);
 			m_stats.push_back(StatsPage(m_data));
+			m_paths.push_back(shader->Path);
 
 			TextEditor *editor = &m_editor[m_editor.size() - 1];
 
@@ -491,6 +482,7 @@ namespace ed
 			m_editor.push_back(TextEditor());
 			m_editorOpen.push_back(true);
 			m_stats.push_back(StatsPage(m_data));
+			m_paths.push_back(filepath);
 
 			TextEditor* editor = &m_editor[m_editor.size() - 1];
 
@@ -546,6 +538,7 @@ namespace ed
 			m_editor.erase(m_editor.begin() + i);
 			m_editorOpen.erase(m_editorOpen.begin() + i);
 			m_stats.erase(m_stats.begin() + i);
+			m_paths.erase(m_paths.begin() + i);
 			m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 			i--;
 		}
@@ -563,6 +556,7 @@ namespace ed
 				m_editor.erase(m_editor.begin() + i);
 				m_editorOpen.erase(m_editorOpen.begin() + i);
 				m_stats.erase(m_stats.begin() + i);
+				m_paths.erase(m_paths.begin() + i);
 				m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
 				i--;
 			}
@@ -679,6 +673,8 @@ namespace ed
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.CS);
 				else if (it.second.APass != nullptr)
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.AS);
+				else if (it.second.PluginData != nullptr)
+					it.second.PluginData->Owner->HandleRecompileFromSource(it.first.c_str(), it.second.PluginID, it.second.PluginCode.c_str(), it.second.PluginCode.size());
 			}
 			if (m_autoRecompileCachedMsgs.size() > 0)
 				m_data->Messages.Add(m_autoRecompileCachedMsgs);
@@ -739,6 +735,7 @@ namespace ed
 					inf->SPass = pass;
 					inf->CPass = nullptr;
 					inf->APass = nullptr;
+					inf->PluginData = nullptr;
 					
 					if (m_shaderTypeId[i] == 0) {
 						inf->VS = m_editor[i].GetText();
@@ -750,23 +747,38 @@ namespace ed
 						inf->GS = m_editor[i].GetText();
 						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
-				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
-					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i]->Name];
-					pipe::ComputePass *pass = (pipe::ComputePass *)m_items[i]->Data;
+				}
+				else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
+					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
+					pipe::ComputePass* pass = (pipe::ComputePass*)m_items[i]->Data;
 					inf->CPass = pass;
 					inf->SPass = nullptr;
 					inf->APass = nullptr;
-					
+					inf->PluginData = nullptr;
+
 					inf->CS = m_editor[i].GetText();
 					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
-				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+				}
+				else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i]->Name];
 					pipe::AudioPass *pass = (pipe::AudioPass *)m_items[i]->Data;
 					inf->APass = pass;
 					inf->SPass = nullptr;
 					inf->CPass = nullptr;
+					inf->PluginData = nullptr;
 					
 					inf->AS = m_editor[i].GetText();
+				}
+				else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
+					pipe::PluginItemData* pass = (pipe::PluginItemData*)m_items[i]->Data;
+					inf->APass = nullptr;
+					inf->SPass = nullptr;
+					inf->CPass = nullptr;
+					inf->PluginData = pass;
+
+					inf->PluginCode = m_editor[i].GetText();
+					inf->PluginID = m_shaderTypeId[i];
 				}
 			}
 

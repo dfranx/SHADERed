@@ -176,6 +176,7 @@ namespace ed
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
 		virtual void HandleRecompile(const char* itemName) = 0;
+		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
 		virtual int GetShaderFilePathCount() = 0; // for file change checks
 		virtual const char* GetShaderFilePath(int index) = 0;
 		virtual bool HasShaderFilePathChanged() = 0;

@@ -168,6 +168,7 @@ namespace ed
 		std::vector<PipelineItem*> m_items;
 		std::vector<TextEditor> m_editor;
 		std::vector<StatsPage> m_stats;
+		std::vector<std::string> m_paths;
 		std::vector<int> m_shaderTypeId;
 		std::deque<bool> m_editorOpen;
 
@@ -208,6 +209,10 @@ namespace ed
 
 			std::string AS;
 			pipe::AudioPass* APass;
+
+			std::string PluginCode;
+			int PluginID;
+			pipe::PluginItemData* PluginData;
 		};
 		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
 
