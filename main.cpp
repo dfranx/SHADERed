@@ -110,6 +110,10 @@ int main(int argc, char* argv[])
 	}
 #endif
 
+	// create data directory on startup
+	if (!ghc::filesystem::exists("./data/"))
+		ghc::filesystem::create_directory("./data/");
+
 	// delete log.txt on startup
 	if (ghc::filesystem::exists("./log.txt")) {
 		std::error_code errCode;
