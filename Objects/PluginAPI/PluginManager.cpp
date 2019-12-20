@@ -219,10 +219,9 @@ namespace ed
 					std::string path = proj->GetOpenedFile();
 					strcpy(out, path.c_str());
 				};
-				plugin->GetProjectDirectory = [](void* project, char* out) {
+				plugin->GetProjectDirectory = [](void* project) -> const char* {
 					ProjectParser* proj = (ProjectParser*)project;
-					std::string path = proj->GetProjectDirectory();
-					strcpy(out, path.c_str());
+					return proj->GetProjectDirectory().c_str();
 				};
 				plugin->IsProjectModified = [](void* project) -> bool {
 					ProjectParser* proj = (ProjectParser*)project;

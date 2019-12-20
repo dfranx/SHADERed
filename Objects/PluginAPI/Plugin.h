@@ -20,7 +20,7 @@ namespace ed
 		typedef void (*GetProjectPathFn)(void* project, const char* filename, char* out);
 		typedef void (*GetRelativePathFn)(void* project, const char* filename, char* out);
 		typedef void (*GetProjectFilenameFn)(void* project, char* out);
-		typedef void (*GetProjectDirectoryFn)(void* project, char* out);
+		typedef const char* (*GetProjectDirectoryFn)(void* project);
 		typedef bool (*IsProjectModifiedFn)(void* project);
 		typedef void (*ModifyProjectFn)(void* project);
 		typedef void (*OpenProjectFn)(void* project, const char* filename);
@@ -79,6 +79,10 @@ namespace ed
 		virtual void BeginRender() = 0;
 		virtual void EndRender() = 0;
 
+		virtual void BeginProjectLoading() = 0;
+		virtual void EndProjectLoading() = 0;
+		virtual void BeginProjectSaving() = 0;
+		virtual void EndProjectSaving() = 0;
 		virtual void CopyFilesOnSave(const char* dir) = 0;
 		virtual bool HasCustomMenu() = 0;
 

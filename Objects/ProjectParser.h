@@ -51,10 +51,10 @@ namespace ed
 
 		void ResetProjectDirectory();
 		inline void SetProjectDirectory(const std::string& path) { m_projectPath = path; }
-		inline std::string GetProjectDirectory() { return m_projectPath; }
+		inline const std::string& GetProjectDirectory() { return m_projectPath; }
 
-		inline std::string GetOpenedFile() { return m_file; }
-		inline std::string GetTemplate() { return m_template; }
+		inline const std::string& GetOpenedFile() { return m_file; }
+		inline const std::string& GetTemplate() { return m_template; }
 
 		inline void ModifyProject() { m_modified = true; }
 		inline bool IsProjectModified() { return m_modified; }

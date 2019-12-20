@@ -81,6 +81,8 @@ namespace ed
 			std::string pname = pluginNode.attribute("name").as_string();
 			int pver = pluginNode.attribute("ver").as_int();
 
+			m_pluginList.push_back(pname);
+
 			IPlugin* plugin = m_plugins->GetPlugin(pname);
 			if (plugin == nullptr) {
 				pluginTest = false;
@@ -199,6 +201,10 @@ namespace ed
 		if (!projectNode.attribute("version").empty())
 			projectVersion = projectNode.attribute("version").as_int();
 
+		// notify plugins that we've finished with loading
+		for (const auto& pname : m_pluginList)
+			m_plugins->GetPlugin(pname)->BeginProjectLoading();
+
 		switch (projectVersion) {
 			case 1: m_parseV1(projectNode); break;
 			case 2: m_parseV2(projectNode); break;
@@ -211,6 +217,10 @@ namespace ed
 
 		// reset time, frame index, etc...
 		SystemVariableManager::Instance().Reset();
+
+		// notify plugins that we've finished with loading
+		for (const auto& pname : m_pluginList)
+			m_plugins->GetPlugin(pname)->EndProjectLoading();
 			
 		Logger::Get().Log("Finished with parsing a project file");
 	}
@@ -292,10 +302,11 @@ namespace ed
 				else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 					m_addPlugin(m_plugins->GetPluginName(pdata->Owner));
-
-					pdata->Owner->CopyFilesOnSave(m_projectPath.c_str());
 				}
 			}
+
+			for (const auto& pname : m_pluginList)
+				m_plugins->GetPlugin(pname)->CopyFilesOnSave(m_projectPath.c_str());
 		}
 
 		pugi::xml_document doc;
@@ -606,7 +617,9 @@ namespace ed
 					textureNode.append_attribute("objecttype").set_value(pluginObj->Type);
 
 					const char* pObjectSrc = pluginObj->Owner->ExportObject(pluginObj->Type, pluginObj->Data, pluginObj->ID);
-					textureNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
+
+					if (pObjectSrc != nullptr)
+						textureNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
 				}
 
 				if (isBuffer) {
@@ -1208,7 +1221,9 @@ namespace ed
 
 				pugi::xml_node dataNode = itemNode.append_child("data");
 				const char* pObjectSrc = plData->Owner->ExportPipelineItem(plData->Type, plData->PluginData);
-				dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
+
+				if (pObjectSrc != nullptr)
+					dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
 			}
 		}
 
