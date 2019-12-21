@@ -48,7 +48,7 @@ namespace ed
 		ed::VariableValueEditUI m_valueEdit;
 
 		// various small components
-		void m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index);
+		void m_renderItemUpDown(pipe::PluginItemData* owner, std::vector<ed::PipelineItem*>& items, int index);
 		bool m_renderItemContext(std::vector<ed::PipelineItem*>& items, int index);
 		void m_renderVariableManagerUI();
 		void m_renderInputLayoutManagerUI();

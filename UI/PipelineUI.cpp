@@ -38,7 +38,7 @@ namespace ed
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
 		for (int i = 0; i < items.size(); i++) {
-			m_renderItemUpDown(items, i);
+			m_renderItemUpDown(items[i]->Type == PipelineItem::ItemType::PluginItem ? (pipe::PluginItemData*)items[i]->Data : nullptr, items, i);
 
 			if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 				
@@ -60,7 +60,7 @@ namespace ed
 
 				if (showItems) {
 					for (int j = 0; j < data->Items.size(); j++) {
-						m_renderItemUpDown(data->Items, j);
+						m_renderItemUpDown(nullptr, data->Items, j);
 						
 						if (!isShaderPassActive)
 							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
@@ -98,7 +98,7 @@ namespace ed
 
 				pipe::PluginItemData* pdata = (pipe::PluginItemData*)items[i]->Data;
 				for (int j = 0; j < pdata->Items.size(); j++) {
-					m_renderItemUpDown(pdata->Items, j);
+					m_renderItemUpDown(pdata, pdata->Items, j);
 					m_addItem(pdata->Items[j]);
 					if (m_renderItemContext(pdata->Items, j)) {
 						j--;
@@ -239,7 +239,7 @@ namespace ed
 		}
 	}
 	
-	void PipelineUI::m_renderItemUpDown(std::vector<ed::PipelineItem*>& items, int index)
+	void PipelineUI::m_renderItemUpDown(pipe::PluginItemData* owner, std::vector<ed::PipelineItem*>& items, int index)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
@@ -249,6 +249,9 @@ namespace ed
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
+
+				if (owner != nullptr)
+					owner->Owner->MovePipelineItemUp(owner->PluginData, owner->Type, items[index]->Name);
 
 				ed::PipelineItem* temp = items[index - 1];
 				items[index - 1] = items[index];
@@ -270,6 +273,9 @@ namespace ed
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
 					oldPropertyItemName = props->CurrentItemName();
+
+				if (owner != nullptr)
+					owner->Owner->MovePipelineItemDown(owner->PluginData, owner->Type, items[index]->Name);
 
 				ed::PipelineItem* temp = items[index + 1];
 				items[index + 1] = items[index];
@@ -417,7 +423,7 @@ namespace ed
 			}
 
 			if (hasPluginContext) {
-				ImGui::Separator();
+				if (hasPluginAddMenu) ImGui::Separator();
 				pldata->Owner->ShowPipelineItemContext(pldata->Type, pldata->PluginData);
 				ImGui::Separator();
 			}

@@ -155,6 +155,8 @@ namespace ed
 		virtual void ShowPipelineItemContext(const char* type, void* data) = 0;
 		virtual const char* ExportPipelineItem(const char* type, void* data) = 0;
 		virtual void* ImportPipelineItem(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
+		virtual void MovePipelineItemDown(void* ownerData, const char* ownerType, const char* itemName) = 0;
+		virtual void MovePipelineItemUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
 
 		// options
 		virtual bool HasSectionInOptions() = 0;
