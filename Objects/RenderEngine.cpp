@@ -1354,7 +1354,7 @@ namespace ed
 
 				src.erase(incLoc, src.find_first_of('\n', incLoc) - incLoc);
 
-				if (std::count(includeStack.begin(), includeStack.end(), ipath) == 0)
+				if (std::count(includeStack.begin(), includeStack.end(), ipath) > 0)
 					m_msgs->Add(ed::MessageStack::Type::Error, m_msgs->CurrentItem, "Recursive #include detected");
 
 				if (m_project->FileExists(ipath) && std::count(includeStack.begin(), includeStack.end(), ipath) == 0) {

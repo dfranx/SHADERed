@@ -36,6 +36,8 @@ namespace ed
 
 		typedef bool (*ExistsPipelineItemFn)(void* pipeline, const char* name);
 		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
+		typedef int (*GetPipelineItemCountFn)(void* pipeline);
+		typedef plugin::PipelineItemType(*GetPipelineItemTypeFn)(void* pipeline, int index);
 
 		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
 		typedef void (*GetViewMatrixFn)(float* out);
@@ -62,7 +64,7 @@ namespace ed
 		typedef unsigned int (*GetTextureFn)(void* objects, const char* name);
 		typedef unsigned int (*GetFlippedTextureFn)(void* objects, const char* name);
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
-		
+
 		typedef void (*BindDefaultStateFn)();
 		typedef void (*OpenInCodeEditorFn)(void* CodeEditorUI, void* item, const char* filename, int id);
 	}
@@ -178,6 +180,7 @@ namespace ed
 		virtual bool IsLanguageDefinitionCaseSensitive(int id) = 0;
 		virtual bool GetLanguageDefinitionAutoIndent(int id) = 0;
 		virtual const char* GetLanguageDefinitionName(int id) = 0;
+		virtual const char* GetLanguageAbbreviation(int id) = 0;
 
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
@@ -239,5 +242,7 @@ namespace ed
 		pluginfn::GetTextureSizeFn GetTextureSize;
 		pluginfn::BindDefaultStateFn BindDefaultState;
 		pluginfn::OpenInCodeEditorFn OpenInCodeEditor;
+		pluginfn::GetPipelineItemCountFn GetPipelineItemCount;
+		pluginfn::GetPipelineItemTypeFn GetPipelineItemType;
 	};
 }

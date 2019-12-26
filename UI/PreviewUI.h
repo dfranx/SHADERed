@@ -25,6 +25,7 @@ namespace ed
 			m_hasFocus = false;
 			m_startWrap = false;
 			m_mouseHovers = false;
+			m_lastButtonUpdate = false;
 		}
 		~PreviewUI() {
 			glDeleteBuffers(1, &m_boxVBO);
@@ -54,7 +55,8 @@ namespace ed
 		// mouse position
 		ImVec2 m_mouseContact;
 		bool m_startWrap;
-		glm::vec2 m_mousePos;
+		glm::vec2 m_mousePos, m_lastButton;
+		bool m_lastButtonUpdate;
 
 		ImVec2 m_imgSize;
 

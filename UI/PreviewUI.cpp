@@ -136,8 +136,10 @@ namespace ed
 		
 			if (!m_data->Renderer.IsPaused() &&
 			   (e.button.button == SDL_BUTTON_LEFT) &&
-				!isAltDown) {
-					SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, e.button.x, e.button.y);
+				!isAltDown)
+			{
+				m_lastButton = glm::vec2(e.button.x, e.button.y);
+				m_lastButtonUpdate = true;
 			}
 
 			if (isAltDown && m_mouseHovers) {
@@ -167,6 +169,13 @@ namespace ed
 			m_startWrap = false;
 			if (Settings::Instance().Preview.Gizmo)
 				m_gizmo.UnselectAxis();
+
+			if (!m_data->Renderer.IsPaused() &&
+				(e.button.button == SDL_BUTTON_LEFT))
+			{
+				glm::vec4 mbtn = SystemVariableManager::Instance().GetMouseButton();
+				SystemVariableManager::Instance().SetMouseButton(mbtn.x, mbtn.y, -std::max<float>(0.0f, mbtn.z), -std::max<float>(0.0f, mbtn.w));
+			}
 
 			m_zoom.EndMouseAction();
 		}
@@ -256,6 +265,7 @@ namespace ed
 		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
 			m_zoomLastSize.x = imageSize.x;
 			m_zoomLastSize.y = imageSize.y;
+			SystemVariableManager::Instance().SetViewportSize(imageSize.x, imageSize.y);
 
 			m_zoom.RebuildVBO(imageSize.x, imageSize.y);
 		}
@@ -321,8 +331,14 @@ namespace ed
 		}
 
 		m_mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
-				1 - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+				1.0f - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 		m_zoom.SetCurrentMousePosition(m_mousePos);
+
+		if (m_lastButtonUpdate) {
+				m_lastButton = glm::vec2((m_lastButton.x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
+					1.0f - (imageSize.y + (m_lastButton.y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+			m_lastButtonUpdate = false;
+		}
 
 		if (!paused) {
 			// update wasd key state
@@ -331,7 +347,10 @@ namespace ed
 			// update system variable mouse position value
 			if (ImGui::IsMouseDown(0)) {
 				glm::vec4 mbtnlast = SystemVariableManager::Instance().GetMouseButton();
-				SystemVariableManager::Instance().SetMouseButton(m_mousePos.x, m_mousePos.y, mbtnlast.z, mbtnlast.w);
+				SystemVariableManager::Instance().SetMouseButton(std::max<float>(0.0f, m_mousePos.x * imageSize.x), 
+																std::max<float>(0.0f, m_mousePos.y * imageSize.y),
+																std::max<float>(0.0f, m_lastButton.x * imageSize.x),
+																std::max<float>(0.0f, m_lastButton.y * imageSize.y));
 			}
 
 			SystemVariableManager::Instance().SetMousePosition(m_mousePos.x, m_mousePos.y);

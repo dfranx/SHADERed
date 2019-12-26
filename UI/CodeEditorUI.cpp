@@ -68,7 +68,7 @@ namespace ed
 				bool isPluginItem = m_items[i]->Type == PipelineItem::ItemType::PluginItem;
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)m_items[i]->Data;
 
-				std::string shaderType = isPluginItem ? "PL" : m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : (m_shaderTypeId[i] == 2 ? "GS" : "CS"));
+				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation(m_shaderTypeId[i]) : m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : (m_shaderTypeId[i] == 2 ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 				
 				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())

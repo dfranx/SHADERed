@@ -382,6 +382,14 @@ namespace ed
 					CodeEditorUI* editor = (CodeEditorUI*)codeed;
 					editor->OpenPluginCode((PipelineItem*)item, filename, id);
 				};
+				plugin->GetPipelineItemCount = [](void* pipeline) -> int {
+					PipelineManager* pipe = (PipelineManager*)pipeline;
+					return pipe->GetList().size();
+				};
+				plugin->GetPipelineItemType = [](void* pipeline, int index) -> plugin::PipelineItemType {
+					PipelineManager* pipe = (PipelineManager*)pipeline;
+					return (plugin::PipelineItemType)pipe->GetList()[index]->Type;
+				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
 				plugin->Init();

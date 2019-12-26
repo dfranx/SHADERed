@@ -7,6 +7,7 @@
  - move Screenshots directory into the Misc directory
 
 ## v1.3.*
+ - texture properties (filtering, vflip, etc...)
  - splash screen (for loading plugins, etc...)
  - try to compile using emscripten
  - improve the overall code (enum for shader type, etc...)
