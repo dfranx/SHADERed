@@ -6,6 +6,12 @@
 #include "../../InterfaceManager.h"
 #include "../../GUIManager.h"
 #include "../../UI/CodeEditorUI.h"
+#include "../../UI/PreviewUI.h"
+#include "../../UI/PropertyUI.h"
+#include "../../UI/PinnedUI.h"
+#include "../../UI/PipelineUI.h"
+#include "../../UI/ObjectPreviewUI.h"
+#include "../../UI/UIHelper.h"
 
 #include <algorithm>
 #include <imgui/imgui.h>
@@ -161,6 +167,7 @@ namespace ed
 				plugin->Messages = (void*)&data->Messages;
 				plugin->Project = (void*)&data->Parser;
 				plugin->CodeEditor = (void*)(ui->Get(ViewID::Code));
+				plugin->UI = (void*)ui;
 
 				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
 					ObjectManager* objm = (ObjectManager*)objectManager;
@@ -231,8 +238,17 @@ namespace ed
 					ProjectParser* proj = (ProjectParser*)project;
 					proj->ModifyProject();
 				};
-				plugin->OpenProject = [](void* project, const char* filename) {
+				plugin->OpenProject = [](void* project, void* uiData, const char* filename) {
 					ProjectParser* proj = (ProjectParser*)project;
+					GUIManager* ui = (GUIManager*)uiData;
+
+					((CodeEditorUI*)ui->Get(ViewID::Code))->CloseAll();
+					((PinnedUI*)ui->Get(ViewID::Pinned))->CloseAll();
+					((PreviewUI*)ui->Get(ViewID::Preview))->Pick(nullptr);
+					((PropertyUI*)ui->Get(ViewID::Properties))->Open(nullptr);
+					((PipelineUI*)ui->Get(ViewID::Pipeline))->Reset();
+					((ObjectPreviewUI*)ui->Get(ViewID::ObjectPreview))->CloseAll();
+
 					proj->Open(filename);
 				};
 				plugin->SaveProject = [](void* project) {
@@ -389,6 +405,37 @@ namespace ed
 				plugin->GetPipelineItemType = [](void* pipeline, int index) -> plugin::PipelineItemType {
 					PipelineManager* pipe = (PipelineManager*)pipeline;
 					return (plugin::PipelineItemType)pipe->GetList()[index]->Type;
+				};
+				plugin->GetPipelineItemByIndex = [](void* pipeline, int index) -> void* {
+					PipelineManager* pipe = (PipelineManager*)pipeline;
+					return (void*)pipe->GetList()[index];
+				};
+				plugin->GetOpenDirectoryDialog = [](char* out) -> bool {
+					std::string outpath;
+					bool ret = UIHelper::GetOpenDirectoryDialog(outpath);
+
+					if (out != nullptr)
+						strcpy(out, outpath.c_str());
+
+					return ret;
+				};
+				plugin->GetOpenFileDialog = [](char* out, const char* files) -> bool {
+					std::string outpath;
+					bool ret = UIHelper::GetOpenFileDialog(outpath, files);
+
+					if (out != nullptr)
+						strcpy(out, outpath.c_str());
+
+					return ret;
+				};
+				plugin->GetSaveFileDialog = [](char* out, const char* files) -> bool {
+					std::string outpath;
+					bool ret = UIHelper::GetSaveFileDialog(outpath, files);
+
+					if (out != nullptr)
+						strcpy(out, outpath.c_str());
+
+					return ret;
 				};
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...

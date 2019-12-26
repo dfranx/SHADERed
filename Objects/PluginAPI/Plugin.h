@@ -23,7 +23,7 @@ namespace ed
 		typedef const char* (*GetProjectDirectoryFn)(void* project);
 		typedef bool (*IsProjectModifiedFn)(void* project);
 		typedef void (*ModifyProjectFn)(void* project);
-		typedef void (*OpenProjectFn)(void* project, const char* filename);
+		typedef void (*OpenProjectFn)(void* project, void* ui, const char* filename);
 		typedef void (*SaveProjectFn)(void* project);
 		typedef void (*SaveAsProjectFn)(void* project, const char* filename, bool copyFiles);
 
@@ -38,6 +38,7 @@ namespace ed
 		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
 		typedef int (*GetPipelineItemCountFn)(void* pipeline);
 		typedef plugin::PipelineItemType(*GetPipelineItemTypeFn)(void* pipeline, int index);
+		typedef void* (*GetPipelineItemByIndexFn)(void* pipeline, int index);
 
 		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
 		typedef void (*GetViewMatrixFn)(float* out);
@@ -67,6 +68,10 @@ namespace ed
 
 		typedef void (*BindDefaultStateFn)();
 		typedef void (*OpenInCodeEditorFn)(void* CodeEditorUI, void* item, const char* filename, int id);
+	
+		typedef bool (*GetOpenDirectoryDialogFn)(char* out);
+		typedef bool (*GetOpenFileDialogFn)(char* out, const char* files);
+		typedef bool (*GetSaveFileDialogFn)(char* out, const char* files);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -192,7 +197,7 @@ namespace ed
 		virtual void UpdateShaderFilePath() = 0;
 
 		// some functions exported from SHADERed
-		void* Renderer, * Messages, * Project, * CodeEditor;
+		void* Renderer, * Messages, * Project, * CodeEditor, * UI;
 		pluginfn::AddMessageFn AddMessage;
 		pluginfn::CreateRenderTextureFn CreateRenderTexture;
 		pluginfn::CreateImageFn CreateImage;
@@ -244,5 +249,9 @@ namespace ed
 		pluginfn::OpenInCodeEditorFn OpenInCodeEditor;
 		pluginfn::GetPipelineItemCountFn GetPipelineItemCount;
 		pluginfn::GetPipelineItemTypeFn GetPipelineItemType;
+		pluginfn::GetPipelineItemByIndexFn GetPipelineItemByIndex;
+		pluginfn::GetOpenDirectoryDialogFn GetOpenDirectoryDialog;
+		pluginfn::GetOpenFileDialogFn GetOpenFileDialog;
+		pluginfn::GetSaveFileDialogFn GetSaveFileDialog;
 	};
 }
