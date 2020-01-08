@@ -160,6 +160,14 @@ cmake -DUSE_FINDSFML=ON .
 make
 ```
 
+If you would like to perform an out-of-source build, do the following:
+```
+mkdir build
+cd build
+cmake .. # or, if SFML 2.5 is not installed, cmake -DUSE_FINDSFML=ON ..
+make
+```
+
 Run:
 ```
 ./bin/SHADERed
