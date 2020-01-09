@@ -47,6 +47,7 @@ namespace ed
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
 
+		Preview.PausedOnStartup = false;
 		Preview.SwitchLeftRightClick = false;
 		Preview.HideMenuInPerformanceMode = false;
 		Preview.BoundingBox = false;
@@ -110,6 +111,7 @@ namespace ed
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 
+		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
 		Preview.HideMenuInPerformanceMode = ini.GetBoolean("preview", "hidemenuperfmode", false);
 		Preview.BoundingBox = ini.GetBoolean("preview", "boundingbox", false);
@@ -181,6 +183,7 @@ namespace ed
 		ini << std::endl;
 
 		ini << "[preview]" << std::endl;
+		ini << "pausedonstartup=" << Preview.PausedOnStartup << std::endl;
 		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
 		ini << "hidemenuperfmode=" << Preview.HideMenuInPerformanceMode << std::endl;
 		ini << "boundingbox=" << Preview.BoundingBox << std::endl;

@@ -586,6 +586,11 @@ namespace ed
 	{
 		Settings* settings = &Settings::Instance();
 
+		/* PAUSE ON STARTUP: */
+		ImGui::Text("Pause preview on startup: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_pstartup", &settings->Preview.PausedOnStartup);
+
 		/* MSAA: */
 		ImGui::Text("MSAA: ");
 		ImGui::SameLine();

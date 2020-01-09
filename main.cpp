@@ -224,8 +224,6 @@ int main(int argc, char* argv[])
 			engine.UI().Open(argv[1]);
 		else if (ghc::filesystem::exists(argFile))
 			engine.UI().Open(argFile.c_str());
-
-		printf("%s %s\n", argv[1], argFile.c_str());
 	}
 
 	engine.UI().SetPerformanceMode(perfMode);

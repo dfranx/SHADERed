@@ -162,6 +162,7 @@ namespace ed
 			});
 		}
 
+		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
 	}
 	GUIManager::~GUIManager()
 	{
@@ -1812,6 +1813,8 @@ namespace ed
 	}
 	void GUIManager::Open(const std::string& file)
 	{
+		glm::ivec2 curSize = m_data->Renderer.GetLastRenderSize();
+
 		m_data->Renderer.FlushCache();
 
 		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
@@ -1827,6 +1830,10 @@ namespace ed
 		std::string projName = m_data->Parser.GetOpenedFile();
 		projName = projName.substr(projName.find_last_of("/\\") + 1);
 
+		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
+		if (m_data->Renderer.IsPaused())
+			m_data->Renderer.Render(curSize.x, curSize.y);
+		
 		SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
 	}
 

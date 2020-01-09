@@ -261,13 +261,16 @@ namespace ed
 
 		ImVec2 imageSize = m_imgSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
 		ed::RenderEngine* renderer = &m_data->Renderer;
-
+		
 		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
 			m_zoomLastSize.x = imageSize.x;
 			m_zoomLastSize.y = imageSize.y;
 			SystemVariableManager::Instance().SetViewportSize(imageSize.x, imageSize.y);
 
 			m_zoom.RebuildVBO(imageSize.x, imageSize.y);
+
+			if (paused)
+				renderer->Render(imageSize.x, imageSize.y);
 		}
 
 		m_fpsUpdateTime += delta;
