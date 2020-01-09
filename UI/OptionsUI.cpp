@@ -420,7 +420,7 @@ namespace ed
 		}
 
 		/* STREAM LOGS: */
-		ImGui::Text("Streams logs to log.txt: ");
+		ImGui::Text("Stream logs to log.txt: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_streamlogs", &settings->General.StreamLogs);
 
