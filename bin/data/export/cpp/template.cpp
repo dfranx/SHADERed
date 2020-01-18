@@ -1,15 +1,23 @@
 #include <fstream>
+#include <chrono>
+#include <string>
+
+#include <SDL2/SDL.h>
 #include <GL/glew.h>
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
-#include <glm/glm.hpp>
 
-#ifdef SHADERED_USE_STB_IMAGE
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#endif
 
 [$$shaders$$]
 
@@ -20,12 +28,13 @@ GLuint CreateScreenQuadNDC(GLuint& vbo);
 GLuint CreateCube(GLuint& vbo, float sx, float sy, float sz);
 std::string LoadFile(const std::string& filename);
 GLuint CreateShader(const char* vsCode, const char* psCode);
+GLuint LoadTexture(const std::string& filename);
+
+const GLenum FBO_Buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
 
 int main()
 {
-#ifdef SHADERED_USE_STB_IMAGE
 	stbi_set_flip_vertically_on_load(1);
-#endif
 
 	// init sdl2
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
@@ -70,8 +79,12 @@ int main()
 		{
 			if (event.type == SDL_QUIT)
 				run = false;
+			else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+				sedWindowWidth = event.window.data1;
+                sedWindowHeight = event.window.data2;
 
-			[$$event$$]
+				[$$resize_event$$]
+			}
 		}
 
 		if (!run) break;
@@ -79,6 +92,7 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glViewport(0,0,sedWindowWidth,sedWindowHeight);
 
 		// RENDER
 		[$$render$$]
@@ -143,6 +157,7 @@ GLuint CreatePlane(GLuint& vbo, float sx, float sy)
 	glBufferData(GL_ARRAY_BUFFER, 6 * 18 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	GLuint vao = 0;
 	CreateVAO(vao, vbo);
 
 	return vao;
@@ -254,7 +269,7 @@ GLuint CreateCube(GLuint& vbo, float sx, float sy, float sz)
 }
 std::string LoadFile(const std::string& filename)
 {
-	std::ifstream file("file.txt");
+	std::ifstream file(filename);
 	std::string src((std::istreambuf_iterator<char>(file)),
 		std::istreambuf_iterator<char>());
 	file.close();
@@ -303,4 +318,53 @@ GLuint CreateShader(const char* vsCode, const char* psCode)
 	glDeleteShader(ps);
 
 	return retShader;
+}
+GLuint LoadTexture(const std::string& file)
+{
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(file.c_str(), &width, &height, &nrChannels, 0);
+	unsigned char* paddedData = nullptr;
+
+	if (data == nullptr)
+		return 0;
+
+	GLenum fmt = GL_RGB;
+	if (nrChannels == 4)
+		fmt = GL_RGBA;
+	else if (nrChannels == 1)
+		fmt = GL_LUMINANCE;
+
+	if (nrChannels != 4) {
+		paddedData = (unsigned char*)malloc(width * height * 4);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				if (nrChannels == 3) {
+					paddedData[(y * width + x) * 4 + 0] = data[(y * width + x) * 3 + 0];
+					paddedData[(y * width + x) * 4 + 1] = data[(y * width + x) * 3 + 1];
+					paddedData[(y * width + x) * 4 + 2] = data[(y * width + x) * 3 + 2];
+				} else if (nrChannels == 1) {
+					unsigned char val = data[(y * width + x) * 1 + 0];
+					paddedData[(y * width + x) * 4 + 0] = val;
+					paddedData[(y * width + x) * 4 + 1] = val;
+					paddedData[(y * width + x) * 4 + 2] = val;
+				}
+				paddedData[(y * width + x) * 4 + 3] = 255;
+			}
+		}
+	}
+
+	// normal texture
+	GLuint ret = 0;
+	glGenTextures(1, &ret);
+	glBindTexture(GL_TEXTURE_2D, ret);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	if (paddedData != nullptr)
+		free(paddedData);
+	stbi_image_free(data);
+
+	return ret;
 }

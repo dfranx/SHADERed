@@ -92,6 +92,16 @@ namespace ed
 		m_savePreviewSeqFPS = 30;
 		m_savePreviewSupersample = 0;
 		m_iconFontLarge = nullptr;
+		m_expcppBackend = 0;
+		m_expcppCmakeFiles = true;
+		m_expcppCmakeModules = true;
+		m_expcppImage = true;
+		m_expcppMemoryShaders = true;
+		m_expcppCopyImages = true;
+		memset(&m_expcppProjectName[0], 0, 64*sizeof(char));
+		strcpy(m_expcppProjectName, "ShaderProject");
+		m_expcppSavePath = "./export.cpp";
+		m_expcppError = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -940,6 +950,7 @@ namespace ed
 		// open export as c++ app
 		if (m_exportAsCPPOpened) {
 			ImGui::OpenPopup("Export as C++ project##main_export_as_cpp");
+			m_expcppError = false;
 			m_exportAsCPPOpened = false;
 		}
 
@@ -1597,12 +1608,64 @@ namespace ed
 		}
 
 		// Export as C++ app
-		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 250 * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 300 * Settings::Instance().DPIScale));
 		if (ImGui::BeginPopupModal("Export as C++ project##main_export_as_cpp")) {
+			// output file
+			ImGui::TextWrapped("Output file: %s", m_expcppSavePath.c_str());
+			ImGui::SameLine();
+			if (ImGui::Button("...##expcpp_savepath"))
+				UIHelper::GetSaveFileDialog(m_expcppSavePath, "cpp");
+
+			// store shaders in files
+			ImGui::Text("Store shaders in memory: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("##expcpp_memory_shaders", &m_expcppMemoryShaders);
+
+			// cmakelists
+			ImGui::Text("Generate CMakeLists.txt: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("##expcpp_cmakelists", &m_expcppCmakeFiles);
+
+			// cmake project name
+			ImGui::Text("CMake project name: ");
+			ImGui::SameLine();
+			ImGui::InputText("##expcpp_cmake_name", &m_expcppProjectName[0], 64);
+
+			// copy cmake modules
+			ImGui::Text("Copy CMake modules: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("##expcpp_cmakemodules", &m_expcppCmakeModules);
+
+			// copy stb_image
+			ImGui::Text("Copy stb_image.h: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("##expcpp_stb_image", &m_expcppImage);
+
+			// copy images
+			ImGui::Text("Copy images: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("##expcpp_copy_images", &m_expcppCopyImages);
+
+			// backend
+			ImGui::Text("Backend: ");
+			ImGui::SameLine();
+			ImGui::BeginGroup();
+				ImGui::RadioButton("OpenGL", &m_expcppBackend, 0); ImGui::SameLine();
+				
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::RadioButton("DirectX", &m_expcppBackend, 1);
+				ImGui::PopItemFlag();
+			ImGui::EndGroup();
+			
+			if (m_expcppError) ImGui::Text("An error occured. Possible cause: some files are missing.");
+
+			// export || cancel
 			if (ImGui::Button("Export")) {
-				ExportCPP::Export(m_data, "./export.cpp", false);
-				ImGui::CloseCurrentPopup();
+				m_expcppError = ExportCPP::Export(m_data, m_expcppSavePath, !m_expcppMemoryShaders, m_expcppCmakeFiles, m_expcppProjectName, m_expcppCmakeModules, m_expcppImage, m_expcppCopyImages);
+				if (!m_expcppError)
+					ImGui::CloseCurrentPopup();
 			}
+			ImGui::SameLine();
 			if (ImGui::Button("Cancel"))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();

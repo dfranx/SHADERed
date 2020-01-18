@@ -115,6 +115,16 @@ namespace ed
 		glm::vec4 m_savePreviewMouse;
 		std::string m_previewSavePath;
 		glm::ivec2 m_previewSaveSize;
+
+		bool m_expcppError;
+		int m_expcppBackend;
+		bool m_expcppCmakeFiles;
+		bool m_expcppCmakeModules;
+		bool m_expcppImage;
+		bool m_expcppMemoryShaders;
+		bool m_expcppCopyImages;
+		char m_expcppProjectName[64];
+		std::string m_expcppSavePath;
 		
 		bool m_savePreviewSeq;
 		float m_savePreviewSeqDuration;

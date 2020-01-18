@@ -1,6 +1,7 @@
 #include "ExportCPP.h"
 #include "../../Engine/GeometryFactory.h"
 #include "../SystemVariableManager.h"
+#include "../ShaderTranscompiler.h"
 #include "../Names.h"
 #include <ghc/filesystem.hpp>
 #include <string>
@@ -12,7 +13,7 @@ namespace ed
 {
 	std::string loadFile(const std::string& filename)
 	{
-		std::ifstream file("file.txt");
+		std::ifstream file(filename);
 		std::string src((std::istreambuf_iterator<char>(file)),
 			std::istreambuf_iterator<char>());
 		file.close();
@@ -22,13 +23,39 @@ namespace ed
 	{
 		return str.find("[$$" + sec + "$$]");
 	}
+	std::string getSectionIndent(const std::string& str, const std::string& sec)
+	{
+		size_t pos = str.find("[$$" + sec + "$$]");
+		size_t newLinePos = str.substr(0, pos).find_last_of("\n")+1; // find last space
+		std::string ind = str.substr(newLinePos, pos-newLinePos);
+		
+		for (int i = 0; i < ind.size();i++) {
+			if (!isspace(ind[i])) {
+				ind.erase(ind.begin() + i);
+				i--;
+			}
+		}
+		return ind;
+	}
 	void insertSection(std::string& out, size_t loc, const std::string& sec)
 	{
 		size_t secEnd = out.find("$$]", loc);
-		out.erase(out.begin() + loc, out.begin() + secEnd + 3);
+		size_t newLinePos = out.substr(0, loc).find_last_of("\n")+1; // find last space
+
+		out.erase(out.begin() + newLinePos, out.begin() + secEnd + 3);
 		out.insert(loc, sec);
 	}
-	std::string getShaderFilename(const std::string& filename)
+	void replaceSections(std::string& out, const std::string& sec, const std::string& contents)
+	{
+		size_t secLoc = findSection(out, sec);
+		while (secLoc != std::string::npos) {
+			size_t secEnd = out.find("$$]", secLoc);
+			out.erase(out.begin() + secLoc, out.begin() + secEnd + 3);
+			out.insert(secLoc, contents);
+			secLoc = findSection(out, sec);
+		}
+	}
+	std::string getFilename(const std::string& filename)
 	{
 		std::string ret = ghc::filesystem::path(filename).filename();
 		
@@ -38,7 +65,11 @@ namespace ed
 		for (int i = 0; i < ret.size(); i++)
 			if (isspace(ret[i])) ret[i] = '_';
 
-		return "ShaderSource_" + ret;
+		return ret;
+	}
+	std::string getShaderFilename(const std::string& filename)
+	{
+		return "ShaderSource_" + getFilename(filename);
 	}
 	std::string getTopologyName(GLuint topology)
 	{
@@ -58,6 +89,84 @@ namespace ed
 
 		for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++)
 			if (TOPOLOGY_ITEM_VALUES[tind] == topology)
+				return std::string(names[tind]);
+
+		return "GL_UNDEFINED";
+	}
+	std::string getFormatName(GLuint fmt)
+	{
+		static const char* names[] =
+		{
+			"GL_UNKNOWN",
+			"GL_RGBA",
+			"GL_RGB",
+			"GL_RG",
+			"GL_RED",
+			"GL_R8",
+			"GL_R8_SNORM",
+			"GL_R16",
+			"GL_R16_SNORM",
+			"GL_RG8",
+			"GL_RG8_SNORM",
+			"GL_RG16",
+			"GL_RG16_SNORM",
+			"GL_R3_G3_B2",
+			"GL_RGB4",
+			"GL_RGB5",
+			"GL_RGB8",
+			"GL_RGB8_SNORM",
+			"GL_RGB10",
+			"GL_RGB12",
+			"GL_RGB16_SNORM",
+			"GL_RGBA2",
+			"GL_RGBA4",
+			"GL_RGB5_A1",
+			"GL_RGBA8",
+			"GL_RGBA8_SNORM",
+			"GL_RGB10_A2",
+			"GL_RGB10_A2_UINT",
+			"GL_RGBA12",
+			"GL_RGBA16",
+			"GL_SRGB8",
+			"GL_SRGB_ALPHA8",
+			"GL_R16F",
+			"GL_RG16F",
+			"GL_RGB16F",
+			"GL_RGBA16F",
+			"GL_R32F",
+			"GL_RG32F",
+			"GL_RGB32F",
+			"GL_RGBA32F",
+			"GL_R11F_G11F_B10F",
+			"GL_RGB9_E5",
+			"GL_R8I",
+			"GL_R8UI",
+			"GL_R16I",
+			"GL_R16UI",
+			"GL_R32I",
+			"GL_R32UI",
+			"GL_RG8I",
+			"GL_RG8UI",
+			"GL_RG16I",
+			"GL_RG16UI",
+			"GL_RG32I",
+			"GL_RG32UI",
+			"GL_RGB8I",
+			"GL_RGB8UI",
+			"GL_RGB16I",
+			"GL_RGB16UI",
+			"GL_RGB32I",
+			"GL_RGB32UI",
+			"GL_RGBA8I",
+			"GL_RGBA8UI",
+			"GL_RGBA16I",
+			"GL_RGBA16UI",
+			"GL_RGBA32I",
+			"GL_RGBA32UI"
+		};
+
+		for (int tind = 0; tind < HARRAYSIZE(FORMAT_VALUES); tind++)
+			if (FORMAT_VALUES[tind] == fmt)
 				return std::string(names[tind]);
 
 		return "GL_UNDEFINED";
@@ -106,7 +215,7 @@ namespace ed
 			std::string ret = "";
 			int size = ed::ShaderVariable::GetSize(var->GetType()) / sizeof(float);
 			for (int i = 0; i < size; i++) {
-				ret += std::to_string(*(var->AsFloatPtr() + i));
+				ret += std::to_string(*(var->AsFloatPtr() + i)) + "f";
 				if (i != size-1)
 					ret += ", ";
 			}
@@ -126,34 +235,6 @@ namespace ed
 		bool isSystem = var->System != ed::SystemShaderVariable::None;
 
 		switch (var->GetType()) {
-		case ShaderVariable::ValueType::Boolean1:
-		case ShaderVariable::ValueType::Integer1:
-			ret = "glUniform1i(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Boolean2:
-		case ShaderVariable::ValueType::Integer2:
-			ret = "glUniform2i(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Boolean3:
-		case ShaderVariable::ValueType::Integer3:
-			ret = "glUniform3i(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Boolean4:
-		case ShaderVariable::ValueType::Integer4:
-			ret = "glUniform4i(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Float1:
-			ret = "glUniform1i(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Float2:
-			ret = "glUniform2f(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Float3:
-			ret = "glUniform3f(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
-		case ShaderVariable::ValueType::Float4:
-			ret = "glUniform4f(" + locSrc + ", " + (isSystem ? systemName : getVariableValue(var)) + ");";
-			break;
 		case ShaderVariable::ValueType::Float2x2: {
 			std::string varName = "tempVar" + passName + "_" + std::string(var->Name);
 			if (!isSystem)
@@ -174,87 +255,221 @@ namespace ed
 		} break;
 		}
 
+		if (isSystem) {
+			switch (var->GetType()) {
+			case ShaderVariable::ValueType::Boolean1:
+			case ShaderVariable::ValueType::Integer1:
+				ret = "glUniform1i(" + locSrc + ", " + systemName + ");";
+				break;
+			case ShaderVariable::ValueType::Boolean2:
+			case ShaderVariable::ValueType::Integer2:
+				ret = "glUniform2iv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			case ShaderVariable::ValueType::Boolean3:
+			case ShaderVariable::ValueType::Integer3:
+				ret = "glUniform3iv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			case ShaderVariable::ValueType::Boolean4:
+			case ShaderVariable::ValueType::Integer4:
+				ret = "glUniform4iv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			case ShaderVariable::ValueType::Float1:
+				ret = "glUniform1f(" + locSrc + ", " + systemName + ");";
+				break;
+			case ShaderVariable::ValueType::Float2:
+				ret = "glUniform2fv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			case ShaderVariable::ValueType::Float3:
+				ret = "glUniform3fv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			case ShaderVariable::ValueType::Float4:
+				ret = "glUniform4fv(" + locSrc + ", 1, glm::value_ptr(" + systemName + "));";
+				break;
+			}
+		} else {
+			switch (var->GetType()) {
+			case ShaderVariable::ValueType::Boolean1:
+			case ShaderVariable::ValueType::Integer1:
+				ret = "glUniform1i(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Boolean2:
+			case ShaderVariable::ValueType::Integer2:
+				ret = "glUniform2i(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Boolean3:
+			case ShaderVariable::ValueType::Integer3:
+				ret = "glUniform3i(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Boolean4:
+			case ShaderVariable::ValueType::Integer4:
+				ret = "glUniform4i(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Float1:
+				ret = "glUniform1f(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Float2:
+				ret = "glUniform2f(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Float3:
+				ret = "glUniform3f(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			case ShaderVariable::ValueType::Float4:
+				ret = "glUniform4f(" + locSrc + ", " + getVariableValue(var) + ");";
+				break;
+			}
+		}
+
 		return ret;
 	}
 
-	bool ExportCPP::Export(InterfaceManager* data, const std::string& outPath, bool externalShaders)
+	bool ExportCPP::Export(InterfaceManager* data, const std::string& outPath, bool externalShaders, bool exportCmakeFiles, const std::string& cmakeProject, bool copyCMakeModules, bool copySTBImage, bool copyImages)
 	{
-		// TODO: input layouts, all system variables, compute passes, geometry shaders, etc...
-
 		bool usesGeometry[pipe::GeometryItem::GeometryType::Count] = { false };
 		bool usesTextures = false;
 
-		if (!ghc::filesystem::exists("data/template.cpp"))
+		if (!ghc::filesystem::exists("data/export/cpp/template.cpp"))
 			return false;
 
+		if (exportCmakeFiles && !ghc::filesystem::exists("data/export/cpp/CMakeLists.txt"))
+			return false;
+
+		if (copyCMakeModules && !ghc::filesystem::exists("data/export/cpp/FindGLM.cmake"))
+			return false;
+
+		if (copySTBImage && !ghc::filesystem::exists("data/export/cpp/stb_image.h"))
+			return false;
+
+		ghc::filesystem::path parentPath = ghc::filesystem::path(outPath).parent_path();
+
+		// copy CMakeLists.txt
+		if (exportCmakeFiles) {
+			std::string cmakeLists = loadFile("data/export/cpp/CMakeLists.txt");
+			replaceSections(cmakeLists, "project_name", cmakeProject);
+			replaceSections(cmakeLists, "project_file", ghc::filesystem::path(outPath).filename());
+
+			std::ofstream outCmake(parentPath / "CMakeLists.txt");
+			outCmake << cmakeLists;
+			outCmake.close();
+		}
+		if (copyCMakeModules) {
+			if (!ghc::filesystem::exists(parentPath / "cmake"))
+				ghc::filesystem::create_directory(parentPath / "cmake");
+
+			ghc::filesystem::path cmakePath("data/export/cpp/FindGLM.cmake");
+			ghc::filesystem::copy_file(cmakePath, parentPath / "cmake/FindGLM.cmake", ghc::filesystem::copy_options::skip_existing);
+		}
+		if (copySTBImage) {
+			ghc::filesystem::path cmakePath("data/export/cpp/stb_image.h");
+			ghc::filesystem::copy_file(cmakePath, parentPath / "stb_image.h", ghc::filesystem::copy_options::skip_existing);
+		}
+
 		// load template code data
-		std::ifstream templateFile("data/template.cpp");
+		std::ifstream templateFile("data/export/cpp/template.cpp");
 		std::string templateSrc((std::istreambuf_iterator<char>(templateFile)), std::istreambuf_iterator<char>());
 		templateFile.close();
 
 		// get list of all shader files
 		std::vector<std::string> allShaderFiles;
+		std::vector<std::string> allShaderEntries;
+		std::vector<int> allShaderTypes;
 		const auto& pipeItems = data->Pipeline.GetList();
 		for (int i = 0; i < pipeItems.size(); i++) {
 			if (pipeItems[i]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* pass = (pipe::ShaderPass*)pipeItems[i]->Data;
 				
 				// VS
-				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->VSPath) == 0)
+				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->VSPath) == 0) {
 					allShaderFiles.push_back(pass->VSPath);
+					allShaderEntries.push_back(pass->VSEntry);
+					allShaderTypes.push_back(0);
+				}
 				// PS
-				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->PSPath) == 0)
+				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->PSPath) == 0) {
 					allShaderFiles.push_back(pass->PSPath);
+					allShaderEntries.push_back(pass->PSEntry);
+					allShaderTypes.push_back(1);
+				}
 			}
 		}
 
 		// store shaders in the generated file
-		if (!externalShaders) {
-			size_t locShaders = findSection(templateSrc, "shaders");
-			if (locShaders != std::string::npos) {
-				std::string shadersSrc = "";
+		size_t locShaders = findSection(templateSrc, "shaders");
+		std::string indent = getSectionIndent(templateSrc, "shaders");
+		if (locShaders != std::string::npos) {
+			std::string shadersSrc = "";
 
-				for (const auto& shdrFile : allShaderFiles) {
-					shadersSrc += "const char* " + getShaderFilename(shdrFile) + " = R\"(\n";
-					shadersSrc += data->Parser.LoadProjectFile(shdrFile) + "\n";
+			for (int i = 0; i < allShaderFiles.size(); i++) {
+				if (externalShaders) {}
+				else {
+					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
+
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
+						std::vector<ed::ShaderMacro> tempMacros;
+						shdrSource = ed::ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, false, nullptr, nullptr);
+					}
+
+					shadersSrc += "std::string " + getShaderFilename(allShaderFiles[i]) + " = R\"(\n";
+					shadersSrc += shdrSource + "\n";
 					shadersSrc += ")\";\n";
 				}
-
-				insertSection(templateSrc, locShaders, shadersSrc);
 			}
+
+			insertSection(templateSrc, locShaders, shadersSrc);
 		}
 		
 		// initialize geometry, framebuffers, etc...
+		const auto& objItems = data->Objects.GetItemDataList();
 		size_t locInit = findSection(templateSrc, "init");
+		indent = getSectionIndent(templateSrc, "init");
 		if (locInit != std::string::npos) {
 			std::string initSrc = "";
 
-			// system variables
-			initSrc += "float sysTime = 0.0f, sysTimeDelta = 0.0f;\n";
-			initSrc += "unsigned int sysFrameIndex = 0;\n";
-			initSrc += "glm::vec2 sysViewportSize(sedWindowWidth, sedWindowHeight);\n";
+			// external shaders
+			if (externalShaders) {
+				initSrc += indent + "// shaders\n";
+				for (int i = 0; i < allShaderFiles.size(); i++) {
+					std::string shdrFile = ghc::filesystem::path(allShaderFiles[i]).filename();
+
+					initSrc += indent + "std::string " + getShaderFilename(allShaderFiles[i]) + " = LoadFile(\"" + shdrFile + "\");\n";
+					
+					// copy the shader
+					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
+						std::vector<ed::ShaderMacro> tempMacros;
+						shdrSource = ed::ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, false, nullptr, nullptr);
+					}
+
+					std::ofstream shaderWriter(shdrFile);
+					shaderWriter << shdrSource;
+					shaderWriter.close();
+				}
+				initSrc += "\n";
+			}
 
 			glm::mat4 matView = SystemVariableManager::Instance().GetViewMatrix();
 			glm::mat4 matProj = SystemVariableManager::Instance().GetProjectionMatrix();
 			glm::mat4 matOrtho = SystemVariableManager::Instance().GetOrthographicMatrix();
 
-			// sysView
-			initSrc += "glm::mat4 sysView(";
+			// system variables
+			initSrc += indent + "// system variables\n";
+			initSrc += indent + "float sysTime = 0.0f, sysTimeDelta = 0.0f;\n";
+			initSrc += indent + "unsigned int sysFrameIndex = 0;\n";
+			initSrc += indent + "glm::vec2 sysViewportSize(sedWindowWidth, sedWindowHeight);\n";
+			initSrc += indent + "glm::mat4 sysView(";
 			for (int i = 0; i < 16; i++) {
-				initSrc += std::to_string(matView[i/4][i%4]);
+				initSrc += std::to_string(matView[i/4][i%4]) + "f";
 				if (i != 15)
 					initSrc += ", ";
 			}
 			initSrc += ");\n";
-
-			initSrc += "glm::mat4 sysProjection = glm::perspective(glm::radians(45.0f), sedWindowWidth / sedWindowHeight, 0.1f, 1000.0f);\n";
-			initSrc += "glm::mat4 sysOrthographic = glm::ortho(0.0f, sedWindowWidth, sedWindowHeight, 0.0f, 0.1f, 1000.0f);\n";
-			initSrc += "glm::mat4 sysGeometryTransform = glm::mat4(1.0f);\n";
-			initSrc += "glm::mat4 sysViewProjection = Projection * View;\n";
-			initSrc += "glm::mat4 sysViewOrthographic = Orthographic * View;\n\n";
+			initSrc += indent + "glm::mat4 sysProjection = glm::perspective(glm::radians(45.0f), sedWindowWidth / sedWindowHeight, 0.1f, 1000.0f);\n";
+			initSrc += indent + "glm::mat4 sysOrthographic = glm::ortho(0.0f, sedWindowWidth, sedWindowHeight, 0.0f, 0.1f, 1000.0f);\n";
+			initSrc += indent + "glm::mat4 sysGeometryTransform = glm::mat4(1.0f);\n";
+			initSrc += indent + "glm::mat4 sysViewProjection = sysProjection * sysView;\n";
+			initSrc += indent + "glm::mat4 sysViewOrthographic = sysOrthographic * sysView;\n\n";
 
 			// objects
-			const auto& objItems = data->Objects.GetItemDataList();
+			initSrc += indent + "// objects\n";
 			for (int i = 0; i < objItems.size(); i++) {
 				if (objItems[i]->RT != nullptr) { // RT
 					const auto rtObj = objItems[i]->RT;
@@ -266,27 +481,44 @@ namespace ed
 					// size string
 					std::string sizeSrc = "";
 					if (rtObj->FixedSize.x == -1)
-						sizeSrc += std::to_string(rtObj->RatioSize.x) + " * sedWindowWidth, " + std::to_string(rtObj->RatioSize.y) + " * sedWindowHeight";
+						sizeSrc += std::to_string(rtObj->RatioSize.x) + "f * sedWindowWidth, " + std::to_string(rtObj->RatioSize.y) + "f * sedWindowHeight";
 					else
 						sizeSrc += std::to_string(rtObj->FixedSize.x) + ", " + std::to_string(rtObj->FixedSize.y);
-
-					initSrc += "GLuint " + rtColorName + ", " + rtDepthName + ";\n";
+					
+					initSrc += indent + "// " + itemName + " render texture\n";
+					initSrc += indent + "GLuint " + rtColorName + ", " + rtDepthName + ";\n";
 
 					// color texture
-					initSrc += "glGenTextures(1, &" + rtColorName + ");\n";
-					initSrc += "glBindTexture(GL_TEXTURE_2D, " + rtColorName + ");\n";
-					initSrc += "glTexImage2D(GL_TEXTURE_2D, 0, GL_" + std::string(gl::String::Format(rtObj->Format)) + ", " + sizeSrc + ", 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);\n";
-					initSrc += "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
-					initSrc += "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
-					initSrc += "glBindTexture(GL_TEXTURE_2D, 0);\n";
+					initSrc += indent + "glGenTextures(1, &" + rtColorName + ");\n";
+					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtColorName + ");\n";
+					initSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, " + std::string(getFormatName(rtObj->Format)) + ", " + sizeSrc + ", 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);\n";
+					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
+					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
+					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n";
 
 					// depth texture
-					initSrc += "glGenTextures(1, &" + rtDepthName + ");\n";
-					initSrc += "glBindTexture(GL_TEXTURE_2D, " + rtDepthName + ");\n";
-					initSrc += "glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, " + sizeSrc + ", 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);\n";
-					initSrc += "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
-					initSrc += "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
-					initSrc += "glBindTexture(GL_TEXTURE_2D, 0);\n";
+					initSrc += indent + "glGenTextures(1, &" + rtDepthName + ");\n";
+					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtDepthName + ");\n";
+					initSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, " + sizeSrc + ", 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);\n";
+					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
+					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
+					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n\n";
+				}
+				else if (objItems[i]->IsTexture) { // Texture
+					std::string actualName = data->Objects.GetItemNameByTextureID(objItems[i]->Texture);
+					std::string texName = actualName;
+					if (texName.find('\\') != std::string::npos ||
+						texName.find('/') != std::string::npos ||
+						texName.find('.') != std::string::npos)
+					{
+						texName = ghc::filesystem::path(texName).filename();
+					}
+					texName = getFilename(texName);
+
+					initSrc += indent + "GLuint " + texName + " = LoadTexture(\"" + std::string(ghc::filesystem::path(actualName).filename()) + "\");\n\n";
+
+					if (copyImages)
+						ghc::filesystem::copy_file(data->Parser.GetProjectPath(actualName), parentPath/ghc::filesystem::path(actualName).filename(), ghc::filesystem::copy_options::skip_existing);			
 				}
 			}
 
@@ -296,9 +528,7 @@ namespace ed
 					pipe::ShaderPass* pass = (pipe::ShaderPass*)pipeItems[i]->Data;
 
 					// load shaders
-					if (externalShaders) { }
-					else
-						initSrc += "GLuint " + std::string(pipeItems[i]->Name) + "_SP = CreateShader(" + getShaderFilename(pass->VSPath) + ", " + getShaderFilename(pass->PSPath) + ");\n";
+					initSrc += indent + "GLuint " + std::string(pipeItems[i]->Name) + "_SP = CreateShader(" + getShaderFilename(pass->VSPath) + ".c_str(), " + getShaderFilename(pass->PSPath) + ".c_str());\n\n";
 
 					// framebuffers
 					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture()) {}
@@ -306,16 +536,17 @@ namespace ed
 						GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
 						const auto depthRT = data->Objects.GetRenderTexture(lastID);
 
-						initSrc += "glGenFramebuffers(1, &" + std::string(pipeItems[i]->Name) + "_FBO);\n";
-						initSrc += "glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)" + std::string(pipeItems[i]->Name) + "_FBO);\n";
-						initSrc += "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, " + depthRT->Name + "_Depth, 0);\n";
+						initSrc += indent + "GLuint " + std::string(pipeItems[i]->Name) + "_FBO = 0;\n";
+						initSrc += indent + "glGenFramebuffers(1, &" + std::string(pipeItems[i]->Name) + "_FBO);\n";
+						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)" + std::string(pipeItems[i]->Name) + "_FBO);\n";
+						initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, " + depthRT->Name + "_Depth, 0);\n";
 
 						
 						for (int i = 0; i < pass->RTCount; i++) {
 							const auto curRT = data->Objects.GetRenderTexture(pass->RenderTextures[i]);
-							initSrc += "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + " + std::to_string(i) + ", GL_TEXTURE_2D, " + curRT->Name + "_Color, 0);\n";
+							initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + " + std::to_string(i) + ", GL_TEXTURE_2D, " + curRT->Name + "_Color, 0);\n";
 						}
-						initSrc += "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n";
+						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n\n";
 					}
 
 
@@ -325,16 +556,17 @@ namespace ed
 						if (pItem->Type == PipelineItem::ItemType::Geometry) {
 							std::string pName = pItem->Name;
 
-							initSrc += "GLuint " + pName + "_VAO, " + pName + "_VBO;\n";
+							initSrc += indent + "GLuint " + pName + "_VAO, " + pName + "_VBO;\n";
 							pipe::GeometryItem* geo = (pipe::GeometryItem*)pItem->Data;
 							if (geo->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
-								initSrc += pName + "_VAO = CreateScreenQuadNDC(" + pName + "_VBO);\n";
+								initSrc += indent + pName + "_VAO = CreateScreenQuadNDC(" + pName + "_VBO);\n";
 							else if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle)
-								initSrc += pName + "_VAO = CreatePlane(" + pName + "_VBO, 1, 1);\n";
+								initSrc += indent + pName + "_VAO = CreatePlane(" + pName + "_VBO, 1, 1);\n";
 							else if (geo->Type == pipe::GeometryItem::Plane)
-								initSrc += pName + "_VAO = CreatePlane(" + pName + "_VBO," + std::to_string(geo->Size.x) + ", " + std::to_string(geo->Size.y) + ");";
+								initSrc += indent + pName + "_VAO = CreatePlane(" + pName + "_VBO, " + std::to_string(geo->Size.x) + "f, " + std::to_string(geo->Size.y) + "f);\n";
 							else if (geo->Type == pipe::GeometryItem::Cube)
-								initSrc += pName + "_VAO = CreateCube(" + pName + "_VBO," + std::to_string(geo->Size.x) + ", " + std::to_string(geo->Size.y) + ", " + std::to_string(geo->Size.z) + ");";
+								initSrc += indent + pName + "_VAO = CreateCube(" + pName + "_VBO, " + std::to_string(geo->Size.x) + "f, " + std::to_string(geo->Size.y) + "f, " + std::to_string(geo->Size.z) + "f);\n";
+							initSrc+="\n";
 						}
 					}
 				}
@@ -344,30 +576,133 @@ namespace ed
 		}
 
 		// events for system variables
-		size_t locEvent = findSection(templateSrc, "event");
-		insertSection(templateSrc, locEvent, ""); // TODO: system variables
+		size_t locResizeEvent = findSection(templateSrc, "resize_event");
+		indent = getSectionIndent(templateSrc, "resize_event");
+		if (locResizeEvent != std::string::npos) {
+			std::string resizeEventSrc = "";
+
+			resizeEventSrc += indent + "sysViewportSize = glm::vec2(sedWindowWidth, sedWindowHeight);\n";
+			resizeEventSrc += indent + "sysProjection = glm::perspective(glm::radians(45.0f), sedWindowWidth / sedWindowHeight, 0.1f, 1000.0f);\n";
+			resizeEventSrc += indent + "sysOrthographic = glm::ortho(0.0f, sedWindowWidth, sedWindowHeight, 0.0f, 0.1f, 1000.0f);\n";
+			resizeEventSrc += indent + "sysGeometryTransform = glm::mat4(1.0f);\n";
+			resizeEventSrc += indent + "sysViewProjection = sysProjection * sysView;\n";
+			resizeEventSrc += indent + "sysViewOrthographic = sysOrthographic * sysView;\n\n";
+
+			for (const auto& rt : objItems) {
+				if (rt->RT != nullptr) {
+					std::string itemName = rt->RT->Name;
+					std::string rtColorName = itemName + "_Color";
+					std::string rtDepthName = itemName + "_Depth";
+
+					// size string
+					std::string sizeSrc = "";
+					if (rt->RT->FixedSize.x == -1)
+						sizeSrc += std::to_string(rt->RT->RatioSize.x) + "f * sedWindowWidth, " + std::to_string(rt->RT->RatioSize.y) + "f * sedWindowHeight";
+					else
+						sizeSrc += std::to_string(rt->RT->FixedSize.x) + ", " + std::to_string(rt->RT->FixedSize.y);
+					
+					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtColorName + ");\n";
+					resizeEventSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, " + getFormatName(rt->RT->Format) + + "," + sizeSrc + ", 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);\n";
+					
+					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtDepthName + ");\n";
+					resizeEventSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, " + sizeSrc + ", 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);\n";
+					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n\n";
+				}
+			}
+			insertSection(templateSrc, locResizeEvent, resizeEventSrc); // TODO: system variables
+		}
 
 		// render all the items
 		size_t locRender = findSection(templateSrc, "render");
+		indent = getSectionIndent(templateSrc, "render");
 		if (locRender != std::string::npos) {
 			std::string renderSrc = "";
+
+			GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
+			GLuint previousDepth = 0;
 
 			for (int i = 0; i < pipeItems.size(); i++) {
 				if (pipeItems[i]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* pass = (pipe::ShaderPass*)pipeItems[i]->Data;
 
 					// use the program
-					renderSrc += "// " + std::string(pipeItems[i]->Name) + " shader pass\n";
-					renderSrc += "glUseProgram(" + std::string(pipeItems[i]->Name) + "_SP);\n";
+					renderSrc += indent + "// " + std::string(pipeItems[i]->Name) + " shader pass\n";
+					renderSrc += indent + "glUseProgram(" + std::string(pipeItems[i]->Name) + "_SP);\n\n";
+
+					// FBO
+					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture())
+						renderSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n";
+					else {
+						renderSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, " + std::string(pipeItems[i]->Name) + "_FBO);\n";
+						renderSrc += indent + "glDrawBuffers(" + std::to_string(pass->RTCount) + ", FBO_Buffers);\n";
+						
+
+						// clear depth texture
+						if (pass->DepthTexture != previousDepth) {
+							renderSrc += indent + "glStencilMask(0xFFFFFFFF);\n";
+							renderSrc += indent + "glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);\n";
+							previousDepth = pass->DepthTexture;
+						}
+
+						// bind RTs
+						for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+							if (pass->RenderTextures[i] == 0)
+								break;
+
+							GLuint rt = pass->RenderTextures[i];
+							ed::RenderTextureObject* rtObject = data->Objects.GetRenderTexture(rt);
+
+							// clear and bind rt (only if not used in last shader pass)
+							bool usedPreviously = false;
+							for (int j = 0; j < MAX_RENDER_TEXTURES; j++)
+								if (previousTexture[j] == rt) {
+									usedPreviously = true;
+									break;
+								}
+							if (!usedPreviously && rtObject->Clear) {
+								renderSrc += indent + "glm::vec4 " + std::string(rtObject->Name) + "_ClearColor = glm::vec4(" + std::to_string(rtObject->ClearColor.r) + ", " + std::to_string(rtObject->ClearColor.g) + ", " + std::to_string(rtObject->ClearColor.b) + ", " + std::to_string(rtObject->ClearColor.a) + ");\n";
+								renderSrc += indent + "glClearBufferfv(GL_COLOR, " + std::to_string(i) + ", glm::value_ptr(" + std::string(rtObject->Name) + "_ClearColor));\n";
+							}
+						}
+						for (int i = 0; i < pass->RTCount; i++)
+							previousTexture[i] = pass->RenderTextures[i];
+					}
+					renderSrc += "\n";
+
+					// bind textures
+					const auto& srvs = data->Objects.GetBindList(pipeItems[i]);
+					for (int j = 0; j < srvs.size(); j++) {
+						std::string actualName = data->Objects.GetItemNameByTextureID(srvs[j]);
+						std::string texName = actualName;
+						if (texName.find('\\') != std::string::npos ||
+							texName.find('/') != std::string::npos ||
+							texName.find('.') != std::string::npos)
+						{
+							texName = ghc::filesystem::path(texName).filename();
+						}
+						texName = getFilename(texName);
+
+						renderSrc += indent + "glActiveTexture(GL_TEXTURE0 + " + std::to_string(j) + ");\n";
+						if (data->Objects.IsCubeMap(srvs[j]))
+							renderSrc += indent + "glBindTexture(GL_TEXTURE_CUBE_MAP, " + texName + ");\n";
+						else if (data->Objects.IsImage3D(srvs[j]))
+							renderSrc += indent + "glBindTexture(GL_TEXTURE_3D, " + texName + ");\n";
+						else if (data->Objects.IsRenderTexture(actualName))
+							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + "_Color);\n";
+						else
+							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + ");\n";
+						
+						std::string unitName = pass->Variables.GetSamplerList()[j];
+						renderSrc += indent + "glUniform1i(glGetUniformLocation(" + std::string(pipeItems[i]->Name) + "_SP, \"" + unitName + "\"), " + std::to_string(j) + ");\n\n";
+					}
 
 					// bind variables
 					const auto& vars = pass->Variables.GetVariables();
 					for (const auto& var : vars) {
 						if (var->System != ed::SystemShaderVariable::GeometryTransform) {
-							renderSrc += bindVariable(var, std::string(pipeItems[i]->Name)) + "\n";
+							renderSrc += indent + bindVariable(var, std::string(pipeItems[i]->Name)) + "\n";
 						}
 					}
-					
 					renderSrc += "\n";
 
 					// items
@@ -378,18 +713,24 @@ namespace ed
 
 							for (const auto& var : vars) {
 								if (var->System == ed::SystemShaderVariable::GeometryTransform) {
-									renderSrc += "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3(" + std::to_string(geoData->Position.x) + ", " + std::to_string(geoData->Position.y) + ", " + std::to_string(geoData->Position.z) + ")) *" +
-										"glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + ", " + std::to_string(geoData->Rotation.x) + ", " + std::to_string(geoData->Rotation.z) + ") * " +
-										"glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + ", " + std::to_string(geoData->Scale.y) + ", " + std::to_string(geoData->Scale.z) + "));\n";
-									renderSrc += "glUniformMatrix4fv(glGetUniformLocation(" + std::string(pipeItems[i]->Name) + "_SP, \"" + std::string(var->Name) + "\"), 1, GL_FALSE, glm::value_ptr(sysGeometryTransform));\n";
+									if (geoData->Type == pipe::GeometryItem::GeometryType::Rectangle) {
+										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3((" + std::to_string(geoData->Position.x) + "f + 0.5f) * sedWindowWidth, (" + std::to_string(geoData->Position.y) + "f + 0.5f) * sedWindowHeight, -1000.0f)) *" +
+											"glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " +
+											"glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f * sedWindowWidth, " + std::to_string(geoData->Scale.y) + "f * sedWindowHeight, 1.0f));\n";
+									} else {
+										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3(" + std::to_string(geoData->Position.x) + "f, " + std::to_string(geoData->Position.y) + "f, " + std::to_string(geoData->Position.z) + "f)) *" +
+											"glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " +
+											"glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f, " + std::to_string(geoData->Scale.y) + "f, " + std::to_string(geoData->Scale.z) + "f));\n";
+									}
+									renderSrc += indent + "glUniformMatrix4fv(glGetUniformLocation(" + std::string(pipeItems[i]->Name) + "_SP, \"" + std::string(var->Name) + "\"), 1, GL_FALSE, glm::value_ptr(sysGeometryTransform));\n";
 									break;
 								}
 							}
-							renderSrc += "glBindVertexArray(" + pName + "_VAO);\n";
+							renderSrc += indent + "glBindVertexArray(" + pName + "_VAO);\n";
 							if (geoData->Instanced)
-								renderSrc += "glDrawArraysInstanced(" + getTopologyName(geoData->Topology) + ", 0, " + std::to_string(eng::GeometryFactory::VertexCount[geoData->Type]) + ", " + std::to_string(geoData->InstanceCount) + ");\n";
+								renderSrc += indent + "glDrawArraysInstanced(" + getTopologyName(geoData->Topology) + ", 0, " + std::to_string(eng::GeometryFactory::VertexCount[geoData->Type]) + ", " + std::to_string(geoData->InstanceCount) + ");\n";
 							else
-								renderSrc += "glDrawArraysInstanced(" + getTopologyName(geoData->Topology) + ", 0, " + std::to_string(eng::GeometryFactory::VertexCount[geoData->Type]) + ");\n";
+								renderSrc += indent + "glDrawArrays(" + getTopologyName(geoData->Topology) + ", 0, " + std::to_string(eng::GeometryFactory::VertexCount[geoData->Type]) + ");\n";
 							renderSrc += "\n";
 						}
 						renderSrc += "\n";

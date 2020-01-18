@@ -3,6 +3,7 @@
 + add MSAA
 + add option for supersampling when rendering to an image file
 + add support for #include keyword
++ add "Export -> as C++ project" option
 + add ability to load projects by drag and dropping them
 + add search in Options -> Shortcuts
 + add "Pause preview on startup" option
