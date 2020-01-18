@@ -76,6 +76,7 @@ void setIcon(SDL_Window* wnd)
 
 int main(int argc, char* argv[])
 {
+	ghc::filesystem::path cmdDir = ghc::filesystem::current_path();
 	if (argc > 0) {
 		if (ghc::filesystem::exists(ghc::filesystem::path(argv[0]).parent_path())) {
 			ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
@@ -215,9 +216,14 @@ int main(int argc, char* argv[])
 	ed::Logger::Get().Log("Created EditorEngine");
 
 	// open an item if given in arguments
-	if (argc == 2) {
+	if (argc >= 2) {
 		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
 		engine.UI().Open(argv[1]);
+		ghc::filesystem::path argFile = cmdDir / ghc::filesystem::path(argv[1]);
+		if (ghc::filesystem::exists(argv[1]))
+			engine.UI().Open(argv[1]);
+		else if (ghc::filesystem::exists(argFile))
+			engine.UI().Open(argFile.c_str());
 	}
 
 	engine.UI().SetPerformanceMode(perfMode);

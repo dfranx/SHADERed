@@ -648,6 +648,8 @@ namespace ed
 				}
 			}
 		}
+
+		Render();
 	}
 	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc)
 	{
@@ -786,6 +788,8 @@ namespace ed
 				}
 			}
 		}
+
+		Render();
 	}
 	void RenderEngine::Pick(float sx, float sy, bool multiPick, std::function<void(PipelineItem*)> func)
 	{

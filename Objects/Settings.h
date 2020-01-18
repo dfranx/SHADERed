@@ -58,6 +58,7 @@ namespace ed
 		} Editor;
 
 		struct strPreview {
+			bool PausedOnStartup;
 			bool SwitchLeftRightClick;
 			bool HideMenuInPerformanceMode;
 			bool BoundingBox;

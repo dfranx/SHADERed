@@ -420,7 +420,7 @@ namespace ed
 		}
 
 		/* STREAM LOGS: */
-		ImGui::Text("Streams logs to log.txt: ");
+		ImGui::Text("Stream logs to log.txt: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_streamlogs", &settings->General.StreamLogs);
 
@@ -585,6 +585,11 @@ namespace ed
 	void OptionsUI::m_renderPreview()
 	{
 		Settings* settings = &Settings::Instance();
+
+		/* PAUSE ON STARTUP: */
+		ImGui::Text("Pause preview on startup: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optp_pstartup", &settings->Preview.PausedOnStartup);
 
 		/* MSAA: */
 		ImGui::Text("MSAA: ");
