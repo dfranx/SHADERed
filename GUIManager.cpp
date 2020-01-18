@@ -21,6 +21,7 @@
 #include "Objects/Settings.h"
 #include "Objects/ThemeContainer.h"
 #include "Objects/CameraSnapshots.h"
+#include "Objects/Export/ExportCPP.h"
 #include "Objects/KeyboardShortcuts.h"
 #include "Objects/FunctionVariableManager.h"
 #include "Objects/SystemVariableManager.h"
@@ -79,6 +80,7 @@ namespace ed
 		m_isNewProjectPopupOpened = false;
 		m_isUpdateNotificationOpened = false;
 		m_isRecordCameraSnapshotOpened = false;
+		m_exportAsCPPOpened = false;
 		m_isCreateImgOpened = false;
 		m_isAboutOpen = false;
 		m_wasPausedPrior = true;
@@ -632,7 +634,7 @@ namespace ed
 					}
 				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str()))
-					this->Save();
+					Save();
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
 					SaveAsProject(true);
 				if (ImGui::MenuItem("Save Preview as Image", KeyboardShortcuts::Instance().GetString("Preview.SaveImage").c_str()))
@@ -646,6 +648,14 @@ namespace ed
 					#elif defined(_WIN32)
 						ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
 					#endif
+				}
+
+
+				if (ImGui::BeginMenu("Export")) {
+					if (ImGui::MenuItem("as C++ project"))
+						m_exportAsCPPOpened = true;
+
+					ImGui::EndMenu();
 				}
 				
 				m_data->Plugins.ShowMenuItems("file");
@@ -924,6 +934,12 @@ namespace ed
 		if (m_isInfoOpened) {
 			ImGui::OpenPopup("Information##main_info");
 			m_isInfoOpened = false;
+		}
+
+		// open export as c++ app
+		if (m_exportAsCPPOpened) {
+			ImGui::OpenPopup("Export as C++ project##main_export_as_cpp");
+			m_exportAsCPPOpened = false;
 		}
 
 		// Create Item popup
@@ -1251,7 +1267,7 @@ namespace ed
 		}
 
 		// Save preview
-		ImGui::SetNextWindowSize(ImVec2(450, 250), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 250 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
@@ -1576,6 +1592,18 @@ namespace ed
 				ImGui::CloseCurrentPopup();
 				m_data->Renderer.Pause(m_wasPausedPrior);
 			}
+			ImGui::EndPopup();
+		}
+
+		// Export as C++ app
+		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 250 * Settings::Instance().DPIScale));
+		if (ImGui::BeginPopupModal("Export as C++ project##main_export_as_cpp")) {
+			if (ImGui::Button("Export")) {
+				ExportCPP::Export(m_data, "./export.cpp", false);
+				ImGui::CloseCurrentPopup();
+			}
+			if (ImGui::Button("Cancel"))
+				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
 

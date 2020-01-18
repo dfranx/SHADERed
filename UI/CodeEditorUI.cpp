@@ -74,6 +74,7 @@ namespace ed
 				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
 
+				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(300, 300));
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : m_shaderTypeId[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {

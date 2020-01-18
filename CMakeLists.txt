@@ -16,6 +16,7 @@ set(SOURCES
 
 # objects:
 	Objects/PluginAPI/PluginManager.cpp
+	Objects/Export/ExportCPP.cpp
 	Objects/ArcBallCamera.cpp
 	Objects/AudioAnalyzer.cpp
 	Objects/AudioShaderStream.cpp

@@ -105,6 +105,7 @@ namespace ed
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
+		bool m_exportAsCPPOpened;
 		bool m_savePreviewPopupOpened;
 		bool m_wasPausedPrior;
 		float m_savePreviewTime, m_savePreviewCachedTime, m_savePreviewTimeDelta;

@@ -153,7 +153,8 @@ namespace ed
 				Triangle,
 				Sphere,
 				Plane,
-				ScreenQuadNDC
+				ScreenQuadNDC,
+				Count
 			} Type;
 
 			GLuint VAO;

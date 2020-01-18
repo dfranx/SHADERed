@@ -12,6 +12,7 @@ namespace ed
 			case InputLayoutValue::Binormal: return 3;
 			case InputLayoutValue::Color: return 4;
 		}
+		return 0;
 	}
 	size_t InputLayoutItem::GetValueOffset(InputLayoutValue val)
 	{
@@ -23,5 +24,6 @@ namespace ed
 			case InputLayoutValue::Binormal: return 11;
 			case InputLayoutValue::Color: return 14;
 		}
+		return 0;
 	}
 }

@@ -74,7 +74,7 @@ namespace ed
 		{
 			int fmtIndex = 0;
 
-			if (geoVAO == 0)
+			if (geoVAO != 0)
 				glDeleteVertexArrays(1, &geoVAO);
 
 			glGenVertexArrays(1, &geoVAO);
