@@ -4,6 +4,7 @@
 extern const char* TOPOLOGY_ITEM_NAMES[10];
 extern const char* SYSTEM_VARIABLE_NAMES[20];
 extern const char* VARIABLE_TYPE_NAMES[15];
+extern const char* VARIABLE_TYPE_NAMES_GLSL[15];
 extern const char* FUNCTION_NAMES[23];
 extern const char* GEOMETRY_NAMES[7];
 extern const char* PIPELINE_ITEM_NAMES[7];

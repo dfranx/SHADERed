@@ -68,6 +68,23 @@ const char* VARIABLE_TYPE_NAMES[] = {
 	"float3x3",
 	"float4x4"
 };
+const char* VARIABLE_TYPE_NAMES_GLSL[] = {
+	"bool",
+	"bvec2",
+	"bvec3",
+	"bvec4",
+	"int",
+	"ivec2",
+	"ivec3",
+	"ivec4",
+	"float",
+	"vec2",
+	"vec3",
+	"vec4",
+	"mat2",
+	"mat3",
+	"mat4"
+};
 
 const char* FUNCTION_NAMES[] = {
 	"None",

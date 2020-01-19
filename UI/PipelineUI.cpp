@@ -662,6 +662,8 @@ namespace ed
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
 
+		bool isGLSL = ShaderTranscompiler::GetShaderTypeFromExtension(((pipe::ShaderPass*)itemData)->VSPath) != ShaderLanguage::HLSL;
+
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 
 		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
@@ -793,7 +795,7 @@ namespace ed
 			/* TYPE */
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			ShaderVariable::ValueType tempType = el->GetType();
-			if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&tempType), VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES)))
+			if (ImGui::Combo(("##inputType" + std::to_string(id)).c_str(), reinterpret_cast<int*>(&tempType), isGLSL ? VARIABLE_TYPE_NAMES_GLSL : VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES)))
 				if (tempType != el->GetType())
 					el->SetType(tempType);
 			ImGui::NextColumn();
@@ -888,7 +890,7 @@ namespace ed
 
 		/* TYPE */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		if (ImGui::Combo("##inputType", reinterpret_cast<int*>(&iValueType), VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES))) {
+		if (ImGui::Combo("##inputType", reinterpret_cast<int*>(&iValueType), isGLSL ? VARIABLE_TYPE_NAMES_GLSL : VARIABLE_TYPE_NAMES, HARRAYSIZE(VARIABLE_TYPE_NAMES))) {
 			if (iValueType != iVariable.GetType()) {
 				ed::ShaderVariable newVariable(iValueType);
 				memcpy(newVariable.Name, iVariable.Name, strlen(iVariable.Name));
