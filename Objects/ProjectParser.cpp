@@ -52,6 +52,10 @@ namespace ed
 		std::replace(ret.begin(), ret.end(), '\\', '/');
 		return ret;
 	}
+	std::string newShaderFilename(const std::string& proj, const std::string& shaderpass, const std::string& stage, const std::string& ext)
+	{
+		return proj + "_" + shaderpass + stage + "." + ext; // eg: project_SimpleVS.glsl
+	}
 
 	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, GUIManager* gui) :
 		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins)
@@ -246,6 +250,10 @@ namespace ed
 		std::vector<PipelineItem*> passItems = m_pipe->GetList();
 		std::vector<pipe::ShaderPass*> collapsedSP = ((PipelineUI*)m_ui->Get(ViewID::Pipeline))->GetCollapsedItems();
 
+		std::string projectStem = "proj";
+		if (ghc::filesystem::path(file).has_stem())
+			projectStem = ghc::filesystem::path(file).stem();
+
 		// copy shader files to a directory
 		std::string shadersDir = m_projectPath + "/shaders";
 		if (copyFiles) {
@@ -266,14 +274,15 @@ namespace ed
 					std::string vsExt = getExtension(vs);
 					std::string psExt = getExtension(ps);
 
-					ghc::filesystem::copy_file(vs, shadersDir + "/" + passItem->Name + "VS." + vsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
-					ghc::filesystem::copy_file(ps, shadersDir + "/" + passItem->Name + "PS." + psExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					
+					ghc::filesystem::copy_file(vs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "VS", vsExt), ghc::filesystem::copy_options::overwrite_existing, errc);
+					ghc::filesystem::copy_file(ps, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "PS", psExt), ghc::filesystem::copy_options::overwrite_existing, errc);
 
 					if (passData->GSUsed) {
 						std::string gs = ghc::filesystem::path(passData->GSPath).is_absolute() ? passData->GSPath : (proj + std::string(passData->GSPath));
 						std::string gsExt = getExtension(gs);
 
-						ghc::filesystem::copy_file(gs, shadersDir + "/" + passItem->Name + "GS." + gsExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+						ghc::filesystem::copy_file(gs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "GS", gsExt), ghc::filesystem::copy_options::overwrite_existing, errc);
 					}
 
 					if (errc)
@@ -285,7 +294,7 @@ namespace ed
 					std::string cs = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
 					std::string csExt = getExtension(cs);
 
-					ghc::filesystem::copy_file(cs, shadersDir + "/" + passItem->Name + "CS." + csExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					ghc::filesystem::copy_file(cs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "CS", csExt), ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 				} 
@@ -295,7 +304,7 @@ namespace ed
 					std::string ss = ghc::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
 					std::string ssExt = getExtension(ss);
 
-					ghc::filesystem::copy_file(ss, shadersDir + "/" + passItem->Name + "SS." + ssExt, ghc::filesystem::copy_options::overwrite_existing, errc);
+					ghc::filesystem::copy_file(ss, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "SS", ssExt), ghc::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 				}
@@ -340,7 +349,7 @@ namespace ed
 				std::string relativePath = (ghc::filesystem::path(passData->VSPath).is_absolute()) ? passData->VSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->VSPath));
 				if (copyFiles) {
 					std::string vsExt = getExtension(passData->VSPath);
-					relativePath = "shaders/" + std::string(passItem->Name) + "VS." + vsExt;
+					relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "VS", vsExt);
 				}
 
 				vsNode.append_attribute("type").set_value("vs");
@@ -352,7 +361,7 @@ namespace ed
 				relativePath = (ghc::filesystem::path(passData->PSPath).is_absolute()) ? passData->PSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->PSPath));
 				if (copyFiles) {
 					std::string psExt = getExtension(passData->PSPath);
-					relativePath = "shaders/" + std::string(passItem->Name) + "PS." + psExt;
+					relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "PS", psExt);
 				}
 
 				psNode.append_attribute("type").set_value("ps");
@@ -365,7 +374,7 @@ namespace ed
 					relativePath = (ghc::filesystem::path(passData->GSPath).is_absolute()) ? passData->GSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->GSPath));
 					if (copyFiles) {
 						std::string gsExt = getExtension(passData->GSPath);
-						relativePath = "shaders/" + std::string(passItem->Name) + "GS." + gsExt;
+						relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "GS", gsExt);
 					}
 
 					gsNode.append_attribute("used").set_value(passData->GSUsed);
@@ -447,7 +456,7 @@ namespace ed
 				std::string relativePath = (ghc::filesystem::path(passData->Path).is_absolute()) ? passData->Path : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->Path));
 				if (copyFiles) {
 					std::string csExt = getExtension(passData->Path);
-					relativePath = "shaders/" + std::string(passItem->Name) + "CS." + csExt;
+					relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "CS", csExt);
 				}
 
 				csNode.append_attribute("type").set_value("cs");
@@ -483,7 +492,7 @@ namespace ed
 				std::string relativePath = (ghc::filesystem::path(passData->Path).is_absolute()) ? passData->Path : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->Path));
 				if (copyFiles) {
 					std::string ssExt = getExtension(passData->Path);
-					relativePath = "shaders/" + std::string(passItem->Name) + "SS." + ssExt;
+					relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "SS", ssExt);
 				}
 
 				ssNode.append_attribute("type").set_value("ss");
