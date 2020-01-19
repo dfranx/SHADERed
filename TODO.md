@@ -1,8 +1,6 @@
 # PLAN
 ## v1.3
  - shader debugger & pixel inspect tool
- - godot shaders
- - show tips on startup & 'whats new' on first startup (can be turned off)
  - update third party libraries
  - move Screenshots directory into the Misc directory
 
@@ -11,6 +9,8 @@
  - splash screen (for loading plugins, etc...)
  - try to compile using emscripten
  - improve the overall code (enum for shader type, etc...)
+ - show tips on startup & 'whats new' on first startup (can be turned off)
+ - QoL fixes and changes
  - fix memory leaks
  - develop various plugins
 
@@ -21,7 +21,5 @@
  - web version of SHADERed using emscripten (?)
 
 # Plugins (or not?)
- - "import from ShaderToy" option
- - "Export as DirectX/OpenGL application" option (.cpp file)
  - node shader editor that can export to GLSL and HLSL
- - ability to render your shader to a video file
+ - ability to render preview to a video file
