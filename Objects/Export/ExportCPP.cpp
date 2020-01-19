@@ -747,5 +747,7 @@ namespace ed
 		std::ofstream fileWriter(outPath);
 		fileWriter << templateSrc;
 		fileWriter.close();
+
+		return true;
 	}
 }
