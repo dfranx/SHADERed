@@ -66,6 +66,7 @@ int main()
 
 	// required:
 	float sedWindowWidth = 800, sedWindowHeight = 600;
+	float sedMouseX = 0, sedMouseY = 0;
 
 	std::chrono::time_point<std::chrono::system_clock> timerStart = std::chrono::system_clock::now();
 
@@ -77,11 +78,15 @@ int main()
 	while (run) {
 		while (SDL_PollEvent(&event))
 		{
-			if (event.type == SDL_QUIT)
+			if (event.type == SDL_QUIT) {
 				run = false;
-			else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+			} else if (event.type == SDL_MOUSEMOTION) {
+				sedMouseX = event.motion.x;
+				sedMouseY = event.motion.y;
+				sysMousePosition = glm::vec2(sedMouseX/sedWindowWidth, 1.f-(sedMouseY/sedWindowHeight));
+			} else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
 				sedWindowWidth = event.window.data1;
-                sedWindowHeight = event.window.data2;
+				sedWindowHeight = event.window.data2;
 
 				[$$resize_event$$]
 			}

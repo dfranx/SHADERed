@@ -185,6 +185,7 @@ namespace ed
 		case ed::SystemShaderVariable::GeometryTransform: return "sysGeometryTransform";
 		case ed::SystemShaderVariable::ViewProjection: return "sysViewProjection";
 		case ed::SystemShaderVariable::ViewOrthographic: return "sysViewOrthographic";
+		case ed::SystemShaderVariable::MousePosition: return "sysMousePosition";
 		}
 
 		return "";
@@ -454,6 +455,8 @@ namespace ed
 			initSrc += indent + "// system variables\n";
 			initSrc += indent + "float sysTime = 0.0f, sysTimeDelta = 0.0f;\n";
 			initSrc += indent + "unsigned int sysFrameIndex = 0;\n";
+
+			initSrc += indent + "glm::vec2 sysMousePosition(sedMouseX, sedMouseY);\n";
 			initSrc += indent + "glm::vec2 sysViewportSize(sedWindowWidth, sedWindowHeight);\n";
 			initSrc += indent + "glm::mat4 sysView(";
 			for (int i = 0; i < 16; i++) {
