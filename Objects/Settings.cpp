@@ -73,34 +73,34 @@ namespace ed
 		General.HLSLExtensions.clear();
 		General.VulkanGLSLExtensions.clear();
 
-		Theme = ini.Get("general", "theme", "Dark");
+		Theme = ini.Get("general", "theme", "Gray");
 
 		General.VSync = ini.GetBoolean("general", "vsync", false);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Toolbar = ini.GetBoolean("general", "toolbar", false);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
-		General.Log = ini.GetBoolean("general", "log", true);
+		General.Log = ini.GetBoolean("general", "log", false);
 		General.StreamLogs = ini.GetBoolean("general", "streamlogs", false);
 		General.PipeLogsToTerminal = ini.GetBoolean("general", "pipelogsterminal", false);
-		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", true);
-		General.UseExternalEditor = ini.GetBoolean("general", "useexternaleditor", true);
+		General.ReopenShaders = ini.GetBoolean("general", "reopenshaders", false);
+		General.UseExternalEditor = ini.GetBoolean("general", "useexternaleditor", false);
 		General.OpenShadersOnDblClk = ini.GetBoolean("general", "openshadersdblclk", true);
 		General.ItemPropsOnDblCLk = ini.GetBoolean("general", "itempropsdblclk", true);
 		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
-		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", true);
+		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", false);
 		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
-		General.StartUpTemplate = ini.Get("general", "template", "HLSL");
+		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
-		strcpy(General.Font, ini.Get("general", "font", "null").c_str());
-		General.FontSize = ini.GetInteger("general", "fontsize", 15);
+		strcpy(General.Font, ini.Get("general", "font", "data/NotoSans.ttf").c_str());
+		General.FontSize = ini.GetInteger("general", "fontsize", 18);
 		m_parseExt(ini.Get("general", "hlslext", "hlsl"), General.HLSLExtensions);
 		m_parseExt(ini.Get("general", "vkext", "vk"), General.VulkanGLSLExtensions);
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "data/inconsolata.ttf").c_str());
-		Editor.FontSize = ini.GetInteger("editor", "fontsize", 15);
+		Editor.FontSize = ini.GetInteger("editor", "fontsize", 17);
 		Editor.ShowWhitespace = ini.GetBoolean("editor", "whitespace", false);
 		Editor.HiglightCurrentLine = ini.GetBoolean("editor", "highlightline", true);
 		Editor.LineNumbers = ini.GetBoolean("editor", "linenumbers", true);
@@ -113,8 +113,8 @@ namespace ed
 
 		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
-		Preview.HideMenuInPerformanceMode = ini.GetBoolean("preview", "hidemenuperfmode", false);
-		Preview.BoundingBox = ini.GetBoolean("preview", "boundingbox", false);
+		Preview.HideMenuInPerformanceMode = ini.GetBoolean("preview", "hidemenuperfmode", true);
+		Preview.BoundingBox = ini.GetBoolean("preview", "boundingbox", true);
 		Preview.Gizmo = ini.GetBoolean("preview", "gizmo", true);
 		Preview.GizmoRotationUI = ini.GetBoolean("preview", "gizmorotaui", true);
 		Preview.GizmoSnapTranslation = ini.GetInteger("preview", "gizmosnaptrans", 0);
@@ -122,7 +122,7 @@ namespace ed
 		Preview.GizmoSnapRotation = ini.GetInteger("preview", "gizmosnaprota", 0);
 		Preview.GizmoSnapTranslation = ini.GetInteger("preview", "gizmosnaptrans", 0);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
-		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
+		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", false);
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
 		Preview.ApplyFPSLimitToApp = ini.GetBoolean("preview", "fpslimitwholeapp", false);
 		Preview.LostFocusLimitFPS = ini.GetBoolean("preview", "fpslimitlostfocus", false);

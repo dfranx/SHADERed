@@ -5,6 +5,7 @@ Release*
 .vs
 .vscode
 vNext.txt
+settings.ini
 examples/GLSLtest
 examples/test
 CMakeFiles
