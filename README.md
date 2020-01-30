@@ -3,8 +3,6 @@
 SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
 open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both OS) and frequently updated with new features.
 
-**[13.10.2019] Development slowed down due to me working on [ShaderDebugger](https://github.com/dfranx/ShaderDebugger)**
-
 <img src="./Screenshots/IMG2.png"/>
 
 ## Partners / Sponsors
