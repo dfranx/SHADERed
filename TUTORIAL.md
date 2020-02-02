@@ -16,12 +16,12 @@ After that, we can create a shader pass object. Do that by clicking on a `Projec
 A dialog window will ask you to enter this shader pass' name, paths to your shaders and a shader `entry`. Shader `entry` is just
 a name of the function in which your shader program starts.
 
-![](./Screenshots/tut1.jpg)
+![](./Misc/Screenshots/tut1.jpg)
 
 You can change those values later by right clicking on your shader pass and clicking on
 the `Properties` button. The shader pass will open in your property viewer window.
 
-![](./Screenshots/tut2.jpg)
+![](./Misc/Screenshots/tut2.jpg)
 
 Notice that we also have another option in the property viewer that we didn't have while
 creating the shader pass. That option is called "RT" (Render Texture). It allows binding multiple render
@@ -35,7 +35,7 @@ enter anything as the item name (there mustn't exist an item with the same name 
 There are plenty of geometry types that you can pick from. In this tutorial we will go with
 the cube. Leave the size at (1,1,1).
 
-![](./Screenshots/tut3.jpg)
+![](./Misc/Screenshots/tut3.jpg)
 
 Since SHADERed is still a fairly new program it may crash unexpectedly so you should
 probably save your project every now and then so that you don't lose your progress (it
@@ -112,7 +112,7 @@ set to `--NONE--` you can enter your own variable value.
 
 In this tutorial we will add two matrices: ViewProjection and GeometryTransform.
 
-![](./Screenshots/tut5.jpg)
+![](./Misc/Screenshots/tut5.jpg)
 
 ### Result
 After hitting CTRL+F5 you will see your result displayed in preview window.
@@ -122,7 +122,7 @@ mouse button pressed to rotate the camera around the origin. Or use your scroll 
 to move forward/backwards. Left click on an object to select it. Left click on an empty 
 part of a preview window (or use shortcut) to deselect an item.
 
-![](./Screenshots/tut6.jpg)
+![](./Misc/Screenshots/tut6.jpg)
 
 ### HLSL
 You don't have to do anything special to write HLSL shaders. They even work on Linux. Just make sure that your

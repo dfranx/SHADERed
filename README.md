@@ -182,7 +182,7 @@ Don't know how or where to start? Want to create your own shader or custom SHADE
 detailed steps on how to do so.
 
 ## Used by
-[<img width="250" src="./logo/arkaos.png">](https://www.arkaos.com/)
+[<img width="250" src="./Misc/Logo/arkaos.png">](https://www.arkaos.com/)
 
 ## Screenshots
 ![](./Screenshots/screen1.jpg)

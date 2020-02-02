@@ -2,7 +2,6 @@
 ## v1.3
  - shader debugger & pixel inspect tool
  - update third party libraries
- - move Screenshots directory into the Misc directory
 
 ## v1.3.*
  - texture properties (filtering, vflip, etc...)
