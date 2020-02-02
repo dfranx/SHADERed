@@ -3,7 +3,7 @@
 SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
 open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both OS) and frequently updated with new features.
 
-<img src="./Screenshots/IMG2.png"/>
+<img src="./Misc/Screenshots/IMG2.png"/>
 
 ## Partners / Sponsors
 ...
@@ -30,29 +30,29 @@ You are not limited to vertex and pixel shaders. SHADERed also has support for c
 shaders. To use GS enable it in your shader pass' properties and set the path to your shader. You can create advanced
 animations and effects using geometry shaders.
 <p align="center">
-    <img width="200" src="./Screenshots/geometryshader.gif">
+    <img width="200" src="./Misc/Screenshots/geometryshader.gif">
 </p>
 
 You can also add **compute pass**es alongside shader passes:
 <p align="center">
-    <img width="200" src="./Screenshots/computeshader.gif">
+    <img width="200" src="./Misc/Screenshots/computeshader.gif">
 </p>
 
 ### See changes instantly
 SHADERed offers different ways of recompiling your changed shaders. You can press
 F5 to manually recompile your shader, make it recompile shaders on file modify event (this also allows
 you to use external editors with ease) or make it recompile shaders every 200ms:
-<img src="./Screenshots/instantresult.gif">
+<img src="./Misc/Screenshots/instantresult.gif">
 
 Since the built-in text editor is buggy in the latest version, you can turn on
 the `"Recompile shader on file change"` and `"Open shaders in an external editor"` options.
 Open the shader files in an external editor & once you make changes to the file, SHADERed will instantly
 detect them and recompile your shaders:
-<img src="./Screenshots/detectfilechange.gif">
+<img src="./Misc/Screenshots/detectfilechange.gif">
 
 Want to see how a certain object affects your scene? Grab the object and scale, rotate and move it
 around the scene:
-<img src="./Screenshots/gizmo.gif">
+<img src="./Misc/Screenshots/gizmo.gif">
 
 ### Render states
 You can modify rasterizer, blend and depth-stencil states. Using these states you can: turn on wireframe mode,
@@ -66,31 +66,31 @@ full screen quads, etc...
 
 Load textures from files and bind them to your shader. SHADERed also supports cubemaps & 3D textures.
 <p align="center">
-    <img width="260" src="./Screenshots/texture.jpg">
+    <img width="260" src="./Misc/Screenshots/texture.jpg">
 </p>
 
 ### Render textures
 You can render your scene to custom render textures. You can bind multiple render textures
 to one shader pass. This helps with create G-Buffers and similar things more easily. 
 <p align="center">
-    <img width="220" src="./Screenshots/multiplert.jpg">
+    <img width="220" src="./Misc/Screenshots/multiplert.jpg">
 </p>
 
 ### Shader input variables
 You can create your own variables and edit their values in real time. SHADERed also comes with lots of built-in 'system' shader variables (elapsed time, window size, various
 view matrices, etc...).
-<img src="./Screenshots/varmanager.jpg">
+<img src="./Misc/Screenshots/varmanager.jpg">
 
 You can also change shader variable value only for a specific 3D object. No programming is required.
 <p align="center">
-    <img width="400" src="./Screenshots/itemvarvalue.gif">
+    <img width="400" src="./Misc/Screenshots/itemvarvalue.gif">
 </p>
 
 ### Zooming in & pausing
 Working on an antialiasing shader? You can zoom in and inspect edges of 3D objects.
 Hold ALT and select an area that you want to look at in more detail
 <p align="center">
-    <img width="400" src="./Screenshots/zoomin.gif"><br/>
+    <img width="400" src="./Misc/Screenshots/zoomin.gif"><br/>
     <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
 </p>
 
@@ -102,7 +102,7 @@ You can modify SHADERed workspace however you want to thanks to Omar Cornut's gr
 The built-in code editor has error markers. They help you locate and identify your shader errors more easily.
 Hover over a line with an error to see the message or just check it in the "Output" window.
 <p align="center">
-    <img width="370" src="./Screenshots/error.jpg">
+    <img width="370" src="./Misc/Screenshots/error.jpg">
 </p>
 
 **NOTE: You are not forced to use the built-in code editor** (and you probably shouldn't use it right now to avoid some
@@ -185,7 +185,7 @@ detailed steps on how to do so.
 [<img width="250" src="./Misc/Logo/arkaos.png">](https://www.arkaos.com/)
 
 ## Screenshots
-![](./Screenshots/screen1.jpg)
+![](./Misc/Screenshots/screen1.jpg)
     <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
 
 ![](https://user-images.githubusercontent.com/3957610/64245795-e54b0680-cf0b-11e9-8799-ea7ace785190.png)
