@@ -570,10 +570,12 @@ namespace ed
 			std::vector<bool> needsUpdate = ((CodeEditorUI*)Get(ViewID::Code))->TrackedNeedsUpdate();
 			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 			int ind = 0;
-			for (PipelineItem*& pass : passes) {
-				if (needsUpdate[ind])
-					m_data->Renderer.Recompile(pass->Name);
-				ind++;
+			if (needsUpdate.size() >= passes.size()) {
+				for (PipelineItem*& pass : passes) {
+					if (needsUpdate[ind])
+						m_data->Renderer.Recompile(pass->Name);
+					ind++;
+				}
 			}
 			((CodeEditorUI*)Get(ViewID::Code))->EmptyTrackedFiles();
 		}
