@@ -32,6 +32,7 @@ namespace ed
 		void Render(int width, int height);
 		inline void Render() { Render(m_lastSize.x, m_lastSize.y); }
 		void Recompile(const char* name);
+		void RecompileFile(const char* fname);
 		void RecompileFromSource(const char* name, const std::string& vs = "", const std::string& ps = "", const std::string& gs = "");
 		void Pick(float sx, float sy, bool multiPick, std::function<void(PipelineItem*)> func = nullptr);
 

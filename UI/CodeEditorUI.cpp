@@ -208,44 +208,33 @@ namespace ed
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {
 			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item->Data);
 
-			if (Settings::Instance().General.UseExternalEditor) {
-				std::string path = "";
-				if (sid == 0)
-					path = m_data->Parser.GetProjectPath(shader->VSPath);
-				else if (sid == 1)
-					path = m_data->Parser.GetProjectPath(shader->PSPath);
-				else if (sid == 2)
-					path = m_data->Parser.GetProjectPath(shader->GSPath);
+			std::string shaderPath = "";
+			if (sid == 0)
+				shaderPath = m_data->Parser.GetProjectPath(shader->VSPath);
+			else if (sid == 1)
+				shaderPath = m_data->Parser.GetProjectPath(shader->PSPath);
+			else if (sid == 2)
+				shaderPath = m_data->Parser.GetProjectPath(shader->GSPath);
 
+			if (Settings::Instance().General.UseExternalEditor) {
 				#if defined(__APPLE__)
-					system(("open " + path).c_str());
+					system(("open " + shaderPath).c_str());
 				#elif defined(__linux__) || defined(__unix__)
-					system(("xdg-open " + path).c_str());
+					system(("xdg-open " + shaderPath).c_str());
 				#elif defined(_WIN32)
-					ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+					ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
 				#endif
 
 				return;
 			}
 
 			// check if already opened
-			for (int i = 0; i < m_items.size(); i++) {
-				if (m_shaderTypeId[i] == sid) {
-					ed::pipe::ShaderPass* sData = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[i]->Data);
-					bool match = false;
-					if (sid == 0 && (strcmp(shader->VSPath, sData->VSPath) == 0 || strcmp(shader->VSPath, sData->PSPath) == 0 || strcmp(shader->VSPath, sData->GSPath) == 0))
-						match = true;
-					else if (sid == 1 && (strcmp(shader->PSPath, sData->VSPath) == 0 || strcmp(shader->PSPath, sData->PSPath) == 0 || strcmp(shader->PSPath, sData->GSPath) == 0))
-						match = true;
-					else if (sid == 2 && (strcmp(shader->GSPath, sData->VSPath) == 0 || strcmp(shader->GSPath, sData->PSPath) == 0 || strcmp(shader->GSPath, sData->GSPath) == 0))
-						match = true;
-
-					if (match) {
-						m_focusWindow = true;
-						m_focusSID = sid;
-						m_focusItem = m_items[i]->Name;
-						return;
-					}
+			for (int i = 0; i < m_paths.size(); i++) {
+				if (m_paths[i] == shaderPath) {
+					m_focusWindow = true;
+					m_focusSID = sid;
+					m_focusItem = m_items[i]->Name;
+					return;
 				}
 			}
 
@@ -271,67 +260,40 @@ namespace ed
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			m_loadEditorShortcuts(editor);
 
-			bool isHLSL = false;
-			if (sid == 0)
-				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::HLSL;
-			else if (sid == 1)
-				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::HLSL;
-			else if (sid == 2)
-				isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::HLSL;
+			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 			
 			m_shaderTypeId.push_back(sid);
 
-			std::string shaderContent = "";
-			if (sid == 0) {
-				shaderContent = m_data->Parser.LoadProjectFile(shader->VSPath);
-				m_paths.push_back(shader->VSPath);
-			}
-			else if (sid == 1) {
-				shaderContent = m_data->Parser.LoadProjectFile(shader->PSPath);
-				m_paths.push_back(shader->PSPath);
-			}
-			else if (sid == 2) {
-				shaderContent = m_data->Parser.LoadProjectFile(shader->GSPath);
-				m_paths.push_back(shader->GSPath);
-			}
+			std::string shaderContent = m_data->Parser.LoadProjectFile(shaderPath);
+			m_paths.push_back(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
 		else if (item->Type == PipelineItem::ItemType::ComputePass)
 		{
 			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(item->Data);
+			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
 
 			if (Settings::Instance().General.UseExternalEditor)
 			{
-				std::string path = m_data->Parser.GetProjectPath(shader->Path);
 #if defined(__APPLE__)
-				system(("open " + path).c_str());
+				system(("open " + shaderPath).c_str());
 #elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + path).c_str());
+				system(("xdg-open " + shaderPath).c_str());
 #elif defined(_WIN32)
-				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+				ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
 #endif
 				return;
 			}
 
 			// check if already opened
-			for (int i = 0; i < m_items.size(); i++)
-			{
-				if (m_shaderTypeId[i] == 3 && m_items[i]->Type == PipelineItem::ItemType::ComputePass)
-				{
-					ed::pipe::ComputePass *sData = reinterpret_cast<ed::pipe::ComputePass *>(m_items[i]->Data);
-					bool match = false;
-					if (sid == 3 && strcmp(shader->Path, sData->Path) == 0)
-						match = true;
-
-					if (match)
-					{
-						m_focusWindow = true;
-						m_focusSID = sid;
-						m_focusItem = m_items[i]->Name;
-						return;
-					}
+			for (int i = 0; i < m_paths.size(); i++) {
+				if (m_paths[i] == shaderPath) {
+					m_focusWindow = true;
+					m_focusSID = sid;
+					m_focusItem = m_items[i]->Name;
+					return;
 				}
 			}
 
@@ -371,37 +333,27 @@ namespace ed
 		else if (item->Type == PipelineItem::ItemType::AudioPass)
 		{
 			ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(item->Data);
+			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
 
 			if (Settings::Instance().General.UseExternalEditor)
 			{
-				std::string path = m_data->Parser.GetProjectPath(shader->Path);
 #if defined(__APPLE__)
-				system(("open " + path).c_str());
+				system(("open " + shaderPath).c_str());
 #elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + path).c_str());
+				system(("xdg-open " + shaderPath).c_str());
 #elif defined(_WIN32)
-				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+				ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
 #endif
 				return;
 			}
 
 			// check if already opened
-			for (int i = 0; i < m_items.size(); i++)
-			{
-				if (m_shaderTypeId[i] == 1 && m_items[i]->Type == PipelineItem::ItemType::AudioPass)
-				{
-					ed::pipe::AudioPass *sData = reinterpret_cast<ed::pipe::AudioPass *>(m_items[i]->Data);
-					bool match = false;
-					if (sid == 1 && strcmp(shader->Path, sData->Path) == 0)
-						match = true;
-
-					if (match)
-					{
-						m_focusWindow = true;
-						m_focusSID = sid;
-						m_focusItem = m_items[i]->Name;
-						return;
-					}
+			for (int i = 0; i < m_paths.size(); i++) {
+				if (m_paths[i] == shaderPath) {
+					m_focusWindow = true;
+					m_focusSID = sid;
+					m_focusItem = m_items[i]->Name;
+					return;
 				}
 			}
 
@@ -628,7 +580,31 @@ namespace ed
 		}
 
 		m_save(id);
-		m_data->Renderer.Recompile(m_items[id]->Name);
+
+		std::string shaderFile = "";
+		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
+			if (m_shaderTypeId[id] == 0)
+				shaderFile = shader->VSPath;
+			else if (m_shaderTypeId[id] == 1)
+				shaderFile = shader->PSPath;
+			else if (m_shaderTypeId[id] == 2)
+				shaderFile = shader->GSPath;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
+			shaderFile = shader->Path;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
+			shaderFile = shader->Path;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
+			shader->Owner->HandleRecompile(m_items[id]->Name);
+		}
+
+		m_data->Renderer.RecompileFile(shaderFile.c_str());
 	}
 	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
 	{
@@ -1310,7 +1286,7 @@ namespace ed
 	void CodeEditorUI::StatsPage::Render()
 	{
 		// TODO: reimplement this
-		ImGui::Text("This function doesn't work anymore after the switch to OpenGL.");
-		ImGui::Text("Might be reimplemented in future.");
+		ImGui::Text("This function currently isn't implemented.");
+		ImGui::Text("TODO");
 	}
 }

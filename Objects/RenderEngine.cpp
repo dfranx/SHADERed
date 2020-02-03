@@ -651,6 +651,31 @@ namespace ed
 
 		Render();
 	}
+	void RenderEngine::RecompileFile(const char* fname)
+	{
+		for (int i = 0; i < m_items.size(); i++) {
+			PipelineItem* item = m_items[i];
+			if (item->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+				if (strcmp(shader->VSPath, fname) == 0 ||
+					strcmp(shader->PSPath, fname) == 0 ||
+					strcmp(shader->GSPath, fname) == 0)
+				{
+					Recompile(item->Name);
+				}
+			}
+			else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+				pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
+				if (strcmp(shader->Path, fname) == 0)
+					Recompile(item->Name);
+			}
+			else if (item->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
+				if (strcmp(shader->Path, fname) == 0)
+					Recompile(item->Name);
+			}
+		}
+	}
 	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc)
 	{
 		m_msgs->BuildOccured = true;
