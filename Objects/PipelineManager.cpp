@@ -96,7 +96,12 @@ namespace ed
 			pipe::PluginItemData* pdata = (pipe::PluginItemData*)data; // TODO: memory leak here?
 			return AddPluginItem(const_cast<char*>(owner), name, pdata->Type, pdata->PluginData, pdata->Owner);
 		}
-		
+
+		if (Has(name)) {
+			Logger::Get().Log("Item " + std::string(name) + " not added - name already taken", true);
+			return false;
+		}
+
 		Logger::Get().Log("Adding a pipeline item " + std::string(name) + " to the project");
 
 		for (const auto& item : m_items)
