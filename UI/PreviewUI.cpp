@@ -548,6 +548,23 @@ namespace ed
 				cam->MoveLeftRight((ImGui::IsKeyDown(SDL_SCANCODE_D) - ImGui::IsKeyDown(SDL_SCANCODE_A)) / 70.0f);
 			}
 		}
+		else if (m_mouseHovers) // else if paused - pixel inspection
+		{
+			// handle left click - pixel selection
+			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
+				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
+				!ImGui::GetIO().KeyAlt)
+			{
+				// screen space position
+				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+
+				s.x *= imageSize.x;
+				s.y *= imageSize.y;
+
+				m_data->Renderer.DebugPixelPick(s.x, s.y);
+			}
+
+		}
 
 		// mouse wrapping
 		if (m_startWrap) {

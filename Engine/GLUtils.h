@@ -23,7 +23,8 @@ namespace ed
 
 		GLuint CompileShader(GLenum type, const GLchar* str);
 		bool CheckShaderCompilationStatus(GLuint shader, GLchar* msg);
-
+		bool CheckShaderLinkStatus(GLuint shader, GLchar* msg);
+		
 		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias = 0);
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
 

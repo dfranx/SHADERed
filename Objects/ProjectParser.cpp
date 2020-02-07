@@ -4,6 +4,7 @@
 #include "PipelineManager.h"
 #include "PipelineItem.h"
 #include "CameraSnapshots.h"
+#include "DebugInformation.h"
 #include "SystemVariableManager.h"
 #include "FunctionVariableManager.h"
 #include "ShaderTranscompiler.h"
@@ -57,10 +58,9 @@ namespace ed
 		return proj + "_" + shaderpass + stage + "." + ext; // eg: project_SimpleVS.glsl
 	}
 
-	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins)
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, DebugInformation* debugger, GUIManager* gui) :
+		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins), m_debug(debugger)
 	{
-
 		ResetProjectDirectory();
 		m_ui = gui;
 	}
@@ -184,6 +184,7 @@ namespace ed
 		SetProjectDirectory(file.substr(0, file.find_last_of("/\\")));
 
 		m_msgs->Clear();
+		m_debug->ClearPixelList();
 
 		for (auto& mdl : m_models) {
 			if (mdl.second) {

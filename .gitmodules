@@ -16,3 +16,6 @@
 	path = libs/glslang
 	url = https://github.com/KhronosGroup/glslang
 	ignore = dirty
+[submodule "libs/ShaderDebugger"]
+	path = libs/ShaderDebugger
+	url = https://github.com/dfranx/ShaderDebugger.git

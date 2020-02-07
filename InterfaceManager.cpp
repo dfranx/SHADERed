@@ -5,13 +5,12 @@
 namespace ed
 {
 	InterfaceManager::InterfaceManager(GUIManager* gui) :
-		Renderer(&Pipeline, &Objects, &Parser, &Messages, &Plugins),
+		Renderer(&Pipeline, &Objects, &Parser, &Messages, &Plugins, &Debugger),
 		Pipeline(&Parser),
 		Objects(&Parser, &Renderer),
-		Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, gui)
+		Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui)
 	{
 		m_ui = gui;
-
 	}
 	InterfaceManager::~InterfaceManager()
 	{

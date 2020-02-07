@@ -22,6 +22,7 @@ set(SOURCES
 	Objects/AudioShaderStream.cpp
 	Objects/CameraSnapshots.cpp
 	Objects/DefaultState.cpp
+	Objects/DebugInformation.cpp
 	Objects/FirstPersonCamera.cpp
 	Objects/FunctionVariableManager.cpp
 	Objects/GizmoObject.cpp
@@ -54,6 +55,7 @@ set(SOURCES
 	UI/OptionsUI.cpp
 	UI/PinnedUI.cpp
 	UI/PipelineUI.cpp
+	UI/PixelInspectUI.cpp
 	UI/PreviewUI.cpp
 	UI/PropertyUI.cpp
 	UI/VariableValueEdit.cpp
@@ -141,6 +143,9 @@ set(ENABLE_GLSLANG_BINARIES OFF)
 set(ENABLE_SPVREMAPPER OFF)
 add_subdirectory(libs/glslang)
 
+# ShaderDebugger
+add_subdirectory(libs/ShaderDebugger)
+
 # create executable
 add_executable(SHADERed ${SOURCES})
 
@@ -152,13 +157,13 @@ set_target_properties(SHADERed PROPERTIES
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE inc libs libs/glslang)
+target_include_directories(SHADERed PRIVATE inc libs libs/glslang libs/ShaderDebugger/inc)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${ASSIMP_LIBRARIES} glslang SPIRV)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${ASSIMP_LIBRARIES} glslang SPIRV ShaderDebugger)
 
 # link sfml
 if(${USE_FINDSFML})

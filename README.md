@@ -5,11 +5,6 @@ open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both
 
 <img src="./Misc/Screenshots/IMG2.png"/>
 
-## Partners / Sponsors
-...
-
-Contact: **dfranx00 at gmail dot com**
-
 ## Supporters
 **Silver supporter(s):**
 [Hugo Locurcio](https://github.com/Calinou)

@@ -15,15 +15,42 @@
 #include <glm/gtx/intersect.hpp>
 
 static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
+static const char* PixelDebugShaderCode = R"(
+#version 330
+
+uniform vec3 _sed_dbg_pixel_color;
+out vec4 outColor;
+
+void main()
+{
+	outColor = vec4(_sed_dbg_pixel_color, 1.0f);
+}
+)";
+static const char* PixelDebugVertexShaderCode = R"(
+#version 330
+
+flat in int _sed_dbg_vertexID;
+out vec4 outColor;
+
+void main()
+{
+	float r = (_sed_dbg_vertexID & 0xFF) / 255.0f;
+	float g = ((_sed_dbg_vertexID >> 8)  & 0xFF) / 255.0f;
+	float b = ((_sed_dbg_vertexID >> 16) & 0xFF) / 255.0f;
+
+	outColor = vec4(r, g, b, 1.0f);
+}
+)";
 
 namespace ed
 {
-	RenderEngine::RenderEngine(PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins) :
+	RenderEngine::RenderEngine(PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins, DebugInformation* debugger) :
 		m_pipeline(pipeline),
 		m_objects(objects),
 		m_project(project),
 		m_msgs(msgs),
 		m_plugins(plugins),
+		m_debug(debugger),
 		m_lastSize(0, 0),
 		m_pickAwaiting(false),
 		m_rtColor(0),
@@ -38,6 +65,17 @@ namespace ed
 		glGenTextures(1, &m_rtDepth);
 		glGenTextures(1, &m_rtColorMS);
 		glGenTextures(1, &m_rtDepthMS);
+
+		GLchar msg[1024];
+		m_debugPixelShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugShaderCode);
+		bool psCompiled = gl::CheckShaderCompilationStatus(m_debugPixelShader, msg);
+		if (!psCompiled)
+			Logger::Get().Log("Failed to compile the pixel shader for debugging.", true);
+
+		m_debugVertexPickShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugVertexShaderCode);
+		psCompiled = gl::CheckShaderCompilationStatus(m_debugVertexPickShader, msg);
+		if (!psCompiled)
+			Logger::Get().Log("Failed to compile the pixel shader for vertex picking.", true);
 	}
 	RenderEngine::~RenderEngine()
 	{
@@ -45,11 +83,13 @@ namespace ed
 		glDeleteTextures(1, &m_rtDepth);
 		glDeleteTextures(1, &m_rtColorMS);
 		glDeleteTextures(1, &m_rtDepthMS);
+		glDeleteShader(m_debugPixelShader);
+		glDeleteShader(m_debugVertexPickShader);
 		FlushCache();
 	}
-	void RenderEngine::Render(int width, int height)
+	void RenderEngine::Render(int width, int height, bool isDebug)
 	{
-		bool isMSAA = Settings::Instance().Preview.MSAA != 1;
+		bool isMSAA = (Settings::Instance().Preview.MSAA != 1) && isDebug;
 
 		if (isMSAA)
 			glEnable(GL_MULTISAMPLE);
@@ -97,6 +137,7 @@ namespace ed
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
 		bool clearedWindow = false;
+		int debugID = 1;
 
 		m_plugins->BeginRender();
 
@@ -106,14 +147,11 @@ namespace ed
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-				if (!data->Active || data->Items.size() <= 0)
+				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0)
 					continue;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
 				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
-
-				if (data->RTCount == 0)
-					continue;
 
 				// create/update fbo if necessary
 				m_updatePassFBO(data);
@@ -159,11 +197,11 @@ namespace ed
 								break;
 							}
 						if (!usedPreviously && rtObject->Clear)
-							glClearBufferfv(GL_COLOR, i, glm::value_ptr(rtObject->ClearColor));
+							glClearBufferfv(GL_COLOR, i, isDebug ? glm::value_ptr(glm::vec4(0.0f)) : glm::value_ptr(rtObject->ClearColor));
 
 					}
 					else if (!clearedWindow) {
-						glClearBufferfv(GL_COLOR, i, glm::value_ptr(Settings::Instance().Project.ClearColor));
+						glClearBufferfv(GL_COLOR, i, isDebug ? glm::value_ptr(glm::vec4(0.0f)) : glm::value_ptr(Settings::Instance().Project.ClearColor));
 
 						clearedWindow = true;
 					}
@@ -176,7 +214,12 @@ namespace ed
 				glViewport(0, 0, rtSize.x, rtSize.y);
 
 				// bind shaders
-				glUseProgram(m_shaders[i]);
+
+				if (isDebug) {
+					data->Variables.UpdateUniformInfo(m_debugShaders[i]);
+					glUseProgram(m_debugShaders[i]);
+				} else
+					glUseProgram(m_shaders[i]);
 
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++) {
@@ -218,6 +261,14 @@ namespace ed
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
 								itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+
+						if (isDebug) {
+							float r = (debugID & 0x000000FF) / 255.0f;
+							float g = ((debugID & 0x0000FF00) >> 8) / 255.0f;
+							float b = ((debugID & 0x00FF0000) >> 16) / 255.0f;
+							glUniform3f(glGetUniformLocation(m_debugShaders[i], "_sed_dbg_pixel_color"), r, g, b);
+							debugID++;
+						}
 					}
 
 					if (item->Type == PipelineItem::ItemType::Geometry) {
@@ -325,6 +376,9 @@ namespace ed
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 
 				}
+
+				if (isDebug)
+					data->Variables.UpdateUniformInfo(m_shaders[i]); // return old variable data
 
 				if (isMSAA) {
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboMS[data]);
@@ -455,6 +509,297 @@ namespace ed
 		if (isMSAA)
 			glDisable(GL_MULTISAMPLE);
 	}
+	void RenderEngine::DebugPixelPick(int x, int y)
+	{
+		m_debug->ClearPixelList();
+
+		float rx = x / (float)m_lastSize.x;
+		float ry = y / (float)m_lastSize.y;
+
+		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
+
+		std::unordered_map<GLuint, glm::vec4> pixelColors;
+
+		// window pixel color
+		glBindTexture(GL_TEXTURE_2D, m_rtColor);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
+		pixelColors[m_rtColor] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
+
+		// rt pixel colors
+		const std::vector<ObjectManagerItem*>& objs = m_objects->GetItemDataList();
+		for (int i = 0; i < objs.size(); i++) {
+			if (objs[i]->RT != nullptr) {
+				GLuint tex = objs[i]->Texture;
+				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
+
+				uint8_t* pixelData = new uint8_t[rtSize.x * rtSize.y * 4]; // TODO: optimizations can be applied here, lazy rn.. (v1.3.*)
+
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				pxData = &pixelData[((int)(rx * rtSize.x) + (int)(ry * rtSize.y) * rtSize.x) * 4];
+
+				pixelColors[tex] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
+
+				delete[] pixelData;
+			}
+		}
+
+		// render in debug mode
+		Render(true);
+
+		// window item id
+		glBindTexture(GL_TEXTURE_2D, m_rtColor);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		pxData = &mainPixelData[(x + m_lastSize.x * y) * 4];
+		int id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+		if (id != 0) {
+			std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
+
+			PixelInformation dpxInfo;
+			dpxInfo.Color = pixelColors[m_rtColor];
+			dpxInfo.RenderTexture = "Window";
+			dpxInfo.Fetched = false;
+			dpxInfo.Object = itemData.second;
+			dpxInfo.Owner = itemData.first;
+			dpxInfo.Coordinate = glm::ivec2(x, y);
+
+			m_debug->AddPixel(dpxInfo);
+		}
+
+		// rt item id
+		for (int i = 0; i < objs.size(); i++) {
+			if (objs[i]->RT != nullptr) {
+				GLuint tex = objs[i]->Texture;
+				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
+
+				uint8_t* pixelData = new uint8_t[rtSize.x * rtSize.y * 4]; // TODO: optimizations can be applied here, lazy rn.. (v1.3.*)
+
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				pxData = &pixelData[((int)(rx * rtSize.x) + (int)(ry * rtSize.y) * rtSize.x) * 4];
+				id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+				if (id != 0) {
+					std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
+
+					PixelInformation dpxInfo;
+					dpxInfo.Color = pixelColors[tex];
+					dpxInfo.RenderTexture = objs[i]->RT->Name;
+					dpxInfo.Fetched = false;
+					dpxInfo.Object = itemData.second;
+					dpxInfo.Owner = itemData.first;
+					dpxInfo.Coordinate = glm::ivec2(rx * rtSize.x, ry * rtSize.y);
+
+					m_debug->AddPixel(dpxInfo);
+				}
+
+				delete[] pixelData;
+			}
+		}
+
+		// return the actual RT that was shown before
+		Render();
+
+		delete[] mainPixelData;
+	}
+	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, int x, int y)
+	{
+		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
+		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
+		std::string vsCode = "";
+
+		// vertex shader
+		int lineBias = 0;
+		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
+			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
+			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
+			m_applyMacros(vsCode, vertexPass);
+		}
+		else // HLSL / VK
+			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
+
+		// modify user's vertex shader
+		// TODO: the following code is hacky (for example, it wont work if you have a commented out main())
+		// TODO: wait for ShaderParser
+		size_t mainPos = vsCode.find("main(");
+		while (mainPos != std::string::npos && !isspace(vsCode[mainPos - 1]))
+			mainPos = vsCode.find("main(", mainPos + 1);
+		if (mainPos != std::string::npos && isspace(vsCode[mainPos - 1])) {
+			size_t bracketPos = vsCode.find('{', mainPos);
+			if (bracketPos != std::string::npos)
+				vsCode.insert(bracketPos+1, "\n_sed_dbg_vertexID = gl_VertexID;\n");
+		}
+		size_t versionPos = vsCode.find("#version");
+		if (versionPos != std::string::npos) {
+			size_t newLinePos = vsCode.find('\n', versionPos);
+			if (newLinePos != std::string::npos)
+				vsCode.insert(newLinePos, "\nflat out int _sed_dbg_vertexID;\n");
+		}
+
+		GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsCode.c_str());
+
+		char cmsg[1024] = { 0 };
+		bool state = gl::CheckShaderCompilationStatus(vs, cmsg);
+
+		GLuint customProgram = glCreateProgram();
+		glAttachShader(customProgram, vs);
+		glAttachShader(customProgram, m_debugVertexPickShader);
+		glLinkProgram(customProgram);
+
+		state = gl::CheckShaderLinkStatus(customProgram, cmsg);
+
+
+		// get resources
+		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
+		const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
+
+		// item variable values
+		auto& itemVarValues = GetItemVariableValues();
+
+		// bind fbo and buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
+		glDrawBuffers(vertexPass->RTCount, fboBuffers);
+				
+		glStencilMask(0xFFFFFFFF);
+		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+
+		// bind RTs
+		int rtCount = MAX_RENDER_TEXTURES;
+		glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
+		for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+			if (vertexPass->RenderTextures[i] == 0) {
+				rtCount = i;
+				break;
+			}
+
+			GLuint rt = vertexPass->RenderTextures[i];
+
+			if (rt != m_rtColor) {
+				ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+				rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
+			}
+
+			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
+		}
+
+		// update viewport value
+		glViewport(0, 0, rtSize.x, rtSize.y);
+
+		// bind shaders
+		glUseProgram(customProgram);
+
+		// bind shader resource views
+		for (int j = 0; j < srvs.size(); j++) {
+			glActiveTexture(GL_TEXTURE0 + j);
+			if (m_objects->IsCubeMap(srvs[j]))
+				glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+			else if (m_objects->IsImage3D(srvs[j]))
+				glBindTexture(GL_TEXTURE_3D, srvs[j]);
+			else if (m_objects->IsPluginObject(srvs[j])) {
+				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+			}
+			else
+				glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+				vertexPass->Variables.UpdateTexture(customProgram, j);
+		}
+		for (int j = 0; j < ubos.size(); j++)
+			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
+
+		// bind default states for each shader pass
+		DefaultState::Bind();
+		SystemVariableManager& systemVM = SystemVariableManager::Instance();
+
+		// render pipeline items
+		for (int j = 0; j < vertexPass->Items.size(); j++) {
+			PipelineItem* item = vertexPass->Items[j];
+
+			// update the value for this element and check if we picked it
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+				if (item != vertexItem)
+					continue;
+				for (int k = 0; k < itemVarValues.size(); k++)
+					if (itemVarValues[k].Item == item)
+						itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+			}
+
+			if (item->Type == PipelineItem::ItemType::Geometry) {
+				pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+
+				if (geoData->Type == pipe::GeometryItem::Rectangle) {
+					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
+					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
+					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+				}
+				else
+					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+
+				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+				// bind variables
+				vertexPass->Variables.Bind(item);
+
+				glBindVertexArray(geoData->VAO);
+				if (geoData->Instanced)
+					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
+				else
+					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+			}
+			else if (item->Type == PipelineItem::ItemType::Model) {
+				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+
+				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+				systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+
+				// bind variables
+				vertexPass->Variables.Bind(item);
+
+				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+			}
+			else if (item->Type == PipelineItem::ItemType::RenderState) {
+				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
+
+				// culling and front face (only thing we care about when picking a vertex, i think)
+				if (state->CullFace)
+					glEnable(GL_CULL_FACE);
+				else
+					glDisable(GL_CULL_FACE);
+				glCullFace(state->CullFaceType);
+				glFrontFace(state->FrontFace);
+			}
+
+			// set the old value back
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+				for (int k = 0; k < itemVarValues.size(); k++)
+					if (itemVarValues[k].Item == item)
+						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+		}
+
+		// window pixel color
+		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
+		int vertexID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+
+
+		// return the actual RT that was shown before
+		Render();
+
+		glDeleteProgram(customProgram);
+		glDeleteShader(vs);
+		delete[] mainPixelData;
+
+		return vertexID;
+	}
 	void RenderEngine::Pause(bool pause)
 	{
 		m_paused = pause;
@@ -463,6 +808,8 @@ namespace ed
 			SystemVariableManager::Instance().GetTimeClock().Pause();
 		else 
 			SystemVariableManager::Instance().GetTimeClock().Resume();
+
+		m_debug->ClearPixelList();
 	}
 	void RenderEngine::Recompile(const char * name)
 	{
@@ -987,6 +1334,35 @@ namespace ed
 			}
 		}
 	}
+	std::pair<PipelineItem*, PipelineItem*> RenderEngine::GetPipelineItemByID(int id)
+	{
+		int debugID = 1;
+		for (int i = 0; i < m_items.size(); i++) {
+			PipelineItem* it = m_items[i];
+
+			if (it->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
+
+				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0 || m_shaders[i] == 0)
+					continue;
+
+				// render pipeline items
+				for (int j = 0; j < data->Items.size(); j++) {
+					PipelineItem* item = data->Items[j];
+
+					// update the value for this element and check if we picked it
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+						if (debugID == id)
+							return std::make_pair(it, item);
+
+						debugID++;
+					}
+				}
+			}
+		}
+
+		return std::make_pair(nullptr, nullptr);
+	}
 	void RenderEngine::FlushCache()
 	{
 		for (int i = 0; i < m_shaders.size(); i++) {
@@ -1043,6 +1419,7 @@ namespace ed
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_debugShaders.insert(m_debugShaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 
 					if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
@@ -1133,11 +1510,13 @@ namespace ed
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
+					if (m_debugShaders[i] != 0)
+						glDeleteProgram(m_debugShaders[i]);
+
 					if (!vsCompiled || !psCompiled || !gsCompiled) {
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 						m_shaders[i] = 0;
-					}
-					else {
+					} else {
 						m_msgs->ClearGroup(items[i]->Name);
 
 						m_shaders[i] = glCreateProgram();
@@ -1145,6 +1524,11 @@ namespace ed
 						glAttachShader(m_shaders[i], ps);
 						if (data->GSUsed) glAttachShader(m_shaders[i], gs);
 						glLinkProgram(m_shaders[i]);
+
+						m_debugShaders[i] = glCreateProgram();
+						glAttachShader(m_debugShaders[i], m_debugPixelShader);
+						glAttachShader(m_debugShaders[i], vs);
+						glLinkProgram(m_debugShaders[i]);
 					}
 
 					if (m_shaders[i] != 0)
@@ -1261,6 +1645,7 @@ namespace ed
 
 			if (!found) {
 				glDeleteProgram(m_shaders[i]);
+				glDeleteProgram(m_debugShaders[i]);
 
 				Logger::Get().Log("Removing an item from cache");
 
@@ -1269,6 +1654,7 @@ namespace ed
 				
 				m_items.erase(m_items.begin() + i);
 				m_shaders.erase(m_shaders.begin() + i);
+				m_debugShaders.erase(m_debugShaders.begin() + i);
 				m_shaderSources.erase(m_shaderSources.begin() + i);
 			}
 		}
@@ -1288,10 +1674,15 @@ namespace ed
 						m_items.insert(m_items.begin() + dest, items[j]);
 
 						GLuint sCopy = m_shaders[i];
+						GLuint sdbgCopy = m_debugShaders[i];
 						ShaderPack ssrcCopy = m_shaderSources[i];
 						
 						m_shaders.erase(m_shaders.begin() + i);
 						m_shaders.insert(m_shaders.begin() + dest, sCopy);
+
+						m_debugShaders.erase(m_debugShaders.begin() + i);
+						m_debugShaders.insert(m_debugShaders.begin() + dest, sdbgCopy);
+
 						m_shaderSources.erase(m_shaderSources.begin() + i);
 						m_shaderSources.insert(m_shaderSources.begin() + dest, ssrcCopy);
 					}
@@ -1299,7 +1690,7 @@ namespace ed
 			}
 		}
 	}
-	void RenderEngine::m_applyMacros(std::string &src, pipe::ShaderPass *pass)
+	void RenderEngine::m_applyMacros(std::string  &src, pipe::ShaderPass *pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
@@ -1316,7 +1707,7 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_applyMacros(std::string &src, pipe::ComputePass *pass)
+	void RenderEngine::m_applyMacros(std::string  &src, pipe::ComputePass *pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
@@ -1333,7 +1724,7 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_applyMacros(std::string &src, pipe::AudioPass *pass)
+	void RenderEngine::m_applyMacros(std::string  &src, pipe::AudioPass *pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
@@ -1350,7 +1741,7 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack, int& lineBias)
+	void RenderEngine::m_includeCheck(std::string &src, std::vector<std::string> includeStack, int& lineBias)
 	{
 		size_t incLoc = src.find("#include");
 		Settings& settings = Settings::Instance();

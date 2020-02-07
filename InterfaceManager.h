@@ -1,5 +1,6 @@
 #pragma once
 #include "Objects/PluginAPI/PluginManager.h"
+#include "Objects/DebugInformation.h"
 #include "Objects/PipelineManager.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/ProjectParser.h"
@@ -26,6 +27,7 @@ namespace ed
 		ObjectManager Objects;
 		ProjectParser Parser;
 		MessageStack Messages;
+		DebugInformation Debugger;
 
 	private:
 		GUIManager* m_ui;

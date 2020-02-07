@@ -23,13 +23,14 @@ namespace ed
 	class ObjectManager;
 	class PluginManager;
 	class InputLayoutItem;
+	class DebugInformation;
 	struct PipelineItem;
 	namespace pipe { struct ShaderPass; struct GeometryItem; struct Model; }
 
 	class ProjectParser
 	{
 	public:
-		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, PluginManager* plugins, MessageStack* msgs, GUIManager* gui);
+		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, PluginManager* plugins, MessageStack* msgs, DebugInformation* debugger, GUIManager* gui);
 		~ProjectParser();
 
 		void Open(const std::string& file);
@@ -85,6 +86,7 @@ namespace ed
 		PluginManager* m_plugins;
 		RenderEngine* m_renderer;
 		MessageStack* m_msgs;
+		DebugInformation* m_debug;
 		std::string m_file;
 		std::string m_projectPath;
 		std::string m_template;

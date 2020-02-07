@@ -69,6 +69,14 @@ namespace ed
 				glGetShaderInfoLog(shader, 1024, NULL, msg);
 			return (bool)ret;
 		}
+		bool CheckShaderLinkStatus(GLuint shader, GLchar* msg)
+		{
+			GLint ret = 0;
+			glGetProgramiv(shader, GL_LINK_STATUS, &ret);
+			if (!ret)
+				glGetProgramInfoLog(shader, 1024, NULL, msg);
+			return (bool)ret;
+		}
 
 		void CreateVAO(GLuint &geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem> &ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{

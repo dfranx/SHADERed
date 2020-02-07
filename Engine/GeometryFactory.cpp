@@ -233,7 +233,7 @@ namespace ed
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, 36 * 18 * sizeof(GLfloat), cubeData, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, 36 * 18 * sizeof(GLfloat), cubeData, GL_STATIC_DRAW | GL_STATIC_READ);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 			GLuint vao = 0;

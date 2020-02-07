@@ -1,5 +1,6 @@
 #pragma once
 #include "PipelineManager.h"
+#include "DebugInformation.h"
 #include "ProjectParser.h"
 #include "MessageStack.h"
 #include "PluginAPI/PluginManager.h"
@@ -26,11 +27,14 @@ namespace ed
 	class RenderEngine
 	{
 	public:
-		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins);
+		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins, DebugInformation* debugger);
 		~RenderEngine();
 
-		void Render(int width, int height);
-		inline void Render() { Render(m_lastSize.x, m_lastSize.y); }
+		void DebugPixelPick(int x, int y);
+		int DebugVertexPick(PipelineItem* pass, PipelineItem* item, int x, int y);
+
+		void Render(int width, int height, bool isDebug = false);
+		inline void Render(bool isDebug = false) { Render(m_lastSize.x, m_lastSize.y, isDebug); }
 		void Recompile(const char* name);
 		void RecompileFile(const char* fname);
 		void RecompileFromSource(const char* name, const std::string& vs = "", const std::string& ps = "", const std::string& gs = "");
@@ -38,6 +42,8 @@ namespace ed
 
 		void FlushCache();
 		void AddPickedItem(PipelineItem* pipe, bool multiPick = false);
+
+		std::pair<PipelineItem*, PipelineItem*> GetPipelineItemByID(int id); // get pipeline item by it's debug id
 
 		inline void AllowComputeShaders(bool cs) { m_computeSupported = cs; }
 
@@ -88,6 +94,7 @@ namespace ed
 		ProjectParser* m_project;
 		MessageStack* m_msgs;
 		PluginManager* m_plugins;
+		DebugInformation* m_debug;
 
 		// are compute shaders supported?
 		bool m_computeSupported;
@@ -121,12 +128,14 @@ namespace ed
 		// cache
 		std::vector<PipelineItem*> m_items;
 		std::vector<GLuint> m_shaders;
+		std::vector<GLuint> m_debugShaders;
 		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
 		std::map<pipe::ShaderPass*, GLuint> m_fboMS; // multisampled fbo's
 		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
 		struct ShaderPack {ShaderPack() {VS=GS=PS=0;} GLuint VS, PS, GS;};
 		std::vector<ShaderPack> m_shaderSources;
 
+		GLuint m_debugPixelShader, m_debugVertexPickShader;
 
 		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 

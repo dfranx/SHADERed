@@ -9,6 +9,7 @@
 #include "UI/CodeEditorUI.h"
 #include "UI/ObjectListUI.h"
 #include "UI/MessageOutputUI.h"
+#include "UI/PixelInspectUI.h"
 #include "UI/PipelineUI.h"
 #include "UI/PropertyUI.h"
 #include "UI/PreviewUI.h"
@@ -137,6 +138,7 @@ namespace ed
 		m_views.push_back(new ObjectListUI(this, objects, "Objects"));
 		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
+		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
 
 		KeyboardShortcuts::Instance().Load();
 		m_setupShortcuts();
@@ -1422,7 +1424,6 @@ namespace ed
 					if (sizeMulti != 1)
 						outPixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
 					else outPixels = pixels;
-
 
 
 					GLuint tex = m_data->Renderer.GetTexture();
