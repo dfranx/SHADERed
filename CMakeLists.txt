@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(SHADERed)
 
+# ShaderDebugger
+add_subdirectory(libs/ShaderDebugger)
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
@@ -142,9 +145,6 @@ find_package(SFML COMPONENTS system audio network)
 set(ENABLE_GLSLANG_BINARIES OFF)
 set(ENABLE_SPVREMAPPER OFF)
 add_subdirectory(libs/glslang)
-
-# ShaderDebugger
-add_subdirectory(libs/ShaderDebugger)
 
 # create executable
 add_executable(SHADERed ${SOURCES})

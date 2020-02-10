@@ -1,6 +1,7 @@
 #include "PixelInspectUI.h"
 #include "../Objects/DebugInformation.h"
 #include "../Objects/Settings.h"
+#include "../Objects/ShaderTranscompiler.h"
 #include "Icons.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -11,6 +12,15 @@
 
 namespace ed
 {
+	void copyFloatData(eng::Model::Mesh::Vertex& out, GLfloat* bufData)
+	{
+		out.Position = glm::vec3(bufData[0], bufData[1], bufData[2]);
+		out.Normal = glm::vec3(bufData[3], bufData[4], bufData[5]);
+		out.TexCoords = glm::vec2(bufData[6], bufData[7]);
+		out.Tangent = glm::vec3(bufData[8], bufData[9], bufData[10]);
+		out.Binormal = glm::vec3(bufData[11], bufData[12], bufData[13]);
+		out.Color = glm::vec4(bufData[14], bufData[15], bufData[16], bufData[17]);
+	}
 	void PixelInspectUI::OnEvent(const SDL_Event& e)
 	{
 	}
@@ -34,10 +44,12 @@ namespace ed
 			if (!pixel.Fetched) {
 				if (ImGui::Button(("Fetch##pixel_fetch_" + std::to_string(pxId)).c_str(), ImVec2(-1, 0))) {
 					int vertID = m_data->Renderer.DebugVertexPick(pixel.Owner, pixel.Object, pixel.Coordinate.x, pixel.Coordinate.y);
-					
+
+					pixel.VertexID = vertID;
+
+					// getting the vertices
 					// TODO: lines, points, etc...
 					int vertCount = 3;
-
 					if (pixel.Object->Type == PipelineItem::ItemType::Geometry) {
 						pipe::GeometryItem::GeometryType geoType = ((pipe::GeometryItem*)pixel.Object->Data)->Type;
 						GLuint vbo = ((pipe::GeometryItem*)pixel.Object->Data)->VBO;
@@ -48,31 +60,50 @@ namespace ed
 							GLfloat bufData[4 * 4] = { 0.0f };
 							glGetBufferSubData(GL_ARRAY_BUFFER, 0, 4 * 4 * sizeof(float), &bufData[0]);
 
-							pixel.Vertex[0] = glm::vec3(bufData[0], bufData[1], 0.0f);
-							pixel.Vertex[1] = glm::vec3(bufData[2], bufData[3], 0.0f);
-							pixel.Vertex[2] = glm::vec3(0,0,0);
+							// TODO: change this *PLACEHOLDER*
+							pixel.Vertex[0].Position = glm::vec3(bufData[0], bufData[1], 0.0f);
+							pixel.Vertex[1].Position = glm::vec3(bufData[4], bufData[5], 0.0f);
+							pixel.Vertex[2].Position = glm::vec3(0,0,0);
 							pixel.VertexCount = vertCount;
 						} else {
 							GLfloat bufData[3 * 18] = { 0.0f };
 							int vertStart = ((int)(vertID / vertCount)) * vertCount;
 							glGetBufferSubData(GL_ARRAY_BUFFER, vertStart * 18 * sizeof(float), vertCount * 18 * sizeof(float), &bufData[0]);
 
-							pixel.Vertex[0] = glm::vec3(bufData[0], bufData[1], bufData[2]);
-							pixel.Vertex[1] = glm::vec3(bufData[18], bufData[19], bufData[20]);
-							pixel.Vertex[2] = glm::vec3(bufData[36], bufData[37], bufData[38]);
+							copyFloatData(pixel.Vertex[0], &bufData[0]);
+							copyFloatData(pixel.Vertex[1], &bufData[18]);
+							copyFloatData(pixel.Vertex[2], &bufData[36]);
+
 							pixel.VertexCount = vertCount;
 						}
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
-					} else {
+					}
+					else {
 						int vertStart = ((int)(vertID / vertCount)) * vertCount;
 
+						// TODO: mesh id??
 						pipe::Model* mdl = ((pipe::Model*)pixel.Object->Data);
-						pixel.Vertex[0] = mdl->Data->Meshes[0].Vertices[vertStart+0].Position;
-						pixel.Vertex[1] = mdl->Data->Meshes[0].Vertices[vertStart+1].Position;
-						pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart+2].Position;
+						pixel.Vertex[0] = mdl->Data->Meshes[0].Vertices[vertStart+0];
+						pixel.Vertex[1] = mdl->Data->Meshes[0].Vertices[vertStart+1];
+						pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart+2];
 					}
 
-					pixel.Fetched = true;
+					// getting the debugger's vs output
+					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
+					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
+					std::string vsSrc = m_data->Parser.LoadProjectFile(pass->VSPath);
+					bool vsCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Vertex, lang == ed::ShaderLanguage::GLSL ? "main" : pass->VSEntry, vsSrc);
+					if (vsCompiled) {
+						for (int i = 0; i < vertCount; i++) {
+							m_data->Debugger.InitEngine(pixel, i);
+							m_data->Debugger.Fetch(i); // run the shader
+						}
+					}
+
+					// TODO: pixel shader
+					bool psCompiled = true;
+
+					pixel.Fetched = vsCompiled && psCompiled;
 				}
 			}
 
@@ -87,13 +118,13 @@ namespace ed
 				ImGui::PopItemWidth();
 
 				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
-				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].x, pixel.Vertex[0].y, pixel.Vertex[0].z);
+				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].Position.x, pixel.Vertex[0].Position.y, pixel.Vertex[0].Position.z);
 
 				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
-				ImGui::Text("Vertex[1] = (%.2f, %.2f, %.2f)", pixel.Vertex[1].x, pixel.Vertex[1].y, pixel.Vertex[1].z);
+				ImGui::Text("Vertex[1] = (%.2f, %.2f, %.2f)", pixel.Vertex[1].Position.x, pixel.Vertex[1].Position.y, pixel.Vertex[1].Position.z);
 
 				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
-				ImGui::Text("Vertex[2] = (%.2f, %.2f, %.2f)", pixel.Vertex[2].x, pixel.Vertex[2].y, pixel.Vertex[2].z);
+				ImGui::Text("Vertex[2] = (%.2f, %.2f, %.2f)", pixel.Vertex[2].Position.x, pixel.Vertex[2].Position.y, pixel.Vertex[2].Position.z);
 
 				ImGui::PopStyleColor();
 			}
