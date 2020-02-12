@@ -270,7 +270,7 @@ namespace ed
 				// TODO: apply semantic value
 			}
 			else
-				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(m_pixel->VertexID + id));
+				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int((m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount + id));
 		}
 
 		DebugEngine.Execute(m_entry, &m_args);
