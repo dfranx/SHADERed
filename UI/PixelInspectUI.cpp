@@ -88,8 +88,9 @@ namespace ed
 						pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart+2];
 					}
 
-					// getting the debugger's vs output
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
+
+					// getting the debugger's vs output
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
 					std::string vsSrc = m_data->Parser.LoadProjectFile(pass->VSPath);
 					bool vsCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Vertex, lang == ed::ShaderLanguage::GLSL ? "main" : pass->VSEntry, vsSrc);
@@ -101,7 +102,13 @@ namespace ed
 					}
 
 					// TODO: pixel shader
-					bool psCompiled = true;
+					lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
+					std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
+					bool psCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Pixel, lang == ed::ShaderLanguage::GLSL ? "main" : pass->PSEntry, psSrc);
+					if (psCompiled) {
+						m_data->Debugger.InitEngine(pixel);
+						m_data->Debugger.Fetch();
+					}
 
 					pixel.Fetched = vsCompiled && psCompiled;
 				}

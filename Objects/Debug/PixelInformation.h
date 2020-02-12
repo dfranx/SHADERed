@@ -26,6 +26,7 @@ namespace ed
 		int VertexID;
 
 		glm::ivec2 Coordinate; // pixel position on the texture
+		glm::vec2 RelativeCoordinate;
 
 		bool Fetched; // Did fill the DebuggerColor and Vertex[] information for this pixel?
 		

@@ -9,5 +9,5 @@ layout (location = 1) in vec3 normal;
 out vec4 coord;
 
 void main() {
-   gl_Position = coord = vec4(pos, 1) * matVP * matGeo;
+   gl_Position = vec4(pos, 1) * matVP * matGeo;
 }

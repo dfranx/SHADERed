@@ -22,6 +22,7 @@ namespace ed
 	
 	private:
 		bv_stack m_args;
+		bv_library* m_libHLSL, *m_libGLSL;
 		std::string m_entry;
 		PixelInformation* m_pixel;
 		ed::ShaderLanguage m_lang;

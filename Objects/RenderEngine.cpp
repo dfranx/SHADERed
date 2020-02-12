@@ -567,6 +567,7 @@ namespace ed
 			dpxInfo.Object = itemData.second;
 			dpxInfo.Owner = itemData.first;
 			dpxInfo.Coordinate = glm::ivec2(x, y);
+			dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
 
 			m_debug->AddPixel(dpxInfo);
 		}
@@ -595,6 +596,7 @@ namespace ed
 					dpxInfo.Object = itemData.second;
 					dpxInfo.Owner = itemData.first;
 					dpxInfo.Coordinate = glm::ivec2(rx * rtSize.x, ry * rtSize.y);
+					dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
 
 					m_debug->AddPixel(dpxInfo);
 				}
