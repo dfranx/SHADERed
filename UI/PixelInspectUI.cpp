@@ -54,7 +54,7 @@ namespace ed
 						pipe::GeometryItem::GeometryType geoType = ((pipe::GeometryItem*)pixel.Object->Data)->Type;
 						GLuint vbo = ((pipe::GeometryItem*)pixel.Object->Data)->VBO;
 
-						// forgive me for my sins :'D¸TODO: v1.3.*
+						// TODO: v1.3.*
 						glBindBuffer(GL_ARRAY_BUFFER, vbo);
 						if (geoType == pipe::GeometryItem::GeometryType::ScreenQuadNDC) {
 							GLfloat bufData[4 * 4] = { 0.0f };
@@ -110,6 +110,7 @@ namespace ed
 						m_data->Debugger.Fetch();
 					}
 
+					pixel.Discarded = m_data->Debugger.DebugEngine.IsDiscarded();
 					pixel.Fetched = vsCompiled && psCompiled;
 				}
 			}
@@ -118,11 +119,15 @@ namespace ed
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
 				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
-				ImGui::PushItemWidth(-1);
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
-				ImGui::PopItemFlag();
-				ImGui::PopItemWidth();
+				if (pixel.Discarded)
+					ImGui::Text("discarded");
+				else {
+					ImGui::PushItemWidth(-1);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
+					ImGui::PopItemFlag();
+					ImGui::PopItemWidth();
+				}
 
 				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
 				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].Position.x, pixel.Vertex[0].Position.y, pixel.Vertex[0].Position.z);

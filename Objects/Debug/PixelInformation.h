@@ -13,6 +13,7 @@ namespace ed
 			Owner = nullptr;
 			Object = nullptr;
 			Fetched = false;
+			Discarded = false;
 			VertexCount = 0;
 			RenderTexture = "";
 		}
@@ -28,7 +29,8 @@ namespace ed
 		glm::ivec2 Coordinate; // pixel position on the texture
 		glm::vec2 RelativeCoordinate;
 
-		bool Fetched; // Did fill the DebuggerColor and Vertex[] information for this pixel?
+		bool Fetched; // Did we fill the DebuggerColor and Vertex[] information for this pixel?
+		bool Discarded; // was this pixel discarded?
 		
 		int VertexCount; // 1 for point, 2 for line, 3 for triangle, etc...
 		eng::Model::Mesh::Vertex Vertex[3]; // vertices that are responsible for this pixel

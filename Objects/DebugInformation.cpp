@@ -12,13 +12,12 @@ namespace ed
 	bv_variable interpolateValues(bv_program* prog, const bv_variable& var1, const bv_variable& var2, const bv_variable& var3, glm::vec3 weights)
 	{
 		// TODO: rather than returning value, use pointers... but do that after BVM recode
-		// TODO: linear interpolation?
 		if (bv_type_is_integer(var1.type)) { // integers should be flat, tho...
 			int val1 = bv_variable_get_int(var1);
 			int val2 = bv_variable_get_int(var2);
 			int val3 = bv_variable_get_int(var3);
 
-			int outVal = val1; // hmm
+			int outVal = (val1 + val2 + val3) / 3; // this should never be reached, afaik
 
 			return bv_variable_create_int(outVal);
 		}
@@ -69,12 +68,20 @@ namespace ed
 		return glm::vec3(1 - s - t, s, t);
 	}
 
-	DebugInformation::DebugInformation()
+	void DebugInformation::m_cleanTextures(sd::ShaderType stage)
+	{
+		for (sd::Texture* tex : m_textures[stage])
+			delete tex;
+		m_textures[stage].clear();
+	}
+
+	DebugInformation::DebugInformation(ObjectManager* objs)
 	{
 		m_pixel = nullptr;
 		m_lang = ed::ShaderLanguage::HLSL;
 		m_stage = sd::ShaderType::Vertex;
 		m_entry = "";
+		m_objs = objs;
 
 		m_libHLSL = sd::HLSL::Library();
 		m_libGLSL = sd::GLSL::Library();
@@ -96,7 +103,7 @@ namespace ed
 			if (ret) {
 				if (stage == sd::ShaderType::Vertex) {
 					bv_variable svPosition = sd::Common::create_float4(DebugEngine.GetProgram());
-
+					
 					DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(0));
 					DebugEngine.SetSemanticValue("SV_Position", svPosition);
 
@@ -134,43 +141,80 @@ namespace ed
 	void DebugInformation::InitEngine(PixelInformation& pixel, int id)
 	{
 		m_pixel = &pixel;
+		m_cleanTextures(m_stage);
 
 		pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
-
+		
 		/* UNIFORMS */
 		const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
 		const auto& passUniforms = pass->Variables.GetVariables();
+		const std::vector<GLuint>& srvs = m_objs->GetBindList(pixel.Owner);
+		int samplerId = 0;
 		for (const auto& glob : globals) {
 			if (glob.Storage == sd::Variable::StorageType::Uniform) {
-				for (ShaderVariable* var : passUniforms) {
-					if (strcmp(glob.Name.c_str(), var->Name) == 0) {
-						ShaderVariable::ValueType valType = var->GetType();
+				if (sd::IsBasicTexture(glob.Type.c_str())) {
+					int myId = glob.InputSlot == -1 ? samplerId : glob.InputSlot;
 
-						bv_variable varValue;
-						switch (valType) {
-						case ShaderVariable::ValueType::Boolean1: varValue = bv_variable_create_uchar(var->AsBoolean()); break;
-						case ShaderVariable::ValueType::Boolean2: varValue = sd::Common::create_bool2(DebugEngine.GetProgram(), glm::make_vec2<bool>(var->AsBooleanPtr())); break;
-						case ShaderVariable::ValueType::Boolean3: varValue = sd::Common::create_bool3(DebugEngine.GetProgram(), glm::make_vec3<bool>(var->AsBooleanPtr())); break;
-						case ShaderVariable::ValueType::Boolean4: varValue = sd::Common::create_bool4(DebugEngine.GetProgram(), glm::make_vec4<bool>(var->AsBooleanPtr())); break;
-						case ShaderVariable::ValueType::Integer1: varValue = bv_variable_create_int(var->AsInteger()); break;
-						case ShaderVariable::ValueType::Integer2: varValue = sd::Common::create_int2(DebugEngine.GetProgram(), glm::make_vec2<int>(var->AsIntegerPtr())); break;
-						case ShaderVariable::ValueType::Integer3: varValue = sd::Common::create_int3(DebugEngine.GetProgram(), glm::make_vec3<int>(var->AsIntegerPtr())); break;
-						case ShaderVariable::ValueType::Integer4: varValue = sd::Common::create_int4(DebugEngine.GetProgram(), glm::make_vec4<int>(var->AsIntegerPtr())); break;
-						case ShaderVariable::ValueType::Float1: varValue = bv_variable_create_float(var->AsFloat()); break;
-						case ShaderVariable::ValueType::Float2: varValue = sd::Common::create_float2(DebugEngine.GetProgram(), glm::make_vec2<float>(var->AsFloatPtr())); break;
-						case ShaderVariable::ValueType::Float3: varValue = sd::Common::create_float3(DebugEngine.GetProgram(), glm::make_vec3<float>(var->AsFloatPtr())); break;
-						case ShaderVariable::ValueType::Float4: varValue = sd::Common::create_float4(DebugEngine.GetProgram(), glm::make_vec4<float>(var->AsFloatPtr())); break;
-						case ShaderVariable::ValueType::Float2x2: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat2" : "float2x2", new sd::Matrix(glm::make_mat2x2(var->AsFloatPtr()), 2, 2)); break;
-						case ShaderVariable::ValueType::Float3x3: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat3" : "float3x3", new sd::Matrix(glm::make_mat3x3(var->AsFloatPtr()), 3, 3)); break;
-						case ShaderVariable::ValueType::Float4x4: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat4" : "float4x4", new sd::Matrix(glm::make_mat4x4(var->AsFloatPtr()), 4, 4)); break;
+					
+
+					if (myId < srvs.size()) {
+						std::string itemName = m_objs->GetItemNameByTextureID(srvs[myId]);
+						ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+
+						// get texture size
+						glm::ivec2 size(1, 1);
+						if (itemData != nullptr) {
+							if (itemData->RT != nullptr)
+								size = m_objs->GetRenderTextureSize(itemName);
+							else
+								size = itemData->ImageSize;
 						}
-						DebugEngine.SetGlobalValue(glob.Name, varValue);
 
-						bv_variable_deinitialize(&varValue);
+						// allocate ShaderDebugger texture
+						sd::Texture* tex = new sd::Texture();
+						tex->Allocate(size.x, size.y);
 
-						break;
+						// get the data from the GPU
+						glBindTexture(GL_TEXTURE_2D, srvs[myId]);
+						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tex->Data[0][0]);
+						glBindTexture(GL_TEXTURE_2D, 0);
+
+						// set and cache
+						DebugEngine.SetGlobalValue(glob.Name, glob.Type, tex);
+						m_textures[m_stage].push_back(tex);
 					}
-				}
+					
+					samplerId++;
+				} else
+					for (ShaderVariable* var : passUniforms) {
+						if (strcmp(glob.Name.c_str(), var->Name) == 0) {
+							ShaderVariable::ValueType valType = var->GetType();
+
+							bv_variable varValue;
+							switch (valType) {
+							case ShaderVariable::ValueType::Boolean1: varValue = bv_variable_create_uchar(var->AsBoolean()); break;
+							case ShaderVariable::ValueType::Boolean2: varValue = sd::Common::create_bool2(DebugEngine.GetProgram(), glm::make_vec2<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Boolean3: varValue = sd::Common::create_bool3(DebugEngine.GetProgram(), glm::make_vec3<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Boolean4: varValue = sd::Common::create_bool4(DebugEngine.GetProgram(), glm::make_vec4<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Integer1: varValue = bv_variable_create_int(var->AsInteger()); break;
+							case ShaderVariable::ValueType::Integer2: varValue = sd::Common::create_int2(DebugEngine.GetProgram(), glm::make_vec2<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Integer3: varValue = sd::Common::create_int3(DebugEngine.GetProgram(), glm::make_vec3<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Integer4: varValue = sd::Common::create_int4(DebugEngine.GetProgram(), glm::make_vec4<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Float1: varValue = bv_variable_create_float(var->AsFloat()); break;
+							case ShaderVariable::ValueType::Float2: varValue = sd::Common::create_float2(DebugEngine.GetProgram(), glm::make_vec2<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float3: varValue = sd::Common::create_float3(DebugEngine.GetProgram(), glm::make_vec3<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float4: varValue = sd::Common::create_float4(DebugEngine.GetProgram(), glm::make_vec4<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float2x2: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat2" : "float2x2", new sd::Matrix(glm::make_mat2x2(var->AsFloatPtr()), 2, 2)); break;
+							case ShaderVariable::ValueType::Float3x3: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat3" : "float3x3", new sd::Matrix(glm::make_mat3x3(var->AsFloatPtr()), 3, 3)); break;
+							case ShaderVariable::ValueType::Float4x4: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat4" : "float4x4", new sd::Matrix(glm::make_mat4x4(var->AsFloatPtr()), 4, 4)); break;
+							}
+							DebugEngine.SetGlobalValue(glob.Name, varValue);
+
+							bv_variable_deinitialize(&varValue);
+
+							break;
+						}
+					}
 			}
 		}
 
@@ -239,14 +283,14 @@ namespace ed
 				for (const auto& glob : globals) {
 					if (glob.Storage == sd::Variable::StorageType::In) {
 						if (m_pixel->VertexShaderOutput[0].count(glob.Name)) {
-
+							
 							// TODO: vertex count
 							bv_variable var1 = m_pixel->VertexShaderOutput[0][glob.Name];
 							bv_variable var2 = m_pixel->VertexShaderOutput[1][glob.Name];
 							bv_variable var3 = m_pixel->VertexShaderOutput[2][glob.Name];
 
-							// TODO: flat shading
-							bv_variable varValue = interpolateValues(DebugEngine.GetProgram(), var1, var2, var3, weights);
+							// last vertex convention
+							bv_variable varValue = glob.Flat ? bv_variable_copy(var3) : interpolateValues(DebugEngine.GetProgram(), var1, var2, var3, weights);
 
 							DebugEngine.SetGlobalValue(glob.Name, varValue);
 
@@ -264,13 +308,14 @@ namespace ed
 	{
 		// update built-in values, etc..
 		if (m_stage == sd::ShaderType::Vertex) {
+			int vertexBase = (m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount;
 			if (m_lang == ed::ShaderLanguage::HLSL) {
-				DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(m_pixel->VertexID + id));
+				DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
 
 				// TODO: apply semantic value
 			}
 			else
-				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int((m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount + id));
+				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
 		}
 
 		DebugEngine.Execute(m_entry, &m_args);
