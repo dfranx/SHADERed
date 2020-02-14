@@ -19,7 +19,8 @@ namespace ed
 		void InitEngine(PixelInformation& pass, int id = 0); // set up input variables
 		void Fetch(int id = 0);
 
-		sd::ShaderDebugger DebugEngine;
+		sd::ShaderDebugger Engine;
+		bool IsDebugging;
 	
 	private:
 		ObjectManager* m_objs;

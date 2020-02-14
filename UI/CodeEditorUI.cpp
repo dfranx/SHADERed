@@ -470,6 +470,20 @@ namespace ed
 	{
 		m_open(item, 3);
 	}
+	TextEditor* CodeEditorUI::GetVS(PipelineItem* item)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == item && m_shaderTypeId[i] == 0)
+				return &m_editor[i];
+		return nullptr;
+	}
+	TextEditor* CodeEditorUI::GetPS(PipelineItem* item)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == item && m_shaderTypeId[i] == 1)
+				return &m_editor[i];
+		return nullptr;
+	}
 	void CodeEditorUI::CloseAll()
 	{
 		// delete not needed editors

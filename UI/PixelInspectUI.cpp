@@ -2,6 +2,7 @@
 #include "../Objects/DebugInformation.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
+#include "CodeEditorUI.h"
 #include "Icons.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -110,7 +111,7 @@ namespace ed
 						m_data->Debugger.Fetch();
 					}
 
-					pixel.Discarded = m_data->Debugger.DebugEngine.IsDiscarded();
+					pixel.Discarded = m_data->Debugger.Engine.IsDiscarded();
 					pixel.Fetched = vsCompiled && psCompiled;
 				}
 			}
@@ -118,7 +119,77 @@ namespace ed
 			if (pixel.Fetched) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
+				if (ImGui::Button(((UI_ICON_PLAY "##debug_pixel_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+					m_data->Debugger.IsDebugging = true;
+
+					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
+
+					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->OpenPS(pixel.Owner);
+
+					// TODO: pixel shader
+					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
+					std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
+					bool psCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Pixel, lang == ed::ShaderLanguage::GLSL ? "main" : pass->PSEntry, psSrc);
+					if (psCompiled) {
+						m_data->Debugger.InitEngine(pixel);
+
+						TextEditor* editor = codeUI->GetPS(pixel.Owner);
+						sd::ShaderDebugger* dbgr = &m_data->Debugger.Engine;
+						const auto& bkpts = editor->GetBreakpoints();
+
+						// skip initialization
+						dbgr->Step();
+
+						editor->SetCurrentLineIndicator(dbgr->GetCurrentLine());
+
+						// copy breakpoints
+						dbgr->ClearBreakpoints();
+						for (const auto& bkpt : bkpts) {
+							if (!bkpt.mEnabled) continue;
+
+							if (bkpt.mCondition.empty()) dbgr->AddBreakpoint(bkpt.mLine);
+							else dbgr->AddConditionalBreakpoint(bkpt.mLine, bkpt.mCondition);
+						}
+
+						// editor functions
+						editor->OnBreakpointRemove = [&](TextEditor* ed, int line) {
+							m_data->Debugger.Engine.ClearBreakpoint(line);
+						};
+						editor->OnBreakpointUpdate = [&](TextEditor* ed, int line, const std::string& cond, bool enabled) {
+							if (!enabled) return;
+
+							if (cond.empty()) m_data->Debugger.Engine.AddBreakpoint(line);
+							else m_data->Debugger.Engine.AddConditionalBreakpoint(line, cond);
+						};
+						editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
+							sd::ShaderDebugger* mDbgr = &m_data->Debugger.Engine;
+							switch (act) {
+							case TextEditor::DebugAction::Continue:
+								mDbgr->Continue();
+								break;
+							case TextEditor::DebugAction::Step:
+								mDbgr->StepOver();
+								break;
+							case TextEditor::DebugAction::StepIn:
+								mDbgr->Step();
+								break;
+							case TextEditor::DebugAction::StepOut:
+								mDbgr->StepOut();
+								break;
+							case TextEditor::DebugAction::Stop:
+								// TODO
+								break;
+							}
+							ed->SetCurrentLineIndicator(mDbgr->GetCurrentLine());
+						};
+						editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
+							m_data->Debugger.Engine.Jump(line);
+							ed->SetCurrentLineIndicator(m_data->Debugger.Engine.GetCurrentLine());
+						};
+					}
+				}
+				ImGui::SameLine();
 				if (pixel.Discarded)
 					ImGui::Text("discarded");
 				else {
@@ -129,13 +200,13 @@ namespace ed
 					ImGui::PopItemWidth();
 				}
 
-				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
+				ImGui::Button(((UI_ICON_PLAY "##debug_vertex0_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
 				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].Position.x, pixel.Vertex[0].Position.y, pixel.Vertex[0].Position.z);
 
-				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
+				ImGui::Button(((UI_ICON_PLAY "##debug_vertex1_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
 				ImGui::Text("Vertex[1] = (%.2f, %.2f, %.2f)", pixel.Vertex[1].Position.x, pixel.Vertex[1].Position.y, pixel.Vertex[1].Position.z);
 
-				ImGui::Button(UI_ICON_PLAY, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
+				ImGui::Button(((UI_ICON_PLAY "##debug_vertex2_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
 				ImGui::Text("Vertex[2] = (%.2f, %.2f, %.2f)", pixel.Vertex[2].Position.x, pixel.Vertex[2].Position.y, pixel.Vertex[2].Position.z);
 
 				ImGui::PopStyleColor();

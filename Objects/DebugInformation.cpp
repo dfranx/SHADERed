@@ -130,6 +130,7 @@ namespace ed
 
 		m_args.capacity = 0;
 		m_args.data = nullptr;
+		IsDebugging = false;
 	}
 	bool DebugInformation::SetSource(ed::ShaderLanguage lang, sd::ShaderType stage, const std::string& entry, const std::string& src)
 	{
@@ -140,40 +141,40 @@ namespace ed
 		m_entry = entry;
 
 		if (lang == ed::ShaderLanguage::HLSL) {
-			ret = DebugEngine.SetSource<sd::HLSLCompiler>(stage, src, entry, 0, m_libHLSL);
+			ret = Engine.SetSource<sd::HLSLCompiler>(stage, src, entry, 0, m_libHLSL);
 			
 			if (ret) {
 				if (stage == sd::ShaderType::Vertex) {
-					bv_variable svPosition = sd::Common::create_float4(DebugEngine.GetProgram());
+					bv_variable svPosition = sd::Common::create_float4(Engine.GetProgram());
 					
-					DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(0));
-					DebugEngine.SetSemanticValue("SV_Position", svPosition);
+					Engine.SetSemanticValue("SV_VertexID", bv_variable_create_int(0));
+					Engine.SetSemanticValue("SV_Position", svPosition);
 
 					bv_variable_deinitialize(&svPosition);
 				}
 				else if (stage == sd::ShaderType::Pixel) {
-					DebugEngine.SetSemanticValue("SV_IsFrontFace", bv_variable_create_uchar(0));
+					Engine.SetSemanticValue("SV_IsFrontFace", bv_variable_create_uchar(0));
 				}
 			}
 		} else {
-			ret = DebugEngine.SetSource<sd::GLSLCompiler>(stage, src, entry, 0, m_libGLSL);
+			ret = Engine.SetSource<sd::GLSLCompiler>(stage, src, entry, 0, m_libGLSL);
 
 			// TODO: check if built-in variables have been redeclared
 			// TODO: add other variables too
 			if (ret) {
 				if (stage == sd::ShaderType::Vertex) {
-					DebugEngine.AddGlobal("gl_VertexID");
-					DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(0));
+					Engine.AddGlobal("gl_VertexID");
+					Engine.SetGlobalValue("gl_VertexID", bv_variable_create_int(0));
 
-					DebugEngine.AddGlobal("gl_Position");
-					DebugEngine.SetGlobalValue("gl_Position", "vec4", glm::vec4(0.0f));
+					Engine.AddGlobal("gl_Position");
+					Engine.SetGlobalValue("gl_Position", "vec4", glm::vec4(0.0f));
 				}
 				else if (stage == sd::ShaderType::Pixel) {
-					DebugEngine.AddGlobal("gl_FragCoord");
-					DebugEngine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(0.0f));
+					Engine.AddGlobal("gl_FragCoord");
+					Engine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(0.0f));
 
-					DebugEngine.AddGlobal("gl_FrontFacing");
-					DebugEngine.SetGlobalValue("gl_FrontFacing", bv_variable_create_uchar(0));
+					Engine.AddGlobal("gl_FrontFacing");
+					Engine.SetGlobalValue("gl_FrontFacing", bv_variable_create_uchar(0));
 				}
 			}
 		}
@@ -189,7 +190,7 @@ namespace ed
 		pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 		
 		/* UNIFORMS */
-		const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
+		const auto& globals = Engine.GetCompiler()->GetGlobals();
 		const auto& passUniforms = pass->Variables.GetVariables();
 		const std::vector<GLuint>& srvs = m_objs->GetBindList(pixel.Owner);
 		int samplerId = 0;
@@ -221,7 +222,7 @@ namespace ed
 						glBindTexture(GL_TEXTURE_2D, 0);
 
 						// set and cache
-						DebugEngine.SetGlobalValue(glob.Name, glob.Type, tex);
+						Engine.SetGlobalValue(glob.Name, glob.Type, tex);
 						m_textures[m_stage].push_back(tex);
 					}
 
@@ -234,22 +235,22 @@ namespace ed
 							bv_variable varValue;
 							switch (valType) {
 							case ShaderVariable::ValueType::Boolean1: varValue = bv_variable_create_uchar(var->AsBoolean()); break;
-							case ShaderVariable::ValueType::Boolean2: varValue = sd::Common::create_bool2(DebugEngine.GetProgram(), glm::make_vec2<bool>(var->AsBooleanPtr())); break;
-							case ShaderVariable::ValueType::Boolean3: varValue = sd::Common::create_bool3(DebugEngine.GetProgram(), glm::make_vec3<bool>(var->AsBooleanPtr())); break;
-							case ShaderVariable::ValueType::Boolean4: varValue = sd::Common::create_bool4(DebugEngine.GetProgram(), glm::make_vec4<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Boolean2: varValue = sd::Common::create_bool2(Engine.GetProgram(), glm::make_vec2<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Boolean3: varValue = sd::Common::create_bool3(Engine.GetProgram(), glm::make_vec3<bool>(var->AsBooleanPtr())); break;
+							case ShaderVariable::ValueType::Boolean4: varValue = sd::Common::create_bool4(Engine.GetProgram(), glm::make_vec4<bool>(var->AsBooleanPtr())); break;
 							case ShaderVariable::ValueType::Integer1: varValue = bv_variable_create_int(var->AsInteger()); break;
-							case ShaderVariable::ValueType::Integer2: varValue = sd::Common::create_int2(DebugEngine.GetProgram(), glm::make_vec2<int>(var->AsIntegerPtr())); break;
-							case ShaderVariable::ValueType::Integer3: varValue = sd::Common::create_int3(DebugEngine.GetProgram(), glm::make_vec3<int>(var->AsIntegerPtr())); break;
-							case ShaderVariable::ValueType::Integer4: varValue = sd::Common::create_int4(DebugEngine.GetProgram(), glm::make_vec4<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Integer2: varValue = sd::Common::create_int2(Engine.GetProgram(), glm::make_vec2<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Integer3: varValue = sd::Common::create_int3(Engine.GetProgram(), glm::make_vec3<int>(var->AsIntegerPtr())); break;
+							case ShaderVariable::ValueType::Integer4: varValue = sd::Common::create_int4(Engine.GetProgram(), glm::make_vec4<int>(var->AsIntegerPtr())); break;
 							case ShaderVariable::ValueType::Float1: varValue = bv_variable_create_float(var->AsFloat()); break;
-							case ShaderVariable::ValueType::Float2: varValue = sd::Common::create_float2(DebugEngine.GetProgram(), glm::make_vec2<float>(var->AsFloatPtr())); break;
-							case ShaderVariable::ValueType::Float3: varValue = sd::Common::create_float3(DebugEngine.GetProgram(), glm::make_vec3<float>(var->AsFloatPtr())); break;
-							case ShaderVariable::ValueType::Float4: varValue = sd::Common::create_float4(DebugEngine.GetProgram(), glm::make_vec4<float>(var->AsFloatPtr())); break;
-							case ShaderVariable::ValueType::Float2x2: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat2" : "float2x2", new sd::Matrix(glm::make_mat2x2(var->AsFloatPtr()), 2, 2)); break;
-							case ShaderVariable::ValueType::Float3x3: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat3" : "float3x3", new sd::Matrix(glm::make_mat3x3(var->AsFloatPtr()), 3, 3)); break;
-							case ShaderVariable::ValueType::Float4x4: varValue = sd::Common::create_mat(DebugEngine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat4" : "float4x4", new sd::Matrix(glm::make_mat4x4(var->AsFloatPtr()), 4, 4)); break;
+							case ShaderVariable::ValueType::Float2: varValue = sd::Common::create_float2(Engine.GetProgram(), glm::make_vec2<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float3: varValue = sd::Common::create_float3(Engine.GetProgram(), glm::make_vec3<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float4: varValue = sd::Common::create_float4(Engine.GetProgram(), glm::make_vec4<float>(var->AsFloatPtr())); break;
+							case ShaderVariable::ValueType::Float2x2: varValue = sd::Common::create_mat(Engine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat2" : "float2x2", new sd::Matrix(glm::make_mat2x2(var->AsFloatPtr()), 2, 2)); break;
+							case ShaderVariable::ValueType::Float3x3: varValue = sd::Common::create_mat(Engine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat3" : "float3x3", new sd::Matrix(glm::make_mat3x3(var->AsFloatPtr()), 3, 3)); break;
+							case ShaderVariable::ValueType::Float4x4: varValue = sd::Common::create_mat(Engine.GetProgram(), m_lang == ed::ShaderLanguage::GLSL ? "mat4" : "float4x4", new sd::Matrix(glm::make_mat4x4(var->AsFloatPtr()), 4, 4)); break;
 							}
-							DebugEngine.SetGlobalValue(glob.Name, varValue);
+							Engine.SetGlobalValue(glob.Name, varValue);
 
 							bv_variable_deinitialize(&varValue);
 
@@ -263,8 +264,8 @@ namespace ed
 		/* INPUTS */
 		// look for arguments when using HLSL
 		if (m_lang == ed::ShaderLanguage::HLSL) {
-			const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
-			const auto& structs = DebugEngine.GetCompiler()->GetStructures();
+			const auto& funcs = Engine.GetCompiler()->GetFunctions();
+			const auto& structs = Engine.GetCompiler()->GetStructures();
 			std::vector<sd::Variable> args;
 
 			for (const auto& f : funcs)
@@ -280,12 +281,12 @@ namespace ed
 			m_args = bv_stack_create();
 
 			if (m_stage == sd::ShaderType::Vertex) {
-				DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
+				Engine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
 
 				for (const auto& arg : args) {
 					// structures
 					if (arg.Semantic.empty()) {
-						bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(DebugEngine.GetProgram(), arg.Type.c_str()));
+						bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(Engine.GetProgram(), arg.Type.c_str()));
 						bv_object* varObj = bv_variable_get_object(varValue);
 
 						sd::Structure str;
@@ -297,14 +298,14 @@ namespace ed
 
 						for (int i = 0; i < str.Members.size(); i++) {
 							sd::Variable memb = str.Members[i];
-							varObj->prop[i] = applySemantic(&DebugEngine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
+							varObj->prop[i] = applySemantic(&Engine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
 						}
 
 						bv_stack_push(&m_args, varValue);
 					}
 					// vectors, scalars, etc..
 					else {
-						bv_variable varValue = applySemantic(&DebugEngine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
+						bv_variable varValue = applySemantic(&Engine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
 
 						bv_stack_push(&m_args, varValue);
 					}
@@ -346,15 +347,15 @@ namespace ed
 				// setting semantics
 				int propId = 0;
 				for (const auto& memb : m_vsOutput.Members) {
-					bv_variable ival = memb.Flat ? obj[2]->prop[propId] : interpolateValues(DebugEngine.GetProgram(), obj[0]->prop[propId], obj[1]->prop[propId], obj[2]->prop[propId], weights);
-					DebugEngine.SetSemanticValue(memb.Semantic, ival);
+					bv_variable ival = memb.Flat ? obj[2]->prop[propId] : interpolateValues(Engine.GetProgram(), obj[0]->prop[propId], obj[1]->prop[propId], obj[2]->prop[propId], weights);
+					Engine.SetSemanticValue(memb.Semantic, ival);
 					bv_variable_deinitialize(&ival);
 					propId++;
 				}
 				if (m_vsOutput.Name.empty()) {
 					glm::vec4 outVal = (glPos[0] * weights.x + glPos[1] * weights.y + glPos[2] * weights.z) / (weights.x + weights.y + weights.z);
-					bv_variable svPosVal = sd::Common::create_float4(DebugEngine.GetProgram(), outVal);
-					DebugEngine.SetSemanticValue("SV_Position", svPosVal);
+					bv_variable svPosVal = sd::Common::create_float4(Engine.GetProgram(), outVal);
+					Engine.SetSemanticValue("SV_Position", svPosVal);
 					bv_variable_deinitialize(&svPosVal);
 				}
 
@@ -362,7 +363,7 @@ namespace ed
 					for (const auto& arg : args) {
 						// structures
 						if (arg.Semantic.empty()) {
-							bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(DebugEngine.GetProgram(), arg.Type.c_str()));
+							bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(Engine.GetProgram(), arg.Type.c_str()));
 							bv_object* varObj = bv_variable_get_object(varValue);
 
 							sd::Structure str;
@@ -374,14 +375,14 @@ namespace ed
 
 							for (int i = 0; i < str.Members.size(); i++) {
 								sd::Variable memb = str.Members[i];
-								varObj->prop[i] = applySemantic(&DebugEngine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
+								varObj->prop[i] = applySemantic(&Engine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
 							}
 
 							bv_stack_push(&m_args, varValue);
 						}
 						// vectors, scalars, etc..
 						else {
-							bv_variable varValue = applySemantic(&DebugEngine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
+							bv_variable varValue = applySemantic(&Engine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
 
 							bv_stack_push(&m_args, varValue);
 						}
@@ -397,7 +398,7 @@ namespace ed
 						if (glob.InputSlot < pass->InputLayout.size()) {
 							const InputLayoutItem& item = pass->InputLayout[glob.InputSlot];
 
-							bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(DebugEngine.GetProgram(), glob.Type.c_str()));
+							bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(Engine.GetProgram(), glob.Type.c_str()));
 							bv_object* obj = bv_variable_get_object(varValue);
 
 							glm::vec4 inpValue(m_pixel->Vertex[id].Position, 1.0f);
@@ -412,14 +413,14 @@ namespace ed
 							for (int p = 0; p < obj->type->props.name_count; p++)
 								obj->prop[p] = bv_variable_create_float(inpValue[p]); // TODO: cast to int, etc...
 
-							DebugEngine.SetGlobalValue(glob.Name, varValue);
+							Engine.SetGlobalValue(glob.Name, varValue);
 
 							bv_variable_deinitialize(&varValue);
 						}
 					}
 				}
 
-				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
+				Engine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
 			}
 			else if (m_stage == sd::ShaderType::Pixel) {
 				glm::vec4 glPos1 = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[0]["gl_Position"]);
@@ -443,9 +444,9 @@ namespace ed
 							bv_variable var3 = m_pixel->VertexShaderOutput[2][glob.Name];
 
 							// last vertex convention
-							bv_variable varValue = glob.Flat ? bv_variable_copy(var3) : interpolateValues(DebugEngine.GetProgram(), var1, var2, var3, weights);
+							bv_variable varValue = glob.Flat ? bv_variable_copy(var3) : interpolateValues(Engine.GetProgram(), var1, var2, var3, weights);
 
-							DebugEngine.SetGlobalValue(glob.Name, varValue);
+							Engine.SetGlobalValue(glob.Name, varValue);
 
 							bv_variable_deinitialize(&varValue);
 						}
@@ -453,21 +454,21 @@ namespace ed
 				}
 
 				// TODO: gl_FragCoord.z, gl_FragCoord.w
-				DebugEngine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, 0.0f, 0.0f));
+				Engine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, 0.0f, 0.0f));
 			}
 		}
 	}
 	void DebugInformation::Fetch(int id)
 	{
-		bv_variable returnValue = DebugEngine.Execute(m_entry, &m_args);
+		bv_variable returnValue = Engine.Execute(m_entry, &m_args);
 
 		if (m_stage == sd::ShaderType::Vertex) {
 			if (m_lang == ed::ShaderLanguage::HLSL) {
 				m_pixel->VertexShaderOutput[id]["return"] = bv_variable_copy(returnValue);
 
 				// cache the output structure description
-				const auto& structs = DebugEngine.GetCompiler()->GetStructures();
-				const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
+				const auto& structs = Engine.GetCompiler()->GetStructures();
+				const auto& funcs = Engine.GetCompiler()->GetFunctions();
 
 				m_vsOutput = sd::Structure();
 
@@ -485,20 +486,20 @@ namespace ed
 					}
 			} 
 			else {
-				m_pixel->VertexShaderOutput[id]["gl_Position"] = bv_variable_copy(*DebugEngine.GetGlobalValue("gl_Position"));
+				m_pixel->VertexShaderOutput[id]["gl_Position"] = bv_variable_copy(*Engine.GetGlobalValue("gl_Position"));
 
 				// GLSL output variables are globals
-				const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
+				const auto& globals = Engine.GetCompiler()->GetGlobals();
 				for (const auto& glob : globals)
 					if (glob.Storage == sd::Variable::StorageType::Out)
-						m_pixel->VertexShaderOutput[id][glob.Name] = bv_variable_copy(*DebugEngine.GetGlobalValue(glob.Name));
+						m_pixel->VertexShaderOutput[id][glob.Name] = bv_variable_copy(*Engine.GetGlobalValue(glob.Name));
 			}
 		}
 		else if (m_stage == sd::ShaderType::Pixel) {
 			// TODO: RT index
 			if (m_lang == ed::ShaderLanguage::HLSL) {
-				const auto& structs = DebugEngine.GetCompiler()->GetStructures();
-				const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
+				const auto& structs = Engine.GetCompiler()->GetStructures();
+				const auto& funcs = Engine.GetCompiler()->GetFunctions();
 
 				std::string returnTypeName;
 				for (const auto& func : funcs)
@@ -525,10 +526,10 @@ namespace ed
 				}
 			}
 			else {
-				const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
+				const auto& globals = Engine.GetCompiler()->GetGlobals();
 				for (const auto& glob : globals)
 					if (glob.Storage == sd::Variable::StorageType::Out)
-						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(*DebugEngine.GetGlobalValue(glob.Name)), glm::vec4(0.0f), glm::vec4(1.0f));
+						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(*Engine.GetGlobalValue(glob.Name)), glm::vec4(0.0f), glm::vec4(1.0f));
 			}
 		}
 

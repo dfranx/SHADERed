@@ -53,6 +53,9 @@ namespace ed
 		void OpenGS(PipelineItem* item);
 		void OpenCS(PipelineItem* item);
 
+		TextEditor* GetVS(PipelineItem* item);
+		TextEditor* GetPS(PipelineItem* item);
+
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 
 		inline bool HasFocus() { return m_selectedItem != -1; }
