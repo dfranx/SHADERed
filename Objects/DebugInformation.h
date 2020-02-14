@@ -32,6 +32,8 @@ namespace ed
 		sd::ShaderType m_stage;
 		std::vector<PixelInformation> m_pixels;
 
+		sd::Structure m_vsOutput; // hlsl vs output texture description
+
 		void m_cleanTextures(sd::ShaderType stage);
 		std::unordered_map<sd::ShaderType, std::vector<sd::Texture*>> m_textures;
 	};

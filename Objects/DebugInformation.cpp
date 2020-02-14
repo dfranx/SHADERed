@@ -67,6 +67,48 @@ namespace ed
 		float t = (ab.x * ap.y - ab.y * ap.x) * factor;
 		return glm::vec3(1 - s - t, s, t);
 	}
+	bv_variable applySemantic(sd::ShaderDebugger* debugger, PixelInformation* pixel, sd::ShaderType stage, const std::string& semantic, const std::string& argType, int vertId)
+	{
+		pipe::ShaderPass* pass = (pipe::ShaderPass*)pixel->Owner->Data;
+
+		std::string sName = semantic;
+		std::transform(sName.begin(), sName.end(), sName.begin(), ::tolower);
+
+		InputLayoutItem semanticItem;
+		bool semanticFound = false;
+		for (const auto& lItem : pass->InputLayout) {
+			std::string lName = lItem.Semantic;
+			std::transform(lName.begin(), lName.end(), lName.begin(), ::tolower);
+
+			if (sName == lName) {
+				semanticItem = lItem;
+				semanticFound = true;
+				break;
+			}
+		}
+
+		bv_variable varValue = bv_variable_create_void();
+
+		if (stage == sd::ShaderType::Vertex && semanticFound) {
+			varValue = bv_variable_create_object(bv_program_get_object_info(debugger->GetProgram(), argType.c_str()));
+			bv_object* obj = bv_variable_get_object(varValue);
+
+			glm::vec4 inpValue(pixel->Vertex[vertId].Position, 1.0f);
+			switch (semanticItem.Value) {
+			case InputLayoutValue::Normal: inpValue = glm::vec4(pixel->Vertex[vertId].Normal, 1.0f); break;
+			case InputLayoutValue::Texcoord: inpValue = glm::vec4(pixel->Vertex[vertId].TexCoords, 1.0f, 1.0f); break;
+			case InputLayoutValue::Tangent: inpValue = glm::vec4(pixel->Vertex[vertId].Tangent, 1.0f); break;
+			case InputLayoutValue::Binormal: inpValue = glm::vec4(pixel->Vertex[vertId].Binormal, 1.0f); break;
+			case InputLayoutValue::Color: inpValue = pixel->Vertex[vertId].Color; break;
+			}
+
+			for (int p = 0; p < obj->type->props.name_count; p++)
+				obj->prop[p] = bv_variable_create_float(inpValue[p]);
+		}
+		else varValue = bv_variable_copy(debugger->GetSemanticValue(sName));
+
+		return varValue;
+	}
 
 	void DebugInformation::m_cleanTextures(sd::ShaderType stage)
 	{
@@ -142,7 +184,8 @@ namespace ed
 	{
 		m_pixel = &pixel;
 		m_cleanTextures(m_stage);
-
+		
+		int vertexBase = (m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount;
 		pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 		
 		/* UNIFORMS */
@@ -154,8 +197,6 @@ namespace ed
 			if (glob.Storage == sd::Variable::StorageType::Uniform) {
 				if (sd::IsBasicTexture(glob.Type.c_str())) {
 					int myId = glob.InputSlot == -1 ? samplerId : glob.InputSlot;
-
-					
 
 					if (myId < srvs.size()) {
 						std::string itemName = m_objs->GetItemNameByTextureID(srvs[myId]);
@@ -183,9 +224,9 @@ namespace ed
 						DebugEngine.SetGlobalValue(glob.Name, glob.Type, tex);
 						m_textures[m_stage].push_back(tex);
 					}
-					
+
 					samplerId++;
-				} else
+				} else {
 					for (ShaderVariable* var : passUniforms) {
 						if (strcmp(glob.Name.c_str(), var->Name) == 0) {
 							ShaderVariable::ValueType valType = var->GetType();
@@ -215,6 +256,7 @@ namespace ed
 							break;
 						}
 					}
+				}
 			}
 		}
 
@@ -222,6 +264,7 @@ namespace ed
 		// look for arguments when using HLSL
 		if (m_lang == ed::ShaderLanguage::HLSL) {
 			const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
+			const auto& structs = DebugEngine.GetCompiler()->GetStructures();
 			std::vector<sd::Variable> args;
 
 			for (const auto& f : funcs)
@@ -230,13 +273,121 @@ namespace ed
 					break;
 				}
 			if (m_args.data != nullptr) {
-				bv_stack_delete(&m_args);
+				bv_stack_delete_memory(&m_args);
 				m_args.data = nullptr;
 			}
 
 			m_args = bv_stack_create();
 
-			// TODO: init
+			if (m_stage == sd::ShaderType::Vertex) {
+				DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
+
+				for (const auto& arg : args) {
+					// structures
+					if (arg.Semantic.empty()) {
+						bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(DebugEngine.GetProgram(), arg.Type.c_str()));
+						bv_object* varObj = bv_variable_get_object(varValue);
+
+						sd::Structure str;
+						for (const auto& s : structs)
+							if (s.Name == arg.Type) {
+								str = s;
+								break;
+							}
+
+						for (int i = 0; i < str.Members.size(); i++) {
+							sd::Variable memb = str.Members[i];
+							varObj->prop[i] = applySemantic(&DebugEngine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
+						}
+
+						bv_stack_push(&m_args, varValue);
+					}
+					// vectors, scalars, etc..
+					else {
+						bv_variable varValue = applySemantic(&DebugEngine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
+
+						bv_stack_push(&m_args, varValue);
+					}
+				}
+			}
+			else if (m_stage == sd::ShaderType::Pixel) {
+				// TODO: vertex count
+				glm::vec4 glPos[3];
+				bv_object* obj[3];
+
+				// getting objects and SV_Positions
+				int posInd = 0;
+				for (const auto& memb : m_vsOutput.Members) {
+					std::string smn = memb.Semantic;
+					std::transform(smn.begin(), smn.end(), smn.begin(), ::tolower);
+
+					if (smn == "sv_position")
+						break;
+					posInd++;
+				}
+				if (m_vsOutput.Name.empty())
+					posInd = -1;
+				for (int i = 0; i < m_pixel->VertexCount; i++) {
+					if (posInd == -1)
+						glPos[i] = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[i]["return"]);
+					else {
+						obj[i] = bv_variable_get_object(m_pixel->VertexShaderOutput[i]["return"]);
+						glPos[i] = sd::AsVector<4, float>(obj[i]->prop[posInd]);
+					}
+				}
+
+				// weigths
+				glm::vec2 scrnPos1 = getScreenCoord(glPos[0]);
+				glm::vec2 scrnPos2 = getScreenCoord(glPos[1]);
+				glm::vec2 scrnPos3 = getScreenCoord(glPos[2]);
+				glm::vec3 weights = getWeights(scrnPos1, scrnPos2, scrnPos3, m_pixel->RelativeCoordinate);
+				weights *= glm::vec3(1.0f / glPos[0].w, 1.0f / glPos[1].w, 1.0f / glPos[2].w);
+
+				// setting semantics
+				int propId = 0;
+				for (const auto& memb : m_vsOutput.Members) {
+					bv_variable ival = memb.Flat ? obj[2]->prop[propId] : interpolateValues(DebugEngine.GetProgram(), obj[0]->prop[propId], obj[1]->prop[propId], obj[2]->prop[propId], weights);
+					DebugEngine.SetSemanticValue(memb.Semantic, ival);
+					bv_variable_deinitialize(&ival);
+					propId++;
+				}
+				if (m_vsOutput.Name.empty()) {
+					glm::vec4 outVal = (glPos[0] * weights.x + glPos[1] * weights.y + glPos[2] * weights.z) / (weights.x + weights.y + weights.z);
+					bv_variable svPosVal = sd::Common::create_float4(DebugEngine.GetProgram(), outVal);
+					DebugEngine.SetSemanticValue("SV_Position", svPosVal);
+					bv_variable_deinitialize(&svPosVal);
+				}
+
+				if (m_pixel->VertexShaderOutput[0].count("return")) {
+					for (const auto& arg : args) {
+						// structures
+						if (arg.Semantic.empty()) {
+							bv_variable varValue = bv_variable_create_object(bv_program_get_object_info(DebugEngine.GetProgram(), arg.Type.c_str()));
+							bv_object* varObj = bv_variable_get_object(varValue);
+
+							sd::Structure str;
+							for (const auto& s : structs)
+								if (s.Name == arg.Type) {
+									str = s;
+									break;
+								}
+
+							for (int i = 0; i < str.Members.size(); i++) {
+								sd::Variable memb = str.Members[i];
+								varObj->prop[i] = applySemantic(&DebugEngine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
+							}
+
+							bv_stack_push(&m_args, varValue);
+						}
+						// vectors, scalars, etc..
+						else {
+							bv_variable varValue = applySemantic(&DebugEngine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
+
+							bv_stack_push(&m_args, varValue);
+						}
+					}
+				}
+			}
 		}
 		// look for global variables when using GLSL
 		else {
@@ -267,6 +418,8 @@ namespace ed
 						}
 					}
 				}
+
+				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
 			}
 			else if (m_stage == sd::ShaderType::Pixel) {
 				glm::vec4 glPos1 = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[0]["gl_Position"]);
@@ -306,24 +459,32 @@ namespace ed
 	}
 	void DebugInformation::Fetch(int id)
 	{
-		// update built-in values, etc..
-		if (m_stage == sd::ShaderType::Vertex) {
-			int vertexBase = (m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount;
-			if (m_lang == ed::ShaderLanguage::HLSL) {
-				DebugEngine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
-
-				// TODO: apply semantic value
-			}
-			else
-				DebugEngine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
-		}
-
-		DebugEngine.Execute(m_entry, &m_args);
+		bv_variable returnValue = DebugEngine.Execute(m_entry, &m_args);
 
 		if (m_stage == sd::ShaderType::Vertex) {
 			if (m_lang == ed::ShaderLanguage::HLSL) {
-				// TODO: HLSL
-			} else {
+				m_pixel->VertexShaderOutput[id]["return"] = bv_variable_copy(returnValue);
+
+				// cache the output structure description
+				const auto& structs = DebugEngine.GetCompiler()->GetStructures();
+				const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
+
+				m_vsOutput = sd::Structure();
+
+				std::string returnTypeName;
+				for (const auto& func : funcs)
+					if (func.Name == m_entry) {
+						returnTypeName = func.ReturnType;
+						break;
+					}
+
+				for (const auto& s : structs)
+					if (s.Name == returnTypeName) {
+						m_vsOutput = s;
+						break;
+					}
+			} 
+			else {
 				m_pixel->VertexShaderOutput[id]["gl_Position"] = bv_variable_copy(*DebugEngine.GetGlobalValue("gl_Position"));
 
 				// GLSL output variables are globals
@@ -335,10 +496,42 @@ namespace ed
 		}
 		else if (m_stage == sd::ShaderType::Pixel) {
 			// TODO: RT index
-			const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
-			for (const auto& glob : globals)
-				if (glob.Storage == sd::Variable::StorageType::Out)
-					m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(*DebugEngine.GetGlobalValue(glob.Name)), glm::vec4(0.0f), glm::vec4(1.0f));
+			if (m_lang == ed::ShaderLanguage::HLSL) {
+				const auto& structs = DebugEngine.GetCompiler()->GetStructures();
+				const auto& funcs = DebugEngine.GetCompiler()->GetFunctions();
+
+				std::string returnTypeName;
+				for (const auto& func : funcs)
+					if (func.Name == m_entry) {
+						returnTypeName = func.ReturnType;
+						break;
+					}
+				if (!returnTypeName.empty()) {
+					sd::Structure str;
+					for (const auto& s : structs)
+						if (s.Name == returnTypeName) {
+							str = s;
+							break;
+						}
+					
+					// vector
+					if (str.Name.empty()) 
+						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(returnValue), glm::vec4(0.0f), glm::vec4(1.0f));
+					// object
+					else {
+						bv_object* retObj = bv_variable_get_object(returnValue);
+						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(retObj->prop[0]), glm::vec4(0.0f), glm::vec4(1.0f));
+					}
+				}
+			}
+			else {
+				const auto& globals = DebugEngine.GetCompiler()->GetGlobals();
+				for (const auto& glob : globals)
+					if (glob.Storage == sd::Variable::StorageType::Out)
+						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(*DebugEngine.GetGlobalValue(glob.Name)), glm::vec4(0.0f), glm::vec4(1.0f));
+			}
 		}
+
+		bv_variable_deinitialize(&returnValue);
 	}
 }

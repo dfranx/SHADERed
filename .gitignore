@@ -24,6 +24,7 @@ bin/*.ilk
 bin/*.pdb
 bin/plugins/*
 bin/Debug
+bin/Release
 VSProject
 vsproject32
 test
