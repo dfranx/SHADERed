@@ -3,6 +3,7 @@
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
 #include "CodeEditorUI.h"
+#include "UIHelper.h"
 #include "Icons.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -189,6 +190,25 @@ namespace ed
 						editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
 							m_data->Debugger.Engine.Jump(line);
 							ed->SetCurrentLineIndicator(m_data->Debugger.Engine.GetCurrentLine());
+						};
+						editor->HasIdentifierHover = [&](TextEditor* ed, const std::string& id) -> bool {
+							sd::ShaderDebugger* mDbgr = &m_data->Debugger.Engine;
+							bv_variable* var = mDbgr->GetLocalValue(id);
+							if (var == nullptr)
+								var = mDbgr->GetGlobalValue(id);
+
+							return var != nullptr;
+						};
+						editor->OnIdentifierHover = [&](TextEditor* ed, const std::string& id) {
+							sd::ShaderDebugger* mDbgr = &m_data->Debugger.Engine;
+							bv_variable* var = mDbgr->GetLocalValue(id);
+							if (var == nullptr)
+								var = mDbgr->GetGlobalValue(id);
+							if (var != nullptr) {
+								// TODO: add variable type + seperator
+								std::string value = UIHelper::GetVariableValue(*var);
+								ImGui::Text(value.c_str());
+							}
 						};
 					}
 				}
