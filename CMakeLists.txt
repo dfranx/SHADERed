@@ -49,6 +49,13 @@ set(SOURCES
 	UI/Tools/CubemapPreview.cpp
 	UI/Tools/Magnifier.cpp
 
+# UI Debug
+	UI/Debug/BreakpointListUI.cpp
+	UI/Debug/FunctionStackUI.cpp
+	UI/Debug/ImmediateUI.cpp
+	UI/Debug/ValuesUI.cpp
+	UI/Debug/WatchUI.cpp
+
 # UI
 	UI/CodeEditorUI.cpp
 	UI/CreateItemUI.cpp

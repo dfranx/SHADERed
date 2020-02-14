@@ -17,6 +17,11 @@
 #include "UI/PinnedUI.h"
 #include "UI/UIHelper.h"
 #include "UI/Icons.h"
+#include "UI/Debug/BreakpointListUI.h"
+#include "UI/Debug/FunctionStackUI.h"
+#include "UI/Debug/ImmediateUI.h"
+#include "UI/Debug/ValuesUI.h"
+#include "UI/Debug/WatchUI.h"
 #include "Objects/Logger.h"
 #include "Objects/Names.h"
 #include "Objects/Settings.h"
@@ -140,6 +145,12 @@ namespace ed
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
 
+		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watch"));
+		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
+		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
+		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
+		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
+
 		KeyboardShortcuts::Instance().Load();
 		m_setupShortcuts();
 
@@ -187,6 +198,8 @@ namespace ed
 
 		for (auto& view : m_views)
 			delete view;
+		for (auto& dview : m_debugViews)
+			delete dview;
 
 		delete m_options;
 		delete m_objectPrev;
@@ -264,6 +277,8 @@ namespace ed
 
 		for (auto& view : m_views)
 			view->OnEvent(e);
+		for (auto& dview : m_debugViews)
+			dview->OnEvent(e);
 
 		m_data->Plugins.OnEvent(e);
 	}
@@ -751,6 +766,23 @@ namespace ed
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
 
+				if (ImGui::BeginMenu("Debug")) {
+					if (!m_data->Debugger.IsDebugging) {
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+
+					for (auto& dview : m_debugViews)
+						ImGui::MenuItem(dview->Name.c_str(), 0, &dview->Visible);
+					
+					if (!m_data->Debugger.IsDebugging) {
+						ImGui::PopStyleVar();
+						ImGui::PopItemFlag();
+					}
+					
+					ImGui::EndMenu();
+				}
+
 				m_data->Plugins.ShowMenuItems("window");
 
 				ImGui::Separator();
@@ -847,6 +879,14 @@ namespace ed
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 					ImGui::End();
 				}
+			if (m_data->Debugger.IsDebugging) {
+				for (auto& dview : m_debugViews)
+					if (dview->Visible) {
+						ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
+						if (ImGui::Begin(dview->Name.c_str(), &dview->Visible)) dview->Update(delta);
+						ImGui::End();
+					}
+			}
 
 			m_data->Plugins.Update(delta);
 			Get(ViewID::Code)->Update(delta);
@@ -1809,6 +1849,8 @@ namespace ed
 			return m_options;
 		else if (view == ViewID::ObjectPreview)
 			return m_objectPrev;
+		else if (view >= ViewID::DebugImmediate && view <= ViewID::DebugBreakpointList)
+			return m_debugViews[(int)view];
 
 		return m_views[(int)view];
 	}
@@ -1818,6 +1860,8 @@ namespace ed
 
 		for (auto& view : m_views)
 			data.put(view->Visible);
+		for (auto& dview : m_debugViews)
+			data.put(dview->Visible);
 
 		data.close();
 	}
@@ -1828,6 +1872,8 @@ namespace ed
 		if (data.is_open()) {
 			for (auto& view : m_views)
 				view->Visible = data.get();
+			for (auto& dview : m_debugViews)
+				dview->Visible = data.get();
 
 			data.close();
 		}

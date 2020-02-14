@@ -127,7 +127,6 @@ namespace ed
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->OpenPS(pixel.Owner);
 
-					// TODO: pixel shader
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
 					std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
 					bool psCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Pixel, lang == ed::ShaderLanguage::GLSL ? "main" : pass->PSEntry, psSrc);
@@ -164,24 +163,28 @@ namespace ed
 						};
 						editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
 							sd::ShaderDebugger* mDbgr = &m_data->Debugger.Engine;
+							bool state = false;
 							switch (act) {
 							case TextEditor::DebugAction::Continue:
-								mDbgr->Continue();
+								state = mDbgr->Continue();
 								break;
 							case TextEditor::DebugAction::Step:
-								mDbgr->StepOver();
+								state = mDbgr->StepOver();
 								break;
 							case TextEditor::DebugAction::StepIn:
-								mDbgr->Step();
+								state = mDbgr->Step();
 								break;
 							case TextEditor::DebugAction::StepOut:
-								mDbgr->StepOut();
-								break;
-							case TextEditor::DebugAction::Stop:
-								// TODO
+								state = mDbgr->StepOut();
 								break;
 							}
-							ed->SetCurrentLineIndicator(mDbgr->GetCurrentLine());
+
+							if (act == TextEditor::DebugAction::Stop || !state) {
+								m_data->Debugger.IsDebugging = false;
+								ed->SetCurrentLineIndicator(-1);
+							}
+							else
+								ed->SetCurrentLineIndicator(mDbgr->GetCurrentLine());
 						};
 						editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
 							m_data->Debugger.Engine.Jump(line);
@@ -200,6 +203,7 @@ namespace ed
 					ImGui::PopItemWidth();
 				}
 
+				// TODO:
 				ImGui::Button(((UI_ICON_PLAY "##debug_vertex0_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)); ImGui::SameLine();
 				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].Position.x, pixel.Vertex[0].Position.y, pixel.Vertex[0].Position.z);
 

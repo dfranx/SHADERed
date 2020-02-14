@@ -11,6 +11,11 @@
 	#include <GL/gl.h>
 #endif
 
+extern "C" {
+#include <BlueVM/bv_variable.h>
+#include <BlueVM/bv_object.h>
+}
+
 namespace ed
 {
 	class UIHelper
@@ -25,5 +30,7 @@ namespace ed
 		static bool CreateCullModeCombo(const char* name, GLenum& cull);
 		static bool CreateComparisonFunctionCombo(const char* name, GLenum& comp);
 		static bool CreateStencilOperationCombo(const char* name, GLenum& op);
+
+		static std::string GetVariableValue(const bv_variable& var, int indent = 0);
 	};
 }

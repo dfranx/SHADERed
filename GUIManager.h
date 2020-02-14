@@ -28,6 +28,11 @@ namespace ed
 		Objects,
 		Pipeline,
 		Properties,
+		DebugImmediate,
+		DebugWatch,
+		DebugValues,
+		DebugFunctionStack,
+		DebugBreakpointList,
 		Options,
 		ObjectPreview
 	};
@@ -137,7 +142,7 @@ namespace ed
 		std::vector<std::string> m_templates;
 		void m_loadTemplateList();
 
-		std::vector<UIView*> m_views;
+		std::vector<UIView*> m_views, m_debugViews;
 		CreateItemUI* m_createUI;
 
 		UpdateChecker m_updateCheck;

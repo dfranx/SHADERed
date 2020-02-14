@@ -194,4 +194,38 @@ namespace ed
 
 		return ret;
 	}
+	std::string UIHelper::GetVariableValue(const bv_variable& var, int indent)
+	{
+		std::string ret = "";
+		
+		std::string indentStr(indent*2, ' ');
+
+		if (var.type == bv_type_float)
+			ret += indentStr + std::to_string(bv_variable_get_float(var));
+		else if (bv_type_is_integer(var.type))
+			ret += indentStr + std::to_string(bv_variable_get_int(var));
+		else if (var.type == bv_type_object) {
+			bv_object* obj = bv_variable_get_object(var);
+			for (u16 i = 0; i < obj->type->props.name_count; i++) {
+				bv_variable& prop = obj->prop[i];
+				bool isObject = prop.type == bv_type_object;
+
+				std::string propName = obj->type->props.names[i];
+				ret += indentStr + "." + propName + "=";
+
+				if (isObject)
+					ret += " {\n";
+				
+				ret += UIHelper::GetVariableValue(prop, isObject ? (indent + 1) : 0);
+				
+				if (isObject)
+					ret += "\n" + indentStr + "}";
+
+				if (i != obj->type->props.name_count - 1)
+					ret += "\n";
+			}
+		}
+
+		return ret;
+	}
 }
