@@ -602,6 +602,36 @@ namespace ed
 		// status bar
 		if (statusbar)
 			m_renderStatusbar(imageSize.x, imageSize.y);
+
+		// debugger vertex outline
+		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && !m_data->Debugger.IsDebugging) {
+			const auto& pixels = m_data->Debugger.GetPixelList();
+			if (pixels.size() > 0) {
+				if (pixels[0].Fetched) { // we only care about window's pixel info here
+					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
+					ImVec2 uiPos = ImGui::GetCursorScreenPos();
+
+					glm::vec2 screenSize(imageSize.x, imageSize.y);
+
+					glm::ivec2 vertPos1 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 0) * screenSize;
+					glm::ivec2 vertPos2 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 1) * screenSize;
+					glm::ivec2 vertPos3 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 2) * screenSize;
+
+					vertPos1.y = screenSize.y - vertPos1.y;
+					vertPos2.y = screenSize.y - vertPos2.y;
+					vertPos3.y = screenSize.y - vertPos3.y;
+
+					auto drawList = ImGui::GetWindowDrawList();
+					drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), 0xffffffff);
+					drawList->AddLine(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), 0xffffffff);
+					drawList->AddLine(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), 0xffffffff);
+
+					drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), 0xffffffff, "0");
+					drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), 0xffffffff, "1");
+					drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), 0xffffffff, "2");
+				}
+			}
+		}
 	}
 	void PreviewUI::Duplicate()
 	{

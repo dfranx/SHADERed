@@ -183,6 +183,43 @@ namespace ed
 
 		return ret;
 	}
+	glm::vec2 DebugInformation::GetVertexScreenPosition(const PixelInformation& pixel, int id)
+	{
+		/* INPUTS */
+		// look for arguments when using HLSL
+		if (m_lang == ed::ShaderLanguage::HLSL) {
+			// TODO: vertex count
+			glm::vec4 glPos;
+
+			// getting objects and SV_Positions
+			int posInd = 0;
+			for (const auto& memb : m_vsOutput.Members) {
+				std::string smn = memb.Semantic;
+				std::transform(smn.begin(), smn.end(), smn.begin(), ::tolower);
+
+				if (smn == "sv_position")
+					break;
+				posInd++;
+			}
+			if (m_vsOutput.Name.empty())
+				posInd = -1;
+			
+			if (posInd == -1)
+				glPos = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[id]["return"]);
+			else {
+				bv_object* obj = bv_variable_get_object(m_pixel->VertexShaderOutput[id]["return"]);
+				glPos = sd::AsVector<4, float>(obj->prop[posInd]);
+			}
+
+			return getScreenCoord(glPos);
+		}
+		// look for global variables when using GLSL
+		else {
+			glm::vec4 glPos = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[id]["gl_Position"]);
+
+			return getScreenCoord(glPos);
+		}
+	}
 	void DebugInformation::InitEngine(PixelInformation& pixel, int id)
 	{
 		m_pixel = &pixel;

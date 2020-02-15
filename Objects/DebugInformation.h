@@ -16,8 +16,10 @@ namespace ed
 		inline std::vector<PixelInformation>& GetPixelList() { return m_pixels; }
 
 		bool SetSource(ed::ShaderLanguage lang, sd::ShaderType stage, const std::string& entry, const std::string& src);
-		void InitEngine(PixelInformation& pass, int id = 0); // set up input variables
+		void InitEngine(PixelInformation& pixel, int id = 0); // set up input variables
 		void Fetch(int id = 0);
+
+		glm::vec2 GetVertexScreenPosition(const PixelInformation& pixel, int id);
 
 		sd::ShaderDebugger Engine;
 		bool IsDebugging;
