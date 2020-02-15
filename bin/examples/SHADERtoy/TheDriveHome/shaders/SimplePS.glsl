@@ -355,19 +355,14 @@ void main( void ) {
     	col += HeadLights(i+n*stp*.7, t);
     }
     
-    #ifdef HIGH_QUALITY
-    const float stp2 = 1./32.;
-    #else
-    stp = 1./16.;
-    #endif
     for(float i=0.0; i<1.0; i+=stp) {
        col += EnvironmentLights(i, t);
     }
-    
+
     col += TailLights(0., t);
     col += TailLights(.5, t);
-    
+
     col += sat(rd.y)*vec3(.6, .5, .9);
-    
-	outColor = vec4(col, 1.);
+
+    outColor = vec4(col, 1.);
 }

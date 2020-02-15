@@ -130,6 +130,8 @@ namespace ed
 
 		m_args.capacity = 0;
 		m_args.data = nullptr;
+		m_argsFetch.capacity = 0;
+		m_argsFetch.data = nullptr;
 		IsDebugging = false;
 	}
 	bool DebugInformation::SetSource(ed::ShaderLanguage lang, sd::ShaderType stage, const std::string& entry, const std::string& src)
@@ -273,12 +275,18 @@ namespace ed
 					args = f.Arguments;
 					break;
 				}
+
 			if (m_args.data != nullptr) {
 				bv_stack_delete_memory(&m_args);
 				m_args.data = nullptr;
 			}
+			if (m_argsFetch.data != nullptr) {
+				bv_stack_delete_memory(&m_argsFetch);
+				m_argsFetch.data = nullptr;
+			}
 
 			m_args = bv_stack_create();
+			m_argsFetch = bv_stack_create();
 
 			if (m_stage == sd::ShaderType::Vertex) {
 				Engine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
@@ -301,12 +309,14 @@ namespace ed
 							varObj->prop[i] = applySemantic(&Engine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
 						}
 
+						bv_stack_push(&m_argsFetch, bv_variable_copy(varValue));
 						bv_stack_push(&m_args, varValue);
 					}
 					// vectors, scalars, etc..
 					else {
 						bv_variable varValue = applySemantic(&Engine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
 
+						bv_stack_push(&m_argsFetch, bv_variable_copy(varValue));
 						bv_stack_push(&m_args, varValue);
 					}
 				}
@@ -378,17 +388,21 @@ namespace ed
 								varObj->prop[i] = applySemantic(&Engine, m_pixel, m_stage, memb.Semantic, memb.Type, id);
 							}
 
+							bv_stack_push(&m_argsFetch, bv_variable_copy(varValue));
 							bv_stack_push(&m_args, varValue);
 						}
 						// vectors, scalars, etc..
 						else {
 							bv_variable varValue = applySemantic(&Engine, m_pixel, m_stage, arg.Semantic, arg.Type, id);
 
+							bv_stack_push(&m_argsFetch, bv_variable_copy(varValue));
 							bv_stack_push(&m_args, varValue);
 						}
 					}
 				}
 			}
+
+			Engine.SetArguments(&m_args);
 		}
 		// look for global variables when using GLSL
 		else {
@@ -460,7 +474,7 @@ namespace ed
 	}
 	void DebugInformation::Fetch(int id)
 	{
-		bv_variable returnValue = Engine.Execute(m_entry, &m_args);
+		bv_variable returnValue = Engine.Execute(m_entry, &m_argsFetch);
 
 		if (m_stage == sd::ShaderType::Vertex) {
 			if (m_lang == ed::ShaderLanguage::HLSL) {

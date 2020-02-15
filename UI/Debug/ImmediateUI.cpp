@@ -53,9 +53,13 @@ namespace ed
 
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputText("##immediate_input", m_input, 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
+			bv_variable exprValue = m_data->Debugger.Engine.Immediate(m_input);
+
 			m_addLog(std::string(m_input));
-			m_addLog(UIHelper::GetVariableValue(m_data->Debugger.Engine.Immediate(m_input)));
+			m_addLog(UIHelper::GetVariableValue(exprValue));
+
 			m_input[0] = 0;
+			bv_variable_deinitialize(&exprValue);
 
 			ImGui::SetKeyboardFocusHere(0);
 		}

@@ -33,6 +33,7 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Simple" item="pipe" />
+		<entry type="file" name="Simple" shader="vs" />
 		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>15</distance>

@@ -2,6 +2,7 @@
 #include "../Objects/DebugInformation.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
+#include "Debug/WatchUI.h"
 #include "CodeEditorUI.h"
 #include "UIHelper.h"
 #include "Icons.h"
@@ -183,13 +184,15 @@ namespace ed
 							if (act == TextEditor::DebugAction::Stop || !state) {
 								m_data->Debugger.IsDebugging = false;
 								ed->SetCurrentLineIndicator(-1);
-							}
-							else
+							} else {
+								((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 								ed->SetCurrentLineIndicator(mDbgr->GetCurrentLine());
+							}
 						};
 						editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
 							m_data->Debugger.Engine.Jump(line);
 							ed->SetCurrentLineIndicator(m_data->Debugger.Engine.GetCurrentLine());
+							((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 						};
 						editor->HasIdentifierHover = [&](TextEditor* ed, const std::string& id) -> bool {
 							sd::ShaderDebugger* mDbgr = &m_data->Debugger.Engine;

@@ -211,10 +211,10 @@ namespace ed
 				bool isObject = prop.type == bv_type_object;
 
 				std::string propName = obj->type->props.names[i];
-				ret += indentStr + "." + propName + "=";
+				ret += indentStr + "." + propName + " = ";
 
 				if (isObject)
-					ret += " {\n";
+					ret += "{\n";
 				
 				ret += UIHelper::GetVariableValue(prop, isObject ? (indent + 1) : 0);
 				

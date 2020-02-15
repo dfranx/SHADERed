@@ -145,11 +145,11 @@ namespace ed
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
 
+		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
 		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watch"));
 		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
-		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
-		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
 		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
+		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
 
 		KeyboardShortcuts::Instance().Load();
 		m_setupShortcuts();
@@ -1850,7 +1850,7 @@ namespace ed
 		else if (view == ViewID::ObjectPreview)
 			return m_objectPrev;
 		else if (view >= ViewID::DebugImmediate && view <= ViewID::DebugBreakpointList)
-			return m_debugViews[(int)view];
+			return m_debugViews[(int)view - (int)ViewID::DebugImmediate];
 
 		return m_views[(int)view];
 	}

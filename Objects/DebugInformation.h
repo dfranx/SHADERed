@@ -25,7 +25,7 @@ namespace ed
 	private:
 		ObjectManager* m_objs;
 
-		bv_stack m_args;
+		bv_stack m_args, m_argsFetch;
 		bv_library* m_libHLSL, *m_libGLSL;
 		std::string m_entry;
 		PixelInformation* m_pixel;
