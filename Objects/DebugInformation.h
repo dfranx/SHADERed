@@ -3,13 +3,14 @@
 #include "Debug/PixelInformation.h"
 #include "ShaderLanguage.h"
 #include "ObjectManager.h"
+#include "RenderEngine.h"
 
 namespace ed
 {
 	class DebugInformation
 	{
 	public:
-		DebugInformation(ObjectManager* objs);
+		DebugInformation(ObjectManager* objs, RenderEngine* renderer);
 
 		inline void ClearPixelList() { m_pixels.clear(); }
 		inline void AddPixel(const PixelInformation& px) { m_pixels.push_back(px); }
@@ -26,6 +27,7 @@ namespace ed
 	
 	private:
 		ObjectManager* m_objs;
+		RenderEngine* m_renderer;
 
 		bv_stack m_args, m_argsFetch;
 		bv_library* m_libHLSL, *m_libGLSL;

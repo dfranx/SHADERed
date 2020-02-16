@@ -9,7 +9,7 @@ namespace ed
 		Pipeline(&Parser),
 		Objects(&Parser, &Renderer),
 		Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui),
-		Debugger(&Objects)
+		Debugger(&Objects, &Renderer)
 	{
 		m_ui = gui;
 	}

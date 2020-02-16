@@ -1,4 +1,5 @@
 #include "DebugInformation.h"
+#include "SystemVariableManager.h"
 #include <ShaderDebugger/HLSLCompiler.h>
 #include <ShaderDebugger/HLSLLibrary.h>
 #include <ShaderDebugger/GLSLCompiler.h>
@@ -122,13 +123,14 @@ namespace ed
 		m_textures[stage].clear();
 	}
 
-	DebugInformation::DebugInformation(ObjectManager* objs)
+	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer)
 	{
 		m_pixel = nullptr;
 		m_lang = ed::ShaderLanguage::HLSL;
 		m_stage = sd::ShaderType::Vertex;
 		m_entry = "";
 		m_objs = objs;
+		m_renderer = renderer;
 
 		m_libHLSL = sd::HLSL::Library();
 		m_libGLSL = sd::GLSL::Library();
@@ -163,7 +165,8 @@ namespace ed
 					Engine.SetSemanticValue("SV_IsFrontFace", bv_variable_create_uchar(0));
 				}
 			}
-		} else {
+		}
+		else {
 			ret = Engine.SetSource<sd::GLSLCompiler>(stage, src, entry, 0, m_libGLSL);
 
 			// TODO: check if built-in variables have been redeclared
@@ -230,9 +233,46 @@ namespace ed
 		m_pixel = &pixel;
 		m_cleanTextures(m_stage);
 		
-		int vertexBase = (m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount;
+		int vertexBase = (pixel.VertexID / pixel.VertexCount) * pixel.VertexCount;
 		pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 		
+
+
+		// update some values
+		auto& itemVarValues = m_renderer->GetItemVariableValues();
+
+		// update the value for this element
+		for (int k = 0; k < itemVarValues.size(); k++)
+			if (itemVarValues[k].Item == pixel.Object)
+				itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+
+		// update system variables
+		if (pixel.Object->Type == PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(pixel.Object->Data);
+
+			if (geoData->Type == pipe::GeometryItem::Rectangle) {
+				// TODO: don't multiply with m_renderer->GetLastRenderSize() but rather with actual RT size
+				glm::vec3 scaleRect(geoData->Scale.x * m_renderer->GetLastRenderSize().x, geoData->Scale.y * m_renderer->GetLastRenderSize().y, 1.0f);
+				glm::vec3 posRect((geoData->Position.x + 0.5f) * m_renderer->GetLastRenderSize().x, (geoData->Position.y + 0.5f) * m_renderer->GetLastRenderSize().y, -1000.0f);
+				SystemVariableManager::Instance().SetGeometryTransform(pixel.Object, scaleRect, geoData->Rotation, posRect);
+			}
+			else
+				SystemVariableManager::Instance().SetGeometryTransform(pixel.Object, geoData->Scale, geoData->Rotation, geoData->Position);
+
+			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(pixel.Object));
+		}
+		else if (pixel.Object->Type == PipelineItem::ItemType::Model) {
+			pipe::Model* objData = reinterpret_cast<pipe::Model*>(pixel.Object->Data);
+
+			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(pixel.Object));
+			SystemVariableManager::Instance().SetGeometryTransform(pixel.Object, objData->Scale, objData->Rotation, objData->Position);
+		}
+
+		// update variables
+		pass->Variables.Bind(pixel.Object);
+
+
+
 		/* UNIFORMS */
 		const auto& globals = Engine.GetCompiler()->GetGlobals();
 		const auto& passUniforms = pass->Variables.GetVariables();
@@ -259,10 +299,11 @@ namespace ed
 						// allocate ShaderDebugger texture
 						sd::Texture* tex = new sd::Texture();
 						tex->Allocate(size.x, size.y);
+						tex->UserData = srvs[myId];
 
 						// get the data from the GPU
 						glBindTexture(GL_TEXTURE_2D, srvs[myId]);
-						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, &tex->Data[0][0]);
+						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, &tex->Data[0][0]);
 						glBindTexture(GL_TEXTURE_2D, 0);
 
 						// set and cache
@@ -513,6 +554,14 @@ namespace ed
 				Engine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, 0.0f, 0.0f));
 			}
 		}
+
+
+
+		// return old values
+		if (pixel.Object->Type == PipelineItem::ItemType::Geometry || pixel.Object->Type == PipelineItem::ItemType::Model)
+			for (int k = 0; k < itemVarValues.size(); k++)
+				if (itemVarValues[k].Item == pixel.Object)
+					itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 	}
 	void DebugInformation::Fetch(int id)
 	{
@@ -576,16 +625,34 @@ namespace ed
 						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(returnValue), glm::vec4(0.0f), glm::vec4(1.0f));
 					// object
 					else {
+						int outIndex = 0;
+						for (const auto& memb : str.Members) {
+							char digit = memb.Semantic[memb.Semantic.size() - 1]; // TODO: double digits?
+							if (isdigit(digit))
+								digit -= '0';
+							else digit = 0;
+
+							if (m_pixel->RenderTextureIndex == digit)
+								break;
+							
+							outIndex++;
+						}
+
 						bv_object* retObj = bv_variable_get_object(returnValue);
-						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(retObj->prop[0]), glm::vec4(0.0f), glm::vec4(1.0f));
+						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(retObj->prop[outIndex]), glm::vec4(0.0f), glm::vec4(1.0f));
 					}
 				}
 			}
 			else {
+				int outIndex = 0;
 				const auto& globals = Engine.GetCompiler()->GetGlobals();
 				for (const auto& glob : globals)
-					if (glob.Storage == sd::Variable::StorageType::Out)
+					if (glob.Storage == sd::Variable::StorageType::Out) {
 						m_pixel->DebuggerColor = glm::clamp(sd::AsVector<4, float>(*Engine.GetGlobalValue(glob.Name)), glm::vec4(0.0f), glm::vec4(1.0f));
+						if (m_pixel->RenderTextureIndex == glob.InputSlot || (m_pixel->RenderTextureIndex == outIndex && glob.InputSlot == -1))
+							break;
+						outIndex++;
+					}
 			}
 		}
 

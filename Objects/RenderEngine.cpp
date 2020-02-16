@@ -275,6 +275,7 @@ namespace ed
 						pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
 
 						if (geoData->Type == pipe::GeometryItem::Rectangle) {
+							// TODO: don't multiply with m_renderer->GetLastRenderSize() but rather with actual RT size
 							glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
 							glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
 							systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
@@ -374,7 +375,6 @@ namespace ed
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
-
 				}
 
 				if (isDebug)
@@ -569,6 +569,14 @@ namespace ed
 			dpxInfo.Coordinate = glm::ivec2(x, y);
 			dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
 
+			pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
+			for (int j = 0; j < passData->RTCount; j++) {
+				if (passData->RenderTextures[j] == m_rtColor) {
+					dpxInfo.RenderTextureIndex = j;
+					break;
+				}
+			}
+
 			m_debug->AddPixel(dpxInfo);
 		}
 
@@ -598,6 +606,14 @@ namespace ed
 					dpxInfo.Coordinate = glm::ivec2(rx * rtSize.x, ry * rtSize.y);
 					dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
 
+					pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
+					for (int j = 0; j < passData->RTCount; j++) {
+						if (passData->RenderTextures[j] == tex) {
+							dpxInfo.RenderTextureIndex = j;
+							break;
+						}
+					}
+
 					m_debug->AddPixel(dpxInfo);
 				}
 
@@ -615,7 +631,7 @@ namespace ed
 		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 		std::string vsCode = "";
-
+		
 		// vertex shader
 		int lineBias = 0;
 		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
@@ -637,6 +653,7 @@ namespace ed
 			if (bracketPos != std::string::npos)
 				vsCode.insert(bracketPos+1, "\n_sed_dbg_vertexID = gl_VertexID;\n");
 		}
+
 		size_t versionPos = vsCode.find("#version");
 		if (versionPos != std::string::npos) {
 			size_t newLinePos = vsCode.find('\n', versionPos);
@@ -656,6 +673,8 @@ namespace ed
 
 		state = gl::CheckShaderLinkStatus(customProgram, cmsg);
 
+		// update info
+		vertexPass->Variables.UpdateUniformInfo(customProgram);
 
 		// get resources
 		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
@@ -792,6 +811,14 @@ namespace ed
 		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
 		int vertexID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
 
+		// return old info
+		for (int i = 0; i < m_items.size(); i++) {
+			PipelineItem* it = m_items[i];
+			if (it == vertexData) {
+				vertexPass->Variables.UpdateUniformInfo(m_shaders[i]);
+				break;
+			}
+		}
 
 		// return the actual RT that was shown before
 		Render();
