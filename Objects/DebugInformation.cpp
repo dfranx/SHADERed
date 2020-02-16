@@ -80,7 +80,12 @@ namespace ed
 			std::string lName = lItem.Semantic;
 			std::transform(lName.begin(), lName.end(), lName.begin(), ::tolower);
 
-			if (sName == lName) {
+			bool sNameLastDigit = isdigit(sName[sName.size() - 1]);
+			bool lNameLastDigit = isdigit(lName[lName.size() - 1]);
+
+			if (sName == lName || (sNameLastDigit && !lNameLastDigit && sName == lName + "0") ||
+				(!sNameLastDigit && lNameLastDigit && sName + "0" == lName))
+			{
 				semanticItem = lItem;
 				semanticFound = true;
 				break;

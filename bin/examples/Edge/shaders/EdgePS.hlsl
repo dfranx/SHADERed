@@ -70,5 +70,5 @@ float4 main(PSInput pin) : SV_TARGET {
 		float clr = sobelNormal(pin.UV)*sobelColor(pin.UV);
 	clip((clr != 1) - 1);
 
-	return 1-clr;
+	return float4(1.0f-clr);
 }

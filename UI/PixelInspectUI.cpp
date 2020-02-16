@@ -67,7 +67,6 @@ namespace ed
 							pixel.Vertex[0].Position = glm::vec3(bufData[0], bufData[1], 0.0f);
 							pixel.Vertex[1].Position = glm::vec3(bufData[4], bufData[5], 0.0f);
 							pixel.Vertex[2].Position = glm::vec3(0,0,0);
-							pixel.VertexCount = vertCount;
 						} else {
 							GLfloat bufData[3 * 18] = { 0.0f };
 							int vertStart = ((int)(vertID / vertCount)) * vertCount;
@@ -76,8 +75,6 @@ namespace ed
 							copyFloatData(pixel.Vertex[0], &bufData[0]);
 							copyFloatData(pixel.Vertex[1], &bufData[18]);
 							copyFloatData(pixel.Vertex[2], &bufData[36]);
-
-							pixel.VertexCount = vertCount;
 						}
 						glBindBuffer(GL_ARRAY_BUFFER, 0);
 					}
@@ -90,6 +87,7 @@ namespace ed
 						pixel.Vertex[1] = mdl->Data->Meshes[0].Vertices[vertStart+1];
 						pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart+2];
 					}
+					pixel.VertexCount = vertCount;
 
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 

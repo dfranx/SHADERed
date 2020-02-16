@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Objects" type="shader">
+		<pass name="Objects" type="shader" active="true">
 			<shader type="vs" path="shaders\ObjectsVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\ObjectsPS.hlsl" entry="main" />
 			<inputlayout>
@@ -36,7 +36,7 @@
 			</variables>
 			<macros />
 		</pass>
-		<pass name="Edge" type="shader">
+		<pass name="Edge" type="shader" active="true">
 			<shader type="vs" path="shaders\EdgeVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\EdgePS.hlsl" entry="main" />
 			<inputlayout>
@@ -71,7 +71,11 @@
 			<bind slot="0" name="Edge" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
+		<entry type="property" name="Edge" item="pipe" />
+		<entry type="file" name="Edge" shader="vs" />
+		<entry type="file" name="Edge" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>9</distance>
 			<pitch>26</pitch>
