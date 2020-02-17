@@ -48,7 +48,8 @@ namespace ed
 
 			if (!pixel.Fetched) {
 				if (ImGui::Button(("Fetch##pixel_fetch_" + std::to_string(pxId)).c_str(), ImVec2(-1, 0))) {
-					int vertID = m_data->Renderer.DebugVertexPick(pixel.Owner, pixel.Object, pixel.Coordinate.x, pixel.Coordinate.y);
+					int vertID = m_data->Renderer.DebugVertexPick(pixel.Owner, pixel.Object, pixel.RelativeCoordinate);
+					bool isInstanced = false;
 
 					pixel.VertexID = vertID;
 
@@ -59,17 +60,26 @@ namespace ed
 						pipe::GeometryItem::GeometryType geoType = ((pipe::GeometryItem*)pixel.Object->Data)->Type;
 						GLuint vbo = ((pipe::GeometryItem*)pixel.Object->Data)->VBO;
 
-						// TODO: v1.3.*
+						isInstanced = ((pipe::GeometryItem*)pixel.Object->Data)->Instanced;
+
+						// TODO: don't bother GPU so much, v1.3.*
 						glBindBuffer(GL_ARRAY_BUFFER, vbo);
 						if (geoType == pipe::GeometryItem::GeometryType::ScreenQuadNDC) {
-							GLfloat bufData[4 * 4] = { 0.0f };
-							glGetBufferSubData(GL_ARRAY_BUFFER, 0, 4 * 4 * sizeof(float), &bufData[0]);
+							GLfloat bufData[6 * 4] = { 0.0f };
+							glGetBufferSubData(GL_ARRAY_BUFFER, 0, 6 * 4 * sizeof(float), &bufData[0]);
+
+
+							int bufferLoc = (pixel.VertexID / vertCount) * vertCount * 4;
 
 							// TODO: change this *PLACEHOLDER*
-							pixel.Vertex[0].Position = glm::vec3(bufData[0], bufData[1], 0.0f);
-							pixel.Vertex[1].Position = glm::vec3(bufData[4], bufData[5], 0.0f);
-							pixel.Vertex[2].Position = glm::vec3(0,0,0);
-						} else {
+							pixel.Vertex[0].Position = glm::vec3(bufData[bufferLoc + 0], bufData[bufferLoc + 1], 0.0f);
+							pixel.Vertex[1].Position = glm::vec3(bufData[bufferLoc + 4], bufData[bufferLoc + 5], 0.0f);
+							pixel.Vertex[2].Position = glm::vec3(bufData[bufferLoc + 8], bufData[bufferLoc + 9], 0.0f);
+							pixel.Vertex[0].TexCoords = glm::vec2(bufData[bufferLoc + 2], bufData[bufferLoc + 3]);
+							pixel.Vertex[1].TexCoords = glm::vec2(bufData[bufferLoc + 6], bufData[bufferLoc + 7]);
+							pixel.Vertex[2].TexCoords = glm::vec2(bufData[bufferLoc + 10], bufData[bufferLoc + 11]);
+						}
+						else {
 							GLfloat bufData[3 * 18] = { 0.0f };
 							int vertStart = ((int)(vertID / vertCount)) * vertCount;
 							glGetBufferSubData(GL_ARRAY_BUFFER, vertStart * 18 * sizeof(float), vertCount * 18 * sizeof(float), &bufData[0]);
@@ -88,8 +98,14 @@ namespace ed
 						pixel.Vertex[0] = mdl->Data->Meshes[0].Vertices[vertStart+0];
 						pixel.Vertex[1] = mdl->Data->Meshes[0].Vertices[vertStart+1];
 						pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart+2];
+
+						isInstanced = mdl->Instanced;
 					}
 					pixel.VertexCount = vertCount;
+
+					// get the instance id if this object uses instancing
+					if (isInstanced)
+						pixel.InstanceID = m_data->Renderer.DebugInstancePick(pixel.Owner, pixel.Object, pixel.RelativeCoordinate);
 
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 

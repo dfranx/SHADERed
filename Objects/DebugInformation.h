@@ -20,7 +20,7 @@ namespace ed
 		void InitEngine(PixelInformation& pixel, int id = 0); // set up input variables
 		void Fetch(int id = 0);
 
-		glm::vec2 GetVertexScreenPosition(const PixelInformation& pixel, int id);
+		glm::vec2 GetVertexScreenPosition(PixelInformation& pixel, int id);
 
 		sd::ShaderDebugger Engine;
 		bool IsDebugging;

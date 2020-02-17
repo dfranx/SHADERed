@@ -269,8 +269,6 @@ namespace ed
 
 			m_zoom.RebuildVBO(imageSize.x, imageSize.y);
 
-			if (paused)
-				renderer->Render(imageSize.x, imageSize.y);
 		}
 
 		m_fpsUpdateTime += delta;
@@ -299,7 +297,11 @@ namespace ed
 		ImGui::Image((void*)rtView, imageSize, ImVec2(zPos.x,zPos.y+zSize.y), ImVec2(zPos.x+zSize.x,zPos.y));
 
 		m_hasFocus = ImGui::IsWindowFocused();
-		
+
+		auto& pixelList = m_data->Debugger.GetPixelList();
+		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() && ((pixelList.size() > 0 && ((ImGui::IsMouseClicked(0) && ImGui::IsItemHovered()) || !pixelList[0].Fetched)) || (pixelList.size() == 0)))
+			renderer->Render(imageSize.x, imageSize.y);
+
 		// render the gizmo/bounding box/zoom area if necessary
 		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) ||
 			m_zoom.IsSelecting()) {
@@ -558,10 +560,7 @@ namespace ed
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 
-				s.x *= imageSize.x;
-				s.y *= imageSize.y;
-
-				m_data->Renderer.DebugPixelPick(s.x, s.y);
+				m_data->Renderer.DebugPixelPick(s);
 			}
 
 		}
@@ -605,17 +604,16 @@ namespace ed
 
 		// debugger vertex outline
 		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && !m_data->Debugger.IsDebugging) {
-			const auto& pixels = m_data->Debugger.GetPixelList();
-			if (pixels.size() > 0) {
-				if (pixels[0].Fetched) { // we only care about window's pixel info here
+			if (pixelList.size() > 0) {
+				if (pixelList[0].Fetched) { // we only care about window's pixel info here
 					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
 					ImVec2 uiPos = ImGui::GetCursorScreenPos();
 
 					glm::vec2 screenSize(imageSize.x, imageSize.y);
 
-					glm::ivec2 vertPos1 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 0) * screenSize;
-					glm::ivec2 vertPos2 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 1) * screenSize;
-					glm::ivec2 vertPos3 = m_data->Debugger.GetVertexScreenPosition(pixels[0], 2) * screenSize;
+					glm::ivec2 vertPos1 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 0) * screenSize;
+					glm::ivec2 vertPos2 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 1) * screenSize;
+					glm::ivec2 vertPos3 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 2) * screenSize;
 
 					vertPos1.y = screenSize.y - vertPos1.y;
 					vertPos2.y = screenSize.y - vertPos2.y;

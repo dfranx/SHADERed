@@ -30,8 +30,9 @@ namespace ed
 		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins, DebugInformation* debugger);
 		~RenderEngine();
 
-		void DebugPixelPick(int x, int y);
-		int DebugVertexPick(PipelineItem* pass, PipelineItem* item, int x, int y);
+		void DebugPixelPick(glm::vec2 r);
+		int DebugVertexPick(PipelineItem* pass, PipelineItem* item, glm::vec2 r);
+		int DebugInstancePick(PipelineItem* pass, PipelineItem* item, glm::vec2 r);
 
 		void Render(int width, int height, bool isDebug = false);
 		inline void Render(bool isDebug = false) { Render(m_lastSize.x, m_lastSize.y, isDebug); }
@@ -51,7 +52,7 @@ namespace ed
 		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1,1); }
 		inline GLuint GetTexture() { return m_rtColor; }
 		inline GLuint GetDepthTexture() { return m_rtDepth; }
-		glm::ivec2 GetLastRenderSize() { return m_lastSize; }
+		inline glm::ivec2 GetLastRenderSize() { return m_lastSize; }
 
 		inline bool IsPaused() { return m_paused; }
 		void Pause(bool pause);
@@ -136,7 +137,7 @@ namespace ed
 		struct ShaderPack {ShaderPack() {VS=GS=PS=0;} GLuint VS, PS, GS;};
 		std::vector<ShaderPack> m_shaderSources;
 
-		GLuint m_debugPixelShader, m_debugVertexPickShader;
+		GLuint m_debugPixelShader, m_debugVertexPickShader, m_debugInstancePickShader;
 
 		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 

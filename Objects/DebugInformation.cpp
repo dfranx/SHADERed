@@ -56,8 +56,7 @@ namespace ed
 	glm::vec2 getScreenCoord(const glm::vec4& inp)
 	{
 		glm::vec4 ret = inp / inp.w;
-		ret = (ret + 1.0f) * 0.5f;
-		return glm::vec2(ret);
+		return glm::vec2((ret + 1.0f) * 0.5f);
 	}
 	glm::vec3 getWeights(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p) {
 		glm::vec2 ab = b - a;
@@ -111,9 +110,83 @@ namespace ed
 			for (int p = 0; p < obj->type->props.name_count; p++)
 				obj->prop[p] = bv_variable_create_float(inpValue[p]);
 		}
-		else varValue = bv_variable_copy(debugger->GetSemanticValue(sName));
+		else {
+			bv_variable semVal = debugger->GetSemanticValue(sName);
+			if (semVal.type == bv_type_void) {
+				bool isLastDigit = isdigit(sName[sName.size() - 1]);
+				if (isLastDigit)
+					sName = sName.substr(0, sName.size() - 1);
+				else
+					sName = sName + "0";
+				semVal = debugger->GetSemanticValue(sName);
+			}
+
+			varValue = bv_variable_copy(semVal);
+		}
 
 		return varValue;
+	}
+	bool semanticExists(const std::string& sem, pipe::ShaderPass* pass)
+	{
+		std::string sName = sem;
+		std::transform(sName.begin(), sName.end(), sName.begin(), ::tolower);
+
+		for (const auto& lItem : pass->InputLayout) {
+			std::string lName = lItem.Semantic;
+			std::transform(lName.begin(), lName.end(), lName.begin(), ::tolower);
+
+			bool sNameLastDigit = isdigit(sName[sName.size() - 1]);
+			bool lNameLastDigit = isdigit(lName[lName.size() - 1]);
+
+			if (sName == lName || (sNameLastDigit && !lNameLastDigit && sName == lName + "0") ||
+				(!sNameLastDigit && lNameLastDigit && sName + "0" == lName))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	bv_variable fetchBufferElement(bv_program* prog, ed::ShaderLanguage lang, void* data, ShaderVariable::ValueType type, int instanceID, int perRowSize, int rowOffset)
+	{
+		bool ret = false;
+		int actualIndex = instanceID * perRowSize + rowOffset;
+		void* actualData = (char*)data + actualIndex;
+
+		switch (type) {
+		case ed::ShaderVariable::ValueType::Float4x4:
+			return sd::Common::create_mat(prog, lang == ed::ShaderLanguage::GLSL ? "mat4" : "float4x4", new sd::Matrix(glm::make_mat4x4((float*)actualData), 4, 4));
+		case ed::ShaderVariable::ValueType::Float3x3:
+			return sd::Common::create_mat(prog, lang == ed::ShaderLanguage::GLSL ? "mat3" : "float3x3", new sd::Matrix(glm::make_mat3x3((float*)actualData), 3, 3));
+		case ed::ShaderVariable::ValueType::Float2x2:
+			return sd::Common::create_mat(prog, lang == ed::ShaderLanguage::GLSL ? "mat2" : "float2x2", new sd::Matrix(glm::make_mat2x2((float*)actualData), 2, 2));
+		case ed::ShaderVariable::ValueType::Float1:
+			return bv_variable_create_float(*(float*)actualData);
+		case ed::ShaderVariable::ValueType::Float2:
+			return sd::Common::create_float2(prog, glm::make_vec2<float>((float*)actualData));
+		case ed::ShaderVariable::ValueType::Float3:
+			return sd::Common::create_float3(prog, glm::make_vec3<float>((float*)actualData));
+		case ed::ShaderVariable::ValueType::Float4:
+			return sd::Common::create_float4(prog, glm::make_vec4<float>((float*)actualData));
+		case ed::ShaderVariable::ValueType::Integer1:
+			return bv_variable_create_int(*((int*)actualData));
+		case ed::ShaderVariable::ValueType::Integer2:
+			return sd::Common::create_int2(prog, glm::make_vec2<int>((int*)actualData));
+		case ed::ShaderVariable::ValueType::Integer3:
+			return sd::Common::create_int3(prog, glm::make_vec3<int>((int*)actualData));
+		case ed::ShaderVariable::ValueType::Integer4:
+			return sd::Common::create_int4(prog, glm::make_vec4<int>((int*)actualData));
+		case ed::ShaderVariable::ValueType::Boolean1:
+			return bv_variable_create_uchar(*((bool*)actualData));
+		case ed::ShaderVariable::ValueType::Boolean2:
+			return sd::Common::create_bool2(prog, glm::make_vec2<bool>((bool*)actualData));
+		case ed::ShaderVariable::ValueType::Boolean3:
+			return sd::Common::create_bool3(prog, glm::make_vec3<bool>((bool*)actualData));
+		case ed::ShaderVariable::ValueType::Boolean4:
+			return sd::Common::create_bool4(prog, glm::make_vec4<bool>((bool*)actualData));
+		}
+
+		return bv_variable_create_void();
 	}
 
 	void DebugInformation::m_cleanTextures(sd::ShaderType stage)
@@ -176,6 +249,9 @@ namespace ed
 					Engine.AddGlobal("gl_VertexID");
 					Engine.SetGlobalValue("gl_VertexID", bv_variable_create_int(0));
 
+					Engine.AddGlobal("gl_InstanceID");
+					Engine.SetGlobalValue("gl_InstanceID", bv_variable_create_int(0));
+
 					Engine.AddGlobal("gl_Position");
 					Engine.SetGlobalValue("gl_Position", "vec4", glm::vec4(0.0f));
 				}
@@ -191,7 +267,7 @@ namespace ed
 
 		return ret;
 	}
-	glm::vec2 DebugInformation::GetVertexScreenPosition(const PixelInformation& pixel, int id)
+	glm::vec2 DebugInformation::GetVertexScreenPosition(PixelInformation& pixel, int id)
 	{
 		/* INPUTS */
 		// look for arguments when using HLSL
@@ -213,9 +289,9 @@ namespace ed
 				posInd = -1;
 			
 			if (posInd == -1)
-				glPos = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[id]["return"]);
+				glPos = sd::AsVector<4, float>(pixel.VertexShaderOutput[id]["return"]);
 			else {
-				bv_object* obj = bv_variable_get_object(m_pixel->VertexShaderOutput[id]["return"]);
+				bv_object* obj = bv_variable_get_object(pixel.VertexShaderOutput[id]["return"]);
 				glPos = sd::AsVector<4, float>(obj->prop[posInd]);
 			}
 
@@ -223,7 +299,7 @@ namespace ed
 		}
 		// look for global variables when using GLSL
 		else {
-			glm::vec4 glPos = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[id]["gl_Position"]);
+			glm::vec4 glPos = sd::AsVector<4, float>(pixel.VertexShaderOutput[id]["gl_Position"]);
 
 			return getScreenCoord(glPos);
 		}
@@ -233,10 +309,10 @@ namespace ed
 		m_pixel = &pixel;
 		m_cleanTextures(m_stage);
 		
-		int vertexBase = (pixel.VertexID / pixel.VertexCount) * pixel.VertexCount;
+		int vertexBase = (m_pixel->VertexID / m_pixel->VertexCount) * m_pixel->VertexCount;
 		pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
-		
-
+		bool isInstanced = false;
+		BufferObject* instanceBuffer = nullptr;
 
 		// update some values
 		auto& itemVarValues = m_renderer->GetItemVariableValues();
@@ -260,18 +336,22 @@ namespace ed
 				SystemVariableManager::Instance().SetGeometryTransform(pixel.Object, geoData->Scale, geoData->Rotation, geoData->Position);
 
 			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(pixel.Object));
+
+			isInstanced = geoData->Instanced;
+			instanceBuffer = (BufferObject*)geoData->InstanceBuffer;
 		}
 		else if (pixel.Object->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* objData = reinterpret_cast<pipe::Model*>(pixel.Object->Data);
 
 			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(pixel.Object));
 			SystemVariableManager::Instance().SetGeometryTransform(pixel.Object, objData->Scale, objData->Rotation, objData->Position);
+		
+			isInstanced = objData->Instanced;
+			instanceBuffer = (BufferObject*)objData->InstanceBuffer;
 		}
 
 		// update variables
 		pass->Variables.Bind(pixel.Object);
-
-
 
 		/* UNIFORMS */
 		const auto& globals = Engine.GetCompiler()->GetGlobals();
@@ -292,6 +372,8 @@ namespace ed
 						if (itemData != nullptr) {
 							if (itemData->RT != nullptr)
 								size = m_objs->GetRenderTextureSize(itemName);
+							else if (itemData->Image != nullptr)
+								size = itemData->Image->Size;
 							else
 								size = itemData->ImageSize;
 						}
@@ -373,7 +455,62 @@ namespace ed
 
 			if (m_stage == sd::ShaderType::Vertex) {
 				Engine.SetSemanticValue("SV_VertexID", bv_variable_create_int(vertexBase + id));
+				Engine.SetSemanticValue("SV_InstanceID", bv_variable_create_int(m_pixel->InstanceID));
+				
+				// setting instance buffer values
+				if (isInstanced && instanceBuffer != nullptr) {
+					auto bufFormatList = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
+					int instItemIndex = 0;
+					int instCurOffset = 0;
 
+					// size per each row
+					int perRowSize = 0;
+					for (int i = 0; i < bufFormatList.size(); i++)
+						perRowSize += ShaderVariable::GetSize(bufFormatList[i]);
+
+					// update the data
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceBuffer->ID);
+					glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, instanceBuffer->Size, instanceBuffer->Data);
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+					for (const auto& arg : args) {
+						// structures
+						if (arg.Semantic.empty()) {
+							sd::Structure str;
+							for (const auto& s : structs)
+								if (s.Name == arg.Type) {
+									str = s;
+									break;
+								}
+
+							for (int i = 0; i < str.Members.size(); i++) {
+								sd::Variable memb = str.Members[i];
+								if (!semanticExists(memb.Semantic, pass)) {
+									bv_variable varVal = fetchBufferElement(Engine.GetProgram(), m_lang, instanceBuffer->Data, bufFormatList[instItemIndex], m_pixel->InstanceID, perRowSize, instCurOffset);
+									Engine.SetSemanticValue(memb.Semantic, varVal);
+									bv_variable_deinitialize(&varVal);
+
+									instCurOffset += ShaderVariable::GetSize(bufFormatList[instItemIndex]);
+									instItemIndex++;
+								}
+							}
+
+						}
+						// vectors, scalars, etc..
+						else {
+							if (!semanticExists(arg.Semantic, pass)) {
+								bv_variable varVal = fetchBufferElement(Engine.GetProgram(), m_lang, instanceBuffer->Data, bufFormatList[instItemIndex], m_pixel->InstanceID, perRowSize, instCurOffset);
+								Engine.SetSemanticValue(arg.Semantic, varVal);
+								bv_variable_deinitialize(&varVal);
+
+								instCurOffset += ShaderVariable::GetSize(bufFormatList[instItemIndex]);
+								instItemIndex++;
+							}
+						}
+					}
+				}
+
+				// actual arguments
 				for (const auto& arg : args) {
 					// structures
 					if (arg.Semantic.empty()) {
@@ -514,10 +651,32 @@ namespace ed
 
 							bv_variable_deinitialize(&varValue);
 						}
+						else if (isInstanced && instanceBuffer != nullptr && glob.InputSlot != -1) {
+							auto bufFormatList = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
+							int instCurOffset = 0;
+
+							// size per each row
+							int perRowSize = 0;
+							for (int i = 0; i < bufFormatList.size(); i++) {
+								perRowSize += ShaderVariable::GetSize(bufFormatList[i]);
+								if (i < glob.InputSlot)
+									instCurOffset = perRowSize;
+							}
+
+							// update the data
+							glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceBuffer->ID);
+							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, instanceBuffer->Size, instanceBuffer->Data);
+							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+							bv_variable varVal = fetchBufferElement(Engine.GetProgram(), m_lang, instanceBuffer->Data, bufFormatList[glob.InputSlot], m_pixel->InstanceID, perRowSize, instCurOffset);
+							Engine.SetGlobalValue(glob.Name, varVal);
+							bv_variable_deinitialize(&varVal);
+						}
 					}
 				}
 
 				Engine.SetGlobalValue("gl_VertexID", bv_variable_create_int(vertexBase + id));
+				Engine.SetGlobalValue("gl_InstanceID", bv_variable_create_int(m_pixel->InstanceID));
 			}
 			else if (m_stage == sd::ShaderType::Pixel) {
 				glm::vec4 glPos1 = sd::AsVector<4, float>(m_pixel->VertexShaderOutput[0]["gl_Position"]);

@@ -2,9 +2,13 @@
 #include "../Objects/Names.h"
 #include "../Objects/Logger.h"
 
+#include <iomanip>
+#include <sstream>
 #include <clocale>
 #include <imgui/imgui.h>
 #include <nativefiledialog/nfd.h>
+
+#include <ShaderDebugger/Utils.h>
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 
@@ -223,6 +227,27 @@ namespace ed
 
 				if (i != obj->type->props.name_count - 1)
 					ret += "\n";
+			}
+
+			if (obj->type->props.name_count == 0) {
+				if (sd::IsBasicTexture(obj->type->name))
+					ret += obj->type->name;
+				else {
+					bv_type type = sd::GetMatrixTypeFromName(obj->type->name);
+					// matrix
+					if (type != bv_type_void) {
+						sd::Matrix* mat = (sd::Matrix*)obj->user_data;
+						std::stringstream ss;
+
+						for (int y = 0; y < mat->Rows; y++) {
+							for (int x = 0; x < mat->Columns; x++)
+								ss << indentStr << std::left << std::setw(14) << mat->Data[y][x];
+							ss << "\n";
+						}
+
+						ret += ss.str();
+					}
+				}
 			}
 		}
 

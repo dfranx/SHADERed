@@ -41,6 +41,21 @@ void main()
 	outColor = vec4(r, g, b, 1.0f);
 }
 )";
+static const char* PixelDebugInstanceShaderCode = R"(
+#version 330
+
+flat in int _sed_dbg_instanceID;
+out vec4 outColor;
+
+void main()
+{
+	float r = (_sed_dbg_instanceID & 0xFF) / 255.0f;
+	float g = ((_sed_dbg_instanceID >> 8)  & 0xFF) / 255.0f;
+	float b = ((_sed_dbg_instanceID >> 16) & 0xFF) / 255.0f;
+
+	outColor = vec4(r, g, b, 1.0f);
+}
+)";
 
 namespace ed
 {
@@ -76,6 +91,11 @@ namespace ed
 		psCompiled = gl::CheckShaderCompilationStatus(m_debugVertexPickShader, msg);
 		if (!psCompiled)
 			Logger::Get().Log("Failed to compile the pixel shader for vertex picking.", true);
+
+		m_debugInstancePickShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugInstanceShaderCode);
+		psCompiled = gl::CheckShaderCompilationStatus(m_debugVertexPickShader, msg);
+		if (!psCompiled)
+			Logger::Get().Log("Failed to compile the pixel shader used for getting instance ID.", true);
 	}
 	RenderEngine::~RenderEngine()
 	{
@@ -85,6 +105,7 @@ namespace ed
 		glDeleteTextures(1, &m_rtDepthMS);
 		glDeleteShader(m_debugPixelShader);
 		glDeleteShader(m_debugVertexPickShader);
+		glDeleteShader(m_debugInstancePickShader);
 		FlushCache();
 	}
 	void RenderEngine::Render(int width, int height, bool isDebug)
@@ -509,12 +530,12 @@ namespace ed
 		if (isMSAA)
 			glDisable(GL_MULTISAMPLE);
 	}
-	void RenderEngine::DebugPixelPick(int x, int y)
+	void RenderEngine::DebugPixelPick(glm::vec2 r)
 	{
 		m_debug->ClearPixelList();
 
-		float rx = x / (float)m_lastSize.x;
-		float ry = y / (float)m_lastSize.y;
+		int x = r.x * m_lastSize.x;
+		int y = r.y * m_lastSize.y;
 
 		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
 
@@ -540,7 +561,7 @@ namespace ed
 				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				pxData = &pixelData[((int)(rx * rtSize.x) + (int)(ry * rtSize.y) * rtSize.x) * 4];
+				pxData = &pixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
 
 				pixelColors[tex] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
 
@@ -567,7 +588,7 @@ namespace ed
 			dpxInfo.Object = itemData.second;
 			dpxInfo.Owner = itemData.first;
 			dpxInfo.Coordinate = glm::ivec2(x, y);
-			dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
+			dpxInfo.RelativeCoordinate = r;
 
 			pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
 			for (int j = 0; j < passData->RTCount; j++) {
@@ -592,7 +613,7 @@ namespace ed
 				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				pxData = &pixelData[((int)(rx * rtSize.x) + (int)(ry * rtSize.y) * rtSize.x) * 4];
+				pxData = &pixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
 				id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
 				if (id != 0) {
 					std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
@@ -603,8 +624,8 @@ namespace ed
 					dpxInfo.Fetched = false;
 					dpxInfo.Object = itemData.second;
 					dpxInfo.Owner = itemData.first;
-					dpxInfo.Coordinate = glm::ivec2(rx * rtSize.x, ry * rtSize.y);
-					dpxInfo.RelativeCoordinate = glm::vec2(rx, ry);
+					dpxInfo.Coordinate = glm::ivec2(r.x * rtSize.x, r.y * rtSize.y);
+					dpxInfo.RelativeCoordinate = glm::vec2(r.x, r.y);
 
 					pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
 					for (int j = 0; j < passData->RTCount; j++) {
@@ -626,12 +647,15 @@ namespace ed
 
 		delete[] mainPixelData;
 	}
-	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, int x, int y)
+	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
 	{
 		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 		std::string vsCode = "";
-		
+
+		int x = r.x * m_lastSize.x;
+		int y = r.y * m_lastSize.y;
+
 		// vertex shader
 		int lineBias = 0;
 		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
@@ -663,15 +687,10 @@ namespace ed
 
 		GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsCode.c_str());
 
-		char cmsg[1024] = { 0 };
-		bool state = gl::CheckShaderCompilationStatus(vs, cmsg);
-
 		GLuint customProgram = glCreateProgram();
 		glAttachShader(customProgram, vs);
 		glAttachShader(customProgram, m_debugVertexPickShader);
 		glLinkProgram(customProgram);
-
-		state = gl::CheckShaderLinkStatus(customProgram, cmsg);
 
 		// update info
 		vertexPass->Variables.UpdateUniformInfo(customProgram);
@@ -828,6 +847,207 @@ namespace ed
 		delete[] mainPixelData;
 
 		return vertexID;
+	}
+	int RenderEngine::DebugInstancePick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
+	{
+		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
+		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
+		std::string vsCode = "";
+
+		int x = r.x * m_lastSize.x;
+		int y = r.y * m_lastSize.y;
+
+		// vertex shader
+		int lineBias = 0;
+		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
+			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
+			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
+			m_applyMacros(vsCode, vertexPass);
+		}
+		else // HLSL / VK
+			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
+
+		// modify user's vertex shader
+		// TODO: the following code is hacky (for example, it wont work if you have a commented out main())
+		// TODO: wait for ShaderParser
+		size_t mainPos = vsCode.find("main(");
+		while (mainPos != std::string::npos && !isspace(vsCode[mainPos - 1]))
+			mainPos = vsCode.find("main(", mainPos + 1);
+		if (mainPos != std::string::npos && isspace(vsCode[mainPos - 1])) {
+			size_t bracketPos = vsCode.find('{', mainPos);
+			if (bracketPos != std::string::npos)
+				vsCode.insert(bracketPos + 1, "\n_sed_dbg_instanceID = gl_InstanceID;\n");
+		}
+
+		size_t versionPos = vsCode.find("#version");
+		if (versionPos != std::string::npos) {
+			size_t newLinePos = vsCode.find('\n', versionPos);
+			if (newLinePos != std::string::npos)
+				vsCode.insert(newLinePos, "\nflat out int _sed_dbg_instanceID;\n");
+		}
+
+		GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsCode.c_str());
+
+		GLuint customProgram = glCreateProgram();
+		glAttachShader(customProgram, vs);
+		glAttachShader(customProgram, m_debugInstancePickShader);
+		glLinkProgram(customProgram);
+
+		// update info
+		vertexPass->Variables.UpdateUniformInfo(customProgram);
+
+		// get resources
+		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
+		const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
+
+		// item variable values
+		auto& itemVarValues = GetItemVariableValues();
+
+		// bind fbo and buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
+		glDrawBuffers(vertexPass->RTCount, fboBuffers);
+
+		glStencilMask(0xFFFFFFFF);
+		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+
+		// bind RTs
+		int rtCount = MAX_RENDER_TEXTURES;
+		glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
+		for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+			if (vertexPass->RenderTextures[i] == 0) {
+				rtCount = i;
+				break;
+			}
+
+			GLuint rt = vertexPass->RenderTextures[i];
+
+			if (rt != m_rtColor) {
+				ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+				rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
+			}
+
+			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
+		}
+
+		// update viewport value
+		glViewport(0, 0, rtSize.x, rtSize.y);
+
+		// bind shaders
+		glUseProgram(customProgram);
+
+		// bind shader resource views
+		for (int j = 0; j < srvs.size(); j++) {
+			glActiveTexture(GL_TEXTURE0 + j);
+			if (m_objects->IsCubeMap(srvs[j]))
+				glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+			else if (m_objects->IsImage3D(srvs[j]))
+				glBindTexture(GL_TEXTURE_3D, srvs[j]);
+			else if (m_objects->IsPluginObject(srvs[j])) {
+				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+			}
+			else
+				glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+				vertexPass->Variables.UpdateTexture(customProgram, j);
+		}
+		for (int j = 0; j < ubos.size(); j++)
+			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
+
+		// bind default states for each shader pass
+		DefaultState::Bind();
+		SystemVariableManager& systemVM = SystemVariableManager::Instance();
+
+		// render pipeline items
+		for (int j = 0; j < vertexPass->Items.size(); j++) {
+			PipelineItem* item = vertexPass->Items[j];
+
+			// update the value for this element and check if we picked it
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+				if (item != vertexItem)
+					continue;
+				for (int k = 0; k < itemVarValues.size(); k++)
+					if (itemVarValues[k].Item == item)
+						itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+			}
+
+			if (item->Type == PipelineItem::ItemType::Geometry) {
+				pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+
+				if (geoData->Type == pipe::GeometryItem::Rectangle) {
+					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
+					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
+					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+				}
+				else
+					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+
+				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+				// bind variables
+				vertexPass->Variables.Bind(item);
+
+				glBindVertexArray(geoData->VAO);
+				if (geoData->Instanced)
+					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
+				else
+					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+			}
+			else if (item->Type == PipelineItem::ItemType::Model) {
+				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+
+				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+				systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+
+				// bind variables
+				vertexPass->Variables.Bind(item);
+
+				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+			}
+			else if (item->Type == PipelineItem::ItemType::RenderState) {
+				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
+
+				// culling and front face (only thing we care about when picking a vertex, i think)
+				if (state->CullFace)
+					glEnable(GL_CULL_FACE);
+				else
+					glDisable(GL_CULL_FACE);
+				glCullFace(state->CullFaceType);
+				glFrontFace(state->FrontFace);
+			}
+
+			// set the old value back
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+				for (int k = 0; k < itemVarValues.size(); k++)
+					if (itemVarValues[k].Item == item)
+						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+		}
+
+		// window pixel color
+		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
+		int instanceID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+
+		// return old info
+		for (int i = 0; i < m_items.size(); i++) {
+			PipelineItem* it = m_items[i];
+			if (it == vertexData) {
+				vertexPass->Variables.UpdateUniformInfo(m_shaders[i]);
+				break;
+			}
+		}
+
+		// return the actual RT that was shown before
+		Render();
+
+		glDeleteProgram(customProgram);
+		glDeleteShader(vs);
+		delete[] mainPixelData;
+
+		return instanceID;
 	}
 	void RenderEngine::Pause(bool pause)
 	{
