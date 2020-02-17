@@ -60,10 +60,6 @@
 
 namespace ed
 {
-	float clip(float n, float lower, float upper) {
-		return std::max(lower, std::min(n, upper));
-	}
-
 	GUIManager::GUIManager(ed::InterfaceManager* objects, SDL_Window* wnd, SDL_GLContext* gl)
 	{
 		m_data = objects;
@@ -469,6 +465,12 @@ namespace ed
 
 		return buttonid;
 	}
+	void GUIManager::StopDebugging()
+	{
+		CodeEditorUI* codeUI = (CodeEditorUI*)Get(ViewID::Code);
+		codeUI->StopDebugging();
+		m_data->Debugger.SetDebugging(false);
+	}
 	void GUIManager::Update(float delta)
 	{
 		// add star to the titlebar if project was modified
@@ -767,7 +769,7 @@ namespace ed
 				}
 
 				if (ImGui::BeginMenu("Debug")) {
-					if (!m_data->Debugger.IsDebugging) {
+					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
@@ -775,7 +777,7 @@ namespace ed
 					for (auto& dview : m_debugViews)
 						ImGui::MenuItem(dview->Name.c_str(), 0, &dview->Visible);
 					
-					if (!m_data->Debugger.IsDebugging) {
+					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PopStyleVar();
 						ImGui::PopItemFlag();
 					}
@@ -879,7 +881,7 @@ namespace ed
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 					ImGui::End();
 				}
-			if (m_data->Debugger.IsDebugging) {
+			if (m_data->Debugger.IsDebugging()) {
 				for (auto& dview : m_debugViews)
 					if (dview->Visible) {
 						ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
@@ -1721,7 +1723,7 @@ namespace ed
 			ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, io.DisplaySize.y - DISTANCE);
 			ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f);
 			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-			ImGui::SetNextWindowBgAlpha(1.0f-clip(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
+			ImGui::SetNextWindowBgAlpha(1.0f-glm::clamp(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
 			ImVec4 textClr = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			ImVec4 windowClr = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, textClr);

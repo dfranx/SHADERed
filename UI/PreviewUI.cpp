@@ -603,7 +603,7 @@ namespace ed
 			m_renderStatusbar(imageSize.x, imageSize.y);
 
 		// debugger vertex outline
-		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && !m_data->Debugger.IsDebugging) {
+		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && !m_data->Debugger.IsDebugging()) {
 			if (pixelList.size() > 0) {
 				if (pixelList[0].Fetched) { // we only care about window's pixel info here
 					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
@@ -813,8 +813,11 @@ namespace ed
 		else
 			ImGui::SetCursorPosX(pauseStartX);
 
-		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+			m_ui->StopDebugging();
+		}
+
 		ImGui::SameLine(0,BUTTON_INDENT);
 		if (ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) &&
 			m_data->Renderer.IsPaused())

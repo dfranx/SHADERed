@@ -145,6 +145,7 @@ namespace ed
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->StopDebugging();
 					codeUI->OpenPS(pixel.Owner);
 					editor = codeUI->GetPS(pixel.Owner);
 
@@ -168,6 +169,7 @@ namespace ed
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->StopDebugging();
 					codeUI->OpenVS(pixel.Owner);
 					editor = codeUI->GetVS(pixel.Owner);
 
@@ -183,6 +185,7 @@ namespace ed
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->StopDebugging();
 					codeUI->OpenVS(pixel.Owner);
 					editor = codeUI->GetVS(pixel.Owner);
 
@@ -199,6 +202,7 @@ namespace ed
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->StopDebugging();
 					codeUI->OpenVS(pixel.Owner);
 					editor = codeUI->GetVS(pixel.Owner);
 
@@ -214,7 +218,7 @@ namespace ed
 				if (requestCompile) {
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 
-					m_data->Debugger.IsDebugging = true;
+					m_data->Debugger.SetDebugging(true);
 					m_data->Debugger.InitEngine(pixel, initIndex);
 
 					sd::ShaderDebugger* dbgr = &m_data->Debugger.Engine;
@@ -263,7 +267,7 @@ namespace ed
 						}
 
 						if (act == TextEditor::DebugAction::Stop || !state) {
-							m_data->Debugger.IsDebugging = false;
+							m_data->Debugger.SetDebugging(false);
 							ed->SetCurrentLineIndicator(-1);
 						}
 						else {

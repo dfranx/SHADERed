@@ -413,7 +413,7 @@ namespace ed
 					}
 				}
 			}
-			else if (it->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && m_computeSupported) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -467,7 +467,7 @@ namespace ed
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
-			else if (it->Type == PipelineItem::ItemType::AudioPass) {
+			else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
 				pipe::AudioPass *data = (pipe::AudioPass *)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -503,7 +503,7 @@ namespace ed
 
 				data->Stream.renderAudio();
 			}
-			else if (it->Type == PipelineItem::ItemType::PluginItem) {
+			else if (it->Type == PipelineItem::ItemType::PluginItem && !isDebug) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
 
 				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());

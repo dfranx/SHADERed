@@ -644,6 +644,12 @@ namespace ed
 			}
 		}
 	}
+	
+	void CodeEditorUI::StopDebugging()
+	{
+		for (auto& ed : m_editor)
+			ed.SetCurrentLineIndicator(-1);
+	}
 
 	void CodeEditorUI::UpdateAutoRecompileItems() 
 	{

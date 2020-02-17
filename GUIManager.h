@@ -68,6 +68,8 @@ namespace ed
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
 
+		void StopDebugging();
+
 		int AreYouSure();
 
 		bool Save();

@@ -9,7 +9,7 @@ namespace ed
 		m_expr.push_back(new char[512]);
 		memcpy(m_expr[m_expr.size() - 1], expr, strlen(expr)+1);
 
-		if (m_data->Debugger.IsDebugging) {
+		if (m_data->Debugger.IsDebugging()) {
 			bv_variable exprVal = m_data->Debugger.Engine.Immediate(expr);
 			m_values.push_back(UIHelper::GetVariableValue(exprVal));
 			bv_variable_deinitialize(&exprVal);

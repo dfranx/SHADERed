@@ -212,7 +212,7 @@ namespace ed
 		m_args.data = nullptr;
 		m_argsFetch.capacity = 0;
 		m_argsFetch.data = nullptr;
-		IsDebugging = false;
+		m_isDebugging = false;
 	}
 	bool DebugInformation::SetSource(ed::ShaderLanguage lang, sd::ShaderType stage, const std::string& entry, const std::string& src)
 	{
@@ -654,12 +654,13 @@ namespace ed
 						else if (isInstanced && instanceBuffer != nullptr && glob.InputSlot != -1) {
 							auto bufFormatList = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
 							int instCurOffset = 0;
+							int fmtIndex = glob.InputSlot - pass->InputLayout.size();
 
 							// size per each row
 							int perRowSize = 0;
 							for (int i = 0; i < bufFormatList.size(); i++) {
 								perRowSize += ShaderVariable::GetSize(bufFormatList[i]);
-								if (i < glob.InputSlot)
+								if (i < fmtIndex)
 									instCurOffset = perRowSize;
 							}
 
@@ -668,7 +669,7 @@ namespace ed
 							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, instanceBuffer->Size, instanceBuffer->Data);
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-							bv_variable varVal = fetchBufferElement(Engine.GetProgram(), m_lang, instanceBuffer->Data, bufFormatList[glob.InputSlot], m_pixel->InstanceID, perRowSize, instCurOffset);
+							bv_variable varVal = fetchBufferElement(Engine.GetProgram(), m_lang, instanceBuffer->Data, bufFormatList[fmtIndex], m_pixel->InstanceID, perRowSize, instCurOffset);
 							Engine.SetGlobalValue(glob.Name, varVal);
 							bv_variable_deinitialize(&varVal);
 						}

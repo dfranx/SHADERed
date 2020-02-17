@@ -23,11 +23,15 @@ namespace ed
 		glm::vec2 GetVertexScreenPosition(PixelInformation& pixel, int id);
 
 		sd::ShaderDebugger Engine;
-		bool IsDebugging;
+
+		inline void SetDebugging(bool debug) { m_isDebugging = debug; }
+		inline bool IsDebugging() { return m_isDebugging; }
 	
 	private:
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;
+
+		bool m_isDebugging;
 
 		bv_stack m_args, m_argsFetch;
 		bv_library* m_libHLSL, *m_libGLSL;

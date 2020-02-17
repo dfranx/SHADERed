@@ -119,6 +119,7 @@ namespace ed
 		void SetAutoRecompile(bool autorecompile);
 		void UpdateAutoRecompileItems();
 
+		void StopDebugging();
 
 		void SetTrackFileChanges(bool track);
 		inline bool TrackedFilesNeedUpdate() { return m_trackUpdatesNeeded > 0; }

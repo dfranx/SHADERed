@@ -9,7 +9,7 @@
 			</variables>
 			<macros />
 		</pass>
-		<pass name="Simple" type="shader">
+		<pass name="Simple" type="shader" active="true">
 			<shader type="vs" path="shaders\ScreenQuadVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\ScreenQuadPS.hlsl" entry="main" />
 			<inputlayout>
@@ -32,13 +32,16 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="image" name="ComputeOutput" width="512" height="512" read="false" write="true" format="R32G32B32A32_FLOAT">
+		<object type="image" name="ComputeOutput" width="512" height="512" format="R32G32B32A32_FLOAT">
 			<bind slot="0" name="Compute" uav="1" />
 			<bind slot="0" name="Simple" uav="0" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
 		<entry type="property" name="Simple" item="pipe" />
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>4</distance>
 			<pitch>28</pitch>

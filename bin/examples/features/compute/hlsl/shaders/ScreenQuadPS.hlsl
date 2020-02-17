@@ -1,5 +1,5 @@
 Texture2D<float4> Tex0S : register(t0);
-sampler Sampler0 : register(s0);
+SamplerState Sampler0 : register(s0);
 
 struct VS_OUTPUT
 {
