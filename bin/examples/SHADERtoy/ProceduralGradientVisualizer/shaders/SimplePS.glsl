@@ -7,8 +7,6 @@
  * https://www.shadertoy.com/view/tdfGzB
  ************************************************/
 
-in vec4 coord;
-
 out vec4 outColor;
 
 uniform vec2 iResolution;

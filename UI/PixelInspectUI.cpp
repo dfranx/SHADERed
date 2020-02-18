@@ -120,13 +120,16 @@ namespace ed
 						}
 					}
 
-					// TODO: pixel shader
-					lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
-					std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
-					bool psCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Pixel, lang == ed::ShaderLanguage::GLSL ? "main" : pass->PSEntry, psSrc);
-					if (psCompiled) {
-						m_data->Debugger.InitEngine(pixel);
-						m_data->Debugger.Fetch();
+					// getting the debugger's ps output
+					bool psCompiled = false;
+					if (vsCompiled) {
+						lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
+						std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
+						psCompiled = m_data->Debugger.SetSource(lang, sd::ShaderType::Pixel, lang == ed::ShaderLanguage::GLSL ? "main" : pass->PSEntry, psSrc);
+						if (psCompiled) {
+							m_data->Debugger.InitEngine(pixel);
+							m_data->Debugger.Fetch();
+						}
 					}
 
 					pixel.Discarded = m_data->Debugger.Engine.IsDiscarded();

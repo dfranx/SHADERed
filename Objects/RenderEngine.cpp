@@ -649,7 +649,7 @@ namespace ed
 	}
 	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
 	{
-		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
+		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4]; // TODO: what if we have RT bigger than the
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 		std::string vsCode = "";
 
@@ -727,6 +727,10 @@ namespace ed
 
 			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
 		}
+
+		// update the size accordingly
+		x = rtSize.x * r.x;
+		y = rtSize.y * r.y;
 
 		// update viewport value
 		glViewport(0, 0, rtSize.x, rtSize.y);
@@ -827,7 +831,7 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
+		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
 		int vertexID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
 
 		// return old info
@@ -929,6 +933,10 @@ namespace ed
 			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
 		}
 
+		// update px pos
+		x = rtSize.x * r.x;
+		y = rtSize.y * r.y;
+
 		// update viewport value
 		glViewport(0, 0, rtSize.x, rtSize.y);
 
@@ -1028,7 +1036,7 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
+		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
 		int instanceID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
 
 		// return old info

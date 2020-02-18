@@ -6,8 +6,6 @@ uniform mat4 matGeo;
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 
-out vec4 coord;
-
 void main() {
-   gl_Position = coord = matVP * matGeo * vec4(pos, 1);
+   gl_Position = matVP * matGeo * vec4(pos, 1);
 }

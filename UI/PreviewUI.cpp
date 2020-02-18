@@ -603,7 +603,7 @@ namespace ed
 			m_renderStatusbar(imageSize.x, imageSize.y);
 
 		// debugger vertex outline
-		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && !m_data->Debugger.IsDebugging()) {
+		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && (!m_data->Debugger.IsDebugging() || m_data->Debugger.GetShaderStage() == sd::ShaderType::Vertex)) {
 			if (pixelList.size() > 0) {
 				if (pixelList[0].Fetched) { // we only care about window's pixel info here
 					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);

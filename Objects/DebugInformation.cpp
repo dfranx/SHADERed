@@ -374,6 +374,8 @@ namespace ed
 								size = m_objs->GetRenderTextureSize(itemName);
 							else if (itemData->Image != nullptr)
 								size = itemData->Image->Size;
+							else if (itemData->Sound != nullptr)
+								size = glm::ivec2(512, 2);
 							else
 								size = itemData->ImageSize;
 						}

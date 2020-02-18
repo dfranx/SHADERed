@@ -26,7 +26,9 @@ namespace ed
 
 		inline void SetDebugging(bool debug) { m_isDebugging = debug; }
 		inline bool IsDebugging() { return m_isDebugging; }
-	
+
+		inline sd::ShaderType GetShaderStage() { return m_stage; }
+
 	private:
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;

@@ -98,7 +98,7 @@ float sdTorus88( vec3 p, vec2 t )
   return length8(q)-t.y;
 }
 
-float sdBlob (in vec3 pos, in float r)
+float sdBlob (vec3 pos, float r)
 {
   vec3 v1 = pos * 6.0;
   return 0.05*(r + 0.5* (length(dot(v1, v1)) -0.51*(cos(4.*v1.x) +cos(4.*v1.y) +cos(4.*v1.z))));
@@ -204,7 +204,7 @@ vec3 opTwist( vec3 p, float angle )
 //----------------------------------------------------------------------
 // sphere cutted out from a rounded box
 //----------------------------------------------------------------------
-float sdBoxMinusSphere( in vec3 pos, in float radius )
+float sdBoxMinusSphere( vec3 pos, float radius )
 {
   return opS( udRoundBox( pos, vec3(0.15), 0.05)
             , sdSphere(   pos, radius - 0.012 + 0.02*sin(iTime)));
@@ -212,7 +212,7 @@ float sdBoxMinusSphere( in vec3 pos, in float radius )
 //----------------------------------------------------------------------
 // rack-wheel with holes
 //----------------------------------------------------------------------
-float sdRackWheel( in vec3 pos)
+float sdRackWheel( vec3 pos)
 {
   return opS(sdTorus82(  pos-vec3(-2.0, 0.2, 0.0), vec2(0.20, 0.1)), 
              sdCylinder( opRep( vec3(atan(pos.x+2.0, pos.z)/6.2831 + 0.1*iTime, 
@@ -225,18 +225,18 @@ float sdRackWheel( in vec3 pos)
 		    );
 }
 //----------------------------------------------------------------------
-float sdBallyBall( in vec3 pos)
+float sdBallyBall( vec3 pos)
 {
   return 0.7 * sdSphere(pos, 0.2 ) 
          + 0.03*sin(50.0*pos.x)*sin(50.0*pos.y+8.0*iTime)*sin(50.0*pos.z);
 }
 //----------------------------------------------------------------------
-float sdTwistedTorus( in vec3 pos, float angle)
+float sdTwistedTorus( vec3 pos, float angle)
 {
   return 0.5*sdTorus( opTwist(pos,angle), vec2(0.20, 0.05));
 }
 //----------------------------------------------------------------------
-vec2 map( in vec3 pos )
+vec2 map( vec3 pos )
 {
   vec3 r1, r2;
   float sphy = 0.35 + 0.1 * sin(iTime);
@@ -273,7 +273,7 @@ vec2 map( in vec3 pos )
 }
 
 //----------------------------------------------------------------------
-vec2 castRay( in vec3 ro, in vec3 rd )
+vec2 castRay( vec3 ro, vec3 rd )
 {
   float tmin = 1.0;
   float tmax = 20.0;
@@ -306,7 +306,7 @@ vec2 castRay( in vec3 ro, in vec3 rd )
 }
 
 //----------------------------------------------------------------------
-float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
+float softshadow( vec3 ro, vec3 rd, float mint, float tmax )
 {
   float res = 1.0;
   float t = mint;
@@ -321,7 +321,7 @@ float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 }
 
 //----------------------------------------------------------------------
-vec3 calcNormal( in vec3 pos )
+vec3 calcNormal( vec3 pos )
 {
   vec3 eps = vec3( 0.001, 0.0, 0.0 );
   vec3 nor = vec3(
@@ -332,7 +332,7 @@ vec3 calcNormal( in vec3 pos )
 }
 
 //----------------------------------------------------------------------
-float calcAO( in vec3 pos, in vec3 nor )
+float calcAO( vec3 pos, vec3 nor )
 {
   float occ = 0.0;
   float sca = 1.0;
@@ -347,7 +347,7 @@ float calcAO( in vec3 pos, in vec3 nor )
   return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );
 }
 //---------------------------------------------------------
-vec3 render( in vec3 ro, in vec3 rd )
+vec3 render( vec3 ro, vec3 rd )
 { 
   vec3 col = vec3(0.8, 0.9, 1.0);
   vec2 res = castRay(ro, rd);
@@ -395,7 +395,7 @@ vec3 render( in vec3 ro, in vec3 rd )
   return vec3( clamp(col, 0.0, 1.0) );
 }
 //---------------------------------------------------------
-void main( void )
+void main( )
 {
   vec2 p = 2.0*(gl_FragCoord.xy / iResolution.xy) - 1.0;
   p.x *= iResolution.x / iResolution.y;
