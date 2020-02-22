@@ -41,6 +41,7 @@ namespace ed
 		void SaveAs(const std::string& file, bool copyFiles = false);
 
 		std::string LoadProjectFile(const std::string& file);
+		std::string LoadFile(const std::string& file);
 		char* LoadProjectFile(const std::string& file, size_t& len);
 		eng::Model* LoadModel(const std::string& file);
 
