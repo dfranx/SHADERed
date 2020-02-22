@@ -1,4 +1,5 @@
 [v1.3]
++ add shader debugger
 + add plugin API
 + add MSAA
 + add option for supersampling when rendering to an image file
@@ -10,6 +11,8 @@
 + change default font & theme
 + change how MouseButton works
 + change how paused state works
++ clicking on "Reset time" when paused will now rerender everything
++ fix zoom reset using double click when paused
 + various fixes
 
 [v1.2.4]

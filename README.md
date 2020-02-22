@@ -128,8 +128,7 @@ You can download precompiled binaries here: [Releases](https://github.com/dfranx
 First clone the project & submodules:
 ```
 git clone https://github.com/dfranx/SHADERed.git
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
 
 ### Linux

@@ -185,6 +185,8 @@ namespace ed
 
 		m_msgs->Clear();
 		m_debug->ClearPixelList();
+		m_debug->ClearWatchList();
+		m_debug->ClearBreakpointList();
 
 		for (auto& mdl : m_models) {
 			if (mdl.second) {
@@ -784,7 +786,8 @@ namespace ed
 					camNode.append_child("positionZ").text().set(cam->GetPosition().z);
 					camNode.append_child("yaw").text().set(rota.x);
 					camNode.append_child("pitch").text().set(rota.y);
-				} else {
+				}
+				else {
 					ed::ArcBallCamera* cam = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 					pugi::xml_node camNode = settingsNode.append_child("entry");
 					camNode.append_attribute("type").set_value("camera");
@@ -827,6 +830,29 @@ namespace ed
 				for (int j = 0; j < settings.Project.IncludePaths.size(); j++) {
 					pugi::xml_node ipath = pathsNode.append_child("path");
 					ipath.text().set(settings.Project.IncludePaths[j].c_str());
+				}
+			}
+
+			// watches
+			const std::vector<char*>& watches = m_debug->GetWatchList();
+			for (const auto& watch : watches) {
+				pugi::xml_node watchNode = settingsNode.append_child("entry");
+				watchNode.append_attribute("type").set_value("watch_expr");
+				watchNode.append_attribute("expr").set_value(watch);
+			}
+
+			// breakpoints
+			const auto& bkpts = m_debug->GetBreakpointList();
+			auto bkptStates = m_debug->GetBreakpointStateList();
+			for (const auto& bkpt : bkpts) {
+				for (size_t i = 0; i < bkpt.second.size(); i++) {
+					pugi::xml_node watchNode = settingsNode.append_child("entry");
+					watchNode.append_attribute("type").set_value("bkpt");
+					watchNode.append_attribute("file").set_value(bkpt.first.c_str());
+					watchNode.append_attribute("line").set_value(bkpt.second[i].Line);
+					if (bkpt.second[i].IsConditional)
+						watchNode.append_attribute("cond").set_value(bkpt.second[i].Condition.c_str());
+					watchNode.append_attribute("enabled").set_value(bkptStates[bkpt.first][i]);
 				}
 			}
 		}
@@ -3067,6 +3093,17 @@ namespace ed
 					Settings::Instance().Project.IncludePaths.clear();
 					for (pugi::xml_node pathNode : settingItem.children("path"))
 						Settings::Instance().Project.IncludePaths.push_back(pathNode.text().as_string());
+				}
+				else if (type == "watch_expr") {
+					if (!settingItem.attribute("expr").empty())
+						m_debug->AddWatch(settingItem.attribute("expr").as_string(), false);
+				}
+				else if (type == "bkpt") {
+					m_debug->AddBreakpoint(settingItem.attribute("file").as_string(),
+						settingItem.attribute("line").as_int(),
+						!settingItem.attribute("cond").empty() ? settingItem.attribute("cond").as_string() : "",
+						settingItem.attribute("enabled").as_bool()
+					);
 				}
 			}
 		}

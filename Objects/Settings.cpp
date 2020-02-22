@@ -47,6 +47,8 @@ namespace ed
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
 
+		Debug.ShowValuesOnHover = true;
+
 		Preview.PausedOnStartup = false;
 		Preview.SwitchLeftRightClick = false;
 		Preview.HideMenuInPerformanceMode = false;
@@ -110,6 +112,8 @@ namespace ed
 		Editor.SmartIndent = ini.GetBoolean("editor", "smartindent", true);
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
+
+		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 
 		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
@@ -213,6 +217,8 @@ namespace ed
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 
+		ini << "[debug]" << std::endl;
+		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;
 
 		ini << "[plugins]" << std::endl;
 		ini << "notloaded=";

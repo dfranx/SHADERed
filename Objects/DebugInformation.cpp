@@ -7,6 +7,8 @@
 #include <ShaderDebugger/Utils.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <iomanip>
+#include <sstream>
 
 namespace ed
 {
@@ -189,12 +191,14 @@ namespace ed
 		return bv_variable_create_void();
 	}
 
+
 	void DebugInformation::m_cleanTextures(sd::ShaderType stage)
 	{
 		for (sd::Texture* tex : m_textures[stage])
 			delete tex;
 		m_textures[stage].clear();
 	}
+
 
 	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer)
 	{
@@ -584,12 +588,16 @@ namespace ed
 					bv_variable_deinitialize(&ival);
 					propId++;
 				}
-				if (m_vsOutput.Name.empty()) {
-					glm::vec4 outVal = (glPos[0] * weights.x + glPos[1] * weights.y + glPos[2] * weights.z) / (weights.x + weights.y + weights.z);
-					bv_variable svPosVal = sd::Common::create_float4(Engine.GetProgram(), outVal);
-					Engine.SetSemanticValue("SV_Position", svPosVal);
-					bv_variable_deinitialize(&svPosVal);
-				}
+
+				// set sv_position (TODO: seems to be wrong values)
+				float f = 1.0f, n = 0.0f;
+				float interW = (glPos[0].w * weights.x + glPos[1].w * weights.y + glPos[2].w * weights.z) * (weights.x + weights.y + weights.z);
+				float interZ = (glPos[0].z * weights.x + glPos[1].z * weights.y + glPos[2].z * weights.z) * (weights.x + weights.y + weights.z);
+				float Zd = interZ / interW;
+				float Zw = n + Zd * (f-n);
+				bv_variable svPosVal = sd::Common::create_float4(Engine.GetProgram(), glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, Zw, interW));
+				Engine.SetSemanticValue("SV_Position", svPosVal);
+				bv_variable_deinitialize(&svPosVal);
 
 				if (m_pixel->VertexShaderOutput[0].count("return")) {
 					for (const auto& arg : args) {
@@ -712,8 +720,16 @@ namespace ed
 					}
 				}
 
-				// TODO: gl_FragCoord.z, gl_FragCoord.w
-				Engine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, 0.0f, 0.0f));
+				// TODO: clip control
+				float f = 1.0f, n = 0.0f;
+				float s = (f - n) / 2;
+				float b = (f + n) / 2;
+
+				float interW = (glPos1.w * weights.x + glPos2.w * weights.y + glPos3.w * weights.z) * (weights.x + weights.y + weights.z);
+				float interZ = (glPos1.z * weights.x + glPos2.z * weights.y + glPos3.z * weights.z) * (weights.x + weights.y + weights.z);
+				float Zd = interZ / interW;
+				float Zw = s * Zd + b;
+				Engine.SetGlobalValue("gl_FragCoord", "vec4", glm::vec4(m_pixel->Coordinate.x, m_pixel->Coordinate.y, Zw, interW));
 			}
 		}
 
@@ -819,5 +835,156 @@ namespace ed
 		}
 
 		bv_variable_deinitialize(&returnValue);
+	}
+
+
+	void DebugInformation::ClearWatchList()
+	{
+		for (auto& expr : m_watchExprs)
+			free(expr);
+
+		m_watchExprs.clear();
+		m_watchValues.clear();
+	}
+	void DebugInformation::RemoveWatch(size_t index)
+	{
+		free(m_watchExprs[index]);
+		m_watchExprs.erase(m_watchExprs.begin() + index);
+		m_watchValues.erase(m_watchValues.begin() + index);
+	}
+	void DebugInformation::AddWatch(const std::string& expr, bool execute)
+	{
+		char* data = (char*)calloc(256, sizeof(char));
+		strcpy(data, expr.c_str());
+
+		m_watchExprs.push_back(data);
+		m_watchValues.push_back("");
+
+		if (execute)
+			UpdateWatchValue(m_watchExprs.size() - 1);
+	}
+	void DebugInformation::UpdateWatchValue(size_t index)
+	{
+		char* expr = m_watchExprs[index];
+		bv_variable exprVal = Engine.Immediate(expr);
+		m_watchValues[index] = VariableValueToString(exprVal);
+		bv_variable_deinitialize(&exprVal);
+	}
+
+
+	std::string DebugInformation::VariableValueToString(const bv_variable& var, int indent)
+	{
+		std::string ret = "";
+
+		std::string indentStr(indent * 2, ' ');
+
+		if (var.type == bv_type_float)
+			ret += indentStr + std::to_string(bv_variable_get_float(var));
+		else if (bv_type_is_integer(var.type))
+			ret += indentStr + std::to_string(bv_variable_get_int(var));
+		else if (var.type == bv_type_object) {
+			bv_object* obj = bv_variable_get_object(var);
+			for (u16 i = 0; i < obj->type->props.name_count; i++) {
+				bv_variable& prop = obj->prop[i];
+				bool isObject = prop.type == bv_type_object;
+
+				std::string propName = obj->type->props.names[i];
+				ret += indentStr + "." + propName + " = ";
+
+				if (isObject)
+					ret += "{\n";
+
+				ret += VariableValueToString(prop, isObject ? (indent + 1) : 0);
+
+				if (isObject)
+					ret += "\n" + indentStr + "}";
+
+				if (i != obj->type->props.name_count - 1)
+					ret += "\n";
+			}
+
+			if (obj->type->props.name_count == 0) {
+				if (sd::IsBasicTexture(obj->type->name))
+					ret += obj->type->name;
+				else {
+					bv_type type = sd::GetMatrixTypeFromName(obj->type->name);
+					// matrix
+					if (type != bv_type_void) {
+						sd::Matrix* mat = (sd::Matrix*)obj->user_data;
+						std::stringstream ss;
+
+						for (int y = 0; y < mat->Rows; y++) {
+							for (int x = 0; x < mat->Columns; x++)
+								ss << indentStr << std::left << std::setw(14) << mat->Data[y][x];
+							ss << "\n";
+						}
+
+						ret += ss.str();
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
+
+	void DebugInformation::AddBreakpoint(const std::string& file, int line, const std::string& condition, bool enabled)
+	{
+		std::vector<sd::Breakpoint>& bkpts = m_breakpoints[file];
+
+		bool alreadyExists = false;
+		for (size_t i = 0; i < bkpts.size(); i++) {
+			if (bkpts[i].Line == line) {
+				bkpts[i].Condition = condition;
+				bkpts[i].IsConditional = !condition.empty();
+				m_breakpointStates[file][i] = enabled;
+				alreadyExists = true;
+				break;
+			}
+		}
+
+		if (!alreadyExists) {
+			sd::Breakpoint bkpt;
+			bkpt.Line = line;
+			bkpt.Condition = condition;
+			bkpt.IsConditional = !condition.empty();
+			bkpts.push_back(bkpt);
+			m_breakpointStates[file].push_back(enabled);
+		}
+	}
+	void DebugInformation::RemoveBreakpoint(const std::string& file, int line)
+	{
+		std::vector<sd::Breakpoint>& bkpts = m_breakpoints[file];
+		std::vector<bool>& states = m_breakpointStates[file];
+
+		for (size_t i = 0; i < bkpts.size(); i++) {
+			if (bkpts[i].Line == line) {
+				bkpts.erase(bkpts.begin() + i);
+				states.erase(states.begin() + i);
+				break;
+			}
+		}
+	}
+	void DebugInformation::SetBreakpointEnabled(const std::string& file, int line, bool enable)
+	{
+		std::vector<sd::Breakpoint>& bkpts = m_breakpoints[file];
+		std::vector<bool>& states = m_breakpointStates[file];
+
+		for (size_t i = 0; i < bkpts.size(); i++) {
+			if (bkpts[i].Line == line) {
+				states[i] = enable;
+				break;
+			}
+		}
+	}
+	const sd::Breakpoint& DebugInformation::GetBreakpoint(const std::string& file, int line)
+	{
+		std::vector<sd::Breakpoint>& bkpts = m_breakpoints[file];
+		std::vector<bool>& states = m_breakpointStates[file];
+
+		for (size_t i = 0; i < bkpts.size(); i++)
+			if (bkpts[i].Line == line)
+				return bkpts[i];
 	}
 }

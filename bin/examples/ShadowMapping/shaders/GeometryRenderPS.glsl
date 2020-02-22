@@ -41,5 +41,5 @@ void main()
 {
     float shadow = ShadowCalculation(FragPosLightSpace);
 
-    FragColor = objColor * (1.0-shadow);
+    FragColor = objColor * (1.0f-shadow/2.5f);
 }

@@ -74,7 +74,6 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Edge" item="pipe" />
-		<entry type="file" name="Edge" shader="vs" />
 		<entry type="file" name="Edge" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>9</distance>

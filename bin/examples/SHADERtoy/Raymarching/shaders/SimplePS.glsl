@@ -6,7 +6,7 @@ uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
 
-#define ROTATE true
+#define ROTATE false   
 #define flag true
 
 //---------------------------------------------------------

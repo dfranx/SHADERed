@@ -53,14 +53,18 @@ namespace ed
 
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputText("##immediate_input", m_input, 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
-			bv_variable exprValue = m_data->Debugger.Engine.Immediate(m_input);
+			if (strcmp(m_input, "? clear") == 0) { // this is just a debug thingy, maybe support actual commands
+				m_clear();
+			} else {
+				bv_variable exprValue = m_data->Debugger.Engine.Immediate(m_input);
 
-			m_addLog(std::string(m_input));
-			m_addLog(UIHelper::GetVariableValue(exprValue));
+				m_addLog(std::string(m_input));
+				m_addLog(m_data->Debugger.VariableValueToString(exprValue));
+
+				bv_variable_deinitialize(&exprValue);
+			}
 
 			m_input[0] = 0;
-			bv_variable_deinitialize(&exprValue);
-
 			ImGui::SetKeyboardFocusHere(0);
 		}
 		ImGui::PopItemWidth();

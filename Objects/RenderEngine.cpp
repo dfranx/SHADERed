@@ -56,6 +56,7 @@ void main()
 	outColor = vec4(r, g, b, 1.0f);
 }
 )";
+#define DEBUG_ID_START 1
 
 namespace ed
 {
@@ -110,7 +111,7 @@ namespace ed
 	}
 	void RenderEngine::Render(int width, int height, bool isDebug)
 	{
-		bool isMSAA = (Settings::Instance().Preview.MSAA != 1) && isDebug;
+		bool isMSAA = (Settings::Instance().Preview.MSAA != 1) && !isDebug;
 
 		if (isMSAA)
 			glEnable(GL_MULTISAMPLE);
@@ -158,7 +159,7 @@ namespace ed
 		GLuint previousTexture[MAX_RENDER_TEXTURES] = { 0 }; // dont clear the render target if we use it two times in a row
 		GLuint previousDepth = 0;
 		bool clearedWindow = false;
-		int debugID = 1;
+		int debugID = DEBUG_ID_START;
 
 		m_plugins->BeginRender();
 
@@ -168,7 +169,7 @@ namespace ed
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0)
+				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0 || (isDebug && data->GSUsed))
 					continue;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -537,7 +538,19 @@ namespace ed
 		int x = r.x * m_lastSize.x;
 		int y = r.y * m_lastSize.y;
 
-		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
+		const std::vector<ObjectManagerItem*>& objs = m_objects->GetItemDataList();
+		glm::ivec2 maxRTSize = m_lastSize;
+		for (int i = 0; i < objs.size(); i++) {
+			if (objs[i]->RT != nullptr) {
+				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
+				if (rtSize.x > maxRTSize.x)
+					maxRTSize.x = rtSize.x;
+				if (rtSize.y > maxRTSize.y)
+					maxRTSize.y = rtSize.y;
+			}
+		}
+
+		uint8_t* mainPixelData = new uint8_t[maxRTSize.x * maxRTSize.y * 4];
 
 		std::unordered_map<GLuint, glm::vec4> pixelColors;
 
@@ -549,23 +562,18 @@ namespace ed
 		pixelColors[m_rtColor] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
 
 		// rt pixel colors
-		const std::vector<ObjectManagerItem*>& objs = m_objects->GetItemDataList();
 		for (int i = 0; i < objs.size(); i++) {
 			if (objs[i]->RT != nullptr) {
 				GLuint tex = objs[i]->Texture;
 				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
 
-				uint8_t* pixelData = new uint8_t[rtSize.x * rtSize.y * 4]; // TODO: optimizations can be applied here, lazy rn.. (v1.3.*)
-
 				glBindTexture(GL_TEXTURE_2D, tex);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				pxData = &pixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
+				pxData = &mainPixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
 
 				pixelColors[tex] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
-
-				delete[] pixelData;
 			}
 		}
 
@@ -573,12 +581,13 @@ namespace ed
 		Render(true);
 
 		// window item id
+		
 		glBindTexture(GL_TEXTURE_2D, m_rtColor);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		pxData = &mainPixelData[(x + m_lastSize.x * y) * 4];
 		int id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
-		if (id != 0) {
+		if (id != 0 && !m_isGSUsedSet(m_rtColor)) {
 			std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
 
 			PixelInformation dpxInfo;
@@ -607,15 +616,13 @@ namespace ed
 				GLuint tex = objs[i]->Texture;
 				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
 
-				uint8_t* pixelData = new uint8_t[rtSize.x * rtSize.y * 4]; // TODO: optimizations can be applied here, lazy rn.. (v1.3.*)
-
 				glBindTexture(GL_TEXTURE_2D, tex);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				pxData = &pixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
+				pxData = &mainPixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
 				id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
-				if (id != 0) {
+				if (id != 0 && !m_isGSUsedSet(tex)) {
 					std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
 
 					PixelInformation dpxInfo;
@@ -637,8 +644,6 @@ namespace ed
 
 					m_debug->AddPixel(dpxInfo);
 				}
-
-				delete[] pixelData;
 			}
 		}
 
@@ -649,7 +654,6 @@ namespace ed
 	}
 	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
 	{
-		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4]; // TODO: what if we have RT bigger than the
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 		std::string vsCode = "";
 
@@ -828,11 +832,13 @@ namespace ed
 		}
 
 		// window pixel color
+		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
 		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
 		int vertexID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+		delete[] mainPixelData;
 
 		// return old info
 		for (int i = 0; i < m_items.size(); i++) {
@@ -848,13 +854,11 @@ namespace ed
 
 		glDeleteProgram(customProgram);
 		glDeleteShader(vs);
-		delete[] mainPixelData;
 
 		return vertexID;
 	}
 	int RenderEngine::DebugInstancePick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
 	{
-		uint8_t* mainPixelData = new uint8_t[m_lastSize.x * m_lastSize.y * 4];
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 		std::string vsCode = "";
 
@@ -1033,11 +1037,13 @@ namespace ed
 		}
 
 		// window pixel color
+		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
 		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
 		int instanceID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+		delete[] mainPixelData;
 
 		// return old info
 		for (int i = 0; i < m_items.size(); i++) {
@@ -1053,7 +1059,6 @@ namespace ed
 
 		glDeleteProgram(customProgram);
 		glDeleteShader(vs);
-		delete[] mainPixelData;
 
 		return instanceID;
 	}
@@ -1075,7 +1080,7 @@ namespace ed
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 		
-		GLchar cMsg[1024];
+		GLchar cMsg[1024] = { 0 };
 
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
@@ -1593,7 +1598,7 @@ namespace ed
 	}
 	std::pair<PipelineItem*, PipelineItem*> RenderEngine::GetPipelineItemByID(int id)
 	{
-		int debugID = 1;
+		int debugID = DEBUG_ID_START;
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
 
@@ -1946,6 +1951,20 @@ namespace ed
 				}
 			}
 		}
+	}
+	bool RenderEngine::m_isGSUsedSet(GLuint rt)
+	{
+		bool ret = false;
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
+				for (int j = 0; j < pass->RTCount; j++)
+					if (pass->RenderTextures[j] == rt)
+						ret = pass->GSUsed;
+			}
+		}
+
+		return ret;
 	}
 	void RenderEngine::m_applyMacros(std::string  &src, pipe::ShaderPass *pass)
 	{

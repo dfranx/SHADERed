@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="ShadowRender" type="shader">
+		<pass name="ShadowRender" type="shader" active="true">
 			<shader type="vs" path="shaders\SimpleVS.glsl" entry="main" />
 			<shader type="ps" path="shaders\SimplePS.glsl" entry="main" />
 			<inputlayout>
@@ -50,7 +50,7 @@
 			</variables>
 			<macros />
 		</pass>
-		<pass name="GeometryRender" type="shader">
+		<pass name="GeometryRender" type="shader" active="true">
 			<shader type="vs" path="shaders\GeometryRenderVS.glsl" entry="main" />
 			<shader type="ps" path="shaders\GeometryRenderPS.glsl" entry="main" />
 			<inputlayout>
@@ -154,6 +154,8 @@
 		</camera>
 	</cameras>
 	<settings>
+		<entry type="file" name="GeometryRender" shader="vs" />
+		<entry type="file" name="GeometryRender" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>22</distance>
 			<pitch>36</pitch>

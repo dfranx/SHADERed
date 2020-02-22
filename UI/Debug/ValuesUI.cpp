@@ -32,7 +32,7 @@ namespace ed
 			bv_variable* val = dbgr->GetGlobalValue(global.Name);
 			ImGui::Text(global.Name.c_str());
 			ImGui::NextColumn();
-			ImGui::Text(UIHelper::GetVariableValue(*val).c_str());
+			ImGui::Text(m_data->Debugger.VariableValueToString(*val).c_str());
 			ImGui::NextColumn();
 			ImGui::Separator();
 		}
@@ -50,7 +50,7 @@ namespace ed
 					continue;
 				ImGui::Text(arg.Name.c_str());
 				ImGui::NextColumn();
-				ImGui::Text(UIHelper::GetVariableValue(*val).c_str());
+				ImGui::Text(m_data->Debugger.VariableValueToString(*val).c_str());
 				ImGui::NextColumn();
 				ImGui::Separator();
 			}
@@ -68,7 +68,7 @@ namespace ed
 				continue;
 			ImGui::Text(local.c_str());
 			ImGui::NextColumn();
-			ImGui::Text(UIHelper::GetVariableValue(*val).c_str());
+			ImGui::Text(m_data->Debugger.VariableValueToString(*val).c_str());
 			ImGui::NextColumn();
 			ImGui::Separator();
 		}

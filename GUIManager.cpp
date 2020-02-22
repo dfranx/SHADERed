@@ -141,11 +141,11 @@ namespace ed
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
 
-		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
 		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watch"));
 		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
 		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
 		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
+		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
 
 		KeyboardShortcuts::Instance().Load();
 		m_setupShortcuts();
@@ -748,8 +748,11 @@ namespace ed
 					}
 					ImGui::EndMenu();
 				}
-				if (ImGui::MenuItem("Reset time"))
+				if (ImGui::MenuItem("Reset time")) {
 					SystemVariableManager::Instance().Reset();
+					if (!m_data->Debugger.IsDebugging() && m_data->Debugger.GetPixelList().size() == 0)
+						m_data->Renderer.Render();
+				}
 				if (ImGui::MenuItem("Options")) {
 					m_optionsOpened = true;
 					((OptionsUI*)m_options)->SetGroup(ed::OptionsUI::Page::Project);
@@ -1759,9 +1762,10 @@ namespace ed
 	void GUIManager::m_renderOptions()
 	{
 		OptionsUI* options = (OptionsUI*)m_options;
-		static const char* optGroups[6] = {
+		static const char* optGroups[7] = {
 			"General",
 			"Editor",
+			"Debug",
 			"Shortcuts",
 			"Preview",
 			"Plugins",
@@ -1851,8 +1855,8 @@ namespace ed
 			return m_options;
 		else if (view == ViewID::ObjectPreview)
 			return m_objectPrev;
-		else if (view >= ViewID::DebugImmediate && view <= ViewID::DebugBreakpointList)
-			return m_debugViews[(int)view - (int)ViewID::DebugImmediate];
+		else if (view >= ViewID::DebugWatch && view <= ViewID::DebugImmediate)
+			return m_debugViews[(int)view - (int)ViewID::DebugWatch];
 
 		return m_views[(int)view];
 	}
@@ -1955,6 +1959,8 @@ namespace ed
 	}
 	void GUIManager::Open(const std::string& file)
 	{
+		StopDebugging();
+
 		glm::ivec2 curSize = m_data->Renderer.GetLastRenderSize();
 
 		m_data->Renderer.FlushCache();

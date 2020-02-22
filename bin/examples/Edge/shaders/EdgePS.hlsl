@@ -67,8 +67,8 @@ float sobelNormal(float2 uv)
 float4 main(PSInput pin) : SV_TARGET {
 	pin.UV.y = 1-pin.UV.y;
 
-		float clr = sobelNormal(pin.UV)*sobelColor(pin.UV);
-	clip((clr != 1) - 1);
+	float sbl = sobelNormal(pin.UV)*sobelColor(pin.UV);
+	clip((sbl != 1) - 1);
 
-	return float4(1.0f-clr);
+	return float4(1.0f-sbl);
 }

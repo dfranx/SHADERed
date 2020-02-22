@@ -57,6 +57,10 @@ namespace ed
 			int TabSize;
 		} Editor;
 
+		struct strDebug {
+			bool ShowValuesOnHover;
+		} Debug;
+
 		struct strPreview {
 			bool PausedOnStartup;
 			bool SwitchLeftRightClick;

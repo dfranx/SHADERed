@@ -315,7 +315,14 @@ const char* EDITOR_SHORTCUT_NAMES[] =
 	"Unindent",
 	"Find",
 	"Replace",
-	"FindNext"
+	"FindNext",
+	"DebugStep",
+	"DebugStepInto",
+	"DebugStepOut",
+	"DebugContinue",
+	"DebugJumpHere",
+	"DebugBreakpoint",
+	"DebugStop",
 };
 
 

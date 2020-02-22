@@ -9,11 +9,8 @@ namespace ed
 		DebugWatchUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
 			UIView(ui, objects, name, visible) {
 			m_newExpr[0] = 0;
-			Clear();
 		}
 
-		void Clear();
-		void Add(const char* expr);
 		void Refresh();
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -21,7 +18,5 @@ namespace ed
 
 	private:
 		char m_newExpr[512];
-		std::vector<char*> m_expr;
-		std::vector<std::string> m_values;
 	};
 }

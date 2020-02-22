@@ -117,6 +117,9 @@ namespace ed
 		void m_applyMacros(std::string& source, pipe::ComputePass* pass);
 		void m_applyMacros(std::string& source, pipe::AudioPass* pass); // TODO: merge this function with the ones above
 		
+		// does a shader pass with GSUsed set also use this texture
+		bool m_isGSUsedSet(GLuint rt);
+
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;

@@ -12,6 +12,7 @@ namespace ed
 		{
 			General,
 			Editor,
+			Debug,
 			Shortcuts,
 			Preview,
 			Plugins,
@@ -79,6 +80,7 @@ namespace ed
 		void m_renderEditor();
 		void m_renderShortcuts();
 		void m_renderPreview();
+		void m_renderDebug();
 		void m_renderPlugins();
 		void m_renderProject();
 	};

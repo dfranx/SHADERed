@@ -12,6 +12,7 @@ struct VSInput
 struct VSOutput
 {
 	float4 Position : SV_POSITION;
+	float Depth : DEPTH;
 };
 		
 VSOutput main(VSInput vin)
@@ -19,6 +20,7 @@ VSOutput main(VSInput vin)
 	VSOutput vout = (VSOutput)0;
 	
 	vout.Position = mul(mul(float4(vin.Position, 1), matGeo), matVP);
+	vout.Depth = vout.Position.z/vout.Position.w;
 	
 	return vout;
 }

@@ -258,12 +258,16 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
-
+			
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 			
 			m_shaderTypeId.push_back(sid);
+
+			// apply breakpoints
+			m_applyBreakpoints(editor, shaderPath);
 
 			std::string shaderContent = m_data->Parser.LoadProjectFile(shaderPath);
 			m_paths.push_back(shaderPath);
@@ -319,7 +323,11 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
+
+			// apply breakpoints
+			m_applyBreakpoints(editor, shaderPath);
 
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
@@ -379,7 +387,11 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
+
+			// apply breakpoints & breakpoint functions
+			m_applyBreakpoints(editor, shaderPath);
 
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
@@ -643,6 +655,28 @@ namespace ed
 					ed->SetShortcut(sID, TextEditor::Shortcut(it->second.Key1, it->second.Key2, it->second.Alt, it->second.Ctrl, it->second.Shift));
 			}
 		}
+	}
+	void CodeEditorUI::m_applyBreakpoints(TextEditor* editor, const std::string& path)
+	{
+		const std::vector<sd::Breakpoint>& bkpts = m_data->Debugger.GetBreakpointList(path);
+		const std::vector<bool>& states = m_data->Debugger.GetBreakpointStateList(path);
+
+		for (size_t i = 0; i < bkpts.size(); i++)
+			editor->AddBreakpoint(bkpts[i].Line, bkpts[i].IsConditional ? bkpts[i].Condition : "", states[i]);
+
+		editor->OnBreakpointRemove = [&](TextEditor* ed, int line) {
+			m_data->Debugger.Engine.ClearBreakpoint(line);
+			m_data->Debugger.RemoveBreakpoint(ed->GetPath(), line);
+		};
+		editor->OnBreakpointUpdate = [&](TextEditor* ed, int line, const std::string& cond, bool enabled) {
+			// save it for later use
+			m_data->Debugger.AddBreakpoint(ed->GetPath(), line, cond, enabled);
+
+			if (!enabled) return;
+
+			if (cond.empty()) m_data->Debugger.Engine.AddBreakpoint(line);
+			else m_data->Debugger.Engine.AddConditionalBreakpoint(line, cond);
+		};
 	}
 	
 	void CodeEditorUI::StopDebugging()

@@ -235,7 +235,7 @@ namespace ed
 		inline bool Exists(const std::string& name) { return std::count(m_items.begin(), m_items.end(), name) > 0; }
 
 		const std::vector<std::string>& GetCubemapTextures(const std::string& name);
-		inline std::vector<ObjectManagerItem*> GetItemDataList() { return m_itemData; }
+		inline std::vector<ObjectManagerItem*>& GetItemDataList() { return m_itemData; }
 
 	private:
 		RenderEngine* m_renderer;

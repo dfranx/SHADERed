@@ -248,6 +248,8 @@ namespace ed
 			return;
 		}
 
+		auto& pixelList = m_data->Debugger.GetPixelList();
+
 		ed::Settings& settings = Settings::Instance();
 
 		bool paused = m_data->Renderer.IsPaused();
@@ -298,7 +300,7 @@ namespace ed
 
 		m_hasFocus = ImGui::IsWindowFocused();
 
-		auto& pixelList = m_data->Debugger.GetPixelList();
+
 		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() && ((pixelList.size() > 0 && ((ImGui::IsMouseClicked(0) && ImGui::IsItemHovered()) || !pixelList[0].Fetched)) || (pixelList.size() == 0)))
 			renderer->Render(imageSize.x, imageSize.y);
 
@@ -317,13 +319,13 @@ namespace ed
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // TODO: is this needed?
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			if (settings.Preview.Gizmo && m_picks.size() != 0) {
+			if (settings.Preview.Gizmo && m_picks.size() != 0 && pixelList.size() == 0) {
 				m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
 				m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
 				m_gizmo.Render();
 			}
 
-			if (settings.Preview.BoundingBox && m_picks.size() != 0)
+			if (settings.Preview.BoundingBox && m_picks.size() != 0 && pixelList.size() == 0)
 				m_renderBoundingBox();
 
 			if (m_zoom.IsSelecting())
@@ -443,26 +445,25 @@ namespace ed
 			}
 		}
 
+		// reset zoom on double click
+		if (m_mouseHovers && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
+			m_zoom.Reset();
+
 		// mouse controls for preview window
 		m_mouseHovers = ImGui::IsItemHovered();
 		if (m_mouseHovers && !paused) {
 			bool fp = settings.Project.FPCamera;
 
 			// rt zoom in/out
-			if (ImGui::GetIO().KeyAlt) {
-				if (ImGui::IsMouseDoubleClicked(0))
-					m_zoom.Reset();
+			if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyAlt) {
+				float wheelDelta = ImGui::GetIO().MouseWheel;
+				if (wheelDelta != 0.0f) {
+					if (wheelDelta < 0)
+						wheelDelta = -wheelDelta * 2;
+					else
+						wheelDelta = wheelDelta / 2; // TODO: does this work if wheelDelta > 2 ?
 
-				if (ImGui::GetIO().KeyCtrl) {
-					float wheelDelta = ImGui::GetIO().MouseWheel;
-					if (wheelDelta != 0.0f) {
-						if (wheelDelta < 0)
-							wheelDelta = -wheelDelta * 2;
-						else
-							wheelDelta = wheelDelta / 2; // TODO: does this work if wheelDelta > 2 ?
-
-						m_zoom.Zoom(wheelDelta);
-					}
+					m_zoom.Zoom(wheelDelta);
 				}
 			}
 
@@ -557,6 +558,8 @@ namespace ed
 				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
 				!ImGui::GetIO().KeyAlt)
 			{
+				m_ui->StopDebugging();
+
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 
@@ -606,6 +609,9 @@ namespace ed
 		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && (!m_data->Debugger.IsDebugging() || m_data->Debugger.GetShaderStage() == sd::ShaderType::Vertex)) {
 			if (pixelList.size() > 0) {
 				if (pixelList[0].Fetched) { // we only care about window's pixel info here
+					unsigned int vertOutlineColor = 0xffffffff;
+
+					// render the lines
 					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
 					ImVec2 uiPos = ImGui::GetCursorScreenPos();
 
@@ -620,13 +626,13 @@ namespace ed
 					vertPos3.y = screenSize.y - vertPos3.y;
 
 					auto drawList = ImGui::GetWindowDrawList();
-					drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), 0xffffffff);
-					drawList->AddLine(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), 0xffffffff);
-					drawList->AddLine(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), 0xffffffff);
+					drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), vertOutlineColor);
+					drawList->AddLine(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), vertOutlineColor);
+					drawList->AddLine(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), vertOutlineColor);
 
-					drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), 0xffffffff, "0");
-					drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), 0xffffffff, "1");
-					drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), 0xffffffff, "2");
+					drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), vertOutlineColor, "0");
+					drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), vertOutlineColor, "1");
+					drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), vertOutlineColor, "2");
 				}
 			}
 		}
@@ -816,6 +822,16 @@ namespace ed
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 			m_ui->StopDebugging();
+
+			auto& audioItems = m_data->Objects.GetItemDataList();
+			for (auto& audioItem : audioItems) {
+				if (audioItem->Sound != nullptr) {
+					if (m_data->Renderer.IsPaused())
+						audioItem->Sound->pause();
+					else
+						audioItem->Sound->play();
+				}
+			}
 		}
 
 		ImGui::SameLine(0,BUTTON_INDENT);

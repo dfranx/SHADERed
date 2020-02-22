@@ -21,6 +21,8 @@ namespace ed
 		void OnEvent(const SDL_Event& e);
 		void Update(float delta);
 
+		bool FetchPixel(PixelInformation& pixel);
+
 		PluginManager Plugins;
 		RenderEngine Renderer;
 		PipelineManager Pipeline;

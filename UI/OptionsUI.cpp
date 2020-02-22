@@ -66,6 +66,8 @@ namespace ed
 			m_renderGeneral();
 		else if (m_page == Page::Editor)
 			m_renderEditor();
+		else if (m_page == Page::Debug)
+			m_renderDebug();
 		else if (m_page == Page::Shortcuts)
 			m_renderShortcuts();
 		else if (m_page == Page::Preview)
@@ -753,6 +755,15 @@ namespace ed
 		ImGui::Separator();
 
 		m_data->Plugins.ShowOptions(m_pluginSearch);
+	}
+	void OptionsUI::m_renderDebug()
+	{
+		Settings* settings = &Settings::Instance();
+
+		/* VALUES: */
+		ImGui::Text("Show variable values when hovering over them: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optdbg_values", &settings->Debug.ShowValuesOnHover);
 	}
 	void OptionsUI::m_renderProject()
 	{

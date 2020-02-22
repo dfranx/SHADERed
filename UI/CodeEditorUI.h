@@ -158,6 +158,7 @@ namespace ed
 
 		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin* plugin, int sid, const char* itemType, const char* filePath);
 
+		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 		void m_loadEditorShortcuts(TextEditor* editor);
 
 		// font for code editor
@@ -170,7 +171,7 @@ namespace ed
 		//void m_renderStats(int id);
 
 		std::vector<PipelineItem*> m_items;
-		std::vector<TextEditor> m_editor;
+		std::vector<TextEditor> m_editor; // TODO: use pointers here
 		std::vector<StatsPage> m_stats;
 		std::vector<std::string> m_paths;
 		std::vector<int> m_shaderTypeId;

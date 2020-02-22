@@ -28,11 +28,12 @@ namespace ed
 		Objects,
 		Pipeline,
 		Properties,
-		DebugImmediate,
+		PixelInspect,
 		DebugWatch,
 		DebugValues,
 		DebugFunctionStack,
 		DebugBreakpointList,
+		DebugImmediate,
 		Options,
 		ObjectPreview
 	};

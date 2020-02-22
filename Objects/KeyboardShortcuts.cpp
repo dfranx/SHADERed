@@ -157,7 +157,7 @@ namespace ed
 		bool resetSecond = false, resetFirst = false;
 
 		for (const auto& hotkey : m_data) {
-			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos || hotkey.first == "Project.Save"))
+			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos || hotkey.first.find("Debug") != std::string::npos || hotkey.first == "Project.Save"))
 				continue;
 
 			Shortcut s = hotkey.second;
