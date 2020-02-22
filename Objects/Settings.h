@@ -54,6 +54,7 @@ namespace ed
 			bool AutoBraceCompletion;
 			bool SmartIndent;
 			bool InsertSpaces;
+			bool FunctionTooltips;
 			int TabSize;
 		} Editor;
 

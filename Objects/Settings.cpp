@@ -46,6 +46,7 @@ namespace ed
 		Editor.SmartIndent = true;
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
+		Editor.FunctionTooltips = true;
 
 		Debug.ShowValuesOnHover = true;
 
@@ -112,7 +113,8 @@ namespace ed
 		Editor.SmartIndent = ini.GetBoolean("editor", "smartindent", true);
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
-
+		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
+		
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 
 		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
@@ -216,6 +218,7 @@ namespace ed
 		ini << "smartindent=" << Editor.SmartIndent << std::endl;
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
+		ini << "functooltips=" << Editor.FunctionTooltips << std::endl;
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;

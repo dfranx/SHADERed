@@ -255,13 +255,20 @@ namespace ed
 							ImGui::Separator();
 
 							// Value:
-							bool isTex = false;
-							if (var->type == bv_type_object)
+							bool isTex = false, isCube = false;
+							if (var->type == bv_type_object) {
 								isTex = sd::IsBasicTexture(objTypename);
+								isCube = sd::IsCubemap(objTypename);
+							}
 
 							if (isTex) {
 								sd::Texture* tex = (sd::Texture*)bv_variable_get_object(*var)->user_data;
 								ImGui::Image((ImTextureID)tex->UserData, ImVec2(128.0f, 128.0f * (tex->Height / (float)tex->Width)), ImVec2(0, 1), ImVec2(1, 0));
+							}
+							else if (isCube) {
+								sd::TextureCube* tex = (sd::TextureCube*)bv_variable_get_object(*var)->user_data;
+								m_cubePrev.Draw(tex->UserData);
+								ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
 							}
 							else
 								ImGui::Text(m_data->Debugger.VariableValueToString(*var).c_str());

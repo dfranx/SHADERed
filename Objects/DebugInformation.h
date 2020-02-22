@@ -1,5 +1,6 @@
 #pragma once
 #include <ShaderDebugger/ShaderDebugger.h>
+#include <ShaderDebugger/TextureCube.h>
 #include "Debug/PixelInformation.h"
 #include "ShaderLanguage.h"
 #include "ObjectManager.h"
@@ -66,6 +67,7 @@ namespace ed
 
 		void m_cleanTextures(sd::ShaderType stage);
 		std::unordered_map<sd::ShaderType, std::vector<sd::Texture*>> m_textures;
+		std::unordered_map<sd::ShaderType, std::vector<sd::TextureCube*>> m_cubemaps;
 
 		std::vector<char*> m_watchExprs;
 		std::vector<std::string> m_watchValues;

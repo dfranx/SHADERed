@@ -476,6 +476,11 @@ namespace ed
 			settings->Editor.FontSize = std::max<int>(std::min<int>(settings->Editor.FontSize, 72), 9);
 		ImGui::PopItemWidth();
 
+		/* SHOW WHITESPACE: */
+		ImGui::Text("Show function description tooltips: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_show_functooltips", &settings->Editor.FunctionTooltips);
+
 		/* AUTO BRACE COMPLETION: */
 		ImGui::Text("Brace completion: ");
 		ImGui::SameLine();

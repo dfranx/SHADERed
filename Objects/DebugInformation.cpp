@@ -196,7 +196,10 @@ namespace ed
 	{
 		for (sd::Texture* tex : m_textures[stage])
 			delete tex;
+		for (sd::TextureCube* cube : m_cubemaps[stage])
+			delete cube;
 		m_textures[stage].clear();
+		m_cubemaps[stage].clear();
 	}
 
 
@@ -400,7 +403,52 @@ namespace ed
 					}
 
 					samplerId++;
-				} else {
+				} 
+				else if (sd::IsCubemap(glob.Type.c_str())) {
+					int myId = glob.InputSlot == -1 ? samplerId : glob.InputSlot;
+
+					if (myId < srvs.size()) {
+						std::string itemName = m_objs->GetItemNameByTextureID(srvs[myId]);
+						ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+
+						// get texture size
+						glm::ivec2 size(1, 1);
+						if (itemData != nullptr) {
+							if (itemData->RT != nullptr)
+								size = m_objs->GetRenderTextureSize(itemName);
+							else if (itemData->Image != nullptr)
+								size = itemData->Image->Size;
+							else if (itemData->Sound != nullptr)
+								size = glm::ivec2(512, 2);
+							else
+								size = itemData->ImageSize;
+						}
+
+						// allocate cubemap
+						sd::TextureCube* cube = new sd::TextureCube();
+						cube->UserData = srvs[myId];
+
+						// get the data from the GPU
+						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[myId]);
+						for (int i = 0; i < 6; i++) {
+							sd::Texture* tex = new sd::Texture();
+							tex->Allocate(size.x, size.y);
+
+							glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, GL_FLOAT, &tex->Data[0][0]);
+							
+							cube->Faces[i] = tex;
+							m_textures[m_stage].push_back(tex);
+						}
+						glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+						// set and cache
+						Engine.SetGlobalValue(glob.Name, glob.Type, cube);
+						m_cubemaps[m_stage].push_back(cube);
+					}
+
+					samplerId++;
+				}
+				else {
 					for (ShaderVariable* var : passUniforms) {
 						if (strcmp(glob.Name.c_str(), var->Name) == 0) {
 							ShaderVariable::ValueType valType = var->GetType();

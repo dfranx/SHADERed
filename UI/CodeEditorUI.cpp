@@ -258,6 +258,7 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
 			
@@ -323,6 +324,7 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
 
@@ -387,6 +389,7 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
 
@@ -455,6 +458,7 @@ namespace ed
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			m_loadEditorShortcuts(editor);
 			
 			editor->SetLanguageDefinition(defPlugin);

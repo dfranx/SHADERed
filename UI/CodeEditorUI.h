@@ -100,6 +100,10 @@ namespace ed
 			for (TextEditor& editor : m_editor)
 				editor.SetSmartPredictions(ts);
 		}
+		inline void SetFunctionTooltips(bool ts) {
+			for (TextEditor& editor : m_editor)
+				editor.SetFunctionTooltips(ts);
+		}
 		inline void SetFont(const std::string& filename, int size = 15)
 		{
 			m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;

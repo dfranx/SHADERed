@@ -8,6 +8,7 @@
 + add ability to load projects by drag and dropping them
 + add search in Options -> Shortcuts
 + add "Pause preview on startup" option
++ add "Show function description tooltips" option
 + change default font & theme
 + change how MouseButton works
 + change how paused state works
