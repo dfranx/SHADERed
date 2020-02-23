@@ -123,6 +123,7 @@ namespace ed
 						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar*STATUSBAR_HEIGHT));
 						ImGui::PopFont();
 
+						
 						// status bar
 						if (statusbar) {
 							auto cursor = m_editor[i].GetCursorPosition();
@@ -142,7 +143,7 @@ namespace ed
 						m_focusWindow = false;
 					}
 				}
-
+		
 				wid[isPluginItem ? 4 : m_shaderTypeId[i]]++;
 				ImGui::End();
 			}
@@ -270,7 +271,7 @@ namespace ed
 			// apply breakpoints
 			m_applyBreakpoints(editor, shaderPath);
 
-			std::string shaderContent = m_data->Parser.LoadProjectFile(shaderPath);
+			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			m_paths.push_back(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
@@ -336,7 +337,7 @@ namespace ed
 
 			m_shaderTypeId.push_back(sid);
 
-			std::string shaderContent = m_data->Parser.LoadProjectFile(shader->Path);
+			std::string shaderContent = m_data->Parser.LoadFile(shader->Path);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
@@ -401,7 +402,7 @@ namespace ed
 
 			m_shaderTypeId.push_back(sid);
 
-			std::string shaderContent = m_data->Parser.LoadProjectFile(shader->Path);
+			std::string shaderContent = m_data->Parser.LoadFile(shader->Path);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}

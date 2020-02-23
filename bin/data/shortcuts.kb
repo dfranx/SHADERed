@@ -11,6 +11,13 @@ Editor.BackwardDelete Backspace
 Editor.BackwardDeleteWord CTRL Backspace
 Editor.Copy CTRL C
 Editor.Cut CTRL X
+Editor.DebugBreakpoint F9
+Editor.DebugContinue F5
+Editor.DebugJumpHere CTRL ALT H
+Editor.DebugStep F10
+Editor.DebugStepInto F11
+Editor.DebugStepOut SHIFT F11
+Editor.DebugStop SHIFT F5
 Editor.DeleteLeft SHIFT Backspace
 Editor.DeleteRight SHIFT Delete
 Editor.Find CTRL F

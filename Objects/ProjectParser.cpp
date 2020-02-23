@@ -868,6 +868,18 @@ namespace ed
 
 		doc.save_file(file.c_str());
 	}
+	std::string ProjectParser::LoadFile(const std::string & file)
+	{
+		std::ifstream in(file);
+		if (in.is_open()) {
+			in.seekg(0, std::ios::beg);
+
+			std::string content((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
+			in.close();
+			return content;
+		}
+		return "";
+	}
 	std::string ProjectParser::LoadProjectFile(const std::string & file)
 	{
 		std::ifstream in(GetProjectPath(file));
