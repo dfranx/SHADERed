@@ -6,7 +6,7 @@ namespace ed
 {
 	void checkUpdates(std::function<void()> onUpdate)
 	{
-		sf::Http http("http://shadered.000webhostapp.com/"); // ye, ik.....
+		sf::Http http("http://shadered.org/api/fetch_version.php");
 		sf::Http::Request request;
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(2.0f));
 
