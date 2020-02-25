@@ -93,7 +93,7 @@ Support the development of this project on Patreon: [<img width="120" src="https
 You can support the development of this project via **PayPal**: [<img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/pp-acceptance-medium.png" alt="Buy now with PayPal" />](https://paypal.me/dfranx) 
 
 My e-mail address for businesses (or if you just want to contact me):
-**dfranx00 at gmail dot com**
+**contact at shadered dot org**
 
 ## Binaries
 You can download precompiled binaries through the [Releases](https://github.com/dfranx/SHADERed/releases) page or you can use the [shadered.org](https://shadered.org/) website.
