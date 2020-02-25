@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 	ed::eng::Timer timer;
 	SDL_Event event;
 	bool run = true;
-	bool minimized = true;
+	bool minimized = false;
 	bool hasFocus = true;
 	while (run) {
 		while (SDL_PollEvent(&event))

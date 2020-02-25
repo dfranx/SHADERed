@@ -23,7 +23,6 @@ namespace ed
 	}
 	void PixelInspectUI::Update(float delta)
 	{
-		ImVec2 containerSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		std::vector<PixelInformation>& pixels = m_data->Debugger.GetPixelList();
 
 		if (ImGui::Button("Clear##pixel_clear", ImVec2(-1, 0)))
@@ -31,7 +30,7 @@ namespace ed
 
 		ImGui::NewLine();
 
-		ImGui::BeginChild("##pixel_scroll_container", containerSize);
+		ImGui::BeginChild("##pixel_scroll_container", ImVec2(-1, -1));
 
 		int pxId = 0;
 

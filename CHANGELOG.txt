@@ -14,6 +14,9 @@
 + change how paused state works
 + clicking on "Reset time" when paused will now rerender everything
 + fix zoom reset using double click when paused
++ fix a bug where SHADERed would think it's minimized on startup (and slow down the whole program)
++ fix copy and pasting '\t'
++ fix deleting '\t'
 + various fixes
 
 [v1.2.4]
@@ -29,7 +32,7 @@
 
 [v1.2.3]
 + add 3D textures
-+ add audio shaders (GLSL synthesized audio)
++ add audio shaders (HLSL/GLSL synthesized audio)
 + add ability to have multiple cameras / camera snapshots
 + add ability to change variable type after variable has been created
 + add a window where all system variables are listed
@@ -43,7 +46,7 @@
 + add ability to use sprintf format specifiers in filenames when exporting image sequence
 + fix copy and paste
 + fix matrix variable exporting & importing
-+ fix a bug where openning Sobel -> Edge -> Sobel examples would break the rendered
++ fix a bug where openning Sobel -> Edge -> Sobel examples would break the renderer
 + fix RT default size
 + fix bounding box color
 + fix a bug where SHADERed would recompile file two times after clicking "Compile" button
