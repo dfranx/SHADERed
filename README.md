@@ -1,9 +1,86 @@
 # SHADERed
 
 SHADERed is a lightweight tool for creating and testing **HLSL and GLSL shaders**. It is easy to use,
-open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both OS) and frequently updated with new features.
+open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both OSes) and -frequently updated with new features.
 
 <img src="./Misc/Screenshots/IMG2.png"/>
+
+## Features
+
+### Shader debugger
+Shader debugger is the newest addition to SHADERed. It is simple to use - you just pause the preview and select the pixel that you are interested in. After starting the debug process, you will be able to:
+* step through your shader code line by line
+* place normal and conditional breakpoints
+* run custom expressions in the Immediate window
+* create watches
+* see list of all variables and their values
+<img src="https://shadered.org/img/gallery/seddbg_watch_vars.gif"/>
+
+### Compute & geometry shaders
+You are not limited to vertex and pixel shaders. SHADERed also has support for compute & geometry
+shaders. To use GS, enable it in the shader pass' properties and set the path to your shader. You can create advanced
+animations and effects using geometry shaders.
+<p align="center">
+    <img width="200" src="./Misc/Screenshots/geometryshader.gif">
+</p>
+
+You can also add **compute pass**es alongside normal shader passes:
+<p align="center">
+    <img width="200" src="./Misc/Screenshots/computeshader.gif">
+</p>
+
+### Plugin API
+You can develop your own SHADERed plugins (which I currently don't suggest since I still need to change a lot of things) or download and install some plugins.
+To see the plugin API's potential, check out:
+* [GodotShaders](https://github.com/dfranx/PluginGodotShaders) - adds support for Godot's shading language
+* [ShadertoyImporter](https://github.com/dfranx/PluginShadertoy) - makes loading Shadertoy project a super easy task
+
+You can download them through the [shadered.org](https://shadered.org/store/plugins.php) website too.
+
+### See changes instantly
+There are different ways to recompile your shaders. You can press F5 to manually recompile your shader, make it recompile shaders on file modify event (which then allows you to use external editors) or make it recompile changed and nonsaved shaders every 200ms:
+<img src="./Misc/Screenshots/instantresult.gif">
+
+### Render states
+You can modify rasterizer, blend and depth-stencil states. Using these states you can: turn on wireframe mode,
+disable depth test, use stencil buffer, disable culling, custom blending, etc... All these things help you achieve even more advanced effects.
+
+### 3D models, textures (2D, 3D, cubemaps) & audio files
+You can add music and create amazing visualizers!
+
+Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
+full screen quads, etc...
+
+Load textures from files and bind them to your shader. SHADERed also supports cubemaps & 3D textures.
+<p align="center">
+    <img width="260" src="./Misc/Screenshots/texture.jpg">
+</p>
+
+### Render textures
+You can render your scene to render textures. You can bind multiple render textures to one shader pass. This can help with creating G-Buffer and similar things more easily. You can modify these render texture properties: size, format & clear color
+<p align="center">
+    <img width="220" src="./Misc/Screenshots/multiplert.jpg">
+</p>
+
+### Shader input variables
+You can create your own variables and edit their values in real time. SHADERed also comes with lots of built-in 'system' shader variables (elapsed time, window size, various
+view matrices, etc...).
+You can also change shader variable value only for a specific 3D object - no programming required.
+<p align="center">
+    <img width="400" src="./Misc/Screenshots/itemvarvalue.gif">
+</p>
+
+### Zooming in & pausing
+Do you need to zoom in on an area of your shader output? You can do that by holding ALT and selecting the area you want to zoom in. This can be useful when developing antialiasing shaders. It is also possible to pause the time
+<p align="center">
+    <img width="400" src="./Misc/Screenshots/zoomin.gif"><br/>
+    <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
+</p>
+
+### And many more
+Instancing, buffers, audio shaders, ability to have more than one camera, shader macros, pausing time, input layout/vertex attribute manager, export as image and image sequence, variable pointers, etc...
+
+You can also check this list too: [link](https://shadered.org/features.php).
 
 ## Supporters
 **Silver supporter(s):**
@@ -18,116 +95,14 @@ You can support the development of this project via **PayPal**: [<img src="https
 My e-mail address for businesses (or if you just want to contact me):
 **dfranx00 at gmail dot com**
 
-## Features
-
-### Compute & geometry shaders
-You are not limited to vertex and pixel shaders. SHADERed also has support for compute & geometry
-shaders. To use GS enable it in your shader pass' properties and set the path to your shader. You can create advanced
-animations and effects using geometry shaders.
-<p align="center">
-    <img width="200" src="./Misc/Screenshots/geometryshader.gif">
-</p>
-
-You can also add **compute pass**es alongside shader passes:
-<p align="center">
-    <img width="200" src="./Misc/Screenshots/computeshader.gif">
-</p>
-
-### See changes instantly
-SHADERed offers different ways of recompiling your changed shaders. You can press
-F5 to manually recompile your shader, make it recompile shaders on file modify event (this also allows
-you to use external editors with ease) or make it recompile shaders every 200ms:
-<img src="./Misc/Screenshots/instantresult.gif">
-
-Since the built-in text editor is buggy in the latest version, you can turn on
-the `"Recompile shader on file change"` and `"Open shaders in an external editor"` options.
-Open the shader files in an external editor & once you make changes to the file, SHADERed will instantly
-detect them and recompile your shaders:
-<img src="./Misc/Screenshots/detectfilechange.gif">
-
-Want to see how a certain object affects your scene? Grab the object and scale, rotate and move it
-around the scene:
-<img src="./Misc/Screenshots/gizmo.gif">
-
-### Render states
-You can modify rasterizer, blend and depth-stencil states. Using these states you can: turn on wireframe mode,
-disable depth test, use stencil buffer, disable culling, custom blending, etc... All those things help you achieve even more advanced effects.
-
-### 3D models, textures (2D, 3D, cubemaps) & audio files
-You can add music and create amazing visualizers!
-
-Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
-full screen quads, etc...
-
-Load textures from files and bind them to your shader. SHADERed also supports cubemaps & 3D textures.
-<p align="center">
-    <img width="260" src="./Misc/Screenshots/texture.jpg">
-</p>
-
-### Render textures
-You can render your scene to custom render textures. You can bind multiple render textures
-to one shader pass. This helps with create G-Buffers and similar things more easily. 
-<p align="center">
-    <img width="220" src="./Misc/Screenshots/multiplert.jpg">
-</p>
-
-### Shader input variables
-You can create your own variables and edit their values in real time. SHADERed also comes with lots of built-in 'system' shader variables (elapsed time, window size, various
-view matrices, etc...).
-<img src="./Misc/Screenshots/varmanager.jpg">
-
-You can also change shader variable value only for a specific 3D object. No programming is required.
-<p align="center">
-    <img width="400" src="./Misc/Screenshots/itemvarvalue.gif">
-</p>
-
-### Zooming in & pausing
-Working on an antialiasing shader? You can zoom in and inspect edges of 3D objects.
-Hold ALT and select an area that you want to look at in more detail
-<p align="center">
-    <img width="400" src="./Misc/Screenshots/zoomin.gif"><br/>
-    <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
-</p>
-
-### Workspace
-You can modify SHADERed workspace however you want to thanks to Omar Cornut's great work on
-[Dear ImGUI's docking branch](https://github.com/ocornut/imgui/tree/docking), which implements window docking.
-
-### Error markers
-The built-in code editor has error markers. They help you locate and identify your shader errors more easily.
-Hover over a line with an error to see the message or just check it in the "Output" window.
-<p align="center">
-    <img width="370" src="./Misc/Screenshots/error.jpg">
-</p>
-
-**NOTE: You are not forced to use the built-in code editor** (and you probably shouldn't use it right now to avoid some
-annoying bugs).
-
-### Custom themes
-You can create your own SHADERed theme. SHADERed themes allow you to
-customize everything. SHADERed comes with a few built-in themes. I am bad at designing 
-so please submit your custom themes!
-
-Want to create your own theme but don't know how? Visit [TUTORIAL.md](./TUTORIAL.md).
-
-### Custom templates
-You can create your own custom templates. SHADERed comes with a GLSL, HLSL and HLSL deferred rendering template.
-Templates help you start developing shaders quickly. To create your own project template, paste your project
-directory in the "templates" directory and name your project file `template.sprj`. You have to reopen SHADERed if it was
-already running to see the template under `File -> New`. A menu item for creating a template will
-have the same text as the parent directory of the template.
-
-### And many more
-Instancing, buffers, audio shaders, ability to have more than one camera, shader macros, pausing time, input layout/vertex attribute manager, export as image and image sequence, variable pointers, etc...
-Check out the list of features that I want to implement in near future: [TODO.md](./TODO.md)
-
 ## Binaries
-You can download precompiled binaries here: [Releases](https://github.com/dfranx/SHADERed/releases)
+You can download precompiled binaries through the [Releases](https://github.com/dfranx/SHADERed/releases) page or you can use the [shadered.org](https://shadered.org/) website.
 
 ## Building
 First clone the project & submodules:
 ```
 git clone https://github.com/dfranx/SHADERed.git
+cd SHADERed
 git submodule update --init --recursive
 ```
 
@@ -172,8 +147,8 @@ Run:
 4. Open the .sln and build the project!
 
 ## Tutorial
-Don't know how or where to start? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
-detailed steps on how to do so.
+Don't know how or where to start? The debugger is confusing? Want to create your own shader or custom SHADERed theme? Visit [TUTORIAL.md](TUTORIAL.md) to see
+detailed steps on how to do these things.
 
 ## Used by
 [<img width="250" src="./Misc/Logo/arkaos.png">](https://www.arkaos.com/)
@@ -183,6 +158,8 @@ detailed steps on how to do so.
     <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
 
 ![](https://user-images.githubusercontent.com/3957610/64245795-e54b0680-cf0b-11e9-8799-ea7ace785190.png)
+
+![](https://shadered.org/img/themes.png)
 
 Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!
 
