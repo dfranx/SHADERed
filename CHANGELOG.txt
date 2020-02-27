@@ -1,4 +1,5 @@
 [v1.3.1]
++ fix font resizing/changing
 
 [v1.3]
 + add shader debugger

@@ -546,6 +546,7 @@ namespace ed
 			fonts->Build();
 
 			ImGui_ImplOpenGL3_DestroyFontsTexture();
+			ImGui_ImplOpenGL3_CreateFontsTexture();
 
 			((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
 		}
