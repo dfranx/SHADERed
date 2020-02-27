@@ -849,7 +849,7 @@ namespace ed
 			}
 			if (ImGui::BeginMenu("Supporters")) {
 				static const std::vector<std::pair<std::string, std::string>> slist = {
-					std::make_pair("Hugo Locurcio", "https://github.com/Calinou")
+					std::make_pair("Hugo Locurcio", "https://hugo.pro")
 				};
 
 				for (auto& sitem : slist) {
@@ -1004,7 +1004,7 @@ namespace ed
 		}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 200 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
 			m_createUI->Update(delta);
 
@@ -1019,7 +1019,7 @@ namespace ed
 		}
 
 		// Create cubemap popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 275 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 300 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create cubemap##main_create_cubemap")) {
 			static char buf[65] = { 0 };
 			ImGui::InputText("Name", buf, 64);
@@ -1191,9 +1191,9 @@ namespace ed
 
 
 		// Create about popup
-		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 180 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 220 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("About##main_about")) {
-			ImGui::TextWrapped("(C) 2019 dfranx");
+			ImGui::TextWrapped("(C) 2020 dfranx");
 			ImGui::TextWrapped("Version 1.3");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
@@ -1264,9 +1264,9 @@ namespace ed
 		}
 
 		// Create new project
-		ImGui::SetNextWindowSize(ImVec2(300 * Settings::Instance().DPIScale, 100 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj")) {
-			ImGui::TextWrapped("You will lose your unsaved progress if you create new project");
+		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj", 0, ImGuiWindowFlags_NoResize)) {
+			ImGui::TextWrapped("You will lose your unsaved progress if you create a new project");
 			if (ImGui::Button("Yes")) {
 				std::string oldFile = m_data->Parser.GetOpenedFile();
 

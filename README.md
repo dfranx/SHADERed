@@ -84,7 +84,7 @@ You can also check this list too: [link](https://shadered.org/features.php).
 
 ## Supporters
 **Silver supporter(s):**
-[Hugo Locurcio](https://github.com/Calinou)
+[Hugo Locurcio](https://hugo.pro)
 
 
 ## Support
