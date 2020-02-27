@@ -17,7 +17,7 @@
 #include <imgui/imgui.h>
 #include <ghc/filesystem.hpp>
 
-#if defined(__linux__) || defined(__unix__)
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 	#include <dlfcn.h>
 #endif
 
@@ -48,7 +48,7 @@ namespace ed
 				std::string pdir = entry.path().filename().native();
 
 				// TODO: linux
-#if defined(__linux__) || defined(__unix__)
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				void* procDLL = dlopen(("./plugins/" + pdir + "/plugin.so").c_str(), RTLD_NOW);
 
 				if (!procDLL) {
@@ -451,7 +451,7 @@ namespace ed
 	{
 		for (int i = 0; i < m_plugins.size(); i++) {
 			m_plugins[i]->Destroy();
-			#if defined(__linux__) || defined(__unix__)
+			#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(m_proc[i], "DestroyPlugin");
 				if (fnDestroyPlugin)
 					(*fnDestroyPlugin)(m_plugins[i]);

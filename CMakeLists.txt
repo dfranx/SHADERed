@@ -153,6 +153,12 @@ set(ENABLE_GLSLANG_BINARIES OFF)
 set(ENABLE_SPVREMAPPER OFF)
 add_subdirectory(libs/glslang)
 
+# Native macOS frameworks
+if (APPLE)
+	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
+	set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
+endif()
+
 # create executable
 add_executable(SHADERed ${SOURCES})
 
@@ -183,9 +189,11 @@ if(WIN32)
 	# link specific win32 libraries
 	target_link_libraries(SHADERed GLEW::GLEW SDL2::SDL2 SDL2::SDL2main)
 
-else()
+elseif(UNIX AND NOT APPLE)
 	# link linux libraries
 	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+elseif(APPLE)
+	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()
 
 if (NOT MSVC)

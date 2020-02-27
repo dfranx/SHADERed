@@ -694,7 +694,9 @@ namespace ed
 
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", KeyboardShortcuts::Instance().GetString("Window.Exit").c_str())) {
-					SDL_DestroyWindow(m_wnd);
+					SDL_Event event;
+					event.type = SDL_QUIT;
+				  SDL_PushEvent(&event);
 					return;
 				}
 
@@ -1840,15 +1842,19 @@ namespace ed
 	}
 	void GUIManager::Render()
 	{
-		// actually render to back buffer
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	  ImDrawData *drawData = ImGui::GetDrawData();
+	  if (drawData != NULL) {
+      // actually render to back buffer
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		// Update and Render additional Platform Windows
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
+      // Update and Render additional Platform Windows
+      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+      }
+	  }
 	}
+
 	UIView * GUIManager::Get(ViewID view)
 	{
 		if (view == ViewID::Options)
