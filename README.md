@@ -140,6 +140,29 @@ Run:
 ./bin/SHADERed
 ```
 
+### macOS
+
+Install all the libraries that are needed:
+
+```shell script
+brew install sdl2 sfml glew glm assimp
+```
+
+Build:
+
+```shell script
+mkdir build
+cd build
+cmake ../
+make -j8
+```
+
+Run:
+```
+./bin/SHADERed
+```
+
+
 ### Windows
 1. Install SDL2, SFML, GLEW, GLM, ASSIMP through your favourite package manager (I recommend vcpkg)
 2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable
