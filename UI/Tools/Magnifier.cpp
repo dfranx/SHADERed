@@ -91,7 +91,7 @@ namespace ed
 	{
 		glDeleteBuffers(1, &m_zoomVBO);
 		glDeleteVertexArrays(1, &m_zoomVAO);
-		glDeleteShader(m_zoomShader);	
+		glDeleteProgram(m_zoomShader);	
 	}
 	
 	void Magnifier::Drag()

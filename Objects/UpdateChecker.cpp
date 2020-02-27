@@ -35,19 +35,15 @@ namespace ed
 	}
 	UpdateChecker::~UpdateChecker()
 	{
-		if (m_thread != nullptr) {
-			if (m_thread->joinable())
-				m_thread->join();
-			delete m_thread;
-		}
+		if (m_thread != nullptr && m_thread->joinable())
+			m_thread->join();
+		delete m_thread;
 	}
 	void UpdateChecker::CheckForUpdates(std::function<void()> onUpdate)
 	{
-		if (m_thread != nullptr) {
-			if (m_thread->joinable())
-				m_thread->join();
-			delete m_thread;
-		}
+		if (m_thread != nullptr && m_thread->joinable())
+			m_thread->join();
+		delete m_thread;
 		m_thread = new std::thread(checkUpdates, onUpdate);
 	}
 }

@@ -423,31 +423,29 @@ namespace ed
 	void PipelineManager::FreeData(void* data, PipelineItem::ItemType type)
 	{
 		//TODO: make it type-safe.
-		if (data != nullptr) {
-			switch (type) {
-			case PipelineItem::ItemType::Geometry:
-				delete (pipe::GeometryItem*)data;
-				break;
-			case PipelineItem::ItemType::ShaderPass:
-				delete (pipe::ShaderPass*)data;
-				break;
-			case PipelineItem::ItemType::RenderState:
-				delete (pipe::RenderState*)data;
-				break;
-			case PipelineItem::ItemType::Model:
-				delete (pipe::Model*)data;
-				break;
-			case PipelineItem::ItemType::ComputePass:
-				delete (pipe::ComputePass*)data;
-				break;
-			case PipelineItem::ItemType::AudioPass:
-				delete (pipe::AudioPass*)data;
-				break;
-			case PipelineItem::ItemType::PluginItem:
-				delete (pipe::PluginItemData*)data;
-				break;
-			}
-			data = nullptr;
+		switch (type) {
+		case PipelineItem::ItemType::Geometry:
+			delete (pipe::GeometryItem*)data;
+			break;
+		case PipelineItem::ItemType::ShaderPass:
+			delete (pipe::ShaderPass*)data;
+			break;
+		case PipelineItem::ItemType::RenderState:
+			delete (pipe::RenderState*)data;
+			break;
+		case PipelineItem::ItemType::Model:
+			delete (pipe::Model*)data;
+			break;
+		case PipelineItem::ItemType::ComputePass:
+			delete (pipe::ComputePass*)data;
+			break;
+		case PipelineItem::ItemType::AudioPass:
+			delete (pipe::AudioPass*)data;
+			break;
+		case PipelineItem::ItemType::PluginItem:
+			delete (pipe::PluginItemData*)data;
+			break;
 		}
+		data = nullptr;
 	}
 }

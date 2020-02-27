@@ -852,8 +852,8 @@ namespace ed
 		// return the actual RT that was shown before
 		Render();
 
-		glDeleteProgram(customProgram);
 		glDeleteShader(vs);
+		glDeleteProgram(customProgram);
 
 		return vertexID;
 	}
@@ -1057,8 +1057,8 @@ namespace ed
 		// return the actual RT that was shown before
 		Render();
 
-		glDeleteProgram(customProgram);
 		glDeleteShader(vs);
+		glDeleteProgram(customProgram);
 
 		return instanceID;
 	}
@@ -1091,9 +1091,9 @@ namespace ed
 
 					m_msgs->ClearGroup(name);
 
-					if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
-					if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
-					if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
+					glDeleteShader(m_shaderSources[i].VS);
+					glDeleteShader(m_shaderSources[i].PS);
+					glDeleteShader(m_shaderSources[i].GS);
 
 					std::string psContent = "", vsContent = "",
 						vsEntry = shader->VSEntry,
@@ -1628,10 +1628,10 @@ namespace ed
 	void RenderEngine::FlushCache()
 	{
 		for (int i = 0; i < m_shaders.size(); i++) {
-			glDeleteProgram(m_shaders[i]);
 			glDeleteShader(m_shaderSources[i].VS);
 			glDeleteShader(m_shaderSources[i].PS);
 			glDeleteShader(m_shaderSources[i].GS);
+			glDeleteProgram(m_shaders[i]);
 		}
 		
 		m_fbos.clear();
@@ -1689,9 +1689,9 @@ namespace ed
 						continue;
 					}
 
-					if (m_shaderSources[i].VS != 0) glDeleteShader(m_shaderSources[i].VS);
-					if (m_shaderSources[i].PS != 0) glDeleteShader(m_shaderSources[i].PS);
-					if (m_shaderSources[i].GS != 0) glDeleteShader(m_shaderSources[i].GS);
+					glDeleteShader(m_shaderSources[i].VS);
+					glDeleteShader(m_shaderSources[i].PS);
+					glDeleteShader(m_shaderSources[i].GS);
 
 					/*
 						ITEM CACHING

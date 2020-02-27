@@ -23,8 +23,7 @@ namespace ed
 		gl::FreeSimpleFramebuffer(m_fbo, m_rt, m_depth);
 		glDeleteVertexArrays(1, &m_fsRectVAO);
 		glDeleteBuffers(1, &m_fsRectVBO);
-		if (m_shader != 0)
-			glDeleteShader(m_shader);
+		glDeleteProgram(m_shader);
 		stop();
 	}
 	

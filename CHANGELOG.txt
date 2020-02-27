@@ -1,3 +1,5 @@
+[v1.3.1]
+
 [v1.3]
 + add shader debugger
 + add plugin API

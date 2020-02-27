@@ -189,10 +189,8 @@ namespace ed
 		m_debug->ClearBreakpointList();
 
 		for (auto& mdl : m_models) {
-			if (mdl.second) {
-				delete mdl.second;
-				mdl.second = nullptr;
-			}
+			delete mdl.second;
+			mdl.second = nullptr;
 		}
 		m_models.clear();
 

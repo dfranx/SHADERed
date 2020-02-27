@@ -722,17 +722,15 @@ namespace ed
 		if (autorec) {
 			Logger::Get().Log("Starting auto-recompiler...");
 
-			if (m_autoRecompileThread != nullptr) {
-				m_autoRecompilerRunning = false;
-				if (m_autoRecompileThread->joinable())
-					m_autoRecompileThread->join();
+			// stop if it was running before
+			m_autoRecompilerRunning = false;
+			if (m_autoRecompileThread != nullptr && m_autoRecompileThread->joinable())
+				m_autoRecompileThread->join();
+			delete m_autoRecompileThread;
+			m_autoRecompileThread = nullptr;
 
-				delete m_autoRecompileThread;
-				m_autoRecompileThread = nullptr;
-			}
-
+			// rerun
 			m_autoRecompilerRunning = true;
-
 			m_autoRecompileThread = new std::thread(&CodeEditorUI::m_autoRecompiler, this);
 		}
 		else {
@@ -860,17 +858,15 @@ namespace ed
 		if (track) {
 			Logger::Get().Log("Starting to track file changes...");
 
-			if (m_trackThread != nullptr) {
-				m_trackerRunning = false;
-				if (m_trackThread->joinable())
-					m_trackThread->join();
+			// stop first (if running)
+			m_trackerRunning = false;
+			if (m_trackThread != nullptr && m_trackThread->joinable())
+				m_trackThread->join();
+			delete m_trackThread;
+			m_trackThread = nullptr;
 
-				delete m_trackThread;
-				m_trackThread = nullptr;
-			}
-
+			// start
 			m_trackerRunning = true;
-
 			m_trackThread = new std::thread(&CodeEditorUI::m_trackWorker, this);
 		}
 		else {
