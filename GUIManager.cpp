@@ -1274,27 +1274,14 @@ namespace ed
 						Settings::Instance().Project.FPCamera = false;
 						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
 
-						m_data->Renderer.FlushCache();
-						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-						((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
-						CameraSnapshots::Clear();
+						ResetWorkspace();
 						m_data->Pipeline.New(false);
 
 						SDL_SetWindowTitle(m_wnd, "SHADERed");
 				} else {
 					m_data->Parser.SetTemplate(m_selectedTemplate);
 
-					m_data->Renderer.FlushCache();
-					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-					((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-					((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+					ResetWorkspace();
 					m_data->Pipeline.New();
 
 					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
@@ -1305,13 +1292,7 @@ namespace ed
 				bool chosen = SaveAsProject();
 				if (!chosen) {
 					if (oldFile != "") {
-						m_data->Renderer.FlushCache();
-						((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-						((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-						((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-						((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-						((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-						((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+						ResetWorkspace();
 						m_data->Parser.Open(oldFile);
 
 					}
@@ -1860,6 +1841,17 @@ namespace ed
 
 		return m_views[(int)view];
 	}
+	void GUIManager::ResetWorkspace()
+	{
+		m_data->Renderer.FlushCache();
+		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
+		((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
+		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
+		((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+		CameraSnapshots::Clear();
+	}
 	void GUIManager::SaveSettings()
 	{
 		std::ofstream data("data/gui.dat");
@@ -1915,21 +1907,13 @@ namespace ed
 		if (success) {
 			m_data->Parser.SaveAs(file, true);
 
-
-			m_data->Renderer.FlushCache();
-
 			// cache opened code editors
 			CodeEditorUI* editor = ((CodeEditorUI*)Get(ViewID::Code));
 			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
 			std::vector<std::string> filesData = editor->GetOpenedFilesData();
 
 			// close all
-			editor->CloseAll();
-			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-			((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+			this->ResetWorkspace();
 
 			m_data->Parser.Open(file);
 
@@ -1963,14 +1947,7 @@ namespace ed
 
 		glm::ivec2 curSize = m_data->Renderer.GetLastRenderSize();
 
-		m_data->Renderer.FlushCache();
-
-		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-		((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-		((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+		this->ResetWorkspace();
 		m_data->Renderer.Pause(false); // unpause
 
 		m_data->Parser.Open(file);
@@ -2049,32 +2026,15 @@ namespace ed
 			}
 
 			if (cont) {
-				m_data->Renderer.FlushCache();
 				std::string file;
 				bool success = UIHelper::GetOpenFileDialog(file, "sprj");
 
-				// TODO: use Open()
-
-				if (success) {
-					((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-					((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-					((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-					((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-					((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-					((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
-
-					m_data->Parser.Open(file);
-				}
+				if (success)
+					this->Open(file);
 			}
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.New", [=]() {
-			m_data->Renderer.FlushCache();
-			((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
-			((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-			((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
-			((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
-			((PipelineUI*)Get(ViewID::Pipeline))->Reset();
-			((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
+			this->ResetWorkspace();
 			m_data->Pipeline.New();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewRenderTexture", [=]() {

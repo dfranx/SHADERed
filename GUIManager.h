@@ -51,6 +51,7 @@ namespace ed
 		UIView* Get(ViewID view);
 		inline SDL_Window* GetSDLWindow() { return m_wnd; }
 
+		void ResetWorkspace();
 		void SaveSettings();
 		void LoadSettings();
 
