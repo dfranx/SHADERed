@@ -1047,6 +1047,7 @@ namespace ed
 						m_currentRT->FixedSize.y = 10;
 
 					m_data->Objects.ResizeRenderTexture(std::string(m_itemName), m_currentRT->FixedSize);
+					m_data->Parser.ModifyProject();
 				}
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
@@ -1068,6 +1069,7 @@ namespace ed
 						m_currentRT->RatioSize.y * m_data->Renderer.GetLastRenderSize().y);
 
 					m_data->Objects.ResizeRenderTexture(std::string(m_itemName), newSize);
+					m_data->Parser.ModifyProject();
 				}
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
@@ -1085,6 +1087,7 @@ namespace ed
 							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
 
 							m_data->Objects.ResizeRenderTexture(std::string(m_itemName), m_currentRT->CalculateSize(wsize.x, wsize.y));
+							m_data->Parser.ModifyProject();
 						}
 					}
 
@@ -1221,7 +1224,8 @@ namespace ed
 			ImGui::NextColumn();
 			ImGui::Separator();
 			ImGui::Columns(1);
-		} else {
+		} 
+		else {
 			ImGui::TextWrapped("Right click on an item -> Properties");
 		}
 	}

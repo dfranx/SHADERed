@@ -18,7 +18,6 @@ namespace ed
 			case FunctionShaderVariable::MatrixOrthographicLH: return 4;
 			case FunctionShaderVariable::MatrixPerspectiveFovLH: return 4;
 			case FunctionShaderVariable::MatrixPerspectiveLH: return 4;
-			case FunctionShaderVariable::MatrixReflect: return 4;
 			case FunctionShaderVariable::MatrixRotationAxis: return 4;
 			case FunctionShaderVariable::MatrixRotationNormal: return 4;
 			case FunctionShaderVariable::MatrixRotationRollPitchYaw: return 3;
@@ -26,7 +25,6 @@ namespace ed
 			case FunctionShaderVariable::MatrixRotationY: return 1;
 			case FunctionShaderVariable::MatrixRotationZ: return 1;
 			case FunctionShaderVariable::MatrixScaling: return 3;
-			case FunctionShaderVariable::MatrixShadow: return 8;
 			case FunctionShaderVariable::MatrixTranslation: return 3;
 			case FunctionShaderVariable::ScalarCos: return 1;
 			case FunctionShaderVariable::ScalarSin: return 1;
@@ -73,19 +71,11 @@ namespace ed
 					*LoadFloat(var->Arguments, 2) = 0.1f;
 					*LoadFloat(var->Arguments, 3) = 100.0f;
 					break;
-				case FunctionShaderVariable::MatrixReflect:
-					*LoadFloat(var->Arguments, 1) = -1;
-					break;
 				case FunctionShaderVariable::MatrixRotationAxis:
 					*LoadFloat(var->Arguments, 0) = 1;
 					break;
 				case FunctionShaderVariable::MatrixRotationNormal:
 					*LoadFloat(var->Arguments, 0) = 1;
-					break;
-				case FunctionShaderVariable::MatrixShadow:
-					*LoadFloat(var->Arguments, 1) = -1;
-					*LoadFloat(var->Arguments, 4) = 1;
-					*LoadFloat(var->Arguments, 7) = 1;
 					break;
 				case FunctionShaderVariable::VectorNormalize:
 					*LoadFloat(var->Arguments, 0) = 1;
@@ -204,14 +194,6 @@ namespace ed
 					matrix = glm::perspectiveFov(45.0f, view[0], view[1], z[0], z[1]);
 				} break;
 
-				case FunctionShaderVariable::MatrixReflect:
-				{
-					float* plane = LoadFloat(var->Arguments, 0);
-
-					// TODO: implement this!
-					matrix = glm::mat4(1.0f);
-				} break;
-
 				case FunctionShaderVariable::MatrixRotationAxis:
 				{
 					float* axis = LoadFloat(var->Arguments, 0);
@@ -256,15 +238,6 @@ namespace ed
 					float* scale = LoadFloat(var->Arguments, 0);
 
 					matrix = glm::scale(glm::mat4(1), glm::make_vec3(scale));
-				} break;
-
-				case FunctionShaderVariable::MatrixShadow:
-				{
-					float* plane = LoadFloat(var->Arguments, 0);
-					float* light = LoadFloat(var->Arguments, 4);
-
-					// TODO: implement this
-					matrix = glm::mat4(1.0f);
 				} break;
 
 				case FunctionShaderVariable::MatrixTranslation:

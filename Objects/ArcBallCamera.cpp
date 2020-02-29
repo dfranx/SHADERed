@@ -19,31 +19,27 @@ namespace ed
 	}
 	void ArcBallCamera::SetDistance(float d)
 	{
-		m_distance = std::max(ArcBallCamera::MinDistance, std::min(ArcBallCamera::MaxDistance, d));
+		m_distance = glm::clamp(d, ArcBallCamera::MinDistance, ArcBallCamera::MaxDistance);
 	}
 	void ArcBallCamera::Move(float d)
 	{
-		m_distance = std::max(ArcBallCamera::MinDistance, std::min(ArcBallCamera::MaxDistance, m_distance + d));
+		m_distance = glm::clamp(m_distance + d, ArcBallCamera::MinDistance, ArcBallCamera::MaxDistance);
 	}
 	void ArcBallCamera::Yaw(float rx)
 	{
-		m_yaw -= rx;
-		if (m_yaw >= 360)
-			m_yaw -= 360;
-		if (m_yaw <= 0)
-			m_yaw += 360;
+		m_yaw = fmod(m_yaw - rx, 360.0f);
+		if (m_yaw < 0.0)
+			m_yaw += 360.0f;
 	}
 	void ArcBallCamera::Pitch(float ry)
 	{
-		m_pitch = std::max(-ArcBallCamera::MaxRotationY, std::min(ArcBallCamera::MaxRotationY, m_pitch + ry));
+		m_pitch = glm::clamp(m_pitch + ry, -ArcBallCamera::MaxRotationY, ArcBallCamera::MaxRotationY);
 	}
 	void ArcBallCamera::Roll(float rz)
 	{
-		m_roll += rz;
-		if (m_roll >= 360)
-			m_roll -= 360;
-		if (m_roll <= 0)
-			m_roll += 360;
+		m_roll = fmod(m_roll + rz, 360.0f);
+		if (m_roll < 0.0)
+			m_roll += 360.0f;
 	}
 	void ArcBallCamera::SetYaw(float r)
 	{

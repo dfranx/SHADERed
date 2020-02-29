@@ -40,6 +40,7 @@ namespace ed
 		void RecompileFile(const char* fname);
 		void RecompileFromSource(const char* name, const std::string& vs = "", const std::string& ps = "", const std::string& gs = "");
 		void Pick(float sx, float sy, bool multiPick, std::function<void(PipelineItem*)> func = nullptr);
+		void Pick(PipelineItem* item, bool add = false);
 		inline bool IsPicked(PipelineItem* item) { return std::count(m_pick.begin(), m_pick.end(), item); }
 
 		void FlushCache();

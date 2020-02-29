@@ -28,11 +28,13 @@ namespace ed
 		inline void UnselectAxis() { m_axisSelected = -1; }
 		void HandleMouseMove(int x, int y, int vw, int vh);
 		int Click(int sx, int sy, int vw, int wh);
-		bool Move(int dx, int dy, bool shift);
+		bool Transform(int dx, int dy, bool shift);
 
 		void Render();
 
 	private:
+		int m_getBasicAxisSelection(int mx, int my, int vw, int vh, float& depth);
+
 		GLuint m_gizmoShader;
 
 		glm::mat4 m_proj, m_view;
@@ -43,6 +45,7 @@ namespace ed
 		int m_axisSelected; // -1 = none, 0 = x, 1 = y, 2 = z
 		int m_axisHovered;  // ^ same as here
 		int m_mode; // 0 = translation, 1 = scale, 2 = rotation
+		float m_lastDepth;
 
 		// 3d model info for gizmo handles
 		glm::vec3 m_colors[3];

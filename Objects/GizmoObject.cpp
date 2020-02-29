@@ -341,36 +341,12 @@ namespace ed
 		glm::vec3 rayOrigin = glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition());
 
 		if (m_mode == 0 || m_mode == 1) {
-			glm::vec3 maxP(GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2, (GIZMO_HEIGHT + GIZMO_POINTER_HEIGHT) * scale, GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2);
-			glm::vec3 minP(-maxP.x, 0, -maxP.z);
+			float depth = std::numeric_limits<float>::infinity();
 
-			// X axis
-			glm::vec3 b1 = xWorld * glm::vec4(minP, 1);
-			glm::vec3 b2 = xWorld * glm::vec4(maxP, 1);
-
-			float distX, distY, distZ, dist = std::numeric_limits<float>::infinity();
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distX))
-				m_axisHovered = 0, dist = distX;
-			else distX = std::numeric_limits<float>::infinity();
-
-			// Y axis
-			b1 = yWorld * glm::vec4(minP, 1);
-			b2 = yWorld * glm::vec4(maxP, 1);
-
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distY) && distY < distX)
-				m_axisHovered = 1, dist = distY;
-			else distY = std::numeric_limits<float>::infinity();
-
-			// Z axis
-			b1 = zWorld * glm::vec4(minP, 1);
-			b2 = zWorld * glm::vec4(maxP, 1);
-
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distZ) && distZ < distY && distZ < distX)
-				m_axisHovered = 2, dist = distZ;
-			else distZ = std::numeric_limits<float>::infinity();
+			m_axisHovered = m_getBasicAxisSelection(x, y, vw, vh, depth);
 
 			if (m_axisHovered != -1) {
-				m_hoverDepth = dist;
+				m_hoverDepth = m_lastDepth = depth;
 				m_hoverStart = rayOrigin + m_hoverDepth * rayDir;
 			}
 		}
@@ -440,7 +416,7 @@ namespace ed
 
 		return m_axisSelected;
 	}
-	bool GizmoObject::Move(int x, int y, bool shift)
+	bool GizmoObject::Transform(int x, int y, bool shift)
 	{
 		// dont handle the rotation controls here as we handle that in the HandleMouseMove method
 		if (m_axisSelected == -1 || m_mode == 2)
@@ -464,55 +440,35 @@ namespace ed
 
 		glm::vec4 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
 		glm::vec3 tAxisVec = glm::normalize(glm::mat3(invVP) * glm::vec3(axisVec));
+		
+		float depth = std::numeric_limits<float>::infinity();
+		int axis = m_getBasicAxisSelection(x, y, m_vw, m_vh, depth);
+		if (axis == -1) depth = m_lastDepth;
+		else m_lastDepth = depth;
 
-		glm::vec4 mouseVec = rayOrigin + m_clickDepth * glm::vec4(rayDir, 0.0f);
-		glm::vec3 moveVec = glm::vec3(m_clickStart - glm::vec3(mouseVec));
-
-		float length = glm::length(moveVec);
-		if (length == 0)
-			return false;
-
-		float dotval = glm::dot(glm::normalize(moveVec), glm::vec3(axisVec));
-
-		float scale = glm::length(*m_trans - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())) / GIZMO_SCALE_FACTOR;
-
-		float moveDist = -length * dotval * (1/scale) * (1.2f + shift * 4.0f);
+		glm::vec4 mouseVec = rayOrigin + depth * glm::vec4(rayDir, 0.0f);
+		glm::vec3 moveVec = glm::vec3(glm::vec3(mouseVec) - m_clickStart);
 
 		if (m_mode == 0) {
-			if (m_axisSelected == 0) m_tValue.x += moveDist;
-			else if (m_axisSelected == 1) m_tValue.y += moveDist;
-			else if (m_axisSelected == 2) m_tValue.z += moveDist;
+			m_tValue += moveVec * glm::vec3(axisVec);
 
 			int snap = Settings::Instance().Preview.GizmoSnapTranslation;
-			if (snap <= 0) {
-				m_trans->x = m_curValue.x + m_tValue.x;
-				m_trans->y = m_curValue.y + m_tValue.y;
-				m_trans->z = m_curValue.z + m_tValue.z;
-			} else {
-				m_trans->x = m_curValue.x + ((int)m_tValue.x / snap) * snap;
-				m_trans->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
-				m_trans->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
-			}
+			if (snap <= 0)
+				*m_trans = m_curValue + m_tValue;
+			else
+				*m_trans = m_curValue + glm::vec3((glm::ivec3(m_tValue) / snap) * snap);
 
-			ret=true;
+			ret = true;
 		} else if (m_mode == 1) {
-			if (m_axisSelected == 0) m_tValue.x += moveDist;
-			else if (m_axisSelected == 1) m_tValue.y += moveDist;
-			else if (m_axisSelected == 2) m_tValue.z += moveDist;
+			m_tValue += moveVec * glm::vec3(axisVec);
 
 			int snap = Settings::Instance().Preview.GizmoSnapScale;
-			if (snap <= 0) {
-				m_scale->x = m_curValue.x + m_tValue.x;
-				m_scale->y = m_curValue.y + m_tValue.y;
-				m_scale->z = m_curValue.z + m_tValue.z;
-			}
-			else {
-				m_scale->x = m_curValue.x + ((int)m_tValue.x / snap) * snap;
-				m_scale->y = m_curValue.y + ((int)m_tValue.y / snap) * snap;
-				m_scale->z = m_curValue.z + ((int)m_tValue.z / snap) * snap;
-			}
+			if (snap <= 0)
+				*m_scale = m_curValue + m_tValue;
+			else
+				*m_scale = m_curValue + glm::vec3((glm::ivec3(m_tValue) / snap) * snap);
 
-			ret=true;
+			ret = true;
 		}
 
 		m_clickStart = mouseVec;
@@ -579,5 +535,72 @@ namespace ed
 
 			DefaultState::Bind();
 		}
+	}
+	int GizmoObject::m_getBasicAxisSelection(int mx, int my, int vw, int vh, float& depth)
+	{
+		float scale = glm::length(*m_trans - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())) / GIZMO_SCALE_FACTOR;
+		if (scale == 0.0f)
+			return -1;
+
+		// selection
+		// X axis
+		glm::mat4 xWorld = glm::translate(glm::mat4(1), *m_trans)
+			* glm::rotate(glm::mat4(1), -glm::half_pi<float>(), glm::vec3(0, 0, 1));
+
+		// Y axis
+		glm::mat4 yWorld = glm::translate(glm::mat4(1), *m_trans);
+
+		// Z axis
+		glm::mat4 zWorld = glm::translate(glm::mat4(1), *m_trans) *
+			glm::rotate(glm::mat4(1), glm::half_pi<float>(), glm::vec3(1, 0, 0));
+
+		float mouseX = mx / (vw * 0.5f) - 1.0f;
+		float mouseY = my / (vh * 0.5f) - 1.0f;
+
+		glm::mat4 proj = SystemVariableManager::Instance().GetProjectionMatrix();
+		glm::mat4 view = SystemVariableManager::Instance().GetCamera()->GetMatrix();
+
+		glm::mat4 invVP = glm::inverse(proj * view);
+		glm::vec4 screenPos(mouseX, mouseY, 1.0f, 1.0f);
+		glm::vec4 worldPos = invVP * screenPos;
+
+		glm::vec3 rayDir = glm::normalize(glm::vec3(worldPos));
+		glm::vec3 rayOrigin = glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition());
+
+		int axisRet = -1;
+		if (m_mode == 0 || m_mode == 1) {
+			glm::vec3 maxP(GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2, (GIZMO_HEIGHT + GIZMO_POINTER_HEIGHT) * scale, GIZMO_WIDTH * GIZMO_PRECISE_COLBOX_WD * scale / 2);
+			glm::vec3 minP(-maxP.x, 0, -maxP.z);
+
+			// X axis
+			glm::vec3 b1 = xWorld * glm::vec4(minP, 1);
+			glm::vec3 b2 = xWorld * glm::vec4(maxP, 1);
+
+			float distX, distY, distZ, dist = std::numeric_limits<float>::infinity();
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distX))
+				axisRet = 0, dist = distX;
+			else distX = std::numeric_limits<float>::infinity();
+
+			// Y axis
+			b1 = yWorld * glm::vec4(minP, 1);
+			b2 = yWorld * glm::vec4(maxP, 1);
+
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distY) && distY < distX)
+				axisRet = 1, dist = distY;
+			else distY = std::numeric_limits<float>::infinity();
+
+			// Z axis
+			b1 = zWorld * glm::vec4(minP, 1);
+			b2 = zWorld * glm::vec4(maxP, 1);
+
+			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distZ) && distZ < distY && distZ < distX)
+				axisRet = 2, dist = distZ;
+			else distZ = std::numeric_limits<float>::infinity();
+
+			if (axisRet != -1)
+				depth = dist;
+		}
+
+		return axisRet;
 	}
 }

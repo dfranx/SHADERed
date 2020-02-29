@@ -394,17 +394,6 @@ namespace ed
 				ImGui::NextColumn();
 			} break;
 
-			case FunctionShaderVariable::MatrixReflect:
-			{
-				ImGui::Text("Plane:");
-				ImGui::NextColumn();
-
-				ImGui::PushItemWidth(-1);
-				if (ImGui::DragFloat4(("##plane" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 0), 0.01f))
-					ret = true;
-				ImGui::NextColumn();
-			} break;
-
 			case FunctionShaderVariable::MatrixRotationAxis:
 			{
 				ImGui::Text("Axis:");
@@ -484,35 +473,6 @@ namespace ed
 				ImGui::PushItemWidth(-1);
 				if (ImGui::DragFloat3(("##scale" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 0), 0.01f))
 					ret = true;
-				ImGui::NextColumn();
-			} break;
-
-			case FunctionShaderVariable::MatrixShadow:
-			{
-				ImGui::Text("Plane:");
-				ImGui::NextColumn();
-
-				ImGui::PushItemWidth(-1);
-				if (ImGui::DragFloat4(("##plane" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 0), 0.01f))
-					ret = true;
-				ImGui::NextColumn();
-
-				ImGui::Text("Light position:");
-				ImGui::NextColumn();
-
-				ImGui::PushItemWidth(-1);
-				if (ImGui::DragFloat3(("##light" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 4), 0.01f))
-					ret = true;
-				ImGui::NextColumn();
-
-				ImGui::Text("Point Light:");
-				ImGui::NextColumn();
-
-				ImGui::PushItemWidth(-1);
-				bool isPoint = (bool)(*FunctionVariableManager::LoadFloat(m_var->Arguments, 7));
-				if (ImGui::Checkbox(("##lightPoint" + std::string(m_var->Name)).c_str(), &isPoint))
-					ret = true;
-				*FunctionVariableManager::LoadFloat(m_var->Arguments, 7) = (float)isPoint;
 				ImGui::NextColumn();
 			} break;
 

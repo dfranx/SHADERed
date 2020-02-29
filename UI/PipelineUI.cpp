@@ -245,6 +245,8 @@ namespace ed
 
 		if (ImGui::Button(std::string(UI_ICON_ARROW_UP "##U" + std::string(items[index]->Name)).c_str(), BUTTON_ICON_SIZE)) {
 			if (index != 0) {
+				m_data->Parser.ModifyProject();
+
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())
@@ -269,6 +271,8 @@ namespace ed
 
 		if (ImGui::Button(std::string(UI_ICON_ARROW_DOWN "##D" + std::string(items[index]->Name)).c_str(), BUTTON_ICON_SIZE)) {
 			if (index != items.size() - 1) {
+				m_data->Parser.ModifyProject();
+
 				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
 				std::string oldPropertyItemName = "";
 				if (props->HasItemSelected())

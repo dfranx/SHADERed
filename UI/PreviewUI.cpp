@@ -208,6 +208,8 @@ namespace ed
 				m_picks.clear();
 				m_picks.push_back(item);
 			}
+
+			m_data->Renderer.Pick(item, add);
 		}
 
 		// calculate position
@@ -540,7 +542,7 @@ namespace ed
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
-				if (m_gizmo.Move(s.x, s.y, ImGui::GetIO().KeyShift))
+				if (m_gizmo.Transform(s.x, s.y, ImGui::GetIO().KeyShift))
 					m_data->Parser.ModifyProject();
 			}
 

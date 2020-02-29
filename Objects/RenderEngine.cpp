@@ -414,7 +414,7 @@ namespace ed
 					}
 				}
 			}
-			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && m_computeSupported) {
+			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
 				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -522,11 +522,13 @@ namespace ed
 		// restore real render target view
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		if (m_pickDist == std::numeric_limits<float>::infinity())
-			m_pick.clear();
-		if (m_pickAwaiting && m_pickHandle != nullptr)
-			m_pickHandle(m_pick.size() == 0 ? nullptr : m_pick[m_pick.size()-1]);
-		m_pickAwaiting = false;
+		if (m_pickAwaiting) {
+			if (m_pickDist == std::numeric_limits<float>::infinity())
+				m_pick.clear();
+			if (m_pickHandle != nullptr)
+				m_pickHandle(m_pick.size() == 0 ? nullptr : m_pick[m_pick.size() - 1]);
+			m_pickAwaiting = false;
+		}
 
 		if (isMSAA)
 			glDisable(GL_MULTISAMPLE);
@@ -1445,6 +1447,31 @@ namespace ed
 		m_pickDir = glm::normalize(glm::vec3(worldPos));
 		m_pickOrigin = SystemVariableManager::Instance().GetCamera()->GetPosition();
 	}
+	void RenderEngine::Pick(PipelineItem* item, bool add)
+	{
+		// check if it already exists
+		bool skipAdd = false;
+		for (int i = 0; i < m_pick.size(); i++)
+			if (m_pick[i] == item) {
+				if (!add) {
+					m_pick.clear();
+					m_pick.push_back(item);
+				}
+				skipAdd = true;
+				break;
+			}
+
+		if (!skipAdd) {
+			if (item == nullptr)
+				m_pick.clear();
+			else if (add)
+				m_pick.push_back(item);
+			else {
+				m_pick.clear();
+				m_pick.push_back(item);
+			}
+		}
+	}
 	void RenderEngine::m_pickItem(PipelineItem* item, bool multiPick)
 	{
 		glm::mat4 world(1);
@@ -1459,7 +1486,7 @@ namespace ed
 		else if (item->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* obj = (pipe::Model*)item->Data;
 			
-			world = glm::translate(glm::mat4(1), obj->Position) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
+			world = glm::translate(glm::mat4(1), obj->Position) * glm::scale(glm::mat4(1.0f), obj->Scale) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
 		}
 		else if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
