@@ -24,6 +24,8 @@ namespace ed
 		
 		inline void Reset() { m_expandList.clear(); }
 
+		void DeleteItem(PipelineItem* item);
+
 		inline std::vector<pipe::ShaderPass*>& GetCollapsedItems() { return m_expandList; }
 		inline void Collapse(pipe::ShaderPass* data) { m_expandList.push_back(data); }
 
@@ -35,6 +37,7 @@ namespace ed
 		bool m_isResourceManagerOpened;
 		bool m_isChangeVarsOpened;
 		bool m_isCreateViewOpened;
+		bool m_isConfirmDeleteOpened;
 		bool m_itemMenuOpened;
 
 		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed

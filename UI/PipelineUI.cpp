@@ -145,6 +145,10 @@ namespace ed
 			ImGui::OpenPopup("Resource manager##pui_res_manager");
 			m_isResourceManagerOpened = false;
 		}
+		if (m_isConfirmDeleteOpened) {
+			ImGui::OpenPopup("Delete##pui_item_delete");
+			m_isConfirmDeleteOpened = false;
+		}
 
 		// Shader Variable manager
 		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
@@ -229,7 +233,7 @@ namespace ed
 			ImGui::EndPopup();
 		}
 
-		// 
+		// resource manager
 		ImGui::SetNextWindowSize(ImVec2(600 * Settings::Instance().DPIScale, 240 * Settings::Instance().DPIScale), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Resource manager##pui_res_manager")) {
 			m_renderResourceManagerUI();
@@ -237,6 +241,39 @@ namespace ed
 			if (ImGui::Button("Ok")) m_closePopup();
 			ImGui::EndPopup();
 		}
+
+		// confirm delete
+		ImGui::SetNextWindowSize(ImVec2(400 * Settings::Instance().DPIScale, 120 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Delete##pui_item_delete", 0, ImGuiWindowFlags_NoResize)) {
+			ImGui::Text("Are you sure that you want to delete item \"%s\"?", m_modalItem->Name);
+
+			if (ImGui::Button("Yes")) {
+				DeleteItem(m_modalItem);
+				m_closePopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("No"))
+				m_closePopup();
+			ImGui::EndPopup();
+		}
+	}
+
+	void PipelineUI::DeleteItem(PipelineItem* item)
+	{
+		(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAllFrom(item);
+
+		// check if it is opened in property viewer
+		PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
+		if (props->HasItemSelected() && props->CurrentItemName() == item->Name)
+			props->Open(nullptr);
+
+		if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->IsPicked(item))
+			(reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->Pick(nullptr);
+
+		// tell pipeline to remove this item
+		m_data->Messages.ClearGroup(item->Name);
+		m_data->Renderer.RemoveItemVariableValues(item);
+		m_data->Pipeline.Remove(item->Name);
 	}
 	
 	void PipelineUI::m_renderItemUpDown(pipe::PluginItemData* owner, std::vector<ed::PipelineItem*>& items, int index)
@@ -436,23 +473,17 @@ namespace ed
 				(reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)))->Open(items[index]);
 
 			if (ImGui::Selectable("Delete")) {
+				bool requiresPopup = items[index]->Type == PipelineItem::ItemType::ShaderPass || 
+					items[index]->Type == PipelineItem::ItemType::ComputePass || 
+					items[index]->Type == PipelineItem::ItemType::AudioPass;
 
-				(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAllFrom(items[index]);
-
-				// check if it is opened in property viewer
-				PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
-				if (props->HasItemSelected() && props->CurrentItemName() == items[index]->Name)
-					props->Open(nullptr);
-
-				if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->IsPicked(items[index]))
-					(reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->Pick(nullptr);
-
-				// tell pipeline to remove this item
-				m_data->Messages.ClearGroup(items[index]->Name);
-				m_data->Renderer.RemoveItemVariableValues(items[index]);
-				m_data->Pipeline.Remove(items[index]->Name);
-
-				ret = true;
+				if (requiresPopup) {
+					m_isConfirmDeleteOpened = true;
+					m_modalItem = items[index];
+				} else {
+					DeleteItem(items[index]);
+					ret = true;
+				}
 			}
 
 			ImGui::EndPopup();
