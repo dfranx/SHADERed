@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2019 dfranx -->
+<!-- Copyright (c) 2019-2020 dfranx -->
 <component type="desktop">
-  <id>io.github.dfranx.SHADERed.desktop</id>
+  <id>org.shadered.SHADERed.desktop</id>
   <name>SHADERed</name>
   <summary>Tool for creating and testing HLSL and GLSL shaders</summary>
   <description>
@@ -20,22 +20,14 @@
   <url type="bugtracker">https://github.com/dfranx/SHADERed/issues</url>
   <url type="donation">https://www.patreon.com/dfranx</url>
   <screenshots>
-    <screenshot type="default" width="1745" height="979">
-      <image type="source">https://raw.githubusercontent.com/dfranx/SHADERed/master/Screenshots/IMG2.png</image>
+    <screenshot type="default" width="1782" height="885">
+      <image type="source">https://shadered.org/img/screen1.png</image>
       <caption>Editing an HLSL shader</caption>
-    </screenshot>
-    <screenshot type="default" width="1919" height="1036">
-      <image type="source">https://raw.githubusercontent.com/dfranx/SHADERed/master/Screenshots/screen1.jpg</image>
-      <caption>Editing a GLSL shader with live preview</caption>
-    </screenshot>
-    <screenshot type="default" width="1284" height="911">
-      <image type="source">https://user-images.githubusercontent.com/3957610/64245795-e54b0680-cf0b-11e9-8799-ea7ace785190.png</image>
-      <caption>Testing a directional shadow shader</caption>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="1.2.4" date="2019-10-31"/>
+    <release version="1.3" date="2020-02-25"/>
   </releases>
   <update_contact>hugo.locurcio@hugo.pro</update_contact>
 </component>

@@ -207,6 +207,6 @@ install(DIRECTORY bin/data bin/templates bin/themes bin/plugins DESTINATION "${R
 
 if (UNIX AND NOT APPLE)
 	# install XDG desktop file and icon on Linux/BSD
-	install(FILES Misc/Linux/io.github.dfranx.SHADERed.desktop DESTINATION "share/applications" RENAME shadered.desktop)
+	install(FILES Misc/Linux/org.shadered.SHADERed.desktop DESTINATION "share/applications" RENAME shadered.desktop)
 	install(FILES bin/icon.png DESTINATION "share/icons/hicolor/64x64/apps" RENAME shadered.png)
 endif()
