@@ -189,6 +189,7 @@ namespace ed
 	{
 		// turn off the tracker on exit
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
+		((CodeEditorUI*)Get(ViewID::Code))->SetAutoRecompile(false);
 
 		Logger::Get().Log("Shutting down UI");
 

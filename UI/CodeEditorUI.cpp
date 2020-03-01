@@ -14,6 +14,7 @@
 #if defined(_WIN32)
 	#include <windows.h>
 #elif defined(__linux__) || defined(__unix__)
+	#include <fcntl.h>
 	#include <unistd.h>
 	#include <sys/types.h>
 	#include <sys/inotify.h>
@@ -24,11 +25,16 @@
 	#include <sys/types.h>
 #endif
 
+
+
 #define STATUSBAR_HEIGHT 20 * Settings::Instance().DPIScale
 
 namespace ed
 {
 	CodeEditorUI::~CodeEditorUI() {
+		m_autoRecompileThread = nullptr;
+		m_trackThread = nullptr;
+
 		SetAutoRecompile(false);
 		SetTrackFileChanges(false);
 	}
@@ -738,7 +744,7 @@ namespace ed
 
 			m_autoRecompilerRunning = false;
 
-			if (m_autoRecompileThread->joinable())
+			if (m_autoRecompileThread && m_autoRecompileThread->joinable())
 				m_autoRecompileThread->join();
 			delete m_autoRecompileThread;
 			m_autoRecompileThread = nullptr;
@@ -874,7 +880,7 @@ namespace ed
 
 			m_trackerRunning = false;
 
-			if (m_trackThread->joinable())
+			if (m_trackThread && m_trackThread->joinable())
 				m_trackThread->join();
 
 			delete m_trackThread;
@@ -903,11 +909,16 @@ namespace ed
 		char buffer[EVENT_BUF_LEN];
 
 		std::vector<int> notifyIDs;
-		
+
 		if (notifyEngine < 0) {
-			// TODO: log from this thread!
+			// TODO: log!
 			return;
 		}
+
+		// make sure that read() doesn't block on exit
+		int flags = fcntl(notifyEngine, F_GETFL, 0);
+		flags = (flags | O_NONBLOCK);
+		fcntl(notifyEngine, F_SETFL, flags);
 
 	#elif defined(_WIN32)
 		// variables for storing all the handles
@@ -1168,6 +1179,8 @@ namespace ed
 			fd_set rfds;
 			int eCount = select(notifyEngine + 1, &rfds, NULL, NULL, NULL);
 
+			if (eCount <= 0) continue;
+
 			// check for changes
 			bufLength = read(notifyEngine, buffer, EVENT_BUF_LEN);
 			if (bufLength < 0) { /* TODO: error! */ }
@@ -1219,7 +1232,7 @@ namespace ed
 				bufIndex += EVENT_SIZE + event->len;
 			}
 			bufIndex = 0;
-	}
+		}
 
 		for (int i = 0; i < notifyIDs.size(); i++)
 			inotify_rm_watch(notifyEngine, notifyIDs[i]);
@@ -1294,7 +1307,7 @@ namespace ed
 			CloseHandle(events[i]);
 		events.clear();
 		hDirs.clear();
-	#endif
+#endif
 	}
 
 	TextEditor::LanguageDefinition CodeEditorUI::m_buildLanguageDefinition(IPlugin* plugin, int sid, const char* itemType, const char* filePath)

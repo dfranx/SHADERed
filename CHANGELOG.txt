@@ -2,6 +2,7 @@
 + fix font resizing/changing
 + fix picking with SHIFT + A
 + fix picking scaled 3D models
++ fix a bug where SHADERed would sometimes block on exit on Linux
 + moving items up/down now counts as a project modification
 + resizing render textures now counts as a project modification
 + remove MatrixShadow and MatrixReflect
