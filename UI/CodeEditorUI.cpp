@@ -346,7 +346,7 @@ namespace ed
 
 			m_shaderTypeId.push_back(sid);
 
-			std::string shaderContent = m_data->Parser.LoadFile(shader->Path);
+			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
@@ -411,7 +411,7 @@ namespace ed
 
 			m_shaderTypeId.push_back(sid);
 
-			std::string shaderContent = m_data->Parser.LoadFile(shader->Path);
+			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
