@@ -35,7 +35,7 @@ void setIcon(SDL_Window* wnd)
 
 	int req_format = STBI_rgb_alpha;
 	int width, height, orig_format;
-	unsigned char* data = stbi_load("./icon.png", &width, &height, &orig_format, req_format);
+	unsigned char* data = stbi_load("./icon_256x256.png", &width, &height, &orig_format, req_format);
 	if (data == NULL) {
 		ed::Logger::Get().Log("Failed to set window icon", true);
 		return;
