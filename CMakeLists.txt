@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
+set(CMAKE_CXX_STANDARD 17)
 project(SHADERed)
 
 # ShaderDebugger
@@ -155,6 +156,9 @@ add_subdirectory(libs/glslang)
 
 # Native macOS frameworks
 if (APPLE)
+	# Link Homebrew library path for Mojave and up
+	# See: https://stackoverflow.com/questions/54068035/linking-not-working-in-homebrews-cmake-since-mojave
+	link_directories(/usr/local/lib)
 	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
 	set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
 endif()

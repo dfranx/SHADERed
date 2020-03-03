@@ -144,24 +144,29 @@ Run:
 
 Install all the libraries that are needed:
 
-```shell script
+```sh
 brew install sdl2 sfml glew glm assimp
 ```
 
 Build:
 
-```shell script
+```sh
 mkdir build
 cd build
 cmake ../
 make -j8
 ```
 
+> **Note:** If you're building on a macOS version prior to 10.15 (Catalina) you may need to update Xcode and create a symlink for the SDK:
+> 
+> ```
+> ln -s "$(xcrun --sdk macosx --show-sdk-path)" "$(xcrun --sdk macosx --show-sdk-platform-path)/Developer/SDKs/MacOSX10.15.sdk"
+> ```
+
 Run:
 ```
 ./bin/SHADERed
 ```
-
 
 ### Windows
 1. Install SDL2, SFML, GLEW, GLM, ASSIMP through your favourite package manager (I recommend vcpkg)
