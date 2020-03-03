@@ -208,5 +208,8 @@ install(DIRECTORY bin/data bin/templates bin/themes bin/plugins DESTINATION "${R
 if (UNIX AND NOT APPLE)
 	# install XDG desktop file and icon on Linux/BSD
 	install(FILES Misc/Linux/org.shadered.SHADERed.desktop DESTINATION "share/applications" RENAME shadered.desktop)
-	install(FILES bin/icon.png DESTINATION "share/icons/hicolor/64x64/apps" RENAME shadered.png)
+	install(FILES bin/icon_32x32.png DESTINATION "share/icons/hicolor/32x32/apps" RENAME shadered.png)
+	install(FILES bin/icon_64x64.png DESTINATION "share/icons/hicolor/64x64/apps" RENAME shadered.png)
+	install(FILES bin/icon_128x128.png DESTINATION "share/icons/hicolor/128x128/apps" RENAME shadered.png)
+	install(FILES bin/icon_256x256.png DESTINATION "share/icons/hicolor/256x256/apps" RENAME shadered.png)
 endif()
