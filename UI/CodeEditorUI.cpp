@@ -32,11 +32,8 @@
 namespace ed
 {
 	CodeEditorUI::~CodeEditorUI() {
-		m_autoRecompileThread = nullptr;
-		m_trackThread = nullptr;
-
-		SetAutoRecompile(false);
-		SetTrackFileChanges(false);
+		delete m_autoRecompileThread;
+		delete m_trackThread;
 	}
 	void CodeEditorUI::m_setupShortcuts() {
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.Compile", [=]() {
@@ -697,6 +694,15 @@ namespace ed
 	{
 		for (auto& ed : m_editor)
 			ed.SetCurrentLineIndicator(-1);
+	}
+	void CodeEditorUI::StopThreads()
+	{
+		m_autoRecompilerRunning = false;
+		if (m_autoRecompileThread)
+			m_autoRecompileThread->detach();
+		m_trackerRunning = false;
+		if (m_trackThread)
+			m_trackThread->detach();
 	}
 
 	void CodeEditorUI::UpdateAutoRecompileItems() 

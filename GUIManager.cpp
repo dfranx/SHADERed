@@ -187,10 +187,6 @@ namespace ed
 	}
 	GUIManager::~GUIManager()
 	{
-		// turn off the tracker on exit
-		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
-		((CodeEditorUI*)Get(ViewID::Code))->SetAutoRecompile(false);
-
 		Logger::Get().Log("Shutting down UI");
 
 		for (auto& view : m_views)
@@ -278,6 +274,10 @@ namespace ed
 			dview->OnEvent(e);
 
 		m_data->Plugins.OnEvent(e);
+	}
+	void GUIManager::Destroy()
+	{
+		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
 	}
 	void GUIManager::m_tooltip(const std::string &text)
 	{

@@ -48,6 +48,8 @@ namespace ed
 		void Update(float delta);
 		void Render();
 
+		void Destroy();
+
 		UIView* Get(ViewID view);
 		inline SDL_Window* GetSDLWindow() { return m_wnd; }
 

@@ -300,6 +300,8 @@ int main(int argc, char* argv[])
 			std::this_thread::sleep_for(std::chrono::milliseconds(16 - (int)(delta * 1000)));
 	}
 
+	engine.UI().Destroy();
+
 	// union for converting short to bytes
 	union
 	{

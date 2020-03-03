@@ -110,6 +110,8 @@ namespace ed
 			m_fontFilename = filename;
 			m_fontSize = size;
 		}
+
+		void StopThreads();
 		
 		// TODO: remove unused functions here
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
