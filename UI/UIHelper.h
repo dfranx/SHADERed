@@ -25,6 +25,8 @@ namespace ed
 		static bool GetOpenFileDialog(std::string& outPath, const std::string& files = "");
 		static bool GetSaveFileDialog(std::string& outPath, const std::string& files = "");
 
+		static void ShellOpen(const std::string& path);
+
 		static bool CreateBlendOperatorCombo(const char* name, GLenum& op);
 		static bool CreateBlendCombo(const char* name, GLenum& blend);
 		static bool CreateCullModeCombo(const char* name, GLenum& cull);

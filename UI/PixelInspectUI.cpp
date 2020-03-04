@@ -69,8 +69,8 @@ namespace ed
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->StopDebugging();
-					codeUI->OpenPS(pixel.Owner);
-					editor = codeUI->GetPS(pixel.Owner);
+					codeUI->Open(pixel.Owner, ShaderStage::Pixel);
+					editor = codeUI->Get(pixel.Owner, ShaderStage::Pixel);
 
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
 					std::string psSrc = m_data->Parser.LoadProjectFile(pass->PSPath);
@@ -95,8 +95,8 @@ namespace ed
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->StopDebugging();
-					codeUI->OpenVS(pixel.Owner);
-					editor = codeUI->GetVS(pixel.Owner);
+					codeUI->Open(pixel.Owner, ShaderStage::Vertex);
+					editor = codeUI->Get(pixel.Owner, ShaderStage::Vertex);
 
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
 					std::string vsSrc = m_data->Parser.LoadProjectFile(pass->VSPath);
@@ -113,8 +113,8 @@ namespace ed
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->StopDebugging();
-					codeUI->OpenVS(pixel.Owner);
-					editor = codeUI->GetVS(pixel.Owner);
+					codeUI->Open(pixel.Owner, ShaderStage::Vertex);
+					editor = codeUI->Get(pixel.Owner, ShaderStage::Vertex);
 
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
 					std::string vsSrc = m_data->Parser.LoadProjectFile(pass->VSPath);
@@ -132,8 +132,8 @@ namespace ed
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->StopDebugging();
-					codeUI->OpenVS(pixel.Owner);
-					editor = codeUI->GetVS(pixel.Owner);
+					codeUI->Open(pixel.Owner, ShaderStage::Vertex);
+					editor = codeUI->Get(pixel.Owner, ShaderStage::Vertex);
 
 					ed::ShaderLanguage lang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
 					std::string vsSrc = m_data->Parser.LoadProjectFile(pass->VSPath);

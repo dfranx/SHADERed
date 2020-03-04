@@ -396,37 +396,34 @@ namespace ed
 					if (items[index]->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass *passData = (pipe::ShaderPass *)(items[index]->Data);
 
-						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(items[index]);
-						}
-						else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
-						}
-						else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath)) {
-							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(items[index]);
-						}
+						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Vertex);
+						else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
+						else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Geometry);
 						else if (ImGui::MenuItem("All")) {
 							if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenGS(items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Geometry);
 
 							if (m_data->Parser.FileExists(passData->PSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
 
 							if (m_data->Parser.FileExists(passData->VSPath))
-								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->OpenVS(items[index]);
+								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Vertex);
 						}
 					} 
 					else if (items[index]->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass *passData = (pipe::ComputePass *)(items[index]->Data);
 
 						if (ImGui::MenuItem("Compute Shader") && m_data->Parser.FileExists(passData->Path))
-							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenCS(items[index]);
+							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Compute);
 					} 
 					else if (items[index]->Type == PipelineItem::ItemType::AudioPass) {
 						pipe::AudioPass *passData = (pipe::AudioPass *)(items[index]->Data);
 
 						if (ImGui::MenuItem("Audio Shader") && m_data->Parser.FileExists(passData->Path))
-							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->OpenPS(items[index]);
+							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
 					}
 					else if (items[index]->Type == PipelineItem::ItemType::PluginItem) {
 						m_data->Plugins.ShowContextItems(pldata->Owner, "editcode", pldata->PluginData);
@@ -493,7 +490,6 @@ namespace ed
 
 		return ret;
 	}
-
 	void PipelineUI::m_closePopup()
 	{
 		ImGui::CloseCurrentPopup();
@@ -1444,13 +1440,13 @@ namespace ed
 					{
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->VSPath))
-							editor->OpenVS(item);
+							editor->Open(item, ShaderStage::Vertex);
 
 						if (m_data->Parser.FileExists(data->PSPath))
-							editor->OpenPS(item);
+							editor->Open(item, ShaderStage::Pixel);
 
 						if (data->GSUsed && strlen(data->GSPath) > 0 && m_data->Parser.FileExists(data->GSPath))
-							editor->OpenGS(item);
+							editor->Open(item, ShaderStage::Geometry);
 					}
 				}
 
@@ -1626,7 +1622,7 @@ namespace ed
 					{
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
-							editor->OpenCS(item);
+							editor->Open(item, ShaderStage::Compute);
 					}
 				}
 
@@ -1661,7 +1657,7 @@ namespace ed
 					{
 						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
-							editor->OpenPS(item);
+							editor->Open(item, ShaderStage::Pixel);
 					}
 				}
 

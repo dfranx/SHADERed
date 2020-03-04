@@ -62,6 +62,16 @@ namespace ed
 
 		return false;
 	}
+	void UIHelper::ShellOpen(const std::string& path)
+	{
+#if defined(__APPLE__)
+		system(("open " + path).c_str());
+#elif defined(__linux__) || defined(__unix__)
+		system(("xdg-open " + path).c_str());
+#elif defined(_WIN32)
+		ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
+#endif
+	}
 	bool UIHelper::CreateBlendOperatorCombo(const char* name, GLenum& opValue)
 	{
 		bool ret = false;

@@ -1917,7 +1917,7 @@ namespace ed
 
 			// cache opened code editors
 			CodeEditorUI* editor = ((CodeEditorUI*)Get(ViewID::Code));
-			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
+			std::vector<std::pair<std::string, ShaderStage>> files = editor->GetOpenedFiles();
 			std::vector<std::string> filesData = editor->GetOpenedFilesData();
 
 			// close all
@@ -1935,12 +1935,12 @@ namespace ed
 				for (auto& file : files) {
 					PipelineItem* item = m_data->Pipeline.Get(file.first.c_str());
 
-					if (file.second == 0)
-						editor->OpenVS(item);
-					else if (file.second == 1)
-						editor->OpenPS(item);
-					else if (file.second == 2)
-						editor->OpenGS(item);
+					if (file.second == ShaderStage::Vertex)
+						editor->Open(item, ShaderStage::Vertex);
+					else if (file.second == ShaderStage::Pixel)
+						editor->Open(item, ShaderStage::Pixel);
+					else if (file.second == ShaderStage::Geometry)
+						editor->Open(item, ShaderStage::Geometry);
 				}
 				editor->SetOpenedFilesData(filesData);
 				editor->SaveAll();

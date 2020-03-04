@@ -727,12 +727,12 @@ namespace ed
 
 			// code editor ui
 			CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
-			std::vector<std::pair<std::string, int>> files = editor->GetOpenedFiles();
+			std::vector<std::pair<std::string, ShaderStage>> files = editor->GetOpenedFiles();
 			for (const auto& file : files) {
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
 				fileNode.append_attribute("type").set_value("file");
 				fileNode.append_attribute("name").set_value(file.first.c_str());
-				fileNode.append_attribute("shader").set_value(file.second == 0 ? "vs" : (file.second == 1 ? "ps" : (file.second == 2 ? "gs" : "cs")));
+				fileNode.append_attribute("shader").set_value(file.second == ShaderStage::Vertex ? "vs" : (file.second == ShaderStage::Pixel ? "ps" : (file.second == ShaderStage::Geometry ? "gs" : "cs")));
 			}
 
 			// pinned ui
@@ -2055,11 +2055,11 @@ namespace ed
 							path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
 						if (strcmp(shaderType, "vs") == 0 && FileExists(path))
-							editor->OpenVS(item);
+							editor->Open(item, ShaderStage::Vertex);
 						else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
-							editor->OpenPS(item);
+							editor->Open(item, ShaderStage::Pixel);
 						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
-							editor->OpenGS(item);
+							editor->Open(item, ShaderStage::Geometry);
 					}
 				}
 				else if (type == "pinned") {
@@ -3015,19 +3015,19 @@ namespace ed
 								path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
 
 							if (strcmp(shaderType, "vs") == 0 && FileExists(path))
-								editor->OpenVS(item);
+								editor->Open(item, ShaderStage::Vertex);
 							else if (strcmp(shaderType, "ps") == 0 && FileExists(path))
-								editor->OpenPS(item);
+								editor->Open(item, ShaderStage::Pixel);
 							else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
-								editor->OpenGS(item);
+								editor->Open(item, ShaderStage::Geometry);
 						} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 							std::string path = ((ed::pipe::ComputePass *)item->Data)->Path;
 
 							if (strcmp(shaderType, "cs") == 0 && FileExists(path))
-								editor->OpenCS(item);
+								editor->Open(item, ShaderStage::Compute);
 						} else if (item->Type == PipelineItem::ItemType::AudioPass) {
 							std::string path = ((ed::pipe::AudioPass *)item->Data)->Path;
-							editor->OpenPS(item);
+							editor->Open(item, ShaderStage::Pixel);
 						}
 					}
 				}

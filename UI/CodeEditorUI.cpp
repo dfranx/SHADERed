@@ -1,13 +1,14 @@
 #include "CodeEditorUI.h"
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+#include "UIHelper.h"
 #include "../Objects/Names.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/ThemeContainer.h"
-#include "../Objects/KeyboardShortcuts.h"
+#include "../Objects/KeyboardShortcuts.h""
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <iostream>
 #include <fstream>
 
@@ -31,10 +32,37 @@
 
 namespace ed
 {
+	CodeEditorUI::CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name, bool visible)
+		: UIView(ui, objects, name, visible), m_selectedItem(-1)
+	{
+		Settings& sets = Settings::Instance();
+
+		if (ghc::filesystem::exists(sets.Editor.Font))
+			m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(sets.Editor.Font, sets.Editor.FontSize);
+		else {
+			m_font = ImGui::GetIO().Fonts->AddFontDefault();
+			Logger::Get().Log("Failed to load editor font", true);
+		}
+
+		m_fontFilename = sets.Editor.Font;
+		m_fontSize = sets.Editor.FontSize;
+		m_fontNeedsUpdate = false;
+		m_savePopupOpen = -1;
+		m_focusStage = ShaderStage::Vertex;
+		m_focusWindow = false;
+		m_trackFileChanges = false;
+		m_trackThread = nullptr;
+		m_autoRecompileThread = nullptr;
+		m_autoRecompilerRunning = false;
+		m_autoRecompile = false;
+
+		m_setupShortcuts();
+	}
 	CodeEditorUI::~CodeEditorUI() {
 		delete m_autoRecompileThread;
 		delete m_trackThread;
 	}
+
 	void CodeEditorUI::m_setupShortcuts() {
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.Compile", [=]() {
 			if (m_selectedItem == -1)
@@ -55,9 +83,83 @@ namespace ed
 			Settings::Instance().Editor.StatusBar = !Settings::Instance().Editor.StatusBar;
 		});
 	}
-	void CodeEditorUI::OnEvent(const SDL_Event& e)
+	void CodeEditorUI::m_save(int id)
 	{
+		bool canSave = true;
+
+		// prompt user to choose a project location first
+		if (m_data->Parser.GetOpenedFile() == "")
+			canSave = m_ui->SaveAsProject(true);
+		if (!canSave)
+			return;
+
+		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
+
+			m_editor[id].ResetTextChanged();
+
+			if (m_shaderStage[id] == ShaderStage::Vertex)
+				m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
+			else if (m_shaderStage[id] == ShaderStage::Pixel)
+				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
+			else if (m_shaderStage[id] == ShaderStage::Geometry)
+				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
+			m_editor[id].ResetTextChanged();
+			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
+			m_editor[id].ResetTextChanged();
+			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
+			m_editor[id].ResetTextChanged();
+
+			std::string edsrc = m_editor[id].GetText();
+
+			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
+		}
 	}
+	void CodeEditorUI::m_compile(int id)
+	{
+		if (m_trackerRunning) {
+			std::lock_guard<std::mutex> lock(m_trackFilesMutex);
+			m_trackIgnore.push_back(m_items[id]->Name);
+		}
+
+		m_save(id);
+
+		std::string shaderFile = "";
+		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
+			if (m_shaderStage[id] == ShaderStage::Vertex)
+				shaderFile = shader->VSPath;
+			else if (m_shaderStage[id] == ShaderStage::Pixel)
+				shaderFile = shader->PSPath;
+			else if (m_shaderStage[id] == ShaderStage::Geometry)
+				shaderFile = shader->GSPath;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
+			shaderFile = shader->Path;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
+			shaderFile = shader->Path;
+		}
+		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
+			shader->Owner->HandleRecompile(m_items[id]->Name);
+		}
+
+		m_data->Renderer.RecompileFile(shaderFile.c_str());
+	}
+
+	void CodeEditorUI::OnEvent(const SDL_Event& e) { }
 	void CodeEditorUI::Update(float delta)
 	{
 		if (m_editor.size() == 0)
@@ -74,7 +176,7 @@ namespace ed
 				bool isPluginItem = m_items[i]->Type == PipelineItem::ItemType::PluginItem;
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)m_items[i]->Data;
 
-				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation(m_shaderTypeId[i]) : m_shaderTypeId[i] == 0 ? "VS" : (m_shaderTypeId[i] == 1 ? "PS" : (m_shaderTypeId[i] == 2 ? "GS" : "CS"));
+				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 				
 				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())
@@ -82,7 +184,7 @@ namespace ed
 
 				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(300, 300));
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : m_shaderTypeId[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
+				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
@@ -91,7 +193,7 @@ namespace ed
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(m_items[i], m_editor[i].GetText(), m_shaderTypeId[i]);
+							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(m_items[i], m_editor[i].GetText(), (int)m_shaderStage[i]);
 							
 							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].IsActive = false;
 							ImGui::Separator();
@@ -118,7 +220,7 @@ namespace ed
 						int groupMsg = 0;
 						TextEditor::ErrorMarkers groupErrs;
 						for (int j = 0; j < msgs.size(); j++)
-							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i]->Name && msgs[j].Shader == m_shaderTypeId[i])
+							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i]->Name && msgs[j].Shader == (int)m_shaderStage[i])
 								groupErrs[msgs[j].Line] = msgs[j].Text;
 						m_editor[i].SetErrorMarkers(groupErrs);
 
@@ -144,13 +246,13 @@ namespace ed
 				}
 
 				if (m_focusWindow) {
-					if (m_focusItem == m_items[i]->Name && m_focusSID == m_shaderTypeId[i]) {
+					if (m_focusItem == m_items[i]->Name && m_focusStage == m_shaderStage[i]) {
 						ImGui::SetWindowFocus();
 						m_focusWindow = false;
 					}
 				}
 		
-				wid[isPluginItem ? 4 : m_shaderTypeId[i]]++;
+				wid[isPluginItem ? 4 : (int)m_shaderStage[i]]++;
 				ImGui::End();
 			}
 		}
@@ -196,7 +298,7 @@ namespace ed
 				if (!m_editorOpen[i]) {
 					if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-						shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
+						shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]);
 					}
 
 					m_items.erase(m_items.begin() + i);
@@ -204,34 +306,83 @@ namespace ed
 					m_editorOpen.erase(m_editorOpen.begin() + i);
 					m_stats.erase(m_stats.begin() + i);
 					m_paths.erase(m_paths.begin() + i);
-					m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
+					m_shaderStage.erase(m_shaderStage.begin() + i);
 					i--;
 				}
 			}
 		}
 	}
-	void CodeEditorUI::m_open(PipelineItem* item, int sid)
+
+	void CodeEditorUI::SetTheme(const TextEditor::Palette& colors) {
+		for (TextEditor& editor : m_editor)
+			editor.SetPalette(colors);
+	}
+	void CodeEditorUI::SetTabSize(int ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetTabSize(ts);
+	}
+	void CodeEditorUI::SetInsertSpaces(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetInsertSpaces(ts);
+	}
+	void CodeEditorUI::SetSmartIndent(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetSmartIndent(ts);
+	}
+	void CodeEditorUI::SetShowWhitespace(bool wh) {
+		for (TextEditor& editor : m_editor)
+			editor.SetShowWhitespaces(wh);
+	}
+	void CodeEditorUI::SetHighlightLine(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetHighlightLine(ts);
+	}
+	void CodeEditorUI::SetShowLineNumbers(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetShowLineNumbers(ts);
+	}
+	void CodeEditorUI::SetCompleteBraces(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetCompleteBraces(ts);
+	}
+	void CodeEditorUI::SetHorizontalScrollbar(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetHorizontalScroll(ts);
+	}
+	void CodeEditorUI::SetSmartPredictions(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetSmartPredictions(ts);
+	}
+	void CodeEditorUI::SetFunctionTooltips(bool ts) {
+		for (TextEditor& editor : m_editor)
+			editor.SetFunctionTooltips(ts);
+	}
+	void CodeEditorUI::UpdateShortcuts() {
+		for (auto& editor : m_editor)
+			m_loadEditorShortcuts(&editor);
+	}
+	void CodeEditorUI::SetFont(const std::string& filename, int size)
+	{
+		m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
+		m_fontFilename = filename;
+		m_fontSize = size;
+	}
+
+	void CodeEditorUI::Open(PipelineItem* item, ShaderStage stage)
 	{
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {
 			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item->Data);
 
 			std::string shaderPath = "";
-			if (sid == 0)
+			if (stage == ShaderStage::Vertex)
 				shaderPath = m_data->Parser.GetProjectPath(shader->VSPath);
-			else if (sid == 1)
+			else if (stage == ShaderStage::Pixel)
 				shaderPath = m_data->Parser.GetProjectPath(shader->PSPath);
-			else if (sid == 2)
+			else if (stage == ShaderStage::Geometry)
 				shaderPath = m_data->Parser.GetProjectPath(shader->GSPath);
 
 			if (Settings::Instance().General.UseExternalEditor) {
-				#if defined(__APPLE__)
-					system(("open " + shaderPath).c_str());
-				#elif defined(__linux__) || defined(__unix__)
-					system(("xdg-open " + shaderPath).c_str());
-				#elif defined(_WIN32)
-					ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
-				#endif
-
+				UIHelper::ShellOpen(shaderPath);
 				return;
 			}
 
@@ -239,7 +390,7 @@ namespace ed
 			for (int i = 0; i < m_paths.size(); i++) {
 				if (m_paths[i] == shaderPath) {
 					m_focusWindow = true;
-					m_focusSID = sid;
+					m_focusStage = stage;
 					m_focusItem = m_items[i]->Name;
 					return;
 				}
@@ -272,7 +423,7 @@ namespace ed
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 			
-			m_shaderTypeId.push_back(sid);
+			m_shaderStage.push_back(stage);
 
 			// apply breakpoints
 			m_applyBreakpoints(editor, shaderPath);
@@ -289,13 +440,7 @@ namespace ed
 
 			if (Settings::Instance().General.UseExternalEditor)
 			{
-#if defined(__APPLE__)
-				system(("open " + shaderPath).c_str());
-#elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + shaderPath).c_str());
-#elif defined(_WIN32)
-				ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
-#endif
+				UIHelper::ShellOpen(shaderPath);
 				return;
 			}
 
@@ -303,7 +448,7 @@ namespace ed
 			for (int i = 0; i < m_paths.size(); i++) {
 				if (m_paths[i] == shaderPath) {
 					m_focusWindow = true;
-					m_focusSID = sid;
+					m_focusStage = stage;
 					m_focusItem = m_items[i]->Name;
 					return;
 				}
@@ -341,7 +486,7 @@ namespace ed
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 
-			m_shaderTypeId.push_back(sid);
+			m_shaderStage.push_back(stage);
 
 			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			editor->SetText(shaderContent);
@@ -354,13 +499,7 @@ namespace ed
 
 			if (Settings::Instance().General.UseExternalEditor)
 			{
-#if defined(__APPLE__)
-				system(("open " + shaderPath).c_str());
-#elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + shaderPath).c_str());
-#elif defined(_WIN32)
-				ShellExecuteA(0, 0, shaderPath.c_str(), 0, 0, SW_SHOW);
-#endif
+				UIHelper::ShellOpen(shaderPath);
 				return;
 			}
 
@@ -368,7 +507,7 @@ namespace ed
 			for (int i = 0; i < m_paths.size(); i++) {
 				if (m_paths[i] == shaderPath) {
 					m_focusWindow = true;
-					m_focusSID = sid;
+					m_focusStage = stage;
 					m_focusItem = m_items[i]->Name;
 					return;
 				}
@@ -406,14 +545,14 @@ namespace ed
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 
-			m_shaderTypeId.push_back(sid);
+			m_shaderStage.push_back(stage);
 
 			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
 	}
-	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int sid)
+	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
 	{
 		if (item->Type == PipelineItem::ItemType::PluginItem)
 		{
@@ -422,13 +561,7 @@ namespace ed
 			if (Settings::Instance().General.UseExternalEditor)
 			{
 				std::string path = m_data->Parser.GetProjectPath(filepath);
-	#if defined(__APPLE__)
-				system(("open " + path).c_str());
-	#elif defined(__linux__) || defined(__unix__)
-				system(("xdg-open " + path).c_str());
-	#elif defined(_WIN32)
-				ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
-	#endif
+				UIHelper::ShellOpen(path);
 				return;
 			}
 
@@ -438,7 +571,7 @@ namespace ed
 				if (m_paths[i] == filepath)
 				{
 					m_focusWindow = true;
-					m_focusSID = sid;
+					m_focusStage = (ShaderStage)id; // TODO: this might not work anymore
 					m_focusItem = m_items[i]->Name;
 					return;
 				}
@@ -453,7 +586,7 @@ namespace ed
 
 			TextEditor* editor = &m_editor[m_editor.size() - 1];
 
-			TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, sid, shader->Type, filepath);
+			TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, m_focusStage, shader->Type, filepath);
 
 			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
@@ -470,50 +603,28 @@ namespace ed
 			
 			editor->SetLanguageDefinition(defPlugin);
 
-			m_shaderTypeId.push_back(sid);
+			m_shaderStage.push_back(m_focusStage);
 
 			std::string shaderContent = m_data->Parser.LoadProjectFile(filepath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
 		}
 	}
-	void CodeEditorUI::OpenVS(PipelineItem* item)
-	{
-		m_open(item, 0);
-	}
-	void CodeEditorUI::OpenPS(PipelineItem* item)
-	{
-		m_open(item, 1);
-	}
-	void CodeEditorUI::OpenGS(PipelineItem* item)
-	{
-		m_open(item, 2);
-	}
-	void CodeEditorUI::OpenCS(PipelineItem* item)
-	{
-		m_open(item, 3);
-	}
-	TextEditor* CodeEditorUI::GetVS(PipelineItem* item)
+	TextEditor* CodeEditorUI::Get(PipelineItem* item, ShaderStage stage)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == item && m_shaderTypeId[i] == 0)
+			if (m_items[i] == item && m_shaderStage[i] == stage)
 				return &m_editor[i];
 		return nullptr;
 	}
-	TextEditor* CodeEditorUI::GetPS(PipelineItem* item)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == item && m_shaderTypeId[i] == 1)
-				return &m_editor[i];
-		return nullptr;
-	}
+
 	void CodeEditorUI::CloseAll()
 	{
 		// delete not needed editors
 		for (int i = 0; i < m_editorOpen.size(); i++) {
 			if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-				shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
+				shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]); // TODO: this casting....
 			}
 
 			m_items.erase(m_items.begin() + i);
@@ -521,7 +632,7 @@ namespace ed
 			m_editorOpen.erase(m_editorOpen.begin() + i);
 			m_stats.erase(m_stats.begin() + i);
 			m_paths.erase(m_paths.begin() + i);
-			m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
+			m_shaderStage.erase(m_shaderStage.begin() + i);
 			i--;
 		}
 	}
@@ -531,7 +642,7 @@ namespace ed
 			if (m_items[i] == item) {
 				if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-					shader->Owner->CloseCodeEditorItem(m_shaderTypeId[i]);
+					shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]);
 				}
 
 				m_items.erase(m_items.begin() + i);
@@ -539,7 +650,7 @@ namespace ed
 				m_editorOpen.erase(m_editorOpen.begin() + i);
 				m_stats.erase(m_stats.begin() + i);
 				m_paths.erase(m_paths.begin() + i);
-				m_shaderTypeId.erase(m_shaderTypeId.begin() + i);
+				m_shaderStage.erase(m_shaderStage.begin() + i);
 				i--;
 			}
 		}
@@ -549,11 +660,11 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			m_save(i);
 	}
-	std::vector<std::pair<std::string, int>> CodeEditorUI::GetOpenedFiles()
+	std::vector<std::pair<std::string, ShaderStage>> CodeEditorUI::GetOpenedFiles()
 	{
-		std::vector<std::pair<std::string, int>> ret;
+		std::vector<std::pair<std::string, ShaderStage>> ret;
 		for (int i = 0; i < m_items.size(); i++)
-			ret.push_back(std::make_pair(std::string(m_items[i]->Name), m_shaderTypeId[i]));
+			ret.push_back(std::make_pair(std::string(m_items[i]->Name), m_shaderStage[i]));
 		return ret;
 	}
 	std::vector<std::string> CodeEditorUI::GetOpenedFilesData()
@@ -567,81 +678,6 @@ namespace ed
 	{
 		for (int i = 0; i < m_items.size() && i < data.size(); i++)
 			m_editor[i].SetText(data[i]);
-	}
-	void CodeEditorUI::m_save(int id)
-	{
-		bool canSave = true;
-
-		// prompt user to choose a project location first
-		if (m_data->Parser.GetOpenedFile() == "")
-			canSave = m_ui->SaveAsProject(true);
-		if (!canSave)
-			return;
-
-		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass *shader = reinterpret_cast<ed::pipe::ShaderPass *>(m_items[id]->Data);
-
-			m_editor[id].ResetTextChanged();
-
-			if (m_shaderTypeId[id] == 0)
-				m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
-			else if (m_shaderTypeId[id] == 1)
-				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
-			else if (m_shaderTypeId[id] == 2)
-				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
-		} 
-		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
-			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
-		} 
-		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
-			ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-			
-			std::string edsrc = m_editor[id].GetText();
-
-			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), m_shaderTypeId[id]);
-		}
-	}
-	void CodeEditorUI::m_compile(int id)
-	{
-		if (m_trackerRunning) {
-			std::lock_guard<std::mutex> lock(m_trackFilesMutex);
-			m_trackIgnore.push_back(m_items[id]->Name);
-		}
-
-		m_save(id);
-
-		std::string shaderFile = "";
-		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
-			if (m_shaderTypeId[id] == 0)
-				shaderFile = shader->VSPath;
-			else if (m_shaderTypeId[id] == 1)
-				shaderFile = shader->PSPath;
-			else if (m_shaderTypeId[id] == 2)
-				shaderFile = shader->GSPath;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
-			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
-			shaderFile = shader->Path;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
-			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
-			shaderFile = shader->Path;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
-			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
-			shader->Owner->HandleRecompile(m_items[id]->Name);
-		}
-
-		m_data->Renderer.RecompileFile(shaderFile.c_str());
 	}
 	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
 	{
@@ -778,13 +814,13 @@ namespace ed
 					inf->APass = nullptr;
 					inf->PluginData = nullptr;
 					
-					if (m_shaderTypeId[i] == 0) {
+					if (m_shaderStage[i] == ShaderStage::Vertex) {
 						inf->VS = m_editor[i].GetText();
 						inf->VS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
-					} else if (m_shaderTypeId[i] == 1) {
+					} else if (m_shaderStage[i] == ShaderStage::Pixel) {
 						inf->PS = m_editor[i].GetText();
 						inf->PS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
-					} else if (m_shaderTypeId[i] == 2) {
+					} else if (m_shaderStage[i] == ShaderStage::Geometry) {
 						inf->GS = m_editor[i].GetText();
 						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
@@ -819,7 +855,7 @@ namespace ed
 					inf->PluginData = pass;
 
 					inf->PluginCode = m_editor[i].GetText();
-					inf->PluginID = m_shaderTypeId[i];
+					inf->PluginID = (int)m_shaderStage[i]; // TODO
 				}
 			}
 
@@ -1316,13 +1352,15 @@ namespace ed
 #endif
 	}
 
-	TextEditor::LanguageDefinition CodeEditorUI::m_buildLanguageDefinition(IPlugin* plugin, int sid, const char* itemType, const char* filePath)
+	TextEditor::LanguageDefinition CodeEditorUI::m_buildLanguageDefinition(IPlugin* plugin, ShaderStage stage, const char* itemType, const char* filePath)
 	{
 		std::function<TextEditor::Identifier(const std::string&)> desc = [](const std::string& str) {
 			TextEditor::Identifier id;
 			id.mDeclaration = str;
 			return id;
 		};
+
+		int sid = (int)stage; // TODO: custom plugin stages!!!
 
 		TextEditor::LanguageDefinition langDef;
 

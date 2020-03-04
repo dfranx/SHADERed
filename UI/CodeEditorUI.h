@@ -3,6 +3,7 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include "../Objects/ShaderLanguage.h"
 #include "../Objects/PipelineItem.h"
+#include "../Objects/ShaderStage.h"
 #include "../Objects/Settings.h"
 #include "../Objects/Logger.h"
 #include <imgui/examples/imgui_impl_sdl.h>
@@ -17,30 +18,7 @@ namespace ed
 	class CodeEditorUI : public UIView
 	{
 	public:
-		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible), m_selectedItem(-1) {
-			Settings& sets = Settings::Instance(); // TODO: do this more often
-
-			if (ghc::filesystem::exists(sets.Editor.Font))
-				m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(sets.Editor.Font, sets.Editor.FontSize);
-			else {
-				m_font = ImGui::GetIO().Fonts->AddFontDefault();
-				Logger::Get().Log("Failed to load editor font", true);
-			}
-
-			m_fontFilename = sets.Editor.Font;
-			m_fontSize = sets.Editor.FontSize;
-			m_fontNeedsUpdate = false;
-			m_savePopupOpen = -1;
-			m_focusSID = 0;
-			m_focusWindow = false;
-			m_trackFileChanges = false;
-			m_trackThread = nullptr;
-			m_autoRecompileThread = nullptr;
-			m_autoRecompilerRunning = false;
-			m_autoRecompile = false;
-
-			m_setupShortcuts();
-		}
+		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false);
 		~CodeEditorUI();
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -48,80 +26,34 @@ namespace ed
 
 		void SaveAll();
 
-		void OpenVS(PipelineItem* item);
-		void OpenPS(PipelineItem* item);
-		void OpenGS(PipelineItem* item);
-		void OpenCS(PipelineItem* item);
-
-		TextEditor* GetVS(PipelineItem* item);
-		TextEditor* GetPS(PipelineItem* item);
+		void Open(PipelineItem* item, ed::ShaderStage stage);
+		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
+		
+		void SetTheme(const TextEditor::Palette& colors);
+		void SetTabSize(int ts);
+		void SetInsertSpaces(bool ts);
+		void SetSmartIndent(bool ts);
+		void SetShowWhitespace(bool wh);
+		void SetHighlightLine(bool ts);
+		void SetShowLineNumbers(bool ts);
+		void SetCompleteBraces(bool ts);
+		void SetHorizontalScrollbar(bool ts);
+		void SetSmartPredictions(bool ts);
+		void SetFunctionTooltips(bool ts);
+		void UpdateShortcuts();
+		void SetFont(const std::string& filename, int size = 15);
 
-		inline bool HasFocus() { return m_selectedItem != -1; }
-
-		inline void SetTheme(const TextEditor::Palette& colors) {
-			for (TextEditor& editor : m_editor)
-				editor.SetPalette(colors);
-		}
-		inline void SetTabSize(int ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetTabSize(ts);
-		}
-		inline void SetInsertSpaces(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetInsertSpaces(ts);
-		}
-		inline void SetSmartIndent(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetSmartIndent(ts);
-		}
-		inline void SetShowWhitespace(bool wh) {
-			for (TextEditor& editor : m_editor)
-				editor.SetShowWhitespaces(wh);
-		}
-		inline void SetHighlightLine(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetHighlightLine(ts);
-		}
-		inline void SetShowLineNumbers(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetShowLineNumbers(ts);
-		}
-		inline void SetCompleteBraces(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetCompleteBraces(ts);
-		}
-		inline void SetHorizontalScrollbar(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetHorizontalScroll(ts);
-		}
-		inline void SetSmartPredictions(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetSmartPredictions(ts);
-		}
-		inline void SetFunctionTooltips(bool ts) {
-			for (TextEditor& editor : m_editor)
-				editor.SetFunctionTooltips(ts);
-		}
-		inline void SetFont(const std::string& filename, int size = 15)
-		{
-			m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
-			m_fontFilename = filename;
-			m_fontSize = size;
-		}
 
 		void StopThreads();
 		
 		// TODO: remove unused functions here
+		inline bool HasFocus() { return m_selectedItem != -1; }
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
 		inline std::pair<std::string, int> GetFont() { return std::make_pair(m_fontFilename, m_fontSize); }
 		inline void UpdateFont() { m_fontNeedsUpdate = false; m_font = ImGui::GetIO().Fonts->Fonts[1]; }
-		inline void UpdateShortcuts() {
-			for (auto& editor : m_editor)
-				m_loadEditorShortcuts(&editor);
-		}
-
+		
 		void SetAutoRecompile(bool autorecompile);
 		void UpdateAutoRecompileItems();
 
@@ -135,12 +67,13 @@ namespace ed
 		void CloseAll();
 		void CloseAllFrom(PipelineItem* item);
 
-		std::vector<std::pair<std::string, int>> GetOpenedFiles();
+		std::vector<std::pair<std::string, ShaderStage>> GetOpenedFiles();
 		std::vector<std::string> GetOpenedFilesData();
 		void SetOpenedFilesData(const std::vector<std::string>& data);
 
 
 	private:
+		// TODO:
 		class StatsPage
 		{
 		public:
@@ -159,10 +92,9 @@ namespace ed
 
 
 	private:
-		void m_open(PipelineItem* item, int shaderTypeID); // TODO: add pointer to the pipelineitem
 		void m_setupShortcuts();
 
-		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin* plugin, int sid, const char* itemType, const char* filePath);
+		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin* plugin, ShaderStage stage, const char* itemType, const char* filePath);
 
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 		void m_loadEditorShortcuts(TextEditor* editor);
@@ -180,7 +112,7 @@ namespace ed
 		std::vector<TextEditor> m_editor; // TODO: use pointers here
 		std::vector<StatsPage> m_stats;
 		std::vector<std::string> m_paths;
-		std::vector<int> m_shaderTypeId;
+		std::vector<ShaderStage> m_shaderStage;
 		std::deque<bool> m_editorOpen;
 
 		int m_savePopupOpen;
@@ -189,7 +121,7 @@ namespace ed
 		int m_fontSize;
 
 		bool m_focusWindow;
-		int m_focusSID;
+		ShaderStage m_focusStage;
 		std::string m_focusItem;
 
 		int m_selectedItem;
