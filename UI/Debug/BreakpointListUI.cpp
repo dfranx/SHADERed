@@ -1,7 +1,6 @@
 #include "BreakpointListUI.h"
 #include <imgui/imgui.h>
-
-#include <ghc/filesystem.hpp>
+#include <filesystem>
 
 namespace ed
 {
@@ -25,7 +24,7 @@ namespace ed
 		ImGui::NextColumn();
 
 		for (const auto& bkpt : bkpts) {
-			std::string fileNameStr = ghc::filesystem::path(bkpt.first).filename();
+			std::string fileNameStr = std::filesystem::path(bkpt.first).filename().string();
 			const char* fileName = fileNameStr.c_str();
 			for (int i = 0; i < bkpt.second.size(); i++) {
 				ImGui::Separator();

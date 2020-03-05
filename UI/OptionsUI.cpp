@@ -1,7 +1,5 @@
 #include "OptionsUI.h"
 #include "CodeEditorUI.h"
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
 #include "../Options.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
@@ -10,7 +8,9 @@
 #include "UIHelper.h"
 
 #include <algorithm>
-#include <ghc/filesystem.hpp>
+#include <filesystem>
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #define REFRESH_BUTTON_SPACE -80 * Settings::Instance().DPIScale
@@ -150,9 +150,9 @@ namespace ed
 		m_themes.push_back("Dark");
 		m_themes.push_back("Light");
 
-		if (ghc::filesystem::exists("./themes/")) {
-			for (const auto& entry : ghc::filesystem::directory_iterator("./themes/")) {
-				std::string file = entry.path().filename().native();
+		if (std::filesystem::exists("./themes/")) {
+			for (const auto& entry : std::filesystem::directory_iterator("./themes/")) {
+				std::string file = entry.path().filename().string();
 				m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
 			}
 		}
@@ -260,8 +260,8 @@ namespace ed
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::BeginCombo("##optg_template", settings->General.StartUpTemplate.c_str())) {
-			for (const auto & entry : ghc::filesystem::directory_iterator("./templates")) {
-				std::string file = entry.path().filename().native();
+			for (const auto & entry : std::filesystem::directory_iterator("./templates")) {
+				std::string file = entry.path().filename().string();
 				if (file[0] != '.' && ImGui::Selectable(file.c_str(), file == settings->General.StartUpTemplate))
 					settings->General.StartUpTemplate = file;
 			}
@@ -366,7 +366,7 @@ namespace ed
 			std::string file;
 			bool success = UIHelper::GetOpenFileDialog(file, "ttf;otf");
 			if (success) {
-				file = ghc::filesystem::relative(file).generic_string();
+				file = std::filesystem::relative(file).generic_string();
 				strcpy(settings->General.Font, file.c_str());
 			}
 		}

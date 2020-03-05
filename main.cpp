@@ -13,7 +13,7 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
-#include <ghc/filesystem.hpp>
+#include <filesystem>
 
 #include <stb/stb_image_write.h>
 #include <stb/stb_image.h>
@@ -76,12 +76,12 @@ void setIcon(SDL_Window* wnd)
 
 int main(int argc, char* argv[])
 {
-	ghc::filesystem::path cmdDir = ghc::filesystem::current_path();
+	std::filesystem::path cmdDir = std::filesystem::current_path();
 	if (argc > 0) {
-		if (ghc::filesystem::exists(ghc::filesystem::path(argv[0]).parent_path())) {
-			ghc::filesystem::current_path(ghc::filesystem::path(argv[0]).parent_path());
+		if (std::filesystem::exists(std::filesystem::path(argv[0]).parent_path())) {
+			std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
 			
-			ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
+			ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 		}
 	}
 
@@ -102,9 +102,9 @@ int main(int argc, char* argv[])
 		};
 
 		for (const auto& wrkpath : toCheck) {
-			if (ghc::filesystem::exists(exePath + wrkpath)) {
-				ghc::filesystem::current_path(exePath + wrkpath);
-				ed::Logger::Get().Log("Setting current_path to " + ghc::filesystem::current_path().generic_string());
+			if (std::filesystem::exists(exePath + wrkpath)) {
+				std::filesystem::current_path(exePath + wrkpath);
+				ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 				break;
 			}
 		}
@@ -112,13 +112,13 @@ int main(int argc, char* argv[])
 #endif
 
 	// create data directory on startup
-	if (!ghc::filesystem::exists("./data/"))
-		ghc::filesystem::create_directory("./data/");
+	if (!std::filesystem::exists("./data/"))
+		std::filesystem::create_directory("./data/");
 
 	// delete log.txt on startup
-	if (ghc::filesystem::exists("./log.txt")) {
+	if (std::filesystem::exists("./log.txt")) {
 		std::error_code errCode;
-		ghc::filesystem::remove("./log.txt", errCode);
+		std::filesystem::remove("./log.txt", errCode);
 	}
 
 	// set stb_image flags
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 		ed::Logger::Get().Log("Deleting data/workspace.dat", true);
 
 		std::error_code errCode;
-		ghc::filesystem::remove("./data/workspace.dat", errCode);
+		std::filesystem::remove("./data/workspace.dat", errCode);
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -219,11 +219,11 @@ int main(int argc, char* argv[])
 	if (argc >= 2) {
 		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
 		engine.UI().Open(argv[1]);
-		ghc::filesystem::path argFile = cmdDir / ghc::filesystem::path(argv[1]);
-		if (ghc::filesystem::exists(argv[1]))
+		std::filesystem::path argFile = cmdDir / std::filesystem::path(argv[1]);
+		if (std::filesystem::exists(argv[1]))
 			engine.UI().Open(argv[1]);
-		else if (ghc::filesystem::exists(argFile))
-			engine.UI().Open(argFile.c_str());
+		else if (std::filesystem::exists(argFile))
+			engine.UI().Open(argFile.generic_string().c_str());
 	}
 
 	engine.UI().SetPerformanceMode(perfMode);

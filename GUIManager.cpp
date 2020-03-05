@@ -33,6 +33,8 @@
 #include "Objects/SystemVariableManager.h"
 
 #include <fstream>
+#include <filesystem>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
@@ -42,8 +44,6 @@
 /*	STBIR_FILTER_CUBICBSPLINE
 	STBIR_FILTER_CATMULLROM
 	STBIR_FILTER_MITCHELL		*/
-
-#include <ghc/filesystem.hpp>
 
 #if defined(__APPLE__)
 	// no includes on mac os
@@ -2172,9 +2172,9 @@ namespace ed
 
 		Logger::Get().Log("Loading template list");
 		
-		if (ghc::filesystem::exists("./templates/")) {
-			for (const auto& entry : ghc::filesystem::directory_iterator("./templates/")) {
-				std::string file = entry.path().filename().native();
+		if (std::filesystem::exists("./templates/")) {
+			for (const auto& entry : std::filesystem::directory_iterator("./templates/")) {
+				std::string file = entry.path().filename().string();
 				m_templates.push_back(file);
 
 				if (file == Settings::Instance().General.StartUpTemplate)

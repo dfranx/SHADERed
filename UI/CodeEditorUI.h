@@ -11,7 +11,6 @@
 #include <deque>
 #include <future>
 #include <shared_mutex>
-#include <ghc/filesystem.hpp>
 
 namespace ed
 {

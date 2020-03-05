@@ -15,7 +15,7 @@
 
 #include <algorithm>
 #include <imgui/imgui.h>
-#include <ghc/filesystem.hpp>
+#include <filesystem>
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 	#include <dlfcn.h>
@@ -36,16 +36,16 @@ namespace ed
 	}
 	void PluginManager::Init(InterfaceManager* data, GUIManager* ui)
 	{
-		if (!ghc::filesystem::exists("./plugins/")) {
+		if (!std::filesystem::exists("./plugins/")) {
 			ed::Logger::Get().Log("Directory for plugins doesn't exist");
 			return;
 		}
 
 		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
 
-		for (const auto& entry : ghc::filesystem::directory_iterator("./plugins/")) {
+		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {
-				std::string pdir = entry.path().filename().native();
+				std::string pdir = entry.path().filename().string();
 
 				// TODO: linux
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
