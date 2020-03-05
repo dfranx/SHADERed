@@ -20,6 +20,7 @@
 
 #if defined(__linux__) || defined(__unix__)
 #include <libgen.h>
+#include <unistd.h>
 #endif
 
 #if defined(NDEBUG) && defined(_WIN32)
@@ -70,9 +71,6 @@ void setIcon(SDL_Window* wnd)
 
 	stbi_set_flip_vertically_on_load(1);
 }
-
-#include <stdio.h>
-#include <string.h>
 
 int main(int argc, char* argv[])
 {
