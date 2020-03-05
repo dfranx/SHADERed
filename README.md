@@ -98,6 +98,30 @@ My e-mail address for businesses (or if you just want to contact me):
 ## Binaries
 You can download precompiled binaries through the [Releases](https://github.com/dfranx/SHADERed/releases) page or you can use the [shadered.org](https://shadered.org/) website.
 
+### Install using Scoop (Windows)
+
+On Windows, you can use [Scoop](https://scoop.sh) to install SHADERed:
+
+```text
+scoop bucket add extras
+scoop install shadered
+```
+
+### Install using Flatpak (Linux)
+
+SHADERed is available on
+[Flathub](https://flathub.org/apps/details/org.shadered.SHADERed). After setting
+up Flatpak, you can install it by entering the following commands in a terminal:
+
+```text
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install org.shadered.SHADERed
+```
+
+Note that the Flatpak version runs in a sandbox and some features may not work
+correctly yet. Please report Flatpak-specific issues
+[here](https://github.com/flathub/org.shadered.SHADERed/issues).
+
 ## Building
 First clone the project & submodules:
 ```
