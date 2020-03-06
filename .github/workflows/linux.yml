@@ -11,6 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
     
+    env:
+      CC: gcc-9
+      CXX: g++-9
+
     steps:
     - uses: actions/checkout@v2
     - name: Checkout submodules
