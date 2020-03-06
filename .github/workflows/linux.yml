@@ -11,10 +11,6 @@ jobs:
 
     runs-on: ubuntu-latest
     
-    env:
-      CC: gcc-9
-      CXX: g++-9
-
     steps:
     - uses: actions/checkout@v2
     - name: Checkout submodules
@@ -22,8 +18,11 @@ jobs:
       with:
         args: git submodule update --init --recursive
     - name: Install libs
-      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
+      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev gcc-9
     - name: cmake
+      env:
+        CC: gcc-9
+        CXX: g++-9
       run: sudo cmake .
     - name: make
       run: sudo make
