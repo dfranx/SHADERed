@@ -18,11 +18,8 @@ jobs:
       with:
         args: git submodule update --init --recursive
     - name: Install libs
-      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev gcc-9
+      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
     - name: cmake
-      env:
-        CC: gcc-9
-        CXX: g++-9
-      run: sudo cmake .
+      run: sudo cmake -DCMAKE_CXX_COMPILER=/usr/bin/gcc-9 .
     - name: make
       run: sudo make
