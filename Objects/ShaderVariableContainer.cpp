@@ -5,7 +5,7 @@
 #include <regex>
 
 namespace ed {
-	ShaderVariableContainer::ShaderVariableContainer() {}
+	ShaderVariableContainer::ShaderVariableContainer() { }
 	ShaderVariableContainer::~ShaderVariableContainer()
 	{
 		for (int i = 0; i < m_vars.size(); i++) {

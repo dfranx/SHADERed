@@ -13,7 +13,7 @@ namespace ed {
 				, Name(name)
 		{
 		}
-		virtual ~UIView() {}
+		virtual ~UIView() { }
 
 		virtual void OnEvent(const SDL_Event& e) = 0;
 		virtual void Update(float delta) = 0;

@@ -154,7 +154,7 @@ namespace ed {
 		m_data->Renderer.RecompileFile(shaderFile.c_str());
 	}
 
-	void CodeEditorUI::OnEvent(const SDL_Event& e) {}
+	void CodeEditorUI::OnEvent(const SDL_Event& e) { }
 	void CodeEditorUI::Update(float delta)
 	{
 		if (m_editor.size() == 0)
@@ -931,7 +931,7 @@ namespace ed {
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 		std::vector<bool> gsUsed(passes.size());
 
-		std::vector<std::string> allFiles;  // list of all files we care for
+		std::vector<std::string> allFiles;	// list of all files we care for
 		std::vector<std::string> allPasses; // list of shader pass names that correspond to the file name
 		std::vector<std::string> paths;		// list of all paths that we should have "notifications turned on"
 

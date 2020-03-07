@@ -88,7 +88,7 @@ namespace ed {
 			}
 		}
 
-		virtual ~HLSLFileIncluder() override {}
+		virtual ~HLSLFileIncluder() override { }
 
 	protected:
 		typedef char tUserDataElement;

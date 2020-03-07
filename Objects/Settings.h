@@ -11,7 +11,7 @@ namespace ed {
 		void Load();
 		void Save();
 
-		float DPIScale;  // shouldn't be changed by users
+		float DPIScale;	 // shouldn't be changed by users
 		float TempScale; // copy this value to DPIScale on "Ok" button press
 		std::string Theme;
 
@@ -74,7 +74,7 @@ namespace ed {
 			bool StatusBar;
 			int FPSLimit;
 			bool ApplyFPSLimitToApp; // apply FPSLimit to whole app, not only preview
-			bool LostFocusLimitFPS;  // limit to 30FPS when app loses focus
+			bool LostFocusLimitFPS;	 // limit to 30FPS when app loses focus
 			int MSAA;				 // 1 (off), 2, 4, 8
 		} Preview;
 
