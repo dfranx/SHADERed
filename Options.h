@@ -12,11 +12,11 @@
 
 // TODO: maybe dont use MAX_PATH but rather custom define?
 #ifdef MAX_PATH
-	#undef MAX_PATH
+#undef MAX_PATH
 #endif
 
 #ifdef _WIN32
-	#define MAX_PATH 260
+#define MAX_PATH 260
 #else
-	#define MAX_PATH 512
+#define MAX_PATH 512
 #endif

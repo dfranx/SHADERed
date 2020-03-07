@@ -81,7 +81,7 @@ namespace ed {
 					, m_data(im)
 			{
 			}
-			~StatsPage() { }
+			~StatsPage() {}
 
 			void Fetch(ed::PipelineItem* item, const std::string& code, int type);
 			void Render();
