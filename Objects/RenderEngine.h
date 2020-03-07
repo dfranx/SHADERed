@@ -1,13 +1,13 @@
 #pragma once
-#include "PipelineManager.h"
-#include "DebugInformation.h"
-#include "ProjectParser.h"
-#include "MessageStack.h"
-#include "PluginAPI/PluginManager.h"
 #include "../Engine/Timer.h"
+#include "DebugInformation.h"
+#include "MessageStack.h"
+#include "PipelineManager.h"
+#include "PluginAPI/PluginManager.h"
+#include "ProjectParser.h"
 
-#include <unordered_map>
 #include <functional>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #ifdef _WIN32
@@ -15,17 +15,15 @@
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
-namespace ed
-{
+namespace ed {
 	class ObjectManager;
 
-	class RenderEngine
-	{
+	class RenderEngine {
 	public:
 		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins, DebugInformation* debugger);
 		~RenderEngine();
@@ -50,7 +48,7 @@ namespace ed
 
 		inline void AllowComputeShaders(bool cs) { m_computeSupported = cs; }
 
-		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1,1); }
+		inline void RequestTextureResize() { m_lastSize = glm::ivec2(1, 1); }
 		inline GLuint GetTexture() { return m_rtColor; }
 		inline GLuint GetDepthTexture() { return m_rtDepth; }
 		inline glm::ivec2 GetLastRenderSize() { return m_lastSize; }
@@ -59,9 +57,9 @@ namespace ed
 		void Pause(bool pause);
 
 	public:
-		struct ItemVariableValue
-		{
-			ItemVariableValue(ed::ShaderVariable* var) { 
+		struct ItemVariableValue {
+			ItemVariableValue(ed::ShaderVariable* var)
+			{
 				Variable = var;
 				OldValue = var->Data;
 				NewValue = new ShaderVariable(var->GetType(), var->Name, var->System);
@@ -76,14 +74,16 @@ namespace ed
 
 		inline std::vector<ItemVariableValue>& GetItemVariableValues() { return m_itemValues; }
 		inline void AddItemVariableValue(const ItemVariableValue& item) { m_itemValues.push_back(item); }
-		inline void RemoveItemVariableValue(PipelineItem* item, ShaderVariable* var) {
+		inline void RemoveItemVariableValue(PipelineItem* item, ShaderVariable* var)
+		{
 			for (int i = 0; i < m_itemValues.size(); i++)
 				if (m_itemValues[i].Item == item && m_itemValues[i].Variable == var) {
 					m_itemValues.erase(m_itemValues.begin() + i);
 					return;
 				}
 		}
-		inline void RemoveItemVariableValues(PipelineItem* item) {
+		inline void RemoveItemVariableValues(PipelineItem* item)
+		{
 			for (int i = 0; i < m_itemValues.size(); i++)
 				if (m_itemValues[i].Item == item) {
 					m_itemValues.erase(m_itemValues.begin() + i);
@@ -117,7 +117,7 @@ namespace ed
 		void m_applyMacros(std::string& source, pipe::ShaderPass* pass);
 		void m_applyMacros(std::string& source, pipe::ComputePass* pass);
 		void m_applyMacros(std::string& source, pipe::AudioPass* pass); // TODO: merge this function with the ones above
-		
+
 		// does a shader pass with GSUsed set also use this texture
 		bool m_isGSUsedSet(GLuint rt);
 
@@ -138,14 +138,17 @@ namespace ed
 		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
 		std::map<pipe::ShaderPass*, GLuint> m_fboMS; // multisampled fbo's
 		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
-		struct ShaderPack {ShaderPack() {VS=GS=PS=0;} GLuint VS, PS, GS;};
+		struct ShaderPack {
+			ShaderPack() { VS = GS = PS = 0; }
+			GLuint VS, PS, GS;
+		};
 		std::vector<ShaderPack> m_shaderSources;
 
 		GLuint m_debugPixelShader, m_debugVertexPickShader, m_debugInstancePickShader;
 
 		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 
-		std::vector<ItemVariableValue> m_itemValues; // list of all values to apply once we start rendering 
+		std::vector<ItemVariableValue> m_itemValues; // list of all values to apply once we start rendering
 
 		eng::Timer m_cacheTimer;
 		void m_cache();

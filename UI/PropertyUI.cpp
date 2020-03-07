@@ -1,21 +1,20 @@
 #include "PropertyUI.h"
-#include "UIHelper.h"
-#include "CodeEditorUI.h"
 #include "../Engine/GLUtils.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 #include "../Objects/ShaderTranscompiler.h"
+#include "CodeEditorUI.h"
+#include "UIHelper.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define BUTTON_SPACE_LEFT Settings::Instance().CalculateSize(-40)
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
-namespace ed
-{
+namespace ed {
 	void PropertyUI::m_init()
 	{
 		m_current = nullptr;
@@ -23,7 +22,8 @@ namespace ed
 		memset(m_itemName, 0, 64 * sizeof(char));
 	}
 	void PropertyUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void PropertyUI::Update(float delta)
 	{
 		if (m_current != nullptr || m_currentObj != nullptr) {
@@ -38,8 +38,7 @@ namespace ed
 					ImGui::SameLine();
 					ImGui::Text(("(" + std::string(((pipe::PluginItemData*)m_current->Data)->Type) + ")").c_str());
 				}
-			}
-			else if (m_currentObj != nullptr) {
+			} else if (m_currentObj != nullptr) {
 				ImGui::Text(m_data->Objects.GetObjectManagerItemName(m_currentObj).c_str());
 				if (IsRenderTexture())
 					ImGui::Text("Render Texture");
@@ -51,14 +50,13 @@ namespace ed
 					ImGui::Text(m_currentObj->Plugin->Type);
 				else
 					ImGui::Text("ObjectManagerItem");
-			}
-			else
+			} else
 				ImGui::Text("nullptr");
 
 			ImGui::PopStyleColor();
 
 			ImGui::Columns(2, "##content_columns");
-			
+
 			// TODO: this is only a temprorary fix for non-resizable columns
 			static bool isColumnWidthSet = false;
 			if (!isColumnWidthSet) {
@@ -67,7 +65,7 @@ namespace ed
 			}
 
 			ImGui::Separator();
-			
+
 			if (m_currentObj == nullptr) {
 				ImGui::Text("Name:");
 				ImGui::NextColumn();
@@ -121,7 +119,7 @@ namespace ed
 						int i = item->RTCount;
 						GLuint rtID = item->RenderTextures[i];
 						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetRenderTexture(rtID)->Name);
-						
+
 						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), name.c_str())) {
 							std::vector<std::string> rts = m_data->Objects.GetObjects();
 							bool windowAlreadyBound = false;
@@ -219,8 +217,7 @@ namespace ed
 							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
 								m_data->Renderer.Recompile(m_current->Name);
-							}
-							else
+							} else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Vertex shader file doesnt exist");
 						}
 					}
@@ -266,8 +263,7 @@ namespace ed
 							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
 								m_data->Renderer.Recompile(m_current->Name);
-							}
-							else
+							} else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Pixel shader file doesnt exist");
 						}
 					}
@@ -322,8 +318,7 @@ namespace ed
 							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
 								m_data->Renderer.Recompile(m_current->Name);
-							}
-							else
+							} else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Geometry shader file doesnt exist");
 						}
 					}
@@ -343,10 +338,8 @@ namespace ed
 					ImGui::NextColumn();
 
 					if (!item->GSUsed) ImGui::PopItemFlag();
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::ComputePass)
-				{
-					ed::pipe::ComputePass *item = reinterpret_cast<ed::pipe::ComputePass *>(m_current->Data);
+				} else if (m_current->Type == ed::PipelineItem::ItemType::ComputePass) {
+					ed::pipe::ComputePass* item = reinterpret_cast<ed::pipe::ComputePass*>(m_current->Data);
 
 					/* compute shader path */
 					ImGui::Text("Path:");
@@ -358,12 +351,10 @@ namespace ed
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
-					if (ImGui::Button("...##pui_csbtn", ImVec2(-1, 0)))
-					{
+					if (ImGui::Button("...##pui_csbtn", ImVec2(-1, 0))) {
 						std::string file;
 						bool success = UIHelper::GetOpenFileDialog(file);
-						if (success)
-						{
+						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->Path, file.c_str());
 
@@ -372,8 +363,7 @@ namespace ed
 							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
 								m_data->Renderer.Recompile(m_current->Name);
-							}
-							else
+							} else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Compute shader file doesnt exist");
 						}
 					}
@@ -384,14 +374,12 @@ namespace ed
 					ImGui::Text("Entry:");
 					ImGui::NextColumn();
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->Path) != ShaderLanguage::GLSL)
-					{
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->Path) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_csentry", item->Entry, 32))
 							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
-					}
-					else
+					} else
 						ImGui::Text("main");
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -403,18 +391,15 @@ namespace ed
 					ImGui::InputInt3("##pui_csgroupsize", glm::value_ptr(m_cachedGroupSize));
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
-					if (ImGui::Button("OK##pui_csapply", ImVec2(-1, 0)))
-					{
+					if (ImGui::Button("OK##pui_csapply", ImVec2(-1, 0))) {
 						item->WorkX = std::max<int>(m_cachedGroupSize.x, 1);
 						item->WorkY = std::max<int>(m_cachedGroupSize.y, 1);
 						item->WorkZ = std::max<int>(m_cachedGroupSize.z, 1);
 
 						m_data->Parser.ModifyProject();
 					}
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::AudioPass)
-				{
-					ed::pipe::AudioPass *item = reinterpret_cast<ed::pipe::AudioPass *>(m_current->Data);
+				} else if (m_current->Type == ed::PipelineItem::ItemType::AudioPass) {
+					ed::pipe::AudioPass* item = reinterpret_cast<ed::pipe::AudioPass*>(m_current->Data);
 
 					/* audio shader path */
 					ImGui::Text("Path:");
@@ -426,12 +411,10 @@ namespace ed
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
-					if (ImGui::Button("...##pui_ssbtn", ImVec2(-1, 0)))
-					{
+					if (ImGui::Button("...##pui_ssbtn", ImVec2(-1, 0))) {
 						std::string file;
 						bool success = UIHelper::GetOpenFileDialog(file);
-						if (success)
-						{
+						if (success) {
 							file = m_data->Parser.GetRelativePath(file);
 							strcpy(item->Path, file.c_str());
 
@@ -440,13 +423,11 @@ namespace ed
 							if (m_data->Parser.FileExists(file)) {
 								m_data->Messages.ClearGroup(m_current->Name);
 								m_data->Renderer.Recompile(m_current->Name);
-							}
-							else
+							} else
 								m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, "Compute shader file doesnt exist");
 						}
 					}
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
+				} else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 
 					/* position */
@@ -495,7 +476,7 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
-					
+
 					/* topology type */
 					ImGui::Text("Topology:");
 					ImGui::NextColumn();
@@ -543,7 +524,7 @@ namespace ed
 							pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
 
 							gl::CreateVAO(item->VAO, item->VBO, ownerData->InputLayout);
-							
+
 							m_data->Parser.ModifyProject();
 						}
 
@@ -569,8 +550,7 @@ namespace ed
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
-				}
-				else if (m_current->Type == PipelineItem::ItemType::RenderState) {
+				} else if (m_current->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* data = (pipe::RenderState*)m_current->Data;
 
 					// enable/disable wireframe rendering
@@ -617,9 +597,6 @@ namespace ed
 					ImGui::Separator();
 					data->FrontFace = isCCW ? GL_CCW : GL_CW;
 
-
-
-
 					// depth enable
 					ImGui::Text("Depth test:");
 					ImGui::NextColumn();
@@ -630,8 +607,7 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!data->DepthTest)
-					{
+					if (!data->DepthTest) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
@@ -676,14 +652,10 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!data->DepthTest)
-					{
+					if (!data->DepthTest) {
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 					}
-
-
-
 
 					// blending
 					ImGui::Text("Blending:");
@@ -695,8 +667,7 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!data->Blend)
-					{
+					if (!data->Blend) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
@@ -781,14 +752,10 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!data->Blend)
-					{
+					if (!data->Blend) {
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 					}
-
-
-
 
 					// stencil enable
 					ImGui::Text("Stencil test:");
@@ -800,8 +767,7 @@ namespace ed
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!data->StencilTest)
-					{
+					if (!data->StencilTest) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
@@ -810,7 +776,7 @@ namespace ed
 					ImGui::Text("Stencil mask:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::InputInt("##cui_stencilmask", (int*)& data->StencilMask))
+					if (ImGui::InputInt("##cui_stencilmask", (int*)&data->StencilMask))
 						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
@@ -825,7 +791,7 @@ namespace ed
 					ImGui::Text("Stencil reference:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::InputInt("##cui_sref", (int*)& data->StencilReference))
+					if (ImGui::InputInt("##cui_sref", (int*)&data->StencilReference))
 						m_data->Parser.ModifyProject(); // TODO: imgui uint input??
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
@@ -915,13 +881,11 @@ namespace ed
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 
-					if (!data->StencilTest)
-					{
+					if (!data->StencilTest) {
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 					}
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::Model) {
+				} else if (m_current->Type == ed::PipelineItem::ItemType::Model) {
 					ed::pipe::Model* item = reinterpret_cast<ed::pipe::Model*>(m_current->Data);
 
 					/* position */
@@ -957,7 +921,6 @@ namespace ed
 					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
-
 
 					/* instanced */
 					ImGui::Text("Instanced:");
@@ -1015,7 +978,7 @@ namespace ed
 
 								for (auto& mesh : item->Data->Meshes)
 									gl::CreateVAO(mesh.VAO, mesh.VBO, ownerData->InputLayout, mesh.EBO, buf->ID, fmtList);
-								
+
 								m_data->Parser.ModifyProject();
 							}
 						}
@@ -1023,15 +986,13 @@ namespace ed
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
-				}
-				else if (m_current->Type == ed::PipelineItem::ItemType::PluginItem) {
+				} else if (m_current->Type == ed::PipelineItem::ItemType::PluginItem) {
 					ImGui::Columns(1);
 
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
 					pdata->Owner->ShowPipelineItemProperties(pdata->Type, pdata->PluginData);
 				}
-			}
-			else if (IsRenderTexture()) {
+			} else if (IsRenderTexture()) {
 				ed::RenderTextureObject* m_currentRT = m_currentObj->RT;
 
 				/* FIXED SIZE */
@@ -1097,7 +1058,6 @@ namespace ed
 				ImGui::NextColumn();
 				ImGui::Separator();
 
-				
 				/* CLEAR? */
 				ImGui::Text("Clear:");
 				ImGui::NextColumn();
@@ -1106,7 +1066,6 @@ namespace ed
 					m_data->Parser.ModifyProject();
 				ImGui::NextColumn();
 				ImGui::Separator();
-		
 
 				/* CLEAR COLOR */
 				ImGui::Text("Clear color:");
@@ -1126,8 +1085,7 @@ namespace ed
 					ImGui::PopStyleVar();
 					ImGui::PopItemFlag();
 				}
-			}
-			else if (IsImage()) {
+			} else if (IsImage()) {
 				ed::ImageObject* m_currentImg = m_currentObj->Image;
 
 				/* SIZE */
@@ -1135,8 +1093,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				if (ImGui::DragInt2("##prop_rt_fsize", glm::value_ptr(m_currentImg->Size), 1))
-				{
+				if (ImGui::DragInt2("##prop_rt_fsize", glm::value_ptr(m_currentImg->Size), 1)) {
 					if (m_currentImg->Size.x <= 0)
 						m_currentImg->Size.x = 1;
 					if (m_currentImg->Size.y <= 0)
@@ -1152,13 +1109,10 @@ namespace ed
 				ImGui::Text("Format:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg->Format)))
-				{
+				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg->Format))) {
 					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
-					for (int i = 0; i < len; i++)
-					{
-						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg->Format))
-						{
+					for (int i = 0; i < len; i++) {
+						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg->Format)) {
 							m_currentImg->Format = FORMAT_VALUES[i];
 							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
 
@@ -1169,8 +1123,7 @@ namespace ed
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-			}
-			else if (IsImage3D()) {
+			} else if (IsImage3D()) {
 				ed::Image3DObject* m_currentImg3D = m_currentObj->Image3D;
 
 				/* SIZE */
@@ -1178,8 +1131,7 @@ namespace ed
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				if (ImGui::DragInt3("##prop_rt_fsize", glm::value_ptr(m_currentImg3D->Size), 1))
-				{
+				if (ImGui::DragInt3("##prop_rt_fsize", glm::value_ptr(m_currentImg3D->Size), 1)) {
 					if (m_currentImg3D->Size.x <= 0)
 						m_currentImg3D->Size.x = 1;
 					if (m_currentImg3D->Size.y <= 0)
@@ -1197,13 +1149,10 @@ namespace ed
 				ImGui::Text("Format:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg3D->Format)))
-				{
+				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg3D->Format))) {
 					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
-					for (int i = 0; i < len; i++)
-					{
-						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg3D->Format))
-						{
+					for (int i = 0; i < len; i++) {
+						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg3D->Format)) {
 							m_currentImg3D->Format = FORMAT_VALUES[i];
 							glm::ivec2 wsize(m_data->Renderer.GetLastRenderSize().x, m_data->Renderer.GetLastRenderSize().y);
 
@@ -1214,8 +1163,7 @@ namespace ed
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-			}
-			else if (IsPlugin()) {
+			} else if (IsPlugin()) {
 				ImGui::Columns(1);
 
 				m_currentObj->Plugin->Owner->ShowObjectProperties(m_currentObj->Plugin->Type, m_currentObj->Plugin->Data, m_currentObj->Plugin->ID);
@@ -1224,12 +1172,11 @@ namespace ed
 			ImGui::NextColumn();
 			ImGui::Separator();
 			ImGui::Columns(1);
-		} 
-		else {
+		} else {
 			ImGui::TextWrapped("Right click on an item -> Properties");
 		}
 	}
-	void PropertyUI::Open(ed::PipelineItem * item)
+	void PropertyUI::Open(ed::PipelineItem* item)
 	{
 		if (item != nullptr) {
 			if (item->Type == PipelineItem::ItemType::PluginItem) {
@@ -1251,7 +1198,7 @@ namespace ed
 		m_current = item;
 		m_currentObj = nullptr;
 	}
-	void PropertyUI::Open(const std::string &name, ObjectManagerItem *obj)
+	void PropertyUI::Open(const std::string& name, ObjectManagerItem* obj)
 	{
 		Logger::Get().Log("Openning an ObjectManager item in the PropertyUI");
 

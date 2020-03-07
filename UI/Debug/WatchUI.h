@@ -1,13 +1,12 @@
 #pragma once
 #include "../UIView.h"
 
-namespace ed
-{
-	class DebugWatchUI : public UIView
-	{
+namespace ed {
+	class DebugWatchUI : public UIView {
 	public:
-		DebugWatchUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
-			UIView(ui, objects, name, visible) {
+		DebugWatchUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+		{
 			m_newExpr[0] = 0;
 		}
 

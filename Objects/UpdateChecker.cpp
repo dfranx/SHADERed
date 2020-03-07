@@ -2,8 +2,7 @@
 #include <SFML/Network.hpp>
 #include <thread>
 
-namespace ed
-{
+namespace ed {
 	void checkUpdates(std::function<void()> onUpdate)
 	{
 		sf::Http http("http://api.shadered.org");
@@ -24,7 +23,7 @@ namespace ed
 
 			if (isAllDigits && src.size() > 0 && src.size() < 6) {
 				int ver = std::stoi(src);
-				if (ver > UpdateChecker::MyVersion && onUpdate != nullptr) 
+				if (ver > UpdateChecker::MyVersion && onUpdate != nullptr)
 					onUpdate();
 			}
 		}

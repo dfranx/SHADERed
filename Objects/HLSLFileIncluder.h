@@ -36,21 +36,23 @@
 
 #pragma once
 
-#include <vector>
-#include <string>
-#include <fstream>
 #include <algorithm>
+#include <fstream>
+#include <string>
+#include <vector>
 
 #include <glslang/Public/ShaderLang.h>
 
-namespace ed
-{
+namespace ed {
 	// Default include class for normal include convention of search backward
 	// through the stack of active include paths (for nested includes).
 	// Can be overridden to customize.
 	class HLSLFileIncluder : public glslang::TShader::Includer {
 	public:
-		HLSLFileIncluder() : externalLocalDirectoryCount(0) { }
+		HLSLFileIncluder()
+				: externalLocalDirectoryCount(0)
+		{
+		}
 
 		virtual IncludeResult* includeLocal(const char* headerName,
 			const char* includerName,
@@ -86,7 +88,7 @@ namespace ed
 			}
 		}
 
-		virtual ~HLSLFileIncluder() override { }
+		virtual ~HLSLFileIncluder() override {}
 
 	protected:
 		typedef char tUserDataElement;

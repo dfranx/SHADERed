@@ -4,9 +4,8 @@
 #include <iostream>
 #include <regex>
 
-namespace ed
-{
-	ShaderVariableContainer::ShaderVariableContainer() { }
+namespace ed {
+	ShaderVariableContainer::ShaderVariableContainer() {}
 	ShaderVariableContainer::~ShaderVariableContainer()
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
@@ -40,13 +39,12 @@ namespace ed
 		GLint count;
 
 		const GLsizei bufSize = 64; // maximum name length
-		GLchar name[bufSize]; // variable name in GLSL
-		GLsizei length; // name length
+		GLchar name[bufSize];		// variable name in GLSL
+		GLsizei length;				// name length
 		GLuint samplerLoc = 0;
 
 		glGetProgramiv(pass, GL_ACTIVE_UNIFORMS, &count);
-		for (GLuint i = 0; i < count; i++)
-		{
+		for (GLuint i = 0; i < count; i++) {
 			GLint size;
 			GLenum type;
 
@@ -74,8 +72,7 @@ namespace ed
 				m_samplers.push_back(name);
 				next++;
 			}
-		}
-		catch (std::regex_error& e) {
+		} catch (std::regex_error& e) {
 			// Syntax error in the regular expression
 		}
 	}
@@ -90,10 +87,10 @@ namespace ed
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
 			FunctionVariableManager::AddToList(m_vars[i]);
-			
+
 			if (m_uLocs.count(m_vars[i]->Name) == 0)
 				continue;
-			
+
 			GLint loc = m_uLocs[m_vars[i]->Name];
 
 			// update values if needed

@@ -1,12 +1,9 @@
 #pragma once
 #include <chrono>
 
-namespace ed
-{
-	namespace eng
-	{
-		class Timer
-		{
+namespace ed {
+	namespace eng {
+		class Timer {
 		public:
 			Timer();
 

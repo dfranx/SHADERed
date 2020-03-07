@@ -4,8 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
-namespace ed
-{
+namespace ed {
 	const float ArcBallCamera::MaxDistance = 50.0f;
 	const float ArcBallCamera::MinDistance = 2.0f;
 	const float ArcBallCamera::MaxRotationY = 89.0f;

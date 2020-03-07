@@ -2,8 +2,7 @@
 #include "../UIHelper.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
+namespace ed {
 	void DebugWatchUI::Refresh()
 	{
 		std::vector<char*>& exprs = m_data->Debugger.GetWatchList();
@@ -11,7 +10,8 @@ namespace ed
 			m_data->Debugger.UpdateWatchValue(i);
 	}
 	void DebugWatchUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void DebugWatchUI::Update(float delta)
 	{
 		sd::ShaderDebugger* dbgr = &m_data->Debugger.Engine;
@@ -40,8 +40,7 @@ namespace ed
 					m_data->Parser.ModifyProject();
 					i--;
 					continue;
-				}
-				else {
+				} else {
 					m_data->Debugger.UpdateWatchValue(i);
 					m_data->Parser.ModifyProject();
 				}
@@ -63,7 +62,6 @@ namespace ed
 			m_newExpr[0] = 0;
 		}
 		ImGui::PopItemWidth();
-
 
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 			ImGui::SetScrollHereY(1.0f);

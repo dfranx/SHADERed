@@ -1,7 +1,7 @@
 #include "PipelineManager.h"
-#include "ProjectParser.h"
-#include "Logger.h"
 #include "../Options.h"
+#include "Logger.h"
+#include "ProjectParser.h"
 #include "SystemVariableManager.h"
 
 int strcmpcase(const char* s1, const char* s2)
@@ -17,8 +17,7 @@ int strcmpcase(const char* s1, const char* s2)
 	return result;
 }
 
-namespace ed
-{
+namespace ed {
 	PipelineManager::PipelineManager(ProjectParser* project)
 	{
 		m_project = project;
@@ -40,8 +39,7 @@ namespace ed
 						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 						glDeleteVertexArrays(1, &geo->VAO);
 						glDeleteVertexArrays(1, &geo->VBO);
-					}
-					else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 						pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
 					}
@@ -52,12 +50,10 @@ namespace ed
 				pass->Items.clear();
 
 				glDeleteFramebuffers(1, &pass->FBO);
-			}
-			else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+			} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 				pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
 				pass->Stream.stop();
-			}
-			else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+			} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
 				pdata->Owner->RemovePipelineItem(m_items[i]->Name, pdata->Type, pdata->PluginData);
 
@@ -67,8 +63,7 @@ namespace ed
 						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 						glDeleteVertexArrays(1, &geo->VAO);
 						glDeleteVertexArrays(1, &geo->VBO);
-					}
-					else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
 						pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
 					}
@@ -84,7 +79,7 @@ namespace ed
 		}
 		m_items.clear();
 	}
-	bool PipelineManager::AddItem(const char * owner, const char * name, PipelineItem::ItemType type, void * data)
+	bool PipelineManager::AddItem(const char* owner, const char* name, PipelineItem::ItemType type, void* data)
 	{
 		if (type == PipelineItem::ItemType::ShaderPass)
 			return AddShaderPass(name, (pipe::ShaderPass*)data);
@@ -125,8 +120,7 @@ namespace ed
 				pdata->Owner->AddPipelineItemChild(owner, name, (plugin::PipelineItemType)type, data);
 
 				return true;
-			}
-			else if (item->Type == PipelineItem::ItemType::ShaderPass) {
+			} else if (item->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
 
 				for (auto& i : pass->Items)
@@ -161,7 +155,6 @@ namespace ed
 			for (auto& item : m_items) {
 				if (strcmp(item->Name, owner) != 0)
 					continue;
-
 
 				pipe::PluginItemData* pdata = new pipe::PluginItemData();
 				pdata->PluginData = data;
@@ -199,7 +192,7 @@ namespace ed
 
 		return false;
 	}
-	bool PipelineManager::AddShaderPass(const char * name, pipe::ShaderPass* data)
+	bool PipelineManager::AddShaderPass(const char* name, pipe::ShaderPass* data)
 	{
 		if (Has(name)) {
 			Logger::Get().Log("Shader pass " + std::string(name) + " not added - name already taken", true);
@@ -215,7 +208,7 @@ namespace ed
 
 		return true;
 	}
-	bool PipelineManager::AddComputePass(const char *name, pipe::ComputePass *data)
+	bool PipelineManager::AddComputePass(const char* name, pipe::ComputePass* data)
 	{
 		if (Has(name)) {
 			Logger::Get().Log("Compute pass " + std::string(name) + " not added - name already taken", true);
@@ -231,7 +224,7 @@ namespace ed
 
 		return true;
 	}
-	bool PipelineManager::AddAudioPass(const char *name, pipe::AudioPass *data)
+	bool PipelineManager::AddAudioPass(const char* name, pipe::AudioPass* data)
 	{
 		if (Has(name)) {
 			Logger::Get().Log("Compute pass " + std::string(name) + " not added - name already taken", true);
@@ -250,7 +243,7 @@ namespace ed
 	void PipelineManager::Remove(const char* name)
 	{
 		Logger::Get().Log("Deleting item " + std::string(name));
-		
+
 		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmp(m_items[i]->Name, name) == 0) {
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
@@ -263,8 +256,7 @@ namespace ed
 							pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 							glDeleteVertexArrays(1, &geo->VAO);
 							glDeleteVertexArrays(1, &geo->VBO);
-						}
-						else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+						} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 							pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
 						}
@@ -273,12 +265,10 @@ namespace ed
 						delete passItem;
 					}
 					data->Items.clear();
-				}
-				else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
 					pass->Stream.stop();
-				}
-				else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
 					pdata->Owner->RemovePipelineItem(m_items[i]->Name, pdata->Type, pdata->PluginData);
 
@@ -287,8 +277,7 @@ namespace ed
 							pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
 							glDeleteVertexArrays(1, &geo->VAO);
 							glDeleteVertexArrays(1, &geo->VBO);
-						}
-						else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+						} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
 							pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
 						}
@@ -303,8 +292,7 @@ namespace ed
 				m_items[i]->Data = nullptr;
 				m_items.erase(m_items.begin() + i);
 				break;
-			}
-			else {
+			} else {
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = (pipe::ShaderPass*)m_items[i]->Data;
 					for (int j = 0; j < data->Items.size(); j++) {
@@ -354,10 +342,10 @@ namespace ed
 				}
 			}
 		}
-			
+
 		m_project->ModifyProject();
 	}
-	bool PipelineManager::Has(const char * name)
+	bool PipelineManager::Has(const char* name)
 	{
 		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmpcase(m_items[i]->Name, name) == 0)
@@ -416,7 +404,7 @@ namespace ed
 
 		if (openTemplate && m_project->GetTemplate() != "?empty")
 			m_project->OpenTemplate();
-		
+
 		// reset time, frame index, etc...
 		SystemVariableManager::Instance().Reset();
 	}

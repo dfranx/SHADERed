@@ -1,28 +1,27 @@
 #include "PluginManager.h"
-#include "../Logger.h"
-#include "../Settings.h"
-#include "../DefaultState.h"
-#include "../SystemVariableManager.h"
-#include "../../InterfaceManager.h"
 #include "../../GUIManager.h"
+#include "../../InterfaceManager.h"
 #include "../../UI/CodeEditorUI.h"
-#include "../../UI/PreviewUI.h"
-#include "../../UI/PropertyUI.h"
+#include "../../UI/ObjectPreviewUI.h"
 #include "../../UI/PinnedUI.h"
 #include "../../UI/PipelineUI.h"
-#include "../../UI/ObjectPreviewUI.h"
+#include "../../UI/PreviewUI.h"
+#include "../../UI/PropertyUI.h"
 #include "../../UI/UIHelper.h"
+#include "../DefaultState.h"
+#include "../Logger.h"
+#include "../Settings.h"
+#include "../SystemVariableManager.h"
 
-#include <algorithm>
 #include <imgui/imgui.h>
+#include <algorithm>
 #include <filesystem>
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-	#include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
-namespace ed
-{
+namespace ed {
 	typedef IPlugin* (*CreatePluginFn)(ImGuiContext* ctx);
 	typedef void (*DestroyPluginFn)(IPlugin* plugin);
 	typedef int (*GetPluginAPIVersionFn)();
@@ -332,10 +331,10 @@ namespace ed
 					SystemVariableManager::Instance().SetGeometryTransform((PipelineItem*)item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
 				};
 				plugin->SetMousePosition = [](float x, float y) {
-					SystemVariableManager::Instance().SetMousePosition(x,y);
+					SystemVariableManager::Instance().SetMousePosition(x, y);
 				};
 				plugin->SetKeysWASD = [](bool w, bool a, bool s, bool d) {
-					SystemVariableManager::Instance().SetKeysWASD(w,a,s,d);
+					SystemVariableManager::Instance().SetKeysWASD(w, a, s, d);
 				};
 				plugin->SetFrameIndex = [](int findex) {
 					SystemVariableManager::Instance().SetFrameIndex(findex);
@@ -371,7 +370,7 @@ namespace ed
 
 					for (const auto& item : itemList) {
 						if (itemNames[nameIndex] == name)
-								return item->IsTexture;
+							return item->IsTexture;
 						nameIndex++;
 					}
 
@@ -451,19 +450,19 @@ namespace ed
 	{
 		for (int i = 0; i < m_plugins.size(); i++) {
 			m_plugins[i]->Destroy();
-			#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-				DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(m_proc[i], "DestroyPlugin");
-				if (fnDestroyPlugin)
-					(*fnDestroyPlugin)(m_plugins[i]);
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(m_proc[i], "DestroyPlugin");
+			if (fnDestroyPlugin)
+				(*fnDestroyPlugin)(m_plugins[i]);
 
-				dlclose(m_proc[i]);
-			#else
-				DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)GetProcAddress((HINSTANCE)m_proc[i], "DestroyPlugin");
-				if (fnDestroyPlugin)
-					(*fnDestroyPlugin)(m_plugins[i]);
+			dlclose(m_proc[i]);
+#else
+			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)GetProcAddress((HINSTANCE)m_proc[i], "DestroyPlugin");
+			if (fnDestroyPlugin)
+				(*fnDestroyPlugin)(m_plugins[i]);
 
-				FreeLibrary((HINSTANCE)m_proc[i]);
-			#endif
+			FreeLibrary((HINSTANCE)m_proc[i]);
+#endif
 		}
 
 		m_plugins.clear();

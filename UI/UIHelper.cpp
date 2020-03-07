@@ -1,19 +1,18 @@
 #include "UIHelper.h"
-#include "../Objects/Names.h"
 #include "../Objects/Logger.h"
+#include "../Objects/Names.h"
 
-#include <iomanip>
-#include <sstream>
-#include <clocale>
 #include <imgui/imgui.h>
 #include <nativefiledialog/nfd.h>
+#include <clocale>
+#include <iomanip>
+#include <sstream>
 
 #include <ShaderDebugger/Utils.h>
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
-namespace ed
-{
+namespace ed {
 	bool UIHelper::GetOpenDirectoryDialog(std::string& outPath)
 	{
 		nfdchar_t* path = NULL;
@@ -24,40 +23,37 @@ namespace ed
 		if (result == NFD_OKAY) {
 			outPath = std::string(path);
 			return true;
-		}
-		else if (result == NFD_ERROR)
+		} else if (result == NFD_ERROR)
 			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
 
 		return false;
 	}
 	bool UIHelper::GetOpenFileDialog(std::string& outPath, const std::string& files)
 	{
-		nfdchar_t *path = NULL;
-		nfdresult_t result = NFD_OpenDialog(NULL, NULL, &path );
-		setlocale(LC_ALL,"C");
+		nfdchar_t* path = NULL;
+		nfdresult_t result = NFD_OpenDialog(NULL, NULL, &path);
+		setlocale(LC_ALL, "C");
 
 		outPath = "";
-		if ( result == NFD_OKAY ) {
+		if (result == NFD_OKAY) {
 			outPath = std::string(path);
 			return true;
-		}
-		else if ( result == NFD_ERROR)
+		} else if (result == NFD_ERROR)
 			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
 
 		return false;
 	}
 	bool UIHelper::GetSaveFileDialog(std::string& outPath, const std::string& files)
 	{
-		nfdchar_t *path = NULL;
-		nfdresult_t result = NFD_SaveDialog(files.size() == 0 ? NULL : files.c_str(), NULL, &path );
-		setlocale(LC_ALL,"C");
+		nfdchar_t* path = NULL;
+		nfdresult_t result = NFD_SaveDialog(files.size() == 0 ? NULL : files.c_str(), NULL, &path);
+		setlocale(LC_ALL, "C");
 
 		outPath = "";
-		if ( result == NFD_OKAY ) {
+		if (result == NFD_OKAY) {
 			outPath = std::string(path);
 			return true;
-		}
-		else if ( result == NFD_ERROR)
+		} else if (result == NFD_ERROR)
 			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
 
 		return false;
@@ -107,7 +103,6 @@ namespace ed
 			if (BLEND_VALUES[i] == blendValue)
 				blend = i;
 
-
 		if (ImGui::BeginCombo(name, BLEND_NAMES[blend])) {
 			for (int i = 0; i < HARRAYSIZE(BLEND_NAMES); i++) {
 				bool is_selected = ((int)blend == i);
@@ -127,7 +122,7 @@ namespace ed
 
 		return ret;
 	}
-	bool UIHelper::CreateCullModeCombo(const char * name, GLenum& cullValue)
+	bool UIHelper::CreateCullModeCombo(const char* name, GLenum& cullValue)
 	{
 		bool ret = false;
 		unsigned int cull = 0;
@@ -154,7 +149,7 @@ namespace ed
 
 		return ret;
 	}
-	bool UIHelper::CreateComparisonFunctionCombo(const char * name, GLenum& compValue)
+	bool UIHelper::CreateComparisonFunctionCombo(const char* name, GLenum& compValue)
 	{
 		bool ret = false;
 		unsigned int comp = 0;
@@ -181,7 +176,7 @@ namespace ed
 
 		return ret;
 	}
-	bool UIHelper::CreateStencilOperationCombo(const char * name, GLenum& opValue)
+	bool UIHelper::CreateStencilOperationCombo(const char* name, GLenum& opValue)
 	{
 		bool ret = false;
 		unsigned int op = 0;

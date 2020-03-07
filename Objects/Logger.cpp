@@ -1,13 +1,12 @@
 #include "Logger.h"
 #include "Settings.h"
-#include <fstream>
 #include <ctime>
-#include <sstream>
-#include <iostream>
+#include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
-namespace ed
-{
+namespace ed {
 	void Logger::Log(const std::string& msg, bool error, const std::string& file, int line)
 	{
 		if (!Settings::Instance().General.Log)
@@ -28,7 +27,8 @@ namespace ed
 		if (line != -1) {
 			if (file.size() == 0)
 				data << "<";
-			else data << " ";
+			else
+				data << " ";
 			data << "at line " << line;
 		}
 
@@ -42,16 +42,14 @@ namespace ed
 		// message
 		data << msg;
 
-
 		if (Settings::Instance().General.PipeLogsToTerminal)
 			std::cout << data.str() << std::endl;
 
 		if (Settings::Instance().General.StreamLogs) {
 			std::ofstream log("log.txt", std::ios_base::app | std::ios_base::out);
-    		log << data.str() << std::endl;
+			log << data.str() << std::endl;
 			log.close();
-		}
-		else
+		} else
 			m_msgs.push_back(data.str());
 	}
 	void Logger::Save()

@@ -1,8 +1,8 @@
 #include "Magnifier.h"
 #include "../../Objects/Logger.h"
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -30,8 +30,7 @@ void main()
 }
 )";
 
-namespace ed
-{
+namespace ed {
 	Magnifier::Magnifier()
 	{
 		m_mousePos = glm::vec2(0.5f, 0.5f);
@@ -44,7 +43,6 @@ namespace ed
 		m_selecting = false;
 		m_dragging = false;
 
-		
 		GLint success = 0;
 		char infoLog[512];
 
@@ -53,7 +51,7 @@ namespace ed
 		glShaderSource(uiVS, 1, &UI_VS_CODE, nullptr);
 		glCompileShader(uiVS);
 		glGetShaderiv(uiVS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(uiVS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile a bounding box vertex shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -64,7 +62,7 @@ namespace ed
 		glShaderSource(uiPS, 1, &UI_PS_CODE, nullptr);
 		glCompileShader(uiPS);
 		glGetShaderiv(uiPS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(uiPS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile a bounding box pixel shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -76,7 +74,7 @@ namespace ed
 		glAttachShader(m_zoomShader, uiPS);
 		glLinkProgram(m_zoomShader);
 		glGetProgramiv(m_zoomShader, GL_LINK_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetProgramInfoLog(m_zoomShader, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to create a bounding box shader program", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -91,9 +89,9 @@ namespace ed
 	{
 		glDeleteBuffers(1, &m_zoomVBO);
 		glDeleteVertexArrays(1, &m_zoomVAO);
-		glDeleteProgram(m_zoomShader);	
+		glDeleteProgram(m_zoomShader);
 	}
-	
+
 	void Magnifier::Drag()
 	{
 		if (m_dragging) {
@@ -129,8 +127,8 @@ namespace ed
 	}
 	void Magnifier::EndMouseAction()
 	{
-		if (m_selecting && m_mousePos.x != m_posStart.x && m_mousePos.y != 1-m_posStart.y) {
-			float mpy = 1-m_mousePos.y;
+		if (m_selecting && m_mousePos.x != m_posStart.x && m_mousePos.y != 1 - m_posStart.y) {
+			float mpy = 1 - m_mousePos.y;
 			float mpx = m_mousePos.x;
 
 			if (mpy > m_posStart.y) {
@@ -145,7 +143,7 @@ namespace ed
 			}
 
 			m_pos.x = m_pos.x + m_size.x * m_posStart.x;
-			m_pos.y = m_pos.y + m_size.y * (1-m_posStart.y);
+			m_pos.y = m_pos.y + m_size.y * (1 - m_posStart.y);
 
 			glm::vec2 oldSize = m_size;
 			m_size.x = (mpx - m_posStart.x) * m_size.x;
@@ -157,7 +155,7 @@ namespace ed
 
 			if (m_size.x < 25.0f / m_w && m_size.y < 25.0f / m_h)
 				m_size = oldSize;
-			
+
 			m_size.x = std::max<float>(std::min<float>(m_size.x, 1.0f), 25.0f / m_w);
 			m_size.y = std::max<float>(std::min<float>(m_size.y, 1.0f), 25.0f / m_w);
 
@@ -181,7 +179,7 @@ namespace ed
 		m_size.y = std::max<float>(std::min<float>(m_size.y * w, 1.0f), 25.0f / m_w);
 
 		if (mouseAsPosition) {
-			float zx = (m_pos.x + oldZoomWidth * m_mousePos.x) - m_size.x/2;
+			float zx = (m_pos.x + oldZoomWidth * m_mousePos.x) - m_size.x / 2;
 			float zy = (m_pos.y + oldZoomHeight * m_mousePos.y) - m_size.y / 2;
 			m_pos.x = std::max<float>(zx, 0.0f);
 			m_pos.y = std::max<float>(zy, 0.0f);
@@ -192,15 +190,15 @@ namespace ed
 				m_pos.y = 1.0f - m_size.y;
 		} else {
 			if (w < 1.0f) {
-				m_pos.x += (oldZoomWidth - m_size.x)/2;
+				m_pos.x += (oldZoomWidth - m_size.x) / 2;
 				m_pos.y += (oldZoomHeight - m_size.y) / 2;
 			} else {
 				float curZoomWidth = m_size.x;
 				float curZoomHeight = m_size.y;
 				m_size.x = std::min<float>(m_size.x * 2, 1.0f);
 				m_size.y = std::min<float>(m_size.y * 2, 1.0f);
-				m_pos.x = std::max<float>(m_pos.x - (m_size.x-curZoomWidth) / 2, 0.0f);
-				m_pos.y = std::max<float>(m_pos.y - (m_size.y-curZoomHeight) / 2, 0.0f);
+				m_pos.x = std::max<float>(m_pos.x - (m_size.x - curZoomWidth) / 2, 0.0f);
+				m_pos.y = std::max<float>(m_pos.y - (m_size.y - curZoomHeight) / 2, 0.0f);
 			}
 
 			if (m_pos.x + m_size.x >= 1.0f)
@@ -268,7 +266,7 @@ namespace ed
 
 		glBindVertexArray(m_zoomVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-	
+
 		glEnable(GL_CULL_FACE);
 	}
 }

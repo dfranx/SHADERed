@@ -1,17 +1,16 @@
 #include "ExportCPP.h"
 #include "../../Engine/GeometryFactory.h"
-#include "../SystemVariableManager.h"
-#include "../ShaderTranscompiler.h"
 #include "../Names.h"
+#include "../ShaderTranscompiler.h"
+#include "../SystemVariableManager.h"
 
 #include <filesystem>
 #include <string>
 #include <vector>
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a)) // TODO: define this somewhere else....
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a)) // TODO: define this somewhere else....
 
-namespace ed
-{
+namespace ed {
 	std::string loadFile(const std::string& filename)
 	{
 		std::ifstream file(filename);
@@ -27,10 +26,10 @@ namespace ed
 	std::string getSectionIndent(const std::string& str, const std::string& sec)
 	{
 		size_t pos = str.find("[$$" + sec + "$$]");
-		size_t newLinePos = str.substr(0, pos).find_last_of("\n")+1; // find last space
-		std::string ind = str.substr(newLinePos, pos-newLinePos);
-		
-		for (int i = 0; i < ind.size();i++) {
+		size_t newLinePos = str.substr(0, pos).find_last_of("\n") + 1; // find last space
+		std::string ind = str.substr(newLinePos, pos - newLinePos);
+
+		for (int i = 0; i < ind.size(); i++) {
 			if (!isspace(ind[i])) {
 				ind.erase(ind.begin() + i);
 				i--;
@@ -41,7 +40,7 @@ namespace ed
 	void insertSection(std::string& out, size_t loc, const std::string& sec)
 	{
 		size_t secEnd = out.find("$$]", loc);
-		size_t newLinePos = out.substr(0, loc).find_last_of("\n")+1; // find last space
+		size_t newLinePos = out.substr(0, loc).find_last_of("\n") + 1; // find last space
 
 		out.erase(out.begin() + newLinePos, out.begin() + secEnd + 3);
 		out.insert(loc, sec);
@@ -59,7 +58,7 @@ namespace ed
 	std::string getFilename(const std::string& filename)
 	{
 		std::string ret = std::filesystem::path(filename).filename().string();
-		
+
 		size_t dotPos = ret.find_last_of('.');
 		ret = ret.substr(0, dotPos);
 
@@ -74,8 +73,7 @@ namespace ed
 	}
 	std::string getTopologyName(GLuint topology)
 	{
-		static const char* names[] =
-		{
+		static const char* names[] = {
 			"GL_UNDEFINED",
 			"GL_POINTS",
 			"GL_LINES",
@@ -96,8 +94,7 @@ namespace ed
 	}
 	std::string getFormatName(GLuint fmt)
 	{
-		static const char* names[] =
-		{
+		static const char* names[] = {
 			"GL_UNKNOWN",
 			"GL_RGBA",
 			"GL_RGB",
@@ -218,7 +215,7 @@ namespace ed
 			int size = ed::ShaderVariable::GetSize(var->GetType()) / sizeof(float);
 			for (int i = 0; i < size; i++) {
 				ret += std::to_string(*(var->AsFloatPtr() + i)) + "f";
-				if (i != size-1)
+				if (i != size - 1)
 					ret += ", ";
 			}
 			return ret;
@@ -232,7 +229,7 @@ namespace ed
 		std::string ret = "";
 
 		std::string locSrc = "glGetUniformLocation(" + passName + "_SP, \"" + std::string(var->Name) + "\")";
-		
+
 		std::string systemName = getSystemVariableName(var);
 		bool isSystem = var->System != ed::SystemShaderVariable::None;
 
@@ -378,7 +375,7 @@ namespace ed
 		for (int i = 0; i < pipeItems.size(); i++) {
 			if (pipeItems[i]->Type == ed::PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* pass = (pipe::ShaderPass*)pipeItems[i]->Data;
-				
+
 				// VS
 				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->VSPath) == 0) {
 					allShaderFiles.push_back(pass->VSPath);
@@ -401,8 +398,8 @@ namespace ed
 			std::string shadersSrc = "";
 
 			for (int i = 0; i < allShaderFiles.size(); i++) {
-				if (externalShaders) {}
-				else {
+				if (externalShaders) {
+				} else {
 					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
 
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
@@ -418,7 +415,7 @@ namespace ed
 
 			insertSection(templateSrc, locShaders, shadersSrc);
 		}
-		
+
 		// initialize geometry, framebuffers, etc...
 		const auto& objItems = data->Objects.GetItemDataList();
 		size_t locInit = findSection(templateSrc, "init");
@@ -433,7 +430,7 @@ namespace ed
 					std::string shdrFile = std::filesystem::path(allShaderFiles[i]).filename().string();
 
 					initSrc += indent + "std::string " + getShaderFilename(allShaderFiles[i]) + " = LoadFile(\"" + shdrFile + "\");\n";
-					
+
 					// copy the shader
 					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
@@ -461,7 +458,7 @@ namespace ed
 			initSrc += indent + "glm::vec2 sysViewportSize(sedWindowWidth, sedWindowHeight);\n";
 			initSrc += indent + "glm::mat4 sysView(";
 			for (int i = 0; i < 16; i++) {
-				initSrc += std::to_string(matView[i/4][i%4]) + "f";
+				initSrc += std::to_string(matView[i / 4][i % 4]) + "f";
 				if (i != 15)
 					initSrc += ", ";
 			}
@@ -488,7 +485,7 @@ namespace ed
 						sizeSrc += std::to_string(rtObj->RatioSize.x) + "f * sedWindowWidth, " + std::to_string(rtObj->RatioSize.y) + "f * sedWindowHeight";
 					else
 						sizeSrc += std::to_string(rtObj->FixedSize.x) + ", " + std::to_string(rtObj->FixedSize.y);
-					
+
 					initSrc += indent + "// " + itemName + " render texture\n";
 					initSrc += indent + "GLuint " + rtColorName + ", " + rtDepthName + ";\n";
 
@@ -507,14 +504,10 @@ namespace ed
 					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
 					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
 					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n\n";
-				}
-				else if (objItems[i]->IsTexture) { // Texture
+				} else if (objItems[i]->IsTexture) { // Texture
 					std::string actualName = data->Objects.GetItemNameByTextureID(objItems[i]->Texture);
 					std::string texName = actualName;
-					if (texName.find('\\') != std::string::npos ||
-						texName.find('/') != std::string::npos ||
-						texName.find('.') != std::string::npos)
-					{
+					if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos) {
 						texName = std::filesystem::path(texName).filename().string();
 					}
 					texName = getFilename(texName);
@@ -522,7 +515,7 @@ namespace ed
 					initSrc += indent + "GLuint " + texName + " = LoadTexture(\"" + std::filesystem::path(actualName).filename().string() + "\");\n\n";
 
 					if (copyImages)
-						std::filesystem::copy_file(data->Parser.GetProjectPath(actualName), parentPath/std::filesystem::path(actualName).filename(), std::filesystem::copy_options::skip_existing);			
+						std::filesystem::copy_file(data->Parser.GetProjectPath(actualName), parentPath / std::filesystem::path(actualName).filename(), std::filesystem::copy_options::skip_existing);
 				}
 			}
 
@@ -535,8 +528,8 @@ namespace ed
 					initSrc += indent + "GLuint " + std::string(pipeItems[i]->Name) + "_SP = CreateShader(" + getShaderFilename(pass->VSPath) + ".c_str(), " + getShaderFilename(pass->PSPath) + ".c_str());\n\n";
 
 					// framebuffers
-					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture()) {}
-					else {
+					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture()) {
+					} else {
 						GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
 						const auto depthRT = data->Objects.GetRenderTexture(lastID);
 
@@ -545,15 +538,12 @@ namespace ed
 						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)" + std::string(pipeItems[i]->Name) + "_FBO);\n";
 						initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, " + depthRT->Name + "_Depth, 0);\n";
 
-						
 						for (int i = 0; i < pass->RTCount; i++) {
 							const auto curRT = data->Objects.GetRenderTexture(pass->RenderTextures[i]);
 							initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + " + std::to_string(i) + ", GL_TEXTURE_2D, " + curRT->Name + "_Color, 0);\n";
 						}
 						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n\n";
 					}
-
-
 
 					// items
 					for (const auto& pItem : pass->Items) {
@@ -570,7 +560,7 @@ namespace ed
 								initSrc += indent + pName + "_VAO = CreatePlane(" + pName + "_VBO, " + std::to_string(geo->Size.x) + "f, " + std::to_string(geo->Size.y) + "f);\n";
 							else if (geo->Type == pipe::GeometryItem::Cube)
 								initSrc += indent + pName + "_VAO = CreateCube(" + pName + "_VBO, " + std::to_string(geo->Size.x) + "f, " + std::to_string(geo->Size.y) + "f, " + std::to_string(geo->Size.z) + "f);\n";
-							initSrc+="\n";
+							initSrc += "\n";
 						}
 					}
 				}
@@ -604,10 +594,10 @@ namespace ed
 						sizeSrc += std::to_string(rt->RT->RatioSize.x) + "f * sedWindowWidth, " + std::to_string(rt->RT->RatioSize.y) + "f * sedWindowHeight";
 					else
 						sizeSrc += std::to_string(rt->RT->FixedSize.x) + ", " + std::to_string(rt->RT->FixedSize.y);
-					
+
 					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtColorName + ");\n";
-					resizeEventSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, " + getFormatName(rt->RT->Format) + + "," + sizeSrc + ", 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);\n";
-					
+					resizeEventSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, " + getFormatName(rt->RT->Format) + +"," + sizeSrc + ", 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);\n";
+
 					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + rtDepthName + ");\n";
 					resizeEventSrc += indent + "glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, " + sizeSrc + ", 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);\n";
 					resizeEventSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n\n";
@@ -639,7 +629,6 @@ namespace ed
 					else {
 						renderSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, " + std::string(pipeItems[i]->Name) + "_FBO);\n";
 						renderSrc += indent + "glDrawBuffers(" + std::to_string(pass->RTCount) + ", FBO_Buffers);\n";
-						
 
 						// clear depth texture
 						if (pass->DepthTexture != previousDepth) {
@@ -678,10 +667,7 @@ namespace ed
 					for (int j = 0; j < srvs.size(); j++) {
 						std::string actualName = data->Objects.GetItemNameByTextureID(srvs[j]);
 						std::string texName = actualName;
-						if (texName.find('\\') != std::string::npos ||
-							texName.find('/') != std::string::npos ||
-							texName.find('.') != std::string::npos)
-						{
+						if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos) {
 							texName = std::filesystem::path(texName).filename().string();
 						}
 						texName = getFilename(texName);
@@ -695,7 +681,7 @@ namespace ed
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + "_Color);\n";
 						else
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + ");\n";
-						
+
 						std::string unitName = pass->Variables.GetSamplerList()[j];
 						renderSrc += indent + "glUniform1i(glGetUniformLocation(" + std::string(pipeItems[i]->Name) + "_SP, \"" + unitName + "\"), " + std::to_string(j) + ");\n\n";
 					}
@@ -718,13 +704,9 @@ namespace ed
 							for (const auto& var : vars) {
 								if (var->System == ed::SystemShaderVariable::GeometryTransform) {
 									if (geoData->Type == pipe::GeometryItem::GeometryType::Rectangle) {
-										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3((" + std::to_string(geoData->Position.x) + "f + 0.5f) * sedWindowWidth, (" + std::to_string(geoData->Position.y) + "f + 0.5f) * sedWindowHeight, -1000.0f)) *" +
-											"glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " +
-											"glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f * sedWindowWidth, " + std::to_string(geoData->Scale.y) + "f * sedWindowHeight, 1.0f));\n";
+										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3((" + std::to_string(geoData->Position.x) + "f + 0.5f) * sedWindowWidth, (" + std::to_string(geoData->Position.y) + "f + 0.5f) * sedWindowHeight, -1000.0f)) *" + "glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " + "glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f * sedWindowWidth, " + std::to_string(geoData->Scale.y) + "f * sedWindowHeight, 1.0f));\n";
 									} else {
-										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3(" + std::to_string(geoData->Position.x) + "f, " + std::to_string(geoData->Position.y) + "f, " + std::to_string(geoData->Position.z) + "f)) *" +
-											"glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " +
-											"glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f, " + std::to_string(geoData->Scale.y) + "f, " + std::to_string(geoData->Scale.z) + "f));\n";
+										renderSrc += indent + "sysGeometryTransform = glm::translate(glm::mat4(1), glm::vec3(" + std::to_string(geoData->Position.x) + "f, " + std::to_string(geoData->Position.y) + "f, " + std::to_string(geoData->Position.z) + "f)) *" + "glm::yawPitchRoll(" + std::to_string(geoData->Rotation.y) + "f, " + std::to_string(geoData->Rotation.x) + "f, " + std::to_string(geoData->Rotation.z) + "f) * " + "glm::scale(glm::mat4(1.0f), glm::vec3(" + std::to_string(geoData->Scale.x) + "f, " + std::to_string(geoData->Scale.y) + "f, " + std::to_string(geoData->Scale.z) + "f));\n";
 									}
 									renderSrc += indent + "glUniformMatrix4fv(glGetUniformLocation(" + std::string(pipeItems[i]->Name) + "_SP, \"" + std::string(var->Name) + "\"), 1, GL_FALSE, glm::value_ptr(sysGeometryTransform));\n";
 									break;
@@ -744,7 +726,7 @@ namespace ed
 
 			insertSection(templateSrc, locRender, renderSrc);
 		}
-		
+
 		std::ofstream fileWriter(outPath);
 		fileWriter << templateSrc;
 		fileWriter.close();

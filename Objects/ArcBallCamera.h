@@ -1,13 +1,11 @@
 #pragma once
+#include "Camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Camera.h"
 
-namespace ed
-{
-	class ArcBallCamera : public Camera
-	{
+namespace ed {
+	class ArcBallCamera : public Camera {
 	public:
 		const static float MaxDistance;
 		const static float MinDistance;
@@ -36,7 +34,8 @@ namespace ed
 
 		virtual glm::mat4 GetMatrix();
 
-		inline ArcBallCamera& operator=(const ArcBallCamera& arc) {
+		inline ArcBallCamera& operator=(const ArcBallCamera& arc)
+		{
 			this->m_distance = arc.m_distance;
 			this->m_yaw = arc.m_yaw;
 			this->m_pitch = arc.m_pitch;

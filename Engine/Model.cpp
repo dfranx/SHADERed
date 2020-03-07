@@ -6,17 +6,15 @@
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
 #include <iostream>
 
-namespace ed
-{
-	namespace eng
-	{
+namespace ed {
+	namespace eng {
 		Model::Mesh::Mesh(const std::string& name, std::vector<Model::Mesh::Vertex> vertices, std::vector<unsigned int> indices, std::vector<Model::Mesh::Texture> textures)
 		{
 			Name = name;
@@ -81,7 +79,7 @@ namespace ed
 			// read file via ASSIMP
 			Assimp::Importer importer;
 			const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-			
+
 			// check for errors
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 			{
@@ -124,16 +122,15 @@ namespace ed
 			for (unsigned int i = 0; i < Meshes.size(); i++)
 				Meshes[i].Draw(inst, iCount);
 		}
-		void Model::Draw(const std::string & mesh)
+		void Model::Draw(const std::string& mesh)
 		{
 			for (unsigned int i = 0; i < Meshes.size(); i++)
 				if (Meshes[i].Name == mesh)
 					Meshes[i].Draw();
 		}
-		void Model::m_processNode(aiNode * node, const aiScene * scene)
+		void Model::m_processNode(aiNode* node, const aiScene* scene)
 		{
-			for (unsigned int i = 0; i < node->mNumMeshes; i++)
-			{
+			for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 				aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 				Meshes.push_back(m_processMesh(mesh, scene));
 			}
@@ -141,7 +138,7 @@ namespace ed
 			for (unsigned int i = 0; i < node->mNumChildren; i++)
 				m_processNode(node->mChildren[i], scene);
 		}
-		Model::Mesh Model::m_processMesh(aiMesh * mesh, const aiScene * scene)
+		Model::Mesh Model::m_processMesh(aiMesh* mesh, const aiScene* scene)
 		{
 			// data to fill
 			std::vector<Model::Mesh::Vertex> vertices;
@@ -149,8 +146,7 @@ namespace ed
 			std::vector<Model::Mesh::Texture> textures;
 
 			// walk through each of the mesh's vertices
-			for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-			{
+			for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 				Model::Mesh::Vertex vertex;
 				glm::vec3 vector;
 
@@ -160,8 +156,8 @@ namespace ed
 					vector.y = mesh->mVertices[i].y;
 					vector.z = mesh->mVertices[i].z;
 					vertex.Position = vector;
-				} else 
-					vertex.Position = glm::vec3(0,0,0);
+				} else
+					vertex.Position = glm::vec3(0, 0, 0);
 
 				// normals
 				if (mesh->HasNormals()) {
@@ -169,8 +165,8 @@ namespace ed
 					vector.y = mesh->mNormals[i].y;
 					vector.z = mesh->mNormals[i].z;
 					vertex.Normal = vector;
-				} else 
-					vertex.Normal = glm::vec3(0,0,0);
+				} else
+					vertex.Normal = glm::vec3(0, 0, 0);
 
 				// texture coordinates
 				if (mesh->HasTextureCoords(0)) // does the mesh contain texture coordinates?
@@ -188,19 +184,18 @@ namespace ed
 					vector.y = mesh->mTangents[i].y;
 					vector.z = mesh->mTangents[i].z;
 					vertex.Tangent = vector;
-					
+
 					vector.x = mesh->mBitangents[i].x;
 					vector.y = mesh->mBitangents[i].y;
 					vector.z = mesh->mBitangents[i].z;
 					vertex.Binormal = vector;
 				} else {
-					vertex.Tangent = glm::vec3(0,0,0);
-					vertex.Binormal = glm::vec3(0,0,0);
+					vertex.Tangent = glm::vec3(0, 0, 0);
+					vertex.Binormal = glm::vec3(0, 0, 0);
 				}
 
 				// texture coordinates
-				if (mesh->HasVertexColors(0))
-				{
+				if (mesh->HasVertexColors(0)) {
 					glm::vec4 vec;
 					vec.x = mesh->mColors[0][i].r;
 					vec.y = mesh->mColors[0][i].g;
@@ -208,14 +203,13 @@ namespace ed
 					vec.w = mesh->mColors[0][i].a;
 					vertex.Color = vec;
 				} else
-					vertex.Color = glm::vec4(1,1,1,1);
+					vertex.Color = glm::vec4(1, 1, 1, 1);
 
 				vertices.push_back(vertex);
 			}
 
 			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-			{
+			for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 				aiFace face = mesh->mFaces[i];
 				for (unsigned int j = 0; j < face.mNumIndices; j++)
 					indices.push_back(face.mIndices[j]);

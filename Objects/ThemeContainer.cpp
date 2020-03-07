@@ -2,8 +2,7 @@
 #include "Logger.h"
 #include <sstream>
 
-namespace ed
-{
+namespace ed {
 	ThemeContainer::ThemeContainer()
 	{
 		m_custom["Light"].ComputePass = ImVec4(0, 0.4f, 0, 1);
@@ -21,15 +20,14 @@ namespace ed
 		if (clr == "0") {
 			// default colors
 			if (clrName == "ComputePass")
-				return ImVec4(1,0,0,1);
+				return ImVec4(1, 0, 0, 1);
 			else if (clrName == "OutputError")
 				return ImVec4(1.0f, 0.17f, 0.13f, 1.0f);
 			else if (clrName == "OutputWarning")
 				return ImVec4(1.0f, 0.8f, 0.0f, 1.0f);
 			else if (clrName == "OutputMessage")
 				return ImVec4(0.106f, 0.631f, 0.886f, 1.0f);
-		}
-		else
+		} else
 			return m_parseColor(clr);
 	}
 	std::string ThemeContainer::LoadTheme(const std::string& filename)
@@ -200,8 +198,7 @@ namespace ed
 					palette[i] = (a << 24) | (b << 16) | (g << 8) | r;
 				}
 			}
-		}
-		else if (editorTheme == "Light" || editorTheme == "Dark")
+		} else if (editorTheme == "Light" || editorTheme == "Dark")
 			m_editor[name] = GetTextEditorStyle(editorTheme);
 
 		return name;
@@ -223,12 +220,11 @@ namespace ed
 	}
 	ImVec4 ThemeContainer::m_parseColor(const std::string& str)
 	{
-		float res[4] = { 0,0,0,0 };
+		float res[4] = { 0, 0, 0, 0 };
 		int cur = 0;
 
 		std::stringstream ss(str);
-		while(ss.good() && cur <= 3)
-		{
+		while (ss.good() && cur <= 3) {
 			std::string substr;
 			std::getline(ss, substr, ',');
 			res[cur] = std::stof(substr);

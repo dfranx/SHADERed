@@ -1,29 +1,28 @@
 #pragma once
-#include <string>
-#include <inih/INIReader.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui/imgui.h>
+#include <inih/INIReader.h>
 #include <map>
+#include <string>
 
-namespace ed
-{
-	struct CustomColors
-	{
+namespace ed {
+	struct CustomColors {
 		ImVec4 ComputePass;
 		ImVec4 ErrorMessage;
 		ImVec4 WarningMessage;
 		ImVec4 InfoMessage;
 	};
-	class ThemeContainer
-	{
+	class ThemeContainer {
 	public:
 		ThemeContainer();
-		
+
 		std::string LoadTheme(const std::string& filename);
-		inline ImGuiStyle GetUIStyle(const std::string& name) {
+		inline ImGuiStyle GetUIStyle(const std::string& name)
+		{
 			return m_ui[name];
 		}
-		inline CustomColors GetCustomStyle(const std::string& name) {
+		inline CustomColors GetCustomStyle(const std::string& name)
+		{
 			return m_custom[name];
 		}
 		TextEditor::Palette GetTextEditorStyle(const std::string& name);

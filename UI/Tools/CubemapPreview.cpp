@@ -1,10 +1,10 @@
 #include "CubemapPreview.h"
-#include "../Objects/Logger.h"
-#include "../Engine/GeometryFactory.h"
 #include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Objects/Logger.h"
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 const char* CUBEMAP_VS_CODE = R"(
 #version 330
@@ -64,22 +64,22 @@ void main()
 }
 )";
 
-namespace ed
-{
-    CubemapPreview::CubemapPreview() {}
-    CubemapPreview::~CubemapPreview() {
-        glDeleteBuffers(1, &m_fsVBO);
-        glDeleteVertexArrays(1, &m_fsVAO);
-        glDeleteTextures(1, &m_cubeTex);
-        glDeleteTextures(1, &m_cubeDepth);
-        glDeleteFramebuffers(1, &m_cubeFBO);
-    }
-    void CubemapPreview::Init(int w, int h)
-    {
-        Logger::Get().Log("Setting up cubemap preview system...");
+namespace ed {
+	CubemapPreview::CubemapPreview() { }
+	CubemapPreview::~CubemapPreview()
+	{
+		glDeleteBuffers(1, &m_fsVBO);
+		glDeleteVertexArrays(1, &m_fsVAO);
+		glDeleteTextures(1, &m_cubeTex);
+		glDeleteTextures(1, &m_cubeDepth);
+		glDeleteFramebuffers(1, &m_cubeFBO);
+	}
+	void CubemapPreview::Init(int w, int h)
+	{
+		Logger::Get().Log("Setting up cubemap preview system...");
 
-        m_w = w;
-        m_h = h;
+		m_w = w;
+		m_h = h;
 
 		GLint success = 0;
 		char infoLog[512];
@@ -89,7 +89,7 @@ namespace ed
 		glShaderSource(cubemapVS, 1, &CUBEMAP_VS_CODE, nullptr);
 		glCompileShader(cubemapVS);
 		glGetShaderiv(cubemapVS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(cubemapVS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile cubemap projection vertex shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -100,7 +100,7 @@ namespace ed
 		glShaderSource(cubemapPS, 1, &CUBEMAP_PS_CODE, nullptr);
 		glCompileShader(cubemapPS);
 		glGetShaderiv(cubemapPS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(cubemapPS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile cubemap projection pixel shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -112,7 +112,7 @@ namespace ed
 		glAttachShader(m_cubeShader, cubemapPS);
 		glLinkProgram(m_cubeShader);
 		glGetProgramiv(m_cubeShader, GL_LINK_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetProgramInfoLog(m_cubeShader, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to create a cubemap projection shader program", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -126,10 +126,9 @@ namespace ed
 
 		m_fsVAO = ed::eng::GeometryFactory::CreatePlane(m_fsVBO, w, h, gl::CreateDefaultInputLayout());
 		m_cubeFBO = gl::CreateSimpleFramebuffer(w, h, m_cubeTex, m_cubeDepth);
-		
 	}
-    void CubemapPreview::Draw(GLuint tex)
-    {
+	void CubemapPreview::Draw(GLuint tex)
+	{
 		// bind fbo and buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, m_cubeFBO);
 		static const GLuint fboBuffers[] = { GL_COLOR_ATTACHMENT0 };
@@ -140,7 +139,7 @@ namespace ed
 		glUseProgram(m_cubeShader);
 
 		glm::mat4 matVP = glm::ortho(0.0f, m_w, m_h, 0.0f);
-		glm::mat4 matW = glm::translate(glm::mat4(1.0f), glm::vec3(m_w/2, m_h/2, 0.0f));
+		glm::mat4 matW = glm::translate(glm::mat4(1.0f), glm::vec3(m_w / 2, m_h / 2, 0.0f));
 		glUniformMatrix4fv(m_uMatWVPLoc, 1, GL_FALSE, glm::value_ptr(matVP * matW));
 
 		// bind shader resource views
@@ -149,5 +148,5 @@ namespace ed
 
 		glBindVertexArray(m_fsVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
+	}
 }

@@ -2,25 +2,23 @@
 #include "Objects/KeyboardShortcuts.h"
 #include "Objects/UpdateChecker.h"
 
-#include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
+#include <SDL2/SDL_video.h>
 #include <SFML/System/Clock.hpp>
 #include <glm/glm.hpp>
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
 class ImFont;
 
-namespace ed
-{
+namespace ed {
 	class InterfaceManager;
 	class CreateItemUI;
 	class UIView;
 	class Settings;
 
-	enum class ViewID
-	{
+	enum class ViewID {
 		Preview,
 		Pinned,
 		Code,
@@ -38,8 +36,7 @@ namespace ed
 		ObjectPreview
 	};
 
-	class GUIManager
-	{
+	class GUIManager {
 	public:
 		GUIManager(ed::InterfaceManager* objs, SDL_Window* wnd, SDL_GLContext* gl);
 		~GUIManager();
@@ -135,7 +132,7 @@ namespace ed
 		bool m_expcppCopyImages;
 		char m_expcppProjectName[64];
 		std::string m_expcppSavePath;
-		
+
 		bool m_savePreviewSeq;
 		float m_savePreviewSeqDuration;
 		int m_savePreviewSeqFPS;

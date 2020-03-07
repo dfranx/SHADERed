@@ -2,10 +2,8 @@
 #include "ShaderVariable.h"
 #include <vector>
 
-namespace ed
-{
-	class FunctionVariableManager
-	{
+namespace ed {
+	class FunctionVariableManager {
 	public:
 		static size_t GetArgumentCount(ed::FunctionShaderVariable func);
 		static void AllocateArgumentSpace(ed::ShaderVariable* var, ed::FunctionShaderVariable func);

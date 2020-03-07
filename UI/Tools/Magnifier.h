@@ -1,17 +1,15 @@
 #pragma once
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
 #include <glm/glm.hpp>
 
-namespace ed
-{
-	class Magnifier
-	{
+namespace ed {
+	class Magnifier {
 	public:
 		Magnifier();
 		~Magnifier();
@@ -22,7 +20,11 @@ namespace ed
 		inline const glm::vec2& GetZoomPosition() { return m_pos; }
 		inline const glm::vec2& GetZoomSize() { return m_size; }
 
-		inline void Reset() { m_pos = glm::vec2(0,0); m_size = glm::vec2(1,1); }
+		inline void Reset()
+		{
+			m_pos = glm::vec2(0, 0);
+			m_size = glm::vec2(1, 1);
+		}
 
 		void StartMouseAction(bool sel);
 		void EndMouseAction();

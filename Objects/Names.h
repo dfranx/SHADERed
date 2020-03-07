@@ -26,12 +26,9 @@ extern const unsigned int STENCIL_OPERATION_VALUES[9];
 extern const unsigned int CULL_MODE_VALUES[4];
 extern const unsigned int TOPOLOGY_ITEM_VALUES[10];
 
-namespace ed
-{
-	namespace gl
-	{
-		class String
-		{
+namespace ed {
+	namespace gl {
+		class String {
 		public:
 			static const char* Format(unsigned int val);
 			static const char* BlendFactor(unsigned int val);
@@ -41,4 +38,3 @@ namespace ed
 		};
 	}
 }
-

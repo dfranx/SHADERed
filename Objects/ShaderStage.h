@@ -1,9 +1,7 @@
 #pragma once
 
-namespace ed
-{
-	enum class ShaderStage
-	{
+namespace ed {
+	enum class ShaderStage {
 		Vertex,
 		Pixel,
 		Geometry,

@@ -1,35 +1,35 @@
 #include "PipelineUI.h"
-#include "CodeEditorUI.h"
-#include "PropertyUI.h"
-#include "PinnedUI.h"
-#include "PreviewUI.h"
-#include "Icons.h"
-#include "../Options.h"
+#include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
 #include "../GUIManager.h"
 #include "../Objects/Names.h"
 #include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/SystemVariableManager.h"
 #include "../Objects/ThemeContainer.h"
-#include "../Engine/GLUtils.h"
-#include "../Engine/GeometryFactory.h"
+#include "../Options.h"
+#include "CodeEditorUI.h"
+#include "Icons.h"
+#include "PinnedUI.h"
+#include "PreviewUI.h"
+#include "PropertyUI.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <algorithm>
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 #define PIPELINE_SHADER_PASS_INDENT Settings::Instance().CalculateSize(95)
 #define PIPELINE_ITEM_INDENT Settings::Instance().CalculateSize(105)
 #define BUTTON_ICON_SIZE ImVec2(Settings::Instance().CalculateSize(22.5f), 0)
 
-namespace ed
-{
+namespace ed {
 	void PipelineUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void PipelineUI::Update(float delta)
 	{
 		std::vector<ed::PipelineItem*>& items = m_data->Pipeline.GetList();
-		
+
 		ImVec2 containerSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		ImGui::BeginChild("##object_scroll_container", containerSize);
 
@@ -41,7 +41,7 @@ namespace ed
 			m_renderItemUpDown(items[i]->Type == PipelineItem::ItemType::PluginItem ? (pipe::PluginItemData*)items[i]->Data : nullptr, items, i);
 
 			if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
-				
+
 				m_addShaderPass(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
@@ -61,7 +61,7 @@ namespace ed
 				if (showItems) {
 					for (int j = 0; j < data->Items.size(); j++) {
 						m_renderItemUpDown(nullptr, data->Items, j);
-						
+
 						if (!isShaderPassActive)
 							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 						m_addItem(data->Items[j]);
@@ -74,22 +74,19 @@ namespace ed
 						}
 					}
 				}
-			} 
-			else if (items[i]->Type == PipelineItem::ItemType::ComputePass) {
+			} else if (items[i]->Type == PipelineItem::ItemType::ComputePass) {
 				m_addComputePass(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
 					continue;
 				}
-			}
-			else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
+			} else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
 				m_addAudioPass(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
 					continue;
 				}
-			}
-			else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
+			} else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
 				m_addPluginItem(items[i]);
 				if (m_renderItemContext(items, i)) {
 					i--;
@@ -181,7 +178,7 @@ namespace ed
 				for (auto& pitem : passItems) {
 					if (pitem->Type == PipelineItem::ItemType::Geometry) {
 						pipe::GeometryItem* gitem = (pipe::GeometryItem*)pitem->Data;
-						
+
 						if (gitem->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
 							continue;
 
@@ -196,14 +193,12 @@ namespace ed
 						if (bobj == nullptr) {
 							for (auto& mesh : mitem->Data->Meshes)
 								gl::CreateVAO(mesh.VAO, mesh.VBO, pass->InputLayout, mesh.EBO);
-						}
-						else {
+						} else {
 							for (auto& mesh : mitem->Data->Meshes)
 								gl::CreateVAO(mesh.VAO, mesh.VBO, pass->InputLayout, mesh.EBO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
 						}
 					}
 				}
-
 
 				m_closePopup();
 			}
@@ -275,7 +270,7 @@ namespace ed
 		m_data->Renderer.RemoveItemVariableValues(item);
 		m_data->Pipeline.Remove(item->Name);
 	}
-	
+
 	void PipelineUI::m_renderItemUpDown(pipe::PluginItemData* owner, std::vector<ed::PipelineItem*>& items, int index)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -348,38 +343,25 @@ namespace ed
 			bool hasPluginContext = isPlugin && pldata->Owner->HasPipelineItemContext(pldata->Type);
 
 			m_itemMenuOpened = true;
-			if (items[index]->Type == PipelineItem::ItemType::ShaderPass ||
-				items[index]->Type == PipelineItem::ItemType::ComputePass ||
-				items[index]->Type == PipelineItem::ItemType::AudioPass ||
-				hasPluginAddMenu)
-			{
+			if (items[index]->Type == PipelineItem::ItemType::ShaderPass || items[index]->Type == PipelineItem::ItemType::ComputePass || items[index]->Type == PipelineItem::ItemType::AudioPass || hasPluginAddMenu) {
 				if (!isPlugin && ImGui::Selectable("Recompile"))
 					m_data->Renderer.Recompile(items[index]->Name);
 
-				if ((hasPluginAddMenu || items[index]->Type == PipelineItem::ItemType::ShaderPass) && ImGui::BeginMenu("Add"))
-				{
-					if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::Geometry)) &&
-						ImGui::MenuItem("Geometry"))
-					{
+				if ((hasPluginAddMenu || items[index]->Type == PipelineItem::ItemType::ShaderPass) && ImGui::BeginMenu("Add")) {
+					if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::Geometry)) && ImGui::MenuItem("Geometry")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::Geometry);
-					}
-					else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::Model)) &&
-						ImGui::MenuItem("3D Model"))
-					{
+					} else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::Model)) && ImGui::MenuItem("3D Model")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::Model);
-					}
-					else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::RenderState)) &&
-						ImGui::MenuItem("Render State"))
-					{
+					} else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::RenderState)) && ImGui::MenuItem("Render State")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::RenderState);
 					}
-					
+
 					if (!isPlugin)
 						m_data->Plugins.ShowContextItems("shaderpass_add", (void*)items[index]);
 					else if (pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::PluginItem)) {
@@ -394,7 +376,7 @@ namespace ed
 				if ((hasPluginShaders || !isPlugin) && ImGui::BeginMenu("Edit Code")) {
 					// TODO: show "File doesnt exist - want to create it?" msg box
 					if (items[index]->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass *passData = (pipe::ShaderPass *)(items[index]->Data);
+						pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
 
 						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath))
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Vertex);
@@ -412,23 +394,20 @@ namespace ed
 							if (m_data->Parser.FileExists(passData->VSPath))
 								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Vertex);
 						}
-					} 
-					else if (items[index]->Type == PipelineItem::ItemType::ComputePass) {
-						pipe::ComputePass *passData = (pipe::ComputePass *)(items[index]->Data);
+					} else if (items[index]->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* passData = (pipe::ComputePass*)(items[index]->Data);
 
 						if (ImGui::MenuItem("Compute Shader") && m_data->Parser.FileExists(passData->Path))
-							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Compute);
-					} 
-					else if (items[index]->Type == PipelineItem::ItemType::AudioPass) {
-						pipe::AudioPass *passData = (pipe::AudioPass *)(items[index]->Data);
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Compute);
+					} else if (items[index]->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* passData = (pipe::AudioPass*)(items[index]->Data);
 
 						if (ImGui::MenuItem("Audio Shader") && m_data->Parser.FileExists(passData->Path))
-							(reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
-					}
-					else if (items[index]->Type == PipelineItem::ItemType::PluginItem) {
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
+					} else if (items[index]->Type == PipelineItem::ItemType::PluginItem) {
 						m_data->Plugins.ShowContextItems(pldata->Owner, "editcode", pldata->PluginData);
 					}
-					
+
 					ImGui::EndMenu();
 				}
 
@@ -452,8 +431,7 @@ namespace ed
 					m_modalItem = items[index];
 				}
 
-			}
-			else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model) {
+			} else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model) {
 				if (ImGui::MenuItem("Change Variables")) {
 					m_isChangeVarsOpened = true;
 					m_modalItem = items[index];
@@ -470,9 +448,7 @@ namespace ed
 				(reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)))->Open(items[index]);
 
 			if (ImGui::Selectable("Delete")) {
-				bool requiresPopup = items[index]->Type == PipelineItem::ItemType::ShaderPass || 
-					items[index]->Type == PipelineItem::ItemType::ComputePass || 
-					items[index]->Type == PipelineItem::ItemType::AudioPass;
+				bool requiresPopup = items[index]->Type == PipelineItem::ItemType::ShaderPass || items[index]->Type == PipelineItem::ItemType::ComputePass || items[index]->Type == PipelineItem::ItemType::AudioPass;
 
 				if (requiresPopup) {
 					m_isConfirmDeleteOpened = true;
@@ -498,8 +474,7 @@ namespace ed
 
 	void PipelineUI::m_tooltip(const std::string& text)
 	{
-		if (ImGui::IsItemHovered())
-		{
+		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
 			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 			ImGui::TextUnformatted(text.c_str());
@@ -510,7 +485,7 @@ namespace ed
 	void PipelineUI::m_renderVarFlags(ed::ShaderVariable* var, char flags)
 	{
 		ShaderVariable::ValueType type = var->GetType();
-		
+
 		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
 		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::IsPicked && var->System != ed::SystemShaderVariable::ViewportSize;
 
@@ -549,27 +524,29 @@ namespace ed
 			ImGui::PopItemFlag();
 		}
 
-		var->Flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
-					 (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+		var->Flags = (isInvert * (char)ShaderVariable::Flag::Inverse) | (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
 	}
 	void PipelineUI::m_renderInputLayoutManagerUI()
 	{
 		static InputLayoutValue iValueType = InputLayoutValue::Position;
 		static char semanticName[32];
 
-		pipe::ShaderPass *itemData = (pipe::ShaderPass*)m_modalItem->Data;
+		pipe::ShaderPass* itemData = (pipe::ShaderPass*)m_modalItem->Data;
 
 		ImGui::TextWrapped("Add or remove vertex shader inputs.");
 
 		ImGui::BeginChild("##pui_layout_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(4);
 
-		ImGui::Text("Controls"); ImGui::NextColumn();
-		ImGui::Text("Location"); ImGui::NextColumn();
-		ImGui::Text("Value"); ImGui::NextColumn();
-		ImGui::Text("HLSL semantic"); ImGui::NextColumn();
+		ImGui::Text("Controls");
+		ImGui::NextColumn();
+		ImGui::Text("Location");
+		ImGui::NextColumn();
+		ImGui::Text("Value");
+		ImGui::NextColumn();
+		ImGui::Text("HLSL semantic");
+		ImGui::NextColumn();
 
-		
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
@@ -577,7 +554,6 @@ namespace ed
 			ImGui::SetColumnWidth(1, Settings::Instance().CalculateSize(60));
 			isColumnWidthSet = true;
 		}
-
 
 		ImGui::Separator();
 
@@ -595,29 +571,29 @@ namespace ed
 				InputLayoutItem temp = els[id - 1];
 				els[id - 1] = el;
 				els[id] = temp;
-				
+
 				m_data->Parser.ModifyProject();
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DOWN BUTTON */
 			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != els.size() - 1) {
 				InputLayoutItem temp = els[id + 1];
 				els[id + 1] = el;
 				els[id] = temp;
-				
+
 				m_data->Parser.ModifyProject();
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DELETE BUTTON */
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				els.erase(els.begin() + id);
 				ImGui::PopStyleColor();
-				
+
 				m_data->Parser.ModifyProject();
 
 				continue;
 			}
-			
+
 			ImGui::PopStyleColor();
 			ImGui::NextColumn();
 
@@ -657,7 +633,7 @@ namespace ed
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		if (ImGui::Button(UI_ICON_ADD)) {
-			els.push_back({ iValueType, std::string(semanticName) });		
+			els.push_back({ iValueType, std::string(semanticName) });
 			m_data->Parser.ModifyProject();
 		}
 		ImGui::NextColumn();
@@ -689,7 +665,7 @@ namespace ed
 		static ed::ShaderVariable::ValueType iValueType = ed::ShaderVariable::ValueType::Float1;
 		static bool scrollToBottom = false;
 
-		void *itemData = m_modalItem->Data;
+		void* itemData = m_modalItem->Data;
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
 
@@ -703,23 +679,28 @@ namespace ed
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
-			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(6*20));
+			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(6 * 20));
 			ImGui::SetColumnWidth(3, Settings::Instance().CalculateSize(180));
 			isColumnWidthSet = true;
 		}
 
-		ImGui::Text("Controls"); ImGui::NextColumn();
-		ImGui::Text("Type"); ImGui::NextColumn();
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::Text("System"); ImGui::NextColumn();
-		ImGui::Text("Flags"); ImGui::NextColumn();
+		ImGui::Text("Controls");
+		ImGui::NextColumn();
+		ImGui::Text("Type");
+		ImGui::NextColumn();
+		ImGui::Text("Name");
+		ImGui::NextColumn();
+		ImGui::Text("System");
+		ImGui::NextColumn();
+		ImGui::Text("Flags");
+		ImGui::NextColumn();
 
 		ImGui::Separator();
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
 		int id = 0;
-		std::vector<ed::ShaderVariable *> &els = isCompute ? ((pipe::ComputePass*)itemData)->Variables.GetVariables() : (isAudio ? ((pipe::AudioPass*)itemData)->Variables.GetVariables() : ((pipe::ShaderPass*)itemData)->Variables.GetVariables());
+		std::vector<ed::ShaderVariable*>& els = isCompute ? ((pipe::ComputePass*)itemData)->Variables.GetVariables() : (isAudio ? ((pipe::AudioPass*)itemData)->Variables.GetVariables() : ((pipe::ShaderPass*)itemData)->Variables.GetVariables());
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -730,7 +711,7 @@ namespace ed
 				// check if any of the affected variables are pinned
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				bool containsCur = pinState->Contains(el->Name);
-				bool containsDown = pinState->Contains(els[id-1]->Name);
+				bool containsDown = pinState->Contains(els[id - 1]->Name);
 
 				m_data->Parser.ModifyProject();
 
@@ -746,11 +727,11 @@ namespace ed
 
 				// then pin again if it was previously pinned
 				if (containsCur)
-					pinState->Add(els[id-1]);
+					pinState->Add(els[id - 1]);
 				if (containsDown)
 					pinState->Add(els[id]);
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DOWN BUTTON */
 			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE) && id != els.size() - 1) {
 				// check if any of the affected variables are pinned
@@ -776,11 +757,11 @@ namespace ed
 				if (containsDown)
 					pinState->Add(els[id]);
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DELETE BUTTON */
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 				((PinnedUI*)m_ui->Get(ViewID::Pinned))->Remove(el->Name); // unpin if pinned
-				
+
 				m_data->Parser.ModifyProject();
 
 				if (isCompute)
@@ -793,14 +774,14 @@ namespace ed
 				ImGui::PopStyleColor();
 				continue;
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* EDIT & PIN BUTTONS */
 			if (el->System == ed::SystemShaderVariable::None) {
 				if (ImGui::Button((UI_ICON_EDIT "##" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
 					ImGui::OpenPopup("Value Edit##pui_shader_value_edit");
 					m_valueEdit.Open(el);
 				}
-				ImGui::SameLine(0,0);
+				ImGui::SameLine(0, 0);
 
 				PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 				if (!pinState->Contains(el->Name)) {
@@ -870,7 +851,7 @@ namespace ed
 			m_renderVarFlags(el, el->Flags);
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImGui::NextColumn();
-			
+
 			id++;
 		}
 
@@ -880,7 +861,7 @@ namespace ed
 		ImGui::SetNextWindowSize(ImVec2(450, 175), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Value Edit##pui_shader_value_edit")) {
 			m_valueEdit.Update();
-			
+
 			if (ImGui::Button("Ok")) {
 				m_data->Parser.ModifyProject();
 				m_valueEdit.Close();
@@ -903,16 +884,16 @@ namespace ed
 			// add if it doesnt exist
 			if (!exists) {
 				if (isCompute)
-					((pipe::ComputePass *)itemData)->Variables.AddCopy(iVariable);
+					((pipe::ComputePass*)itemData)->Variables.AddCopy(iVariable);
 				else if (isAudio)
-					((pipe::AudioPass *)itemData)->Variables.AddCopy(iVariable);
+					((pipe::AudioPass*)itemData)->Variables.AddCopy(iVariable);
 				else
-					((pipe::ShaderPass *)itemData)->Variables.AddCopy(iVariable);
+					((pipe::ShaderPass*)itemData)->Variables.AddCopy(iVariable);
 
 				iVariable = ShaderVariable(ShaderVariable::ValueType::Float1, "var", ed::SystemShaderVariable::None);
 				iValueType = ShaderVariable::ValueType::Float1;
 				scrollToBottom = true;
-				
+
 				m_data->Parser.ModifyProject();
 			}
 		}
@@ -946,7 +927,7 @@ namespace ed
 
 		/* SYSTEM */
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
-		const char* inputComboPreview = iVariable.System == SystemShaderVariable::PluginVariable ? 
+		const char* inputComboPreview = iVariable.System == SystemShaderVariable::PluginVariable ?
 			iVariable.PluginSystemVarData.Name :
 			SYSTEM_VARIABLE_NAMES[(int)iVariable.System];
 		if (ImGui::BeginCombo(("##system" + std::to_string(id)).c_str(), inputComboPreview)) {
@@ -981,14 +962,16 @@ namespace ed
 	{
 		static bool scrollToBottom = false;
 		static int shaderTypeSel = 0, shaderVarSel = 0;
-		
+
 		ImGui::TextWrapped("Add variables that you want to change when rendering this item");
 
 		ImGui::BeginChild("##pui_cvar_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(2);
 
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::Text("Value"); ImGui::NextColumn();
+		ImGui::Text("Name");
+		ImGui::NextColumn();
+		ImGui::Text("Value");
+		ImGui::NextColumn();
 
 		ImGui::Separator();
 
@@ -999,7 +982,7 @@ namespace ed
 		for (PipelineItem* pass : passes) {
 			if (pass->Type != PipelineItem::ItemType::ShaderPass)
 				continue;
-			
+
 			ownerData = ((pipe::ShaderPass*)pass->Data);
 			std::vector<PipelineItem*>& children = ownerData->Items;
 			for (PipelineItem* child : children) {
@@ -1026,7 +1009,6 @@ namespace ed
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			ImGui::Text(i.Variable->Name);
 			ImGui::NextColumn();
-
 
 			ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 			if (ImGui::Button((UI_ICON_EDIT "##edBtn" + std::to_string(id)).c_str(), BUTTON_ICON_SIZE)) {
@@ -1102,7 +1084,7 @@ namespace ed
 	void PipelineUI::m_renderResourceManagerUI()
 	{
 		ImGui::TextWrapped("List of all bound textures, images, etc...\n");
-		
+
 		ObjectManager* objs = &m_data->Objects;
 
 		ImGui::BeginChild("##pui_res_ubo_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
@@ -1123,16 +1105,20 @@ namespace ed
 				isColumnWidthSet = true;
 			}
 
-			ImGui::Text("Controls"); ImGui::NextColumn();
-			ImGui::Text("Unit"); ImGui::NextColumn();
-			ImGui::Text("Type"); ImGui::NextColumn();
-			ImGui::Text("Name"); ImGui::NextColumn();
+			ImGui::Text("Controls");
+			ImGui::NextColumn();
+			ImGui::Text("Unit");
+			ImGui::NextColumn();
+			ImGui::Text("Type");
+			ImGui::NextColumn();
+			ImGui::Text("Name");
+			ImGui::NextColumn();
 
 			ImGui::Separator();
 
 			int id = 0;
-			std::vector<GLuint> &els = m_data->Objects.GetBindList(m_modalItem);
-			const std::vector<std::string> &items = m_data->Objects.GetObjects();
+			std::vector<GLuint>& els = m_data->Objects.GetBindList(m_modalItem);
+			const std::vector<std::string>& items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
@@ -1147,7 +1133,7 @@ namespace ed
 					els[id] = temp;
 					m_data->Parser.ModifyProject();
 				}
-				ImGui::SameLine(0,0);
+				ImGui::SameLine(0, 0);
 				/* DOWN BUTTON */
 				if (ImGui::Button((UI_ICON_ARROW_DOWN "##s" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 					GLuint temp = els[id + 1];
@@ -1163,13 +1149,20 @@ namespace ed
 				ImGui::NextColumn();
 
 				/* NAME */
-				if (objs->IsImage(itemName)) ImGui::Text("image");
-				else if (objs->IsImage3D(itemName)) ImGui::Text("image3D");
-				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
-				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
-				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
-				else if (objs->IsCubeMap(itemName)) ImGui::Text("cubemap");
-				else ImGui::Text("texture");
+				if (objs->IsImage(itemName))
+					ImGui::Text("image");
+				else if (objs->IsImage3D(itemName))
+					ImGui::Text("image3D");
+				else if (objs->IsRenderTexture(itemName))
+					ImGui::Text("render texture");
+				else if (objs->IsAudio(itemName))
+					ImGui::Text("audio");
+				else if (objs->IsBuffer(itemName))
+					ImGui::Text("buffer");
+				else if (objs->IsCubeMap(itemName))
+					ImGui::Text("cubemap");
+				else
+					ImGui::Text("texture");
 				ImGui::NextColumn();
 
 				/* VALUE */
@@ -1200,16 +1193,20 @@ namespace ed
 				isColumnWidthSet = true;
 			}
 
-			ImGui::Text("Controls"); ImGui::NextColumn();
-			ImGui::Text("Unit"); ImGui::NextColumn();
-			ImGui::Text("Type"); ImGui::NextColumn();
-			ImGui::Text("Name"); ImGui::NextColumn();
+			ImGui::Text("Controls");
+			ImGui::NextColumn();
+			ImGui::Text("Unit");
+			ImGui::NextColumn();
+			ImGui::Text("Type");
+			ImGui::NextColumn();
+			ImGui::Text("Name");
+			ImGui::NextColumn();
 
 			ImGui::Separator();
 
 			int id = 0;
-			std::vector<GLuint> &els = m_data->Objects.GetUniformBindList(m_modalItem);
-			const std::vector<std::string> &items = m_data->Objects.GetObjects();
+			std::vector<GLuint>& els = m_data->Objects.GetUniformBindList(m_modalItem);
+			const std::vector<std::string>& items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
@@ -1224,7 +1221,7 @@ namespace ed
 					els[id] = temp;
 					m_data->Parser.ModifyProject();
 				}
-				ImGui::SameLine(0,0);
+				ImGui::SameLine(0, 0);
 				/* DOWN BUTTON */
 				if (ImGui::Button((UI_ICON_ARROW_DOWN "##u" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 					GLuint temp = els[id + 1];
@@ -1240,13 +1237,20 @@ namespace ed
 				ImGui::NextColumn();
 
 				/* NAME */
-				if (objs->IsImage(itemName)) ImGui::Text("image");
-				else if (objs->IsImage3D(itemName)) ImGui::Text("image3D");
-				else if (objs->IsRenderTexture(itemName)) ImGui::Text("render texture");
-				else if (objs->IsAudio(itemName)) ImGui::Text("audio");
-				else if (objs->IsBuffer(itemName)) ImGui::Text("buffer");
-				else if (objs->IsCubeMap(itemName)) ImGui::Text("cubemap");
-				else ImGui::Text("texture");
+				if (objs->IsImage(itemName))
+					ImGui::Text("image");
+				else if (objs->IsImage3D(itemName))
+					ImGui::Text("image3D");
+				else if (objs->IsRenderTexture(itemName))
+					ImGui::Text("render texture");
+				else if (objs->IsAudio(itemName))
+					ImGui::Text("audio");
+				else if (objs->IsBuffer(itemName))
+					ImGui::Text("buffer");
+				else if (objs->IsCubeMap(itemName))
+					ImGui::Text("cubemap");
+				else
+					ImGui::Text("texture");
 				ImGui::NextColumn();
 
 				/* VALUE */
@@ -1258,7 +1262,7 @@ namespace ed
 
 			ImGui::Columns(1);
 		}
-		
+
 		ImGui::EndChild();
 	}
 	void PipelineUI::m_renderMacroManagerUI()
@@ -1271,10 +1275,14 @@ namespace ed
 		ImGui::BeginChild("##pui_macro_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(4);
 
-		ImGui::Text("Controls"); ImGui::NextColumn();
-		ImGui::Text("Active"); ImGui::NextColumn();
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::Text("Value"); ImGui::NextColumn();
+		ImGui::Text("Controls");
+		ImGui::NextColumn();
+		ImGui::Text("Active");
+		ImGui::NextColumn();
+		ImGui::Text("Name");
+		ImGui::NextColumn();
+		ImGui::Text("Value");
+		ImGui::NextColumn();
 
 		ImGui::Separator();
 
@@ -1283,7 +1291,7 @@ namespace ed
 		int id = 0;
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
-		std::vector<ShaderMacro> &els = isCompute ? ((ed::pipe::ComputePass*)m_modalItem->Data)->Macros : (isAudio ? ((ed::pipe::AudioPass*)m_modalItem->Data)->Macros : ((ed::pipe::ShaderPass*)m_modalItem->Data)->Macros);
+		std::vector<ShaderMacro>& els = isCompute ? ((ed::pipe::ComputePass*)m_modalItem->Data)->Macros : (isAudio ? ((ed::pipe::AudioPass*)m_modalItem->Data)->Macros : ((ed::pipe::ShaderPass*)m_modalItem->Data)->Macros);
 
 		/* EXISTING VARIABLES */
 		for (auto& el : els) {
@@ -1296,7 +1304,7 @@ namespace ed
 				els[id] = temp;
 				m_data->Parser.ModifyProject();
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DOWN BUTTON */
 			if (ImGui::Button((UI_ICON_ARROW_DOWN "##" + std::to_string(id)).c_str()) && id != els.size() - 1) {
 				ed::ShaderMacro temp = els[id + 1];
@@ -1304,7 +1312,7 @@ namespace ed
 				els[id] = temp;
 				m_data->Parser.ModifyProject();
 			}
-			ImGui::SameLine(0,0);
+			ImGui::SameLine(0, 0);
 			/* DELETE BUTTON */
 			if (ImGui::Button((UI_ICON_DELETE "##" + std::to_string(id)).c_str())) {
 				els.erase(els.begin() + id);
@@ -1373,7 +1381,7 @@ namespace ed
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
 		ImGui::InputText(("##mcrValAdd" + std::to_string(id)).c_str(), addMacro.Value, 512);
 		ImGui::NextColumn();
-		
+
 		if (scrollToBottom) {
 			ImGui::SetScrollHere();
 			scrollToBottom = false;
@@ -1383,14 +1391,13 @@ namespace ed
 		ImGui::Columns(1);
 	}
 
-	void PipelineUI::m_addShaderPass(ed::PipelineItem *item)
+	void PipelineUI::m_addShaderPass(ed::PipelineItem* item)
 	{
-		ed::pipe::ShaderPass *data = (ed::pipe::ShaderPass *)item->Data;
+		ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)item->Data;
 
 		std::string expandTxt = UI_ICON_UP;
 		for (int i = 0; i < m_expandList.size(); i++)
-			if (m_expandList[i] == data)
-			{
+			if (m_expandList[i] == data) {
 				expandTxt = UI_ICON_DOWN;
 				break;
 			}
@@ -1398,24 +1405,19 @@ namespace ed
 		expandTxt += "##passexp_" + std::string(item->Name);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button(std::string(std::string(data->Active ? UI_ICON_EYE : UI_ICON_EYE_BLOCKED) + "##hide" + std::string(item->Name)).c_str(), BUTTON_ICON_SIZE))
-		{
+		if (ImGui::Button(std::string(std::string(data->Active ? UI_ICON_EYE : UI_ICON_EYE_BLOCKED) + "##hide" + std::string(item->Name)).c_str(), BUTTON_ICON_SIZE)) {
 			data->Active = !data->Active;
 			m_data->Parser.ModifyProject();
 		}
-		ImGui::SameLine(0,0);
-		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE))
-		{
-			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos)
-			{
+		ImGui::SameLine(0, 0);
+		if (ImGui::Button(expandTxt.c_str(), BUTTON_ICON_SIZE)) {
+			if (expandTxt.find(UI_ICON_DOWN) != std::string::npos) {
 				for (int i = 0; i < m_expandList.size(); i++)
-					if (m_expandList[i] == data)
-					{
+					if (m_expandList[i] == data) {
 						m_expandList.erase(m_expandList.begin() + i);
 						break;
 					}
-			}
-			else
+			} else
 				m_expandList.push_back(data);
 		}
 		ImGui::PopStyleColor();
@@ -1424,21 +1426,18 @@ namespace ed
 		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
 		if (ewCount > 0)
 			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
-		
+
 		if (!data->Active)
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-			
+
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0))
-			{
-				if (Settings::Instance().General.OpenShadersOnDblClk)
-				{
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				if (Settings::Instance().General.OpenShadersOnDblClk) {
 					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
 						m_ui->SaveAsProject(true);
-					else
-					{
-						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
+					else {
+						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->VSPath))
 							editor->Open(item, ShaderStage::Vertex);
 
@@ -1450,16 +1449,14 @@ namespace ed
 					}
 				}
 
-				if (Settings::Instance().General.ItemPropsOnDblCLk)
-				{
-					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
+				if (Settings::Instance().General.ItemPropsOnDblCLk) {
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}
 
 		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload"))
-			{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload")) {
 				// TODO: m_data->Pipeline.DuplicateItem() ?
 				ed::PipelineItem* dropItem = *(reinterpret_cast<ed::PipelineItem**>(payload->Data));
 				bool duplicate = ImGui::GetIO().KeyCtrl;
@@ -1498,7 +1495,7 @@ namespace ed
 				if (dropItem->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* newData = new pipe::GeometryItem();
 					pipe::GeometryItem* origData = (pipe::GeometryItem*)dropItem->Data;
-					
+
 					newData->Position = origData->Position;
 					newData->Rotation = origData->Rotation;
 					newData->Scale = origData->Scale;
@@ -1511,8 +1508,7 @@ namespace ed
 					else if (newData->Type == pipe::GeometryItem::Circle) {
 						newData->VAO = eng::GeometryFactory::CreateCircle(newData->VBO, newData->Size.x, newData->Size.y, data->InputLayout);
 						newData->Topology = GL_TRIANGLE_STRIP;
-					}
-					else if (newData->Type == pipe::GeometryItem::Plane)
+					} else if (newData->Type == pipe::GeometryItem::Plane)
 						newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, newData->Size.x, newData->Size.y, data->InputLayout);
 					else if (newData->Type == pipe::GeometryItem::Rectangle)
 						newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, 1, 1, data->InputLayout);
@@ -1522,7 +1518,7 @@ namespace ed
 						newData->VAO = eng::GeometryFactory::CreateTriangle(newData->VBO, newData->Size.x, data->InputLayout);
 					else if (newData->Type == pipe::GeometryItem::ScreenQuadNDC)
 						newData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(newData->VBO, data->InputLayout);
-					
+
 					itemData = newData;
 				}
 
@@ -1538,7 +1534,6 @@ namespace ed
 					newData->Position = origData->Position;
 					newData->Rotation = origData->Rotation;
 
-
 					if (strlen(newData->Filename) > 0) {
 						std::string objMem = m_data->Parser.LoadProjectFile(newData->Filename);
 						eng::Model* mdl = m_data->Parser.LoadModel(newData->Filename);
@@ -1546,7 +1541,8 @@ namespace ed
 						bool loaded = mdl != nullptr;
 						if (loaded)
 							newData->Data = mdl;
-						else m_data->Messages.Add(ed::MessageStack::Type::Error, item->Name, "Failed to create .obj model " + std::string(item->Name));
+						else
+							m_data->Messages.Add(ed::MessageStack::Type::Error, item->Name, "Failed to create .obj model " + std::string(item->Name));
 					}
 
 					itemData = newData;
@@ -1593,16 +1589,16 @@ namespace ed
 		}
 
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
-		
+
 		if (!data->Active)
 			ImGui::PopStyleVar();
-			
+
 		if (ewCount > 0)
 			ImGui::PopStyleColor();
 	}
-	void PipelineUI::m_addComputePass(ed::PipelineItem *item)
+	void PipelineUI::m_addComputePass(ed::PipelineItem* item)
 	{
-		ed::pipe::ComputePass *data = (ed::pipe::ComputePass *)item->Data;
+		ed::pipe::ComputePass* data = (ed::pipe::ComputePass*)item->Data;
 
 		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
 		if (ewCount > 0)
@@ -1612,32 +1608,28 @@ namespace ed
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0))
-			{
-				if (Settings::Instance().General.OpenShadersOnDblClk)
-				{
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				if (Settings::Instance().General.OpenShadersOnDblClk) {
 					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
 						m_ui->SaveAsProject(true);
-					else
-					{
-						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
+					else {
+						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
 							editor->Open(item, ShaderStage::Compute);
 					}
 				}
 
-				if (Settings::Instance().General.ItemPropsOnDblCLk)
-				{
-					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
+				if (Settings::Instance().General.ItemPropsOnDblCLk) {
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 		ImGui::PopStyleColor();
 	}
-	void PipelineUI::m_addAudioPass(ed::PipelineItem *item)
+	void PipelineUI::m_addAudioPass(ed::PipelineItem* item)
 	{
-		ed::pipe::AudioPass *data = (ed::pipe::AudioPass *)item->Data;
+		ed::pipe::AudioPass* data = (ed::pipe::AudioPass*)item->Data;
 
 		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
 		if (ewCount > 0)
@@ -1647,23 +1639,19 @@ namespace ed
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0))
-			{
-				if (Settings::Instance().General.OpenShadersOnDblClk)
-				{
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				if (Settings::Instance().General.OpenShadersOnDblClk) {
 					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
 						m_ui->SaveAsProject(true);
-					else
-					{
-						CodeEditorUI *editor = (reinterpret_cast<CodeEditorUI *>(m_ui->Get(ViewID::Code)));
+					else {
+						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						if (m_data->Parser.FileExists(data->Path))
 							editor->Open(item, ShaderStage::Pixel);
 					}
 				}
 
-				if (Settings::Instance().General.ItemPropsOnDblCLk)
-				{
-					PropertyUI *props = reinterpret_cast<PropertyUI *>(m_ui->Get(ViewID::Properties));
+				if (Settings::Instance().General.ItemPropsOnDblCLk) {
+					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}
@@ -1676,29 +1664,24 @@ namespace ed
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-			if (ImGui::IsMouseDoubleClicked(0))
-			{
-				if (Settings::Instance().General.OpenShadersOnDblClk && data->Owner->HasPipelineItemShaders(data->Type))
-				{
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				if (Settings::Instance().General.OpenShadersOnDblClk && data->Owner->HasPipelineItemShaders(data->Type)) {
 					if (Settings::Instance().General.UseExternalEditor && m_data->Parser.GetOpenedFile() == "")
 						m_ui->SaveAsProject(true);
-					else
-					{
+					else {
 						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						data->Owner->OpenPipelineItemInEditor((void*)editor, data->Type, data->PluginData);
 					}
 				}
 
-				if (Settings::Instance().General.ItemPropsOnDblCLk && data->Owner->HasPipelineItemProperties(data->Type))
-				{
+				if (Settings::Instance().General.ItemPropsOnDblCLk && data->Owner->HasPipelineItemProperties(data->Type)) {
 					PropertyUI* props = reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties));
 					props->Open(item);
 				}
 			}
 
 		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload"))
-			{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload")) {
 				// TODO: m_data->Pipeline.DuplicateItem() ?
 				ed::PipelineItem* dropItem = *(reinterpret_cast<ed::PipelineItem**>(payload->Data));
 
@@ -1736,7 +1719,7 @@ namespace ed
 
 					// get item owner
 					void* itemData = nullptr;
-					
+
 					// once we find a name, duplicate the properties:
 					// duplicate geometry object:
 					if (dropItem->Type == PipelineItem::ItemType::Geometry) {
@@ -1755,8 +1738,7 @@ namespace ed
 						else if (newData->Type == pipe::GeometryItem::Circle) {
 							newData->VAO = eng::GeometryFactory::CreateCircle(newData->VBO, newData->Size.x, newData->Size.y, inpLayout);
 							newData->Topology = GL_TRIANGLE_STRIP;
-						}
-						else if (newData->Type == pipe::GeometryItem::Plane)
+						} else if (newData->Type == pipe::GeometryItem::Plane)
 							newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, newData->Size.x, newData->Size.y, inpLayout);
 						else if (newData->Type == pipe::GeometryItem::Rectangle)
 							newData->VAO = eng::GeometryFactory::CreatePlane(newData->VBO, 1, 1, inpLayout);
@@ -1782,7 +1764,6 @@ namespace ed
 						newData->Position = origData->Position;
 						newData->Rotation = origData->Rotation;
 
-
 						if (strlen(newData->Filename) > 0) {
 							std::string objMem = m_data->Parser.LoadProjectFile(newData->Filename);
 							eng::Model* mdl = m_data->Parser.LoadModel(newData->Filename);
@@ -1790,7 +1771,8 @@ namespace ed
 							bool loaded = mdl != nullptr;
 							if (loaded)
 								newData->Data = mdl;
-							else m_data->Messages.Add(ed::MessageStack::Type::Error, item->Name, "Failed to create .obj model " + std::string(item->Name));
+							else
+								m_data->Messages.Add(ed::MessageStack::Type::Error, item->Name, "Failed to create .obj model " + std::string(item->Name));
 						}
 
 						itemData = newData;
@@ -1856,15 +1838,11 @@ namespace ed
 				}
 
 				if (Settings::Instance().General.SelectItemOnDblClk) {
-					if (item->Type == PipelineItem::ItemType::Geometry ||
-						item->Type == PipelineItem::ItemType::Model || 
-						isPluginPickable)
-					{
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || isPluginPickable) {
 						bool proceed = true;
 						if (item->Type == PipelineItem::ItemType::Geometry)
-							proceed = ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::Rectangle &&
-									  ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::ScreenQuadNDC;
-					
+							proceed = ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::Rectangle && ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::ScreenQuadNDC;
+
 						if (proceed) {
 							PreviewUI* props = reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview));
 							props->Pick(item);
@@ -1873,8 +1851,7 @@ namespace ed
 					}
 				}
 			}
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-		{
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
 			ImGui::SetDragDropPayload("PipelineItemPayload", &item, sizeof(ed::PipelineItem**));
 			ImGui::EndDragDropSource();
 		}

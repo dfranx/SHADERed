@@ -2,11 +2,11 @@
 #include "../Objects/DebugInformation.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
-#include "Debug/WatchUI.h"
-#include "Debug/FunctionStackUI.h"
 #include "CodeEditorUI.h"
-#include "UIHelper.h"
+#include "Debug/FunctionStackUI.h"
+#include "Debug/WatchUI.h"
 #include "Icons.h"
+#include "UIHelper.h"
 
 #include <ShaderDebugger/Utils.h>
 #include <imgui/imgui.h>
@@ -16,8 +16,7 @@
 #define ICON_BUTTON_WIDTH Settings::Instance().CalculateSize(25)
 #define BUTTON_SIZE Settings::Instance().CalculateSize(20)
 
-namespace ed
-{
+namespace ed {
 	void PixelInspectUI::OnEvent(const SDL_Event& e)
 	{
 	}
@@ -44,8 +43,7 @@ namespace ed
 
 			if (!pixel.Fetched) {
 				if (ImGui::Button(("Fetch##pixel_fetch_" + std::to_string(pxId)).c_str(), ImVec2(-1, 0))
-					&& m_data->Messages.CanRenderPreview())
-				{
+					&& m_data->Messages.CanRenderPreview()) {
 					bool success = m_data->FetchPixel(pixel);
 
 					if (!success) {
@@ -63,8 +61,7 @@ namespace ed
 				int initIndex = 0;
 
 				if (ImGui::Button(((UI_ICON_PLAY "##debug_pixel_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-					&& m_data->Messages.CanRenderPreview())
-				{
+					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
@@ -89,8 +86,7 @@ namespace ed
 
 				// TODO:
 				if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex0_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-					&& m_data->Messages.CanRenderPreview())
-				{
+					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
@@ -103,12 +99,11 @@ namespace ed
 					requestCompile = m_data->Debugger.SetSource(lang, sd::ShaderType::Vertex, lang == ed::ShaderLanguage::GLSL ? "main" : pass->VSEntry, vsSrc);
 					initIndex = 0;
 				}
-				ImGui::SameLine(); 
+				ImGui::SameLine();
 				ImGui::Text("Vertex[0] = (%.2f, %.2f, %.2f)", pixel.Vertex[0].Position.x, pixel.Vertex[0].Position.y, pixel.Vertex[0].Position.z);
 
 				if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex1_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-					&& m_data->Messages.CanRenderPreview())
-				{
+					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
@@ -124,10 +119,8 @@ namespace ed
 				ImGui::SameLine();
 				ImGui::Text("Vertex[1] = (%.2f, %.2f, %.2f)", pixel.Vertex[1].Position.x, pixel.Vertex[1].Position.y, pixel.Vertex[1].Position.z);
 
-
 				if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex2_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-					&& m_data->Messages.CanRenderPreview())
-				{
+					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Owner->Data);
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
@@ -143,13 +136,12 @@ namespace ed
 				ImGui::SameLine();
 				ImGui::Text("Vertex[2] = (%.2f, %.2f, %.2f)", pixel.Vertex[2].Position.x, pixel.Vertex[2].Position.y, pixel.Vertex[2].Position.z);
 
-
 				if (requestCompile) {
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 
 					m_data->Debugger.SetDebugging(true);
 					m_data->Debugger.InitEngine(pixel, initIndex);
-					
+
 					sd::ShaderDebugger* dbgr = &m_data->Debugger.Engine;
 					const auto& bkpts = editor->GetBreakpoints();
 
@@ -170,8 +162,10 @@ namespace ed
 					for (const auto& bkpt : bkpts) {
 						if (!bkpt.mEnabled) continue;
 
-						if (bkpt.mCondition.empty()) dbgr->AddBreakpoint(bkpt.mLine);
-						else dbgr->AddConditionalBreakpoint(bkpt.mLine, bkpt.mCondition);
+						if (bkpt.mCondition.empty())
+							dbgr->AddBreakpoint(bkpt.mLine);
+						else
+							dbgr->AddConditionalBreakpoint(bkpt.mLine, bkpt.mCondition);
 					}
 
 					// editor functions
@@ -199,8 +193,7 @@ namespace ed
 						if (act == TextEditor::DebugAction::Stop || !state) {
 							m_data->Debugger.SetDebugging(false);
 							ed->SetCurrentLineIndicator(-1);
-						}
-						else {
+						} else {
 							((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 							((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
 							ed->SetCurrentLineIndicator(mDbgr->GetCurrentLine());
@@ -263,13 +256,11 @@ namespace ed
 							if (isTex) {
 								sd::Texture* tex = (sd::Texture*)bv_variable_get_object(*var)->user_data;
 								ImGui::Image((ImTextureID)tex->UserData, ImVec2(128.0f, 128.0f * (tex->Height / (float)tex->Width)), ImVec2(0, 1), ImVec2(1, 0));
-							}
-							else if (isCube) {
+							} else if (isCube) {
 								sd::TextureCube* tex = (sd::TextureCube*)bv_variable_get_object(*var)->user_data;
 								m_cubePrev.Draw(tex->UserData);
 								ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
-							}
-							else
+							} else
 								ImGui::Text(m_data->Debugger.VariableValueToString(*var).c_str());
 						}
 					};
@@ -283,7 +274,7 @@ namespace ed
 
 			pxId++;
 		}
-		
+
 		ImGui::EndChild();
 
 		if (m_errorPopup) {

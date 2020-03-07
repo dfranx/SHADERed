@@ -1,26 +1,25 @@
 #include "CreateItemUI.h"
-#include "UIHelper.h"
+#include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Engine/Model.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Names.h"
 #include "../Objects/Settings.h"
-#include "../Objects/ThemeContainer.h"
 #include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/SystemVariableManager.h"
-#include "../Engine/GeometryFactory.h"
-#include "../Engine/Model.h"
-#include "../Engine/GLUtils.h"
+#include "../Objects/ThemeContainer.h"
+#include "UIHelper.h"
 
-#include <glm/gtc/type_ptr.hpp>
 #include <string.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 #define PATH_SPACE_LEFT Settings::Instance().CalculateSize(-40)
 
-namespace ed
-{
+namespace ed {
 	void CreateItemUI::OnEvent(const SDL_Event& e)
 	{
 	}
@@ -31,12 +30,12 @@ namespace ed
 			colWidth = 200;
 
 		ImGui::Columns(2, 0, true);
-		
+
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
 			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(colWidth));
-			isColumnWidthSet= true;
+			isColumnWidthSet = true;
 		}
 
 		if (m_errorOccured)
@@ -67,37 +66,32 @@ namespace ed
 				ImGui::PushItemWidth(-1);
 				ImGui::DragFloat3("##cui_geosize", glm::value_ptr(data->Size));
 				ImGui::NextColumn();
-			}
-			else if (data->Type == pipe::GeometryItem::GeometryType::Circle) {
+			} else if (data->Type == pipe::GeometryItem::GeometryType::Circle) {
 				ImGui::Text("Radius:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				ImGui::DragFloat2("##cui_geosize", glm::value_ptr(data->Size));
 				ImGui::NextColumn();
-			}
-			else if (data->Type == pipe::GeometryItem::GeometryType::Plane) {
+			} else if (data->Type == pipe::GeometryItem::GeometryType::Plane) {
 				ImGui::Text("Size:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				ImGui::DragFloat2("##cui_geosize", glm::value_ptr(data->Size));
 				ImGui::NextColumn();
-			}
-			else if (data->Type == pipe::GeometryItem::GeometryType::Sphere) {
+			} else if (data->Type == pipe::GeometryItem::GeometryType::Sphere) {
 				ImGui::Text("Radius:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				ImGui::DragFloat("##cui_geosize", &data->Size.x);
 				ImGui::NextColumn();
-			}
-			else if (data->Type == pipe::GeometryItem::GeometryType::Triangle) {
+			} else if (data->Type == pipe::GeometryItem::GeometryType::Triangle) {
 				ImGui::Text("Size:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				ImGui::DragFloat("##cui_geosize", &data->Size.x);
 				ImGui::NextColumn();
 			}
-		}
-		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+		} else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
 
 			// vs path
@@ -203,10 +197,8 @@ namespace ed
 			ImGui::NextColumn();
 
 			if (!data->GSUsed) ImGui::PopItemFlag();
-		}
-		else if (m_item.Type == PipelineItem::ItemType::ComputePass)
-		{
-			pipe::ComputePass *data = (pipe::ComputePass *)m_item.Data;
+		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+			pipe::ComputePass* data = (pipe::ComputePass*)m_item.Data;
 
 			// cs path
 			ImGui::Text("Shader path:");
@@ -217,12 +209,10 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::PopItemFlag();
 			ImGui::SameLine();
-			if (ImGui::Button("...##cui_cppath", ImVec2(-1, 0)))
-			{
+			if (ImGui::Button("...##cui_cppath", ImVec2(-1, 0))) {
 				std::string file;
 				bool success = UIHelper::GetOpenFileDialog(file);
-				if (success)
-				{
+				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->Path, file.c_str());
 
@@ -252,10 +242,8 @@ namespace ed
 			data->WorkX = std::max<int>(groupSize.x, 1);
 			data->WorkY = std::max<int>(groupSize.y, 1);
 			data->WorkZ = std::max<int>(groupSize.z, 1);
-		}
-		else if (m_item.Type == PipelineItem::ItemType::AudioPass)
-		{
-			pipe::AudioPass *data = (pipe::AudioPass *)m_item.Data;
+		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+			pipe::AudioPass* data = (pipe::AudioPass*)m_item.Data;
 
 			// ss path
 			ImGui::Text("Shader path:");
@@ -266,12 +254,10 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::PopItemFlag();
 			ImGui::SameLine();
-			if (ImGui::Button("...##cui_appath", ImVec2(-1, 0)))
-			{
+			if (ImGui::Button("...##cui_appath", ImVec2(-1, 0))) {
 				std::string file;
 				bool success = UIHelper::GetOpenFileDialog(file);
-				if (success)
-				{
+				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->Path, file.c_str());
 
@@ -282,8 +268,7 @@ namespace ed
 				}
 			}
 			ImGui::NextColumn();
-		}
-		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+		} else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			pipe::RenderState* data = (pipe::RenderState*)m_item.Data;
 
 			// enable/disable wireframe rendering
@@ -322,11 +307,7 @@ namespace ed
 			ImGui::NextColumn();
 			data->FrontFace = isCCW ? GL_CCW : GL_CW;
 
-
-
 			ImGui::Separator();
-
-
 
 			// depth enable
 			ImGui::Text("Depth test:");
@@ -336,8 +317,7 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->DepthTest)
-			{
+			if (!data->DepthTest) {
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 			}
@@ -374,17 +354,12 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->DepthTest)
-			{
+			if (!data->DepthTest) {
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
 
-
-
 			ImGui::Separator();
-
-
 
 			// blending
 			ImGui::Text("Blending:");
@@ -394,8 +369,7 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->Blend)
-			{
+			if (!data->Blend) {
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 			}
@@ -464,16 +438,12 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->Blend)
-			{
+			if (!data->Blend) {
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
 
-
 			ImGui::Separator();
-
-
 
 			// stencil enable
 			ImGui::Text("Stencil test:");
@@ -483,8 +453,7 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->StencilTest)
-			{
+			if (!data->StencilTest) {
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 			}
@@ -506,7 +475,7 @@ namespace ed
 			ImGui::Text("Stencil reference:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::InputInt("##cui_sref", (int*)& data->StencilReference); // TODO: imgui uint input??
+			ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // TODO: imgui uint input??
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -579,13 +548,11 @@ namespace ed
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			if (!data->StencilTest)
-			{
+			if (!data->StencilTest) {
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
-		}
-		else if (m_item.Type == PipelineItem::ItemType::Model) {
+		} else if (m_item.Type == PipelineItem::ItemType::Model) {
 			pipe::Model* data = (pipe::Model*)m_item.Data;
 
 			// model filepath
@@ -641,7 +608,7 @@ namespace ed
 
 		ImGui::Columns();
 	}
-	void CreateItemUI::SetOwner(const char * shaderPass)
+	void CreateItemUI::SetOwner(const char* shaderPass)
 	{
 		m_errorOccured = false;
 		if (shaderPass == nullptr)
@@ -652,10 +619,10 @@ namespace ed
 	void CreateItemUI::SetType(PipelineItem::ItemType type)
 	{
 		m_errorOccured = false;
-		
+
 		//TODO: make it type-safe.
 		m_data->Pipeline.FreeData(m_item.Data, m_item.Type);
-		
+
 		m_item.Type = type;
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
@@ -663,13 +630,12 @@ namespace ed
 
 			pipe::GeometryItem* allocatedData = new pipe::GeometryItem();
 			allocatedData->Type = pipe::GeometryItem::GeometryType::Cube;
-			allocatedData->Size = allocatedData->Scale = glm::vec3(1,1,1);
+			allocatedData->Size = allocatedData->Scale = glm::vec3(1, 1, 1);
 			m_item.Data = allocatedData;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+		} else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating ShaderPass object...");
 
-			pipe::ShaderPass *allocatedData = new pipe::ShaderPass();
+			pipe::ShaderPass* allocatedData = new pipe::ShaderPass();
 			strcpy(allocatedData->VSEntry, "main");
 			strcpy(allocatedData->PSEntry, "main");
 			strcpy(allocatedData->GSEntry, "main");
@@ -679,22 +645,20 @@ namespace ed
 		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating ComputePass object...");
 
-			pipe::ComputePass *allocatedData = new pipe::ComputePass();
+			pipe::ComputePass* allocatedData = new pipe::ComputePass();
 			strcpy(allocatedData->Entry, "main");
 			m_item.Data = allocatedData;
 		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating AudioPass object...");
 
-			pipe::AudioPass *allocatedData = new pipe::AudioPass();
+			pipe::AudioPass* allocatedData = new pipe::AudioPass();
 			m_item.Data = allocatedData;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+		} else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			Logger::Get().Log("Opening a CreateItemUI for creating RenderState object...");
 
 			pipe::RenderState* allocatedData = new pipe::RenderState();
 			m_item.Data = allocatedData;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::Model) {
+		} else if (m_item.Type == PipelineItem::ItemType::Model) {
 			Logger::Get().Log("Opening a CreateItemUI for creating Model object...");
 
 			m_selectedGroup = 0;
@@ -710,8 +674,8 @@ namespace ed
 	{
 		if (m_data->Parser.FileExists(shader->VSPath)) {
 			std::string psContent = "", vsContent = "",
-				vsEntry = shader->VSEntry,
-				psEntry = shader->PSEntry;
+						vsEntry = shader->VSEntry,
+						psEntry = shader->PSEntry;
 
 			// pixel shader
 			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
@@ -735,7 +699,7 @@ namespace ed
 			GLuint gs = 0;
 			if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 				std::string gsContent = "",
-					gsEntry = shader->GSEntry;
+							gsEntry = shader->GSEntry;
 
 				if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
 					gsContent = m_data->Parser.LoadProjectFile(shader->GSPath);
@@ -757,13 +721,12 @@ namespace ed
 				GLint count;
 
 				const GLsizei bufSize = 64; // maximum name length
-				GLchar name[bufSize]; // variable name in GLSL
-				GLsizei length; // name length
+				GLchar name[bufSize];		// variable name in GLSL
+				GLsizei length;				// name length
 				GLuint samplerLoc = 0;
 
 				glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &count);
-				for (GLuint i = 0; i < count; i++)
-				{
+				for (GLuint i = 0; i < count; i++) {
 					GLint size;
 					GLenum type;
 
@@ -873,11 +836,9 @@ namespace ed
 
 			m_errorOccured = !m_data->Pipeline.AddShaderPass(m_item.Name, data);
 			return !m_errorOccured;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::ComputePass)
-		{
-			pipe::ComputePass *data = new pipe::ComputePass();
-			pipe::ComputePass *origData = (pipe::ComputePass *)m_item.Data;
+		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+			pipe::ComputePass* data = new pipe::ComputePass();
+			pipe::ComputePass* origData = (pipe::ComputePass*)m_item.Data;
 
 			strcpy(data->Entry, origData->Entry);
 			strcpy(data->Path, origData->Path);
@@ -887,18 +848,15 @@ namespace ed
 
 			m_errorOccured = !m_data->Pipeline.AddComputePass(m_item.Name, data);
 			return !m_errorOccured;
-		}
-		else if (m_item.Type == PipelineItem::ItemType::AudioPass)
-		{
-			pipe::AudioPass *data = new pipe::AudioPass();
-			pipe::AudioPass *origData = (pipe::AudioPass *)m_item.Data;
+		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+			pipe::AudioPass* data = new pipe::AudioPass();
+			pipe::AudioPass* origData = (pipe::AudioPass*)m_item.Data;
 
 			strcpy(data->Path, origData->Path);
 
 			m_errorOccured = !m_data->Pipeline.AddAudioPass(m_item.Name, data);
 			return !m_errorOccured;
-		}
-		else if (m_owner[0] != 0) {
+		} else if (m_owner[0] != 0) {
 			if (m_item.Type == PipelineItem::ItemType::Geometry) {
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)m_item.Data;
@@ -922,9 +880,8 @@ namespace ed
 				else if (data->Type == pipe::GeometryItem::Circle) {
 					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, inpLayout);
 					data->Topology = GL_TRIANGLE_STRIP;
-				}
-				else if (data->Type == pipe::GeometryItem::Plane)
-					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO,data->Size.x, data->Size.y, inpLayout);
+				} else if (data->Type == pipe::GeometryItem::Plane)
+					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, data->Size.x, data->Size.y, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
 					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Sphere)
@@ -936,8 +893,7 @@ namespace ed
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 				return !m_errorOccured;
-			}
-			else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+			} else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* data = new pipe::RenderState();
 				pipe::RenderState* origData = (pipe::RenderState*)m_item.Data;
 
@@ -945,8 +901,7 @@ namespace ed
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 				return !m_errorOccured;
-			}
-			else if (m_item.Type == PipelineItem::ItemType::Model) {
+			} else if (m_item.Type == PipelineItem::ItemType::Model) {
 				pipe::Model* data = new pipe::Model();
 				pipe::Model* origData = (pipe::Model*)m_item.Data;
 
@@ -956,7 +911,6 @@ namespace ed
 				data->Scale = origData->Scale;
 				data->Position = origData->Position;
 				data->Rotation = origData->Rotation;
-			
 
 				if (strlen(data->Filename) > 0) {
 					eng::Model* mdl = m_data->Parser.LoadModel(data->Filename);
@@ -964,7 +918,8 @@ namespace ed
 					bool loaded = mdl != nullptr;
 					if (loaded)
 						data->Data = mdl;
-					else m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create a 3D model " + std::string(m_item.Name));
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, m_owner, "Failed to create a 3D model " + std::string(m_item.Name));
 				}
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);

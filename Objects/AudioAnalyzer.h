@@ -1,14 +1,12 @@
 #pragma once
-#include <vector>
-#include <valarray>
 #include <complex>
+#include <valarray>
+#include <vector>
 
 #include <SFML/Audio/SoundBuffer.hpp>
 
-namespace ed
-{
-	class AudioAnalyzer
-	{
+namespace ed {
+	class AudioAnalyzer {
 	public: /*   CONFIG   */
 		static const int SampleCount = 512;
 		static const int BufferOutSize = SampleCount / 2;

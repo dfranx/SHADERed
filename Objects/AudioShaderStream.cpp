@@ -1,18 +1,17 @@
 #include "AudioShaderStream.h"
-#include "ShaderTranscompiler.h"
-#include "../Engine/GeometryFactory.h"
 #include "../Engine/GLUtils.h"
-#include <vector>
+#include "../Engine/GeometryFactory.h"
+#include "ShaderTranscompiler.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
-namespace ed
-{
+namespace ed {
 	AudioShaderStream::AudioShaderStream()
 	{
 		m_fboBuffers = GL_COLOR_ATTACHMENT0;
 		m_curTime = 0.0f;
-		
+
 		memset(m_pixels, 0, sizeof(char) * 1024);
 		m_needsUpdate = false;
 
@@ -26,15 +25,15 @@ namespace ed
 		glDeleteProgram(m_shader);
 		stop();
 	}
-	
+
 	bool AudioShaderStream::onGetData(Chunk& data)
 	{
 		m_mutex.lock();
 
 		data.samples = m_audio;
-		data.sampleCount = 1024*2;
+		data.sampleCount = 1024 * 2;
 
-		m_curTime += 1024.0f/44100.0f;
+		m_curTime += 1024.0f / 44100.0f;
 		m_needsUpdate = true;
 
 		m_mutex.unlock();
@@ -83,7 +82,7 @@ namespace ed
 				}
 			)";
 		}
-		
+
 		std::string psTrans = "";
 		if (isHLSL)
 			psTrans = ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, 1, "main", macros, false, m_msgs, project);
@@ -97,7 +96,7 @@ namespace ed
 		glShaderSource(audioVS, 1, &vsCode, nullptr);
 		glCompileShader(audioVS);
 		glGetShaderiv(audioVS, GL_COMPILE_STATUS, &success);
-		if(!success && !isHLSL) {
+		if (!success && !isHLSL) {
 			glGetShaderInfoLog(audioVS, 512, NULL, infoLog);
 			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
 		}
@@ -107,7 +106,7 @@ namespace ed
 		glShaderSource(audioPS, 1, &psSource, nullptr);
 		glCompileShader(audioPS);
 		glGetShaderiv(audioPS, GL_COMPILE_STATUS, &success);
-		if(!success && !isHLSL) {
+		if (!success && !isHLSL) {
 			glGetShaderInfoLog(audioPS, 512, NULL, infoLog);
 			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
 		}
@@ -118,7 +117,7 @@ namespace ed
 		glAttachShader(m_shader, audioPS);
 		glLinkProgram(m_shader);
 		glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
-		if(!success && !isHLSL) {
+		if (!success && !isHLSL) {
 			glGetProgramInfoLog(m_shader, 512, NULL, infoLog);
 			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
 		}
@@ -138,7 +137,7 @@ namespace ed
 	{
 		if (!m_needsUpdate)
 			return;
-		
+
 		m_mutex.lock();
 
 		glUseProgram(m_shader);
@@ -159,12 +158,12 @@ namespace ed
 
 		for (int s = 0; s < 1024; s++) {
 			int off = s * 4;
-			m_audio[s*2] = m_pixels[off + 0] * INT16_MAX;
-			m_audio[s*2+1] = m_pixels[off + 1] * INT16_MAX;
+			m_audio[s * 2] = m_pixels[off + 0] * INT16_MAX;
+			m_audio[s * 2 + 1] = m_pixels[off + 1] * INT16_MAX;
 		}
 
 		m_needsUpdate = false;
-		
+
 		m_mutex.unlock();
 	}
 	void AudioShaderStream::onSeek(sf::Time timeOffset)

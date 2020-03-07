@@ -1,10 +1,8 @@
 #pragma once
 #include "UIView.h"
 
-namespace ed
-{
-	class MessageOutputUI : public UIView
-	{
+namespace ed {
+	class MessageOutputUI : public UIView {
 	public:
 		using UIView::UIView;
 

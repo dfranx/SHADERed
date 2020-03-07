@@ -1,23 +1,18 @@
 #pragma once
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
-namespace ed
-{
-	namespace eng
-	{
-		class Model
-		{
+namespace ed {
+	namespace eng {
+		class Model {
 		public:
-			class Mesh
-			{
+			class Mesh {
 			public:
-				struct Vertex
-				{
+				struct Vertex {
 					glm::vec3 Position;
 					glm::vec3 Normal;
 					glm::vec2 TexCoords;
@@ -25,8 +20,7 @@ namespace ed
 					glm::vec3 Binormal;
 					glm::vec4 Color;
 				};
-				struct Texture
-				{
+				struct Texture {
 					unsigned int ID;
 					std::string Type;
 				};

@@ -1,9 +1,7 @@
 #include "Timer.h"
 
-namespace ed
-{
-	namespace eng
-	{
+namespace ed {
+	namespace eng {
 		Timer::Timer()
 		{
 			m_start = std::chrono::system_clock::now();

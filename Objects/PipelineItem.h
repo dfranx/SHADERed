@@ -1,10 +1,10 @@
 #pragma once
 #include "../Engine/Model.h"
-#include "ShaderVariableContainer.h"
-#include "AudioShaderStream.h"
-#include "ShaderMacro.h"
-#include "InputLayout.h"
 #include "../Options.h"
+#include "AudioShaderStream.h"
+#include "InputLayout.h"
+#include "ShaderMacro.h"
+#include "ShaderVariableContainer.h"
 
 #include <glm/glm.hpp>
 #ifdef _WIN32
@@ -12,18 +12,15 @@
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 #include <string>
 
-namespace ed
-{
-	struct PipelineItem
-	{
-		enum class ItemType
-		{
+namespace ed {
+	struct PipelineItem {
+		enum class ItemType {
 			ShaderPass,
 			Geometry,
 			RenderState,
@@ -34,8 +31,13 @@ namespace ed
 			Count
 		};
 
-		PipelineItem() : Data(0) { memset(Name, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char)); }
-		PipelineItem(const char* name, ItemType type, void* data) {
+		PipelineItem()
+				: Data(0)
+		{
+			memset(Name, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char));
+		}
+		PipelineItem(const char* name, ItemType type, void* data)
+		{
 			strcpy(Name, name);
 			Type = type;
 			Data = data;
@@ -46,10 +48,8 @@ namespace ed
 		void* Data;
 	};
 
-	namespace pipe
-	{
-		struct PluginItemData
-		{
+	namespace pipe {
+		struct PluginItemData {
 			char Type[64];
 			IPlugin* Owner;
 			void* PluginData;
@@ -57,9 +57,9 @@ namespace ed
 			std::vector<PipelineItem*> Items;
 		};
 
-		struct ComputePass
-		{
-			ComputePass() {
+		struct ComputePass {
+			ComputePass()
+			{
 				Macros.clear();
 				memset(Path, 0, sizeof(char) * MAX_PATH);
 				memset(Entry, 0, sizeof(char) * 32);
@@ -75,9 +75,9 @@ namespace ed
 			std::vector<ShaderMacro> Macros;
 		};
 
-		struct AudioPass
-		{
-			AudioPass() {
+		struct AudioPass {
+			AudioPass()
+			{
 				Macros.clear();
 				memset(Path, 0, sizeof(char) * MAX_PATH);
 			}
@@ -88,9 +88,9 @@ namespace ed
 			std::vector<ShaderMacro> Macros;
 		};
 
-		struct ShaderPass
-		{
-			ShaderPass() { 
+		struct ShaderPass {
+			ShaderPass()
+			{
 				memset(RenderTextures, 0, sizeof(GLuint) * MAX_RENDER_TEXTURES);
 				DepthTexture = 0;
 				FBO = 0;
@@ -109,7 +109,7 @@ namespace ed
 			GLbyte RTCount;
 			GLuint RenderTextures[MAX_RENDER_TEXTURES];
 			GLuint DepthTexture; // pointer to actual depth & stencil texture
-			GLuint FBO; // actual framebuffer
+			GLuint FBO;			 // actual framebuffer
 
 			bool Active;
 
@@ -131,8 +131,7 @@ namespace ed
 			std::vector<PipelineItem*> Items;
 		};
 
-		struct GeometryItem
-		{
+		struct GeometryItem {
 			GeometryItem()
 			{
 				Position = glm::vec3(0, 0, 0);
@@ -167,8 +166,7 @@ namespace ed
 			void* InstanceBuffer;
 		};
 
-		struct RenderState
-		{
+		struct RenderState {
 			GLenum PolygonMode;
 			bool CullFace;
 			GLenum CullFaceType;
@@ -197,7 +195,8 @@ namespace ed
 			GLenum StencilFrontFaceOpStencilFail, StencilFrontFaceOpDepthFail, StencilFrontFaceOpPass;
 			GLenum StencilBackFaceOpStencilFail, StencilBackFaceOpDepthFail, StencilBackFaceOpPass;
 
-			RenderState() {
+			RenderState()
+			{
 				PolygonMode = GL_FILL;
 				CullFace = true;
 				CullFaceType = GL_BACK;
@@ -207,7 +206,7 @@ namespace ed
 				AlphaToCoverage = false;
 				BlendSourceFactorRGB = GL_SRC_ALPHA;
 				BlendDestinationFactorRGB = GL_ONE_MINUS_SRC_ALPHA;
-				BlendFunctionColor = GL_FUNC_ADD; 
+				BlendFunctionColor = GL_FUNC_ADD;
 				BlendSourceFactorAlpha = GL_SRC_ALPHA;
 				BlendDestinationFactorAlpha = GL_ONE_MINUS_SRC_ALPHA;
 				BlendFunctionAlpha = GL_FUNC_ADD;
@@ -228,12 +227,11 @@ namespace ed
 			}
 		};
 
-		struct Model
-		{
+		struct Model {
 			bool OnlyGroup; // render only a group
 			char GroupName[MODEL_GROUP_NAME_LENGTH];
 			char Filename[MAX_PATH];
-			
+
 			eng::Model* Data;
 
 			glm::vec3 Position, Rotation, Scale;

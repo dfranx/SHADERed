@@ -1,16 +1,13 @@
 #pragma once
-#include <vector>
 #include "../Options.h"
 #include "PipelineItem.h"
+#include <vector>
 
-namespace ed
-{
+namespace ed {
 	class ProjectParser;
 
-	class PipelineManager
-	{
+	class PipelineManager {
 	public:
-
 		PipelineManager(ProjectParser* project);
 		~PipelineManager();
 
@@ -32,7 +29,6 @@ namespace ed
 		void FreeData(void* data, PipelineItem::ItemType type);
 
 	private:
-
 		ProjectParser* m_project;
 		std::vector<PipelineItem*> m_items;
 	};

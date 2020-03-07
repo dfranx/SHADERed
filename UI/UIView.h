@@ -1,16 +1,20 @@
 #pragma once
 #include "../InterfaceManager.h"
 
-namespace ed
-{
+namespace ed {
 	class GUIManager;
 
-	class UIView
-	{
+	class UIView {
 	public:
-		UIView(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) : m_ui(ui), m_data(objects), Visible(visible), Name(name) {}
-		virtual ~UIView() {}
-		
+		UIView(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: m_ui(ui)
+				, m_data(objects)
+				, Visible(visible)
+				, Name(name)
+		{
+		}
+		virtual ~UIView() { }
+
 		virtual void OnEvent(const SDL_Event& e) = 0;
 		virtual void Update(float delta) = 0;
 

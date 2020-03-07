@@ -1,11 +1,8 @@
 #pragma once
 
-namespace ed
-{
-	namespace plugin
-	{
-		enum class PipelineItemType
-		{
+namespace ed {
+	namespace plugin {
+		enum class PipelineItemType {
 			ShaderPass,
 			Geometry,
 			RenderState,
@@ -16,8 +13,7 @@ namespace ed
 			Count
 		};
 
-		enum class VariableType
-		{
+		enum class VariableType {
 			Boolean1,
 			Boolean2,
 			Boolean3,
@@ -36,8 +32,7 @@ namespace ed
 			Count
 		};
 
-		enum class InputLayoutValue
-		{
+		enum class InputLayoutValue {
 			Position,
 			Normal,
 			Texcoord,
@@ -47,22 +42,19 @@ namespace ed
 			MaxCount
 		};
 
-		enum class MessageType
-		{
+		enum class MessageType {
 			Error,
 			Warning,
 			Message
 		};
 
-		class InputLayoutItem
-		{
+		class InputLayoutItem {
 		public:
 			InputLayoutValue Value;
 			char Semantic[64];
 		};
 
-		enum class TextEditorPaletteIndex
-		{
+		enum class TextEditorPaletteIndex {
 			Default,
 			Keyword,
 			Number,

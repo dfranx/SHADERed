@@ -2,14 +2,12 @@
 #include "UIView.h"
 #include "VariableValueEdit.h"
 
-namespace ed
-{
-	class PinnedUI : public UIView
-	{
+namespace ed {
+	class PinnedUI : public UIView {
 	public:
-		PinnedUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) : 
-			UIView(ui, objects, name, visible),
-			m_editor(objects)
+		PinnedUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+				, m_editor(objects)
 		{
 		}
 

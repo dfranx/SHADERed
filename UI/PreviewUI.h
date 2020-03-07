@@ -1,24 +1,26 @@
 #pragma once
-#include "UIView.h"
 #include "../Objects/GizmoObject.h"
 #include "Tools/Magnifier.h"
+#include "UIView.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-namespace ed
-{
-	class PreviewUI : public UIView
-	{
+namespace ed {
+	class PreviewUI : public UIView {
 	public:
-		PreviewUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
-			UIView(ui, objects, name, visible),
-			m_pickMode(0),
-			m_fpsDelta(0.0f),
-			m_fpsUpdateTime(0.0f),
-			m_pos1(0,0,0), m_pos2(0,0,0),
-			m_overlayFBO(0), m_overlayColor(0), m_overlayDepth(0),
-			m_lastSize(-1, -1) {
+		PreviewUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+				, m_pickMode(0)
+				, m_fpsDelta(0.0f)
+				, m_fpsUpdateTime(0.0f)
+				, m_pos1(0, 0, 0)
+				, m_pos2(0, 0, 0)
+				, m_overlayFBO(0)
+				, m_overlayColor(0)
+				, m_overlayDepth(0)
+				, m_lastSize(-1, -1)
+		{
 			m_setupShortcuts();
 			m_setupBoundingBox();
 			m_fpsLimit = m_elapsedTime = 0;
@@ -27,7 +29,8 @@ namespace ed
 			m_mouseHovers = false;
 			m_lastButtonUpdate = false;
 		}
-		~PreviewUI() {
+		~PreviewUI()
+		{
 			glDeleteBuffers(1, &m_boxVBO);
 			glDeleteVertexArrays(1, &m_boxVAO);
 			glDeleteShader(m_boxShader);
@@ -44,7 +47,7 @@ namespace ed
 		void m_setupShortcuts();
 
 		void m_renderStatusbar(float width, float height);
-		
+
 		void m_setupBoundingBox();
 		void m_buildBoundingBox();
 		void m_renderBoundingBox();
@@ -60,7 +63,7 @@ namespace ed
 
 		ImVec2 m_imgSize;
 
-		glm::vec3 m_tempTrans, m_tempScale, m_tempRota, 
+		glm::vec3 m_tempTrans, m_tempScale, m_tempRota,
 			m_prevTrans, m_prevScale, m_prevRota;
 		GizmoObject m_gizmo;
 

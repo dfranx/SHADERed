@@ -1,21 +1,19 @@
 #pragma once
+#include "../Objects/Logger.h"
+#include "../Objects/PipelineItem.h"
+#include "../Objects/Settings.h"
+#include "../Objects/ShaderLanguage.h"
+#include "../Objects/ShaderStage.h"
 #include "UIView.h"
 #include <ImGuiColorTextEdit/TextEditor.h>
-#include "../Objects/ShaderLanguage.h"
-#include "../Objects/PipelineItem.h"
-#include "../Objects/ShaderStage.h"
-#include "../Objects/Settings.h"
-#include "../Objects/Logger.h"
-#include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/examples/imgui_impl_sdl.h>
 #include <deque>
 #include <future>
 #include <shared_mutex>
 
-namespace ed
-{
-	class CodeEditorUI : public UIView
-	{
+namespace ed {
+	class CodeEditorUI : public UIView {
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false);
 		~CodeEditorUI();
@@ -29,7 +27,7 @@ namespace ed
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
-		
+
 		void SetTheme(const TextEditor::Palette& colors);
 		void SetTabSize(int ts);
 		void SetInsertSpaces(bool ts);
@@ -44,15 +42,18 @@ namespace ed
 		void UpdateShortcuts();
 		void SetFont(const std::string& filename, int size = 15);
 
-
 		void StopThreads();
-		
+
 		// TODO: remove unused functions here
 		inline bool HasFocus() { return m_selectedItem != -1; }
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }
 		inline std::pair<std::string, int> GetFont() { return std::make_pair(m_fontFilename, m_fontSize); }
-		inline void UpdateFont() { m_fontNeedsUpdate = false; m_font = ImGui::GetIO().Fonts->Fonts[1]; }
-		
+		inline void UpdateFont()
+		{
+			m_fontNeedsUpdate = false;
+			m_font = ImGui::GetIO().Fonts->Fonts[1];
+		}
+
 		void SetAutoRecompile(bool autorecompile);
 		void UpdateAutoRecompileItems();
 
@@ -70,13 +71,16 @@ namespace ed
 		std::vector<std::string> GetOpenedFilesData();
 		void SetOpenedFilesData(const std::vector<std::string>& data);
 
-
 	private:
 		// TODO:
-		class StatsPage
-		{
+		class StatsPage {
 		public:
-			StatsPage(InterfaceManager* im) : IsActive(false), Info(nullptr), m_data(im) {}
+			StatsPage(InterfaceManager* im)
+					: IsActive(false)
+					, Info(nullptr)
+					, m_data(im)
+			{
+			}
 			~StatsPage() { }
 
 			void Fetch(ed::PipelineItem* item, const std::string& code, int type);
@@ -89,7 +93,6 @@ namespace ed
 			InterfaceManager* m_data;
 		};
 
-
 	private:
 		void m_setupShortcuts();
 
@@ -99,7 +102,7 @@ namespace ed
 		void m_loadEditorShortcuts(TextEditor* editor);
 
 		// font for code editor
-		ImFont *m_font;
+		ImFont* m_font;
 
 		// menu bar item actions
 		void m_save(int id);
@@ -132,9 +135,9 @@ namespace ed
 		std::vector<ed::MessageStack::Message> m_autoRecompileCachedMsgs;
 		bool m_autoRecompile;
 		std::shared_mutex m_autoRecompilerMutex;
-		struct AutoRecompilerItemInfo
-		{
-			AutoRecompilerItemInfo() {
+		struct AutoRecompilerItemInfo {
+			AutoRecompilerItemInfo()
+			{
 				VS = PS = GS = CS = "";
 				VS_SLang = PS_SLang = GS_SLang = CS_SLang = ShaderLanguage::GLSL;
 

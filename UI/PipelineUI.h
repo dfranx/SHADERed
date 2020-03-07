@@ -1,17 +1,19 @@
 #pragma once
+#include "CreateItemUI.h"
 #include "UIView.h"
 #include "VariableValueEdit.h"
-#include "CreateItemUI.h"
 
-namespace ed
-{
-	class PipelineUI : public UIView
-	{
+namespace ed {
+	class PipelineUI : public UIView {
 	public:
-		PipelineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
-			UIView(ui, objects, name, visible), m_isChangeVarsOpened(false),
-			m_isCreateViewOpened(false), m_isVarManagerOpened(false), m_modalItem(nullptr),
-			m_createUI(ui, objects), m_valueEdit(objects)
+		PipelineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+				, m_isChangeVarsOpened(false)
+				, m_isCreateViewOpened(false)
+				, m_isVarManagerOpened(false)
+				, m_modalItem(nullptr)
+				, m_createUI(ui, objects)
+				, m_valueEdit(objects)
 		{
 			m_itemMenuOpened = false;
 			m_isMacroManagerOpened = false;
@@ -21,7 +23,7 @@ namespace ed
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
-		
+
 		inline void Reset() { m_expandList.clear(); }
 
 		void DeleteItem(PipelineItem* item);
@@ -45,7 +47,6 @@ namespace ed
 		CreateItemUI m_createUI;
 		ed::PipelineItem* m_modalItem; // item that we are editing in a popup modal
 		void m_closePopup();
-		
 
 		// for variable value editor
 		ed::VariableValueEditUI m_valueEdit;

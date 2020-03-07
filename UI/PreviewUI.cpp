@@ -1,19 +1,19 @@
 #include "PreviewUI.h"
-#include "PropertyUI.h"
-#include "PipelineUI.h"
-#include "Icons.h"
+#include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Objects/DefaultState.h"
+#include "../Objects/KeyboardShortcuts.h"
 #include "../Objects/Logger.h"
 #include "../Objects/Settings.h"
-#include "../Objects/DefaultState.h"
 #include "../Objects/SystemVariableManager.h"
-#include "../Objects/KeyboardShortcuts.h"
 #include "../Objects/ThemeContainer.h"
-#include "../Engine/GeometryFactory.h"
-#include "../Engine/GLUtils.h"
+#include "Icons.h"
+#include "PipelineUI.h"
+#include "PropertyUI.h"
 
+#include <imgui/imgui_internal.h>
 #include <chrono>
 #include <thread>
-#include <imgui/imgui_internal.h>
 
 #define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(32) + ImGui::GetStyle().FramePadding.y
 #define BUTTON_SIZE Settings::Instance().CalculateSize(20)
@@ -22,7 +22,6 @@
 #define FPS_UPDATE_RATE 0.3f
 #define BOUNDING_BOX_PADDING 0.01f
 #define MAX_PICKED_ITEM_LIST_SIZE 4
-
 
 /* bounding box shaders */
 const char* BOX_VS_CODE = R"(
@@ -48,8 +47,7 @@ void main()
 }
 )";
 
-namespace ed
-{
+namespace ed {
 	void PreviewUI::m_setupShortcuts()
 	{
 		KeyboardShortcuts::Instance().SetCallback("Gizmo.Position", [=]() {
@@ -83,7 +81,7 @@ namespace ed
 
 			SystemVariableManager::Instance().AdvanceTimer(deltaTime); // add one second to timer
 			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 1);
-		
+
 			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.IncreaseTimeFast", [=]() {
@@ -91,10 +89,9 @@ namespace ed
 				return;
 
 			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
-			
-			SystemVariableManager::Instance().AdvanceTimer(0.1f); // add one second to timer
-			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
-					0.1f/deltaTime); // add estimated number of frames
+
+			SystemVariableManager::Instance().AdvanceTimer(0.1f);																   // add one second to timer
+			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 0.1f / deltaTime); // add estimated number of frames
 
 			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
@@ -119,8 +116,7 @@ namespace ed
 
 				ed::pipe::ShaderPass* pdata = (ed::pipe::ShaderPass*)pass[i]->Data;
 				for (int j = 0; j < pdata->Items.size(); j++) {
-					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry ||
-						pdata->Items[j]->Type == PipelineItem::ItemType::Model)
+					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry || pdata->Items[j]->Type == PipelineItem::ItemType::Model)
 						Pick(pdata->Items[j], true);
 				}
 			}
@@ -133,11 +129,8 @@ namespace ed
 			bool isAltDown = keyState[SDL_SCANCODE_LALT] || keyState[SDL_SCANCODE_RALT];
 
 			m_mouseContact = ImVec2(e.button.x, e.button.y);
-		
-			if (!m_data->Renderer.IsPaused() &&
-			   (e.button.button == SDL_BUTTON_LEFT) &&
-				!isAltDown)
-			{
+
+			if (!m_data->Renderer.IsPaused() && (e.button.button == SDL_BUTTON_LEFT) && !isAltDown) {
 				m_lastButton = glm::vec2(e.button.x, e.button.y);
 				m_lastButtonUpdate = true;
 			}
@@ -161,18 +154,15 @@ namespace ed
 
 				m_gizmo.HandleMouseMove(s.x, s.y, m_lastSize.x, m_lastSize.y);
 			}
-			
+
 			m_zoom.Drag();
-		}
-		else if (e.type == SDL_MOUSEBUTTONUP) {
+		} else if (e.type == SDL_MOUSEBUTTONUP) {
 			SDL_CaptureMouse(SDL_FALSE);
 			m_startWrap = false;
 			if (Settings::Instance().Preview.Gizmo)
 				m_gizmo.UnselectAxis();
 
-			if (!m_data->Renderer.IsPaused() &&
-				(e.button.button == SDL_BUTTON_LEFT))
-			{
+			if (!m_data->Renderer.IsPaused() && (e.button.button == SDL_BUTTON_LEFT)) {
 				glm::vec4 mbtn = SystemVariableManager::Instance().GetMouseButton();
 				SystemVariableManager::Instance().SetMouseButton(mbtn.x, mbtn.y, -std::max<float>(0.0f, mbtn.z), -std::max<float>(0.0f, mbtn.w));
 			}
@@ -215,12 +205,11 @@ namespace ed
 		// calculate position
 		m_prevTrans = glm::vec3(0, 0, 0);
 		for (int i = 0; i < m_picks.size(); i++) {
-			glm::vec3 pos(0,0,0);
+			glm::vec3 pos(0, 0, 0);
 			if (m_picks[i]->Type == PipelineItem::ItemType::Geometry) {
 				pipe::GeometryItem* geo = (pipe::GeometryItem*)m_picks[i]->Data;
 				pos = geo->Position;
-			}
-			else if (m_picks[i]->Type == PipelineItem::ItemType::Model) {
+			} else if (m_picks[i]->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* obj = (pipe::Model*)m_picks[i]->Data;
 				pos = obj->Position;
 			}
@@ -234,7 +223,6 @@ namespace ed
 			m_prevTrans.z /= m_picks.size();
 		}
 		m_tempTrans = m_prevTrans;
-
 
 		if (m_picks.size() != 0) {
 			if (Settings::Instance().Preview.BoundingBox)
@@ -265,14 +253,13 @@ namespace ed
 
 		ImVec2 imageSize = m_imgSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - (STATUSBAR_HEIGHT - ImGui::GetStyle().FramePadding.y) * statusbar));
 		ed::RenderEngine* renderer = &m_data->Renderer;
-		
+
 		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
 			m_zoomLastSize.x = imageSize.x;
 			m_zoomLastSize.y = imageSize.y;
 			SystemVariableManager::Instance().SetViewportSize(imageSize.x, imageSize.y);
 
 			m_zoom.RebuildVBO(imageSize.x, imageSize.y);
-
 		}
 
 		m_fpsUpdateTime += delta;
@@ -289,26 +276,24 @@ namespace ed
 
 			m_elapsedTime -= 1 / m_fpsLimit;
 		}
-		
+
 		if (capWholeApp && 1000 / delta > m_fpsLimit)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
-			
+
 		GLuint rtView = renderer->GetTexture();
 
 		// display the image on the imgui window
 		const glm::vec2& zPos = m_zoom.GetZoomPosition();
 		const glm::vec2& zSize = m_zoom.GetZoomSize();
-		ImGui::Image((void*)rtView, imageSize, ImVec2(zPos.x,zPos.y+zSize.y), ImVec2(zPos.x+zSize.x,zPos.y));
+		ImGui::Image((void*)rtView, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 
 		m_hasFocus = ImGui::IsWindowFocused();
-
 
 		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() && ((pixelList.size() > 0 && ((ImGui::IsMouseClicked(0) && ImGui::IsItemHovered()) || !pixelList[0].Fetched)) || (pixelList.size() == 0)))
 			renderer->Render(imageSize.x, imageSize.y);
 
 		// render the gizmo/bounding box/zoom area if necessary
-		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) ||
-			m_zoom.IsSelecting()) {
+		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) || m_zoom.IsSelecting()) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != (int)imageSize.x || m_lastSize.y != (int)imageSize.y) {
 				m_lastSize.x = imageSize.x;
@@ -340,12 +325,12 @@ namespace ed
 		}
 
 		m_mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
-				1.0f - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+			1.0f - (imageSize.y + (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 		m_zoom.SetCurrentMousePosition(m_mousePos);
 
 		if (m_lastButtonUpdate) {
-				m_lastButton = glm::vec2((m_lastButton.x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
-					1.0f - (imageSize.y + (m_lastButton.y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
+			m_lastButton = glm::vec2((m_lastButton.x - ImGui::GetCursorScreenPos().x - ImGui::GetScrollX()) / imageSize.x,
+				1.0f - (imageSize.y + (m_lastButton.y - ImGui::GetCursorScreenPos().y - ImGui::GetScrollY())) / imageSize.y);
 			m_lastButtonUpdate = false;
 		}
 
@@ -356,10 +341,10 @@ namespace ed
 			// update system variable mouse position value
 			if (ImGui::IsMouseDown(0)) {
 				glm::vec4 mbtnlast = SystemVariableManager::Instance().GetMouseButton();
-				SystemVariableManager::Instance().SetMouseButton(std::max<float>(0.0f, m_mousePos.x * imageSize.x), 
-																std::max<float>(0.0f, m_mousePos.y * imageSize.y),
-																std::max<float>(0.0f, m_lastButton.x * imageSize.x),
-																std::max<float>(0.0f, m_lastButton.y * imageSize.y));
+				SystemVariableManager::Instance().SetMouseButton(std::max<float>(0.0f, m_mousePos.x * imageSize.x),
+					std::max<float>(0.0f, m_mousePos.y * imageSize.y),
+					std::max<float>(0.0f, m_lastButton.x * imageSize.x),
+					std::max<float>(0.0f, m_lastButton.y * imageSize.y));
 			}
 
 			SystemVariableManager::Instance().SetMousePosition(m_mousePos.x, m_mousePos.y);
@@ -374,15 +359,14 @@ namespace ed
 					glm::vec3 t = m_tempTrans - m_prevTrans;
 					glm::vec3 s = m_tempScale - m_prevScale;
 					glm::vec3 r = m_tempRota - m_prevRota;
-					glm::vec3* ot = nullptr, * os = nullptr, * orot = nullptr;
+					glm::vec3 *ot = nullptr, *os = nullptr, *orot = nullptr;
 
 					if (m_picks[i]->Type == PipelineItem::ItemType::Geometry) {
 						pipe::GeometryItem* geo = (pipe::GeometryItem*)m_picks[i]->Data;
 						ot = &geo->Position;
 						os = &geo->Scale;
 						orot = &geo->Rotation;
-					}
-					else if (m_picks[i]->Type == PipelineItem::ItemType::Model) {
+					} else if (m_picks[i]->Type == PipelineItem::ItemType::Model) {
 						pipe::Model* obj = (pipe::Model*)m_picks[i]->Data;
 						ot = &obj->Position;
 						os = &obj->Scale;
@@ -404,7 +388,6 @@ namespace ed
 						orot->y += r.y;
 						orot->z += r.z;
 					}
-
 				}
 
 				m_prevTrans = m_tempTrans;
@@ -412,34 +395,28 @@ namespace ed
 				m_prevScale = m_tempScale;
 
 				m_buildBoundingBox();
-			}
-			else if (m_picks.size() == 1) {
+			} else if (m_picks.size() == 1) {
 				if (m_picks[0]->Type == PipelineItem::ItemType::Geometry) {
 					pipe::GeometryItem* obj = (pipe::GeometryItem*)m_picks[0]->Data;
 					if (obj->Position != m_tempTrans) {
 						m_prevTrans = m_tempTrans = obj->Position;
 						m_buildBoundingBox();
-					}
-					else if (obj->Scale != m_tempScale) {
+					} else if (obj->Scale != m_tempScale) {
 						m_prevScale = m_tempScale = obj->Scale;
 						m_buildBoundingBox();
-					}
-					else if (obj->Rotation != m_tempRota) {
+					} else if (obj->Rotation != m_tempRota) {
 						m_prevRota = m_tempRota = obj->Rotation;
 						m_buildBoundingBox();
 					}
-				}
-				else if (m_picks[0]->Type == PipelineItem::ItemType::Model) {
+				} else if (m_picks[0]->Type == PipelineItem::ItemType::Model) {
 					pipe::Model* obj = (pipe::Model*)m_picks[0]->Data;
 					if (obj->Position != m_tempTrans) {
 						m_prevTrans = m_tempTrans = obj->Position;
 						m_buildBoundingBox();
-					}
-					else if (obj->Scale != m_tempScale) {
+					} else if (obj->Scale != m_tempScale) {
 						m_prevScale = m_tempScale = obj->Scale;
 						m_buildBoundingBox();
-					}
-					else if (obj->Rotation != m_tempRota) {
+					} else if (obj->Rotation != m_tempRota) {
 						m_prevRota = m_tempRota = obj->Rotation;
 						m_buildBoundingBox();
 					}
@@ -474,23 +451,16 @@ namespace ed
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
-			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
-				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
-				(settings.Preview.Gizmo || settings.Preview.BoundingBox) &&
-				!ImGui::GetIO().KeyAlt)
-			{
+			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && (settings.Preview.Gizmo || settings.Preview.BoundingBox) && !ImGui::GetIO().KeyAlt) {
 				// screen space position
-				glm::vec2 s(zPos.x + zSize.x*m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 
 				s.x *= imageSize.x;
 				s.y *= imageSize.y;
 
 				bool shiftPickBegan = ImGui::GetIO().KeyShift;
 
-				if ((settings.Preview.BoundingBox && !settings.Preview.Gizmo) ||
-					(m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, imageSize.x, imageSize.y) == -1) ||
-					m_picks.size() == 0)
-				{
+				if ((settings.Preview.BoundingBox && !settings.Preview.Gizmo) || (m_picks.size() != 0 && m_gizmo.Click(s.x, s.y, imageSize.x, imageSize.y) == -1) || m_picks.size() == 0) {
 					renderer->Pick(s.x, s.y, shiftPickBegan, [&](PipelineItem* item) {
 						if (settings.Preview.PropertyPick)
 							((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(item);
@@ -503,10 +473,8 @@ namespace ed
 			}
 
 			// handle right mouse dragging - camera
-			if (((ImGui::IsMouseDown(0) && settings.Preview.SwitchLeftRightClick) ||
-				(ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick))
-				&& !m_zoom.IsDragging())
-			{
+			if (((ImGui::IsMouseDown(0) && settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseDown(1) && !settings.Preview.SwitchLeftRightClick))
+				&& !m_zoom.IsDragging()) {
 				m_startWrap = true;
 				SDL_CaptureMouse(SDL_TRUE);
 
@@ -531,12 +499,9 @@ namespace ed
 					cam->Pitch(dY * 0.05f);
 				}
 			}
-			
+
 			// handle left mouse dragging - moving objects if selected
-			else if (((ImGui::IsMouseDown(0) && !settings.Preview.SwitchLeftRightClick) ||
-				(ImGui::IsMouseDown(1) && settings.Preview.SwitchLeftRightClick)) &&
-				settings.Preview.Gizmo && !m_zoom.IsSelecting())
-			{
+			else if (((ImGui::IsMouseDown(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseDown(1) && settings.Preview.SwitchLeftRightClick)) && settings.Preview.Gizmo && !m_zoom.IsSelecting()) {
 				// screen space position
 				glm::vec2 s = m_mousePos;
 				s.x *= imageSize.x;
@@ -552,14 +517,10 @@ namespace ed
 				cam->MoveUpDown((ImGui::IsKeyDown(SDL_SCANCODE_S) - ImGui::IsKeyDown(SDL_SCANCODE_W)) / 70.0f);
 				cam->MoveLeftRight((ImGui::IsKeyDown(SDL_SCANCODE_D) - ImGui::IsKeyDown(SDL_SCANCODE_A)) / 70.0f);
 			}
-		}
-		else if (m_mouseHovers) // else if paused - pixel inspection
+		} else if (m_mouseHovers) // else if paused - pixel inspection
 		{
 			// handle left click - pixel selection
-			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) ||
-				(ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) &&
-				!ImGui::GetIO().KeyAlt)
-			{
+			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
 				m_ui->StopDebugging();
 
 				// screen space position
@@ -567,7 +528,6 @@ namespace ed
 
 				m_data->Renderer.DebugPixelPick(s);
 			}
-
 		}
 
 		// mouse wrapping
@@ -583,16 +543,13 @@ namespace ed
 			if (s.x < mPercent) {
 				ptX += imageSize.x * (1 - mPercent);
 				wrappedMouse = true;
-			}
-			else if (s.x > 1 - mPercent) {
+			} else if (s.x > 1 - mPercent) {
 				ptX -= imageSize.x * (1 - mPercent);
 				wrappedMouse = true;
-			}
-			else if (s.y > 1 - mPercent) {
+			} else if (s.y > 1 - mPercent) {
 				ptY += imageSize.y * (1 - mPercent);
 				wrappedMouse = true;
-			}
-			else if (s.y < mPercent) {
+			} else if (s.y < mPercent) {
 				ptY -= imageSize.y * (1 - mPercent);
 				wrappedMouse = true;
 			}
@@ -608,7 +565,7 @@ namespace ed
 			m_renderStatusbar(imageSize.x, imageSize.y);
 
 		// debugger vertex outline
-		if (paused && zPos == glm::vec2(0,0) && zSize == glm::vec2(1, 1) && (!m_data->Debugger.IsDebugging() || m_data->Debugger.GetShaderStage() == sd::ShaderType::Vertex)) {
+		if (paused && zPos == glm::vec2(0, 0) && zSize == glm::vec2(1, 1) && (!m_data->Debugger.IsDebugging() || m_data->Debugger.GetShaderStage() == sd::ShaderType::Vertex)) {
 			if (pixelList.size() > 0) {
 				if (pixelList[0].Fetched) { // we only care about window's pixel info here
 					unsigned int vertOutlineColor = 0xffffffff;
@@ -653,10 +610,10 @@ namespace ed
 
 			// first find a name that is not used
 			std::string name = std::string(item->Name);
-		
+
 			// remove numbers at the end of the string
 			size_t lastOfLetter = std::string::npos;
-			for (size_t j = name.size()-1; j > 0; j--)
+			for (size_t j = name.size() - 1; j > 0; j--)
 				if (!std::isdigit(name[j])) {
 					lastOfLetter = j + 1;
 					break;
@@ -665,7 +622,7 @@ namespace ed
 				name = name.substr(0, lastOfLetter);
 
 			// add number to the string and check if it already exists
-			for (size_t j = 2; /*WE WILL BREAK FROM INSIDE ONCE WE FIND THE NAME*/;j++) {
+			for (size_t j = 2; /*WE WILL BREAK FROM INSIDE ONCE WE FIND THE NAME*/; j++) {
 				std::string newName = name + std::to_string(j);
 				bool has = m_data->Pipeline.Has(newName.c_str());
 
@@ -684,7 +641,6 @@ namespace ed
 				pipe::GeometryItem* data = new pipe::GeometryItem();
 				pipe::GeometryItem* origData = (pipe::GeometryItem*)item->Data;
 
-
 				pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
 
 				data->Position = origData->Position;
@@ -699,15 +655,14 @@ namespace ed
 				else if (data->Type == pipe::GeometryItem::Circle) {
 					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, ownerData->InputLayout);
 					data->Topology = GL_TRIANGLE_STRIP;
-				}
-				else if (data->Type == pipe::GeometryItem::Plane)
+				} else if (data->Type == pipe::GeometryItem::Plane)
 					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, data->Size.x, data->Size.y, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
 					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Sphere)
 					data->VAO = eng::GeometryFactory::CreateSphere(data->VBO, data->Size.x, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::Triangle)
-					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO,  data->Size.x, ownerData->InputLayout);
+					data->VAO = eng::GeometryFactory::CreateTriangle(data->VBO, data->Size.x, ownerData->InputLayout);
 				else if (data->Type == pipe::GeometryItem::ScreenQuadNDC)
 					data->VAO = eng::GeometryFactory::CreateScreenQuadNDC(data->VBO, ownerData->InputLayout);
 				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
@@ -725,7 +680,6 @@ namespace ed
 				data->Position = origData->Position;
 				data->Rotation = origData->Rotation;
 
-
 				if (strlen(data->Filename) > 0) {
 					std::string objMem = m_data->Parser.LoadProjectFile(data->Filename);
 					eng::Model* mdl = m_data->Parser.LoadModel(data->Filename);
@@ -733,12 +687,12 @@ namespace ed
 					bool loaded = mdl != nullptr;
 					if (loaded)
 						data->Data = mdl;
-					else m_data->Messages.Add(ed::MessageStack::Type::Error, owner, "Failed to create .obj model " + std::string(item->Name));
+					else
+						m_data->Messages.Add(ed::MessageStack::Type::Error, owner, "Failed to create .obj model " + std::string(item->Name));
 				}
 
 				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
 			}
-
 
 			duplicated.push_back(m_data->Pipeline.Get(name.c_str()));
 		}
@@ -748,7 +702,7 @@ namespace ed
 
 		// open in properties if needed
 		if (Settings::Instance().Preview.PropertyPick && m_picks.size() > 0)
-				((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(m_picks[m_picks.size()-1]);
+			((PropertyUI*)m_ui->Get(ViewID::Properties))->Open(m_picks[m_picks.size() - 1]);
 	}
 
 	void PreviewUI::m_renderStatusbar(float width, float height)
@@ -763,7 +717,7 @@ namespace ed
 		ImGui::SameLine();
 
 		ImGui::SameLine(Settings::Instance().CalculateSize(240));
-		ImGui::Text("Zoom: %d%%", (int)((1.0f/m_zoom.GetZoomSize().x)*100.0f));
+		ImGui::Text("Zoom: %d%%", (int)((1.0f / m_zoom.GetZoomSize().x) * 100.0f));
 		ImGui::SameLine();
 
 		ImGui::SameLine(Settings::Instance().CalculateSize(340));
@@ -771,30 +725,30 @@ namespace ed
 		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
 			m_pickMode = 0;
 			m_gizmo.SetMode(m_pickMode);
-		}
-		else if (m_pickMode == 0) ImGui::PopStyleColor();
+		} else if (m_pickMode == 0)
+			ImGui::PopStyleColor();
 		ImGui::SameLine();
 
 		if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
 			m_pickMode = 1;
 			m_gizmo.SetMode(m_pickMode);
-		}
-		else if (m_pickMode == 1) ImGui::PopStyleColor();
+		} else if (m_pickMode == 1)
+			ImGui::PopStyleColor();
 		ImGui::SameLine();
 
 		if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
 			m_pickMode = 2;
 			m_gizmo.SetMode(m_pickMode);
-		}
-		else if (m_pickMode == 2) ImGui::PopStyleColor();
+		} else if (m_pickMode == 2)
+			ImGui::PopStyleColor();
 		ImGui::SameLine();
 
 		if (m_picks.size() != 0) {
 			ImGui::SameLine(0, Settings::Instance().CalculateSize(20));
 			ImGui::Text("Picked: ");
-			
+
 			for (int i = 0; i < m_picks.size(); i++) {
 				ImGui::SameLine();
 
@@ -803,7 +757,7 @@ namespace ed
 				else
 					ImGui::Text("%s", m_picks[i]->Name);
 
-				if (i >= MAX_PICKED_ITEM_LIST_SIZE-1) {
+				if (i >= MAX_PICKED_ITEM_LIST_SIZE - 1) {
 					ImGui::SameLine();
 					ImGui::Text("...");
 					break;
@@ -814,7 +768,7 @@ namespace ed
 
 		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		
+
 		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
 		if (ImGui::GetCursorPosX() >= pauseStartX - 100)
 			ImGui::SameLine();
@@ -836,20 +790,16 @@ namespace ed
 			}
 		}
 
-		ImGui::SameLine(0,BUTTON_INDENT);
-		if (ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) &&
-			m_data->Renderer.IsPaused())
-		{
+		ImGui::SameLine(0, BUTTON_INDENT);
+		if (ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Renderer.IsPaused()) {
 			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
 
 			if (ImGui::GetIO().KeyCtrl) {
-				SystemVariableManager::Instance().AdvanceTimer(deltaTime); // add one second to timer
-				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
-					1); // increase by 1 frame
+				SystemVariableManager::Instance().AdvanceTimer(deltaTime);												// add one second to timer
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 1); // increase by 1 frame
 			} else {
-				SystemVariableManager::Instance().AdvanceTimer(0.1f); // add one second to timer
-				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() +
-					0.1f/deltaTime); // add estimated number of frames
+				SystemVariableManager::Instance().AdvanceTimer(0.1f);																   // add one second to timer
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 0.1f / deltaTime); // add estimated number of frames
 			}
 
 			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
@@ -860,13 +810,13 @@ namespace ed
 		ImGui::SetCursorPosX(zoomStartX);
 		if (ImGui::Button(UI_ICON_ZOOM_IN, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
 			m_zoom.Zoom(0.5f, false);
-		ImGui::SameLine(0,BUTTON_INDENT);
+		ImGui::SameLine(0, BUTTON_INDENT);
 		if (ImGui::Button(UI_ICON_ZOOM_OUT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
 			m_zoom.Zoom(2, false);
-		ImGui::SameLine(0,BUTTON_INDENT);
+		ImGui::SameLine(0, BUTTON_INDENT);
 		if (m_ui->IsPerformanceMode())
 			ImGui::PopStyleColor();
-		if (ImGui::Button(UI_ICON_MAXIMIZE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) 
+		if (ImGui::Button(UI_ICON_MAXIMIZE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
 			m_ui->SetPerformanceMode(!m_ui->IsPerformanceMode());
 
 		if (!m_ui->IsPerformanceMode())
@@ -885,7 +835,7 @@ namespace ed
 		glShaderSource(boxVS, 1, &BOX_VS_CODE, nullptr);
 		glCompileShader(boxVS);
 		glGetShaderiv(boxVS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(boxVS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile a bounding box vertex shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -896,7 +846,7 @@ namespace ed
 		glShaderSource(boxPS, 1, &BOX_PS_CODE, nullptr);
 		glCompileShader(boxPS);
 		glGetShaderiv(boxPS, GL_COMPILE_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetShaderInfoLog(boxPS, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to compile a bounding box pixel shader", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -908,7 +858,7 @@ namespace ed
 		glAttachShader(m_boxShader, boxPS);
 		glLinkProgram(m_boxShader);
 		glGetProgramiv(m_boxShader, GL_LINK_STATUS, &success);
-		if(!success) {
+		if (!success) {
 			glGetProgramInfoLog(m_boxShader, 512, NULL, infoLog);
 			ed::Logger::Get().Log("Failed to create a bounding box shader program", true);
 			ed::Logger::Get().Log(infoLog, true);
@@ -930,34 +880,31 @@ namespace ed
 			ed::PipelineItem* item = m_picks[i];
 
 			bool rotatePoints = true;
-			glm::vec3 minPosItem(0,0,0), maxPosItem(0,0,0);
-			glm::vec3 rota(0,0,0);
+			glm::vec3 minPosItem(0, 0, 0), maxPosItem(0, 0, 0);
+			glm::vec3 rota(0, 0, 0);
 			glm::vec3 pos(0, 0, 0);
 
 			if (item->Type == ed::PipelineItem::ItemType::Geometry) {
 				pipe::GeometryItem* data = (pipe::GeometryItem*)item->Data;
 				glm::vec3 size(data->Size.x * data->Scale.x, data->Size.y * data->Scale.y, data->Size.z * data->Scale.z);
-				
+
 				if (data->Type == pipe::GeometryItem::Sphere) {
 					size = glm::vec3(size.x * 2, size.x * 2, size.x * 2);
 					rotatePoints = false;
-				}
-				else if (data->Type == pipe::GeometryItem::Circle)
+				} else if (data->Type == pipe::GeometryItem::Circle)
 					size = glm::vec3(size.x * 2, size.y * 2, 0.0001f);
 				else if (data->Type == pipe::GeometryItem::Triangle) {
 					float rightOffs = data->Size.x / tan(glm::radians(30.0f));
 					size = glm::vec3(rightOffs * 2 * data->Scale.x, data->Size.x * 2 * data->Scale.y, 0.0001f);
-				}
-				else if (data->Type == pipe::GeometryItem::Plane)
+				} else if (data->Type == pipe::GeometryItem::Plane)
 					size.z = 0.0001f;
 
-				minPosItem = glm::vec3(- size.x / 2, - size.y / 2, - size.z / 2);
-				maxPosItem = glm::vec3(+ size.x / 2, + size.y / 2, + size.z / 2);
+				minPosItem = glm::vec3(-size.x / 2, -size.y / 2, -size.z / 2);
+				maxPosItem = glm::vec3(+size.x / 2, +size.y / 2, +size.z / 2);
 
 				rota = data->Rotation;
 				pos = data->Position;
-			}
-			else if (item->Type == ed::PipelineItem::ItemType::Model) {
+			} else if (item->Type == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* model = (pipe::Model*)item->Data;
 
 				minPosItem = model->Data->GetMinBound() * model->Scale; // TODO: add positions so that it works for multiple objects
@@ -965,9 +912,7 @@ namespace ed
 
 				rota = model->Rotation;
 				pos = model->Position;
-			}
-			else if (item->Type == ed::PipelineItem::ItemType::PluginItem)
-			{
+			} else if (item->Type == ed::PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 				float minPos[3], maxPos[3];
@@ -981,7 +926,7 @@ namespace ed
 			float pointsX[8] = { minPosItem.x, minPosItem.x, minPosItem.x, minPosItem.x, maxPosItem.x, maxPosItem.x, maxPosItem.x, maxPosItem.x };
 			float pointsY[8] = { minPosItem.y, minPosItem.y, maxPosItem.y, maxPosItem.y, minPosItem.y, minPosItem.y, maxPosItem.y, maxPosItem.y };
 			float pointsZ[8] = { minPosItem.z, maxPosItem.z, minPosItem.z, maxPosItem.z, minPosItem.z, maxPosItem.z, minPosItem.z, maxPosItem.z };
-			
+
 			// apply rotation and translation to those 8 points and check for min and max pos
 			for (int j = 0; j < 8; j++) {
 				glm::vec4 point(pointsX[j], pointsY[j], pointsZ[j], 1);
@@ -1000,8 +945,12 @@ namespace ed
 			}
 		}
 
-		minPos.x -= BOUNDING_BOX_PADDING; minPos.y -= BOUNDING_BOX_PADDING; minPos.z -= BOUNDING_BOX_PADDING;
-		maxPos.x += BOUNDING_BOX_PADDING; maxPos.y += BOUNDING_BOX_PADDING; maxPos.z += BOUNDING_BOX_PADDING;
+		minPos.x -= BOUNDING_BOX_PADDING;
+		minPos.y -= BOUNDING_BOX_PADDING;
+		minPos.z -= BOUNDING_BOX_PADDING;
+		maxPos.x += BOUNDING_BOX_PADDING;
+		maxPos.y += BOUNDING_BOX_PADDING;
+		maxPos.z += BOUNDING_BOX_PADDING;
 
 		// lines
 		std::vector<glm::vec3> verts = {
@@ -1045,18 +994,17 @@ namespace ed
 		glGenBuffers(1, &m_boxVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_boxVBO);
 		glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec3), verts.data(), GL_STATIC_DRAW);
-		
+
 		// create vao
 		glGenVertexArrays(1, &m_boxVAO);
 		glBindVertexArray(m_boxVAO);
-		
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
 		// unbind
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 
 		// calculate color for the bounding box
 		glm::vec4 clearClr = Settings::Instance().Project.ClearColor;

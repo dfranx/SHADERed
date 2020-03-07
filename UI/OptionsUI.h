@@ -1,15 +1,12 @@
 #pragma once
-#include "UIView.h"
-#include "../Objects/Settings.h"
 #include "../Objects/KeyboardShortcuts.h"
+#include "../Objects/Settings.h"
+#include "UIView.h"
 
-namespace ed
-{
-	class OptionsUI : public UIView
-	{
+namespace ed {
+	class OptionsUI : public UIView {
 	public:
-		enum class Page
-		{
+		enum class Page {
 			General,
 			Editor,
 			Debug,
@@ -19,9 +16,11 @@ namespace ed
 			Project
 		};
 
-		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
-			UIView(ui, objects, name, visible),
-			m_selectedShortcut(-1), m_page(Page::General) {
+		OptionsUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+				, m_selectedShortcut(-1)
+				, m_page(Page::General)
+		{
 			memset(m_shortcutSearch, 0, 256);
 			memset(m_pluginSearch, 0, 256);
 			m_pluginNotLoadedLB = 0;
@@ -34,7 +33,8 @@ namespace ed
 
 		inline bool IsListening() { return m_page == Page::Shortcuts && m_selectedShortcut != -1; }
 
-		inline void SetGroup(Page grp) {
+		inline void SetGroup(Page grp)
+		{
 			m_page = grp;
 			if (m_page == Page::General)
 				m_loadThemeList();
@@ -46,8 +46,7 @@ namespace ed
 				case 8: m_msaaChoice = 3; break;
 				default: m_msaaChoice = 0; break;
 				}
-			}
-			else if (m_page == Page::Plugins) {
+			} else if (m_page == Page::Plugins) {
 				m_loadPluginList();
 			}
 		}

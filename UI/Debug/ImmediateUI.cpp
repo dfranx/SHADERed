@@ -2,8 +2,7 @@
 #include "../UIHelper.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
+namespace ed {
 	void DebugImmediateUI::m_clear()
 	{
 		m_buffer.clear();
@@ -19,24 +18,23 @@ namespace ed
 				m_lineOffsets.push_back(old_size + 1);
 	}
 	void DebugImmediateUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void DebugImmediateUI::Update(float delta)
 	{
 		const float frame_size = ImGui::GetTextLineHeight() + ImGui::GetStyle().FramePadding.y * 2.0f + 5.0f;
 
 		// Main window
 		ImGui::BeginChild("##immediate_viewarea", ImVec2(0, -frame_size), false, ImGuiWindowFlags_HorizontalScrollbar);
-		
+
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		const char* buf = m_buffer.begin();
 		const char* buf_end = m_buffer.end();
 
 		ImGuiListClipper clipper;
 		clipper.Begin(m_lineOffsets.size());
-		while (clipper.Step())
-		{
-			for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-			{
+		while (clipper.Step()) {
+			for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
 				const char* line_start = buf + m_lineOffsets[line_no];
 				const char* line_end = (line_no + 1 < m_lineOffsets.size()) ? (buf + m_lineOffsets[line_no + 1] - 1) : buf_end;
 				ImGui::TextUnformatted(line_start, line_end);

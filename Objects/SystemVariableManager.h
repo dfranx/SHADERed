@@ -2,20 +2,18 @@
 #include "../Engine/Timer.h"
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/euler_angles.hpp>
-#include "ShaderVariable.h"
 #include "ArcBallCamera.h"
-#include "PipelineItem.h"
 #include "FirstPersonCamera.h"
+#include "PipelineItem.h"
 #include "Settings.h"
+#include "ShaderVariable.h"
+#include <glm/gtx/euler_angles.hpp>
 
 #include <unordered_map>
 
-namespace ed
-{
+namespace ed {
 	// singleton used for getting some system-level values
-	class SystemVariableManager
-	{
+	class SystemVariableManager {
 	public:
 		static inline SystemVariableManager& Instance()
 		{
@@ -27,9 +25,9 @@ namespace ed
 		{
 			m_curState.FrameIndex = 0;
 			m_curState.IsPicked = false;
-			m_curState.WASD = glm::vec4(0,0,0,0);
-			m_curState.Viewport = glm::vec2(0,1);
-			m_curState.MousePosition = glm::vec2(0,0);
+			m_curState.WASD = glm::vec4(0, 0, 0, 0);
+			m_curState.Viewport = glm::vec2(0, 1);
+			m_curState.MousePosition = glm::vec2(0, 0);
 			m_curState.DeltaTime = 0.0f;
 			m_curGeoTransform.clear();
 			m_prevGeoTransform.clear();
@@ -38,24 +36,24 @@ namespace ed
 		static inline ed::ShaderVariable::ValueType GetType(ed::SystemShaderVariable sysVar)
 		{
 			switch (sysVar) {
-				case ed::SystemShaderVariable::MousePosition: return ed::ShaderVariable::ValueType::Float2;
-				case ed::SystemShaderVariable::Mouse: return ed::ShaderVariable::ValueType::Float4;
-				case ed::SystemShaderVariable::MouseButton: return ed::ShaderVariable::ValueType::Float4;
-				case ed::SystemShaderVariable::Projection: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::Time: return ed::ShaderVariable::ValueType::Float1;
-				case ed::SystemShaderVariable::TimeDelta: return ed::ShaderVariable::ValueType::Float1;
-				case ed::SystemShaderVariable::FrameIndex: return ed::ShaderVariable::ValueType::Integer1;
-				case ed::SystemShaderVariable::View: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::ViewportSize: return ed::ShaderVariable::ValueType::Float2;
-				case ed::SystemShaderVariable::ViewProjection: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::Orthographic: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
-				case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
-				case ed::SystemShaderVariable::CameraPosition: return ed::ShaderVariable::ValueType::Float4;
-				case ed::SystemShaderVariable::CameraPosition3: return ed::ShaderVariable::ValueType::Float3;
-				case ed::SystemShaderVariable::CameraDirection3: return ed::ShaderVariable::ValueType::Float3;
-				case ed::SystemShaderVariable::KeysWASD: return ed::ShaderVariable::ValueType::Integer4;
+			case ed::SystemShaderVariable::MousePosition: return ed::ShaderVariable::ValueType::Float2;
+			case ed::SystemShaderVariable::Mouse: return ed::ShaderVariable::ValueType::Float4;
+			case ed::SystemShaderVariable::MouseButton: return ed::ShaderVariable::ValueType::Float4;
+			case ed::SystemShaderVariable::Projection: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::Time: return ed::ShaderVariable::ValueType::Float1;
+			case ed::SystemShaderVariable::TimeDelta: return ed::ShaderVariable::ValueType::Float1;
+			case ed::SystemShaderVariable::FrameIndex: return ed::ShaderVariable::ValueType::Integer1;
+			case ed::SystemShaderVariable::View: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::ViewportSize: return ed::ShaderVariable::ValueType::Float2;
+			case ed::SystemShaderVariable::ViewProjection: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::Orthographic: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
+			case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
+			case ed::SystemShaderVariable::CameraPosition: return ed::ShaderVariable::ValueType::Float4;
+			case ed::SystemShaderVariable::CameraPosition3: return ed::ShaderVariable::ValueType::Float3;
+			case ed::SystemShaderVariable::CameraDirection3: return ed::ShaderVariable::ValueType::Float3;
+			case ed::SystemShaderVariable::KeysWASD: return ed::ShaderVariable::ValueType::Integer4;
 			}
 
 			return ed::ShaderVariable::ValueType::Float1;
@@ -74,7 +72,7 @@ namespace ed
 		inline glm::mat4 GetViewOrthographicMatrix() { return GetOrthographicMatrix() * GetViewMatrix(); }
 		inline glm::mat4 GetGeometryTransform(PipelineItem* item) { return m_curGeoTransform[item]; }
 		inline glm::vec2 GetViewportSize() { return m_curState.Viewport; }
-		inline glm::ivec4  GetKeysWASD() { return m_curState.WASD; }
+		inline glm::ivec4 GetKeysWASD() { return m_curState.WASD; }
 		inline glm::vec2 GetMousePosition() { return m_curState.MousePosition; }
 		inline glm::vec4 GetMouse() { return m_curState.Mouse; }
 		inline glm::vec4 GetMouseButton() { return m_curState.MouseButton; }
@@ -86,9 +84,7 @@ namespace ed
 
 		inline void SetGeometryTransform(PipelineItem* item, const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
 		{
-			m_curGeoTransform[item] = glm::translate(glm::mat4(1), pos) *
-				glm::yawPitchRoll(rota.y, rota.x, rota.z) * 
-				glm::scale(glm::mat4(1.0f), scale);
+			m_curGeoTransform[item] = glm::translate(glm::mat4(1), pos) * glm::yawPitchRoll(rota.y, rota.x, rota.z) * glm::scale(glm::mat4(1.0f), scale);
 		}
 		inline void SetViewportSize(float x, float y) { m_curState.Viewport = glm::vec2(x, y); }
 		inline void SetMousePosition(float x, float y) { m_curState.MousePosition = glm::vec2(x, y); }
@@ -105,8 +101,7 @@ namespace ed
 		eng::Timer m_timer;
 		float m_advTimer;
 
-		struct ValueGroup
-		{
+		struct ValueGroup {
 			float DeltaTime;
 			ArcBallCamera ArcCam;
 			FirstPersonCamera FPCam;
@@ -116,7 +111,6 @@ namespace ed
 			glm::ivec4 WASD;
 			glm::vec4 Mouse, MouseButton;
 		} m_prevState, m_curState;
-
 
 		std::unordered_map<PipelineItem*, glm::mat4> m_curGeoTransform, m_prevGeoTransform;
 	};

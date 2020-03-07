@@ -1,22 +1,20 @@
 #pragma once
 #include "ShaderVariable.h"
-#include <vector>
 #include <map>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
-namespace ed
-{
-	class ShaderVariableContainer
-	{
+namespace ed {
+	class ShaderVariableContainer {
 	public:
 		ShaderVariableContainer();
 		~ShaderVariableContainer();

@@ -1,40 +1,38 @@
 #include "CodeEditorUI.h"
-#include "UIHelper.h"
-#include "../Objects/Names.h"
+#include "../Objects/KeyboardShortcuts.h"
 #include "../Objects/Logger.h"
+#include "../Objects/Names.h"
 #include "../Objects/Settings.h"
 #include "../Objects/ShaderTranscompiler.h"
 #include "../Objects/ThemeContainer.h"
-#include "../Objects/KeyboardShortcuts.h""
+#include "UIHelper.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #if defined(_WIN32)
-	#include <windows.h>
+#include <windows.h>
 #elif defined(__linux__) || defined(__unix__)
-	#include <fcntl.h>
-	#include <unistd.h>
-	#include <sys/types.h>
-	#include <sys/inotify.h>
-	#define EVENT_SIZE  ( sizeof (struct inotify_event) )
-	#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+#include <fcntl.h>
+#include <sys/inotify.h>
+#include <sys/types.h>
+#include <unistd.h>
+#define EVENT_SIZE (sizeof(struct inotify_event))
+#define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
 #elif defined(__APPLE__)
-	#include <unistd.h>
-	#include <sys/types.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
-
-
 
 #define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(20)
 
-namespace ed
-{
+namespace ed {
 	CodeEditorUI::CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name, bool visible)
-		: UIView(ui, objects, name, visible), m_selectedItem(-1)
+			: UIView(ui, objects, name, visible)
+			, m_selectedItem(-1)
 	{
 		Settings& sets = Settings::Instance();
 
@@ -59,12 +57,14 @@ namespace ed
 
 		m_setupShortcuts();
 	}
-	CodeEditorUI::~CodeEditorUI() {
+	CodeEditorUI::~CodeEditorUI()
+	{
 		delete m_autoRecompileThread;
 		delete m_trackThread;
 	}
 
-	void CodeEditorUI::m_setupShortcuts() {
+	void CodeEditorUI::m_setupShortcuts()
+	{
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.Compile", [=]() {
 			if (m_selectedItem == -1)
 				return;
@@ -105,18 +105,15 @@ namespace ed
 				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
 			else if (m_shaderStage[id] == ShaderStage::Geometry)
 				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
 			m_editor[id].ResetTextChanged();
 			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
 			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
 			m_editor[id].ResetTextChanged();
 			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
 			m_editor[id].ResetTextChanged();
 
@@ -143,16 +140,13 @@ namespace ed
 				shaderFile = shader->PSPath;
 			else if (m_shaderStage[id] == ShaderStage::Geometry)
 				shaderFile = shader->GSPath;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
 			shaderFile = shader->Path;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
 			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
 			shaderFile = shader->Path;
-		}
-		else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+		} else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
 			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
 			shader->Owner->HandleRecompile(m_items[id]->Name);
 		}
@@ -165,7 +159,7 @@ namespace ed
 	{
 		if (m_editor.size() == 0)
 			return;
-		
+
 		m_selectedItem = -1;
 
 		// counters for each shader type for window ids
@@ -179,7 +173,7 @@ namespace ed
 
 				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
-				
+
 				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
 
@@ -195,7 +189,7 @@ namespace ed
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
 							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(m_items[i], m_editor[i].GetText(), (int)m_shaderStage[i]);
-							
+
 							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].IsActive = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
@@ -211,7 +205,6 @@ namespace ed
 
 						ImGui::EndMenuBar();
 					}
-					
 
 					if (m_stats[i].IsActive)
 						m_stats[i].Render();
@@ -229,14 +222,13 @@ namespace ed
 
 						// render code
 						ImGui::PushFont(m_font);
-						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar*STATUSBAR_HEIGHT));
+						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar * STATUSBAR_HEIGHT));
 						if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
 							Settings::Instance().Editor.FontSize = Settings::Instance().Editor.FontSize + ImGui::GetIO().MouseWheel;
 							this->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
 						}
 						ImGui::PopFont();
 
-						
 						// status bar
 						if (statusbar) {
 							auto cursor = m_editor[i].GetCursorPosition();
@@ -256,7 +248,7 @@ namespace ed
 						m_focusWindow = false;
 					}
 				}
-		
+
 				wid[isPluginItem ? 4 : (int)m_shaderStage[i]]++;
 				ImGui::End();
 			}
@@ -318,51 +310,63 @@ namespace ed
 		}
 	}
 
-	void CodeEditorUI::SetTheme(const TextEditor::Palette& colors) {
+	void CodeEditorUI::SetTheme(const TextEditor::Palette& colors)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetPalette(colors);
 	}
-	void CodeEditorUI::SetTabSize(int ts) {
+	void CodeEditorUI::SetTabSize(int ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetTabSize(ts);
 	}
-	void CodeEditorUI::SetInsertSpaces(bool ts) {
+	void CodeEditorUI::SetInsertSpaces(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetInsertSpaces(ts);
 	}
-	void CodeEditorUI::SetSmartIndent(bool ts) {
+	void CodeEditorUI::SetSmartIndent(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetSmartIndent(ts);
 	}
-	void CodeEditorUI::SetShowWhitespace(bool wh) {
+	void CodeEditorUI::SetShowWhitespace(bool wh)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetShowWhitespaces(wh);
 	}
-	void CodeEditorUI::SetHighlightLine(bool ts) {
+	void CodeEditorUI::SetHighlightLine(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetHighlightLine(ts);
 	}
-	void CodeEditorUI::SetShowLineNumbers(bool ts) {
+	void CodeEditorUI::SetShowLineNumbers(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetShowLineNumbers(ts);
 	}
-	void CodeEditorUI::SetCompleteBraces(bool ts) {
+	void CodeEditorUI::SetCompleteBraces(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetCompleteBraces(ts);
 	}
-	void CodeEditorUI::SetHorizontalScrollbar(bool ts) {
+	void CodeEditorUI::SetHorizontalScrollbar(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetHorizontalScroll(ts);
 	}
-	void CodeEditorUI::SetSmartPredictions(bool ts) {
+	void CodeEditorUI::SetSmartPredictions(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetSmartPredictions(ts);
 	}
-	void CodeEditorUI::SetFunctionTooltips(bool ts) {
+	void CodeEditorUI::SetFunctionTooltips(bool ts)
+	{
 		for (TextEditor& editor : m_editor)
 			editor.SetFunctionTooltips(ts);
 	}
-	void CodeEditorUI::UpdateShortcuts() {
+	void CodeEditorUI::UpdateShortcuts()
+	{
 		for (auto& editor : m_editor)
 			m_loadEditorShortcuts(&editor);
 	}
@@ -424,10 +428,10 @@ namespace ed
 			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			editor->SetPath(shaderPath);
 			m_loadEditorShortcuts(editor);
-			
+
 			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
 			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
-			
+
 			m_shaderStage.push_back(stage);
 
 			// apply breakpoints
@@ -437,14 +441,11 @@ namespace ed
 			m_paths.push_back(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
-		}
-		else if (item->Type == PipelineItem::ItemType::ComputePass)
-		{
-			ed::pipe::ComputePass *shader = reinterpret_cast<ed::pipe::ComputePass *>(item->Data);
+		} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(item->Data);
 			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
 
-			if (Settings::Instance().General.UseExternalEditor)
-			{
+			if (Settings::Instance().General.UseExternalEditor) {
 				UIHelper::ShellOpen(shaderPath);
 				return;
 			}
@@ -466,7 +467,7 @@ namespace ed
 			m_stats.push_back(StatsPage(m_data));
 			m_paths.push_back(shader->Path);
 
-			TextEditor *editor = &m_editor[m_editor.size() - 1];
+			TextEditor* editor = &m_editor[m_editor.size() - 1];
 
 			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
 			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
@@ -496,14 +497,11 @@ namespace ed
 			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
 			editor->SetText(shaderContent);
 			editor->ResetTextChanged();
-		}
-		else if (item->Type == PipelineItem::ItemType::AudioPass)
-		{
-			ed::pipe::AudioPass *shader = reinterpret_cast<ed::pipe::AudioPass *>(item->Data);
+		} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(item->Data);
 			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
 
-			if (Settings::Instance().General.UseExternalEditor)
-			{
+			if (Settings::Instance().General.UseExternalEditor) {
 				UIHelper::ShellOpen(shaderPath);
 				return;
 			}
@@ -525,7 +523,7 @@ namespace ed
 			m_stats.push_back(StatsPage(m_data));
 			m_paths.push_back(shader->Path);
 
-			TextEditor *editor = &m_editor[m_editor.size() - 1];
+			TextEditor* editor = &m_editor[m_editor.size() - 1];
 
 			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
 			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
@@ -559,22 +557,18 @@ namespace ed
 	}
 	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
 	{
-		if (item->Type == PipelineItem::ItemType::PluginItem)
-		{
+		if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-			if (Settings::Instance().General.UseExternalEditor)
-			{
+			if (Settings::Instance().General.UseExternalEditor) {
 				std::string path = m_data->Parser.GetProjectPath(filepath);
 				UIHelper::ShellOpen(path);
 				return;
 			}
 
 			// check if already opened
-			for (int i = 0; i < m_paths.size(); i++)
-			{
-				if (m_paths[i] == filepath)
-				{
+			for (int i = 0; i < m_paths.size(); i++) {
+				if (m_paths[i] == filepath) {
 					m_focusWindow = true;
 					m_focusStage = (ShaderStage)id; // TODO: this might not work anymore
 					m_focusItem = m_items[i]->Name;
@@ -605,7 +599,7 @@ namespace ed
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 			m_loadEditorShortcuts(editor);
-			
+
 			editor->SetLanguageDefinition(defPlugin);
 
 			m_shaderStage.push_back(m_focusStage);
@@ -688,8 +682,7 @@ namespace ed
 	{
 		auto sMap = KeyboardShortcuts::Instance().GetMap();
 
-		for (auto it = sMap.begin(); it != sMap.end(); it++)
-		{
+		for (auto it = sMap.begin(); it != sMap.end(); it++) {
 			std::string id = it->first;
 
 			if (id.substr(0, 6) == "Editor") {
@@ -726,11 +719,13 @@ namespace ed
 
 			if (!enabled) return;
 
-			if (cond.empty()) m_data->Debugger.Engine.AddBreakpoint(line);
-			else m_data->Debugger.Engine.AddConditionalBreakpoint(line, cond);
+			if (cond.empty())
+				m_data->Debugger.Engine.AddBreakpoint(line);
+			else
+				m_data->Debugger.Engine.AddConditionalBreakpoint(line, cond);
 		};
 	}
-	
+
 	void CodeEditorUI::StopDebugging()
 	{
 		for (auto& ed : m_editor)
@@ -746,10 +741,10 @@ namespace ed
 			m_trackThread->detach();
 	}
 
-	void CodeEditorUI::UpdateAutoRecompileItems() 
+	void CodeEditorUI::UpdateAutoRecompileItems()
 	{
 		if (m_autoRecompileRequest) {
-        	std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
+			std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
 			for (const auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr)
 					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
@@ -769,7 +764,7 @@ namespace ed
 	{
 		if (m_autoRecompile == autorec)
 			return;
-		
+
 		m_autoRecompile = autorec;
 
 		if (autorec) {
@@ -785,8 +780,7 @@ namespace ed
 			// rerun
 			m_autoRecompilerRunning = true;
 			m_autoRecompileThread = new std::thread(&CodeEditorUI::m_autoRecompiler, this);
-		}
-		else {
+		} else {
 			Logger::Get().Log("Stopping auto-recompiler...");
 
 			m_autoRecompilerRunning = false;
@@ -798,7 +792,7 @@ namespace ed
 		}
 	}
 	void CodeEditorUI::m_autoRecompiler()
-	{		
+	{
 		while (m_autoRecompilerRunning) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
@@ -818,7 +812,7 @@ namespace ed
 					inf->CPass = nullptr;
 					inf->APass = nullptr;
 					inf->PluginData = nullptr;
-					
+
 					if (m_shaderStage[i] == ShaderStage::Vertex) {
 						inf->VS = m_editor[i].GetText();
 						inf->VS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
@@ -829,8 +823,7 @@ namespace ed
 						inf->GS = m_editor[i].GetText();
 						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
-				}
-				else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
+				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
 					pipe::ComputePass* pass = (pipe::ComputePass*)m_items[i]->Data;
 					inf->CPass = pass;
@@ -840,18 +833,16 @@ namespace ed
 
 					inf->CS = m_editor[i].GetText();
 					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
-				}
-				else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
-					AutoRecompilerItemInfo *inf = &m_ariiList[m_items[i]->Name];
-					pipe::AudioPass *pass = (pipe::AudioPass *)m_items[i]->Data;
+				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
+					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
+					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
 					inf->APass = pass;
 					inf->SPass = nullptr;
 					inf->CPass = nullptr;
 					inf->PluginData = nullptr;
-					
+
 					inf->AS = m_editor[i].GetText();
-				}
-				else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
+				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
 					pipe::PluginItemData* pass = (pipe::PluginItemData*)m_items[i]->Data;
 					inf->APass = nullptr;
@@ -895,7 +886,7 @@ namespace ed
 			}
 			m_autoRecompileCachedMsgs = msgCurr;
 
-			m_autoRecompileRequest = m_ariiList.size()>0;
+			m_autoRecompileRequest = m_ariiList.size() > 0;
 
 			m_autoRecompilerMutex.unlock();
 		}
@@ -905,7 +896,7 @@ namespace ed
 	{
 		if (m_trackFileChanges == track)
 			return;
-		
+
 		m_trackFileChanges = track;
 
 		if (track) {
@@ -921,8 +912,7 @@ namespace ed
 			// start
 			m_trackerRunning = true;
 			m_trackThread = new std::thread(&CodeEditorUI::m_trackWorker, this);
-		}
-		else {
+		} else {
 			Logger::Get().Log("Stopping file change tracking...");
 
 			m_trackerRunning = false;
@@ -941,16 +931,16 @@ namespace ed
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 		std::vector<bool> gsUsed(passes.size());
 
-		std::vector<std::string> allFiles;		// list of all files we care for
-		std::vector<std::string> allPasses;		// list of shader pass names that correspond to the file name
-		std::vector<std::string> paths;			// list of all paths that we should have "notifications turned on"
+		std::vector<std::string> allFiles;	// list of all files we care for
+		std::vector<std::string> allPasses; // list of shader pass names that correspond to the file name
+		std::vector<std::string> paths;		// list of all paths that we should have "notifications turned on"
 
 		m_trackUpdatesNeeded = 0;
 
-	#if defined(__APPLE__)
+#if defined(__APPLE__)
 		// TODO: implementation for macos (cant test)
-	#elif defined(__linux__) || defined(__unix__)
-	
+#elif defined(__linux__) || defined(__unix__)
+
 		int bufLength, bufIndex = 0;
 		int notifyEngine = inotify_init1(IN_NONBLOCK);
 		char buffer[EVENT_BUF_LEN];
@@ -967,7 +957,7 @@ namespace ed
 		flags = (flags | O_NONBLOCK);
 		fcntl(notifyEngine, F_SETFL, flags);
 
-	#elif defined(_WIN32)
+#elif defined(_WIN32)
 		// variables for storing all the handles
 		std::vector<HANDLE> events(paths.size());
 		std::vector<HANDLE> hDirs(paths.size());
@@ -978,7 +968,7 @@ namespace ed
 		char buffer[bufferLen];
 		DWORD bytesReturned;
 		char filename[MAX_PATH];
-	#endif
+#endif
 
 		// run this loop until we close the thread
 		while (m_trackerRunning) {
@@ -992,7 +982,7 @@ namespace ed
 			bool needsUpdate = false;
 			for (auto& pass : nPasses) {
 				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
-					pipe::ShaderPass* data = (pipe::ShaderPass*) pass->Data;
+					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
 					bool foundVS = false, foundPS = false, foundGS = false;
 
@@ -1003,8 +993,7 @@ namespace ed
 						if (f == vsPath) {
 							foundVS = true;
 							if (foundPS) break;
-						}
-						else if (f == psPath) {
+						} else if (f == psPath) {
 							foundPS = true;
 							if (foundVS) break;
 						}
@@ -1017,16 +1006,15 @@ namespace ed
 								foundGS = true;
 								break;
 							}
-					}
-					else foundGS = true;
+					} else
+						foundGS = true;
 
 					if (!foundGS || !foundVS || !foundPS) {
 						needsUpdate = true;
 						break;
 					}
-				}
-				else if (pass->Type == PipelineItem::ItemType::ComputePass) {
-					pipe::ComputePass* data = (pipe::ComputePass*) pass->Data;
+				} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass* data = (pipe::ComputePass*)pass->Data;
 
 					bool found = false;
 
@@ -1040,9 +1028,8 @@ namespace ed
 						needsUpdate = true;
 						break;
 					}
-				}
-				else if (pass->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass* data = (pipe::AudioPass*) pass->Data;
+				} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* data = (pipe::AudioPass*)pass->Data;
 
 					bool found = false;
 
@@ -1056,9 +1043,8 @@ namespace ed
 						needsUpdate = true;
 						break;
 					}
-				}
-				else if (pass->Type == PipelineItem::ItemType::PluginItem) {
-					pipe::PluginItemData* data = (pipe::PluginItemData*) pass->Data;
+				} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
 
 					if (data->Owner->HasShaderFilePathChanged()) {
 						needsUpdate = true;
@@ -1069,7 +1055,7 @@ namespace ed
 
 			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
 				if (nPasses[i]->Type == PipelineItem::ItemType::ShaderPass) {
-					bool used = ((pipe::ShaderPass*) nPasses[i]->Data)->GSUsed;
+					bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
 					if (gsUsed[i] != used) {
 						gsUsed[i] = used;
 						needsUpdate = true;
@@ -1078,8 +1064,7 @@ namespace ed
 			}
 
 			// update our file collection if needed
-			if (needsUpdate || nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() ||
-				paths.size() == 0) {
+			if (needsUpdate || nPasses.size() != passes.size() || curProject != m_data->Parser.GetOpenedFile() || paths.size() == 0) {
 #if defined(__APPLE__)
 				// TODO: implementation for macos
 #elif defined(__linux__) || defined(__unix__)
@@ -1106,7 +1091,7 @@ namespace ed
 				m_trackedNeedsUpdate.resize(passes.size());
 				for (const auto& pass : passes) {
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass* data = (pipe::ShaderPass*) pass->Data;
+						pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
 						std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
 						std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
@@ -1126,28 +1111,24 @@ namespace ed
 							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
 							allPasses.push_back(pass->Name);
 						}
-					}
-					else if (pass->Type == PipelineItem::ItemType::ComputePass) {
-						pipe::ComputePass* data = (pipe::ComputePass*) pass->Data;
+					} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* data = (pipe::ComputePass*)pass->Data;
 
 						std::string path(m_data->Parser.GetProjectPath(data->Path));
 
 						allFiles.push_back(path);
 						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
-					}
-					else if (pass->Type == PipelineItem::ItemType::AudioPass) {
-						pipe::AudioPass* data = (pipe::AudioPass*) pass->Data;
+					} else if (pass->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* data = (pipe::AudioPass*)pass->Data;
 
 						std::string path(m_data->Parser.GetProjectPath(data->Path));
 
 						allFiles.push_back(path);
 						paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
-					}
-					else if (pass->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* data = (pipe::PluginItemData*) pass->Data;
-
+					} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
 
 						int count = data->Owner->GetShaderFilePathCount();
 
@@ -1230,15 +1211,16 @@ namespace ed
 
 			// check for changes
 			bufLength = read(notifyEngine, buffer, EVENT_BUF_LEN);
-			if (bufLength < 0) { /* TODO: error! */ }
+			if (bufLength < 0) { /* TODO: error! */
+			}
 
 			// read all events
 			while (bufIndex < bufLength) {
-				struct inotify_event* event = (struct inotify_event*) & buffer[bufIndex];
+				struct inotify_event* event = (struct inotify_event*)&buffer[bufIndex];
 				if (event->len) {
 					if (event->mask & IN_MODIFY) {
-						if (event->mask & IN_ISDIR) { /* it is a directory - do nothing */ }
-						else {
+						if (event->mask & IN_ISDIR) { /* it is a directory - do nothing */
+						} else {
 							// check if its our shader and push it on the update queue if it is
 							char filename[MAX_PATH];
 							strcpy(filename, event->name);
@@ -1296,8 +1278,7 @@ namespace ed
 					&buffer,
 					bufferLen * sizeof(char),
 					TRUE,
-					FILE_NOTIFY_CHANGE_SIZE |
-					FILE_NOTIFY_CHANGE_LAST_WRITE,
+					FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
 					&bytesReturned,
 					&pOverlap[i],
 					NULL);
@@ -1308,8 +1289,7 @@ namespace ed
 			// check if we got any info
 			if (dwWaitStatus != WAIT_TIMEOUT) {
 				bufferOffset = 0;
-				do
-				{
+				do {
 					// get notification data
 					notif = (FILE_NOTIFY_INFORMATION*)((char*)buffer + bufferOffset);
 					strcpy_s(filename, "");
@@ -1401,7 +1381,7 @@ namespace ed
 
 		return langDef;
 	}
-	
+
 	void CodeEditorUI::StatsPage::Fetch(ed::PipelineItem* item, const std::string& code, int typeId)
 	{
 	}

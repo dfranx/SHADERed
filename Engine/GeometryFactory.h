@@ -4,15 +4,11 @@
 
 #include "../Objects/InputLayout.h"
 
-namespace ed
-{
-	namespace eng
-	{
-		class GeometryFactory
-		{
+namespace ed {
+	namespace eng {
+		class GeometryFactory {
 		public:
-			struct Vertex
-			{
+			struct Vertex {
 				glm::vec3 Position;
 				glm::vec3 Normal;
 				glm::vec2 UV;

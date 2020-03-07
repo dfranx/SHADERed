@@ -1,10 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
-namespace ed
-{
-	class Camera
-	{
+namespace ed {
+	class Camera {
 	public:
 		virtual void Reset() {};
 

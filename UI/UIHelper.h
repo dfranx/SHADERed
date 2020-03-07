@@ -1,25 +1,23 @@
 #pragma once
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
 extern "C" {
-#include <BlueVM/bv_variable.h>
 #include <BlueVM/bv_object.h>
+#include <BlueVM/bv_variable.h>
 }
 
-namespace ed
-{
-	class UIHelper
-	{
+namespace ed {
+	class UIHelper {
 	public:
 		static bool GetOpenDirectoryDialog(std::string& outPath);
 		static bool GetOpenFileDialog(std::string& outPath, const std::string& files = "");

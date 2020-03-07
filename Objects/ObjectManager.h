@@ -1,22 +1,20 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <utility>
-#include <unordered_map>
 #include <SDL2/SDL_surface.h>
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
+#include "AudioAnalyzer.h"
 #include "PipelineItem.h"
 #include "ProjectParser.h"
-#include "AudioAnalyzer.h"
 
-namespace ed
-{
+namespace ed {
 	class RenderEngine;
 
-	struct RenderTextureObject
-	{
+	struct RenderTextureObject {
 		GLuint DepthStencilBuffer, DepthStencilBufferMS, BufferMS; // ColorBuffer is stored in ObjectManager
 		glm::ivec2 FixedSize;
 		glm::vec2 RatioSize;
@@ -25,8 +23,14 @@ namespace ed
 		bool Clear;
 		GLuint Format;
 
-		RenderTextureObject() : FixedSize(-1, -1), RatioSize(1,1),
-		Clear(true), ClearColor(0,0,0,1), Format(GL_RGBA) { }
+		RenderTextureObject()
+				: FixedSize(-1, -1)
+				, RatioSize(1, 1)
+				, Clear(true)
+				, ClearColor(0, 0, 0, 1)
+				, Format(GL_RGBA)
+		{
+		}
 
 		glm::ivec2 CalculateSize(int w, int h)
 		{
@@ -40,30 +44,26 @@ namespace ed
 		}
 	};
 
-	struct BufferObject
-	{
+	struct BufferObject {
 		int Size;
 		void* Data;
 		char ViewFormat[256]; // vec3;vec3;vec2
 		GLuint ID;
 	};
 
-	struct ImageObject
-	{
+	struct ImageObject {
 		glm::ivec2 Size;
 		GLuint Format;
 		GLuint Texture;
 	};
 
-	struct Image3DObject
-	{
+	struct Image3DObject {
 		glm::ivec3 Size;
 		GLuint Format;
 		GLuint Texture;
 	};
 
-	struct PluginObject
-	{
+	struct PluginObject {
 		char Type[128];
 		IPlugin* Owner;
 
@@ -72,10 +72,10 @@ namespace ed
 	};
 
 	/* Use this to remove all the maps */
-	class ObjectManagerItem
-	{
+	class ObjectManagerItem {
 	public:
-		ObjectManagerItem() {
+		ObjectManagerItem()
+		{
 			ImageSize = glm::ivec2(0, 0);
 			Texture = 0;
 			FlippedTexture = 0;
@@ -91,7 +91,8 @@ namespace ed
 			Image3D = nullptr;
 			Plugin = nullptr;
 		}
-		~ObjectManagerItem() {
+		~ObjectManagerItem()
+		{
 			if (Buffer != nullptr) {
 				glDeleteBuffers(1, &Buffer->ID);
 				free(Buffer->Data);
@@ -121,7 +122,6 @@ namespace ed
 				delete Plugin;
 			}
 
-
 			if (Texture != 0)
 				glDeleteTextures(1, &Texture);
 			if (FlippedTexture != 0)
@@ -134,7 +134,7 @@ namespace ed
 		bool IsCube;
 		bool IsTexture;
 		std::vector<std::string> CubemapPaths;
-		
+
 		sf::SoundBuffer* SoundBuffer;
 		sf::Sound* Sound;
 		bool SoundMuted;
@@ -147,8 +147,7 @@ namespace ed
 		PluginObject* Plugin;
 	};
 
-	class ObjectManager
-	{
+	class ObjectManager {
 	public:
 		ObjectManager(ProjectParser* parser, RenderEngine* rnd);
 		~ObjectManager();
@@ -165,7 +164,7 @@ namespace ed
 		void Update(float delta);
 
 		void Remove(const std::string& file);
-		
+
 		glm::ivec2 GetRenderTextureSize(const std::string& name);
 		RenderTextureObject* GetRenderTexture(GLuint tex);
 		bool IsRenderTexture(const std::string& name);
@@ -208,7 +207,7 @@ namespace ed
 
 		ObjectManagerItem* GetObjectManagerItem(const std::string& name);
 		std::string GetObjectManagerItemName(ObjectManagerItem* item);
-		
+
 		void Mute(const std::string& name);
 		void Unmute(const std::string& name);
 
@@ -219,7 +218,8 @@ namespace ed
 		void Bind(const std::string& file, PipelineItem* pass);
 		void Unbind(const std::string& file, PipelineItem* pass);
 		int IsBound(const std::string& file, PipelineItem* pass);
-		inline std::vector<GLuint>& GetBindList(PipelineItem* pass) {
+		inline std::vector<GLuint>& GetBindList(PipelineItem* pass)
+		{
 			if (m_binds.count(pass) > 0) return m_binds[pass];
 			return m_emptyResVec;
 		}
@@ -227,7 +227,8 @@ namespace ed
 		void BindUniform(const std::string& file, PipelineItem* pass);
 		void UnbindUniform(const std::string& file, PipelineItem* pass);
 		int IsUniformBound(const std::string& file, PipelineItem* pass);
-		inline std::vector<GLuint>& GetUniformBindList(PipelineItem* pass) {
+		inline std::vector<GLuint>& GetUniformBindList(PipelineItem* pass)
+		{
 			if (m_uniformBinds.count(pass) > 0) return m_uniformBinds[pass];
 			return m_emptyResVec;
 		}
@@ -242,7 +243,7 @@ namespace ed
 		ProjectParser* m_parser;
 
 		std::vector<std::string> m_items; // TODO: move item name to item data
-		std::vector<ObjectManagerItem*> m_itemData; 
+		std::vector<ObjectManagerItem*> m_itemData;
 
 		std::vector<GLuint> m_emptyResVec;
 		std::vector<char> m_emptyResVecChar;

@@ -1,10 +1,8 @@
 #pragma once
 #include "../UIView.h"
 
-namespace ed
-{
-	class DebugBreakpointListUI : public UIView
-	{
+namespace ed {
+	class DebugBreakpointListUI : public UIView {
 	public:
 		using UIView::UIView;
 

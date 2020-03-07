@@ -4,30 +4,29 @@
 
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 #include <glm/gtc/constants.hpp>
 
-namespace ed
-{
-	namespace eng
-	{
+namespace ed {
+	namespace eng {
 		const int GeometryFactory::VertexCount[] = {
-			36,		/* CUBE */
-			6,		/* RECTANGLE / SCREENQUAD */
-			32 * 3,	/* CIRCLE */
-			3,		/* TRIANGLE */
-			20 * 20 * 6,/* SPHERE */
-			6,		/* PLANE */
-			6,		/* SCREEQUADNDC */
+			36,			 /* CUBE */
+			6,			 /* RECTANGLE / SCREENQUAD */
+			32 * 3,		 /* CIRCLE */
+			3,			 /* TRIANGLE */
+			20 * 20 * 6, /* SPHERE */
+			6,			 /* PLANE */
+			6,			 /* SCREEQUADNDC */
 		};
 
 		void generateFace(GLfloat* verts, float radius, float sx, float sy, int x, int y)
 		{
 			float phi = y * sy;
 			float theta = x * sx;
+			// clang-format off
 			GLfloat pt1[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -36,12 +35,16 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			glm::vec3 n = glm::normalize(glm::vec3(pt1[0], pt1[1], pt1[2]));
-			pt1[3] = n.x; pt1[4] = n.y; pt1[5] = n.z;
+			pt1[3] = n.x;
+			pt1[4] = n.y;
+			pt1[5] = n.z;
 			memcpy(verts + 2 * 18, pt1, sizeof(GLfloat) * 18);
 
 			phi = y * sy;
 			theta = (x + 1) * sx;
+			// clang-format off
 			GLfloat pt2[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -50,12 +53,16 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			n = glm::normalize(glm::vec3(pt2[0], pt2[1], pt2[2]));
-			pt2[3] = n.x; pt2[4] = n.y; pt2[5] = n.z;
+			pt2[3] = n.x;
+			pt2[4] = n.y;
+			pt2[5] = n.z;
 			memcpy(verts + 1 * 18, pt2, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = x * sx;
+			// clang-format off
 			GLfloat pt3[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -64,12 +71,16 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			n = glm::normalize(glm::vec3(pt3[0], pt3[1], pt3[2]));
-			pt3[3] = n.x; pt3[4] = n.y; pt3[5] = n.z;
+			pt3[3] = n.x;
+			pt3[4] = n.y;
+			pt3[5] = n.z;
 			memcpy(verts + 0 * 18, pt3, sizeof(GLfloat) * 18);
 
 			phi = y * sy;
 			theta = (x + 1) * sx;
+			// clang-format off
 			GLfloat pt4[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -78,12 +89,16 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			n = glm::normalize(glm::vec3(pt4[0], pt4[1], pt4[2]));
-			pt4[3] = n.x; pt4[4] = n.y; pt4[5] = n.z;
+			pt4[3] = n.x;
+			pt4[4] = n.y;
+			pt4[5] = n.z;
 			memcpy(verts + 3 * 18, pt4, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = x * sx;
+			// clang-format off
 			GLfloat pt5[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -92,12 +107,16 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			n = glm::normalize(glm::vec3(pt5[0], pt5[1], pt5[2]));
-			pt5[3] = n.x; pt5[4] = n.y; pt5[5] = n.z;
+			pt5[3] = n.x;
+			pt5[4] = n.y;
+			pt5[5] = n.z;
 			memcpy(verts + 4 * 18, pt5, sizeof(GLfloat) * 18);
 
 			phi = (y + 1) * sy;
 			theta = (x + 1) * sx;
+			// clang-format off
 			GLfloat pt6[18] = {
 				(radius * sin(phi) * cos(theta)),
 				(radius * sin(phi) * sin(theta)),
@@ -106,8 +125,11 @@ namespace ed
 				theta / glm::two_pi<float>(), phi / glm::pi<float>(),
 				0,0,0, 0,0,0, 1,1,1,1
 			};
+			// clang-format on
 			n = glm::normalize(glm::vec3(pt6[0], pt6[1], pt6[2]));
-			pt6[3] = n.x; pt6[4] = n.y; pt6[5] = n.z;
+			pt6[3] = n.x;
+			pt6[4] = n.y;
+			pt6[5] = n.z;
 			memcpy(verts + 5 * 18, pt6, sizeof(GLfloat) * 18);
 		}
 		void calcBinormalAndTangents(GLfloat* verts, GLuint vertCount)
@@ -115,8 +137,8 @@ namespace ed
 			/* http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/ */
 			for (GLuint i = 0; i < vertCount; i += 3) {
 				GLuint j0 = i * 18;
-				GLuint j1 = (i+1) * 18;
-				GLuint j2 = (i+2) * 18;
+				GLuint j1 = (i + 1) * 18;
+				GLuint j2 = (i + 2) * 18;
 
 				// Shortcuts for vertices
 				glm::vec3 v0 = glm::vec3(verts[j0 + 0], verts[j0 + 1], verts[j0 + 2]);
@@ -134,16 +156,16 @@ namespace ed
 				glm::vec2 uv2 = glm::vec2(verts[j2 + 6], verts[j2 + 7]);
 
 				// Edges of the triangle : position delta
-				glm::vec3 deltaPos1 = v1-v0;
-				glm::vec3 deltaPos2 = v2-v0;
+				glm::vec3 deltaPos1 = v1 - v0;
+				glm::vec3 deltaPos2 = v2 - v0;
 
 				// UV delta
-				glm::vec2 deltaUV1 = uv1-uv0;
-				glm::vec2 deltaUV2 = uv2-uv0;
+				glm::vec2 deltaUV1 = uv1 - uv0;
+				glm::vec2 deltaUV2 = uv2 - uv0;
 
 				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-				glm::vec3 t = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y)*r;
-				glm::vec3 b = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x)*r;
+				glm::vec3 t = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+				glm::vec3 b = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
 
 				// Gram-Schmidt orthogonalize
 				glm::vec3 t0 = glm::normalize(t - n0 * glm::dot(n0, t));
@@ -160,6 +182,7 @@ namespace ed
 
 				// Set the same tangent for all three vertices of the triangle.
 				// They will be merged later, in vboindexer.cpp
+				// clang-format off
 				verts[j0 + 8] = t0.x; verts[j0 + 9] = t0.y; verts[j0 + 10] = t0.z;
 				verts[j1 + 8] = t1.x; verts[j1 + 9] = t1.y; verts[j1 + 10] = t1.z;
 				verts[j2 + 8] = t2.x; verts[j2 + 9] = t2.y; verts[j2 + 10] = t2.z;
@@ -168,6 +191,7 @@ namespace ed
 				verts[j0 + 11] = b.x; verts[j0 + 12] = b.y; verts[j0 + 13] = b.z;
 				verts[j1 + 11] = b.x; verts[j1 + 12] = b.y; verts[j1 + 13] = b.z;
 				verts[j2 + 11] = b.x; verts[j2 + 12] = b.y; verts[j2 + 13] = b.z;
+				// clang-format on
 			}
 		}
 
@@ -177,6 +201,7 @@ namespace ed
 			float halfY = sy / 2.0f;
 			float halfZ = sz / 2.0f;
 
+			// clang-format off
 			// vec3, vec3, vec2, vec3, vec3, vec4
 			GLfloat cubeData[] = {
 				// front face
@@ -227,9 +252,10 @@ namespace ed
 				halfX, -halfY, -halfZ, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 				-halfX, -halfY, halfZ, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
+			// clang-format on
 
 			calcBinormalAndTangents(&cubeData[0], 36);
-			
+
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -238,7 +264,7 @@ namespace ed
 
 			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
-			
+
 			return vao;
 		}
 		unsigned int GeometryFactory::CreateCircle(unsigned int& vbo, float rx, float ry, const std::vector<InputLayoutItem>& inp)
@@ -248,11 +274,9 @@ namespace ed
 
 			GLfloat circleData[numPoints * 18];
 
-
 			float step = glm::two_pi<float>() / numSegs;
 
-			for (int i = 0; i < numSegs; i++)
-			{
+			for (int i = 0; i < numSegs; i++) {
 				int j = i * 3 * 18;
 				GLfloat* ptrData = &circleData[j];
 
@@ -261,9 +285,9 @@ namespace ed
 				float xVal2 = sin(step * (i + 1));
 				float yVal2 = cos(step * (i + 1));
 
-				GLfloat point1[18] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
-				GLfloat point2[18] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
-				GLfloat point3[18] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f, 0,0,0, 0,0,0, 1,1,1,1 };
+				GLfloat point1[18] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+				GLfloat point2[18] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+				GLfloat point3[18] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
 
 				memcpy(ptrData + 0, point1, 18 * sizeof(GLfloat));
 				memcpy(ptrData + 18, point2, 18 * sizeof(GLfloat));
@@ -271,7 +295,7 @@ namespace ed
 			}
 
 			calcBinormalAndTangents(&circleData[0], numPoints);
-			
+
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -288,6 +312,7 @@ namespace ed
 			float halfX = sx / 2;
 			float halfY = sy / 2;
 
+			// clang-format off
 			GLfloat planeData[] = {
 				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 				halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
@@ -296,9 +321,10 @@ namespace ed
 				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
+			// clang-format on
 
 			calcBinormalAndTangents(&planeData[0], 6);
-			
+
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -328,7 +354,6 @@ namespace ed
 					size_t index = (i * sliceCount + j) * 6;
 
 					generateFace(sphereData + index * 18, r, stepX, stepY, j, i);
-
 				}
 			}
 
@@ -339,7 +364,7 @@ namespace ed
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, count * 18 * sizeof(GLfloat), sphereData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
+
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
@@ -348,20 +373,22 @@ namespace ed
 		unsigned int GeometryFactory::CreateTriangle(unsigned int& vbo, float s, const std::vector<InputLayoutItem>& inp)
 		{
 			float rightOffs = s / tan(glm::radians(30.0f));
+			// clang-format off
 			GLfloat triData[] = {
 				-rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 				rightOffs, -s, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 				0, s, 0, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
+			// clang-format on
 
 			calcBinormalAndTangents(&triData[0], 3);
-			
+
 			// create vbo
 			glGenBuffers(1, &vbo);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, 3 * 18 * sizeof(GLfloat), triData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
+
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
@@ -369,6 +396,7 @@ namespace ed
 		}
 		unsigned int GeometryFactory::CreateScreenQuadNDC(unsigned int& vbo, const std::vector<InputLayoutItem>& inp)
 		{
+			// clang-format off
 			GLfloat sqData[] = {
 				-1, -1, 0.0f, 0.0f,
 				1, -1, 1.0f, 0.0f,
@@ -377,6 +405,7 @@ namespace ed
 				1, 1, 1.0f, 1.0f,
 				-1, 1, 0.0f, 1.0f,
 			};
+			// clang-format on
 
 			GLuint vao;
 

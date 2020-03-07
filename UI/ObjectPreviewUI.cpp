@@ -3,63 +3,62 @@
 #include "../Objects/SystemVariableManager.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
-    void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
-    {
-        mItem i;
-        i.Name = name;
-        i.Width = w;
-        i.Height = h;
-        i.Texture = item;
-        i.IsOpen = true;
-        i.IsCube = isCube;
-        i.Audio = audio;
-        i.RT = rt;
-        i.Buffer = buffer;
-        i.CachedFormat.clear();
-        i.CachedSize = 0;
+namespace ed {
+	void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
+	{
+		mItem i;
+		i.Name = name;
+		i.Width = w;
+		i.Height = h;
+		i.Texture = item;
+		i.IsOpen = true;
+		i.IsCube = isCube;
+		i.Audio = audio;
+		i.RT = rt;
+		i.Buffer = buffer;
+		i.CachedFormat.clear();
+		i.CachedSize = 0;
 		i.Plugin = plugin;
 
-        if (buffer != nullptr) {
-            BufferObject* buf = (BufferObject*)buffer;
-            i.CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
-            i.CachedSize = buf->Size;
-        }
+		if (buffer != nullptr) {
+			BufferObject* buf = (BufferObject*)buffer;
+			i.CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+			i.CachedSize = buf->Size;
+		}
 
-        m_items.push_back(i);
-        m_zoom.push_back(Magnifier()); // TODO: only create magnifier tools for textures to lower down GPU resource usage
-    }
+		m_items.push_back(i);
+		m_zoom.push_back(Magnifier()); // TODO: only create magnifier tools for textures to lower down GPU resource usage
+	}
 	void ObjectPreviewUI::OnEvent(const SDL_Event& e)
-    {
-        if (m_curHoveredItem != -1) {
-            if (e.type == SDL_MOUSEBUTTONDOWN) {
-                const Uint8* keyState = SDL_GetKeyboardState(NULL);
-                bool isAltDown = keyState[SDL_SCANCODE_LALT] || keyState[SDL_SCANCODE_RALT];
-                
-                if (isAltDown) {
-                    if (e.button.button == SDL_BUTTON_LEFT)
-                        m_zoom[m_curHoveredItem].StartMouseAction(true);
-                    if (e.button.button == SDL_BUTTON_RIGHT)
-                        m_zoom[m_curHoveredItem].StartMouseAction(false);
-                }
-            } else if (e.type == SDL_MOUSEMOTION)
-                m_zoom[m_curHoveredItem].Drag();
-            else if (e.type == SDL_MOUSEBUTTONUP)
-                m_zoom[m_curHoveredItem].EndMouseAction();
-        }
-    }
+	{
+		if (m_curHoveredItem != -1) {
+			if (e.type == SDL_MOUSEBUTTONDOWN) {
+				const Uint8* keyState = SDL_GetKeyboardState(NULL);
+				bool isAltDown = keyState[SDL_SCANCODE_LALT] || keyState[SDL_SCANCODE_RALT];
+
+				if (isAltDown) {
+					if (e.button.button == SDL_BUTTON_LEFT)
+						m_zoom[m_curHoveredItem].StartMouseAction(true);
+					if (e.button.button == SDL_BUTTON_RIGHT)
+						m_zoom[m_curHoveredItem].StartMouseAction(false);
+				}
+			} else if (e.type == SDL_MOUSEMOTION)
+				m_zoom[m_curHoveredItem].Drag();
+			else if (e.type == SDL_MOUSEBUTTONUP)
+				m_zoom[m_curHoveredItem].EndMouseAction();
+		}
+	}
 	void ObjectPreviewUI::Update(float delta)
-    {
-        m_curHoveredItem = -1;
+	{
+		m_curHoveredItem = -1;
 
-        for (int i = 0; i < m_items.size(); i++) {
-            mItem* item = &m_items[i];
+		for (int i = 0; i < m_items.size(); i++) {
+			mItem* item = &m_items[i];
 
-            if (!item->IsOpen)
-                continue;
+			if (!item->IsOpen)
+				continue;
 
-            std::string& name = item->Name;
+			std::string& name = item->Name;
 			m_zoom[i].SetCurrentMousePosition(SystemVariableManager::Instance().GetMousePosition());
 
 			if (ImGui::Begin((name + "###objprev" + std::to_string(i)).c_str(), &item->IsOpen)) {
@@ -96,8 +95,7 @@ namespace ed
 						}
 						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
 							m_zoom[i].Reset();
-					}
-					else if (item->Audio != nullptr) {
+					} else if (item->Audio != nullptr) {
 						sf::Sound* player = m_data->Objects.GetAudioPlayer(item->Name);
 						sf::SoundBuffer* buffer = (sf::SoundBuffer*)item->Audio;
 						int channels = buffer->getChannelCount();
@@ -117,8 +115,7 @@ namespace ed
 
 						ImGui::PlotHistogram("Frequencies", m_fft, IM_ARRAYSIZE(m_fft), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
 						ImGui::PlotHistogram("Samples", m_samples, IM_ARRAYSIZE(m_samples), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
-					}
-					else if (item->Buffer != nullptr) {
+					} else if (item->Buffer != nullptr) {
 						BufferObject* buf = (BufferObject*)item->Buffer;
 
 						ImGui::Text("Format:");
@@ -201,8 +198,7 @@ namespace ed
 							ImGui::Columns(1);
 						}
 
-					}
-					else {
+					} else {
 						ImVec2 posSize = ImGui::GetContentRegionAvail();
 						float posX = (posSize.x - aSize.x) / 2;
 						float posY = (posSize.y - aSize.y) / 2;
@@ -223,96 +219,102 @@ namespace ed
 					}
 				}
 			}
-            ImGui::End();
+			ImGui::End();
 
-            if (!item->IsOpen) {
-                m_items.erase(m_items.begin() + i);
-                i--;
-            }
-        }
-    }
-    bool ObjectPreviewUI::m_drawBufferElement(int row, int col, void *data, ShaderVariable::ValueType type)
-    {
-        bool ret = false;
+			if (!item->IsOpen) {
+				m_items.erase(m_items.begin() + i);
+				i--;
+			}
+		}
+	}
+	bool ObjectPreviewUI::m_drawBufferElement(int row, int col, void* data, ShaderVariable::ValueType type)
+	{
+		bool ret = false;
 
 		ImGui::PushItemWidth(-1);
 
-        std::string id = std::to_string(row) + std::to_string(col);
+		std::string id = std::to_string(row) + std::to_string(col);
 
 		switch (type) {
-			case ed::ShaderVariable::ValueType::Float4x4:
-			case ed::ShaderVariable::ValueType::Float3x3:
-			case ed::ShaderVariable::ValueType::Float2x2:
-            {
-                int cols = 2;
-                if (type == ShaderVariable::ValueType::Float3x3)
-                    cols = 3;
-                else if (type == ShaderVariable::ValueType::Float4x4)
-                    cols = 4;
+		case ed::ShaderVariable::ValueType::Float4x4:
+		case ed::ShaderVariable::ValueType::Float3x3:
+		case ed::ShaderVariable::ValueType::Float2x2: {
+			int cols = 2;
+			if (type == ShaderVariable::ValueType::Float3x3)
+				cols = 3;
+			else if (type == ShaderVariable::ValueType::Float4x4)
+				cols = 4;
 
-				for (int y = 0; y < cols; y++) {
-					if (type == ShaderVariable::ValueType::Float2x2)
-						ret = ret || ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
-					else if (type == ShaderVariable::ValueType::Float3x3)
-						ret = ret || ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
-					else ret = ret || ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
-				}
-            } break;
-			case ed::ShaderVariable::ValueType::Float1:
-				ret = ret || ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
-				break;
-			case ed::ShaderVariable::ValueType::Float2:
-				ret = ret || ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
-				break;
-			case ed::ShaderVariable::ValueType::Float3:
-				ret = ret || ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
-				break;
-			case ed::ShaderVariable::ValueType::Float4:
-				ret = ret || ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
-				break;
-			case ed::ShaderVariable::ValueType::Integer1:
-				ret = ret || ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
-				break;
-			case ed::ShaderVariable::ValueType::Integer2:
-				ret = ret || ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
-				break;
-			case ed::ShaderVariable::ValueType::Integer3:
-				ret = ret || ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
-				break;
-			case ed::ShaderVariable::ValueType::Integer4:
-				ret = ret || ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
-				break;
-			case ed::ShaderVariable::ValueType::Boolean1:
-				ret = ret || ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
-				break;
-			case ed::ShaderVariable::ValueType::Boolean2:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1);
-				break;
-			case ed::ShaderVariable::ValueType::Boolean3:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data)+2);
-				break;
-			case ed::ShaderVariable::ValueType::Boolean4:
-				ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data)+0); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data)+1); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data)+2); ImGui::SameLine();
-				ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data)+3);
-				break;
+			for (int y = 0; y < cols; y++) {
+				if (type == ShaderVariable::ValueType::Float2x2)
+					ret = ret || ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+				else if (type == ShaderVariable::ValueType::Float3x3)
+					ret = ret || ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+				else
+					ret = ret || ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+			}
+		} break;
+		case ed::ShaderVariable::ValueType::Float1:
+			ret = ret || ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			break;
+		case ed::ShaderVariable::ValueType::Float2:
+			ret = ret || ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			break;
+		case ed::ShaderVariable::ValueType::Float3:
+			ret = ret || ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			break;
+		case ed::ShaderVariable::ValueType::Float4:
+			ret = ret || ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
+			break;
+		case ed::ShaderVariable::ValueType::Integer1:
+			ret = ret || ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			break;
+		case ed::ShaderVariable::ValueType::Integer2:
+			ret = ret || ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			break;
+		case ed::ShaderVariable::ValueType::Integer3:
+			ret = ret || ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			break;
+		case ed::ShaderVariable::ValueType::Integer4:
+			ret = ret || ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			break;
+		case ed::ShaderVariable::ValueType::Boolean1:
+			ret = ret || ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
+			break;
+		case ed::ShaderVariable::ValueType::Boolean2:
+			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			break;
+		case ed::ShaderVariable::ValueType::Boolean3:
+			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
+			break;
+		case ed::ShaderVariable::ValueType::Boolean4:
+			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
+			ImGui::SameLine();
+			ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data) + 3);
+			break;
 		}
 
 		ImGui::PopItemWidth();
 
-        return ret;
-    }
-    void ObjectPreviewUI::Close(const std::string& name)
-    {
-        for (int i = 0; i < m_items.size(); i++) {
-            if (m_items[i].Name == name) {
-                m_items.erase(m_items.begin() + i);
-                i--;
-            }
-        }
-    }
+		return ret;
+	}
+	void ObjectPreviewUI::Close(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i].Name == name) {
+				m_items.erase(m_items.begin() + i);
+				i--;
+			}
+		}
+	}
 }

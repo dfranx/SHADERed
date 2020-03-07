@@ -1,20 +1,19 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <sstream>
 #include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
+#include "../Engine/GLUtils.h"
+#include "HLSLFileIncluder.h"
 #include "Logger.h"
 #include "Settings.h"
-#include "HLSLFileIncluder.h"
 #include "ShaderTranscompiler.h"
-#include <glslang/glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
-#include <SPIRVCross/spirv_glsl.hpp>
+#include <glslang/glslang/Public/ShaderLang.h>
 #include <SPIRVCross/spirv_cross_util.hpp>
-#include "../Engine/GLUtils.h"
-
+#include <SPIRVCross/spirv_glsl.hpp>
 
 const TBuiltInResource DefaultTBuiltInResource = {
 	/* .MaxLights = */ 32,
@@ -124,17 +123,15 @@ const TBuiltInResource DefaultTBuiltInResource = {
 	}
 };
 
-namespace ed
-{
-	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string &filename, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs, ProjectParser* project)
+namespace ed {
+	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string& filename, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs, ProjectParser* project)
 	{
 		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
 
 		//Load HLSL into a string
 		std::ifstream file(filename);
 
-		if (!file.is_open())
-		{
+		if (!file.is_open()) {
 			if (msgs != nullptr)
 				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
 			file.close();
@@ -142,13 +139,13 @@ namespace ed
 		}
 
 		std::string inputHLSL((std::istreambuf_iterator<char>(file)),
-							std::istreambuf_iterator<char>());
+			std::istreambuf_iterator<char>());
 
 		file.close();
 
 		return ShaderTranscompiler::TranscompileSource(inLang, filename, inputHLSL, sType, entry, macros, gsUsed, msgs, project);
 	}
-	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string &filename, const std::string &inputHLSL, int sType, const std::string &entry, std::vector<ShaderMacro> &macros, bool gsUsed, MessageStack *msgs, ProjectParser* project)
+	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string& filename, const std::string& inputHLSL, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs, ProjectParser* project)
 	{
 		const char* inputStr = inputHLSL.c_str();
 
@@ -186,7 +183,7 @@ namespace ed
 		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, glslang::EShClientVulkan, sVersion);
 		shader.setEnvClient(glslang::EShClientVulkan, vulkanVersion);
 		shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
-		
+
 		TBuiltInResource res = DefaultTBuiltInResource;
 		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 
@@ -201,8 +198,7 @@ namespace ed
 
 		std::string processedShader;
 
-		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer))
-		{
+		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer)) {
 			if (msgs != nullptr) {
 				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
 				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
@@ -211,12 +207,11 @@ namespace ed
 		}
 
 		// update strings
-		const char *processedStr = processedShader.c_str();
+		const char* processedStr = processedShader.c_str();
 		shader.setStrings(&processedStr, 1);
 
 		// parse
-		if (!shader.parse(&res, 100, false, messages))
-		{
+		if (!shader.parse(&res, 100, false, messages)) {
 			if (msgs != nullptr)
 				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
 			return "error";
@@ -226,8 +221,7 @@ namespace ed
 		glslang::TProgram prog;
 		prog.addShader(&shader);
 
-		if (!prog.link(messages))
-		{
+		if (!prog.link(messages)) {
 			if (msgs != nullptr)
 				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
 			return "error";
@@ -242,9 +236,6 @@ namespace ed
 		spvOptions.disableOptimizer = true;
 
 		glslang::GlslangToSpv(*prog.getIntermediate(shaderType), spv, &logger, &spvOptions);
-
-
-
 
 		// Read SPIR-V from disk or similar.
 		spirv_cross::CompilerGLSL glsl(std::move(spv));
@@ -264,8 +255,7 @@ namespace ed
 			outputName = "outputPS";
 		else if (shaderType == EShLangGeometry)
 			outputName = "outputGS";
-		for (auto& resource : resources.stage_outputs)
-		{
+		for (auto& resource : resources.stage_outputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
 			glsl.set_name(resource.id, outputName + std::to_string(resID));
 		}
@@ -276,8 +266,7 @@ namespace ed
 			inputName = gsUsed ? "outputGS" : "outputVS";
 		else if (shaderType == EShLangGeometry)
 			inputName = "outputVS";
-		for (auto& resource : resources.stage_inputs)
-		{
+		for (auto& resource : resources.stage_inputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
 			glsl.set_name(resource.id, inputName + std::to_string(resID));
 		}
@@ -316,15 +305,10 @@ namespace ed
 
 				// i know, ewww, but idk if there's a function to do this (this = converting UBO
 				// to separate uniforms)...
-				if (line.find("layout(binding") != std::string::npos &&
-					line.find("uniform") != std::string::npos &&
-					line.find("sampler") == std::string::npos &&
-					line.find("image") == std::string::npos &&
-					line.find(" buffer ") == std::string::npos)
-				{
+				if (line.find("layout(binding") != std::string::npos && line.find("uniform") != std::string::npos && line.find("sampler") == std::string::npos && line.find("image") == std::string::npos && line.find(" buffer ") == std::string::npos) {
 					inUBO = true;
 					continue;
-				} else if (inUBO){
+				} else if (inUBO) {
 					if (line == "{")
 						continue;
 					else if (line[0] == '}') {
@@ -334,11 +318,10 @@ namespace ed
 					} else {
 						size_t playout = line.find(")");
 						if (playout != std::string::npos)
-							line.erase(0, playout+2);
+							line.erase(0, playout + 2);
 						line = "uniform " + line;
 					}
-				}
-				else { // remove all occurances of "ubo." substrings
+				} else { // remove all occurances of "ubo." substrings
 					for (int i = 0; i < uboNames.size(); i++) {
 						std::string what = uboNames[i] + ".";
 						size_t n = what.length();
@@ -349,8 +332,7 @@ namespace ed
 
 				source += line + "\n";
 			}
-		} 
-		else if (inLang == ShaderLanguage::VulkanGLSL) {
+		} else if (inLang == ShaderLanguage::VulkanGLSL) {
 			std::stringstream ss(source);
 			std::string line;
 			source = "";
@@ -358,33 +340,24 @@ namespace ed
 			std::vector<std::string> uboNames;
 			int deleteUboPos = 0, deleteUboLength = 0;
 			std::string uboExt = (shaderType == 0) ? "VS" : (shaderType == 1 ? "PS" : "GS");
-			while (std::getline(ss, line))
-			{
+			while (std::getline(ss, line)) {
 
 				// i know, ewww, but idk if there's a function to do this (this = converting UBO
 				// to separate uniforms)...
-				if (line.find("layout(binding") != std::string::npos &&
-					line.find("uniform") != std::string::npos &&
-					line.find("sampler") == std::string::npos &&
-					line.find("image") == std::string::npos &&
-					line.find(" buffer ") == std::string::npos)
-				{
+				if (line.find("layout(binding") != std::string::npos && line.find("uniform") != std::string::npos && line.find("sampler") == std::string::npos && line.find("image") == std::string::npos && line.find(" buffer ") == std::string::npos) {
 					inUBO = true;
 					deleteUboPos = source.size();
-					
+
 					size_t lineLastOf = line.find_last_of(' ');
-					std::string name = line.substr(lineLastOf + 1, line.find('\n') - lineLastOf -1);
+					std::string name = line.substr(lineLastOf + 1, line.find('\n') - lineLastOf - 1);
 					std::string newLine = "uniform struct " + name + " {\n";
 					deleteUboLength = newLine.size();
 					source += newLine;
 					continue;
-				}
-				else if (inUBO)
-				{
+				} else if (inUBO) {
 					if (line == "{")
 						continue;
-					else if (line[0] == '}')
-					{
+					else if (line[0] == '}') {
 						// i know this is yucky but are there glslang/spirv-cross functions for these?
 						inUBO = false;
 						std::string uboName = line.substr(2, line.size() - 3);
@@ -401,7 +374,7 @@ namespace ed
 
 						if (isGenBySpirvCross) {
 							uboNames.push_back(uboName); // only delete occurances if the structure name is generated by spirv-cross and not us
-							
+
 							// delete the declaration:
 							source.erase(deleteUboPos, deleteUboLength);
 
@@ -423,11 +396,8 @@ namespace ed
 							line.erase(0, playout + 2);
 					}
 					*/
-				}
-				else
-				{ // remove all occurances of "ubo." substrings
-					for (int i = 0; i < uboNames.size(); i++)
-					{
+				} else { // remove all occurances of "ubo." substrings
+					for (int i = 0; i < uboNames.size(); i++) {
 						std::string what = uboNames[i] + ".";
 						size_t n = what.length();
 						for (size_t j = line.find(what); j != std::string::npos; j = line.find(what))
@@ -440,13 +410,13 @@ namespace ed
 		}
 
 		ed::Logger::Get().Log("Finished transcompiling the shader");
-		
+
 		return source;
 	}
-	ShaderLanguage ShaderTranscompiler::GetShaderTypeFromExtension(const std::string &file)
+	ShaderLanguage ShaderTranscompiler::GetShaderTypeFromExtension(const std::string& file)
 	{
-		std::vector<std::string> &hlslExts = Settings::Instance().General.HLSLExtensions;
-		std::vector<std::string> &vkExts = Settings::Instance().General.VulkanGLSLExtensions;
+		std::vector<std::string>& hlslExts = Settings::Instance().General.HLSLExtensions;
+		std::vector<std::string>& vkExts = Settings::Instance().General.VulkanGLSLExtensions;
 		if (std::count(hlslExts.begin(), hlslExts.end(), file.substr(file.find_last_of('.') + 1)) > 0)
 			return ShaderLanguage::HLSL;
 		if (std::count(vkExts.begin(), vkExts.end(), file.substr(file.find_last_of('.') + 1)) > 0)

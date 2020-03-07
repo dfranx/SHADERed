@@ -1,14 +1,14 @@
 #pragma once
-#include "UIView.h"
 #include "../Objects/PipelineItem.h"
 #include "../Objects/ShaderVariable.h"
+#include "UIView.h"
 
-namespace ed
-{
-	class CreateItemUI : public UIView
-	{
+namespace ed {
+	class CreateItemUI : public UIView {
 	public:
-		CreateItemUI(GUIManager* ui, InterfaceManager* objects, const std::string& name = "", bool visible = false) : UIView(ui, objects, name, visible) {
+		CreateItemUI(GUIManager* ui, InterfaceManager* objects, const std::string& name = "", bool visible = false)
+				: UIView(ui, objects, name, visible)
+		{
 			SetOwner(nullptr);
 			m_item.Data = nullptr;
 			m_selectedGroup = 0;

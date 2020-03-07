@@ -1,11 +1,9 @@
 #pragma once
-#include "../Objects/ShaderVariable.h"
 #include "../InterfaceManager.h"
+#include "../Objects/ShaderVariable.h"
 
-namespace ed
-{
-	class VariableValueEditUI
-	{
+namespace ed {
+	class VariableValueEditUI {
 	public:
 		VariableValueEditUI(ed::InterfaceManager* data);
 

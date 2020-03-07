@@ -2,18 +2,18 @@
 #include "MessageStack.h"
 #include <string>
 
-namespace ed
-{
-	class Logger
-	{
+namespace ed {
+	class Logger {
 	public:
 		MessageStack* Stack;
 
-		Logger() {
+		Logger()
+		{
 			Stack = nullptr;
 		}
 
-		static Logger& Get() {
+		static Logger& Get()
+		{
 			static Logger ret;
 			return ret;
 		}

@@ -1,16 +1,19 @@
 #pragma once
-#include <glm/glm.hpp>
 #include "Camera.h"
+#include <glm/glm.hpp>
 
-namespace ed
-{
-	class FirstPersonCamera : public Camera
-	{
+namespace ed {
+	class FirstPersonCamera : public Camera {
 	public:
-		FirstPersonCamera() : m_yaw(0.0f), m_pitch(0.0f) { Reset(); }
+		FirstPersonCamera()
+				: m_yaw(0.0f)
+				, m_pitch(0.0f)
+		{
+			Reset();
+		}
 
 		virtual void Reset();
-		
+
 		inline void SetPosition(float x, float y, float z) { m_pos = glm::vec3(x, y, z); }
 
 		void MoveLeftRight(float d);
@@ -28,7 +31,8 @@ namespace ed
 
 		virtual glm::mat4 GetMatrix();
 
-		inline FirstPersonCamera& operator=(const FirstPersonCamera& fp) {
+		inline FirstPersonCamera& operator=(const FirstPersonCamera& fp)
+		{
 			this->m_pos = fp.m_pos;
 			this->m_yaw = fp.m_yaw;
 			this->m_pitch = fp.m_pitch;

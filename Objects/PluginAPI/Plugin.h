@@ -1,10 +1,8 @@
 #pragma once
 #include "PluginData.h"
 
-namespace ed
-{
-	namespace pluginfn
-	{
+namespace ed {
+	namespace pluginfn {
 		typedef void (*AddObjectFn)(void* objects, const char* name, const char* type, void* data, unsigned int id, void* owner);
 		typedef bool (*AddCustomPipelineItemFn)(void* pipeline, void* parent, const char* name, const char* type, void* data, void* owner);
 
@@ -37,7 +35,7 @@ namespace ed
 		typedef bool (*ExistsPipelineItemFn)(void* pipeline, const char* name);
 		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
 		typedef int (*GetPipelineItemCountFn)(void* pipeline);
-		typedef plugin::PipelineItemType(*GetPipelineItemTypeFn)(void* pipeline, int index);
+		typedef plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* pipeline, int index);
 		typedef void* (*GetPipelineItemByIndexFn)(void* pipeline, int index);
 
 		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
@@ -47,7 +45,7 @@ namespace ed
 		typedef void (*GetViewportSizeFn)(float& w, float& h);
 		typedef void (*AdvanceTimerFn)(float t);
 		typedef void (*GetMousePositionFn)(float& x, float& y);
-		typedef int  (*GetFrameIndexFn)();
+		typedef int (*GetFrameIndexFn)();
 		typedef float (*GetTimeFn)();
 		typedef void (*SetGeometryTransformFn)(void* item, float scale[3], float rota[3], float pos[3]);
 		typedef void (*SetMousePositionFn)(float x, float y);
@@ -68,15 +66,14 @@ namespace ed
 
 		typedef void (*BindDefaultStateFn)();
 		typedef void (*OpenInCodeEditorFn)(void* CodeEditorUI, void* item, const char* filename, int id);
-	
+
 		typedef bool (*GetOpenDirectoryDialogFn)(char* out);
 		typedef bool (*GetOpenFileDialogFn)(char* out, const char* files);
 		typedef bool (*GetSaveFileDialogFn)(char* out, const char* files);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
-	class IPlugin
-	{
+	class IPlugin {
 	public:
 		virtual bool Init() = 0;
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
@@ -155,9 +152,9 @@ namespace ed
 		virtual void* CopyPipelineItemData(const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void ExecutePipelineItem(const char* type, void* data, void* children, int count) = 0;
-		virtual void GetPipelineItemWorldMatrix(const char* name, float(&pMat)[16]) = 0; //must be implemented if item is pickable
+		virtual void GetPipelineItemWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
 		virtual bool IntersectPipelineItem(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
-		virtual void GetPipelineItemBoundingBox(const char* name, float(&minPos)[3], float(&maxPos)[3]) = 0;
+		virtual void GetPipelineItemBoundingBox(const char* name, float (&minPos)[3], float (&maxPos)[3]) = 0;
 		virtual bool HasPipelineItemContext(const char* type) = 0;
 		virtual void ShowPipelineItemContext(const char* type, void* data) = 0;
 		virtual const char* ExportPipelineItem(const char* type, void* data) = 0;
@@ -197,7 +194,7 @@ namespace ed
 		virtual void UpdateShaderFilePath() = 0;
 
 		// some functions exported from SHADERed
-		void* Renderer, * Messages, * Project, * CodeEditor, * UI;
+		void *Renderer, *Messages, *Project, *CodeEditor, *UI;
 		pluginfn::AddMessageFn AddMessage;
 		pluginfn::CreateRenderTextureFn CreateRenderTexture;
 		pluginfn::CreateImageFn CreateImage;

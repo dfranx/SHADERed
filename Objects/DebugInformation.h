@@ -1,15 +1,13 @@
 #pragma once
-#include <ShaderDebugger/ShaderDebugger.h>
-#include <ShaderDebugger/TextureCube.h>
 #include "Debug/PixelInformation.h"
-#include "ShaderLanguage.h"
 #include "ObjectManager.h"
 #include "RenderEngine.h"
+#include "ShaderLanguage.h"
+#include <ShaderDebugger/ShaderDebugger.h>
+#include <ShaderDebugger/TextureCube.h>
 
-namespace ed
-{
-	class DebugInformation
-	{
+namespace ed {
+	class DebugInformation {
 	public:
 		DebugInformation(ObjectManager* objs, RenderEngine* renderer);
 
@@ -38,7 +36,11 @@ namespace ed
 		inline const std::vector<bool>& GetBreakpointStateList(const std::string& file) { return m_breakpointStates[file]; }
 		inline const std::unordered_map<std::string, std::vector<sd::Breakpoint>>& GetBreakpointList() { return m_breakpoints; }
 		inline const std::unordered_map<std::string, std::vector<bool>>& GetBreakpointStateList() { return m_breakpointStates; }
-		inline void ClearBreakpointList() { m_breakpoints.clear(); m_breakpointStates.clear(); }
+		inline void ClearBreakpointList()
+		{
+			m_breakpoints.clear();
+			m_breakpointStates.clear();
+		}
 
 		glm::vec2 GetVertexScreenPosition(PixelInformation& pixel, int id);
 
@@ -56,7 +58,7 @@ namespace ed
 		bool m_isDebugging;
 
 		bv_stack m_args, m_argsFetch;
-		bv_library* m_libHLSL, *m_libGLSL;
+		bv_library *m_libHLSL, *m_libGLSL;
 		std::string m_entry;
 		PixelInformation* m_pixel;
 		ed::ShaderLanguage m_lang;

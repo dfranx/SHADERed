@@ -7,8 +7,7 @@ const float ed::AudioAnalyzer::Smooth[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 const float ed::AudioAnalyzer::Gravity = 0.0006f;
 const float ed::AudioAnalyzer::LogScale = 1.0;
 
-namespace ed
-{
+namespace ed {
 	/**************************************
 		Huge thanks to github.com/dgranosa!
 		https://github.com/dgranosa/liveW
@@ -21,7 +20,6 @@ namespace ed
 
 	AudioAnalyzer::~AudioAnalyzer()
 	{
-
 	}
 	void AudioAnalyzer::m_setup(int rate)
 	{
@@ -66,7 +64,7 @@ namespace ed
 		int n = 0;
 		std::valarray<std::complex<double>> fftIn(SampleCount);
 		for (int i = 0; i < SampleCount / 2; i += 2) {
-			if (curSample + i > samplersPerChannel*channels || curSample + i + 1 > samplersPerChannel * channels)
+			if (curSample + i > samplersPerChannel * channels || curSample + i + 1 > samplersPerChannel * channels)
 				continue;
 
 			fftIn[n] = (samples[curSample + i] + samples[curSample + i + 1]) / 2; // TODO: Add stereo option
@@ -98,8 +96,7 @@ namespace ed
 			if (m_fftOut[i] < m_flast[i]) {
 				m_fftOut[i] = m_fpeak[i] - (Gravity * m_fall[i] * m_fall[i]);
 				m_fall[i]++;
-			}
-			else {
+			} else {
 				m_fpeak[i] = m_fftOut[i];
 				m_fall[i] = 0;
 			}
@@ -138,13 +135,12 @@ namespace ed
 		if (len <= 1) return;
 
 		std::valarray<std::complex<double>> even = input[std::slice(0, len / 2, 2)];
-		std::valarray<std::complex<double>>  odd = input[std::slice(1, len / 2, 2)];
+		std::valarray<std::complex<double>> odd = input[std::slice(1, len / 2, 2)];
 
 		m_fftAlgorithm(even);
 		m_fftAlgorithm(odd);
 
-		for (int i = 0; i < len / 2; i++)
-		{
+		for (int i = 0; i < len / 2; i++) {
 			std::complex<double> temp = std::polar(1.0, (double)-2 * M_PI * i / len) * odd[i];
 			input[i] = even[i] + temp;
 			input[i + len / 2] = even[i] - temp;
@@ -163,7 +159,6 @@ namespace ed
 				y[j] = sqrt(in[j].real() * in[j].real() + in[j].imag() * in[j].imag());
 				peak[i] += y[j];
 			}
-
 
 			peak[i] = peak[i] / (hcf[i] - lcf[i] + 1);
 			temp = peak[i] * sensitivity * k[i] / 1000000;

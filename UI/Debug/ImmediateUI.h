@@ -2,13 +2,12 @@
 #include "../UIView.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
-	class DebugImmediateUI : public UIView
-	{
+namespace ed {
+	class DebugImmediateUI : public UIView {
 	public:
-		DebugImmediateUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) :
-			UIView(ui, objects, name, visible) {
+		DebugImmediateUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
+		{
 			m_input[0] = 0;
 			m_clear();
 		}

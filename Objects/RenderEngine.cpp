@@ -1,14 +1,14 @@
 #include "RenderEngine.h"
-#include "Logger.h"
-#include "Settings.h"
-#include "ShaderTranscompiler.h"
+#include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Engine/Ray.h"
 #include "DefaultState.h"
+#include "Logger.h"
 #include "ObjectManager.h"
 #include "PipelineManager.h"
+#include "Settings.h"
+#include "ShaderTranscompiler.h"
 #include "SystemVariableManager.h"
-#include "../Engine/GeometryFactory.h"
-#include "../Engine/GLUtils.h"
-#include "../Engine/Ray.h"
 
 #include <algorithm>
 #include <glm/gtx/intersect.hpp>
@@ -57,22 +57,21 @@ void main()
 )";
 #define DEBUG_ID_START 1
 
-namespace ed
-{
-	RenderEngine::RenderEngine(PipelineManager * pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins, DebugInformation* debugger) :
-		m_pipeline(pipeline),
-		m_objects(objects),
-		m_project(project),
-		m_msgs(msgs),
-		m_plugins(plugins),
-		m_debug(debugger),
-		m_lastSize(0, 0),
-		m_pickAwaiting(false),
-		m_rtColor(0),
-		m_rtDepth(0),
-		m_fbosNeedUpdate(false),
-		m_computeSupported(true),
-		m_wasMultiPick(false)
+namespace ed {
+	RenderEngine::RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins, DebugInformation* debugger)
+			: m_pipeline(pipeline)
+			, m_objects(objects)
+			, m_project(project)
+			, m_msgs(msgs)
+			, m_plugins(plugins)
+			, m_debug(debugger)
+			, m_lastSize(0, 0)
+			, m_pickAwaiting(false)
+			, m_rtColor(0)
+			, m_rtDepth(0)
+			, m_fbosNeedUpdate(false)
+			, m_computeSupported(true)
+			, m_wasMultiPick(false)
 	{
 		m_paused = false;
 
@@ -133,7 +132,7 @@ namespace ed
 
 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_rtColorMS);
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, Settings::Instance().Project.UseAlphaChannel ? GL_RGBA : GL_RGB, width, height, true);
-			
+
 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_rtDepthMS);
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, width, height, true);
 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
@@ -220,8 +219,7 @@ namespace ed
 						if (!usedPreviously && rtObject->Clear)
 							glClearBufferfv(GL_COLOR, i, isDebug ? glm::value_ptr(glm::vec4(0.0f)) : glm::value_ptr(rtObject->ClearColor));
 
-					}
-					else if (!clearedWindow) {
+					} else if (!clearedWindow) {
 						glClearBufferfv(GL_COLOR, i, isDebug ? glm::value_ptr(glm::vec4(0.0f)) : glm::value_ptr(Settings::Instance().Project.ClearColor));
 
 						clearedWindow = true;
@@ -252,8 +250,7 @@ namespace ed
 					else if (m_objects->IsPluginObject(srvs[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
 						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
-					}
-					else
+					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
@@ -262,7 +259,7 @@ namespace ed
 
 				for (int j = 0; j < ubos.size(); j++)
 					glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
-				
+
 				// clear messages
 				//if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
 				//	m_msgs->ClearGroup(it->Name, (int)ed::MessageStack::Type::Warning);
@@ -313,8 +310,7 @@ namespace ed
 							glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
 						else
 							glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
-					}
-					else if (item->Type == PipelineItem::ItemType::Model) {
+					} else if (item->Type == PipelineItem::ItemType::Model) {
 						pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
 						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -324,10 +320,9 @@ namespace ed
 						data->Variables.Bind(item);
 
 						objData->Data->Draw(objData->Instanced, objData->InstanceCount);
-					}
-					else if (item->Type == PipelineItem::ItemType::RenderState) {
+					} else if (item->Type == PipelineItem::ItemType::RenderState) {
 						pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
-						
+
 						// depth clamp
 						if (state->DepthClamp)
 							glEnable(GL_DEPTH_CLAMP);
@@ -352,8 +347,7 @@ namespace ed
 							glBlendFuncSeparate(state->BlendSourceFactorRGB, state->BlendDestinationFactorRGB, state->BlendSourceFactorAlpha, state->BlendDestinationFactorAlpha);
 							glBlendColor(state->BlendFactor.r, state->BlendFactor.g, state->BlendFactor.a, state->BlendFactor.a);
 							glSampleCoverage(state->AlphaToCoverage, GL_FALSE);
-						}
-						else
+						} else
 							glDisable(GL_BLEND);
 
 						// depth state
@@ -373,11 +367,9 @@ namespace ed
 							glStencilMask(state->StencilMask);
 							glStencilOpSeparate(GL_FRONT, state->StencilFrontFaceOpStencilFail, state->StencilFrontFaceOpDepthFail, state->StencilFrontFaceOpPass);
 							glStencilOpSeparate(GL_BACK, state->StencilBackFaceOpStencilFail, state->StencilBackFaceOpDepthFail, state->StencilBackFaceOpPass);
-						}
-						else
+						} else
 							glDisable(GL_STENCIL_TEST);
-					}
-					else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
 						if (m_pickAwaiting && pldata->Owner->IsPipelineItemPickable(pldata->Type))
@@ -405,29 +397,26 @@ namespace ed
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboMS[data]);
 					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, data->FBO);
 					glDrawBuffer(GL_BACK);
-					for (unsigned int i = 0; i < data->RTCount; i++)
-					{
+					for (unsigned int i = 0; i < data->RTCount; i++) {
 						glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
 						glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
 						glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 					}
 				}
-			}
-			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
-				pipe::ComputePass *data = (pipe::ComputePass *)it->Data;
+			} else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
+				pipe::ComputePass* data = (pipe::ComputePass*)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
 				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
 
 				if (m_shaders[i] == 0)
 					continue;
-				
+
 				// bind shaders
 				glUseProgram(m_shaders[i]);
 
 				// bind shader resource views
-				for (int j = 0; j < srvs.size(); j++)
-				{
+				for (int j = 0; j < srvs.size(); j++) {
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (m_objects->IsCubeMap(srvs[j]))
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
@@ -445,18 +434,16 @@ namespace ed
 					if (m_objects->IsImage(ubos[j])) {
 						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(ubos[j])); // TODO: GetImageByID
 						glBindImageTexture(j, ubos[j], 0, GL_FALSE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
-					}
-					else if (m_objects->IsImage3D(ubos[j])) {
+					} else if (m_objects->IsImage3D(ubos[j])) {
 						Image3DObject* iobj = m_objects->GetImage3D(m_objects->GetImage3DNameByID(ubos[j]));
 						glBindImageTexture(j, ubos[j], 0, GL_TRUE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
-					}
-					else if (m_objects->IsPluginObject(ubos[j])) {
+					} else if (m_objects->IsPluginObject(ubos[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(ubos[j]);
 						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
 					} else
 						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				}
-				
+
 				// bind variables
 				data->Variables.Bind();
 
@@ -466,16 +453,14 @@ namespace ed
 				// wait until it finishes
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			}
-			else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
-				pipe::AudioPass *data = (pipe::AudioPass *)it->Data;
+			} else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
+				pipe::AudioPass* data = (pipe::AudioPass*)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
 				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
 
 				// bind shader resource views
-				for (int j = 0; j < srvs.size(); j++)
-				{
+				for (int j = 0; j < srvs.size(); j++) {
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (m_objects->IsCubeMap(srvs[j]))
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
@@ -484,8 +469,7 @@ namespace ed
 					else if (m_objects->IsPluginObject(srvs[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
 						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
-					}
-					else
+					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
@@ -497,13 +481,12 @@ namespace ed
 					if (m_objects->IsBuffer(m_objects->GetBufferNameByID(ubos[j])))
 						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				}
-				
+
 				// bind variables
 				data->Variables.Bind();
 
 				data->Stream.renderAudio();
-			}
-			else if (it->Type == PipelineItem::ItemType::PluginItem && !isDebug) {
+			} else if (it->Type == PipelineItem::ItemType::PluginItem && !isDebug) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
 
 				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
@@ -582,7 +565,7 @@ namespace ed
 		Render(true);
 
 		// window item id
-		
+
 		glBindTexture(GL_TEXTURE_2D, m_rtColor);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -663,12 +646,11 @@ namespace ed
 
 		// vertex shader
 		int lineBias = 0;
-		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
+		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) { // GLSL
 			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
 			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
 			m_applyMacros(vsCode, vertexPass);
-		}
-		else // HLSL / VK
+		} else // HLSL / VK
 			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
 
 		// modify user's vertex shader
@@ -680,7 +662,7 @@ namespace ed
 		if (mainPos != std::string::npos && isspace(vsCode[mainPos - 1])) {
 			size_t bracketPos = vsCode.find('{', mainPos);
 			if (bracketPos != std::string::npos)
-				vsCode.insert(bracketPos+1, "\n_sed_dbg_vertexID = gl_VertexID;\n");
+				vsCode.insert(bracketPos + 1, "\n_sed_dbg_vertexID = gl_VertexID;\n");
 		}
 
 		size_t versionPos = vsCode.find("#version");
@@ -710,7 +692,7 @@ namespace ed
 		// bind fbo and buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
 		glDrawBuffers(vertexPass->RTCount, fboBuffers);
-				
+
 		glStencilMask(0xFFFFFFFF);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
@@ -753,8 +735,7 @@ namespace ed
 			else if (m_objects->IsPluginObject(srvs[j])) {
 				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
 				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
-			}
-			else
+			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
 			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
@@ -787,8 +768,7 @@ namespace ed
 					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
 					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
 					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-				}
-				else
+				} else
 					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
 				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -801,8 +781,7 @@ namespace ed
 					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
 				else
 					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
-			}
-			else if (item->Type == PipelineItem::ItemType::Model) {
+			} else if (item->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
 				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -812,8 +791,7 @@ namespace ed
 				vertexPass->Variables.Bind(item);
 
 				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
-			}
-			else if (item->Type == PipelineItem::ItemType::RenderState) {
+			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
 				// culling and front face (only thing we care about when picking a vertex, i think)
@@ -868,12 +846,11 @@ namespace ed
 
 		// vertex shader
 		int lineBias = 0;
-		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) {// GLSL
+		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) { // GLSL
 			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
 			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
 			m_applyMacros(vsCode, vertexPass);
-		}
-		else // HLSL / VK
+		} else // HLSL / VK
 			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
 
 		// modify user's vertex shader
@@ -958,8 +935,7 @@ namespace ed
 			else if (m_objects->IsPluginObject(srvs[j])) {
 				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
 				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
-			}
-			else
+			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
 			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
@@ -992,8 +968,7 @@ namespace ed
 					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
 					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
 					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-				}
-				else
+				} else
 					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
 				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -1006,8 +981,7 @@ namespace ed
 					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
 				else
 					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
-			}
-			else if (item->Type == PipelineItem::ItemType::Model) {
+			} else if (item->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
 				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -1017,8 +991,7 @@ namespace ed
 				vertexPass->Variables.Bind(item);
 
 				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
-			}
-			else if (item->Type == PipelineItem::ItemType::RenderState) {
+			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
 				// culling and front face (only thing we care about when picking a vertex, i think)
@@ -1069,18 +1042,18 @@ namespace ed
 
 		if (m_paused)
 			SystemVariableManager::Instance().GetTimeClock().Pause();
-		else 
+		else
 			SystemVariableManager::Instance().GetTimeClock().Resume();
 
 		m_debug->ClearPixelList();
 	}
-	void RenderEngine::Recompile(const char * name)
+	void RenderEngine::Recompile(const char* name)
 	{
-		Logger::Get().Log("Recompiling " + std::string(name)); 
+		Logger::Get().Log("Recompiling " + std::string(name));
 
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
-		
+
 		GLchar cMsg[1024] = { 0 };
 
 		int d3dCounter = 0;
@@ -1097,13 +1070,13 @@ namespace ed
 					glDeleteShader(m_shaderSources[i].GS);
 
 					std::string psContent = "", vsContent = "",
-						vsEntry = shader->VSEntry,
-						psEntry = shader->PSEntry;
+								vsEntry = shader->VSEntry,
+								psEntry = shader->PSEntry;
 					int lineBias = 0;
 
 					// pixel shader
 					m_msgs->CurrentItemType = 1;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL) {// GLSL
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(shader->PSPath);
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, shader);
@@ -1122,7 +1095,7 @@ namespace ed
 					// vertex shader
 					m_msgs->CurrentItemType = 0;
 					lineBias = 0;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL) {// GLSL
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(shader->VSPath);
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, shader);
@@ -1142,11 +1115,11 @@ namespace ed
 					GLuint gs = 0;
 					if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 						std::string gsContent = "",
-							gsEntry = shader->GSEntry;
+									gsEntry = shader->GSEntry;
 
 						m_msgs->CurrentItemType = 2;
 						lineBias = 0;
-						if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL) {// GLSL
+						if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
@@ -1169,11 +1142,10 @@ namespace ed
 						glDeleteProgram(m_shaders[i]);
 
 					if (!vsCompiled || !psCompiled || !gsCompiled) {
-						Logger::Get().Log("Shaders not compiled", true); 
+						Logger::Get().Log("Shaders not compiled", true);
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
 						m_shaders[i] = 0;
-					}
-					else {
+					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
 
 						m_shaders[i] = glCreateProgram();
@@ -1189,9 +1161,8 @@ namespace ed
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
-				}
-				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
-					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 
 					m_msgs->ClearGroup(name);
 
@@ -1200,7 +1171,7 @@ namespace ed
 
 					// compute shader
 					m_msgs->CurrentItemType = 3;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL) {// GLSL
+					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(shader->Path);
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, shader);
@@ -1235,9 +1206,8 @@ namespace ed
 
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
-				}
-				else if (item->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass *shader = (pipe::AudioPass *)item->Data;
+				} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
 
 					m_msgs->ClearGroup(name);
 
@@ -1247,12 +1217,10 @@ namespace ed
 					m_msgs->CurrentItemType = 1;
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, shader);
-					
+
 					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
-				}
-				else if (item->Type == PipelineItem::ItemType::PluginItem)
-				{
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
 					idata->Owner->HandleRecompile(name);
 				}
@@ -1267,19 +1235,14 @@ namespace ed
 			PipelineItem* item = m_items[i];
 			if (item->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
-				if (strcmp(shader->VSPath, fname) == 0 ||
-					strcmp(shader->PSPath, fname) == 0 ||
-					strcmp(shader->GSPath, fname) == 0)
-				{
+				if (strcmp(shader->VSPath, fname) == 0 || strcmp(shader->PSPath, fname) == 0 || strcmp(shader->GSPath, fname) == 0) {
 					Recompile(item->Name);
 				}
-			}
-			else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+			} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 				pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 				if (strcmp(shader->Path, fname) == 0)
 					Recompile(item->Name);
-			}
-			else if (item->Type == PipelineItem::ItemType::AudioPass) {
+			} else if (item->Type == PipelineItem::ItemType::AudioPass) {
 				pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
 				if (strcmp(shader->Path, fname) == 0)
 					Recompile(item->Name);
@@ -1355,8 +1318,7 @@ namespace ed
 					if (!vsCompiled || !psCompiled || !gsCompiled) {
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
 						m_shaders[i] = 0;
-					}
-					else {
+					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
 
 						m_shaders[i] = glCreateProgram();
@@ -1368,17 +1330,15 @@ namespace ed
 
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
-				}
-				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
-					pipe::ComputePass *shader = (pipe::ComputePass *)item->Data;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 					m_msgs->ClearGroup(name);
 
 					bool compiled = false;
 					GLuint cs = 0;
 
 					// compute shader
-					if (vssrc.size() > 0)
-					{
+					if (vssrc.size() > 0) {
 						m_msgs->CurrentItemType = 3;
 						cs = gl::CompileShader(GL_COMPUTE_SHADER, vssrc.c_str());
 						compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
@@ -1390,13 +1350,10 @@ namespace ed
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!compiled)
-					{
+					if (!compiled) {
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
 						m_shaders[i] = 0;
-					}
-					else
-					{
+					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the compute shader.");
 
 						m_shaders[i] = glCreateProgram();
@@ -1408,9 +1365,8 @@ namespace ed
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
 
 					glDeleteShader(cs);
-				}
-				else if (item->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass *shader = (pipe::AudioPass *)item->Data;
+				} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
 					m_msgs->ClearGroup(name);
 
 					bool compiled = false;
@@ -1432,7 +1388,7 @@ namespace ed
 		m_pickDist = std::numeric_limits<float>::infinity();
 		m_pickHandle = func;
 		m_wasMultiPick = multiPick;
-		
+
 		float mouseX = sx / (m_lastSize.x * 0.5f) - 1.0f;
 		float mouseY = sy / (m_lastSize.y * 0.5f) - 1.0f;
 
@@ -1476,18 +1432,15 @@ namespace ed
 		glm::mat4 world(1);
 		if (item->Type == PipelineItem::ItemType::Geometry) {
 			pipe::GeometryItem* geo = (pipe::GeometryItem*)item->Data;
-			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle ||
-				geo->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
+			if (geo->Type == pipe::GeometryItem::GeometryType::Rectangle || geo->Type == pipe::GeometryItem::GeometryType::ScreenQuadNDC)
 				return;
 
 			world = glm::translate(glm::mat4(1), geo->Position) * glm::yawPitchRoll(geo->Rotation.y, geo->Rotation.x, geo->Rotation.z);
-		}
-		else if (item->Type == PipelineItem::ItemType::Model) {
+		} else if (item->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* obj = (pipe::Model*)item->Data;
-			
+
 			world = glm::translate(glm::mat4(1), obj->Position) * glm::scale(glm::mat4(1.0f), obj->Scale) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
-		}
-		else if (item->Type == PipelineItem::ItemType::PluginItem) {
+		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 			float plMat[16];
@@ -1496,10 +1449,10 @@ namespace ed
 		}
 
 		glm::mat4 invWorld = glm::inverse(world);
-		
+
 		glm::vec4 rayOrigin = invWorld * glm::vec4(m_pickOrigin, 1);
 		glm::vec4 rayDir = invWorld * glm::vec4(m_pickDir, 0.0f);
-		
+
 		glm::vec3 vec3Origin = glm::vec3(rayOrigin);
 		glm::vec3 vec3Dir = glm::vec3(rayDir);
 
@@ -1513,8 +1466,7 @@ namespace ed
 				float distHit;
 				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, distHit))
 					myDist = distHit;
-			}
-			else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
+			} else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
 				float size = geo->Size.x * geo->Scale.x;
 				float rightOffs = size / tan(glm::radians(30.0f));
 				glm::vec3 v0(0, -size, 0);
@@ -1524,22 +1476,19 @@ namespace ed
 				float hit;
 				if (ray::IntersectTriangle(vec3Origin, glm::normalize(vec3Dir), v0, v1, v2, hit))
 					myDist = hit;
-			}
-			else if (geo->Type == pipe::GeometryItem::GeometryType::Sphere) {
+			} else if (geo->Type == pipe::GeometryItem::GeometryType::Sphere) {
 				float r = geo->Size.x * geo->Scale.x;
 				r *= r;
 
 				glm::intersectRaySphere(vec3Origin, glm::normalize(vec3Dir), glm::vec3(0), r, myDist);
-			}
-			else if (geo->Type == pipe::GeometryItem::GeometryType::Plane) {
+			} else if (geo->Type == pipe::GeometryItem::GeometryType::Plane) {
 				glm::vec3 b1(-geo->Size.x * geo->Scale.x / 2, -geo->Size.y * geo->Scale.y / 2, -0.0001f);
 				glm::vec3 b2(geo->Size.x * geo->Scale.x / 2, geo->Size.y * geo->Scale.y / 2, 0.0001f);
 
 				float hit;
 				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, hit))
 					myDist = hit;
-			}
-			else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
+			} else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
 				glm::vec3 b1(-geo->Size.x * geo->Scale.x, -geo->Size.y * geo->Scale.y, -0.0001f);
 				glm::vec3 b2(geo->Size.x * geo->Scale.x, geo->Size.y * geo->Scale.y, 0.0001f);
 
@@ -1547,8 +1496,7 @@ namespace ed
 				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, hit))
 					myDist = hit;
 			}
-		}
-		else if (item->Type == PipelineItem::ItemType::Model) {
+		} else if (item->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* obj = (pipe::Model*)item->Data;
 
 			glm::vec3 minb = obj->Data->GetMinBound();
@@ -1556,10 +1504,10 @@ namespace ed
 
 			float triDist = std::numeric_limits<float>::infinity();
 			if (ray::IntersectBox(minb, maxb, vec3Origin, vec3Dir, triDist)) { // TODO: test this optimization
-				if (triDist < m_pickDist) { // optimization: check if bounding box is closer than selected object
+				if (triDist < m_pickDist) {									   // optimization: check if bounding box is closer than selected object
 					bool donetris = false;
 					for (auto& mesh : obj->Data->Meshes) {
-						for (int i = 0; i+2 < mesh.Vertices.size(); i+=3) {
+						for (int i = 0; i + 2 < mesh.Vertices.size(); i += 3) {
 							glm::vec3 v0 = mesh.Vertices[i + 0].Position;
 							glm::vec3 v1 = mesh.Vertices[i + 1].Position;
 							glm::vec3 v2 = mesh.Vertices[i + 2].Position;
@@ -1578,11 +1526,10 @@ namespace ed
 						if (donetris)
 							break;
 					}
-				}
-				else myDist = triDist;
+				} else
+					myDist = triDist;
 			}
-		}
-		else if (item->Type == PipelineItem::ItemType::PluginItem) {
+		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
 
 			float hit;
@@ -1659,7 +1606,7 @@ namespace ed
 			glDeleteShader(m_shaderSources[i].GS);
 			glDeleteProgram(m_shaders[i]);
 		}
-		
+
 		m_fbos.clear();
 		m_fboCount.clear();
 		m_items.clear();
@@ -1673,8 +1620,8 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, m_rtDepth);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_lastSize.x, m_lastSize.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
-	
-		m_lastSize = glm::ivec2(1,1); // recreate window rt!
+
+		m_lastSize = glm::ivec2(1, 1); // recreate window rt!
 	}
 	void RenderEngine::m_cache()
 	{
@@ -1685,7 +1632,8 @@ namespace ed
 		if (m_items.size() == items.size()) {
 			if (m_cacheTimer.GetElapsedTime() > 0.5f)
 				m_cacheTimer.Restart();
-			else return;
+			else
+				return;
 		}
 
 		GLchar cMsg[1024];
@@ -1730,8 +1678,8 @@ namespace ed
 					m_msgs->CurrentItem = items[i]->Name;
 
 					std::string psContent = "", vsContent = "",
-						vsEntry = data->VSEntry,
-						psEntry = data->PSEntry;
+								vsEntry = data->VSEntry,
+								psEntry = data->PSEntry;
 					int lineBias = 0;
 
 					// vertex shader
@@ -1744,7 +1692,7 @@ namespace ed
 						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
 						vsEntry = "main";
 					}
-					
+
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
 					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
 
@@ -1783,7 +1731,7 @@ namespace ed
 						} else { // HLSL
 							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath), m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
 							gsEntry = "main";
-							
+
 							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
 
@@ -1792,7 +1740,6 @@ namespace ed
 
 						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL)
 							m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg, lineBias));
-
 					}
 
 					if (m_shaders[i] != 0)
@@ -1825,9 +1772,8 @@ namespace ed
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
-				} 
-				else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
-					pipe::ComputePass *data = reinterpret_cast<ed::pipe::ComputePass *>(items[i]->Data);
+				} else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+					pipe::ComputePass* data = reinterpret_cast<ed::pipe::ComputePass*>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
@@ -1869,13 +1815,10 @@ namespace ed
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!compiled)
-					{
+					if (!compiled) {
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the compute shader");
 						m_shaders[i] = 0;
-					}
-					else
-					{
+					} else {
 						m_msgs->ClearGroup(items[i]->Name);
 
 						m_shaders[i] = glCreateProgram();
@@ -1889,9 +1832,8 @@ namespace ed
 					m_shaderSources[i].VS = 0;
 					m_shaderSources[i].PS = 0;
 					m_shaderSources[i].GS = 0;
-				} 
-				else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass *data = reinterpret_cast<ed::pipe::AudioPass *>(items[i]->Data);
+				} else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* data = reinterpret_cast<ed::pipe::AudioPass*>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
@@ -1909,11 +1851,10 @@ namespace ed
 					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, data);
 					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
-						
+
 					data->Variables.UpdateUniformInfo(data->Stream.getShader());
-				}
-				else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
-					pipe::PluginItemData *data = reinterpret_cast<pipe::PluginItemData*>(items[i]->Data);
+				} else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = reinterpret_cast<pipe::PluginItemData*>(items[i]->Data);
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
@@ -1939,7 +1880,7 @@ namespace ed
 
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass)
 					m_fbos.erase((pipe::ShaderPass*)m_items[i]->Data);
-				
+
 				m_items.erase(m_items.begin() + i);
 				m_shaders.erase(m_shaders.begin() + i);
 				m_debugShaders.erase(m_debugShaders.begin() + i);
@@ -1964,7 +1905,7 @@ namespace ed
 						GLuint sCopy = m_shaders[i];
 						GLuint sdbgCopy = m_debugShaders[i];
 						ShaderPack ssrcCopy = m_shaderSources[i];
-						
+
 						m_shaders.erase(m_shaders.begin() + i);
 						m_shaders.insert(m_shaders.begin() + dest, sCopy);
 
@@ -1992,14 +1933,13 @@ namespace ed
 
 		return ret;
 	}
-	void RenderEngine::m_applyMacros(std::string  &src, pipe::ShaderPass *pass)
+	void RenderEngine::m_applyMacros(std::string& src, pipe::ShaderPass* pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
-		for (auto &macro : pass->Macros)
-		{
+		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
 				continue;
 
@@ -2009,14 +1949,13 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_applyMacros(std::string  &src, pipe::ComputePass *pass)
+	void RenderEngine::m_applyMacros(std::string& src, pipe::ComputePass* pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
-		for (auto &macro : pass->Macros)
-		{
+		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
 				continue;
 
@@ -2026,14 +1965,13 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_applyMacros(std::string  &src, pipe::AudioPass *pass)
+	void RenderEngine::m_applyMacros(std::string& src, pipe::AudioPass* pass)
 	{
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
-		for (auto &macro : pass->Macros)
-		{
+		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
 				continue;
 
@@ -2043,7 +1981,7 @@ namespace ed
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
 	}
-	void RenderEngine::m_includeCheck(std::string &src, std::vector<std::string> includeStack, int& lineBias)
+	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack, int& lineBias)
 	{
 		size_t incLoc = src.find("#include");
 		Settings& settings = Settings::Instance();
@@ -2064,7 +2002,7 @@ namespace ed
 
 			size_t quotePos = src.find_first_of("\"<", incLoc);
 			size_t quoteEnd = src.find_first_of("\">", quotePos + 1);
-			std::string fileName = src.substr(quotePos+1, quoteEnd - quotePos-1);
+			std::string fileName = src.substr(quotePos + 1, quoteEnd - quotePos - 1);
 
 			for (int i = 0; i < paths.size(); i++) {
 				std::string ipath = paths[i];
@@ -2140,7 +2078,6 @@ namespace ed
 		GLenum retval = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
 		// MSAA fbo
 		glGenFramebuffers(1, &m_fboMS[pass]);
 		glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)m_fboMS[pass]);
@@ -2150,8 +2087,10 @@ namespace ed
 
 			if (texID == 0) continue;
 
-			if (texID == m_rtColor) texID = m_rtColorMS;
-			else texID = m_objects->GetRenderTexture(texID)->BufferMS;
+			if (texID == m_rtColor)
+				texID = m_rtColorMS;
+			else
+				texID = m_objects->GetRenderTexture(texID)->BufferMS;
 
 			// attach
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, texID, 0);

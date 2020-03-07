@@ -1,8 +1,8 @@
 #include "ObjectManager.h"
+#include "../Engine/GLUtils.h"
+#include "Logger.h"
 #include "RenderEngine.h"
 #include "Settings.h"
-#include "Logger.h"
-#include "../Engine/GLUtils.h"
 
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
@@ -10,10 +10,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-namespace ed
-{
-	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd) :
-		m_parser(parser), m_renderer(rnd)
+namespace ed {
+	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd)
+			: m_parser(parser)
+			, m_renderer(rnd)
 	{
 		m_binds.clear();
 	}
@@ -49,8 +49,7 @@ namespace ed
 
 		glTexImage2D(
 			face,
-			0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData
-		);
+			0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
 
 		if (paddedData != nullptr)
 			free(paddedData);
@@ -60,22 +59,22 @@ namespace ed
 	void ObjectManager::Clear()
 	{
 		Logger::Get().Log("Clearing ObjectManager contents...");
-		
+
 		for (int i = 0; i < m_itemData.size(); i++) {
 			if (m_itemData[i]->Plugin != nullptr) {
 				PluginObject* pobj = m_itemData[i]->Plugin;
 				pobj->Owner->RemoveObject(m_items[i].c_str(), pobj->Type, pobj->Data, pobj->ID);
 			}
-			
+
 			delete m_itemData[i];
 		}
-		
+
 		m_binds.clear();
 		m_uniformBinds.clear();
 		m_items.clear();
 		m_itemData.clear();
 	}
-	bool ObjectManager::CreateRenderTexture(const std::string & name)
+	bool ObjectManager::CreateRenderTexture(const std::string& name)
 	{
 		Logger::Get().Log("Creating a render texture " + name + " ...");
 
@@ -187,10 +186,8 @@ namespace ed
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-
 
 		// flipped texture
 		unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
@@ -217,8 +214,6 @@ namespace ed
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-
 
 		item->ImageSize = glm::ivec2(width, height);
 
@@ -257,7 +252,7 @@ namespace ed
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		
+
 		// left face
 		loadCubemapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_parser->GetProjectPath(left), width, height);
 		item->CubemapPaths.push_back(left);
@@ -281,7 +276,7 @@ namespace ed
 		// back
 		loadCubemapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, m_parser->GetProjectPath(back), width, height);
 		item->CubemapPaths.push_back(back);
-		
+
 		// clean up
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		item->ImageSize = glm::ivec2(width, height);
@@ -434,7 +429,7 @@ namespace ed
 		pObj->Owner = owner;
 		pObj->Data = data;
 		pObj->ID = id;
-		
+
 		return true;
 	}
 
@@ -478,14 +473,13 @@ namespace ed
 		std::vector<ed::ShaderVariable::ValueType> ret;
 		std::string tok = str;
 		size_t pos = tok.find_first_of(';');
-		while (pos != std::string::npos)
-		{
+		while (pos != std::string::npos) {
 			std::string tokpart = tok.substr(0, pos);
 			if (tokpart.size() > 0)
 				ret.push_back(getValueType(tokpart));
 
-			if (pos+1 < tok.size())
-				tok = tok.substr(pos+1);
+			if (pos + 1 < tok.size())
+				tok = tok.substr(pos + 1);
 			else {
 				tok = tok.substr(pos);
 				break;
@@ -498,7 +492,7 @@ namespace ed
 
 		return ret;
 	}
-	
+
 	void ObjectManager::Update(float delta)
 	{
 		for (auto& it : m_itemData) {
@@ -519,7 +513,7 @@ namespace ed
 				float sf = (float)s / (float)INT16_MAX;
 
 				m_audioTempTexData[i] = fftData[i / 2];
-				m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf* 0.5f + 0.5f;
+				m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf * 0.5f + 0.5f;
 			}
 
 			glBindTexture(GL_TEXTURE_2D, it->Texture);
@@ -527,7 +521,7 @@ namespace ed
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
-	void ObjectManager::Remove(const std::string & file)
+	void ObjectManager::Remove(const std::string& file)
 	{
 		m_parser->ModifyProject();
 
@@ -553,7 +547,7 @@ namespace ed
 					i.second.erase(i.second.begin() + j);
 					j--;
 				}
-		
+
 		int index = 0;
 		for (; index < m_items.size(); index++)
 			if (m_items[index] == file) break;
@@ -568,7 +562,7 @@ namespace ed
 		m_items.erase(m_items.begin() + index);
 	}
 
-	void ObjectManager::Bind(const std::string & file, PipelineItem * pass)
+	void ObjectManager::Bind(const std::string& file, PipelineItem* pass)
 	{
 		if (IsBound(file, pass) == -1) {
 			m_parser->ModifyProject();
@@ -583,7 +577,7 @@ namespace ed
 				m_binds[pass].push_back(GetTexture(file));
 		}
 	}
-	void ObjectManager::Unbind(const std::string & file, PipelineItem * pass)
+	void ObjectManager::Unbind(const std::string& file, PipelineItem* pass)
 	{
 		std::vector<GLuint>& srvs = m_binds[pass];
 
@@ -603,7 +597,7 @@ namespace ed
 				return;
 			}
 	}
-	int ObjectManager::IsBound(const std::string & file, PipelineItem * pass)
+	int ObjectManager::IsBound(const std::string& file, PipelineItem* pass)
 	{
 		if (m_binds.count(pass) == 0)
 			return -1;
@@ -629,10 +623,10 @@ namespace ed
 		return -1;
 	}
 
-	void ObjectManager::BindUniform(const std::string & file, PipelineItem * pass)
+	void ObjectManager::BindUniform(const std::string& file, PipelineItem* pass)
 	{
 		if (IsUniformBound(file, pass) == -1) {
-			if (IsBuffer(file)) 
+			if (IsBuffer(file))
 				m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
 			else if (IsImage3D(file))
 				m_uniformBinds[pass].push_back(GetImage3D(file)->Texture);
@@ -644,12 +638,12 @@ namespace ed
 			m_parser->ModifyProject();
 		}
 	}
-	void ObjectManager::UnbindUniform(const std::string & file, PipelineItem * pass)
+	void ObjectManager::UnbindUniform(const std::string& file, PipelineItem* pass)
 	{
 		std::vector<GLuint>& ubos = m_uniformBinds[pass];
 		GLuint itemID = 0;
 
-		if (IsBuffer(file)) 
+		if (IsBuffer(file))
 			itemID = GetBuffer(file)->ID;
 		else if (IsImage3D(file))
 			itemID = GetImage3D(file)->Texture;
@@ -657,7 +651,7 @@ namespace ed
 			itemID = GetPluginObject(file)->ID;
 		else
 			itemID = GetImage(file)->Texture;
-		
+
 		for (int i = 0; i < ubos.size(); i++)
 			if (ubos[i] == itemID) {
 				ubos.erase(ubos.begin() + i);
@@ -665,13 +659,13 @@ namespace ed
 				return;
 			}
 	}
-	int ObjectManager::IsUniformBound(const std::string & file, PipelineItem * pass)
+	int ObjectManager::IsUniformBound(const std::string& file, PipelineItem* pass)
 	{
 		if (m_uniformBinds.count(pass) == 0)
 			return -1;
 
 		GLuint itemID = 0;
-		if (IsBuffer(file)) 
+		if (IsBuffer(file))
 			itemID = GetBuffer(file)->ID;
 		else if (IsImage3D(file))
 			itemID = GetImage3D(file)->Texture;
@@ -691,18 +685,14 @@ namespace ed
 	{
 		for (int i = 0; i < m_itemData.size(); i++) {
 			ObjectManagerItem* item = m_itemData[i];
-			if (item->Texture == texID ||
-				(item->Image != nullptr && item->Image->Texture == texID) ||
-				(item->Image3D != nullptr && item->Image3D->Texture == texID) ||
-				(item->Buffer != nullptr && item->Buffer->ID == texID))
-			{
+			if (item->Texture == texID || (item->Image != nullptr && item->Image->Texture == texID) || (item->Image3D != nullptr && item->Image3D->Texture == texID) || (item->Buffer != nullptr && item->Buffer->ID == texID)) {
 				return m_items[i];
 			}
 		}
 
 		return "";
 	}
-	glm::ivec2 ObjectManager::GetRenderTextureSize(const std::string & name)
+	glm::ivec2 ObjectManager::GetRenderTextureSize(const std::string& name)
 	{
 		RenderTextureObject* rt = GetRenderTexture(name);
 		if (rt->FixedSize.x < 0) return glm::ivec2(rt->RatioSize.x * m_renderer->GetLastRenderSize().x, rt->RatioSize.y * m_renderer->GetLastRenderSize().y);
@@ -820,7 +810,7 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == file)
 				return m_itemData[i]->ImageSize;
-		return glm::ivec2(0,0);
+		return glm::ivec2(0, 0);
 	}
 	sf::SoundBuffer* ObjectManager::GetSoundBuffer(const std::string& file)
 	{
@@ -862,7 +852,7 @@ namespace ed
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == name)
 				return m_itemData[i]->Image->Size;
-		return glm::ivec2(0,0);
+		return glm::ivec2(0, 0);
 	}
 	glm::ivec3 ObjectManager::GetImage3DSize(const std::string& name)
 	{
@@ -958,7 +948,7 @@ namespace ed
 		}
 	}
 
-	void ObjectManager::ResizeRenderTexture(const std::string & name, glm::ivec2 size)
+	void ObjectManager::ResizeRenderTexture(const std::string& name, glm::ivec2 size)
 	{
 		RenderTextureObject* rtObj = GetRenderTexture(name);
 

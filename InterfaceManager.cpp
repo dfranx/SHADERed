@@ -2,8 +2,7 @@
 #include "GUIManager.h"
 #include "Objects/ShaderTranscompiler.h"
 
-namespace ed
-{
+namespace ed {
 	void copyFloatData(eng::Model::Mesh::Vertex& out, GLfloat* bufData)
 	{
 		out.Position = glm::vec3(bufData[0], bufData[1], bufData[2]);
@@ -14,12 +13,12 @@ namespace ed
 		out.Color = glm::vec4(bufData[14], bufData[15], bufData[16], bufData[17]);
 	}
 
-	InterfaceManager::InterfaceManager(GUIManager* gui) :
-		Renderer(&Pipeline, &Objects, &Parser, &Messages, &Plugins, &Debugger),
-		Pipeline(&Parser),
-		Objects(&Parser, &Renderer),
-		Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui),
-		Debugger(&Objects, &Renderer)
+	InterfaceManager::InterfaceManager(GUIManager* gui)
+			: Renderer(&Pipeline, &Objects, &Parser, &Messages, &Plugins, &Debugger)
+			, Pipeline(&Parser)
+			, Objects(&Parser, &Renderer)
+			, Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui)
+			, Debugger(&Objects, &Renderer)
 	{
 		m_ui = gui;
 	}
@@ -52,7 +51,6 @@ namespace ed
 				GLfloat bufData[6 * 4] = { 0.0f };
 				glGetBufferSubData(GL_ARRAY_BUFFER, 0, 6 * 4 * sizeof(float), &bufData[0]);
 
-
 				int bufferLoc = (pixel.VertexID / vertCount) * vertCount * 4;
 
 				// TODO: change this *PLACEHOLDER*
@@ -62,8 +60,7 @@ namespace ed
 				pixel.Vertex[0].TexCoords = glm::vec2(bufData[bufferLoc + 2], bufData[bufferLoc + 3]);
 				pixel.Vertex[1].TexCoords = glm::vec2(bufData[bufferLoc + 6], bufData[bufferLoc + 7]);
 				pixel.Vertex[2].TexCoords = glm::vec2(bufData[bufferLoc + 10], bufData[bufferLoc + 11]);
-			}
-			else {
+			} else {
 				GLfloat bufData[3 * 18] = { 0.0f };
 				int vertStart = ((int)(vertID / vertCount)) * vertCount;
 				glGetBufferSubData(GL_ARRAY_BUFFER, vertStart * 18 * sizeof(float), vertCount * 18 * sizeof(float), &bufData[0]);
@@ -73,8 +70,7 @@ namespace ed
 				copyFloatData(pixel.Vertex[2], &bufData[36]);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-		else {
+		} else {
 			int vertStart = ((int)(vertID / vertCount)) * vertCount;
 
 			// TODO: mesh id??
@@ -102,8 +98,8 @@ namespace ed
 				Debugger.InitEngine(pixel, i);
 				Debugger.Fetch(i); // run the shader
 			}
-		}
-		else ret = false;
+		} else
+			ret = false;
 
 		// getting the debugger's ps output
 		bool psCompiled = false;
@@ -114,8 +110,8 @@ namespace ed
 			if (psCompiled) {
 				Debugger.InitEngine(pixel);
 				Debugger.Fetch();
-			}
-			else ret = false;
+			} else
+				ret = false;
 		}
 
 		pixel.Discarded = Debugger.Engine.IsDiscarded();
@@ -124,7 +120,9 @@ namespace ed
 		return ret;
 	}
 	void InterfaceManager::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void InterfaceManager::Update(float delta)
-	{}
+	{
+	}
 }

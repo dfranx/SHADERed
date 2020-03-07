@@ -1,10 +1,8 @@
 #pragma once
 #include <string>
 
-namespace ed
-{
-	enum class InputLayoutValue
-	{
+namespace ed {
+	enum class InputLayoutValue {
 		Position,
 		Normal,
 		Texcoord,
@@ -14,8 +12,7 @@ namespace ed
 		MaxCount
 	};
 
-	class InputLayoutItem
-	{
+	class InputLayoutItem {
 	public:
 		InputLayoutValue Value;
 		std::string Semantic;

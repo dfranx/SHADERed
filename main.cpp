@@ -362,8 +362,8 @@ void SetDpiAware()
 		System,
 		PerMonitor
 	};
-	typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(DpiAwareness);
-	typedef BOOL(WINAPI* SetProcessDPIAwareFn)(void);
+	typedef HRESULT(WINAPI * SetProcessDpiAwarenessFn)(DpiAwareness);
+	typedef BOOL(WINAPI * SetProcessDPIAwareFn)(void);
 
 	HINSTANCE lib = LoadLibraryA("Shcore.dll");
 

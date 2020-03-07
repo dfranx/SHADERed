@@ -1,9 +1,7 @@
 #pragma once
 
-namespace ed
-{
-	enum class ShaderLanguage
-	{
+namespace ed {
+	enum class ShaderLanguage {
 		GLSL,
 		HLSL,
 		VulkanGLSL

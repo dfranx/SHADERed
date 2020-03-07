@@ -1,10 +1,8 @@
 #include "Ray.h"
 #include <algorithm>
 
-namespace ed
-{
-	namespace ray
-	{
+namespace ed {
+	namespace ray {
 		/* https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection */
 		bool IntersectBox(glm::vec3 minp, glm::vec3 maxp, glm::vec3 orig, glm::vec3 dir, float& distHit)
 		{
@@ -62,7 +60,7 @@ namespace ed
 			a = glm::dot(edge1, h);
 
 			if (a > -EPSILON && a < EPSILON)
-				return false;    // parallel
+				return false; // parallel
 
 			f = 1.0f / a;
 			s = orig - v0;

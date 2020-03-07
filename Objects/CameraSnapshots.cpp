@@ -1,7 +1,6 @@
 #include "CameraSnapshots.h"
 
-namespace ed
-{
+namespace ed {
 	std::vector<std::string> CameraSnapshots::Names = std::vector<std::string>();
 	std::vector<glm::mat4> CameraSnapshots::Matrices = std::vector<glm::mat4>();
 

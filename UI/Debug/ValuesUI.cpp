@@ -2,10 +2,10 @@
 #include "../UIHelper.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
+namespace ed {
 	void DebugValuesUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void DebugValuesUI::Update(float delta)
 	{
 		sd::ShaderDebugger* dbgr = &m_data->Debugger.Engine;

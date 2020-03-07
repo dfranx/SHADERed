@@ -1,12 +1,11 @@
 #pragma once
 #include "UIView.h"
 
-namespace ed
-{
-	class PropertyUI : public UIView
-	{
+namespace ed {
+	class PropertyUI : public UIView {
 	public:
-		PropertyUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true) : UIView(ui, objects, name, visible)
+		PropertyUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
+				: UIView(ui, objects, name, visible)
 		{
 			m_init();
 		}
@@ -14,8 +13,8 @@ namespace ed
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
-		void Open(PipelineItem *item);
-		void Open(const std::string &name, ObjectManagerItem* obj);
+		void Open(PipelineItem* item);
+		void Open(const std::string& name, ObjectManagerItem* obj);
 		inline std::string CurrentItemName() { return m_current != nullptr ? m_current->Name : (m_currentObj != nullptr ? m_data->Objects.GetObjectManagerItemName(m_currentObj) : ""); }
 		inline bool HasItemSelected() { return m_current != nullptr || m_currentObj != nullptr; }
 

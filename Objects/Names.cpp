@@ -4,13 +4,12 @@
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
-const char* TOPOLOGY_ITEM_NAMES[] =
-{
+const char* TOPOLOGY_ITEM_NAMES[] = {
 	"Undefined",
 	"PointList",
 	"LineList",
@@ -23,8 +22,7 @@ const char* TOPOLOGY_ITEM_NAMES[] =
 	"TriangleStripAdjecent"
 };
 
-const char* SHADER_TYPE_NAMES[] =
-{
+const char* SHADER_TYPE_NAMES[] = {
 	"Pixel",
 	"Vertex"
 };
@@ -120,8 +118,7 @@ const char* GEOMETRY_NAMES[] = {
 	"ScreenQuadNDC"
 };
 
-const char* PIPELINE_ITEM_NAMES[] =
-{
+const char* PIPELINE_ITEM_NAMES[] = {
 	"Shader Pass",
 	"Geometry",
 	"Render State",
@@ -143,7 +140,7 @@ const char* BLEND_NAMES[] = {
 	"Inverse Destination Alpha",
 	"Destination Color",
 	"Inverse Destination Color",
-	"Saturated Source Alpha",  // 11
+	"Saturated Source Alpha", // 11
 	"", "",
 	"Blend Factor",
 	"Inverse Blend Factor",
@@ -264,8 +261,7 @@ const char* ATTRIBUTE_VALUE_NAMES[] = {
 	"Bitangent",
 	"Color"
 };
-const char* EDITOR_SHORTCUT_NAMES[] =
-{
+const char* EDITOR_SHORTCUT_NAMES[] = {
 	"Undo",
 	"Redo",
 	"MoveUp",
@@ -322,8 +318,6 @@ const char* EDITOR_SHORTCUT_NAMES[] =
 	"DebugBreakpoint",
 	"DebugStop",
 };
-
-
 
 const unsigned int FORMAT_VALUES[] = {
 	-1,
@@ -405,12 +399,15 @@ const unsigned int BLEND_VALUES[] = {
 	GL_ONE_MINUS_DST_ALPHA,
 	GL_DST_COLOR,
 	GL_ONE_MINUS_DST_COLOR,
-	GL_SRC_ALPHA_SATURATE,  // 11
-	-1, -1,
+	GL_SRC_ALPHA_SATURATE, // 11
+	-1,
+	-1,
 	GL_CONSTANT_COLOR,
 	GL_ONE_MINUS_CONSTANT_COLOR,
-	-1, -1,
-	-1, -1,
+	-1,
+	-1,
+	-1,
+	-1,
 };
 const unsigned int BLEND_OPERATOR_VALUES[] = {
 	-1,
@@ -448,8 +445,7 @@ const unsigned int CULL_MODE_VALUES[] = {
 	GL_FRONT,
 	GL_BACK
 };
-const unsigned int TOPOLOGY_ITEM_VALUES[] =
-{
+const unsigned int TOPOLOGY_ITEM_VALUES[] = {
 	-1, // "Undefined"
 	GL_POINTS,
 	GL_LINES,
@@ -462,10 +458,8 @@ const unsigned int TOPOLOGY_ITEM_VALUES[] =
 	GL_TRIANGLE_STRIP_ADJACENCY
 };
 
-namespace ed
-{
-	namespace gl
-	{
+namespace ed {
+	namespace gl {
 		const char* String::Format(unsigned int val)
 		{
 			int len = (sizeof(FORMAT_VALUES) / sizeof(*FORMAT_VALUES));

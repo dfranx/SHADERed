@@ -2,10 +2,8 @@
 #include <functional>
 #include <thread>
 
-namespace ed
-{
-	class UpdateChecker
-	{
+namespace ed {
+	class UpdateChecker {
 	public:
 		static const int MyVersion = 9;
 

@@ -2,11 +2,10 @@
 #include "Objects/Settings.h"
 #include "Objects/SystemVariableManager.h"
 
-namespace ed
-{
-	EditorEngine::EditorEngine(SDL_Window* wnd, SDL_GLContext* gl) :
-		m_ui(&m_interface, wnd, gl),
-		m_interface(&m_ui)
+namespace ed {
+	EditorEngine::EditorEngine(SDL_Window* wnd, SDL_GLContext* gl)
+			: m_ui(&m_interface, wnd, gl)
+			, m_interface(&m_ui)
 	{
 		m_interface.Plugins.Init(&m_interface, &m_ui); // load plugins (TODO: maybe move this to the splash screen)
 	}

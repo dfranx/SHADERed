@@ -1,39 +1,38 @@
 #include "ProjectParser.h"
-#include "RenderEngine.h"
-#include "ObjectManager.h"
-#include "PipelineManager.h"
-#include "PipelineItem.h"
 #include "CameraSnapshots.h"
 #include "DebugInformation.h"
-#include "SystemVariableManager.h"
-#include "FunctionVariableManager.h"
-#include "ShaderTranscompiler.h"
-#include "InputLayout.h"
-#include "Names.h"
-#include "Logger.h"
 #include "DefaultState.h"
+#include "FunctionVariableManager.h"
+#include "InputLayout.h"
+#include "Logger.h"
+#include "Names.h"
+#include "ObjectManager.h"
+#include "PipelineItem.h"
+#include "PipelineManager.h"
 #include "PluginAPI/PluginManager.h"
+#include "RenderEngine.h"
+#include "ShaderTranscompiler.h"
+#include "SystemVariableManager.h"
 
-#include "../UI/PinnedUI.h"
-#include "../UI/PropertyUI.h"
-#include "../UI/PipelineUI.h"
-#include "../UI/CodeEditorUI.h"
 #include "../Engine/GLUtils.h"
 #include "../Engine/GeometryFactory.h"
+#include "../UI/CodeEditorUI.h"
+#include "../UI/PinnedUI.h"
+#include "../UI/PipelineUI.h"
+#include "../UI/PropertyUI.h"
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
-namespace ed
-{
+namespace ed {
 	std::string getExtension(const std::string& filename)
 	{
 		switch (ShaderTranscompiler::GetShaderTypeFromExtension(filename)) {
-			case ShaderLanguage::HLSL: return Settings::Instance().General.HLSLExtensions[0];
-			case ShaderLanguage::GLSL: return "glsl";
-			case ShaderLanguage::VulkanGLSL: return Settings::Instance().General.VulkanGLSLExtensions[0];
+		case ShaderLanguage::HLSL: return Settings::Instance().General.HLSLExtensions[0];
+		case ShaderLanguage::GLSL: return "glsl";
+		case ShaderLanguage::VulkanGLSL: return Settings::Instance().General.VulkanGLSLExtensions[0];
 		}
 
 		return "glsl";
@@ -58,15 +57,22 @@ namespace ed
 		return proj + "_" + shaderpass + stage + "." + ext; // eg: project_SimpleVS.glsl
 	}
 
-	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, DebugInformation* debugger, GUIManager* gui) :
-		m_pipe(pipeline), m_file(""), m_renderer(rend), m_objects(objects), m_msgs(msgs), m_plugins(plugins), m_debug(debugger)
+	ProjectParser::ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* rend, PluginManager* plugins, MessageStack* msgs, DebugInformation* debugger, GUIManager* gui)
+			: m_pipe(pipeline)
+			, m_file("")
+			, m_renderer(rend)
+			, m_objects(objects)
+			, m_msgs(msgs)
+			, m_plugins(plugins)
+			, m_debug(debugger)
 	{
 		ResetProjectDirectory();
 		m_ui = gui;
 	}
 	ProjectParser::~ProjectParser()
-	{}
-	void ProjectParser::Open(const std::string & file)
+	{
+	}
+	void ProjectParser::Open(const std::string& file)
 	{
 		Logger::Get().Log("Openning a project file " + file);
 
@@ -94,17 +100,17 @@ namespace ed
 				std::string msg = "The project you are trying to open requires plugin " + pname + ".\nDo you want to install the plugin?";
 
 				const SDL_MessageBoxButtonData buttons[] = {
-					{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+					{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
 					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
 				};
 				const SDL_MessageBoxData messageboxdata = {
 					SDL_MESSAGEBOX_INFORMATION, /* .flags */
-					m_ui->GetSDLWindow(), /* .window */
-					"SHADERed", /* .title */
-					msg.c_str(), /* .message */
-					SDL_arraysize(buttons), /* .numbuttons */
-					buttons, /* .buttons */
-					NULL /* .colorScheme */
+					m_ui->GetSDLWindow(),		/* .window */
+					"SHADERed",					/* .title */
+					msg.c_str(),				/* .message */
+					SDL_arraysize(buttons),		/* .numbuttons */
+					buttons,					/* .buttons */
+					NULL						/* .colorScheme */
 				};
 				int buttonid;
 				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
@@ -114,8 +120,7 @@ namespace ed
 				}
 
 				break;
-			} 
-			else if (!m_plugins->IsActive(pname)) {
+			} else if (!m_plugins->IsActive(pname)) {
 
 				pluginTest = false;
 
@@ -126,43 +131,41 @@ namespace ed
 				};
 				const SDL_MessageBoxData messageboxdata = {
 					SDL_MESSAGEBOX_INFORMATION, /* .flags */
-					m_ui->GetSDLWindow(), /* .window */
-					"SHADERed", /* .title */
-					msg.c_str(), /* .message */
-					SDL_arraysize(buttons), /* .numbuttons */
-					buttons, /* .buttons */
-					NULL /* .colorScheme */
+					m_ui->GetSDLWindow(),		/* .window */
+					"SHADERed",					/* .title */
+					msg.c_str(),				/* .message */
+					SDL_arraysize(buttons),		/* .numbuttons */
+					buttons,					/* .buttons */
+					NULL						/* .colorScheme */
 				};
 				int buttonid;
 				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
-				if (buttonid == 0) { }
+				if (buttonid == 0) {}
 
 				pluginTest = false;
-			}
-			else {
+			} else {
 				int instPVer = m_plugins->GetPluginVersion(pname);
 				if (instPVer < pver) {
 					pluginTest = false;
 
-					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + 
-						" while you have version " + std::to_string(instPVer) + " installed.\nDo you want to update your plugin?";
+					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + " while you have version " + std::to_string(instPVer) + " installed.\nDo you want to update your plugin?";
 
 					const SDL_MessageBoxButtonData buttons[] = {
-						{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+						{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
 						{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
 					};
 					const SDL_MessageBoxData messageboxdata = {
 						SDL_MESSAGEBOX_INFORMATION, /* .flags */
-						m_ui->GetSDLWindow(), /* .window */
-						"SHADERed", /* .title */
-						msg.c_str(), /* .message */
-						SDL_arraysize(buttons), /* .numbuttons */
-						buttons, /* .buttons */
-						NULL /* .colorScheme */
+						m_ui->GetSDLWindow(),		/* .window */
+						"SHADERed",					/* .title */
+						msg.c_str(),				/* .message */
+						SDL_arraysize(buttons),		/* .numbuttons */
+						buttons,					/* .buttons */
+						NULL						/* .colorScheme */
 					};
 					int buttonid;
-					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
 					if (buttonid == 0) {
 						// TODO: redirect to .../plugin?name=pname
@@ -172,7 +175,7 @@ namespace ed
 				}
 			}
 		}
-		
+
 		if (!pluginTest) {
 			Logger::Get().Log("Missing plugin - project not loaded", true);
 			return;
@@ -211,10 +214,10 @@ namespace ed
 			m_plugins->GetPlugin(pname)->BeginProjectLoading();
 
 		switch (projectVersion) {
-			case 1: m_parseV1(projectNode); break;
-			case 2: m_parseV2(projectNode); break;
-			default: 
-				Logger::Get().Log("Tried to open a project that is newer version", true);
+		case 1: m_parseV1(projectNode); break;
+		case 2: m_parseV2(projectNode); break;
+		default:
+			Logger::Get().Log("Tried to open a project that is newer version", true);
 			break;
 		}
 
@@ -226,7 +229,7 @@ namespace ed
 		// notify plugins that we've finished with loading
 		for (const auto& pname : m_pluginList)
 			m_plugins->GetPlugin(pname)->EndProjectLoading();
-			
+
 		Logger::Get().Log("Finished with parsing a project file");
 	}
 	void ProjectParser::OpenTemplate()
@@ -238,7 +241,7 @@ namespace ed
 	{
 		SaveAs(m_file);
 	}
-	void ProjectParser::SaveAs(const std::string & file, bool copyFiles)
+	void ProjectParser::SaveAs(const std::string& file, bool copyFiles)
 	{
 		Logger::Get().Log("Saving project file...");
 
@@ -264,7 +267,7 @@ namespace ed
 			std::error_code errc;
 
 			std::string proj = oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/");
-			
+
 			for (PipelineItem* passItem : passItems) {
 				if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
@@ -275,7 +278,6 @@ namespace ed
 					std::string vsExt = getExtension(vs);
 					std::string psExt = getExtension(ps);
 
-					
 					std::filesystem::copy_file(vs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "VS", vsExt), std::filesystem::copy_options::overwrite_existing, errc);
 					std::filesystem::copy_file(ps, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "PS", psExt), std::filesystem::copy_options::overwrite_existing, errc);
 
@@ -288,9 +290,8 @@ namespace ed
 
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
-				} 
-				else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
-					pipe::ComputePass *passData = (pipe::ComputePass*)passItem->Data;
+				} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass* passData = (pipe::ComputePass*)passItem->Data;
 
 					std::string cs = std::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
 					std::string csExt = getExtension(cs);
@@ -298,9 +299,8 @@ namespace ed
 					std::filesystem::copy_file(cs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "CS", csExt), std::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
-				} 
-				else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass *passData = (pipe::AudioPass*)passItem->Data;
+				} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+					pipe::AudioPass* passData = (pipe::AudioPass*)passItem->Data;
 
 					std::string ss = std::filesystem::path(passData->Path).is_absolute() ? passData->Path : (proj + std::string(passData->Path));
 					std::string ssExt = getExtension(ss);
@@ -308,8 +308,7 @@ namespace ed
 					std::filesystem::copy_file(ss, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "SS", ssExt), std::filesystem::copy_options::overwrite_existing, errc);
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
-				}
-				else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+				} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 					m_addPlugin(m_plugins->GetPluginName(pdata->Owner));
 				}
@@ -333,7 +332,7 @@ namespace ed
 			passNode.append_attribute("name").set_value(passItem->Name);
 
 			if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
-				pipe::ShaderPass *passData = (pipe::ShaderPass *)passItem->Data;
+				pipe::ShaderPass* passData = (pipe::ShaderPass*)passItem->Data;
 
 				passNode.append_attribute("type").set_value("shader");
 				passNode.append_attribute("active").set_value(passData->Active);
@@ -413,13 +412,11 @@ namespace ed
 				// item variable values
 				pugi::xml_node itemValuesNode = passNode.append_child("itemvalues");
 				std::vector<RenderEngine::ItemVariableValue> itemValues = m_renderer->GetItemVariableValues();
-				std::vector<ShaderVariable *> &vars = passData->Variables.GetVariables();
-				for (const auto& itemVal : itemValues)
-				{
+				std::vector<ShaderVariable*>& vars = passData->Variables.GetVariables();
+				for (const auto& itemVal : itemValues) {
 					bool found = false;
 					for (const auto& passChild : passData->Items)
-						if (passChild == itemVal.Item)
-						{
+						if (passChild == itemVal.Item) {
 							found = true;
 							break;
 						}
@@ -439,16 +436,14 @@ namespace ed
 
 				// macros
 				pugi::xml_node macrosNode = passNode.append_child("macros");
-				for (auto &macro : passData->Macros)
-				{
+				for (auto& macro : passData->Macros) {
 					pugi::xml_node macroNode = macrosNode.append_child("define");
 					macroNode.append_attribute("name").set_value(macro.Name);
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			}
-			else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
-				pipe::ComputePass *passData = (pipe::ComputePass *)passItem->Data;
+			} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
+				pipe::ComputePass* passData = (pipe::ComputePass*)passItem->Data;
 
 				passNode.append_attribute("type").set_value("compute");
 
@@ -475,16 +470,14 @@ namespace ed
 
 				// macros
 				pugi::xml_node macrosNode = passNode.append_child("macros");
-				for (auto &macro : passData->Macros)
-				{
+				for (auto& macro : passData->Macros) {
 					pugi::xml_node macroNode = macrosNode.append_child("define");
 					macroNode.append_attribute("name").set_value(macro.Name);
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			}
-			else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
-				pipe::AudioPass *passData = (pipe::AudioPass *)passItem->Data;
+			} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass* passData = (pipe::AudioPass*)passItem->Data;
 
 				passNode.append_attribute("type").set_value("audio");
 
@@ -504,18 +497,16 @@ namespace ed
 
 				// macros
 				pugi::xml_node macrosNode = passNode.append_child("macros");
-				for (auto &macro : passData->Macros)
-				{
+				for (auto& macro : passData->Macros) {
 					pugi::xml_node macroNode = macrosNode.append_child("define");
 					macroNode.append_attribute("name").set_value(macro.Name);
 					macroNode.append_attribute("active").set_value(macro.Active);
 					macroNode.text().set(macro.Value);
 				}
-			}
-			else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
+			} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)passItem->Data;
 				m_addPlugin(m_plugins->GetPluginName(plData->Owner));
-				
+
 				passNode.append_attribute("type").set_value("plugin");
 				passNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(plData->Owner).c_str());
 				passNode.append_attribute("itemtype").set_value(plData->Type);
@@ -542,9 +533,9 @@ namespace ed
 				glm::mat4 cammat = CameraSnapshots::Get(name);
 				int rowID = 0;
 				for (int i = 0; i < 16; i++) {
-					valueRowNode.append_child("value").text().set(cammat[i%4][rowID]);
+					valueRowNode.append_child("value").text().set(cammat[i % 4][rowID]);
 
-					if ((i+1)%4 == 0 && i != 0) {
+					if ((i + 1) % 4 == 0 && i != 0) {
 						valueRowNode = camsnapNode.append_child("row");
 						rowID++;
 					}
@@ -574,10 +565,10 @@ namespace ed
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
-					
-					if(rtObj->Format != GL_RGBA)
+
+					if (rtObj->Format != GL_RGBA)
 						textureNode.append_attribute("format").set_value(gl::String::Format(rtObj->Format));
-					
+
 					if (rtObj->FixedSize.x != -1)
 						textureNode.append_attribute("fsize").set_value((std::to_string(rtObj->FixedSize.x) + "," + std::to_string(rtObj->FixedSize.y)).c_str());
 					else
@@ -602,7 +593,7 @@ namespace ed
 				}
 
 				if (isImage) {
-					ImageObject *iobj = m_objects->GetImage(texs[i]);
+					ImageObject* iobj = m_objects->GetImage(texs[i]);
 
 					textureNode.append_attribute("width").set_value(iobj->Size.x);
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
@@ -634,10 +625,10 @@ namespace ed
 
 				if (isBuffer) {
 					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
-					
+
 					textureNode.append_attribute("size").set_value(bobj->Size);
 					textureNode.append_attribute("format").set_value(bobj->ViewFormat);
-					
+
 					std::string bPath = GetProjectPath("buffers/" + texs[i] + ".buf");
 					if (!std::filesystem::exists(GetProjectPath("buffers")))
 						std::filesystem::create_directories(GetProjectPath("buffers"));
@@ -659,8 +650,7 @@ namespace ed
 							}
 						}
 					}
-				}
-				else if (isImage || isImage3D || isPluginObjectUAV) {
+				} else if (isImage || isImage3D || isPluginObjectUAV) {
 					for (int j = 0; j < passItems.size(); j++) {
 
 						GLuint myTex = 0;
@@ -692,8 +682,7 @@ namespace ed
 								bindNode.append_attribute("uav").set_value(0);
 							}
 					}
-				} 
-				else {
+				} else {
 					GLuint myTex = m_objects->GetTexture(texs[i]);
 					if (isPluginOwner)
 						myTex = pluginObj->ID;
@@ -708,7 +697,7 @@ namespace ed
 								bindNode.append_attribute("name").set_value(passItems[j]->Name);
 							}
 					}
-				} 
+				}
 			}
 		}
 
@@ -748,13 +737,13 @@ namespace ed
 
 					std::vector<ShaderVariable*> vars;
 					if (passItem->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass *data = (pipe::ShaderPass *)passItem->Data;
+						pipe::ShaderPass* data = (pipe::ShaderPass*)passItem->Data;
 						vars = data->Variables.GetVariables();
 					} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
-						pipe::ComputePass *data = (pipe::ComputePass *)passItem->Data;
+						pipe::ComputePass* data = (pipe::ComputePass*)passItem->Data;
 						vars = data->Variables.GetVariables();
 					} else if (passItem->Type == PipelineItem::ItemType::AudioPass) {
-						pipe::AudioPass *data = (pipe::AudioPass*)passItem->Data;
+						pipe::AudioPass* data = (pipe::AudioPass*)passItem->Data;
 						vars = data->Variables.GetVariables();
 					}
 
@@ -784,15 +773,13 @@ namespace ed
 					camNode.append_child("positionZ").text().set(cam->GetPosition().z);
 					camNode.append_child("yaw").text().set(rota.x);
 					camNode.append_child("pitch").text().set(rota.y);
-				}
-				else {
+				} else {
 					ed::ArcBallCamera* cam = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 					pugi::xml_node camNode = settingsNode.append_child("entry");
 					camNode.append_attribute("type").set_value("camera");
 					camNode.append_attribute("fp").set_value(false);
 
 					glm::vec3 rota = cam->GetRotation();
-					
 
 					camNode.append_child("distance").text().set(cam->GetDistance());
 					camNode.append_child("pitch").text().set(rota.x);
@@ -866,7 +853,7 @@ namespace ed
 
 		doc.save_file(file.c_str());
 	}
-	std::string ProjectParser::LoadFile(const std::string & file)
+	std::string ProjectParser::LoadFile(const std::string& file)
 	{
 		std::ifstream in(file);
 		if (in.is_open()) {
@@ -878,7 +865,7 @@ namespace ed
 		}
 		return "";
 	}
-	std::string ProjectParser::LoadProjectFile(const std::string & file)
+	std::string ProjectParser::LoadProjectFile(const std::string& file)
 	{
 		std::ifstream in(GetProjectPath(file));
 		if (in.is_open()) {
@@ -890,16 +877,16 @@ namespace ed
 		}
 		return "";
 	}
-	char * ProjectParser::LoadProjectFile(const std::string& file, size_t& fsize)
+	char* ProjectParser::LoadProjectFile(const std::string& file, size_t& fsize)
 	{
 		std::string actual = GetProjectPath(file);
 
-		FILE *f = fopen(actual.c_str(), "rb");
+		FILE* f = fopen(actual.c_str(), "rb");
 		fseek(f, 0, SEEK_END);
 		fsize = ftell(f);
-		fseek(f, 0, SEEK_SET);  //same as rewind(f);
+		fseek(f, 0, SEEK_SET); //same as rewind(f);
 
-		char *string = (char*)malloc(fsize + 1);
+		char* string = (char*)malloc(fsize + 1);
 		fread(string, fsize, 1, f);
 		fclose(f);
 
@@ -926,7 +913,7 @@ namespace ed
 
 		return m_models[m_models.size() - 1].second;
 	}
-	void ProjectParser::SaveProjectFile(const std::string & file, const std::string & data)
+	void ProjectParser::SaveProjectFile(const std::string& file, const std::string& data)
 	{
 		std::ofstream out(GetProjectPath(file));
 		out << data;
@@ -941,8 +928,8 @@ namespace ed
 		if (fTo.is_absolute())
 			if (fTo.root_name() != fFrom.root_name()) // not on the same drive
 				return to;
-#endif 
-		
+#endif
+
 		return std::filesystem::relative(fTo, fFrom).string();
 	}
 	std::string ProjectParser::GetProjectPath(const std::string& to)
@@ -964,7 +951,6 @@ namespace ed
 		m_file = "";
 		m_projectPath = std::filesystem::current_path().string();
 	}
-
 
 	void ProjectParser::m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var)
 	{
@@ -989,7 +975,6 @@ namespace ed
 					else
 						var->SetFloat(value.text().as_float(), colID++, rowID);
 				}
-
 			}
 			colID = colID % var->GetColumnCount();
 			rowID++;
@@ -1008,28 +993,24 @@ namespace ed
 				else if (var->GetType() >= ShaderVariable::ValueType::Integer1 && var->GetType() <= ShaderVariable::ValueType::Integer4)
 					valueRowNode.append_child("value").text().set(var->AsInteger(i));
 				else
-					valueRowNode.append_child("value").text().set(var->AsFloat(i%var->GetColumnCount(), rowID));
+					valueRowNode.append_child("value").text().set(var->AsFloat(i % var->GetColumnCount(), rowID));
 
-				if ((i+1)%var->GetColumnCount() == 0 && i != 0 && i != limit-1) {
+				if ((i + 1) % var->GetColumnCount() == 0 && i != 0 && i != limit - 1) {
 					valueRowNode = node.append_child("row");
 					rowID++;
 				}
 			}
-		}
-		else {
+		} else {
 			if (var->Function == FunctionShaderVariable::Pointer) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
-			} 
-			else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
+			} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
-			}
-			else if (var->Function == FunctionShaderVariable::PluginFunction) {
+			} else if (var->Function == FunctionShaderVariable::PluginFunction) {
 				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
 
 				const char* valNode = var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments);
 				valueRowNode.append_child("value").append_buffer(valNode, strlen(valNode));
-			}
-			else {
+			} else {
 				// save arguments
 				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
 					valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
@@ -1058,8 +1039,7 @@ namespace ed
 						varNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(var->PluginSystemVarData.Owner).c_str());
 						varNode.append_attribute("itemname").set_value(var->PluginSystemVarData.Name);
 					}
-				}
-				else if (var->Function != FunctionShaderVariable::None) {
+				} else if (var->Function != FunctionShaderVariable::None) {
 					varNode.append_attribute("function").set_value(FUNCTION_NAMES[(int)var->Function]);
 
 					if (var->Function == FunctionShaderVariable::PluginFunction) {
@@ -1088,14 +1068,14 @@ namespace ed
 				return BLEND_OPERATOR_VALUES[k];
 		return GL_FUNC_ADD;
 	}
-	GLenum ProjectParser::m_toComparisonFunc(const char * str)
+	GLenum ProjectParser::m_toComparisonFunc(const char* str)
 	{
 		for (int k = 0; k < HARRAYSIZE(COMPARISON_FUNCTION_NAMES); k++)
 			if (strcmp(str, COMPARISON_FUNCTION_NAMES[k]) == 0)
 				return COMPARISON_FUNCTION_VALUES[k];
 		return GL_ALWAYS;
 	}
-	GLenum ProjectParser::m_toStencilOp(const char * str)
+	GLenum ProjectParser::m_toStencilOp(const char* str)
 	{
 		for (int k = 0; k < HARRAYSIZE(STENCIL_OPERATION_NAMES); k++)
 			if (strcmp(str, STENCIL_OPERATION_NAMES[k]) == 0)
@@ -1112,13 +1092,11 @@ namespace ed
 
 	void ProjectParser::m_exportItems(pugi::xml_node& node, std::vector<PipelineItem*>& items, const std::string& oldProjectPath)
 	{
-		for (PipelineItem* item : items)
-		{
+		for (PipelineItem* item : items) {
 			pugi::xml_node itemNode = node.append_child("item");
 			itemNode.append_attribute("name").set_value(item->Name);
 
-			if (item->Type == PipelineItem::ItemType::Geometry)
-			{
+			if (item->Type == PipelineItem::ItemType::Geometry) {
 				itemNode.append_attribute("type").set_value("geometry");
 
 				ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(item->Data);
@@ -1151,17 +1129,13 @@ namespace ed
 					itemNode.append_child("instancecount").text().set(tData->InstanceCount);
 				if (tData->InstanceBuffer != nullptr)
 					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)tData->InstanceBuffer)->ID).c_str());
-				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++)
-				{
-					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology)
-					{
+				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
+					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
 						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
 						break;
 					}
 				}
-			}
-			else if (item->Type == PipelineItem::ItemType::RenderState)
-			{
+			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				itemNode.append_attribute("type").set_value("renderstate");
 
 				ed::pipe::RenderState* s = reinterpret_cast<ed::pipe::RenderState*>(item->Data);
@@ -1175,8 +1149,7 @@ namespace ed
 				if (s->FrontFace != GL_CCW)
 					itemNode.append_child("ccw").text().set(false);
 
-				if (s->Blend)
-				{
+				if (s->Blend) {
 					itemNode.append_child("blend").text().set(true);
 
 					if (s->AlphaToCoverage)
@@ -1194,8 +1167,7 @@ namespace ed
 					itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
 				}
 
-				if (s->DepthTest)
-				{
+				if (s->DepthTest) {
 					itemNode.append_child("depthtest").text().set(true);
 					itemNode.append_child("depthclamp").text().set(s->DepthClamp);
 					itemNode.append_child("depthmask").text().set(s->DepthMask);
@@ -1203,8 +1175,7 @@ namespace ed
 					itemNode.append_child("depthbias").text().set(s->DepthBias);
 				}
 
-				if (s->StencilTest)
-				{
+				if (s->StencilTest) {
 					itemNode.append_child("stenciltest").text().set(true);
 					itemNode.append_child("stencilmask").text().set(s->StencilMask);
 					itemNode.append_child("stencilref").text().set(s->StencilReference);
@@ -1217,9 +1188,7 @@ namespace ed
 					itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
 					itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
 				}
-			}
-			else if (item->Type == PipelineItem::ItemType::Model)
-			{
+			} else if (item->Type == PipelineItem::ItemType::Model) {
 				itemNode.append_attribute("type").set_value("model");
 
 				ed::pipe::Model* data = reinterpret_cast<ed::pipe::Model*>(item->Data);
@@ -1254,8 +1223,7 @@ namespace ed
 					itemNode.append_child("instancecount").text().set(data->InstanceCount);
 				if (data->InstanceBuffer != nullptr)
 					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
-			}
-			else if (item->Type == PipelineItem::ItemType::PluginItem) {
+			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)item->Data;
 				m_addPlugin(m_plugins->GetPluginName(plData->Owner));
 
@@ -1270,7 +1238,6 @@ namespace ed
 					dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
 			}
 		}
-
 	}
 	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
@@ -1331,15 +1298,13 @@ namespace ed
 						for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 							if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
 								tData->Topology = TOPOLOGY_ITEM_VALUES[k];
-					}
-					else if (strcmp(attrNode.name(), "type") == 0) {
+					} else if (strcmp(attrNode.name(), "type") == 0) {
 						for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
 							if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
 								tData->Type = (pipe::GeometryItem::GeometryType)k;
 					}
 				}
-			}
-			else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
+			} else if (strcmp(itemNode.attribute("type").as_string(), "renderstate") == 0) {
 				itemType = ed::PipelineItem::ItemType::RenderState;
 				itemData = new pipe::RenderState;
 
@@ -1418,8 +1383,7 @@ namespace ed
 					else if (strcmp(attrNode.name(), "depthbackfail") == 0)
 						tData->StencilBackFaceOpDepthFail = m_toStencilOp(attrNode.text().as_string());
 				}
-			}
-			else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
+			} else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
 				itemType = ed::PipelineItem::ItemType::Model;
 				itemData = new pipe::Model;
 
@@ -1470,8 +1434,7 @@ namespace ed
 
 				if (strlen(mdata->Filename) > 0)
 					strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
-			}
-			else if (strcmp(itemNode.attribute("type").as_string(), "plugin") == 0) {
+			} else if (strcmp(itemNode.attribute("type").as_string(), "plugin") == 0) {
 				itemType = PipelineItem::ItemType::PluginItem;
 				itemData = new pipe::PluginItemData;
 				pipe::PluginItemData* tData = (pipe::PluginItemData*)itemData;
@@ -1502,8 +1465,7 @@ namespace ed
 					tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, inpLayout);
 				else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
 					tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, inpLayout);
-			}
-			else if (itemType == ed::PipelineItem::ItemType::Model) {
+			} else if (itemType == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
 
 				//std::string objMem = LoadProjectFile(tData->Filename);
@@ -1512,7 +1474,8 @@ namespace ed
 
 				if (loaded)
 					tData->Data = ptrObject;
-				else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
+				else
+					m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
 			}
 
 			m_pipe->AddItem(name, itemName, itemType, itemData);
@@ -1539,7 +1502,7 @@ namespace ed
 			char name[PIPELINE_ITEM_NAME_LENGTH];
 			ed::PipelineItem::ItemType type = ed::PipelineItem::ItemType::ShaderPass;
 			ed::pipe::ShaderPass* data = new ed::pipe::ShaderPass();
-			
+
 			data->InputLayout = gl::CreateDefaultInputLayout();
 
 			data->RenderTextures[0] = m_renderer->GetTexture();
@@ -1569,7 +1532,7 @@ namespace ed
 			// add the item
 			m_pipe->AddShaderPass(name, data);
 
-			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY 
+			// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY
 			for (pugi::xml_node shaderNode : passNode.children("shader")) {
 				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
 
@@ -1584,8 +1547,10 @@ namespace ed
 					strcpy(data->PSPath, shaderPath);
 					strcpy(data->PSEntry, shaderEntry);
 				} else if (shaderNodeType == "gs") {
-					if (!shaderNode.attribute("used").empty()) data->GSUsed = shaderNode.attribute("used").as_bool();
-					else data->GSUsed = false;
+					if (!shaderNode.attribute("used").empty())
+						data->GSUsed = shaderNode.attribute("used").as_bool();
+					else
+						data->GSUsed = false;
 					strcpy(data->GSPath, shaderPath);
 					strcpy(data->GSEntry, shaderEntry);
 				}
@@ -1594,13 +1559,12 @@ namespace ed
 				if (!FileExists(shaderPath))
 					m_msgs->Add(ed::MessageStack::Type::Error, name, type + " shader does not exist.");
 
-				
 				// parse variables
 				for (pugi::xml_node variableNode : shaderNode.child("variables").children("variable")) {
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
-					
+
 					if (!variableNode.attribute("type").empty()) {
 						const char* myType = variableNode.attribute("type").as_string();
 						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
@@ -1636,7 +1600,7 @@ namespace ed
 					// parse value
 					if (system == SystemShaderVariable::None)
 						m_parseVariableValue(variableNode, var);
-						
+
 					data->Variables.Add(var);
 				}
 			}
@@ -1691,15 +1655,13 @@ namespace ed
 							for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 								if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
 									tData->Topology = TOPOLOGY_ITEM_VALUES[k];
-						}
-						else if (strcmp(attrNode.name(), "type") == 0) {
+						} else if (strcmp(attrNode.name(), "type") == 0) {
 							for (int k = 0; k < HARRAYSIZE(GEOMETRY_NAMES); k++)
 								if (strcmp(attrNode.text().as_string(), GEOMETRY_NAMES[k]) == 0)
 									tData->Type = (pipe::GeometryItem::GeometryType)k;
 						}
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "blend") == 0) {
+				} else if (strcmp(itemNode.attribute("type").as_string(), "blend") == 0) {
 					itemType = ed::PipelineItem::ItemType::RenderState;
 					itemData = new pipe::RenderState();
 
@@ -1732,13 +1694,12 @@ namespace ed
 						else if (strcmp(attrNode.name(), "bf_alpha") == 0)
 							tData->BlendFactor.w = attrNode.text().as_uint();
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "depthstencil") == 0) {
+				} else if (strcmp(itemNode.attribute("type").as_string(), "depthstencil") == 0) {
 					itemType = ed::PipelineItem::ItemType::RenderState;
 					itemData = new pipe::RenderState;
 
 					pipe::RenderState* tData = (pipe::RenderState*)itemData;
-					
+
 					tData->StencilMask = 0xFF;
 
 					for (pugi::xml_node attrNode : itemNode.children()) {
@@ -1763,31 +1724,30 @@ namespace ed
 						else if (strcmp(attrNode.name(), "sref") == 0)
 							tData->StencilReference = attrNode.text().as_uint();
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "rasterizer") == 0) {
+				} else if (strcmp(itemNode.attribute("type").as_string(), "rasterizer") == 0) {
 					itemType = ed::PipelineItem::ItemType::RenderState;
 					itemData = new pipe::RenderState;
 
 					pipe::RenderState* tData = (pipe::RenderState*)itemData;
-					
+
 					for (pugi::xml_node attrNode : itemNode.children()) {
 						if (strcmp(attrNode.name(), "wireframe") == 0)
 							tData->PolygonMode = attrNode.text().as_bool() ? GL_LINE : GL_FILL;
 						else if (strcmp(attrNode.name(), "cull") == 0) {
 							tData->CullFaceType = m_toCullMode(attrNode.text().as_string());
 
-							if (tData->CullFaceType == GL_ZERO) tData->CullFace = false;
-							else tData->CullFace = true;
-						}
-						else if (strcmp(attrNode.name(), "ccw") == 0)
+							if (tData->CullFaceType == GL_ZERO)
+								tData->CullFace = false;
+							else
+								tData->CullFace = true;
+						} else if (strcmp(attrNode.name(), "ccw") == 0)
 							tData->FrontFace = attrNode.text().as_bool() ? GL_CCW : GL_CW;
 						else if (strcmp(attrNode.name(), "depthbias") == 0)
 							tData->DepthBias = attrNode.text().as_float();
 						else if (strcmp(attrNode.name(), "depthclip") == 0)
 							tData->DepthClamp = attrNode.text().as_bool();
 					}
-				}
-				else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
+				} else if (strcmp(itemNode.attribute("type").as_string(), "model") == 0) {
 					itemType = ed::PipelineItem::ItemType::Model;
 					itemData = new pipe::Model;
 
@@ -1835,7 +1795,7 @@ namespace ed
 				// create and modify if needed
 				if (itemType == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* tData = reinterpret_cast<ed::pipe::GeometryItem*>(itemData);
-					
+
 					if (tData->Type == pipe::GeometryItem::Cube)
 						tData->VAO = eng::GeometryFactory::CreateCube(tData->VBO, tData->Size.x, tData->Size.y, tData->Size.z, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::Circle)
@@ -1850,8 +1810,7 @@ namespace ed
 						tData->VAO = eng::GeometryFactory::CreateTriangle(tData->VBO, tData->Size.x, data->InputLayout);
 					else if (tData->Type == pipe::GeometryItem::ScreenQuadNDC)
 						tData->VAO = eng::GeometryFactory::CreateScreenQuadNDC(tData->VBO, data->InputLayout);
-				}
-				else if (itemType == ed::PipelineItem::ItemType::Model) {
+				} else if (itemType == ed::PipelineItem::ItemType::Model) {
 					pipe::Model* tData = reinterpret_cast<pipe::Model*>(itemData);
 
 					//std::string objMem = LoadProjectFile(tData->Filename);
@@ -1860,7 +1819,8 @@ namespace ed
 
 					if (loaded)
 						tData->Data = ptrObject;
-					else m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
+					else
+						m_msgs->Add(ed::MessageStack::Type::Error, name, "Failed to load .obj model " + std::string(itemName));
 				}
 
 				m_pipe->AddItem(name, itemName, itemType, itemData);
@@ -1908,7 +1868,7 @@ namespace ed
 				pugi::char_t name[MAX_PATH];
 				bool isCube = false;
 				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
-							cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
+					cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
@@ -1936,15 +1896,14 @@ namespace ed
 					for (const auto& pass : passes) {
 						if (strcmp(pass->Name, passBindName) == 0) {
 							if (boundTextures[pass].size() <= slot)
-								boundTextures[pass].resize(slot+1);
+								boundTextures[pass].resize(slot + 1);
 
 							boundTextures[pass][slot] = name;
 							break;
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "rendertexture") == 0) {
+			} else if (strcmp(objType, "rendertexture") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateRenderTexture(objName);
@@ -1973,14 +1932,22 @@ namespace ed
 
 				// load clear color
 				rt->Clear = true;
-				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_int() / 255.0f;
-				else rt->ClearColor.r = 0;
-				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_int() / 255.0f;
-				else rt->ClearColor.g = 0;
-				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_int() / 255.0f;
-				else rt->ClearColor.b = 0;
-				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_int() / 255.0f;
-				else rt->ClearColor.a = 0;
+				if (!objectNode.attribute("r").empty())
+					rt->ClearColor.r = objectNode.attribute("r").as_int() / 255.0f;
+				else
+					rt->ClearColor.r = 0;
+				if (!objectNode.attribute("g").empty())
+					rt->ClearColor.g = objectNode.attribute("g").as_int() / 255.0f;
+				else
+					rt->ClearColor.g = 0;
+				if (!objectNode.attribute("b").empty())
+					rt->ClearColor.b = objectNode.attribute("b").as_int() / 255.0f;
+				else
+					rt->ClearColor.b = 0;
+				if (!objectNode.attribute("a").empty())
+					rt->ClearColor.a = objectNode.attribute("a").as_int() / 255.0f;
+				else
+					rt->ClearColor.a = 0;
 
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
@@ -1997,8 +1964,7 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "audio") == 0) {
+			} else if (strcmp(objType, "audio") == 0) {
 				pugi::char_t objPath[MAX_PATH];
 				strcpy(objPath, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
@@ -2020,7 +1986,7 @@ namespace ed
 				}
 			}
 		}
-		
+
 		// bind objects
 		for (const auto& b : boundTextures)
 			for (const auto& id : b.second)
@@ -2037,8 +2003,7 @@ namespace ed
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						props->Open(item);
 					}
-				}
-				else if (type == "file" && Settings::Instance().General.ReopenShaders) {
+				} else if (type == "file" && Settings::Instance().General.ReopenShaders) {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 					if (!settingItem.attribute("name").empty()) {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
@@ -2046,7 +2011,7 @@ namespace ed
 
 						std::string type = ((strcmp(shaderType, "vs") == 0) ? "vertex" : ((strcmp(shaderType, "ps") == 0) ? "pixel" : "geometry"));
 						std::string path = ((ed::pipe::ShaderPass*)item->Data)->VSPath;
-						
+
 						if (strcmp(shaderType, "ps") == 0)
 							path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
 						else if (strcmp(shaderType, "gs") == 0)
@@ -2059,8 +2024,7 @@ namespace ed
 						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
 							editor->Open(item, ShaderStage::Geometry);
 					}
-				}
-				else if (type == "pinned") {
+				} else if (type == "pinned") {
 					PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 					if (!settingItem.attribute("name").empty()) {
 						const pugi::char_t* item = settingItem.attribute("name").as_string();
@@ -2075,8 +2039,7 @@ namespace ed
 								break;
 							}
 					}
-				}
-				else if (type == "camera") {
+				} else if (type == "camera") {
 					if (settingItem.attribute("fp").empty())
 						Settings::Instance().Project.FPCamera = false;
 					else
@@ -2090,9 +2053,8 @@ namespace ed
 						ed::FirstPersonCamera* fpCam = (ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera();
 						fpCam->Reset();
 						fpCam->SetPosition(std::stof(settingItem.child("positionX").text().get()),
-									   std::stof(settingItem.child("positionY").text().get()),
-									   std::stof(settingItem.child("positionZ").text().get())
-						);
+							std::stof(settingItem.child("positionY").text().get()),
+							std::stof(settingItem.child("positionZ").text().get()));
 						fpCam->SetYaw(std::stof(settingItem.child("yaw").text().get()));
 						fpCam->SetPitch(std::stof(settingItem.child("pitch").text().get()));
 					} else {
@@ -2103,8 +2065,7 @@ namespace ed
 						ab->SetRoll(std::stof(settingItem.child("rotationZ").text().get()));
 					}
 
-				}
-				else if (type == "clearcolor") {
+				} else if (type == "clearcolor") {
 					if (!settingItem.attribute("r").empty())
 						Settings::Instance().Project.ClearColor.r = settingItem.attribute("r").as_uint() / 255.0f;
 					if (!settingItem.attribute("g").empty())
@@ -2116,7 +2077,7 @@ namespace ed
 				}
 			}
 		}
-	
+
 		// set actual render texture IDs
 		for (auto& pass : fbos) {
 			int index = 0;
@@ -2157,7 +2118,7 @@ namespace ed
 
 			if (type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = new ed::pipe::ShaderPass();
-				
+
 				data->RenderTextures[0] = m_renderer->GetTexture();
 				for (int i = 1; i < MAX_RENDER_TEXTURES; i++)
 					data->RenderTextures[i] = 0;
@@ -2195,18 +2156,18 @@ namespace ed
 					pugi::char_t shaderPath[MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
 					const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
-					
+
 					if (shaderNodeType == "vs") {
 						strcpy(data->VSPath, shaderPath);
 						strcpy(data->VSEntry, shaderEntry);
-					}
-					else if (shaderNodeType == "ps") {
+					} else if (shaderNodeType == "ps") {
 						strcpy(data->PSPath, shaderPath);
 						strcpy(data->PSEntry, shaderEntry);
-					}
-					else if (shaderNodeType == "gs") {
-						if (!shaderNode.attribute("used").empty()) data->GSUsed = shaderNode.attribute("used").as_bool();
-						else data->GSUsed = false;
+					} else if (shaderNodeType == "gs") {
+						if (!shaderNode.attribute("used").empty())
+							data->GSUsed = shaderNode.attribute("used").as_bool();
+						else
+							data->GSUsed = false;
 						strcpy(data->GSPath, shaderPath);
 						strcpy(data->GSEntry, shaderEntry);
 					}
@@ -2234,9 +2195,8 @@ namespace ed
 					if (!variableNode.attribute("lastframe").empty())
 						isLastFrame = variableNode.attribute("lastframe").as_bool();
 
-					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
-							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
-							
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) | (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+
 					/* TYPE */
 					if (!variableNode.attribute("type").empty()) {
 						const char* myType = variableNode.attribute("type").as_string();
@@ -2257,7 +2217,7 @@ namespace ed
 							const char* ownerName = variableNode.attribute("plugin").as_string();
 							const char* psVarName = variableNode.attribute("itemname").as_string();
 							strcpy(pluginSysData.Name, psVarName);
-							pluginSysData.Owner = m_plugins->GetPlugin(ownerName);							
+							pluginSysData.Owner = m_plugins->GetPlugin(ownerName);
 						} else if (SystemVariableManager::GetType(system) != type)
 							system = ed::SystemShaderVariable::None;
 					}
@@ -2292,17 +2252,17 @@ namespace ed
 					data->Variables.Add(var);
 				}
 
-				// input layout		
+				// input layout
 				for (pugi::xml_node lItemNode : passNode.child("inputlayout").children("item")) {
 					char ITEM_VALUE_NAME[32];
 					char ITEM_SEMANTIC_NAME[32];
 
 					if (!lItemNode.attribute("value").empty())
 						strcpy(ITEM_VALUE_NAME, lItemNode.attribute("value").as_string());
-					
+
 					if (!lItemNode.attribute("semantic").empty())
 						strcpy(ITEM_SEMANTIC_NAME, lItemNode.attribute("semantic").as_string());
-						
+
 					InputLayoutValue lValue = InputLayoutValue::Position;
 					for (int k = 0; k < (int)InputLayoutValue::MaxCount; k++)
 						if (strcmp(ITEM_VALUE_NAME, ATTRIBUTE_VALUE_NAMES[k]) == 0)
@@ -2319,7 +2279,7 @@ namespace ed
 					ShaderMacro newMacro;
 					if (!macroNode.attribute("name").empty())
 						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
-					
+
 					newMacro.Active = true;
 					if (!macroNode.attribute("active").empty())
 						newMacro.Active = macroNode.attribute("active").as_bool();
@@ -2360,18 +2320,16 @@ namespace ed
 						m_renderer->AddItemVariableValue(ival);
 					}
 				}
-			} 
-			else if (type == PipelineItem::ItemType::ComputePass) {
-				ed::pipe::ComputePass *data = new ed::pipe::ComputePass();
+			} else if (type == PipelineItem::ItemType::ComputePass) {
+				ed::pipe::ComputePass* data = new ed::pipe::ComputePass();
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
-				for (pugi::xml_node shaderNode : passNode.children("shader"))
-				{
+				for (pugi::xml_node shaderNode : passNode.children("shader")) {
 					// parse path and type
 					pugi::char_t shaderPath[MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
-					const pugi::char_t *shaderEntry = shaderNode.attribute("entry").as_string();
-					
+					const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
+
 					strcpy(data->Path, shaderPath);
 					strcpy(data->Entry, shaderEntry);
 
@@ -2380,8 +2338,7 @@ namespace ed
 				}
 
 				// parse variables
-				for (pugi::xml_node variableNode : passNode.child("variables").children("variable"))
-				{
+				for (pugi::xml_node variableNode : passNode.child("variables").children("variable")) {
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
@@ -2395,38 +2352,31 @@ namespace ed
 					if (!variableNode.attribute("lastframe").empty())
 						isLastFrame = variableNode.attribute("lastframe").as_bool();
 
-					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
-							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) | (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
 
 					/* TYPE */
-					if (!variableNode.attribute("type").empty())
-					{
-						const char *myType = variableNode.attribute("type").as_string();
+					if (!variableNode.attribute("type").empty()) {
+						const char* myType = variableNode.attribute("type").as_string();
 						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
-							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0)
-							{
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
 								type = (ed::ShaderVariable::ValueType)i;
 								break;
 							}
 					}
-					if (!variableNode.attribute("system").empty())
-					{
-						const char *mySystem = variableNode.attribute("system").as_string();
+					if (!variableNode.attribute("system").empty()) {
+						const char* mySystem = variableNode.attribute("system").as_string();
 						for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
-							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0)
-							{
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
 								system = (ed::SystemShaderVariable)i;
 								break;
 							}
 						if (SystemVariableManager::GetType(system) != type)
 							system = ed::SystemShaderVariable::None;
 					}
-					if (!variableNode.attribute("function").empty())
-					{
-						const char *myFunc = variableNode.attribute("function").as_string();
+					if (!variableNode.attribute("function").empty()) {
+						const char* myFunc = variableNode.attribute("function").as_string();
 						for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
-							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0)
-							{
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
 								func = (FunctionShaderVariable)i;
 								break;
 							}
@@ -2434,7 +2384,7 @@ namespace ed
 							func = FunctionShaderVariable::None;
 					}
 
-					ShaderVariable *var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
 					var->Flags = flags;
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
@@ -2446,8 +2396,7 @@ namespace ed
 				}
 
 				// macros
-				for (pugi::xml_node macroNode : passNode.child("macros").children("define"))
-				{
+				for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
 					ShaderMacro newMacro;
 					if (!macroNode.attribute("name").empty())
 						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
@@ -2461,26 +2410,30 @@ namespace ed
 
 				// get group size
 				pugi::xml_node workNode = passNode.child("groupsize");
-				if (!workNode.attribute("x").empty()) data->WorkX = workNode.attribute("x").as_uint();
-				else data->WorkX = 1;
-				if (!workNode.attribute("y").empty()) data->WorkY = workNode.attribute("y").as_uint();
-				else data->WorkY = 1;
-				if (!workNode.attribute("z").empty()) data->WorkZ = workNode.attribute("z").as_uint();
-				else data->WorkZ = 1;
+				if (!workNode.attribute("x").empty())
+					data->WorkX = workNode.attribute("x").as_uint();
+				else
+					data->WorkX = 1;
+				if (!workNode.attribute("y").empty())
+					data->WorkY = workNode.attribute("y").as_uint();
+				else
+					data->WorkY = 1;
+				if (!workNode.attribute("z").empty())
+					data->WorkZ = workNode.attribute("z").as_uint();
+				else
+					data->WorkZ = 1;
 
 				// add the item
 				m_pipe->AddComputePass(name, data);
-			} 
-			else if (type == PipelineItem::ItemType::AudioPass) {
-				ed::pipe::AudioPass *data = new ed::pipe::AudioPass();
+			} else if (type == PipelineItem::ItemType::AudioPass) {
+				ed::pipe::AudioPass* data = new ed::pipe::AudioPass();
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
-				for (pugi::xml_node shaderNode : passNode.children("shader"))
-				{
+				for (pugi::xml_node shaderNode : passNode.children("shader")) {
 					// parse path and type
 					pugi::char_t shaderPath[MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
-					
+
 					strcpy(data->Path, shaderPath);
 
 					if (!FileExists(shaderPath))
@@ -2488,8 +2441,7 @@ namespace ed
 				}
 
 				// parse variables
-				for (pugi::xml_node variableNode : passNode.child("variables").children("variable"))
-				{
+				for (pugi::xml_node variableNode : passNode.child("variables").children("variable")) {
 					ShaderVariable::ValueType type = ShaderVariable::ValueType::Float1;
 					SystemShaderVariable system = SystemShaderVariable::None;
 					FunctionShaderVariable func = FunctionShaderVariable::None;
@@ -2503,38 +2455,31 @@ namespace ed
 					if (!variableNode.attribute("lastframe").empty())
 						isLastFrame = variableNode.attribute("lastframe").as_bool();
 
-					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) |
-							(isLastFrame * (char)ShaderVariable::Flag::LastFrame);
+					flags = (isInvert * (char)ShaderVariable::Flag::Inverse) | (isLastFrame * (char)ShaderVariable::Flag::LastFrame);
 
 					/* TYPE */
-					if (!variableNode.attribute("type").empty())
-					{
-						const char *myType = variableNode.attribute("type").as_string();
+					if (!variableNode.attribute("type").empty()) {
+						const char* myType = variableNode.attribute("type").as_string();
 						for (int i = 0; i < HARRAYSIZE(VARIABLE_TYPE_NAMES); i++)
-							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0)
-							{
+							if (strcmp(myType, VARIABLE_TYPE_NAMES[i]) == 0) {
 								type = (ed::ShaderVariable::ValueType)i;
 								break;
 							}
 					}
-					if (!variableNode.attribute("system").empty())
-					{
-						const char *mySystem = variableNode.attribute("system").as_string();
+					if (!variableNode.attribute("system").empty()) {
+						const char* mySystem = variableNode.attribute("system").as_string();
 						for (int i = 0; i < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); i++)
-							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0)
-							{
+							if (strcmp(mySystem, SYSTEM_VARIABLE_NAMES[i]) == 0) {
 								system = (ed::SystemShaderVariable)i;
 								break;
 							}
 						if (SystemVariableManager::GetType(system) != type)
 							system = ed::SystemShaderVariable::None;
 					}
-					if (!variableNode.attribute("function").empty())
-					{
-						const char *myFunc = variableNode.attribute("function").as_string();
+					if (!variableNode.attribute("function").empty()) {
+						const char* myFunc = variableNode.attribute("function").as_string();
 						for (int i = 0; i < HARRAYSIZE(FUNCTION_NAMES); i++)
-							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0)
-							{
+							if (strcmp(myFunc, FUNCTION_NAMES[i]) == 0) {
 								func = (FunctionShaderVariable)i;
 								break;
 							}
@@ -2542,7 +2487,7 @@ namespace ed
 							func = FunctionShaderVariable::None;
 					}
 
-					ShaderVariable *var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
+					ShaderVariable* var = new ShaderVariable(type, variableNode.attribute("name").as_string(), system);
 					var->Flags = flags;
 					FunctionVariableManager::AllocateArgumentSpace(var, func);
 
@@ -2554,8 +2499,7 @@ namespace ed
 				}
 
 				// macros
-				for (pugi::xml_node macroNode : passNode.child("macros").children("define"))
-				{
+				for (pugi::xml_node macroNode : passNode.child("macros").children("define")) {
 					ShaderMacro newMacro;
 					if (!macroNode.attribute("name").empty())
 						strcpy(newMacro.Name, macroNode.attribute("name").as_string());
@@ -2569,8 +2513,7 @@ namespace ed
 
 				// add the item
 				m_pipe->AddAudioPass(name, data);
-			}
-			else if (type == PipelineItem::ItemType::PluginItem) {
+			} else if (type == PipelineItem::ItemType::PluginItem) {
 				IPlugin* plugin = m_plugins->GetPlugin(passNode.attribute("plugin").as_string());
 				std::string otype(passNode.attribute("itemtype").as_string());
 
@@ -2590,7 +2533,7 @@ namespace ed
 
 			if (!camNode.attribute("name").empty())
 				camName = camNode.attribute("name").as_string();
-			
+
 			int rowID = 0;
 			for (pugi::xml_node row : camNode.children("row")) {
 				int colID = 0;
@@ -2614,7 +2557,7 @@ namespace ed
 				pugi::char_t name[MAX_PATH];
 				bool isCube = false;
 				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
-							cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
+					cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
@@ -2627,8 +2570,7 @@ namespace ed
 					strcpy(cubeBottom, toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
 					strcpy(cubeRight, toGenericPath(objectNode.attribute("right").as_string()).c_str());
 					strcpy(cubeBack, toGenericPath(objectNode.attribute("back").as_string()).c_str());
-				}
-				else
+				} else
 					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
 				if (isCube)
@@ -2651,8 +2593,7 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "rendertexture") == 0) {
+			} else if (strcmp(objType, "rendertexture") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateRenderTexture(objName);
@@ -2679,8 +2620,7 @@ namespace ed
 					rt->FixedSize = glm::ivec2(-1, -1);
 
 					m_objects->ResizeRenderTexture(objName, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
-				}
-				else {
+				} else {
 					std::string rtSize = objectNode.attribute("fsize").as_string();
 					int rtSizeX = std::stoi(rtSize.substr(0, rtSize.find(',')));
 					int rtSizeY = std::stoi(rtSize.substr(rtSize.find(',') + 1));
@@ -2696,14 +2636,22 @@ namespace ed
 					rt->Clear = objectNode.attribute("clear").as_bool();
 
 				// load clear color
-				if (!objectNode.attribute("r").empty()) rt->ClearColor.r = objectNode.attribute("r").as_float();
-				else rt->ClearColor.r = 0;
-				if (!objectNode.attribute("g").empty()) rt->ClearColor.g = objectNode.attribute("g").as_float();
-				else rt->ClearColor.g = 0;
-				if (!objectNode.attribute("b").empty()) rt->ClearColor.b = objectNode.attribute("b").as_float();
-				else rt->ClearColor.b = 0;
-				if (!objectNode.attribute("a").empty()) rt->ClearColor.a = objectNode.attribute("a").as_float();
-				else rt->ClearColor.a = 0;
+				if (!objectNode.attribute("r").empty())
+					rt->ClearColor.r = objectNode.attribute("r").as_float();
+				else
+					rt->ClearColor.r = 0;
+				if (!objectNode.attribute("g").empty())
+					rt->ClearColor.g = objectNode.attribute("g").as_float();
+				else
+					rt->ClearColor.g = 0;
+				if (!objectNode.attribute("b").empty())
+					rt->ClearColor.b = objectNode.attribute("b").as_float();
+				else
+					rt->ClearColor.b = 0;
+				if (!objectNode.attribute("a").empty())
+					rt->ClearColor.a = objectNode.attribute("a").as_float();
+				else
+					rt->ClearColor.a = 0;
 
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
@@ -2720,21 +2668,17 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "image") == 0)
-			{
-				const pugi::char_t *objName = objectNode.attribute("name").as_string();
+			} else if (strcmp(objType, "image") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateImage(objName);
 				ImageObject* iobj = m_objects->GetImage(objName);
 
 				// load format
-				if (!objectNode.attribute("format").empty())
-				{
+				if (!objectNode.attribute("format").empty()) {
 					auto formatName = objectNode.attribute("format").as_string();
 					for (int i = 0; i < HARRAYSIZE(FORMAT_NAMES); i++)
-						if (strcmp(formatName, FORMAT_NAMES[i]) == 0)
-						{
+						if (strcmp(formatName, FORMAT_NAMES[i]) == 0) {
 							iobj->Format = FORMAT_VALUES[i];
 							break;
 						}
@@ -2748,9 +2692,8 @@ namespace ed
 				m_objects->ResizeImage(objName, iobj->Size);
 
 				// load binds
-				for (pugi::xml_node bindNode : objectNode.children("bind"))
-				{
-					const pugi::char_t *passBindName = bindNode.attribute("name").as_string();
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 					int isUAV = -1;
 					if (!bindNode.attribute("uav").empty())
@@ -2766,7 +2709,7 @@ namespace ed
 								boundTextures[pass][slot] = objName;
 								break;
 							}
-						// bind as image2D
+							// bind as image2D
 						} else if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ComputePass) || isUAV == 1) {
 							if (strcmp(pass->Name, passBindName) == 0) {
 								if (boundUBOs[pass].size() <= slot)
@@ -2778,21 +2721,17 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "image3d") == 0)
-			{
-				const pugi::char_t *objName = objectNode.attribute("name").as_string();
+			} else if (strcmp(objType, "image3d") == 0) {
+				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateImage3D(objName);
 				Image3DObject* iobj = m_objects->GetImage3D(objName);
 
 				// load format
-				if (!objectNode.attribute("format").empty())
-				{
+				if (!objectNode.attribute("format").empty()) {
 					auto formatName = objectNode.attribute("format").as_string();
 					for (int i = 0; i < HARRAYSIZE(FORMAT_NAMES); i++)
-						if (strcmp(formatName, FORMAT_NAMES[i]) == 0)
-						{
+						if (strcmp(formatName, FORMAT_NAMES[i]) == 0) {
 							iobj->Format = FORMAT_VALUES[i];
 							break;
 						}
@@ -2808,9 +2747,8 @@ namespace ed
 				m_objects->ResizeImage3D(objName, iobj->Size);
 
 				// load binds
-				for (pugi::xml_node bindNode : objectNode.children("bind"))
-				{
-					const pugi::char_t *passBindName = bindNode.attribute("name").as_string();
+				for (pugi::xml_node bindNode : objectNode.children("bind")) {
+					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
 					int isUAV = -1;
 					if (!bindNode.attribute("uav").empty())
@@ -2826,7 +2764,7 @@ namespace ed
 								boundTextures[pass][slot] = objName;
 								break;
 							}
-						// bind as image2D
+							// bind as image2D
 						} else if ((isUAV == -1 && pass->Type == PipelineItem::ItemType::ComputePass) || isUAV == 1) {
 							if (strcmp(pass->Name, passBindName) == 0) {
 								if (boundUBOs[pass].size() <= slot)
@@ -2838,8 +2776,7 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "audio") == 0) {
+			} else if (strcmp(objType, "audio") == 0) {
 				pugi::char_t objPath[MAX_PATH];
 				strcpy(objPath, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
@@ -2859,10 +2796,9 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "buffer") == 0) {
+			} else if (strcmp(objType, "buffer") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
-				
+
 				m_objects->CreateBuffer(objName);
 				ed::BufferObject* buf = m_objects->GetBuffer(objName);
 
@@ -2872,7 +2808,7 @@ namespace ed
 				}
 				if (!objectNode.attribute("format").empty())
 					strcpy(buf->ViewFormat, objectNode.attribute("format").as_string());
-				
+
 				std::string bPath = GetProjectPath("buffers/" + std::string(objName) + ".buf");
 				std::ifstream bufRead(bPath, std::ios::binary);
 				if (bufRead.is_open())
@@ -2882,7 +2818,7 @@ namespace ed
 				glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
 				glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // allocate 0 bytes of memory
 				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-				
+
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 					int slot = bindNode.attribute("slot").as_int();
@@ -2897,10 +2833,9 @@ namespace ed
 						}
 					}
 				}
-			}
-			else if (strcmp(objType, "pluginobject") == 0) {
+			} else if (strcmp(objType, "pluginobject") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
-			
+
 				IPlugin* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
 				std::string otype(objectNode.attribute("objecttype").as_string());
 
@@ -2921,8 +2856,7 @@ namespace ed
 							}
 						}
 					}
-				} 
-				else {
+				} else {
 					for (pugi::xml_node bindNode : objectNode.children("bind")) {
 						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 						int slot = bindNode.attribute("slot").as_int();
@@ -2973,7 +2907,6 @@ namespace ed
 				if (!id.empty())
 					m_objects->BindUniform(id, b.first);
 
-
 		// settings
 		for (pugi::xml_node settingItem : projectNode.child("settings").children("entry")) {
 			if (!settingItem.attribute("type").empty()) {
@@ -2990,15 +2923,14 @@ namespace ed
 								type = 2;
 						}
 
-						const pugi::char_t *itemName = settingItem.attribute("name").as_string();
+						const pugi::char_t* itemName = settingItem.attribute("name").as_string();
 						if (type == 0) {
-							PipelineItem *item = m_pipe->Get(itemName);
+							PipelineItem* item = m_pipe->Get(itemName);
 							props->Open(item);
 						} else
 							props->Open(itemName, m_objects->GetObjectManagerItem(itemName));
 					}
-				}
-				else if (type == "file" && Settings::Instance().General.ReopenShaders) {
+				} else if (type == "file" && Settings::Instance().General.ReopenShaders) {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 					if (!settingItem.attribute("name").empty()) {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
@@ -3019,27 +2951,26 @@ namespace ed
 							else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
 								editor->Open(item, ShaderStage::Geometry);
 						} else if (item->Type == PipelineItem::ItemType::ComputePass) {
-							std::string path = ((ed::pipe::ComputePass *)item->Data)->Path;
+							std::string path = ((ed::pipe::ComputePass*)item->Data)->Path;
 
 							if (strcmp(shaderType, "cs") == 0 && FileExists(path))
 								editor->Open(item, ShaderStage::Compute);
 						} else if (item->Type == PipelineItem::ItemType::AudioPass) {
-							std::string path = ((ed::pipe::AudioPass *)item->Data)->Path;
+							std::string path = ((ed::pipe::AudioPass*)item->Data)->Path;
 							editor->Open(item, ShaderStage::Pixel);
 						}
 					}
-				}
-				else if (type == "pinned") {
+				} else if (type == "pinned") {
 					PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
 					if (!settingItem.attribute("name").empty()) {
 						const pugi::char_t* item = settingItem.attribute("name").as_string();
 						const pugi::char_t* shaderType = settingItem.attribute("from").as_string();
 						PipelineItem* owner = (PipelineItem*)(m_pipe->Get(settingItem.attribute("owner").as_string()));
 
-						std::vector<ShaderVariable *> vars;
-						
+						std::vector<ShaderVariable*> vars;
+
 						if (owner->Type == PipelineItem::ItemType::ShaderPass)
-							vars = ((pipe::ShaderPass *)owner->Data)->Variables.GetVariables();
+							vars = ((pipe::ShaderPass*)owner->Data)->Variables.GetVariables();
 						else if (owner->Type == PipelineItem::ItemType::ComputePass)
 							vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
 						else if (owner->Type == PipelineItem::ItemType::AudioPass)
@@ -3051,8 +2982,7 @@ namespace ed
 								break;
 							}
 					}
-				}
-				else if (type == "camera") {
+				} else if (type == "camera") {
 					if (settingItem.attribute("fp").empty())
 						Settings::Instance().Project.FPCamera = false;
 					else
@@ -3067,12 +2997,10 @@ namespace ed
 						fpCam->Reset();
 						fpCam->SetPosition(std::stof(settingItem.child("positionX").text().get()),
 							std::stof(settingItem.child("positionY").text().get()),
-							std::stof(settingItem.child("positionZ").text().get())
-						);
+							std::stof(settingItem.child("positionZ").text().get()));
 						fpCam->SetYaw(std::stof(settingItem.child("yaw").text().get()));
 						fpCam->SetPitch(std::stof(settingItem.child("pitch").text().get()));
-					}
-					else {
+					} else {
 						ed::ArcBallCamera* ab = (ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 						ab->SetDistance(std::stof(settingItem.child("distance").text().get()));
 						ab->SetYaw(std::stof(settingItem.child("yaw").text().get()));
@@ -3080,8 +3008,7 @@ namespace ed
 						ab->SetRoll(std::stof(settingItem.child("roll").text().get()));
 					}
 
-				}
-				else if (type == "clearcolor") {
+				} else if (type == "clearcolor") {
 					if (!settingItem.attribute("r").empty())
 						Settings::Instance().Project.ClearColor.r = settingItem.attribute("r").as_float();
 					if (!settingItem.attribute("g").empty())
@@ -3090,28 +3017,23 @@ namespace ed
 						Settings::Instance().Project.ClearColor.b = settingItem.attribute("b").as_float();
 					if (!settingItem.attribute("a").empty())
 						Settings::Instance().Project.ClearColor.a = settingItem.attribute("a").as_float();
-				}
-				else if (type == "usealpha") {
+				} else if (type == "usealpha") {
 					if (!settingItem.attribute("val").empty())
 						Settings::Instance().Project.UseAlphaChannel = settingItem.attribute("val").as_bool();
-					else 
+					else
 						Settings::Instance().Project.UseAlphaChannel = false;
-				}
-				else if (type == "ipaths") {
+				} else if (type == "ipaths") {
 					Settings::Instance().Project.IncludePaths.clear();
 					for (pugi::xml_node pathNode : settingItem.children("path"))
 						Settings::Instance().Project.IncludePaths.push_back(pathNode.text().as_string());
-				}
-				else if (type == "watch_expr") {
+				} else if (type == "watch_expr") {
 					if (!settingItem.attribute("expr").empty())
 						m_debug->AddWatch(settingItem.attribute("expr").as_string(), false);
-				}
-				else if (type == "bkpt") {
+				} else if (type == "bkpt") {
 					m_debug->AddBreakpoint(settingItem.attribute("file").as_string(),
 						settingItem.attribute("line").as_int(),
 						!settingItem.attribute("cond").empty() ? settingItem.attribute("cond").as_string() : "",
-						settingItem.attribute("enabled").as_bool()
-					);
+						settingItem.attribute("enabled").as_bool());
 				}
 			}
 		}

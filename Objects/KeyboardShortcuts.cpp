@@ -8,8 +8,7 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <SDL2/SDL_keyboard.h>
 
-namespace ed
-{
+namespace ed {
 	KeyboardShortcuts::KeyboardShortcuts()
 	{
 		m_keys[0] = m_keys[1] = -1;
@@ -26,7 +25,6 @@ namespace ed
 		for (int i = 0; i < eds.size(); i++)
 			Set(std::string("Editor." + std::string(EDITOR_SHORTCUT_NAMES[i])).c_str(), eds[i].Key1, eds[i].Key2, eds[i].Alt, eds[i].Ctrl, eds[i].Shift);
 
-
 		while (std::getline(file, str)) {
 			std::stringstream ss(str);
 			std::string name, token;
@@ -37,18 +35,21 @@ namespace ed
 
 			int vk1 = -1, vk2 = -1;
 			bool alt = false, ctrl = false, shift = false;
-			while (ss >> token)
-			{
-				if (token == "CTRL") ctrl = true;
-				else if (token == "ALT") alt = true;
-				else if (token == "SHIFT") shift = true;
-				else if (token == "NONE") break;
+			while (ss >> token) {
+				if (token == "CTRL")
+					ctrl = true;
+				else if (token == "ALT")
+					alt = true;
+				else if (token == "SHIFT")
+					shift = true;
+				else if (token == "NONE")
+					break;
 				else {
 					if (vk1 == -1)
 						vk1 = SDL_GetKeyFromName(token.c_str());
 					else if (m_data[name].Key2 == -1)
 						vk2 = SDL_GetKeyFromName(token.c_str());
-				}				
+				}
 			}
 
 			Set(name, vk1, vk2, alt, ctrl, shift);
@@ -60,7 +61,7 @@ namespace ed
 	{
 		std::ofstream file("data/shortcuts.kb");
 		std::string str;
-		
+
 		for (auto& s : m_data) {
 			if (s.second.Key1 == -1) {
 				//file << " NONE" << std::endl;
@@ -93,12 +94,8 @@ namespace ed
 
 		for (auto& i : m_data)
 			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
-				if (!(name == "CodeUI.Save" && i.first == "Project.Save") &&
-					!(name == "Project.Save" && i.first == "CodeUI.Save") &&
-					((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) ||
-					 (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor 
-						(name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos)))) 
-				{
+				if (!(name == "CodeUI.Save" && i.first == "Project.Save") && !(name == "Project.Save" && i.first == "CodeUI.Save") && ((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) || (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor
+																																		   (name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos)))) {
 					i.second.Ctrl = i.second.Alt = i.second.Shift = false;
 					i.second.Key1 = i.second.Key2 = -1;
 				}
@@ -173,9 +170,7 @@ namespace ed
 					int key1 = m_keys[0];
 					if (key1 != -1)
 						for (const auto& clone : m_data)
-							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift &&
-								clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1)
-							{
+							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift && clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1) {
 								found = true;
 							}
 
@@ -184,8 +179,7 @@ namespace ed
 						s.Function();
 						resetSecond = true;
 					}
-				}
-				else if (s.Key2 != -1) {
+				} else if (s.Key2 != -1) {
 					if (m_keys[0] != -1) {
 						int key1 = m_keys[0];
 

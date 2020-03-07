@@ -1,23 +1,22 @@
 #pragma once
-#include "../GUIManager.h"
-#include "ShaderVariable.h"
-#include "MessageStack.h"
 #include "../Engine/Model.h"
+#include "../GUIManager.h"
+#include "MessageStack.h"
+#include "ShaderVariable.h"
 
-#include <string>
 #include <pugixml/src/pugixml.hpp>
+#include <string>
 #ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/glew.h>
 #if defined(__APPLE__)
-	#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
-namespace ed
-{
+namespace ed {
 	class PipelineManager;
 	class RenderEngine;
 	class ObjectManager;
@@ -25,10 +24,13 @@ namespace ed
 	class InputLayoutItem;
 	class DebugInformation;
 	struct PipelineItem;
-	namespace pipe { struct ShaderPass; struct GeometryItem; struct Model; }
+	namespace pipe {
+		struct ShaderPass;
+		struct GeometryItem;
+		struct Model;
+	}
 
-	class ProjectParser
-	{
+	class ProjectParser {
 	public:
 		ProjectParser(PipelineManager* pipeline, ObjectManager* objects, RenderEngine* renderer, PluginManager* plugins, MessageStack* msgs, DebugInformation* debugger, GUIManager* gui);
 		~ProjectParser();
@@ -94,7 +96,7 @@ namespace ed
 
 		std::vector<std::string> m_pluginList;
 		void m_addPlugin(const std::string& name);
-		
+
 		std::vector<std::pair<std::string, eng::Model*>> m_models;
 	};
 }

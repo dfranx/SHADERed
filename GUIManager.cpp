@@ -1,44 +1,44 @@
 #include "GUIManager.h"
 #include "InterfaceManager.h"
-#include <SDL2/SDL_messagebox.h>
-#include <imgui/imgui.h>
-#include <imgui/examples/imgui_impl_opengl3.h>
-#include <imgui/examples/imgui_impl_sdl.h>
-#include "UI/ObjectPreviewUI.h"
-#include "UI/CreateItemUI.h"
+#include "Objects/CameraSnapshots.h"
+#include "Objects/Export/ExportCPP.h"
+#include "Objects/FunctionVariableManager.h"
+#include "Objects/KeyboardShortcuts.h"
+#include "Objects/Logger.h"
+#include "Objects/Names.h"
+#include "Objects/Settings.h"
+#include "Objects/SystemVariableManager.h"
+#include "Objects/ThemeContainer.h"
 #include "UI/CodeEditorUI.h"
-#include "UI/ObjectListUI.h"
-#include "UI/MessageOutputUI.h"
-#include "UI/PixelInspectUI.h"
-#include "UI/PipelineUI.h"
-#include "UI/PropertyUI.h"
-#include "UI/PreviewUI.h"
-#include "UI/OptionsUI.h"
-#include "UI/PinnedUI.h"
-#include "UI/UIHelper.h"
-#include "UI/Icons.h"
+#include "UI/CreateItemUI.h"
 #include "UI/Debug/BreakpointListUI.h"
 #include "UI/Debug/FunctionStackUI.h"
 #include "UI/Debug/ImmediateUI.h"
 #include "UI/Debug/ValuesUI.h"
 #include "UI/Debug/WatchUI.h"
-#include "Objects/Logger.h"
-#include "Objects/Names.h"
-#include "Objects/Settings.h"
-#include "Objects/ThemeContainer.h"
-#include "Objects/CameraSnapshots.h"
-#include "Objects/Export/ExportCPP.h"
-#include "Objects/KeyboardShortcuts.h"
-#include "Objects/FunctionVariableManager.h"
-#include "Objects/SystemVariableManager.h"
+#include "UI/Icons.h"
+#include "UI/MessageOutputUI.h"
+#include "UI/ObjectListUI.h"
+#include "UI/ObjectPreviewUI.h"
+#include "UI/OptionsUI.h"
+#include "UI/PinnedUI.h"
+#include "UI/PipelineUI.h"
+#include "UI/PixelInspectUI.h"
+#include "UI/PreviewUI.h"
+#include "UI/PropertyUI.h"
+#include "UI/UIHelper.h"
+#include <SDL2/SDL_messagebox.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/examples/imgui_impl_sdl.h>
+#include <imgui/imgui.h>
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
-#define STBIR_DEFAULT_FILTER_DOWNSAMPLE   STBIR_FILTER_CATMULLROM
+#define STBIR_DEFAULT_FILTER_DOWNSAMPLE STBIR_FILTER_CATMULLROM
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize.h>
 /*	STBIR_FILTER_CUBICBSPLINE
@@ -46,25 +46,24 @@
 	STBIR_FILTER_MITCHELL		*/
 
 #if defined(__APPLE__)
-	// no includes on mac os
+// no includes on mac os
 #elif defined(__linux__) || defined(__unix__)
-	// no includes on linux
+// no includes on linux
 #elif defined(_WIN32)
-	#include <windows.h>
+#include <windows.h>
 #endif
 
-#define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
+#define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 #define TOOLBAR_HEIGHT 48
 
-#define getByte(value, n) (value >> (n*8) & 0xFF)
+#define getByte(value, n) (value >> (n * 8) & 0xFF)
 
-namespace ed
-{
+namespace ed {
 	GUIManager::GUIManager(ed::InterfaceManager* objects, SDL_Window* wnd, SDL_GLContext* gl)
 	{
 		m_data = objects;
 		m_wnd = wnd;
-		m_gl  = gl;
+		m_gl = gl;
 		m_settingsBkp = new Settings();
 		m_previewSaveSize = glm::ivec2(1920, 1080);
 		m_savePreviewPopupOpened = false;
@@ -100,22 +99,22 @@ namespace ed
 		m_expcppImage = true;
 		m_expcppMemoryShaders = true;
 		m_expcppCopyImages = true;
-		memset(&m_expcppProjectName[0], 0, 64*sizeof(char));
+		memset(&m_expcppProjectName[0], 0, 64 * sizeof(char));
 		strcpy(m_expcppProjectName, "ShaderProject");
 		m_expcppSavePath = "./export.cpp";
 		m_expcppError = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
-		
+
 		Logger::Get().Log("Initializing Dear ImGUI");
-		
+
 		// set vsync on startup
 		SDL_GL_SetSwapInterval(Settings::Instance().General.VSync);
 
 		// Initialize imgui
 		ImGui::CreateContext();
-		
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->AddFontDefault();
 		io.IniFilename = IMGUI_INI_FILE;
@@ -160,15 +159,14 @@ namespace ed
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
-
 		// get dpi
 		float dpi;
 		int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
 		SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
-		
+
 		dpi /= 96.0f;
-		
-		// enable dpi awareness		
+
+		// enable dpi awareness
 		if (Settings::Instance().General.AutoScale) {
 			Settings::Instance().DPIScale = dpi;
 			Logger::Get().Log("Setting DPI to " + std::to_string(dpi));
@@ -217,13 +215,12 @@ namespace ed
 				if (!(ImGui::GetIO().WantTextInput && !codeHasFocus))
 					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
 			}
-		}
-		else if (e.type == SDL_MOUSEMOTION)
+		} else if (e.type == SDL_MOUSEMOTION)
 			m_perfModeClock.restart();
 		else if (e.type == SDL_DROPFILE) {
-			
+
 			char* droppedFile = e.drop.file;
-			
+
 			std::string file = m_data->Parser.GetRelativePath(droppedFile);
 			size_t dotPos = file.find_last_of('.');
 
@@ -244,21 +241,17 @@ namespace ed
 
 					if (cont)
 						Open(m_data->Parser.GetProjectPath(file));
-				}
-				else if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
+				} else if (std::count(imgExt.begin(), imgExt.end(), ext) > 0)
 					m_data->Objects.CreateTexture(file);
 				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
 					m_data->Objects.CreateAudio(file);
-				else m_data->Plugins.HandleDropFile(file.c_str());
+				else
+					m_data->Plugins.HandleDropFile(file.c_str());
 			}
 
 			SDL_free(droppedFile);
-		}
-		else if (e.type == SDL_WINDOWEVENT) {
-			if (e.window.event == SDL_WINDOWEVENT_MOVED ||
-				e.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
-				e.window.event == SDL_WINDOWEVENT_RESIZED)
-			{
+		} else if (e.type == SDL_WINDOWEVENT) {
+			if (e.window.event == SDL_WINDOWEVENT_MOVED || e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESIZED) {
 				SDL_GetWindowSize(m_wnd, &m_width, &m_height);
 			}
 		}
@@ -280,10 +273,9 @@ namespace ed
 	{
 		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
 	}
-	void GUIManager::m_tooltip(const std::string &text)
+	void GUIManager::m_tooltip(const std::string& text)
 	{
-		if (ImGui::IsItemHovered())
-		{
+		if (ImGui::IsItemHovered()) {
 			ImGui::PopFont(); // TODO: remove this if its being used in non-toolbar places
 
 			ImGui::BeginTooltip();
@@ -307,8 +299,8 @@ namespace ed
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		ImGui::Begin("##toolbar", 0, window_flags);
 		ImGui::PopStyleVar(3);
-		
-		float bHeight = TOOLBAR_HEIGHT/2 + ImGui::GetStyle().FramePadding.y * 2;
+
+		float bHeight = TOOLBAR_HEIGHT / 2 + ImGui::GetStyle().FramePadding.y * 2;
 
 		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - Settings::Instance().CalculateSize(bHeight) / 2);
 		ImGui::Indent(Settings::Instance().CalculateSize(15));
@@ -330,10 +322,10 @@ namespace ed
 		ImGui::SetColumnWidth(0, 5 * scaledBtnWidth);
 		ImGui::SetColumnWidth(1, 8 * scaledBtnWidth);
 		ImGui::SetColumnWidth(2, 4 * scaledBtnWidth);
-		
+
 		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
 		// repetitions
-		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) {		// OPEN PROJECT
+		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) { // OPEN PROJECT
 			bool cont = true;
 			if (m_data->Parser.IsProjectModified()) {
 				int btnID = this->AreYouSure();
@@ -411,7 +403,7 @@ namespace ed
 		m_tooltip("New buffer");
 		ImGui::NextColumn();
 
-		if (ImGui::Button(UI_ICON_REFRESH)) {				// REBUILD PROJECT
+		if (ImGui::Button(UI_ICON_REFRESH)) { // REBUILD PROJECT
 			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
 			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 			for (PipelineItem*& pass : passes)
@@ -430,18 +422,17 @@ namespace ed
 		m_tooltip("Performance mode");
 		ImGui::NextColumn();
 
-		if (ImGui::Button(UI_ICON_GEAR)) {				// SETTINGS BUTTON 
+		if (ImGui::Button(UI_ICON_GEAR)) { // SETTINGS BUTTON
 			m_optionsOpened = true;
 			*m_settingsBkp = Settings::Instance();
 			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
 		}
 		m_tooltip("Settings");
-		ImGui::NextColumn();	
+		ImGui::NextColumn();
 
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
 		ImGui::Columns(1);
-
 
 		ImGui::End();
 	}
@@ -449,17 +440,17 @@ namespace ed
 	{
 		const SDL_MessageBoxButtonData buttons[] = {
 			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
-			{ /* .flags, .buttonid, .text */        0, 1, "NO" },
+			{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
 			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
 		};
 		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_INFORMATION, /* .flags */
-			m_wnd, /* .window */
-			"SHADERed", /* .title */
+			SDL_MESSAGEBOX_INFORMATION,						/* .flags */
+			m_wnd,											/* .window */
+			"SHADERed",										/* .title */
 			"Save changes to the project before quitting?", /* .message */
-			SDL_arraysize(buttons), /* .numbuttons */
-			buttons, /* .buttons */
-			NULL /* .colorScheme */
+			SDL_arraysize(buttons),							/* .numbuttons */
+			buttons,										/* .buttons */
+			NULL											/* .colorScheme */
 		};
 		int buttonid;
 		if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
@@ -486,7 +477,7 @@ namespace ed
 
 			if (projName.size() > 0) {
 				projName = projName.substr(projName.find_last_of("/\\") + 1);
-				
+
 				if (m_data->Parser.IsProjectModified())
 					projName = "*" + projName;
 
@@ -509,12 +500,7 @@ namespace ed
 		FunctionVariableManager::ClearVariableList();
 
 		// update editor & workspace font
-		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() ||
-			((m_cachedFont != settings.General.Font ||
-				m_cachedFontSize != settings.General.FontSize) &&
-				strcmp(settings.General.Font, "null") != 0) ||
-			m_fontNeedsUpdate)
-		{
+		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() || ((m_cachedFont != settings.General.Font || m_cachedFontSize != settings.General.FontSize) && strcmp(settings.General.Font, "null") != 0) || m_fontNeedsUpdate) {
 			Logger::Get().Log("Updating fonts...");
 
 			std::pair<std::string, int> edFont = ((CodeEditorUI*)Get(ViewID::Code))->GetFont();
@@ -529,12 +515,12 @@ namespace ed
 			ImFont* font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
 
 			// icon font
-  			ImGuiIO& io = ImGui::GetIO();
+			ImGuiIO& io = ImGui::GetIO();
 			ImFontConfig config;
 			config.MergeMode = true;
-  			static const ImWchar icon_ranges[] = { 0xea5b, 0xf026, 0 };
+			static const ImWchar icon_ranges[] = { 0xea5b, 0xf026, 0 };
 			io.Fonts->AddFontFromFileTTF("data/icofont.ttf", m_cachedFontSize * Settings::Instance().DPIScale, &config, icon_ranges);
-			
+
 			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
 
 			if (font == nullptr || edFontPtr == nullptr) {
@@ -547,7 +533,7 @@ namespace ed
 
 			// icon font large
 			ImFontConfig configIconsLarge;
-			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", Settings::Instance().CalculateSize(TOOLBAR_HEIGHT/2), &configIconsLarge, icon_ranges);
+			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", Settings::Instance().CalculateSize(TOOLBAR_HEIGHT / 2), &configIconsLarge, icon_ranges);
 
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();
@@ -587,8 +573,7 @@ namespace ed
 		ImGui::PopStyleVar(3);
 
 		// DockSpace
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode)
-		{
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode) {
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
@@ -650,11 +635,11 @@ namespace ed
 				if (ImGui::MenuItem("Create shader file")) {
 					std::string file;
 					bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
-					
+
 					if (success) {
 						// create a file (cross platform)
 						std::ofstream ofs(file);
-						ofs << "// empty shader file\n"; 
+						ofs << "// empty shader file\n";
 						ofs.close();
 					}
 				}
@@ -682,15 +667,14 @@ namespace ed
 					m_savePreviewPopupOpened = true;
 				if (ImGui::MenuItem("Open project directory")) {
 					std::string prpath = m_data->Parser.GetProjectPath("");
-					#if defined(__APPLE__)
-						system(("open " + prpath).c_str()); // [MACOS]
-					#elif defined(__linux__) || defined(__unix__)
-						system(("xdg-open " + prpath).c_str());
-					#elif defined(_WIN32)
-						ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
-					#endif
+#if defined(__APPLE__)
+					system(("open " + prpath).c_str()); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+					system(("xdg-open " + prpath).c_str());
+#elif defined(_WIN32)
+					ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
 				}
-
 
 				if (ImGui::BeginMenu("Export")) {
 					if (ImGui::MenuItem("as C++ project"))
@@ -698,7 +682,7 @@ namespace ed
 
 					ImGui::EndMenu();
 				}
-				
+
 				m_data->Plugins.ShowMenuItems("file");
 
 				ImGui::Separator();
@@ -773,7 +757,7 @@ namespace ed
 				}
 
 				m_data->Plugins.ShowMenuItems("project");
-				
+
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
@@ -790,12 +774,12 @@ namespace ed
 
 					for (auto& dview : m_debugViews)
 						ImGui::MenuItem(dview->Name.c_str(), 0, &dview->Visible);
-					
+
 					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PopStyleVar();
 						ImGui::PopItemFlag();
 					}
-					
+
 					ImGui::EndMenu();
 				}
 
@@ -814,44 +798,44 @@ namespace ed
 			}
 			if (ImGui::BeginMenu("Help")) {
 				if (ImGui::BeginMenu("Support")) {
-					if (ImGui::MenuItem("Patreon")) { 
-						#if defined(__APPLE__)
-							system("open https://www.patreon.com/dfranx"); // [MACOS]
-						#elif defined(__linux__) || defined(__unix__)
-							system("xdg-open https://www.patreon.com/dfranx");
-						#elif defined(_WIN32)
-							ShellExecuteW(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL);
-						#endif
+					if (ImGui::MenuItem("Patreon")) {
+#if defined(__APPLE__)
+						system("open https://www.patreon.com/dfranx"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+						system("xdg-open https://www.patreon.com/dfranx");
+#elif defined(_WIN32)
+						ShellExecuteW(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL);
+#endif
 					}
-					if (ImGui::MenuItem("PayPal")) { 
-						#if defined(__APPLE__)
-							system("open https://www.paypal.me/dfranx"); // [MACOS]
-						#elif defined(__linux__) || defined(__unix__)
-							system("xdg-open https://www.paypal.me/dfranx");
-						#elif defined(_WIN32)
-							ShellExecuteW(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL);
-						#endif
+					if (ImGui::MenuItem("PayPal")) {
+#if defined(__APPLE__)
+						system("open https://www.paypal.me/dfranx"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+						system("xdg-open https://www.paypal.me/dfranx");
+#elif defined(_WIN32)
+						ShellExecuteW(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL);
+#endif
 					}
 					ImGui::EndMenu();
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Tutorial")) {
-					#if defined(__APPLE__)
-						system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
-					#elif defined(__linux__) || defined(__unix__)
-						system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
-					#elif defined(_WIN32)
-						ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
-					#endif
+#if defined(__APPLE__)
+					system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+					system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
+#elif defined(_WIN32)
+					ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
+#endif
 				}
 				if (ImGui::MenuItem("Send feedback")) {
-					#if defined(__APPLE__)
-						system("open https://www.github.com/dfranx/SHADERed/issues"); // [MACOS]
-					#elif defined(__linux__) || defined(__unix__)
-						system("xdg-open https://www.github.com/dfranx/SHADERed/issues");
-					#elif defined(_WIN32)
-						ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
-					#endif
+#if defined(__APPLE__)
+					system("open https://www.github.com/dfranx/SHADERed/issues"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+					system("xdg-open https://www.github.com/dfranx/SHADERed/issues");
+#elif defined(_WIN32)
+					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
+#endif
 				}
 				if (ImGui::MenuItem("Information")) { m_isInfoOpened = true; }
 				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true; }
@@ -887,11 +871,10 @@ namespace ed
 
 		ImGui::End();
 
-
 		if (!m_performanceMode) {
 			for (auto& view : m_views)
 				if (view->Visible) {
-					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width*2, m_height*2));
+					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
 					if (ImGui::Begin(view->Name.c_str(), &view->Visible)) view->Update(delta);
 					ImGui::End();
 				}
@@ -943,13 +926,15 @@ namespace ed
 			m_savePreviewTimeDelta = SystemVariableManager::Instance().GetTimeDelta();
 			m_savePreviewCachedFIndex = m_savePreviewFrameIndex = SystemVariableManager::Instance().GetFrameIndex();
 			glm::ivec4 wasd = SystemVariableManager::Instance().GetKeysWASD();
-			m_savePreviewWASD[0] = wasd.x; m_savePreviewWASD[1] = wasd.y;
-			m_savePreviewWASD[2] = wasd.z; m_savePreviewWASD[3] = wasd.w;
+			m_savePreviewWASD[0] = wasd.x;
+			m_savePreviewWASD[1] = wasd.y;
+			m_savePreviewWASD[2] = wasd.z;
+			m_savePreviewWASD[3] = wasd.w;
 			m_savePreviewMouse = SystemVariableManager::Instance().GetMouse();
 			m_savePreviewSupersample = 0;
-			
+
 			m_savePreviewSeq = false;
-			
+
 			m_data->Renderer.Pause(true);
 		}
 
@@ -1086,7 +1071,6 @@ namespace ed
 				back = m_data->Parser.GetRelativePath(back);
 			}
 
-
 			if (ImGui::Button("Ok") && strlen(buf) > 0 && !m_data->Objects.Exists(buf)) {
 				if (m_data->Objects.CreateCubemap(buf, left, top, front, bottom, right, back))
 					ImGui::CloseCurrentPopup();
@@ -1156,18 +1140,16 @@ namespace ed
 
 		// Create empty image popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(175)), ImGuiCond_Always);
-		if (ImGui::BeginPopupModal("Create image##main_create_img", 0, ImGuiWindowFlags_NoResize))
-		{
-			static char buf[65] = {0};
-			static glm::ivec2 size(0,0);
+		if (ImGui::BeginPopupModal("Create image##main_create_img", 0, ImGuiWindowFlags_NoResize)) {
+			static char buf[65] = { 0 };
+			static glm::ivec2 size(0, 0);
 
 			ImGui::InputText("Name", buf, 64);
 			ImGui::DragInt2("Size", glm::value_ptr(size));
 			if (size.x <= 0) size.x = 1;
 			if (size.y <= 0) size.y = 1;
 
-			if (ImGui::Button("Ok"))
-			{
+			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateImage(buf, size))
 					ImGui::CloseCurrentPopup();
 			}
@@ -1179,8 +1161,7 @@ namespace ed
 
 		// Create empty 3D image
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(175)), ImGuiCond_Always);
-		if (ImGui::BeginPopupModal("Create 3D image##main_create_img3D", 0, ImGuiWindowFlags_NoResize))
-		{
+		if (ImGui::BeginPopupModal("Create 3D image##main_create_img3D", 0, ImGuiWindowFlags_NoResize)) {
 			static char buf[65] = { 0 };
 			static glm::ivec3 size(0, 0, 0);
 
@@ -1190,8 +1171,7 @@ namespace ed
 			if (size.y <= 0) size.y = 1;
 			if (size.z <= 0) size.z = 1;
 
-			if (ImGui::Button("Ok"))
-			{
+			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateImage3D(buf, size))
 					ImGui::CloseCurrentPopup();
 			}
@@ -1200,7 +1180,6 @@ namespace ed
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
 		}
-
 
 		// Create about popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
@@ -1212,13 +1191,13 @@ namespace ed
 			ImGui::TextWrapped("This app is open sourced: ");
 			ImGui::SameLine();
 			if (ImGui::Button("link")) {
-				#if defined(__APPLE__)
-					system("open https://www.github.com/dfranx/SHADERed"); // [MACOS]
-				#elif defined(__linux__) || defined(__unix__)
-					system("xdg-open https://www.github.com/dfranx/SHADERed");
-				#elif defined(_WIN32)
-					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
-				#endif
+#if defined(__APPLE__)
+				system("open https://www.github.com/dfranx/SHADERed"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+				system("xdg-open https://www.github.com/dfranx/SHADERed");
+#elif defined(_WIN32)
+				ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
+#endif
 			}
 
 			ImGui::Separator();
@@ -1258,7 +1237,7 @@ namespace ed
 			ImGui::Separator();
 			ImGui::TextWrapped("Have an idea for a feature that's missing? Suggest it ");
 			ImGui::SameLine();
-			if (ImGui::Button("here")) 
+			if (ImGui::Button("here"))
 				UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/issues");
 			ImGui::Separator();
 			ImGui::NewLine();
@@ -1276,13 +1255,13 @@ namespace ed
 				std::string oldFile = m_data->Parser.GetOpenedFile();
 
 				if (m_selectedTemplate == "?empty") {
-						Settings::Instance().Project.FPCamera = false;
-						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
+					Settings::Instance().Project.FPCamera = false;
+					Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
 
-						ResetWorkspace();
-						m_data->Pipeline.New(false);
+					ResetWorkspace();
+					m_data->Pipeline.New(false);
 
-						SDL_SetWindowTitle(m_wnd, "SHADERed");
+					SDL_SetWindowTitle(m_wnd, "SHADERed");
 				} else {
 					m_data->Parser.SetTemplate(m_selectedTemplate);
 
@@ -1300,8 +1279,7 @@ namespace ed
 						ResetWorkspace();
 						m_data->Parser.Open(oldFile);
 
-					}
-					else
+					} else
 						m_data->Parser.OpenTemplate();
 				}
 
@@ -1320,7 +1298,7 @@ namespace ed
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
 				UIHelper::GetSaveFileDialog(m_previewSavePath, "png;jpg,jpeg;bmp;tga");
-			
+
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
 			ImGui::Indent(Settings::Instance().CalculateSize(110));
@@ -1401,10 +1379,14 @@ namespace ed
 				ImGui::PopItemWidth();
 
 				/* WASD */
-				ImGui::Text("WASD:"); ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keyw", &m_savePreviewWASD[0]); ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keya", &m_savePreviewWASD[1]); ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keys", &m_savePreviewWASD[2]); ImGui::SameLine();
+				ImGui::Text("WASD:");
+				ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keyw", &m_savePreviewWASD[0]);
+				ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keya", &m_savePreviewWASD[1]);
+				ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_keys", &m_savePreviewWASD[2]);
+				ImGui::SameLine();
 				ImGui::Checkbox("##save_prev_keyd", &m_savePreviewWASD[3]);
 
 				/* MOUSE */
@@ -1414,7 +1396,8 @@ namespace ed
 					SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
 				ImGui::SameLine();
 				bool isLeftDown = m_savePreviewMouse.z >= 1.0f;
-				ImGui::Checkbox("##save_prev_btnleft", &isLeftDown); ImGui::SameLine();
+				ImGui::Checkbox("##save_prev_btnleft", &isLeftDown);
+				ImGui::SameLine();
 				m_savePreviewMouse.z = isLeftDown;
 				bool isRightDown = m_savePreviewMouse.w >= 1.0f;
 				ImGui::Checkbox("##save_prev_btnright", &isRightDown);
@@ -1437,13 +1420,13 @@ namespace ed
 				if (!m_savePreviewSeq) {
 					if (actualSizeX > 0 && actualSizeY > 0) {
 						SystemVariableManager::Instance().CopyState();
-						
+
 						SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
 						SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
 						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
 						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
 						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
-						
+
 						m_data->Renderer.Render(actualSizeX, actualSizeY);
 
 						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
@@ -1451,11 +1434,11 @@ namespace ed
 
 					unsigned char* pixels = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
 					unsigned char* outPixels = nullptr;
-					
+
 					if (sizeMulti != 1)
 						outPixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-					else outPixels = pixels;
-
+					else
+						outPixels = pixels;
 
 					GLuint tex = m_data->Renderer.GetTexture();
 					glBindTexture(GL_TEXTURE_2D, tex);
@@ -1468,7 +1451,7 @@ namespace ed
 							outPixels, m_previewSaveSize.x, m_previewSaveSize.y, m_previewSaveSize.x * 4, 4);
 					}
 
-					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.')+1);
+					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.') + 1);
 
 					if (ext == "jpg" || ext == "jpeg")
 						stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, 100);
@@ -1481,8 +1464,7 @@ namespace ed
 
 					if (sizeMulti != 1) free(outPixels);
 					free(pixels);
-				}
-				else { // sequence render
+				} else { // sequence render
 
 					float seqDelta = 1.0f / m_savePreviewSeqFPS;
 
@@ -1490,15 +1472,15 @@ namespace ed
 						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
 						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
 						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
-						
+
 						float curTime = 0.0f;
-						
+
 						GLuint tex = m_data->Renderer.GetTexture();
-						
+
 						size_t lastDot = m_previewSavePath.find_last_of('.');
-						std::string ext = lastDot == std::string::npos ? "png" : m_previewSavePath.substr(lastDot+1);
+						std::string ext = lastDot == std::string::npos ? "png" : m_previewSavePath.substr(lastDot + 1);
 						std::string filename = m_previewSavePath;
-						
+
 						// allow only one %??d
 						bool inFormat = false;
 						int lastFormatPos = -1;
@@ -1511,12 +1493,9 @@ namespace ed
 							}
 
 							if (inFormat) {
-								if (isdigit(filename[i])) { }
-								else {
-									if (filename[i] != '%' &&
-										((filename[i] == 'd' && formatCount > 0) ||
-											(filename[i] != 'd')))
-									{
+								if (isdigit(filename[i])) {
+								} else {
+									if (filename[i] != '%' && ((filename[i] == 'd' && formatCount > 0) || (filename[i] != 'd'))) {
 										filename.insert(lastFormatPos, 1, '%');
 									}
 
@@ -1530,7 +1509,7 @@ namespace ed
 						// no %d found? add one
 						if (formatCount == 0)
 							filename.insert(lastDot == std::string::npos ? filename.size() : lastDot, "%d"); // frame%d
-					
+
 						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
 						SystemVariableManager::Instance().SetTimeDelta(seqDelta);
 
@@ -1540,7 +1519,7 @@ namespace ed
 						tCount = tCount == 0 ? 2 : tCount;
 
 						unsigned char** pixels = new unsigned char*[tCount];
-						unsigned char** outPixels = new unsigned char* [tCount];
+						unsigned char** outPixels = new unsigned char*[tCount];
 						int* curFrame = new int[tCount];
 						bool* needsUpdate = new bool[tCount];
 						std::thread** threadPool = new std::thread*[tCount];
@@ -1550,9 +1529,11 @@ namespace ed
 							curFrame[i] = 0;
 							needsUpdate[i] = true;
 							pixels[i] = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
-							
-							if (sizeMulti != 1) outPixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-							else outPixels[i] = nullptr;
+
+							if (sizeMulti != 1)
+								outPixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+							else
+								outPixels[i] = nullptr;
 
 							threadPool[i] = new std::thread([ext, filename, sizeMulti, actualSizeX, actualSizeY, &outPixels, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
 								char prevSavePath[MAX_PATH];
@@ -1564,10 +1545,11 @@ namespace ed
 									if (sizeMulti != 1) {
 										stbir_resize_uint8(pixels[worker], actualSizeX, actualSizeY, actualSizeX * 4,
 											outPixels[worker], w, h, w * 4, 4);
-									} else outPixels[worker] = pixels[worker];
+									} else
+										outPixels[worker] = pixels[worker];
 
 									sprintf(prevSavePath, filename.c_str(), curFrame[worker]);
-									
+
 									if (ext == "jpg" || ext == "jpeg")
 										stbi_write_jpg(prevSavePath, w, h, 4, outPixels[worker], 100);
 									else if (ext == "bmp")
@@ -1576,16 +1558,17 @@ namespace ed
 										stbi_write_tga(prevSavePath, w, h, 4, outPixels[worker]);
 									else
 										stbi_write_png(prevSavePath, w, h, 4, outPixels[worker], w * 4);
-								
+
 									needsUpdate[worker] = true;
 								}
-							}, i, m_previewSaveSize.x, m_previewSaveSize.y);
+							},
+								i, m_previewSaveSize.x, m_previewSaveSize.y);
 						}
 
 						int globalFrame = 0;
 						while (curTime < m_savePreviewSeqDuration) {
 							int hasWork = -1;
-							for (int i = 0; i < tCount; i++) 
+							for (int i = 0; i < tCount; i++)
 								if (needsUpdate[i]) {
 									hasWork = i;
 									break;
@@ -1596,7 +1579,7 @@ namespace ed
 
 							SystemVariableManager::Instance().CopyState();
 							SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex + globalFrame);
-							
+
 							m_data->Renderer.Render(actualSizeX, actualSizeY);
 
 							glBindTexture(GL_TEXTURE_2D, tex);
@@ -1611,7 +1594,7 @@ namespace ed
 							globalFrame++;
 						}
 						isOver = true;
-						
+
 						for (int i = 0; i < tCount; i++) {
 							if (threadPool[i]->joinable())
 								threadPool[i]->join();
@@ -1684,13 +1667,14 @@ namespace ed
 			ImGui::Text("Backend: ");
 			ImGui::SameLine();
 			ImGui::BeginGroup();
-				ImGui::RadioButton("OpenGL", &m_expcppBackend, 0); ImGui::SameLine();
-				
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::RadioButton("DirectX", &m_expcppBackend, 1);
-				ImGui::PopItemFlag();
+			ImGui::RadioButton("OpenGL", &m_expcppBackend, 0);
+			ImGui::SameLine();
+
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::RadioButton("DirectX", &m_expcppBackend, 1);
+			ImGui::PopItemFlag();
 			ImGui::EndGroup();
-			
+
 			if (m_expcppError) ImGui::Text("An error occured. Possible cause: some files are missing.");
 
 			// export || cancel
@@ -1712,13 +1696,12 @@ namespace ed
 			ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, io.DisplaySize.y - DISTANCE);
 			ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f);
 			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-			ImGui::SetNextWindowBgAlpha(1.0f-glm::clamp(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
+			ImGui::SetNextWindowBgAlpha(1.0f - glm::clamp(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
 			ImVec4 textClr = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			ImVec4 windowClr = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, textClr);
 			ImGui::PushStyleColor(ImGuiCol_Text, windowClr);
-			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
-			{
+			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
 				if (ImGui::IsWindowHovered())
 					m_updateNotifyClock.restart();
 
@@ -1758,10 +1741,10 @@ namespace ed
 			"Project"
 		};
 
-		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y*2) / ImGui::GetTextLineHeightWithSpacing() - 1;
-		
+		float height = abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - ImGui::GetStyle().WindowPadding.y * 2) / ImGui::GetTextLineHeightWithSpacing() - 1;
+
 		ImGui::Columns(2);
-		
+
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
@@ -1824,7 +1807,7 @@ namespace ed
 	}
 	void GUIManager::Render()
 	{
-		ImDrawData *drawData = ImGui::GetDrawData();
+		ImDrawData* drawData = ImGui::GetDrawData();
 		if (drawData != NULL) {
 			// actually render to back buffer
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -1837,7 +1820,7 @@ namespace ed
 		}
 	}
 
-	UIView * GUIManager::Get(ViewID view)
+	UIView* GUIManager::Get(ViewID view)
 	{
 		if (view == ViewID::Options)
 			return m_options;
@@ -1895,7 +1878,7 @@ namespace ed
 	{
 		if (m_data->Parser.GetOpenedFile() == "")
 			return SaveAsProject(true);
-		
+
 		m_data->Parser.Save();
 
 		((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
@@ -1965,26 +1948,30 @@ namespace ed
 		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
 		if (m_data->Renderer.IsPaused())
 			m_data->Renderer.Render(curSize.x, curSize.y);
-		
+
 		SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
 	}
 
-	void GUIManager::CreateNewShaderPass() {
+	void GUIManager::CreateNewShaderPass()
+	{
 		m_createUI->SetType(PipelineItem::ItemType::ShaderPass);
 		m_isCreateItemPopupOpened = true;
 	}
-	void GUIManager::CreateNewComputePass() {
+	void GUIManager::CreateNewComputePass()
+	{
 		m_createUI->SetType(PipelineItem::ItemType::ComputePass);
 		m_isCreateItemPopupOpened = true;
 	}
-	void GUIManager::CreateNewAudioPass() {
+	void GUIManager::CreateNewAudioPass()
+	{
 		m_createUI->SetType(PipelineItem::ItemType::AudioPass);
 		m_isCreateItemPopupOpened = true;
 	}
-	void GUIManager::CreateNewTexture() {
+	void GUIManager::CreateNewTexture()
+	{
 		std::string path;
 		bool success = UIHelper::GetOpenFileDialog(path, "png;jpg;jpeg;bmp");
-		
+
 		if (!success)
 			return;
 
@@ -1992,10 +1979,11 @@ namespace ed
 		if (!file.empty())
 			m_data->Objects.CreateTexture(file);
 	}
-	void GUIManager::CreateNewAudio() {
+	void GUIManager::CreateNewAudio()
+	{
 		std::string path;
 		bool success = UIHelper::GetOpenFileDialog(path, "wav;flac;ogg;midi");
-		
+
 		if (!success)
 			return;
 
@@ -2108,15 +2096,15 @@ namespace ed
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideProperties", [=]() {
 			Get(ViewID::Properties)->Visible = !Get(ViewID::Properties)->Visible;
-			});
+		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
-			#if defined(__APPLE__)
-				system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
-			#elif defined(__linux__) || defined(__unix__)
+#if defined(__APPLE__)
+			system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
 				system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
-			#elif defined(_WIN32)
+#elif defined(_WIN32)
 				ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
-			#endif
+#endif
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Options", [=]() {
 			m_optionsOpened = true;
@@ -2170,7 +2158,7 @@ namespace ed
 		m_selectedTemplate = "";
 
 		Logger::Get().Log("Loading template list");
-		
+
 		if (std::filesystem::exists("./templates/")) {
 			for (const auto& entry : std::filesystem::directory_iterator("./templates/")) {
 				std::string file = entry.path().filename().string();

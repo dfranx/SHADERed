@@ -1,10 +1,10 @@
 #include "ObjectListUI.h"
+#include "../Engine/GLUtils.h"
+#include "../Engine/GeometryFactory.h"
+#include "../Objects/Logger.h"
+#include "../Objects/Settings.h"
 #include "ObjectPreviewUI.h"
 #include "PropertyUI.h"
-#include "../Objects/Settings.h"
-#include "../Objects/Logger.h"
-#include "../Engine/GeometryFactory.h"
-#include "../Engine/GLUtils.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/glm.hpp>
@@ -12,10 +12,8 @@
 
 #define IMAGE_CONTEXT_WIDTH Settings::Instance().CalculateSize(150)
 
-
-namespace ed
-{
-	void ObjectListUI::OnEvent(const SDL_Event & e)
+namespace ed {
+	void ObjectListUI::OnEvent(const SDL_Event& e)
 	{
 	}
 	void ObjectListUI::Update(float delta)
@@ -40,29 +38,24 @@ namespace ed
 				tex = m_data->Objects.GetImage3D(items[i])->Texture;
 
 			float imgWH = 0.0f;
-			glm::vec2 imgSize(0,0);
+			glm::vec2 imgSize(0, 0);
 			if (m_data->Objects.IsRenderTexture(items[i])) {
 				glm::ivec2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
 				imgWH = (float)rtSize.y / rtSize.x;
 				imgSize = glm::vec2(rtSize.x, rtSize.y);
-			}
-			else if (m_data->Objects.IsAudio(items[i])) {
+			} else if (m_data->Objects.IsAudio(items[i])) {
 				imgWH = 2.0f / 512.0f;
 				imgSize = glm::vec2(512, 2);
-			}
-			else if (m_data->Objects.IsCubeMap(items[i])) {
+			} else if (m_data->Objects.IsCubeMap(items[i])) {
 				imgWH = 375.0f / 512.0f;
 				imgSize = glm::vec2(512, 375);
-			}
-			else if (m_data->Objects.IsImage(items[i])) {
+			} else if (m_data->Objects.IsImage(items[i])) {
 				imgSize = m_data->Objects.GetImageSize(items[i]);
 				imgWH = imgSize.y / imgSize.x;
-			}
-			else if (m_data->Objects.IsImage3D(items[i])) {
+			} else if (m_data->Objects.IsImage3D(items[i])) {
 				imgSize = m_data->Objects.GetImage3DSize(items[i]);
 				imgWH = imgSize.y / imgSize.x;
-			}
-			else if (!isPluginOwner) {
+			} else if (!isPluginOwner) {
 				auto img = m_data->Objects.GetTextureSize(items[i]);
 				imgWH = (float)img.y / img.x;
 				imgSize = glm::vec2(img);
@@ -85,20 +78,15 @@ namespace ed
 				bool isImg3D = m_data->Objects.IsImage3D(items[i]);
 				bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
 				if ((hasPluginExtendedPreview || !isPluginOwner) && !isImg3D && (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview"))) {
-					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex,
-							m_data->Objects.IsCubeMap(items[i]),
-							m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr,
-							m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr,
-							isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr,
-							isPluginOwner ? pobj : nullptr);
+					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex, m_data->Objects.IsCubeMap(items[i]), m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr, m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr, isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr, isPluginOwner ? pobj : nullptr);
 				}
 
 				bool hasPluginPreview = isPluginOwner && pobj->Owner->HasObjectPreview(pobj->Type);
 				if (m_data->Objects.IsCubeMap(items[i])) {
 					m_cubePrev.Draw(tex);
-					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
+					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				} else if (!isBuf && !isImg3D && !isPluginOwner)
-					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH)* IMAGE_CONTEXT_WIDTH), ImVec2(0,1), ImVec2(1,0));
+					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				else if (hasPluginPreview)
 					pobj->Owner->ShowObjectPreview(pobj->Type, pobj->Data, pobj->ID);
 
@@ -162,13 +150,9 @@ namespace ed
 					ImGui::Separator();
 				}
 
-				if (m_data->Objects.IsRenderTexture(items[i]) ||
-					m_data->Objects.IsImage(items[i]) ||
-					isImg3D ||
-					(isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type)))
-				{
+				if (m_data->Objects.IsRenderTexture(items[i]) || m_data->Objects.IsImage(items[i]) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
-						((ed::PropertyUI *)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
+						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
 				}
 
 				if (m_data->Objects.IsAudio(items[i])) {
@@ -206,8 +190,7 @@ namespace ed
 									else if (k != 0) {
 										for (int l = j; l < MAX_RENDER_TEXTURES; l++)
 											sData->RenderTextures[l] = 0;
-									}
-									else {
+									} else {
 										for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
 											sData->RenderTextures[l] = 0;
 										sData->RenderTextures[0] = m_data->Renderer.GetTexture();
@@ -232,8 +215,7 @@ namespace ed
 									if (gitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i]))
 										gl::CreateVAO(gitem->VAO, gitem->VBO, pdata->InputLayout);
 									gitem->InstanceBuffer = nullptr;
-								}
-								else if (pitem->Type == ed::PipelineItem::ItemType::Model) {
+								} else if (pitem->Type == ed::PipelineItem::ItemType::Model) {
 									pipe::Model* mitem = (pipe::Model*)pitem->Data;
 
 									if (mitem->InstanceBuffer == m_data->Objects.GetBuffer(items[i])) {
@@ -247,7 +229,7 @@ namespace ed
 					}
 
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Close(items[i]);
-					
+
 					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 					if (props->CurrentItemName() == itemText)
 						props->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties

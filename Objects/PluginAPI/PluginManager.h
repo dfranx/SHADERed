@@ -1,23 +1,21 @@
 #pragma once
-#include <SDL2/SDL.h>
-#include "Plugin.h"
-#include "../ShaderVariable.h"
 #include "../InputLayout.h"
-#include <vector>
+#include "../ShaderVariable.h"
+#include "Plugin.h"
+#include <SDL2/SDL.h>
 #include <string>
+#include <vector>
 
 #define CURRENT_PLUGINAPI_VERSION 1
 
-namespace ed
-{
+namespace ed {
 	class InterfaceManager;
 	class GUIManager;
 
-	class PluginManager
-	{
+	class PluginManager {
 	public:
 		void Init(InterfaceManager* data, GUIManager* ui); // load all the plugins here
-		void Destroy(); // destroy all the plugins
+		void Destroy();									   // destroy all the plugins
 		void Update(float delta);
 
 		void BeginRender();

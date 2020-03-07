@@ -6,9 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-
-namespace ed
-{
+namespace ed {
 	Settings::Settings()
 	{
 		Theme = "Dark";
@@ -41,7 +39,7 @@ namespace ed
 		Editor.HiglightCurrentLine = true;
 		Editor.LineNumbers = true;
 		Editor.HorizontalScroll = true;
-		Editor.StatusBar =false;
+		Editor.StatusBar = false;
 		Editor.AutoBraceCompletion = true;
 		Editor.SmartIndent = true;
 		Editor.InsertSpaces = false;
@@ -114,7 +112,7 @@ namespace ed
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
-		
+
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 
 		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
@@ -135,9 +133,8 @@ namespace ed
 		Preview.MSAA = ini.GetInteger("preview", "msaa", 1);
 
 		m_parseExt(ini.Get("plugins", "notloaded", ""), Plugins.NotLoaded);
-		
-		if (Preview.MSAA != 1 && Preview.MSAA != 2 && Preview.MSAA != 4 &&
-			Preview.MSAA != 8 && Preview.MSAA != 16 && Preview.MSAA != 32)
+
+		if (Preview.MSAA != 1 && Preview.MSAA != 2 && Preview.MSAA != 4 && Preview.MSAA != 8 && Preview.MSAA != 16 && Preview.MSAA != 32)
 			Preview.MSAA = 1;
 
 		if (Preview.ApplyFPSLimitToApp)
@@ -146,7 +143,7 @@ namespace ed
 	void Settings::Save()
 	{
 		Logger::Get().Log("Saving settings");
-		
+
 		std::ofstream ini("data/settings.ini");
 
 		ini << "[general]" << std::endl;
@@ -171,7 +168,7 @@ namespace ed
 		ini << "fontsize=" << General.FontSize << std::endl;
 		ini << "autoscale=" << General.AutoScale << std::endl;
 		ini << "uiscale=" << DPIScale << std::endl;
-		
+
 		ini << "hlslext=";
 		for (int i = 0; i < General.HLSLExtensions.size(); i++) {
 			ini << General.HLSLExtensions[i];
@@ -231,8 +228,6 @@ namespace ed
 				ini << " ";
 		}
 		ini << std::endl;
-
-
 	}
 
 	void Settings::m_parseExt(const std::string& str, std::vector<std::string>& extcontainer)
@@ -240,8 +235,7 @@ namespace ed
 		std::stringstream ss(str);
 		std::string token;
 
-		while (ss >> token)
-		{
+		while (ss >> token) {
 			if (token.size() < 1)
 				break;
 

@@ -2,10 +2,8 @@
 #include <sstream>
 #include <string>
 
-namespace ed
-{
-	namespace gl
-	{
+namespace ed {
+	namespace gl {
 		GLuint CreateSimpleFramebuffer(GLint width, GLint height, GLuint& texColor, GLuint& texDepth, GLuint fmt)
 		{
 			// create a texture for color information
@@ -65,7 +63,7 @@ namespace ed
 		{
 			GLint ret = 0;
 			glGetShaderiv(shader, GL_COMPILE_STATUS, &ret);
-			if(!ret)
+			if (!ret)
 				glGetShaderInfoLog(shader, 1024, NULL, msg);
 			return (bool)ret;
 		}
@@ -78,7 +76,7 @@ namespace ed
 			return (bool)ret;
 		}
 
-		void CreateVAO(GLuint &geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem> &ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
+		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{
 			int fmtIndex = 0;
 
@@ -94,7 +92,7 @@ namespace ed
 
 			for (const auto& layitem : ilayout) {
 				// vertex positions
-				glVertexAttribPointer(fmtIndex, InputLayoutItem::GetValueSize(layitem.Value), GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void *)(InputLayoutItem::GetValueOffset(layitem.Value) * sizeof(GLfloat)));
+				glVertexAttribPointer(fmtIndex, InputLayoutItem::GetValueSize(layitem.Value), GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void*)(InputLayoutItem::GetValueOffset(layitem.Value) * sizeof(GLfloat)));
 				glEnableVertexAttribArray(fmtIndex);
 				fmtIndex++;
 			}
@@ -111,6 +109,7 @@ namespace ed
 					GLint colCount = 0;
 					GLenum type = GL_FLOAT;
 
+					// clang-format off
 					switch (fmt) {
 						case ShaderVariable::ValueType::Boolean1: colCount = 1; type = GL_BYTE; break;
 						case ShaderVariable::ValueType::Boolean2: colCount = 2; type = GL_BYTE; break;
@@ -128,11 +127,12 @@ namespace ed
 						case ShaderVariable::ValueType::Float3x3: colCount = 3; type = GL_FLOAT; break;
 						case ShaderVariable::ValueType::Float4x4: colCount = 4; type = GL_FLOAT; break;
 					}
+					// clang-format on
 
 					glVertexAttribPointer(fmtIndex, colCount, type, GL_FALSE, sizeInBytes, (void*)fmtOffset);
 					glEnableVertexAttribArray(fmtIndex);
 					glVertexAttribDivisor(fmtIndex, 1);
-					
+
 					fmtOffset += ShaderVariable::GetSize(fmt);
 					fmtIndex++;
 				}
@@ -144,15 +144,15 @@ namespace ed
 		std::vector<InputLayoutItem> CreateDefaultInputLayout()
 		{
 			std::vector<InputLayoutItem> ret;
-			ret.push_back({InputLayoutValue::Position, "POSITION"});
-			ret.push_back({InputLayoutValue::Normal, "NORMAL"});
-			ret.push_back({InputLayoutValue::Texcoord, "TEXCOORD0"});
+			ret.push_back({ InputLayoutValue::Position, "POSITION" });
+			ret.push_back({ InputLayoutValue::Normal, "NORMAL" });
+			ret.push_back({ InputLayoutValue::Texcoord, "TEXCOORD0" });
 			return ret;
 		}
 
-		std::vector< MessageStack::Message > ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias)
+		std::vector<MessageStack::Message> ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias)
 		{
-			std::vector< MessageStack::Message > ret;
+			std::vector<MessageStack::Message> ret;
 
 			std::istringstream f(str);
 			std::string line;
@@ -160,7 +160,7 @@ namespace ed
 				if (line.find("error") != std::string::npos) {
 					size_t firstPar = line.find_first_of('(');
 					size_t lastPar = line.find_first_of(')', firstPar);
-					int lineNr = std::stoi(line.substr(firstPar+1, lastPar - (firstPar + 1))) - lineBias;
+					int lineNr = std::stoi(line.substr(firstPar + 1, lastPar - (firstPar + 1))) - lineBias;
 					std::string msg = line.substr(line.find_first_of(':') + 2);
 					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
 				}
@@ -170,15 +170,15 @@ namespace ed
 		}
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str)
 		{
-			std::vector< MessageStack::Message > ret;
+			std::vector<MessageStack::Message> ret;
 
 			std::istringstream f(str);
 			std::string line;
 			while (std::getline(f, line)) {
 				if (line.find("ERROR:") != std::string::npos) {
 					size_t firstD = line.find_first_of(':');
-					size_t secondD = line.find_first_of(':', firstD+1);
-					size_t thirdD = line.find_first_of(':', secondD+1);
+					size_t secondD = line.find_first_of(':', firstD + 1);
+					size_t thirdD = line.find_first_of(':', secondD + 1);
 
 					if (firstD == std::string::npos || secondD == std::string::npos || thirdD == std::string::npos)
 						continue;

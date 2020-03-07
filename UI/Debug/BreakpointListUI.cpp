@@ -2,10 +2,10 @@
 #include <imgui/imgui.h>
 #include <filesystem>
 
-namespace ed
-{
+namespace ed {
 	void DebugBreakpointListUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void DebugBreakpointListUI::Update(float delta)
 	{
 		const auto& bkpts = m_data->Debugger.GetBreakpointList();
@@ -13,7 +13,7 @@ namespace ed
 		bool isEnabled = false;
 
 		ImGui::Columns(4);
-		
+
 		ImGui::Text("File");
 		ImGui::NextColumn();
 		ImGui::Text("Enabled");

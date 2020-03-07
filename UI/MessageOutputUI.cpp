@@ -1,13 +1,13 @@
 #include "MessageOutputUI.h"
-#include "../Objects/ThemeContainer.h"
 #include "../Objects/Settings.h"
+#include "../Objects/ThemeContainer.h"
 #include "../Options.h"
 #include <imgui/imgui.h>
 
-namespace ed
-{
+namespace ed {
 	void MessageOutputUI::OnEvent(const SDL_Event& e)
-	{}
+	{
+	}
 	void MessageOutputUI::Update(float delta)
 	{
 		const std::vector<MessageStack::Message>& msgs = m_data->Messages.GetMessages();
@@ -18,10 +18,14 @@ namespace ed
 		ImGui::SetColumnWidth(1, 60.0f);
 		ImGui::SetColumnWidth(2, 60.0f);
 
-		ImGui::Text("Shader Pass"); ImGui::NextColumn();
-		ImGui::Text("Source"); ImGui::NextColumn();
-		ImGui::Text("Line"); ImGui::NextColumn();
-		ImGui::Text("Message"); ImGui::NextColumn();
+		ImGui::Text("Shader Pass");
+		ImGui::NextColumn();
+		ImGui::Text("Source");
+		ImGui::NextColumn();
+		ImGui::Text("Line");
+		ImGui::NextColumn();
+		ImGui::Text("Message");
+		ImGui::NextColumn();
 		ImGui::Separator();
 
 		ed::CustomColors clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
@@ -48,7 +52,7 @@ namespace ed
 
 			ImGui::TextColored(color, m->Text.c_str());
 
-			if (i != msgs.size()-1)
+			if (i != msgs.size() - 1)
 				ImGui::NextColumn();
 		}
 		ImGui::Columns(1);
