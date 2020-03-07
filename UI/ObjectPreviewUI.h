@@ -15,7 +15,7 @@ namespace ed {
 			m_curHoveredItem = -1;
 			m_lastZoomSize = glm::vec2(0, 0);
 		}
-		~ObjectPreviewUI() { }
+		~ObjectPreviewUI() {}
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);

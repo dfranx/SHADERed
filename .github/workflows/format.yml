@@ -8,5 +8,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Run clang-format
-      run: clang-format-11 -i -style=file -Werror --dry-run UI/*.* UI/Debug/*.* UI/Tools/*.* Objects/*.* Objects/Debug/*.* Objects/Export/*.* Objects/PluginAPI/*.* main.cpp EditorEngine.* GUIManager.* InterfaceManager.* Options.h
+    - uses: DoozyX/clang-format-lint-action@v0.5
+      with:
+        source: '.'
+        exclude: './bin'
+        exclude: './libs'
+        extensions: 'h,cpp'
+        clangFormatVersion: 8

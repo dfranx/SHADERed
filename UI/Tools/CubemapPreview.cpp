@@ -65,7 +65,7 @@ void main()
 )";
 
 namespace ed {
-	CubemapPreview::CubemapPreview() { }
+	CubemapPreview::CubemapPreview() {}
 	CubemapPreview::~CubemapPreview()
 	{
 		glDeleteBuffers(1, &m_fsVBO);

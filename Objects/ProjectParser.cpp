@@ -113,7 +113,7 @@ namespace ed {
 					NULL						/* .colorScheme */
 				};
 				int buttonid;
-				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
 				if (buttonid == 0) {
 					// TODO: redirect to .../plugin?name=pname
@@ -139,9 +139,9 @@ namespace ed {
 					NULL						/* .colorScheme */
 				};
 				int buttonid;
-				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
-				if (buttonid == 0) { }
+				if (buttonid == 0) {}
 
 				pluginTest = false;
 			} else {
@@ -165,7 +165,7 @@ namespace ed {
 						NULL						/* .colorScheme */
 					};
 					int buttonid;
-					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
 					if (buttonid == 0) {
 						// TODO: redirect to .../plugin?name=pname

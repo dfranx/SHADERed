@@ -21,22 +21,22 @@ namespace ed {
 		Time,			   // float - time elapsed since start
 		TimeDelta,		   // float - render time
 		FrameIndex,		   // uint	 - current frame index
-		ViewportSize,	   // vec2 - rendering window size
-		MousePosition,	   // vec2 - mouse position relative to (0,0) in the rendering window
+		ViewportSize,	  // vec2 - rendering window size
+		MousePosition,	 // vec2 - mouse position relative to (0,0) in the rendering window
 		View,			   // mat4 - a built-in camera matrix
 		Projection,		   // mat4 - a built-in projection matrix
-		ViewProjection,	   // mat4 - View*Projection matrix
-		Orthographic,	   // mat4 - an orthographic matrix
+		ViewProjection,	// mat4 - View*Projection matrix
+		Orthographic,	  // mat4 - an orthographic matrix
 		ViewOrthographic,  // mat4 - View*Orthographic
 		GeometryTransform, // mat4 - apply Scale, Rotation and Position to geometry
 		IsPicked,		   // bool - check if current item is selected
-		CameraPosition,	   // vec4 - current camera position
+		CameraPosition,	// vec4 - current camera position
 		CameraPosition3,   // vec3 - current camera position
 		CameraDirection3,  // vec3 - camera view direction
 		KeysWASD,		   // vec4 - are W, A, S or D keys pressed
 		Mouse,			   // vec4 - (x,y,left,right) updated every frame
 		MouseButton,	   // vec4 - (x,y,left,right) updated only when mouse button pressed
-		PluginVariable,	   // a value that is updated by some plugin
+		PluginVariable,	// a value that is updated by some plugin
 		Count
 	};
 
