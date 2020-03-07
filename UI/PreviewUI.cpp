@@ -15,15 +15,16 @@
 #include <thread>
 #include <imgui/imgui_internal.h>
 
-#define STATUSBAR_HEIGHT 30 * Settings::Instance().DPIScale
-#define BUTTON_SIZE 20 * Settings::Instance().DPIScale
-#define ICON_BUTTON_WIDTH 25 * Settings::Instance().DPIScale
-#define BUTTON_INDENT 5 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(32) + ImGui::GetStyle().FramePadding.y
+#define BUTTON_SIZE Settings::Instance().CalculateSize(20)
+#define ICON_BUTTON_WIDTH Settings::Instance().CalculateSize(25)
+#define BUTTON_INDENT Settings::Instance().CalculateSize(5)
 #define FPS_UPDATE_RATE 0.3f
 #define BOUNDING_BOX_PADDING 0.01f
 #define MAX_PICKED_ITEM_LIST_SIZE 4
 
 
+/* bounding box shaders */
 const char* BOX_VS_CODE = R"(
 #version 330
 
@@ -35,7 +36,6 @@ void main() {
 	gl_Position = uMatWVP * vec4(iPos, 1.0f);
 }
 )";
-
 const char* BOX_PS_CODE = R"(
 #version 330
 
@@ -263,7 +263,7 @@ namespace ed
 			m_fpsLimit = fpsLimit;
 		}
 
-		ImVec2 imageSize = m_imgSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - STATUSBAR_HEIGHT * statusbar));
+		ImVec2 imageSize = m_imgSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y - (STATUSBAR_HEIGHT - ImGui::GetStyle().FramePadding.y) * statusbar));
 		ed::RenderEngine* renderer = &m_data->Renderer;
 		
 		if (m_zoomLastSize.x != (int)imageSize.x || m_zoomLastSize.y != (int)imageSize.y) {
@@ -758,15 +758,15 @@ namespace ed
 		ImGui::Text("FPS: %.2f", FPS);
 		ImGui::SameLine();
 
-		ImGui::SameLine(120 * Settings::Instance().DPIScale);
+		ImGui::SameLine(Settings::Instance().CalculateSize(120));
 		ImGui::Text("Time: %.2f", SystemVariableManager::Instance().GetTime());
 		ImGui::SameLine();
 
-		ImGui::SameLine(240 * Settings::Instance().DPIScale);
+		ImGui::SameLine(Settings::Instance().CalculateSize(240));
 		ImGui::Text("Zoom: %d%%", (int)((1.0f/m_zoom.GetZoomSize().x)*100.0f));
 		ImGui::SameLine();
 
-		ImGui::SameLine(340 * Settings::Instance().DPIScale);
+		ImGui::SameLine(Settings::Instance().CalculateSize(340));
 		if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
 			m_pickMode = 0;
@@ -792,7 +792,7 @@ namespace ed
 		ImGui::SameLine();
 
 		if (m_picks.size() != 0) {
-			ImGui::SameLine(0, 20*Settings::Instance().DPIScale);
+			ImGui::SameLine(0, Settings::Instance().CalculateSize(20));
 			ImGui::Text("Picked: ");
 			
 			for (int i = 0; i < m_picks.size(); i++) {

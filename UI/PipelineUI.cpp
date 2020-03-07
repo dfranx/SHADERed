@@ -18,9 +18,9 @@
 #include <algorithm>
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
-#define PIPELINE_SHADER_PASS_INDENT 95 * Settings::Instance().DPIScale
-#define PIPELINE_ITEM_INDENT 105 * Settings::Instance().DPIScale
-#define BUTTON_ICON_SIZE ImVec2(20 * Settings::Instance().DPIScale, 0)
+#define PIPELINE_SHADER_PASS_INDENT Settings::Instance().CalculateSize(95)
+#define PIPELINE_ITEM_INDENT Settings::Instance().CalculateSize(105)
+#define BUTTON_ICON_SIZE ImVec2(Settings::Instance().CalculateSize(22.5f), 0)
 
 namespace ed
 {
@@ -151,7 +151,7 @@ namespace ed
 		}
 
 		// Shader Variable manager
-		ImGui::SetNextWindowSize(ImVec2(730 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(730), Settings::Instance().CalculateSize(225)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Variable Manager##pui_shader_variables")) {
 			m_renderVariableManagerUI();
 
@@ -160,7 +160,7 @@ namespace ed
 		}
 
 		// Shader Macro Manager
-		ImGui::SetNextWindowSize(ImVec2(530 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(530), Settings::Instance().CalculateSize(175)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Shader Macros##pui_shader_macros")) {
 			m_renderMacroManagerUI();
 
@@ -169,7 +169,7 @@ namespace ed
 		}
 
 		// Input Layout Manager
-		ImGui::SetNextWindowSize(ImVec2(630 * Settings::Instance().DPIScale, 225 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(630), Settings::Instance().CalculateSize(225)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Input layout##pui_input_layout")) {
 			m_renderInputLayoutManagerUI();
 
@@ -211,7 +211,7 @@ namespace ed
 		}
 
 		// Create Item
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(175)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Create Item##pui_create_item")) {
 			m_createUI.Update(delta);
 
@@ -225,7 +225,7 @@ namespace ed
 		}
 
 		// variables to change when rendering specific item
-		ImGui::SetNextWindowSize(ImVec2(400 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(400), Settings::Instance().CalculateSize(175)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Change Variables##pui_render_variables")) {
 			m_renderChangeVariablesUI();
 
@@ -234,7 +234,7 @@ namespace ed
 		}
 
 		// resource manager
-		ImGui::SetNextWindowSize(ImVec2(600 * Settings::Instance().DPIScale, 240 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(600), Settings::Instance().CalculateSize(240)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Resource manager##pui_res_manager")) {
 			m_renderResourceManagerUI();
 
@@ -243,7 +243,7 @@ namespace ed
 		}
 
 		// confirm delete
-		ImGui::SetNextWindowSize(ImVec2(400 * Settings::Instance().DPIScale, 120 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(400), Settings::Instance().CalculateSize(120)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Delete##pui_item_delete", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::Text("Are you sure that you want to delete item \"%s\"?", m_modalItem->Name);
 
@@ -561,7 +561,7 @@ namespace ed
 
 		ImGui::TextWrapped("Add or remove vertex shader inputs.");
 
-		ImGui::BeginChild("##pui_layout_table", ImVec2(0, -25));
+		ImGui::BeginChild("##pui_layout_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(4);
 
 		ImGui::Text("Controls"); ImGui::NextColumn();
@@ -573,8 +573,8 @@ namespace ed
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
-			ImGui::SetColumnWidth(0, 80 * Settings::Instance().DPIScale);
-			ImGui::SetColumnWidth(1, 60 * Settings::Instance().DPIScale);
+			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(80));
+			ImGui::SetColumnWidth(1, Settings::Instance().CalculateSize(60));
 			isColumnWidthSet = true;
 		}
 
@@ -697,14 +697,14 @@ namespace ed
 
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 
-		ImGui::BeginChild("##pui_variable_table", ImVec2(0, -25));
+		ImGui::BeginChild("##pui_variable_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(5);
 
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
-			ImGui::SetColumnWidth(0, (6*20) * Settings::Instance().DPIScale);
-			ImGui::SetColumnWidth(3, 180 * Settings::Instance().DPIScale);
+			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(6*20));
+			ImGui::SetColumnWidth(3, Settings::Instance().CalculateSize(180));
 			isColumnWidthSet = true;
 		}
 
@@ -984,7 +984,7 @@ namespace ed
 		
 		ImGui::TextWrapped("Add variables that you want to change when rendering this item");
 
-		ImGui::BeginChild("##pui_cvar_table", ImVec2(0, -25));
+		ImGui::BeginChild("##pui_cvar_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(2);
 
 		ImGui::Text("Name"); ImGui::NextColumn();
@@ -1105,7 +1105,7 @@ namespace ed
 		
 		ObjectManager* objs = &m_data->Objects;
 
-		ImGui::BeginChild("##pui_res_ubo_table", ImVec2(0, -25));
+		ImGui::BeginChild("##pui_res_ubo_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 
 		// SRVs
 		{
@@ -1116,9 +1116,9 @@ namespace ed
 			// TODO: remove this after imgui fixes the table/column system
 			static bool isColumnWidthSet = false;
 			if (!isColumnWidthSet) {
-				ImGui::SetColumnWidth(0, 80);
-				ImGui::SetColumnWidth(1, 60);
-				ImGui::SetColumnWidth(2, 80);
+				ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(100));
+				ImGui::SetColumnWidth(1, Settings::Instance().CalculateSize(60));
+				ImGui::SetColumnWidth(2, Settings::Instance().CalculateSize(80));
 
 				isColumnWidthSet = true;
 			}
@@ -1193,9 +1193,9 @@ namespace ed
 			// TODO: remove this after imgui fixes the table/column system
 			static bool isColumnWidthSet = false;
 			if (!isColumnWidthSet) {
-				ImGui::SetColumnWidth(0, 80);
-				ImGui::SetColumnWidth(1, 60);
-				ImGui::SetColumnWidth(2, 80);
+				ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(100));
+				ImGui::SetColumnWidth(1, Settings::Instance().CalculateSize(60));
+				ImGui::SetColumnWidth(2, Settings::Instance().CalculateSize(80));
 
 				isColumnWidthSet = true;
 			}
@@ -1268,7 +1268,7 @@ namespace ed
 
 		ImGui::TextWrapped("Add or remove shader macros.");
 
-		ImGui::BeginChild("##pui_macro_table", ImVec2(0, -25));
+		ImGui::BeginChild("##pui_macro_table", ImVec2(0, Settings::Instance().CalculateSize(-25)));
 		ImGui::Columns(4);
 
 		ImGui::Text("Controls"); ImGui::NextColumn();

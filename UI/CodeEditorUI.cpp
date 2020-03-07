@@ -29,7 +29,7 @@
 
 
 
-#define STATUSBAR_HEIGHT 20 * Settings::Instance().DPIScale
+#define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(20)
 
 namespace ed
 {
@@ -230,6 +230,10 @@ namespace ed
 						// render code
 						ImGui::PushFont(m_font);
 						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar*STATUSBAR_HEIGHT));
+						if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
+							Settings::Instance().Editor.FontSize = Settings::Instance().Editor.FontSize + ImGui::GetIO().MouseWheel;
+							this->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
+						}
 						ImGui::PopFont();
 
 						

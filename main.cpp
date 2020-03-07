@@ -2,21 +2,21 @@
 #include <windows.h>
 #endif
 
-#include <SDL2/SDL.h>
-#include <glslang/Public/ShaderLang.h>
-#include "Objects/AudioShaderStream.h"
-#include "Objects/Settings.h"
-#include "Objects/Logger.h"
 #include "EditorEngine.h"
 #include "Engine/GeometryFactory.h"
+#include "Objects/AudioShaderStream.h"
+#include "Objects/Logger.h"
+#include "Objects/Settings.h"
+#include <SDL2/SDL.h>
+#include <glslang/Public/ShaderLang.h>
 
-#include <thread>
 #include <chrono>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <thread>
 
-#include <stb/stb_image_write.h>
 #include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 
 #if defined(__linux__) || defined(__unix__)
 #include <libgen.h>
@@ -30,47 +30,8 @@
 // SDL defines main
 #undef main
 
-void setIcon(SDL_Window* wnd)
-{
-	stbi_set_flip_vertically_on_load(0);
-
-	int req_format = STBI_rgb_alpha;
-	int width, height, orig_format;
-	unsigned char* data = stbi_load("./icon_256x256.png", &width, &height, &orig_format, req_format);
-	if (data == NULL) {
-		ed::Logger::Get().Log("Failed to set window icon", true);
-		return;
-	}
-
-	int depth, pitch;
-	Uint32 pixel_format;
-	if (req_format == STBI_rgb) {
-		depth = 24;
-		pitch = 3 * width; // 3 bytes per pixel * pixels per row
-		pixel_format = SDL_PIXELFORMAT_RGB24;
-	}
-	else { // STBI_rgb_alpha (RGBA)
-		depth = 32;
-		pitch = 4 * width;
-		pixel_format = SDL_PIXELFORMAT_RGBA32;
-	}
-
-	SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormatFrom((void*)data, width, height,
-		depth, pitch, pixel_format);
-
-	if (surf == NULL) {
-		ed::Logger::Get().Log("Failed to create icon SDL_Surface", true);
-		stbi_image_free(data);
-		return;
-	}
-
-	SDL_SetWindowIcon(wnd, surf);
-
-	SDL_FreeSurface(surf);
-	stbi_image_free(data);
-
-	stbi_set_flip_vertically_on_load(1);
-}
+void SetIcon(SDL_Window* wnd);
+void SetDpiAware();
 
 int main(int argc, char* argv[])
 {
@@ -78,7 +39,7 @@ int main(int argc, char* argv[])
 	if (argc > 0) {
 		if (std::filesystem::exists(std::filesystem::path(argv[0]).parent_path())) {
 			std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
-			
+
 			ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 		}
 	}
@@ -86,14 +47,14 @@ int main(int argc, char* argv[])
 #if defined(__linux__) || defined(__unix__)
 	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
 	// TODO: if more arguments get added, use different methods to check if working directory is being set explicitly
-	if (argc <= 1) { 
+	if (argc <= 1) {
 		char result[PATH_MAX];
 		ssize_t readlinkRes = readlink("/proc/self/exe", result, PATH_MAX);
 		std::string exePath = "";
 		if (readlinkRes != -1)
 			exePath = std::string(dirname(result));
 
-		std::vector<std::string> toCheck = { 
+		std::vector<std::string> toCheck = {
 			"/../share/SHADERed",
 			"/../share/shadered"
 			// TODO: maybe more paths here?
@@ -132,7 +93,6 @@ int main(int argc, char* argv[])
 	else
 		ed::Logger::Get().Log("Failed to initialize glslang", true);
 
-	
 	// init sdl2
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
 		ed::Logger::Get().Log("Failed to initialize SDL2", true);
@@ -158,7 +118,6 @@ int main(int argc, char* argv[])
 			perfMode = preload.get();
 		preload.close();
 
-
 		// clamp to desktop size
 		SDL_DisplayMode desk;
 		SDL_GetCurrentDisplayMode(0, &desk);
@@ -166,8 +125,7 @@ int main(int argc, char* argv[])
 			wndWidth = desk.w;
 		if (wndHeight > desk.h)
 			wndHeight = desk.h;
-	}
-	else {
+	} else {
 		ed::Logger::Get().Log("File data/preload.dat doesnt exist", true);
 		ed::Logger::Get().Log("Deleting data/workspace.dat", true);
 
@@ -181,11 +139,9 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
 
 	// open window
-	SDL_Window* wnd = SDL_CreateWindow("SHADERed", wndPosX == -1 ? SDL_WINDOWPOS_CENTERED : wndPosX, wndPosY == -1 ? SDL_WINDOWPOS_CENTERED : wndPosY, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	SDL_Window* wnd = SDL_CreateWindow("SHADERed", (wndPosX == -1) ? SDL_WINDOWPOS_CENTERED : wndPosX, (wndPosY == -1) ? SDL_WINDOWPOS_CENTERED : wndPosY, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	SetDpiAware();
 	SDL_SetWindowMinimumSize(wnd, 200, 200);
-
-	// set window icon:
-	setIcon(wnd);
 
 	if (maximized)
 		SDL_MaximizeWindow(wnd);
@@ -213,6 +169,9 @@ int main(int argc, char* argv[])
 	engine.Create();
 	ed::Logger::Get().Log("Created EditorEngine");
 
+	// set window icon:
+	SetIcon(wnd);
+
 	// open an item if given in arguments
 	if (argc >= 2) {
 		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
@@ -234,8 +193,7 @@ int main(int argc, char* argv[])
 	bool minimized = false;
 	bool hasFocus = true;
 	while (run) {
-		while (SDL_PollEvent(&event))
-		{
+		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				bool cont = true;
 				if (engine.Interface().Parser.IsProjectModified()) {
@@ -248,11 +206,8 @@ int main(int argc, char* argv[])
 					run = false;
 					ed::Logger::Get().Log("Received SDL_QUIT event -> quitting");
 				}
-			}
-			else if (event.type == SDL_WINDOWEVENT) {
-				if (event.window.event == SDL_WINDOWEVENT_MOVED ||
-					event.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
-					event.window.event == SDL_WINDOWEVENT_RESIZED) {
+			} else if (event.type == SDL_WINDOWEVENT) {
+				if (event.window.event == SDL_WINDOWEVENT_MOVED || event.window.event == SDL_WINDOWEVENT_MAXIMIZED || event.window.event == SDL_WINDOWEVENT_RESIZED) {
 					Uint32 wndFlags = SDL_GetWindowFlags(wnd);
 
 					maximized = wndFlags & SDL_WINDOW_MAXIMIZED;
@@ -263,19 +218,33 @@ int main(int argc, char* argv[])
 					if (!maximized) {
 						int tempX = 0, tempY = 0;
 						SDL_GetWindowPosition(wnd, &tempX, &tempY);
-						wndPosX = tempX; wndPosY = tempY;
+						wndPosX = tempX;
+						wndPosY = tempY;
 
 						SDL_GetWindowSize(wnd, &tempX, &tempY);
-						wndWidth = tempX; wndHeight = tempY;
+						wndWidth = tempX;
+						wndHeight = tempY;
 					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+				} else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
 					minimized = true;
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
 					hasFocus = false;
 				else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 					hasFocus = true;
 			}
+#if defined(_WIN32)
+			else if (event.type == SDL_SYSWMEVENT) {
+				// this doesn't work - it seems that SDL doesn't forward WM_DPICHANGED message
+				if (event.syswm.type == WM_DPICHANGED && ed::Settings::Instance().General.AutoScale) {
+					float dpi = 0.0f;
+					int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
+					SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
+
+					ed::Settings::Instance().TempScale = dpi / 96.0f;
+					ed::Logger::Get().Log("Updating DPI to " + std::to_string(dpi / 96.0f));
+				}
+			}
+#endif
 			engine.OnEvent(event);
 		}
 
@@ -301,25 +270,23 @@ int main(int argc, char* argv[])
 	engine.UI().Destroy();
 
 	// union for converting short to bytes
-	union
-	{
+	union {
 		short size;
 		char data[2];
 	} converter;
 
 	// save window size
 	std::ofstream save("data/preload.dat");
-	
 
 	ed::Logger::Get().Log("Saving window information");
 
-	converter.size = wndWidth;				// write window width
+	converter.size = wndWidth; // write window width
 	save.write(converter.data, 2);
-	converter.size = wndHeight;				// write window height
+	converter.size = wndHeight; // write window height
 	save.write(converter.data, 2);
-	converter.size = wndPosX;				// write window position x
+	converter.size = wndPosX; // write window position x
 	save.write(converter.data, 2);
-	converter.size = wndPosY;				// write window position y
+	converter.size = wndPosY; // write window position y
 	save.write(converter.data, 2);
 	save.put(fullscreen);
 	save.put(maximized);
@@ -340,4 +307,81 @@ int main(int argc, char* argv[])
 	ed::Logger::Get().Save();
 
 	return 0;
+}
+
+void SetIcon(SDL_Window* wnd)
+{
+	float dpi = 0.0f;
+	int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
+	SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
+	dpi /= 96.0f;
+
+	stbi_set_flip_vertically_on_load(0);
+
+	int req_format = STBI_rgb_alpha;
+	int width, height, orig_format;
+	unsigned char* data = stbi_load(dpi == 1.0f ? "./icon_64x64.png" : "./icon_256x256.png", &width, &height, &orig_format, req_format);
+	if (data == NULL) {
+		ed::Logger::Get().Log("Failed to set window icon", true);
+		return;
+	}
+
+	int depth, pitch;
+	Uint32 pixel_format;
+	if (req_format == STBI_rgb) {
+		depth = 24;
+		pitch = 3 * width; // 3 bytes per pixel * pixels per row
+		pixel_format = SDL_PIXELFORMAT_RGB24;
+	} else { // STBI_rgb_alpha (RGBA)
+		depth = 32;
+		pitch = 4 * width;
+		pixel_format = SDL_PIXELFORMAT_RGBA32;
+	}
+
+	SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormatFrom((void*)data, width, height,
+		depth, pitch, pixel_format);
+
+	if (surf == NULL) {
+		ed::Logger::Get().Log("Failed to create icon SDL_Surface", true);
+		stbi_image_free(data);
+		return;
+	}
+
+	SDL_SetWindowIcon(wnd, surf);
+
+	SDL_FreeSurface(surf);
+	stbi_image_free(data);
+
+	stbi_set_flip_vertically_on_load(1);
+}
+void SetDpiAware()
+{
+#if defined(_WIN32)
+	enum DpiAwareness {
+		Unaware,
+		System,
+		PerMonitor
+	};
+	typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(DpiAwareness);
+	typedef BOOL(WINAPI* SetProcessDPIAwareFn)(void);
+
+	HINSTANCE lib = LoadLibraryA("Shcore.dll");
+
+	if (lib) {
+		SetProcessDpiAwarenessFn setProcessDpiAwareness = (SetProcessDpiAwarenessFn)GetProcAddress(lib, "SetProcessDpiAwareness");
+		if (setProcessDpiAwareness)
+			setProcessDpiAwareness(DpiAwareness::PerMonitor);
+	} else {
+		lib = LoadLibraryA("user32.dll");
+		if (lib) {
+			SetProcessDPIAwareFn setProcessDPIAware = (SetProcessDPIAwareFn)GetProcAddress(lib, "SetProcessDPIAware");
+
+			if (setProcessDPIAware)
+				setProcessDPIAware();
+		}
+	}
+
+	if (lib)
+		FreeLibrary(lib);
+#endif
 }

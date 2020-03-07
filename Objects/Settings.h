@@ -1,20 +1,18 @@
 #pragma once
+#include "../Options.h"
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
-#include "../Options.h"
 
-namespace ed
-{
-	class Settings
-	{
+namespace ed {
+	class Settings {
 	public:
 		Settings();
 		void Load();
 		void Save();
 
-		float DPIScale;		// shouldn't be changed by users
-		float TempScale;	// copy this value to DPIScale on "Ok" button press
+		float DPIScale;	 // shouldn't be changed by users
+		float TempScale; // copy this value to DPIScale on "Ok" button press
 		std::string Theme;
 
 		struct strGeneral {
@@ -22,7 +20,7 @@ namespace ed
 			// std::string Language;	// [TODO] Not implemented
 			bool AutoOpenErrorWindow;
 			bool Toolbar;
-			bool Recovery;				// [TODO] Not implemented
+			bool Recovery; // [TODO] Not implemented
 			bool CheckUpdates;
 			bool RecompileOnFileChange;
 			bool AutoRecompile;
@@ -71,13 +69,13 @@ namespace ed
 			bool GizmoRotationUI;
 			int GizmoSnapTranslation; // < 0 -> turned off, > 0 snap value
 			int GizmoSnapScale;
-			int GizmoSnapRotation;	// in degrees (0 == no snap)
+			int GizmoSnapRotation; // in degrees (0 == no snap)
 			bool PropertyPick;
 			bool StatusBar;
 			int FPSLimit;
 			bool ApplyFPSLimitToApp; // apply FPSLimit to whole app, not only preview
-			bool LostFocusLimitFPS; // limit to 30FPS when app loses focus
-			int MSAA; // 1 (off), 2, 4, 8
+			bool LostFocusLimitFPS;	 // limit to 30FPS when app loses focus
+			int MSAA;				 // 1 (off), 2, 4, 8
 		} Preview;
 
 		struct strProject {
@@ -95,6 +93,14 @@ namespace ed
 		{
 			static Settings ret;
 			return ret;
+		}
+		inline float CalculateSize(float h)
+		{
+			return h * (DPIScale + General.FontSize / 18.0f - 1.0f);
+		}
+		inline float CalculateWidth(float h)
+		{
+			return h * (General.FontSize / 18.0f);
 		}
 
 	private:

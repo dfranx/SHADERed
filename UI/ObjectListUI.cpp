@@ -10,7 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define IMAGE_CONTEXT_WIDTH 150 * Settings::Instance().DPIScale
+#define IMAGE_CONTEXT_WIDTH Settings::Instance().CalculateSize(150)
 
 
 namespace ed

@@ -11,7 +11,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#define BUTTON_SPACE_LEFT -40 * Settings::Instance().DPIScale
+#define BUTTON_SPACE_LEFT Settings::Instance().CalculateSize(-40)
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
 
 namespace ed
@@ -72,7 +72,7 @@ namespace ed
 				ImGui::Text("Name:");
 				ImGui::NextColumn();
 
-				ImGui::PushItemWidth(-40);
+				ImGui::PushItemWidth(Settings::Instance().CalculateSize(-40));
 				ImGui::InputText("##pui_itemname", m_itemName, PIPELINE_ITEM_NAME_LENGTH);
 				ImGui::PopItemWidth();
 				ImGui::SameLine();

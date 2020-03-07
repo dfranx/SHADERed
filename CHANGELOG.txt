@@ -1,10 +1,13 @@
 [v1.3.1]
 + add confirmation dialog when deleting a shader pass item
++ add CTRL + scroll to change text editor font size
 + fix font resizing/changing
++ fix a bug where caret would move multiple characters on backspace on a line with a \t
 + fix picking with SHIFT + A
 + fix picking scaled 3D models
 + fix a bug where SHADERed would sometimes block on exit on Linux
-+ fix for a bug where caret would move multiple characters on backspace on a line with a \t
++ fix UI scaling
++ DPI awareness
 + moving items up/down now counts as a project modification
 + resizing render textures now counts as a project modification
 + remove MatrixShadow and MatrixReflect

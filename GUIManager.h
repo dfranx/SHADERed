@@ -101,7 +101,6 @@ namespace ed
 		std::string m_cachedFont;
 		int m_cachedFontSize;
 		bool m_fontNeedsUpdate;
-		float m_cacheUIScale;
 
 		bool m_cacheProjectModified;
 

@@ -13,8 +13,8 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#define ICON_BUTTON_WIDTH 25 * Settings::Instance().DPIScale
-#define BUTTON_SIZE 20 * Settings::Instance().DPIScale
+#define ICON_BUTTON_WIDTH Settings::Instance().CalculateSize(25)
+#define BUTTON_SIZE Settings::Instance().CalculateSize(20)
 
 namespace ed
 {
@@ -292,9 +292,9 @@ namespace ed
 		}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 125 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Error message##sdbg_error_msg")) {
-			ImGui::Text("Failed to run the code through the ShaderDebugger. Reason: ");
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(125)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Error message##sdbg_error_msg", 0, ImGuiWindowFlags_NoResize)) {
+			ImGui::Text("ERROR: ");
 			ImGui::Text(m_errorMessage.c_str());
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();

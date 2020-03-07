@@ -17,7 +17,7 @@
 #include <imgui/imgui_internal.h>
 
 #define HARRAYSIZE(a) (sizeof(a)/sizeof(*a))
-#define PATH_SPACE_LEFT -40 * Settings::Instance().DPIScale
+#define PATH_SPACE_LEFT Settings::Instance().CalculateSize(-40)
 
 namespace ed
 {
@@ -26,7 +26,7 @@ namespace ed
 	}
 	void CreateItemUI::Update(float delta)
 	{
-		int colWidth = 150;
+		int colWidth = 165;
 		if (m_item.Type == PipelineItem::ItemType::RenderState)
 			colWidth = 200;
 
@@ -35,7 +35,7 @@ namespace ed
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
-			ImGui::SetColumnWidth(0, colWidth);
+			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(colWidth));
 			isColumnWidthSet= true;
 		}
 

@@ -164,7 +164,8 @@ namespace ed
 		// get dpi
 		float dpi;
 		int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
-		SDL_GetDisplayDPI(wndDisplayIndex, NULL, &dpi, NULL);
+		SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
+		
 		dpi /= 96.0f;
 		
 		// enable dpi awareness		
@@ -172,7 +173,7 @@ namespace ed
 			Settings::Instance().DPIScale = dpi;
 			Logger::Get().Log("Setting DPI to " + std::to_string(dpi));
 		}
-		m_cacheUIScale = Settings::Instance().TempScale = Settings::Instance().DPIScale;
+		Settings::Instance().TempScale = Settings::Instance().DPIScale;
 
 		ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
 
@@ -299,7 +300,7 @@ namespace ed
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + ImGui::GetFrameHeight()));
-		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
@@ -308,8 +309,9 @@ namespace ed
 		ImGui::PopStyleVar(3);
 		
 		float bHeight = TOOLBAR_HEIGHT/2 + ImGui::GetStyle().FramePadding.y * 2;
-		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - bHeight * Settings::Instance().DPIScale / 2);
-		ImGui::Indent(15 * Settings::Instance().DPIScale);
+
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - Settings::Instance().CalculateSize(bHeight) / 2);
+		ImGui::Indent(Settings::Instance().CalculateSize(15));
 
 		/*
 			project (open, open directory, save, empty, new shader) ||
@@ -318,14 +320,17 @@ namespace ed
 			random (settings)
 		*/
 		ImGui::Columns(4);
-		
-		ImGui::SetColumnWidth(0, (5*(TOOLBAR_HEIGHT) + 5*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(1, (8*(TOOLBAR_HEIGHT) + 8*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		ImGui::SetColumnWidth(2, (4*(TOOLBAR_HEIGHT) + 4*2*ImGui::GetStyle().FramePadding.x) * Settings::Instance().DPIScale);
-		
-		ImGui::PushFont(m_iconFontLarge);
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
+		ImGui::PushFont(m_iconFontLarge);
+
+		const ImVec2 labelSize = ImGui::CalcTextSize(UI_ICON_DOCUMENT_FOLDER, NULL, true);
+		const float btnWidth = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
+		const float scaledBtnWidth = Settings::Instance().CalculateWidth(btnWidth) + ImGui::GetStyle().ItemSpacing.x * 2.0f;
+
+		ImGui::SetColumnWidth(0, 5 * scaledBtnWidth);
+		ImGui::SetColumnWidth(1, 8 * scaledBtnWidth);
+		ImGui::SetColumnWidth(2, 4 * scaledBtnWidth);
+		
 		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
 		// repetitions
 		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) {		// OPEN PROJECT
@@ -342,9 +347,10 @@ namespace ed
 					Open(file);
 			}
 		}
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		m_tooltip("Open a project");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_SAVE))					// SAVE
+		if (ImGui::Button(UI_ICON_SAVE)) // SAVE
 			Save();
 		m_tooltip("Save project");
 		ImGui::SameLine();
@@ -354,7 +360,7 @@ namespace ed
 		}
 		m_tooltip("New empty project");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FOLDER_OPEN)) {			// OPEN DIRECTORY
+		if (ImGui::Button(UI_ICON_FOLDER_OPEN)) { // OPEN DIRECTORY
 			std::string prpath = m_data->Parser.GetProjectPath("");
 #if defined(__APPLE__)
 			system(("open " + prpath).c_str()); // [MACOS]
@@ -366,7 +372,7 @@ namespace ed
 		}
 		m_tooltip("Open project directory");
 		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_CODE)) {				// NEW SHADER FILE
+		if (ImGui::Button(UI_ICON_FILE_CODE)) { // NEW SHADER FILE
 			std::string file;
 			bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
 
@@ -541,7 +547,7 @@ namespace ed
 
 			// icon font large
 			ImFontConfig configIconsLarge;
-			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", (TOOLBAR_HEIGHT/2) * Settings::Instance().DPIScale, &configIconsLarge, icon_ranges);
+			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", Settings::Instance().CalculateSize(TOOLBAR_HEIGHT/2), &configIconsLarge, icon_ranges);
 
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();
@@ -550,6 +556,7 @@ namespace ed
 			ImGui_ImplOpenGL3_CreateFontsTexture();
 
 			((CodeEditorUI*)Get(ViewID::Code))->UpdateFont();
+			((OptionsUI*)Get(ViewID::Options))->ApplyTheme(); // reset paddings, etc...
 		}
 
 		// Start the Dear ImGui frame
@@ -570,8 +577,8 @@ namespace ed
 		bool showMenu = !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.getElapsedTime().asSeconds() > 2.5f);
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | (ImGuiWindowFlags_MenuBar * showMenu) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
-		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, viewport->Size.y - actuallyToolbar * TOOLBAR_HEIGHT * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, viewport->Size.y - actuallyToolbar * Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -1008,8 +1015,8 @@ namespace ed
 		}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 200 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create Item##main_create_item")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(530), Settings::Instance().CalculateSize(300)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create Item##main_create_item", 0, ImGuiWindowFlags_NoResize)) {
 			m_createUI->Update(delta);
 
 			if (ImGui::Button("Ok")) {
@@ -1023,56 +1030,57 @@ namespace ed
 		}
 
 		// Create cubemap popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 300 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create cubemap##main_create_cubemap")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(275)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create cubemap##main_create_cubemap", 0, ImGuiWindowFlags_NoResize)) {
 			static char buf[65] = { 0 };
 			ImGui::InputText("Name", buf, 64);
 
 			static std::string left, top, front, bottom, right, back;
+			float btnWidth = Settings::Instance().CalculateSize(65.0f);
 
-			ImGui::Text("Left: %s", left.c_str());
+			ImGui::Text("Left: %s", std::filesystem::path(left).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##left")) {
 				UIHelper::GetOpenFileDialog(left, "png;bmp;jpg,jpeg;tga");
 				left = m_data->Parser.GetRelativePath(left);
 			}
 
-			ImGui::Text("Top: %s", top.c_str());
+			ImGui::Text("Top: %s", std::filesystem::path(top).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##top")) {
 				UIHelper::GetOpenFileDialog(top, "png;bmp;jpg,jpeg;tga");
 				top = m_data->Parser.GetRelativePath(top);
 			}
 
-			ImGui::Text("Front: %s", front.c_str());
+			ImGui::Text("Front: %s", std::filesystem::path(front).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##front")) {
 				UIHelper::GetOpenFileDialog(front, "png;bmp;jpg,jpeg;tga");
 				front = m_data->Parser.GetRelativePath(front);
 			}
 
-			ImGui::Text("Bottom: %s", bottom.c_str());
+			ImGui::Text("Bottom: %s", std::filesystem::path(bottom).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##bottom")) {
 				UIHelper::GetOpenFileDialog(bottom, "png;bmp;jpg,jpeg;tga");
 				bottom = m_data->Parser.GetRelativePath(bottom);
 			}
 
-			ImGui::Text("Right: %s", right.c_str());
+			ImGui::Text("Right: %s", std::filesystem::path(right).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##right")) {
 				UIHelper::GetOpenFileDialog(right, "png;bmp;jpg,jpeg;tga");
 				right = m_data->Parser.GetRelativePath(right);
 			}
 
-			ImGui::Text("Back: %s", back.c_str());
+			ImGui::Text("Back: %s", std::filesystem::path(back).filename().string().c_str());
 			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 60);
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##back")) {
 				UIHelper::GetOpenFileDialog(back, "png;bmp;jpg,jpeg;tga");
 				back = m_data->Parser.GetRelativePath(back);
@@ -1089,10 +1097,10 @@ namespace ed
 		}
 
 		// Create RT popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create RT##main_create_rt")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(155)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create RT##main_create_rt", 0, ImGuiWindowFlags_NoResize)) {
 			static char buf[65] = { 0 };
-			ImGui::InputText("Name", buf, 64);
+			ImGui::InputText("Name", buf, 65);
 
 			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateRenderTexture(buf)) {
@@ -1106,8 +1114,8 @@ namespace ed
 		}
 
 		// Record cam snapshot
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Camera snapshot name##main_camsnap_name")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(155)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Camera snapshot name##main_camsnap_name", 0, ImGuiWindowFlags_NoResize)) {
 			static char buf[65] = { 0 };
 			ImGui::InputText("Name", buf, 64);
 
@@ -1132,8 +1140,8 @@ namespace ed
 		}
 
 		// Create buffer popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create buffer##main_create_buffer")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(155)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create buffer##main_create_buffer", 0, ImGuiWindowFlags_NoResize)) {
 			static char buf[65] = { 0 };
 			ImGui::InputText("Name", buf, 64);
 
@@ -1147,8 +1155,8 @@ namespace ed
 		}
 
 		// Create empty image popup
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create image##main_create_img"))
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(175)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create image##main_create_img", 0, ImGuiWindowFlags_NoResize))
 		{
 			static char buf[65] = {0};
 			static glm::ivec2 size(0,0);
@@ -1170,8 +1178,8 @@ namespace ed
 		}
 
 		// Create empty 3D image
-		ImGui::SetNextWindowSize(ImVec2(430 * Settings::Instance().DPIScale, 175 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Create 3D image##main_create_img3D"))
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(175)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create 3D image##main_create_img3D", 0, ImGuiWindowFlags_NoResize))
 		{
 			static char buf[65] = { 0 };
 			static glm::ivec3 size(0, 0, 0);
@@ -1195,8 +1203,8 @@ namespace ed
 
 
 		// Create about popup
-		ImGui::SetNextWindowSize(ImVec2(270 * Settings::Instance().DPIScale, 220 * Settings::Instance().DPIScale), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("About##main_about")) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("(C) 2020 dfranx");
 			ImGui::TextWrapped("Version 1.3");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
@@ -1221,7 +1229,7 @@ namespace ed
 		}
 
 		// Create "Tips" popup
-		ImGui::SetNextWindowSize(ImVec2(550 * Settings::Instance().DPIScale, 560 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(550), Settings::Instance().CalculateSize(460)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Information##main_info")) {
 			ImGui::TextWrapped("Here you can find random information about various features");
 
@@ -1250,17 +1258,10 @@ namespace ed
 			ImGui::Separator();
 			ImGui::TextWrapped("Have an idea for a feature that's missing? Suggest it ");
 			ImGui::SameLine();
-			if (ImGui::Button("here")) {
-#if defined(__APPLE__)
-				system("open https://github.com/dfranx/SHADERed/issues"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-				system("xdg-open https://github.com/dfranx/SHADERed/issues");
-#elif defined(_WIN32)
-				ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
-#endif
-			}
-
+			if (ImGui::Button("here")) 
+				UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/issues");
 			ImGui::Separator();
+			ImGui::NewLine();
 
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();
@@ -1268,7 +1269,7 @@ namespace ed
 		}
 
 		// Create new project
-		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 150 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(450), Settings::Instance().CalculateSize(150)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create a new project");
 			if (ImGui::Button("Yes")) {
@@ -1313,7 +1314,7 @@ namespace ed
 		}
 
 		// Save preview
-		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 250 * Settings::Instance().DPIScale), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(450), Settings::Instance().CalculateSize(250)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Preview##main_save_preview")) {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
@@ -1322,21 +1323,21 @@ namespace ed
 			
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
-			ImGui::Indent(105);
+			ImGui::Indent(Settings::Instance().CalculateSize(110));
 			ImGui::InputInt("##save_prev_sizew", &m_previewSaveSize.x);
-			ImGui::Unindent(105);
+			ImGui::Unindent(Settings::Instance().CalculateSize(110));
 
 			ImGui::Text("Height: ");
 			ImGui::SameLine();
-			ImGui::Indent(105);
+			ImGui::Indent(Settings::Instance().CalculateSize(110));
 			ImGui::InputInt("##save_prev_sizeh", &m_previewSaveSize.y);
-			ImGui::Unindent(105);
+			ImGui::Unindent(Settings::Instance().CalculateSize(110));
 
 			ImGui::Text("Supersampling: ");
 			ImGui::SameLine();
-			ImGui::Indent(105);
+			ImGui::Indent(Settings::Instance().CalculateSize(110));
 			ImGui::Combo("##save_prev_ssmp", &m_savePreviewSupersample, " 1x\0 2x\0 4x\0 8x\0");
-			ImGui::Unindent(105);
+			ImGui::Unindent(Settings::Instance().CalculateSize(110));
 
 			ImGui::Separator();
 			if (ImGui::CollapsingHeader("Sequence")) {
@@ -1641,7 +1642,7 @@ namespace ed
 		}
 
 		// Export as C++ app
-		ImGui::SetNextWindowSize(ImVec2(450 * Settings::Instance().DPIScale, 300 * Settings::Instance().DPIScale));
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(450), Settings::Instance().CalculateSize(300)));
 		if (ImGui::BeginPopupModal("Export as C++ project##main_export_as_cpp")) {
 			// output file
 			ImGui::TextWrapped("Output file: %s", m_expcppSavePath.c_str());
@@ -1764,7 +1765,7 @@ namespace ed
 		// TODO: this is only a temprorary fix for non-resizable columns
 		static bool isColumnWidthSet = false;
 		if (!isColumnWidthSet) {
-			ImGui::SetColumnWidth(0, 100 * Settings::Instance().DPIScale + ImGui::GetStyle().WindowPadding.x * 2);
+			ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(100) + ImGui::GetStyle().WindowPadding.x * 2);
 			isColumnWidthSet = true;
 		}
 
@@ -1780,8 +1781,8 @@ namespace ed
 
 		ImGui::Columns();
 
-		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 160 * Settings::Instance().DPIScale);
-		if (ImGui::Button("OK", ImVec2(70 * Settings::Instance().DPIScale, 0))) {
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(160));
+		if (ImGui::Button("OK", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
 			Settings::Instance().Save();
 			KeyboardShortcuts::Instance().Save();
 
@@ -1801,10 +1802,10 @@ namespace ed
 			code->SetAutoRecompile(Settings::Instance().General.AutoRecompile);
 			code->UpdateShortcuts();
 
-			if (Settings::Instance().TempScale != m_cacheUIScale) {
+			if (Settings::Instance().TempScale != Settings::Instance().DPIScale) {
+				((ed::OptionsUI*)m_options)->ApplyTheme();
 				Settings::Instance().DPIScale = Settings::Instance().TempScale;
-				ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale / m_cacheUIScale);
-				m_cacheUIScale = Settings::Instance().DPIScale;
+				ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
 				m_fontNeedsUpdate = true;
 			}
 
@@ -1813,15 +1814,13 @@ namespace ed
 
 		ImGui::SameLine();
 
-		ImGui::SetCursorPosX(ImGui::GetWindowWidth()-80 * Settings::Instance().DPIScale);
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(80));
 		if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
 			Settings::Instance() = *m_settingsBkp;
 			KeyboardShortcuts::Instance().SetMap(m_shortcutsBkp);
 			((OptionsUI*)m_options)->ApplyTheme();
 			m_optionsOpened = false;
 		}
-
-
 	}
 	void GUIManager::Render()
 	{

@@ -13,7 +13,7 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#define REFRESH_BUTTON_SPACE -80 * Settings::Instance().DPIScale
+#define REFRESH_BUTTON_SPACE Settings::Instance().CalculateSize(-80)
 
 namespace ed
 {
@@ -60,7 +60,7 @@ namespace ed
 
 	void OptionsUI::Update(float delta)
 	{
-		ImGui::BeginChild("##opt_container", ImVec2(0, -30));
+		ImGui::BeginChild("##opt_container", ImVec2(0, Settings::Instance().CalculateSize(-30)));
 
 		if (m_page == Page::General)
 			m_renderGeneral();
@@ -272,15 +272,15 @@ namespace ed
 		/* HLSL EXTENSIONS: */
 		ImGui::Text("HLSL extensions: ");
 		ImGui::SameLine();
-		ImGui::Indent(150 * settings->DPIScale);
+		ImGui::Indent(settings->CalculateSize(150));
 		static char hlslExtEntry[64] = { 0 };
-		if (ImGui::ListBoxHeader("##optg_hlslexts",ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale))) {
+		if (ImGui::ListBoxHeader("##optg_hlslexts",ImVec2(settings->CalculateSize(100), settings->CalculateSize(100)))) {
 			for (auto& ext : settings->General.HLSLExtensions)
 				if (ImGui::Selectable(ext.c_str()))
 					strcpy(hlslExtEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
-		ImGui::PushItemWidth(100 * settings->DPIScale);
+		ImGui::PushItemWidth(settings->CalculateSize(100));
 		ImGui::InputText("##optg_hlslext_inp",hlslExtEntry,64);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
@@ -304,21 +304,21 @@ namespace ed
 					break;
 				}
 		}
-		ImGui::Unindent(150 * settings->DPIScale);
+		ImGui::Unindent(settings->CalculateSize(150));
 
 		/* VULKAN EXTENSIONS: */
 		ImGui::Text("Vulkan GLSL extensions: ");
 		ImGui::SameLine();
-		ImGui::Indent(180 * settings->DPIScale);
+		ImGui::Indent(settings->CalculateSize(180));
 		static char vkExtEntry[64] = {0};
-		if (ImGui::ListBoxHeader("##optg_vkexts", ImVec2(100 * settings->DPIScale, 100 * settings->DPIScale)))
+		if (ImGui::ListBoxHeader("##optg_vkexts", ImVec2(settings->CalculateSize(100), settings->CalculateSize(100))))
 		{
 			for (auto &ext : settings->General.VulkanGLSLExtensions)
 				if (ImGui::Selectable(ext.c_str()))
 					strcpy(vkExtEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
-		ImGui::PushItemWidth(100 * settings->DPIScale);
+		ImGui::PushItemWidth(settings->CalculateSize(100));
 		ImGui::InputText("##optg_vkext_inp", vkExtEntry, 64);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
@@ -346,7 +346,7 @@ namespace ed
 					break;
 				}
 		}
-		ImGui::Unindent(180 * settings->DPIScale);
+		ImGui::Unindent(settings->CalculateSize(180));
 
 		/* WORKSPACE STUFF */
 		ImGui::NewLine();
@@ -724,8 +724,9 @@ namespace ed
 		ImGui::NextColumn();
 
 
-		ImGui::SetCursorPosY(100 * Settings::Instance().DPIScale);
-		ImGui::Indent(100 * Settings::Instance().DPIScale);
+		ImGui::SetCursorPosY(settings->CalculateSize(100));
+		
+		ImGui::Indent(ImGui::GetColumnWidth() / 2 - settings->CalculateSize(20));
 		if (ImGui::Button(">>") && m_pluginNotLoadedLB < m_pluginsNotLoaded.size()) {
 			m_pluginsLoaded.push_back(m_pluginsNotLoaded[m_pluginNotLoadedLB]);
 			settings->Plugins.NotLoaded.erase(settings->Plugins.NotLoaded.begin() + m_pluginNotLoadedLB);
@@ -740,7 +741,7 @@ namespace ed
 
 			m_pluginLoadedLB = std::max<int>(0, m_pluginLoadedLB - 1);
 		}
-		ImGui::Unindent(100 * Settings::Instance().DPIScale);
+		ImGui::Unindent(ImGui::GetColumnWidth() / 2 - settings->CalculateSize(20));
 		ImGui::NextColumn();
 
 
@@ -749,15 +750,17 @@ namespace ed
 		ImGui::PushItemWidth(-1);
 		ImGui::ListBox("##optpl_loaded", &m_pluginLoadedLB, vector_getter, (void*)(&m_pluginsLoaded), m_pluginsLoaded.size(), 10);
 		ImGui::PopItemWidth();
+		ImGui::NextColumn();
 
 		ImGui::Columns(1);
 
+		ImGui::Separator();
+		ImGui::NewLine();
 		ImGui::Text("Search: ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 		ImGui::InputText("##plugin_search", m_pluginSearch, 256);
 		ImGui::PopItemWidth();
-		ImGui::Separator();
 
 		m_data->Plugins.ShowOptions(m_pluginSearch);
 	}
@@ -799,15 +802,15 @@ namespace ed
 		/* INCLUDE PATHS: */
 		ImGui::Text("Include directories: ");
 		ImGui::SameLine();
-		ImGui::Indent(150 * settings->DPIScale);
+		ImGui::Indent(settings->CalculateSize(150));
 		static char ipathEntry[MAX_PATH] = { 0 };
-		if (ImGui::ListBoxHeader("##optpr_ipaths", ImVec2(0, 250 * settings->DPIScale))) {
+		if (ImGui::ListBoxHeader("##optpr_ipaths", ImVec2(0, settings->CalculateSize(250)))) {
 			for (auto& ext : settings->Project.IncludePaths)
 				if (ImGui::Selectable(ext.c_str()))
 					strcpy(ipathEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
-		ImGui::PushItemWidth(250 * settings->DPIScale);
+		ImGui::PushItemWidth(settings->CalculateSize(-125));
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::InputText("##optpr_ipath_inp", ipathEntry, MAX_PATH);
 		ImGui::PopItemFlag();
@@ -834,6 +837,6 @@ namespace ed
 					break;
 				}
 		}
-		ImGui::Unindent(250 * settings->DPIScale);
+		ImGui::Unindent(settings->CalculateSize(250));
 	}
 }
