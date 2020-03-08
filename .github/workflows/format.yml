@@ -1,4 +1,4 @@
-name: Code style check
+name: Style check
 
 on: [push, pull_request]
 
@@ -11,7 +11,6 @@ jobs:
     - uses: DoozyX/clang-format-lint-action@v0.5
       with:
         source: '.'
-        exclude: './bin'
         exclude: './libs'
         extensions: 'h,cpp'
         clangFormatVersion: 8
