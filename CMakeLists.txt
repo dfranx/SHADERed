@@ -11,72 +11,72 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 # source code
 set(SOURCES
 	main.cpp
-	UI/UIHelper.cpp
+	src/SHADERed/UI/UIHelper.cpp
 
 # connectors
-	EditorEngine.cpp
-	GUIManager.cpp
-	InterfaceManager.cpp
+	src/SHADERed/EditorEngine.cpp
+	src/SHADERed/GUIManager.cpp
+	src/SHADERed/InterfaceManager.cpp
 
 # objects:
-	Objects/PluginAPI/PluginManager.cpp
-	Objects/Export/ExportCPP.cpp
-	Objects/ArcBallCamera.cpp
-	Objects/AudioAnalyzer.cpp
-	Objects/AudioShaderStream.cpp
-	Objects/CameraSnapshots.cpp
-	Objects/DefaultState.cpp
-	Objects/DebugInformation.cpp
-	Objects/FirstPersonCamera.cpp
-	Objects/FunctionVariableManager.cpp
-	Objects/GizmoObject.cpp
-	Objects/ShaderTranscompiler.cpp
-	Objects/KeyboardShortcuts.cpp
-	Objects/Logger.cpp
-	Objects/InputLayout.cpp
-	Objects/MessageStack.cpp
-	Objects/Names.cpp
-	Objects/ObjectManager.cpp
-	Objects/PipelineManager.cpp
-	Objects/ProjectParser.cpp
-	Objects/RenderEngine.cpp
-	Objects/Settings.cpp
-	Objects/ShaderVariableContainer.cpp
-	Objects/SystemVariableManager.cpp
-	Objects/ThemeContainer.cpp
-	Objects/UpdateChecker.cpp
+	src/SHADERed/Objects/PluginAPI/PluginManager.cpp
+	src/SHADERed/Objects/Export/ExportCPP.cpp
+	src/SHADERed/Objects/ArcBallCamera.cpp
+	src/SHADERed/Objects/AudioAnalyzer.cpp
+	src/SHADERed/Objects/AudioShaderStream.cpp
+	src/SHADERed/Objects/CameraSnapshots.cpp
+	src/SHADERed/Objects/DefaultState.cpp
+	src/SHADERed/Objects/DebugInformation.cpp
+	src/SHADERed/Objects/FirstPersonCamera.cpp
+	src/SHADERed/Objects/FunctionVariableManager.cpp
+	src/SHADERed/Objects/GizmoObject.cpp
+	src/SHADERed/Objects/ShaderTranscompiler.cpp
+	src/SHADERed/Objects/KeyboardShortcuts.cpp
+	src/SHADERed/Objects/Logger.cpp
+	src/SHADERed/Objects/InputLayout.cpp
+	src/SHADERed/Objects/MessageStack.cpp
+	src/SHADERed/Objects/Names.cpp
+	src/SHADERed/Objects/ObjectManager.cpp
+	src/SHADERed/Objects/PipelineManager.cpp
+	src/SHADERed/Objects/ProjectParser.cpp
+	src/SHADERed/Objects/RenderEngine.cpp
+	src/SHADERed/Objects/Settings.cpp
+	src/SHADERed/Objects/ShaderVariableContainer.cpp
+	src/SHADERed/Objects/SystemVariableManager.cpp
+	src/SHADERed/Objects/ThemeContainer.cpp
+	src/SHADERed/Objects/UpdateChecker.cpp
 
 # UI Tools
-	UI/Tools/CubemapPreview.cpp
-	UI/Tools/Magnifier.cpp
+	src/SHADERed/UI/Tools/CubemapPreview.cpp
+	src/SHADERed/UI/Tools/Magnifier.cpp
 
 # UI Debug
-	UI/Debug/BreakpointListUI.cpp
-	UI/Debug/FunctionStackUI.cpp
-	UI/Debug/ImmediateUI.cpp
-	UI/Debug/ValuesUI.cpp
-	UI/Debug/WatchUI.cpp
+	src/SHADERed/UI/Debug/BreakpointListUI.cpp
+	src/SHADERed/UI/Debug/FunctionStackUI.cpp
+	src/SHADERed/UI/Debug/ImmediateUI.cpp
+	src/SHADERed/UI/Debug/ValuesUI.cpp
+	src/SHADERed/UI/Debug/WatchUI.cpp
 
 # UI
-	UI/CodeEditorUI.cpp
-	UI/CreateItemUI.cpp
-	UI/MessageOutputUI.cpp
-	UI/ObjectListUI.cpp
-	UI/ObjectPreviewUI.cpp
-	UI/OptionsUI.cpp
-	UI/PinnedUI.cpp
-	UI/PipelineUI.cpp
-	UI/PixelInspectUI.cpp
-	UI/PreviewUI.cpp
-	UI/PropertyUI.cpp
-	UI/VariableValueEdit.cpp
+	src/SHADERed/UI/CodeEditorUI.cpp
+	src/SHADERed/UI/CreateItemUI.cpp
+	src/SHADERed/UI/MessageOutputUI.cpp
+	src/SHADERed/UI/ObjectListUI.cpp
+	src/SHADERed/UI/ObjectPreviewUI.cpp
+	src/SHADERed/UI/OptionsUI.cpp
+	src/SHADERed/UI/PinnedUI.cpp
+	src/SHADERed/UI/PipelineUI.cpp
+	src/SHADERed/UI/PixelInspectUI.cpp
+	src/SHADERed/UI/PreviewUI.cpp
+	src/SHADERed/UI/PropertyUI.cpp
+	src/SHADERed/UI/VariableValueEdit.cpp
 
 # engine:
-	Engine/Timer.cpp
-	Engine/Model.cpp
-	Engine/GLUtils.cpp
-	Engine/GeometryFactory.cpp
-	Engine/Ray.cpp
+	src/SHADERed/Engine/Timer.cpp
+	src/SHADERed/Engine/Model.cpp
+	src/SHADERed/Engine/GLUtils.cpp
+	src/SHADERed/Engine/GeometryFactory.cpp
+	src/SHADERed/Engine/Ray.cpp
 
 # libraries:
 	libs/ImGuiColorTextEdit/TextEditor.cpp
@@ -174,7 +174,7 @@ set_target_properties(SHADERed PROPERTIES
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE inc libs libs/glslang libs/ShaderDebugger/inc)
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/ShaderDebugger/inc)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
