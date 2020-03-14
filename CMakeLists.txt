@@ -49,6 +49,8 @@ set(SOURCES
 # UI Tools
 	src/SHADERed/UI/Tools/CubemapPreview.cpp
 	src/SHADERed/UI/Tools/Magnifier.cpp
+	src/SHADERed/UI/Tools/StatsPage.cpp
+	src/SHADERed/UI/Tools/VariableValueEdit.cpp
 
 # UI Debug
 	src/SHADERed/UI/Debug/BreakpointListUI.cpp
@@ -69,7 +71,6 @@ set(SOURCES
 	src/SHADERed/UI/PixelInspectUI.cpp
 	src/SHADERed/UI/PreviewUI.cpp
 	src/SHADERed/UI/PropertyUI.cpp
-	src/SHADERed/UI/VariableValueEdit.cpp
 
 # engine:
 	src/SHADERed/Engine/Timer.cpp

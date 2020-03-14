@@ -1771,19 +1771,7 @@ namespace ed {
 
 			CodeEditorUI* code = ((CodeEditorUI*)Get(ViewID::Code));
 
-			code->SetTabSize(Settings::Instance().Editor.TabSize);
-			code->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-			code->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-			code->SetShowWhitespace(Settings::Instance().Editor.ShowWhitespace);
-			code->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-			code->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-			code->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-			code->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
-			code->SetHorizontalScrollbar(Settings::Instance().Editor.HorizontalScroll);
-			code->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-			code->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
-			code->SetAutoRecompile(Settings::Instance().General.AutoRecompile);
-			code->UpdateShortcuts();
+			code->ApplySettings();
 
 			if (Settings::Instance().TempScale != Settings::Instance().DPIScale) {
 				((ed::OptionsUI*)m_options)->ApplyTheme();

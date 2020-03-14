@@ -1,10 +1,10 @@
 #pragma once
-#include "../Engine/Timer.h"
-#include "DebugInformation.h"
-#include "MessageStack.h"
-#include "PipelineManager.h"
-#include "PluginAPI/PluginManager.h"
-#include "ProjectParser.h"
+#include <SHADERed/Engine/Timer.h>
+#include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/PipelineManager.h>
+#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/ProjectParser.h>
 
 #include <functional>
 #include <unordered_map>

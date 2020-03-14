@@ -1,6 +1,6 @@
 #pragma once
-#include "Tools/CubemapPreview.h"
-#include "UIView.h"
+#include <SHADERed/UI/Tools/CubemapPreview.h>
+#include <SHADERed/UI/UIView.h>
 
 namespace ed {
 	class PixelInspectUI : public UIView {

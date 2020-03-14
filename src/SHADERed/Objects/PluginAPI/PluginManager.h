@@ -1,7 +1,7 @@
 #pragma once
-#include "../InputLayout.h"
-#include "../ShaderVariable.h"
-#include "Plugin.h"
+#include <SHADERed/Objects/InputLayout.h>
+#include <SHADERed/Objects/ShaderVariable.h>
+#include <SHADERed/Objects/PluginAPI/Plugin.h>
 #include <SDL2/SDL.h>
 #include <string>
 #include <vector>

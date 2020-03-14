@@ -10,9 +10,9 @@
 #endif
 #include <string>
 
-#include "../Objects/InputLayout.h"
-#include "../Objects/MessageStack.h"
-#include "../Objects/ShaderVariable.h"
+#include <SHADERed/Objects/InputLayout.h>
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/ShaderVariable.h>
 
 namespace ed {
 	namespace gl {

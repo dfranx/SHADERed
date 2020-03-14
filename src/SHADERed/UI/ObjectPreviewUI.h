@@ -1,9 +1,9 @@
 #pragma once
-#include "../Engine/GLUtils.h"
-#include "../Objects/PipelineItem.h"
-#include "Tools/CubemapPreview.h"
-#include "Tools/Magnifier.h"
-#include "UIView.h"
+#include <SHADERed/Engine/GLUtils.h>
+#include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/UI/Tools/CubemapPreview.h>
+#include <SHADERed/UI/Tools/Magnifier.h>
+#include <SHADERed/UI/UIView.h>
 
 namespace ed {
 	class ObjectPreviewUI : public UIView {

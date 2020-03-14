@@ -1,10 +1,10 @@
-#include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <SHADERed/Objects/ThemeContainer.h>
+#include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
@@ -40,7 +40,7 @@ namespace ed {
 			m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(sets.Editor.Font, sets.Editor.FontSize);
 		else {
 			m_font = ImGui::GetIO().Fonts->AddFontDefault();
-			Logger::Get().Log("Failed to load editor font", true);
+			Logger::Get().Log("Failed to load code editor font", true);
 		}
 
 		m_fontFilename = sets.Editor.Font;
@@ -94,33 +94,35 @@ namespace ed {
 		if (!canSave)
 			return;
 
+		TextEditor* ed = m_editor[id];
+		std::string text = ed->GetText();
+		std::string path = "";
+
 		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
 			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
 
-			m_editor[id].ResetTextChanged();
-
 			if (m_shaderStage[id] == ShaderStage::Vertex)
-				m_data->Parser.SaveProjectFile(shader->VSPath, m_editor[id].GetText());
+				path = shader->VSPath;
 			else if (m_shaderStage[id] == ShaderStage::Pixel)
-				m_data->Parser.SaveProjectFile(shader->PSPath, m_editor[id].GetText());
+				path = shader->PSPath;
 			else if (m_shaderStage[id] == ShaderStage::Geometry)
-				m_data->Parser.SaveProjectFile(shader->GSPath, m_editor[id].GetText());
+				path = shader->GSPath;
 		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
+			path = shader->Path;
 		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
 			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-			m_data->Parser.SaveProjectFile(shader->Path, m_editor[id].GetText());
-		} else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
-			m_editor[id].ResetTextChanged();
-
-			std::string edsrc = m_editor[id].GetText();
-
-			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
+			path = shader->Path;
 		}
+
+		ed->ResetTextChanged();
+
+		if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
+			std::string edsrc = m_editor[id]->GetText();
+			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
+		} else
+			m_data->Parser.SaveProjectFile(path, text);
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
@@ -165,7 +167,7 @@ namespace ed {
 		// counters for each shader type for window ids
 		int wid[5] = { 0 }; // vs, ps, gs, cs, pl
 
-		// code editor windows
+		// editor windows
 		for (int i = 0; i < m_editor.size(); i++) {
 			if (m_editorOpen[i]) {
 				bool isPluginItem = m_items[i]->Type == PipelineItem::ItemType::PluginItem;
@@ -174,12 +176,12 @@ namespace ed {
 				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 
-				if (m_editor[i].IsTextChanged() && !m_data->Parser.IsProjectModified())
+				if (m_editor[i]->IsTextChanged() && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
 
 				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(300, 300));
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i].IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
+				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * m_editor[i]->IsTextChanged()) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
@@ -188,17 +190,17 @@ namespace ed {
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].IsActive && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) m_stats[i].Fetch(m_items[i], m_editor[i].GetText(), (int)m_shaderStage[i]);
+							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) {}
 
-							if (m_stats[i].IsActive && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].IsActive = false;
+							if (m_stats[i].Visible && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].Visible = false;
 							ImGui::Separator();
-							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i].CanUndo())) m_editor[i].Undo();
-							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i].CanRedo())) m_editor[i].Redo();
+							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i]->CanUndo())) m_editor[i]->Undo();
+							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i]->CanRedo())) m_editor[i]->Redo();
 							ImGui::Separator();
-							if (ImGui::MenuItem("Cut", "CTRL+X")) m_editor[i].Cut();
-							if (ImGui::MenuItem("Copy", "CTRL+C")) m_editor[i].Copy();
-							if (ImGui::MenuItem("Paste", "CTRL+V")) m_editor[i].Paste();
-							if (ImGui::MenuItem("Select All", "CTRL+A")) m_editor[i].SelectAll();
+							if (ImGui::MenuItem("Cut", "CTRL+X")) m_editor[i]->Cut();
+							if (ImGui::MenuItem("Copy", "CTRL+C")) m_editor[i]->Copy();
+							if (ImGui::MenuItem("Paste", "CTRL+V")) m_editor[i]->Paste();
+							if (ImGui::MenuItem("Select All", "CTRL+A")) m_editor[i]->SelectAll();
 
 							ImGui::EndMenu();
 						}
@@ -206,8 +208,8 @@ namespace ed {
 						ImGui::EndMenuBar();
 					}
 
-					if (m_stats[i].IsActive)
-						m_stats[i].Render();
+					if (m_stats[i].Visible)
+						m_stats[i].Update(delta);
 					else {
 						// add error markers if needed
 						auto msgs = m_data->Messages.GetMessages();
@@ -216,13 +218,13 @@ namespace ed {
 						for (int j = 0; j < msgs.size(); j++)
 							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i]->Name && msgs[j].Shader == (int)m_shaderStage[i])
 								groupErrs[msgs[j].Line] = msgs[j].Text;
-						m_editor[i].SetErrorMarkers(groupErrs);
+						m_editor[i]->SetErrorMarkers(groupErrs);
 
 						bool statusbar = Settings::Instance().Editor.StatusBar;
 
 						// render code
 						ImGui::PushFont(m_font);
-						m_editor[i].Render(windowName.c_str(), ImVec2(0, -statusbar * STATUSBAR_HEIGHT));
+						m_editor[i]->Render(windowName.c_str(), ImVec2(0, -statusbar * STATUSBAR_HEIGHT));
 						if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
 							Settings::Instance().Editor.FontSize = Settings::Instance().Editor.FontSize + ImGui::GetIO().MouseWheel;
 							this->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
@@ -231,14 +233,14 @@ namespace ed {
 
 						// status bar
 						if (statusbar) {
-							auto cursor = m_editor[i].GetCursorPosition();
+							auto cursor = m_editor[i]->GetCursorPosition();
 
 							ImGui::Separator();
-							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i].GetLanguageDefinition().mName.c_str(), m_paths[i].c_str());
+							ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i]->GetLanguageDefinition().mName.c_str(), m_paths[i].c_str());
 						}
 					}
 
-					if (m_editor[i].IsFocused())
+					if (m_editor[i]->IsFocused())
 						m_selectedItem = i;
 				}
 
@@ -256,7 +258,7 @@ namespace ed {
 
 		// save popup
 		for (int i = 0; i < m_editorOpen.size(); i++)
-			if (!m_editorOpen[i] && m_editor[i].IsTextChanged()) {
+			if (!m_editorOpen[i] && m_editor[i]->IsTextChanged()) {
 				ImGui::OpenPopup("Save Changes##code_save");
 				m_savePopupOpen = i;
 				m_editorOpen[i] = true;
@@ -289,7 +291,7 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 
-		// delete not needed editors
+		// delete closed editors
 		if (m_savePopupOpen == -1) {
 			for (int i = 0; i < m_editorOpen.size(); i++) {
 				if (!m_editorOpen[i]) {
@@ -299,6 +301,7 @@ namespace ed {
 					}
 
 					m_items.erase(m_items.begin() + i);
+					delete m_editor[i];
 					m_editor.erase(m_editor.begin() + i);
 					m_editorOpen.erase(m_editorOpen.begin() + i);
 					m_stats.erase(m_stats.begin() + i);
@@ -312,64 +315,30 @@ namespace ed {
 
 	void CodeEditorUI::SetTheme(const TextEditor::Palette& colors)
 	{
-		for (TextEditor& editor : m_editor)
-			editor.SetPalette(colors);
+		for (TextEditor* editor : m_editor)
+			editor->SetPalette(colors);
 	}
-	void CodeEditorUI::SetTabSize(int ts)
+	void CodeEditorUI::ApplySettings()
 	{
-		for (TextEditor& editor : m_editor)
-			editor.SetTabSize(ts);
+		for (TextEditor* editor : m_editor) {
+
+			editor->SetTabSize(Settings::Instance().Editor.TabSize);
+			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			m_loadEditorShortcuts(editor);
+		}
+
+		SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
+		SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
+		SetAutoRecompile(Settings::Instance().General.AutoRecompile);
 	}
-	void CodeEditorUI::SetInsertSpaces(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetInsertSpaces(ts);
-	}
-	void CodeEditorUI::SetSmartIndent(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetSmartIndent(ts);
-	}
-	void CodeEditorUI::SetShowWhitespace(bool wh)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetShowWhitespaces(wh);
-	}
-	void CodeEditorUI::SetHighlightLine(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetHighlightLine(ts);
-	}
-	void CodeEditorUI::SetShowLineNumbers(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetShowLineNumbers(ts);
-	}
-	void CodeEditorUI::SetCompleteBraces(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetCompleteBraces(ts);
-	}
-	void CodeEditorUI::SetHorizontalScrollbar(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetHorizontalScroll(ts);
-	}
-	void CodeEditorUI::SetSmartPredictions(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetSmartPredictions(ts);
-	}
-	void CodeEditorUI::SetFunctionTooltips(bool ts)
-	{
-		for (TextEditor& editor : m_editor)
-			editor.SetFunctionTooltips(ts);
-	}
-	void CodeEditorUI::UpdateShortcuts()
-	{
-		for (auto& editor : m_editor)
-			m_loadEditorShortcuts(&editor);
-	}
+
 	void CodeEditorUI::SetFont(const std::string& filename, int size)
 	{
 		m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
@@ -379,181 +348,80 @@ namespace ed {
 
 	void CodeEditorUI::Open(PipelineItem* item, ShaderStage stage)
 	{
+		std::string shaderPath = "";
+		std::string shaderContent = "";
+
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {
 			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item->Data);
 
-			std::string shaderPath = "";
 			if (stage == ShaderStage::Vertex)
-				shaderPath = m_data->Parser.GetProjectPath(shader->VSPath);
+				shaderPath = shader->VSPath;
 			else if (stage == ShaderStage::Pixel)
-				shaderPath = m_data->Parser.GetProjectPath(shader->PSPath);
+				shaderPath = shader->PSPath;
 			else if (stage == ShaderStage::Geometry)
-				shaderPath = m_data->Parser.GetProjectPath(shader->GSPath);
+				shaderPath = shader->GSPath;
 
-			if (Settings::Instance().General.UseExternalEditor) {
-				UIHelper::ShellOpen(shaderPath);
-				return;
-			}
-
-			// check if already opened
-			for (int i = 0; i < m_paths.size(); i++) {
-				if (m_paths[i] == shaderPath) {
-					m_focusWindow = true;
-					m_focusStage = stage;
-					m_focusItem = m_items[i]->Name;
-					return;
-				}
-			}
-
-			m_items.push_back(item);
-			m_editor.push_back(TextEditor());
-			m_editorOpen.push_back(true);
-			m_stats.push_back(StatsPage(m_data));
-
-			TextEditor* editor = &m_editor[m_editor.size() - 1];
-
-			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
-			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
-
-			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-			editor->SetTabSize(Settings::Instance().Editor.TabSize);
-			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
-			editor->SetPath(shaderPath);
-			m_loadEditorShortcuts(editor);
-
-			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
-			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
-
-			m_shaderStage.push_back(stage);
-
-			// apply breakpoints
-			m_applyBreakpoints(editor, shaderPath);
-
-			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
-			m_paths.push_back(shaderPath);
-			editor->SetText(shaderContent);
-			editor->ResetTextChanged();
 		} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(item->Data);
-			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
-
-			if (Settings::Instance().General.UseExternalEditor) {
-				UIHelper::ShellOpen(shaderPath);
-				return;
-			}
-
-			// check if already opened
-			for (int i = 0; i < m_paths.size(); i++) {
-				if (m_paths[i] == shaderPath) {
-					m_focusWindow = true;
-					m_focusStage = stage;
-					m_focusItem = m_items[i]->Name;
-					return;
-				}
-			}
-
-			// TODO: some of this can be moved outside of the if() {} block
-			m_items.push_back(item);
-			m_editor.push_back(TextEditor());
-			m_editorOpen.push_back(true);
-			m_stats.push_back(StatsPage(m_data));
-			m_paths.push_back(shader->Path);
-
-			TextEditor* editor = &m_editor[m_editor.size() - 1];
-
-			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
-			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
-
-			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-			editor->SetTabSize(Settings::Instance().Editor.TabSize);
-			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
-			editor->SetPath(shaderPath);
-			m_loadEditorShortcuts(editor);
-
-			// apply breakpoints
-			m_applyBreakpoints(editor, shaderPath);
-
-			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
-			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
-
-			m_shaderStage.push_back(stage);
-
-			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
-			editor->SetText(shaderContent);
-			editor->ResetTextChanged();
+			shaderPath = shader->Path;
 		} else if (item->Type == PipelineItem::ItemType::AudioPass) {
 			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(item->Data);
-			std::string shaderPath = m_data->Parser.GetProjectPath(shader->Path);
+			shaderPath = shader->Path;
+		}
 
-			if (Settings::Instance().General.UseExternalEditor) {
-				UIHelper::ShellOpen(shaderPath);
+		shaderPath = m_data->Parser.GetProjectPath(shaderPath);
+
+		if (Settings::Instance().General.UseExternalEditor) {
+			UIHelper::ShellOpen(shaderPath);
+			return;
+		}
+
+		shaderContent = m_data->Parser.LoadFile(shaderPath);
+
+		// check if file is already opened
+		for (int i = 0; i < m_paths.size(); i++) {
+			if (m_paths[i] == shaderPath) {
+				m_focusWindow = true;
+				m_focusStage = stage;
+				m_focusItem = m_items[i]->Name;
 				return;
 			}
-
-			// check if already opened
-			for (int i = 0; i < m_paths.size(); i++) {
-				if (m_paths[i] == shaderPath) {
-					m_focusWindow = true;
-					m_focusStage = stage;
-					m_focusItem = m_items[i]->Name;
-					return;
-				}
-			}
-
-			// TODO: some of this can be moved outside of the if() {} block
-			m_items.push_back(item);
-			m_editor.push_back(TextEditor());
-			m_editorOpen.push_back(true);
-			m_stats.push_back(StatsPage(m_data));
-			m_paths.push_back(shader->Path);
-
-			TextEditor* editor = &m_editor[m_editor.size() - 1];
-
-			TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
-			TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
-
-			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-			editor->SetTabSize(Settings::Instance().Editor.TabSize);
-			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
-			editor->SetPath(shaderPath);
-			m_loadEditorShortcuts(editor);
-
-			// apply breakpoints & breakpoint functions
-			m_applyBreakpoints(editor, shaderPath);
-
-			bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL;
-			editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
-
-			m_shaderStage.push_back(stage);
-
-			std::string shaderContent = m_data->Parser.LoadFile(shaderPath);
-			editor->SetText(shaderContent);
-			editor->ResetTextChanged();
 		}
+
+		m_items.push_back(item);
+		m_editor.push_back(new TextEditor());
+		m_editorOpen.push_back(true);
+		m_stats.push_back(StatsPage(m_ui, m_data, "", false));
+		m_shaderStage.push_back(stage);
+		m_paths.push_back(shaderPath);
+
+		TextEditor* editor = m_editor[m_editor.size() - 1];
+
+		TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
+		TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
+
+		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+		editor->SetTabSize(Settings::Instance().Editor.TabSize);
+		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+		editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+		editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+		editor->SetPath(shaderPath);
+		m_loadEditorShortcuts(editor);
+
+		bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
+		editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
+
+		// apply breakpoints
+		m_applyBreakpoints(editor, shaderPath);
+
+		editor->SetText(shaderContent);
+		editor->ResetTextChanged();
 	}
 	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
 	{
@@ -578,12 +446,12 @@ namespace ed {
 
 			// TODO: some of this can be moved outside of the if() {} block
 			m_items.push_back(item);
-			m_editor.push_back(TextEditor());
+			m_editor.push_back(new TextEditor());
 			m_editorOpen.push_back(true);
-			m_stats.push_back(StatsPage(m_data));
+			m_stats.push_back(StatsPage(m_ui, m_data, "", false));
 			m_paths.push_back(filepath);
 
-			TextEditor* editor = &m_editor[m_editor.size() - 1];
+			TextEditor* editor = m_editor[m_editor.size() - 1];
 
 			TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, m_focusStage, shader->Type, filepath);
 
@@ -613,36 +481,20 @@ namespace ed {
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == item && m_shaderStage[i] == stage)
-				return &m_editor[i];
+				return m_editor[i];
 		return nullptr;
 	}
 
-	void CodeEditorUI::CloseAll()
-	{
-		// delete not needed editors
-		for (int i = 0; i < m_editorOpen.size(); i++) {
-			if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
-				pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-				shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]); // TODO: this casting....
-			}
-
-			m_items.erase(m_items.begin() + i);
-			m_editor.erase(m_editor.begin() + i);
-			m_editorOpen.erase(m_editorOpen.begin() + i);
-			m_stats.erase(m_stats.begin() + i);
-			m_paths.erase(m_paths.begin() + i);
-			m_shaderStage.erase(m_shaderStage.begin() + i);
-			i--;
-		}
-	}
-	void CodeEditorUI::CloseAllFrom(PipelineItem* item)
+	void CodeEditorUI::CloseAll(PipelineItem* item)
 	{
 		for (int i = 0; i < m_items.size(); i++) {
-			if (m_items[i] == item) {
+			if (m_items[i] == item || item == nullptr) {
 				if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
 					shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]);
 				}
+
+				delete m_editor[i];
 
 				m_items.erase(m_items.begin() + i);
 				m_editor.erase(m_editor.begin() + i);
@@ -670,13 +522,13 @@ namespace ed {
 	{
 		std::vector<std::string> ret;
 		for (int i = 0; i < m_items.size(); i++)
-			ret.push_back(m_editor[i].GetText());
+			ret.push_back(m_editor[i]->GetText());
 		return ret;
 	}
 	void CodeEditorUI::SetOpenedFilesData(const std::vector<std::string>& data)
 	{
 		for (int i = 0; i < m_items.size() && i < data.size(); i++)
-			m_editor[i].SetText(data[i]);
+			m_editor[i]->SetText(data[i]);
 	}
 	void CodeEditorUI::m_loadEditorShortcuts(TextEditor* ed)
 	{
@@ -685,7 +537,7 @@ namespace ed {
 		for (auto it = sMap.begin(); it != sMap.end(); it++) {
 			std::string id = it->first;
 
-			if (id.substr(0, 6) == "Editor") {
+			if (id.size() > 8 && id.substr(0, 6) == "Editor") {
 				std::string name = id.substr(7);
 
 				TextEditor::ShortcutID sID = TextEditor::ShortcutID::Count;
@@ -729,7 +581,7 @@ namespace ed {
 	void CodeEditorUI::StopDebugging()
 	{
 		for (auto& ed : m_editor)
-			ed.SetCurrentLineIndicator(-1);
+			ed->SetCurrentLineIndicator(-1);
 	}
 	void CodeEditorUI::StopThreads()
 	{
@@ -802,7 +654,7 @@ namespace ed {
 
 			m_ariiList.clear();
 			for (int i = 0; i < m_editor.size(); i++) {
-				if (!m_editor[i].IsTextChanged())
+				if (!m_editor[i]->IsTextChanged())
 					continue;
 
 				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
@@ -814,13 +666,13 @@ namespace ed {
 					inf->PluginData = nullptr;
 
 					if (m_shaderStage[i] == ShaderStage::Vertex) {
-						inf->VS = m_editor[i].GetText();
+						inf->VS = m_editor[i]->GetText();
 						inf->VS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
 					} else if (m_shaderStage[i] == ShaderStage::Pixel) {
-						inf->PS = m_editor[i].GetText();
+						inf->PS = m_editor[i]->GetText();
 						inf->PS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
 					} else if (m_shaderStage[i] == ShaderStage::Geometry) {
-						inf->GS = m_editor[i].GetText();
+						inf->GS = m_editor[i]->GetText();
 						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
 					}
 				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
@@ -831,7 +683,7 @@ namespace ed {
 					inf->APass = nullptr;
 					inf->PluginData = nullptr;
 
-					inf->CS = m_editor[i].GetText();
+					inf->CS = m_editor[i]->GetText();
 					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
 				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
@@ -841,7 +693,7 @@ namespace ed {
 					inf->CPass = nullptr;
 					inf->PluginData = nullptr;
 
-					inf->AS = m_editor[i].GetText();
+					inf->AS = m_editor[i]->GetText();
 				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
 					pipe::PluginItemData* pass = (pipe::PluginItemData*)m_items[i]->Data;
@@ -850,7 +702,7 @@ namespace ed {
 					inf->CPass = nullptr;
 					inf->PluginData = pass;
 
-					inf->PluginCode = m_editor[i].GetText();
+					inf->PluginCode = m_editor[i]->GetText();
 					inf->PluginID = (int)m_shaderStage[i]; // TODO
 				}
 			}
@@ -931,7 +783,7 @@ namespace ed {
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 		std::vector<bool> gsUsed(passes.size());
 
-		std::vector<std::string> allFiles;  // list of all files we care for
+		std::vector<std::string> allFiles;	// list of all files we care for
 		std::vector<std::string> allPasses; // list of shader pass names that correspond to the file name
 		std::vector<std::string> paths;		// list of all paths that we should have "notifications turned on"
 
@@ -1380,15 +1232,5 @@ namespace ed {
 		langDef.mName = plugin->GetLanguageDefinitionName(sid);
 
 		return langDef;
-	}
-
-	void CodeEditorUI::StatsPage::Fetch(ed::PipelineItem* item, const std::string& code, int typeId)
-	{
-	}
-	void CodeEditorUI::StatsPage::Render()
-	{
-		// TODO: reimplement this
-		ImGui::Text("This function currently isn't implemented.");
-		ImGui::Text("TODO");
 	}
 }

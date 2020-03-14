@@ -1,6 +1,6 @@
 #pragma once
-#include "UIView.h"
-#include "VariableValueEdit.h"
+#include <SHADERed/UI/UIView.h>
+#include <SHADERed/UI/Tools/VariableValueEdit.h>
 
 namespace ed {
 	class PinnedUI : public UIView {

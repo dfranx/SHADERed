@@ -1,11 +1,11 @@
 #pragma once
-#include "Objects/DebugInformation.h"
-#include "Objects/MessageStack.h"
-#include "Objects/ObjectManager.h"
-#include "Objects/PipelineManager.h"
-#include "Objects/PluginAPI/PluginManager.h"
-#include "Objects/ProjectParser.h"
-#include "Objects/RenderEngine.h"
+#include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/ObjectManager.h>
+#include <SHADERed/Objects/PipelineManager.h>
+#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/ProjectParser.h>
+#include <SHADERed/Objects/RenderEngine.h>
 #include <SDL2/SDL_events.h>
 
 namespace ed {

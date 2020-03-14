@@ -1,6 +1,6 @@
 #pragma once
-#include "../../Engine/Model.h"
-#include "../PipelineItem.h" // TODO: add_include_dirs(Objects)
+#include <SHADERed/Engine/Model.h>
+#include <SHADERed/Objects/PipelineItem.h> // TODO: add_include_dirs(Objects)
 #include <glm/glm.hpp>
 
 extern "C" {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../UIView.h"
+#include <SHADERed/UI/UIView.h>
 #include <imgui/imgui.h>
 
 namespace ed {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Engine/Model.h"
+#include <SHADERed/Engine/Model.h>
 #include <glm/glm.hpp>
 #ifdef _WIN32
 #include <windows.h>

@@ -1,6 +1,6 @@
 #pragma once
-#include "Objects/KeyboardShortcuts.h"
-#include "Objects/UpdateChecker.h"
+#include <SHADERed/Objects/KeyboardShortcuts.h>
+#include <SHADERed/Objects/UpdateChecker.h>
 
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>

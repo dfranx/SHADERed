@@ -1,5 +1,5 @@
 #pragma once
-#include "ShaderVariable.h"
+#include <SHADERed/Objects/ShaderVariable.h>
 #include <map>
 #include <vector>
 

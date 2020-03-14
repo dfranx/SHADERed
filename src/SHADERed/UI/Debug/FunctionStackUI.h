@@ -1,5 +1,5 @@
 #pragma once
-#include "../UIView.h"
+#include <SHADERed/UI/UIView.h>
 
 namespace ed {
 	class DebugFunctionStackUI : public UIView {

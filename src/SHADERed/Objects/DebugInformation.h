@@ -1,8 +1,8 @@
 #pragma once
-#include "Debug/PixelInformation.h"
-#include "ObjectManager.h"
-#include "RenderEngine.h"
-#include "ShaderLanguage.h"
+#include <SHADERed/Objects/Debug/PixelInformation.h>
+#include <SHADERed/Objects/ObjectManager.h>
+#include <SHADERed/Objects/RenderEngine.h>
+#include <SHADERed/Objects/ShaderLanguage.h>
 #include <ShaderDebugger/ShaderDebugger.h>
 #include <ShaderDebugger/TextureCube.h>
 

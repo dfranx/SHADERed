@@ -1,5 +1,5 @@
 #pragma once
-#include "../InterfaceManager.h"
+#include <SHADERed/InterfaceManager.h>
 
 namespace ed {
 	class GUIManager;

@@ -1,7 +1,7 @@
 #pragma once
-#include "../Objects/KeyboardShortcuts.h"
-#include "../Objects/Settings.h"
-#include "UIView.h"
+#include <SHADERed/Objects/KeyboardShortcuts.h>
+#include <SHADERed/Objects/Settings.h>
+#include <SHADERed/UI/UIView.h>
 
 namespace ed {
 	class OptionsUI : public UIView {

@@ -1,7 +1,7 @@
 #pragma once
-#include "../Objects/PipelineItem.h"
-#include "../Objects/ShaderVariable.h"
-#include "UIView.h"
+#include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Objects/ShaderVariable.h>
+#include <SHADERed/UI/UIView.h>
 
 namespace ed {
 	class CreateItemUI : public UIView {

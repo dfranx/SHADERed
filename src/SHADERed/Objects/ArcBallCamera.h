@@ -1,5 +1,5 @@
 #pragma once
-#include "Camera.h"
+#include <SHADERed/Objects/Camera.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

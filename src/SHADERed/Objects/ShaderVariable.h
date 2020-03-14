@@ -1,6 +1,6 @@
 #pragma once
-#include "../Options.h"
-#include "PluginAPI/Plugin.h"
+#include <SHADERed/Options.h>
+#include <SHADERed/Objects/PluginAPI/Plugin.h>
 #include <string.h>
 #include <string>
 

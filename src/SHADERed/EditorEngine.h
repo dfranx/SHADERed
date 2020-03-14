@@ -1,6 +1,6 @@
 #pragma once
-#include "GUIManager.h"
-#include "InterfaceManager.h"
+#include <SHADERed/GUIManager.h>
+#include <SHADERed/InterfaceManager.h>
 
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>

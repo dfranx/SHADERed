@@ -1,8 +1,8 @@
 #pragma once
-#include "MessageStack.h"
-#include "ProjectParser.h"
-#include "ShaderLanguage.h"
-#include "ShaderMacro.h"
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/ProjectParser.h>
+#include <SHADERed/Objects/ShaderLanguage.h>
+#include <SHADERed/Objects/ShaderMacro.h>
 #include <string>
 
 namespace ed {

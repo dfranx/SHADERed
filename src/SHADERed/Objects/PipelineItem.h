@@ -1,10 +1,10 @@
 #pragma once
-#include "../Engine/Model.h"
-#include "../Options.h"
-#include "AudioShaderStream.h"
-#include "InputLayout.h"
-#include "ShaderMacro.h"
-#include "ShaderVariableContainer.h"
+#include <SHADERed/Engine/Model.h>
+#include <SHADERed/Options.h>
+#include <SHADERed/Objects/AudioShaderStream.h>
+#include <SHADERed/Objects/InputLayout.h>
+#include <SHADERed/Objects/ShaderMacro.h>
+#include <SHADERed/Objects/ShaderVariableContainer.h>
 
 #include <glm/glm.hpp>
 #ifdef _WIN32

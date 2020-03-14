@@ -7,9 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "AudioAnalyzer.h"
-#include "PipelineItem.h"
-#include "ProjectParser.h"
+#include <SHADERed/Objects/AudioAnalyzer.h>
+#include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Objects/ProjectParser.h>
 
 namespace ed {
 	class RenderEngine;

@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "../Objects/InputLayout.h"
+#include <SHADERed/Objects/InputLayout.h>
 
 namespace ed {
 	namespace eng {

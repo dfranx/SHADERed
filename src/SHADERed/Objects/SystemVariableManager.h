@@ -1,12 +1,12 @@
 #pragma once
-#include "../Engine/Timer.h"
+#include <SHADERed/Engine/Timer.h>
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include "ArcBallCamera.h"
-#include "FirstPersonCamera.h"
-#include "PipelineItem.h"
-#include "Settings.h"
-#include "ShaderVariable.h"
+#include <SHADERed/Objects/ArcBallCamera.h>
+#include <SHADERed/Objects/FirstPersonCamera.h>
+#include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Objects/ShaderVariable.h>
 #include <glm/gtx/euler_angles.hpp>
 
 #include <unordered_map>

@@ -1,5 +1,5 @@
 #pragma once
-#include "MessageStack.h"
+#include <SHADERed/Objects/MessageStack.h>
 #include <string>
 
 namespace ed {

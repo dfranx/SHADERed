@@ -1,6 +1,6 @@
 #pragma once
-#include "../InterfaceManager.h"
-#include "../Objects/ShaderVariable.h"
+#include <SHADERed/InterfaceManager.h>
+#include <SHADERed/Objects/ShaderVariable.h>
 
 namespace ed {
 	class VariableValueEditUI {

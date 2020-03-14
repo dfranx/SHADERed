@@ -11,9 +11,9 @@
 #include <GL/gl.h>
 #endif
 
-#include "MessageStack.h"
-#include "ProjectParser.h"
-#include "ShaderMacro.h"
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/ProjectParser.h>
+#include <SHADERed/Objects/ShaderMacro.h>
 
 namespace ed {
 	class AudioShaderStream : public sf::SoundStream {

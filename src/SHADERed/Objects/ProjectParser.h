@@ -1,8 +1,8 @@
 #pragma once
-#include "../Engine/Model.h"
-#include "../GUIManager.h"
-#include "MessageStack.h"
-#include "ShaderVariable.h"
+#include <SHADERed/Engine/Model.h>
+#include <SHADERed/GUIManager.h>
+#include <SHADERed/Objects/MessageStack.h>
+#include <SHADERed/Objects/ShaderVariable.h>
 
 #include <pugixml/src/pugixml.hpp>
 #include <string>

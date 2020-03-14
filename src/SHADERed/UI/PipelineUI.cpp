@@ -1,4 +1,4 @@
-#include "PipelineUI.h"
+#include <SHADERed/UI/PipelineUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/GUIManager.h>
@@ -255,7 +255,7 @@ namespace ed {
 
 	void PipelineUI::DeleteItem(PipelineItem* item)
 	{
-		(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAllFrom(item);
+		(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAll(item);
 
 		// check if it is opened in property viewer
 		PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));

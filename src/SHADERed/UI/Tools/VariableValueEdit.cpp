@@ -1,8 +1,8 @@
-#include <SHADERed/UI/VariableValueEdit.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/UI/Icons.h>
+#include <SHADERed/UI/Tools/VariableValueEdit.h>
 
 #include <imgui/imgui.h>
 #include <glm/glm.hpp>

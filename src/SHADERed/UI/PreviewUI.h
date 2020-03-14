@@ -1,7 +1,7 @@
 #pragma once
-#include "../Objects/GizmoObject.h"
-#include "Tools/Magnifier.h"
-#include "UIView.h"
+#include <SHADERed/Objects/GizmoObject.h>
+#include <SHADERed/UI/Tools/Magnifier.h>
+#include <SHADERed/UI/UIView.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
