@@ -1,5 +1,5 @@
-#include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/ThemeContainer.h>
 #include <sstream>
 
 namespace ed {

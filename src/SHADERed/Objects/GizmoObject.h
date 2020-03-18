@@ -46,7 +46,7 @@ namespace ed {
 		glm::vec3 *m_trans, *m_scale, *m_rota;
 		glm::vec3 m_tValue, m_curValue;
 		int m_axisSelected; // -1 = none, 0 = x, 1 = y, 2 = z
-		int m_axisHovered;  // ^ same as here
+		int m_axisHovered;	// ^ same as here
 		int m_mode;			// 0 = translation, 1 = scale, 2 = rotation
 		float m_lastDepth;
 

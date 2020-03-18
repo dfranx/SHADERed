@@ -1,6 +1,6 @@
-#include <SHADERed/UI/Tools/Magnifier.h>
-#include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Engine/GLUtils.h>
+#include <SHADERed/Objects/Logger.h>
+#include <SHADERed/UI/Tools/Magnifier.h>
 
 #include <algorithm>
 #include <vector>

@@ -1,11 +1,11 @@
-#include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
+#include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <iostream>
 #include <regex>
 
 namespace ed {
-	ShaderVariableContainer::ShaderVariableContainer() {}
+	ShaderVariableContainer::ShaderVariableContainer() { }
 	ShaderVariableContainer::~ShaderVariableContainer()
 	{
 		for (int i = 0; i < m_vars.size(); i++) {

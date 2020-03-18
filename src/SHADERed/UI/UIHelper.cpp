@@ -1,6 +1,6 @@
-#include <SHADERed/UI/UIHelper.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
+#include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
 #include <nativefiledialog/nfd.h>

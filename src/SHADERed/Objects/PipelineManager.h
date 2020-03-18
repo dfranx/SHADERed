@@ -1,6 +1,6 @@
 #pragma once
-#include <SHADERed/Options.h>
 #include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Options.h>
 #include <vector>
 
 namespace ed {

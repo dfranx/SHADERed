@@ -1,5 +1,5 @@
-#include <SHADERed/InterfaceManager.h>
 #include <SHADERed/GUIManager.h>
+#include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 
 namespace ed {

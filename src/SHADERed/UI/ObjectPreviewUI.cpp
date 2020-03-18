@@ -1,6 +1,6 @@
-#include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/UI/ObjectPreviewUI.h>
 #include <imgui/imgui.h>
 
 namespace ed {

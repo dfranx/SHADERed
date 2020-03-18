@@ -1,4 +1,5 @@
 #pragma once
+#include <SDL2/SDL_events.h>
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/MessageStack.h>
 #include <SHADERed/Objects/ObjectManager.h>
@@ -6,7 +7,6 @@
 #include <SHADERed/Objects/PluginAPI/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/RenderEngine.h>
-#include <SDL2/SDL_events.h>
 
 namespace ed {
 	class GUIManager;

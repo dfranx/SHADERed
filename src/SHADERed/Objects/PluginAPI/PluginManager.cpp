@@ -1,6 +1,10 @@
-#include <SHADERed/Objects/PluginAPI/PluginManager.h>
 #include <SHADERed/GUIManager.h>
 #include <SHADERed/InterfaceManager.h>
+#include <SHADERed/Objects/DefaultState.h>
+#include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/UI/PinnedUI.h>
@@ -8,10 +12,6 @@
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
-#include <SHADERed/Objects/DefaultState.h>
-#include <SHADERed/Objects/Logger.h>
-#include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <imgui/imgui.h>
 #include <algorithm>

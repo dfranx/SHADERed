@@ -1,8 +1,8 @@
-#include <SHADERed/UI/ObjectListUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
+#include <SHADERed/UI/ObjectListUI.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 #include <imgui/imgui.h>

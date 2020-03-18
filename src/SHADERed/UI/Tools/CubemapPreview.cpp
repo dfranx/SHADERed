@@ -1,7 +1,7 @@
-#include <SHADERed/UI/Tools/CubemapPreview.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/UI/Tools/CubemapPreview.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

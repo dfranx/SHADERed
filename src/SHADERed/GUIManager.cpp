@@ -1,3 +1,4 @@
+#include <SDL2/SDL_messagebox.h>
 #include <SHADERed/GUIManager.h>
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
@@ -27,7 +28,6 @@
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
-#include <SDL2/SDL_messagebox.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/imgui.h>
@@ -248,10 +248,7 @@ namespace ed {
 
 			SDL_free(droppedFile);
 		} else if (e.type == SDL_WINDOWEVENT) {
-			if (e.window.event == SDL_WINDOWEVENT_MOVED ||
-				e.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
-				e.window.event == SDL_WINDOWEVENT_RESIZED)
-			{
+			if (e.window.event == SDL_WINDOWEVENT_MOVED || e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESIZED) {
 				SDL_GetWindowSize(m_wnd, &m_width, &m_height);
 			}
 		}
