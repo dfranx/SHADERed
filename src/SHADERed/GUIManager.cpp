@@ -1150,7 +1150,7 @@ namespace ed {
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("(C) 2020 dfranx");
-			ImGui::TextWrapped("Version 1.3");
+			ImGui::TextWrapped("Version 1.3.2");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");
