@@ -1,6 +1,6 @@
-#include <SHADERed/Objects/AudioShaderStream.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
+#include <SHADERed/Objects/AudioShaderStream.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

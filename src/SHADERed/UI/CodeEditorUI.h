@@ -1,4 +1,5 @@
 #pragma once
+#include <ImGuiColorTextEdit/TextEditor.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/PipelineItem.h>
 #include <SHADERed/Objects/Settings.h>
@@ -6,7 +7,6 @@
 #include <SHADERed/Objects/ShaderStage.h>
 #include <SHADERed/UI/Tools/StatsPage.h>
 #include <SHADERed/UI/UIView.h>
-#include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <deque>

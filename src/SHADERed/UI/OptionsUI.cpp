@@ -1,10 +1,10 @@
-#include <SHADERed/UI/OptionsUI.h>
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Options.h>
 #include <SHADERed/UI/CodeEditorUI.h>
+#include <SHADERed/UI/OptionsUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>

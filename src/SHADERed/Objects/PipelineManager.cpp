@@ -1,8 +1,8 @@
-#include <SHADERed/Objects/PipelineManager.h>
-#include <SHADERed/Options.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/PipelineManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/Options.h>
 
 int strcmpcase(const char* s1, const char* s2)
 {

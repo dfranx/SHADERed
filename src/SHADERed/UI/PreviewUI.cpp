@@ -1,4 +1,3 @@
-#include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/DefaultState.h>
@@ -9,6 +8,7 @@
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/PipelineUI.h>
+#include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 
 #include <imgui/imgui_internal.h>

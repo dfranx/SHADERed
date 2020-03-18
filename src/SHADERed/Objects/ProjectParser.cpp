@@ -1,4 +1,3 @@
-#include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/DefaultState.h>
@@ -10,6 +9,7 @@
 #include <SHADERed/Objects/PipelineItem.h>
 #include <SHADERed/Objects/PipelineManager.h>
 #include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
@@ -113,7 +113,7 @@ namespace ed {
 					NULL						/* .colorScheme */
 				};
 				int buttonid;
-				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
 
 				if (buttonid == 0) {
 					// TODO: redirect to .../plugin?name=pname
@@ -139,9 +139,9 @@ namespace ed {
 					NULL						/* .colorScheme */
 				};
 				int buttonid;
-				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
 
-				if (buttonid == 0) {}
+				if (buttonid == 0) { }
 
 				pluginTest = false;
 			} else {
@@ -165,7 +165,7 @@ namespace ed {
 						NULL						/* .colorScheme */
 					};
 					int buttonid;
-					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
+					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
 
 					if (buttonid == 0) {
 						// TODO: redirect to .../plugin?name=pname

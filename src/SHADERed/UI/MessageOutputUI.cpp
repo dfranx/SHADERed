@@ -1,7 +1,7 @@
-#include <SHADERed/UI/MessageOutputUI.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Options.h>
+#include <SHADERed/UI/MessageOutputUI.h>
 #include <imgui/imgui.h>
 
 namespace ed {

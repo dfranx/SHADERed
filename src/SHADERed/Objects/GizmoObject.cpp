@@ -1,8 +1,8 @@
-#include <SHADERed/Objects/GizmoObject.h>
-#include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/GLUtils.h>
+#include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/Ray.h>
 #include <SHADERed/Objects/DefaultState.h>
+#include <SHADERed/Objects/GizmoObject.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 

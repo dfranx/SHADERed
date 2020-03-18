@@ -119,7 +119,7 @@ namespace ed {
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{
 			int fmtIndex = 0;
-			
+
 			glDeleteVertexArrays(1, &geoVAO);
 			glGenVertexArrays(1, &geoVAO);
 

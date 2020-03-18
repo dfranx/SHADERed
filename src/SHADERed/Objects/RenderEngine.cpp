@@ -1,4 +1,3 @@
-#include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/Ray.h>
@@ -6,6 +5,7 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/PipelineManager.h>
+#include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>

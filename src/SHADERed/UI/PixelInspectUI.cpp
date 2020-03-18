@@ -1,4 +1,3 @@
-#include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
@@ -6,6 +5,7 @@
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/Icons.h>
+#include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <ShaderDebugger/Utils.h>

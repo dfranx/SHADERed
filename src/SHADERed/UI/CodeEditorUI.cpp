@@ -156,7 +156,7 @@ namespace ed {
 		m_data->Renderer.RecompileFile(shaderFile.c_str());
 	}
 
-	void CodeEditorUI::OnEvent(const SDL_Event& e) {}
+	void CodeEditorUI::OnEvent(const SDL_Event& e) { }
 	void CodeEditorUI::Update(float delta)
 	{
 		if (m_editor.size() == 0)
@@ -190,7 +190,7 @@ namespace ed {
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) {}
+							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) { }
 
 							if (m_stats[i].Visible && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].Visible = false;
 							ImGui::Separator();

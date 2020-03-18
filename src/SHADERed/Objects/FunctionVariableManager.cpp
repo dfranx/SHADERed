@@ -1,5 +1,5 @@
-#include <SHADERed/Objects/FunctionVariableManager.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
+#include <SHADERed/Objects/FunctionVariableManager.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

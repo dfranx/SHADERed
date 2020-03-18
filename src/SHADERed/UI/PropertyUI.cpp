@@ -1,13 +1,14 @@
-#include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <SHADERed/UI/CodeEditorUI.h>
+#include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/common.hpp>

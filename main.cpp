@@ -2,12 +2,12 @@
 #include <windows.h>
 #endif
 
+#include <SDL2/SDL.h>
 #include <SHADERed/EditorEngine.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/AudioShaderStream.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SDL2/SDL.h>
 #include <glslang/Public/ShaderLang.h>
 
 #include <chrono>

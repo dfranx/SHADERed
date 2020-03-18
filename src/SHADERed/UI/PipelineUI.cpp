@@ -1,4 +1,3 @@
-#include <SHADERed/UI/PipelineUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/GUIManager.h>
@@ -10,6 +9,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/PinnedUI.h>
+#include <SHADERed/UI/PipelineUI.h>
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 

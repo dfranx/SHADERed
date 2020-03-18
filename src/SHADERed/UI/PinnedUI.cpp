@@ -1,5 +1,5 @@
-#include <SHADERed/UI/PinnedUI.h>
 #include <SHADERed/UI/CodeEditorUI.h>
+#include <SHADERed/UI/PinnedUI.h>
 #include <imgui/imgui.h>
 
 #include <SHADERed/Objects/Logger.h>

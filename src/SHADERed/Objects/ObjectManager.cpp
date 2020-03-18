@@ -1,6 +1,6 @@
-#include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/Settings.h>
 
