@@ -65,7 +65,6 @@ void main()
 )";
 
 namespace ed {
-	CubemapPreview::CubemapPreview() {}
 	CubemapPreview::~CubemapPreview()
 	{
 		glDeleteBuffers(1, &m_fsVBO);
@@ -81,45 +80,7 @@ namespace ed {
 		m_w = w;
 		m_h = h;
 
-		GLint success = 0;
-		char infoLog[512];
-
-		// create vertex shader
-		unsigned int cubemapVS = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(cubemapVS, 1, &CUBEMAP_VS_CODE, nullptr);
-		glCompileShader(cubemapVS);
-		glGetShaderiv(cubemapVS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(cubemapVS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile cubemap projection vertex shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create pixel shader
-		unsigned int cubemapPS = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(cubemapPS, 1, &CUBEMAP_PS_CODE, nullptr);
-		glCompileShader(cubemapPS);
-		glGetShaderiv(cubemapPS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(cubemapPS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile cubemap projection pixel shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create a shader program for cubemap preview
-		m_cubeShader = glCreateProgram();
-		glAttachShader(m_cubeShader, cubemapVS);
-		glAttachShader(m_cubeShader, cubemapPS);
-		glLinkProgram(m_cubeShader);
-		glGetProgramiv(m_cubeShader, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_cubeShader, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to create a cubemap projection shader program", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		glDeleteShader(cubemapVS);
-		glDeleteShader(cubemapPS);
+		m_cubeShader = ed::gl::CreateShader(&CUBEMAP_VS_CODE, &CUBEMAP_PS_CODE, "cubemap projection");
 
 		m_uMatWVPLoc = glGetUniformLocation(m_cubeShader, "uMatWVP");
 		glUniform1i(glGetUniformLocation(m_cubeShader, "cubemap"), 0);

@@ -9,7 +9,6 @@
 namespace ed {
 	class CubemapPreview {
 	public:
-		CubemapPreview();
 		~CubemapPreview();
 
 		void Init(int w, int h);

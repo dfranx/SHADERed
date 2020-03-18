@@ -338,7 +338,6 @@ namespace ed {
 		SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 		SetAutoRecompile(Settings::Instance().General.AutoRecompile);
 	}
-
 	void CodeEditorUI::SetFont(const std::string& filename, int size)
 	{
 		m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
@@ -360,7 +359,6 @@ namespace ed {
 				shaderPath = shader->PSPath;
 			else if (stage == ShaderStage::Geometry)
 				shaderPath = shader->GSPath;
-
 		} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(item->Data);
 			shaderPath = shader->Path;
@@ -376,8 +374,6 @@ namespace ed {
 			return;
 		}
 
-		shaderContent = m_data->Parser.LoadFile(shaderPath);
-
 		// check if file is already opened
 		for (int i = 0; i < m_paths.size(); i++) {
 			if (m_paths[i] == shaderPath) {
@@ -387,6 +383,8 @@ namespace ed {
 				return;
 			}
 		}
+
+		shaderContent = m_data->Parser.LoadFile(shaderPath);
 
 		m_items.push_back(item);
 		m_editor.push_back(new TextEditor());
@@ -425,57 +423,59 @@ namespace ed {
 	}
 	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
 	{
-		if (item->Type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+		if (item->Type != PipelineItem::ItemType::PluginItem)
+			return;
 
-			if (Settings::Instance().General.UseExternalEditor) {
-				std::string path = m_data->Parser.GetProjectPath(filepath);
-				UIHelper::ShellOpen(path);
+		pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+		if (Settings::Instance().General.UseExternalEditor) {
+			std::string path = m_data->Parser.GetProjectPath(filepath);
+			UIHelper::ShellOpen(path);
+			return;
+		}
+
+		// check if already opened
+		for (int i = 0; i < m_paths.size(); i++) {
+			if (m_paths[i] == filepath) {
+				m_focusWindow = true;
+				m_focusStage = (ShaderStage)id; // TODO: this might not work anymore
+				m_focusItem = m_items[i]->Name;
 				return;
 			}
-
-			// check if already opened
-			for (int i = 0; i < m_paths.size(); i++) {
-				if (m_paths[i] == filepath) {
-					m_focusWindow = true;
-					m_focusStage = (ShaderStage)id; // TODO: this might not work anymore
-					m_focusItem = m_items[i]->Name;
-					return;
-				}
-			}
-
-			// TODO: some of this can be moved outside of the if() {} block
-			m_items.push_back(item);
-			m_editor.push_back(new TextEditor());
-			m_editorOpen.push_back(true);
-			m_stats.push_back(StatsPage(m_ui, m_data, "", false));
-			m_paths.push_back(filepath);
-
-			TextEditor* editor = m_editor[m_editor.size() - 1];
-
-			TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, m_focusStage, shader->Type, filepath);
-
-			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-			editor->SetTabSize(Settings::Instance().Editor.TabSize);
-			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
-			m_loadEditorShortcuts(editor);
-
-			editor->SetLanguageDefinition(defPlugin);
-
-			m_shaderStage.push_back(m_focusStage);
-
-			std::string shaderContent = m_data->Parser.LoadProjectFile(filepath);
-			editor->SetText(shaderContent);
-			editor->ResetTextChanged();
 		}
+
+		ShaderStage shaderStage = (ShaderStage)id;
+
+		// TODO: some of this can be moved outside of the if() {} block
+		m_items.push_back(item);
+		m_editor.push_back(new TextEditor());
+		m_editorOpen.push_back(true);
+		m_stats.push_back(StatsPage(m_ui, m_data, "", false));
+		m_paths.push_back(filepath);
+		m_shaderStage.push_back(shaderStage);
+
+		TextEditor* editor = m_editor[m_editor.size() - 1];
+
+		TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, shaderStage, shader->Type, filepath);
+
+		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+		editor->SetTabSize(Settings::Instance().Editor.TabSize);
+		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+		editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+		editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+		m_loadEditorShortcuts(editor);
+
+		editor->SetLanguageDefinition(defPlugin);
+
+		std::string shaderContent = m_data->Parser.LoadProjectFile(filepath);
+		editor->SetText(shaderContent);
+		editor->ResetTextChanged();
 	}
 	TextEditor* CodeEditorUI::Get(PipelineItem* item, ShaderStage stage)
 	{

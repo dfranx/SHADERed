@@ -13,7 +13,6 @@ namespace ed {
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();
 
-			// extra cautious
 			bool isAllDigits = true;
 			for (int i = 0; i < src.size(); i++)
 				if (!isdigit(src[i])) {

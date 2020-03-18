@@ -1,5 +1,6 @@
 #include <SHADERed/UI/Tools/Magnifier.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Engine/GLUtils.h>
 
 #include <algorithm>
 #include <vector>
@@ -43,45 +44,8 @@ namespace ed {
 		m_selecting = false;
 		m_dragging = false;
 
-		GLint success = 0;
-		char infoLog[512];
-
-		// create vertex shader
-		unsigned int uiVS = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(uiVS, 1, &UI_VS_CODE, nullptr);
-		glCompileShader(uiVS);
-		glGetShaderiv(uiVS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(uiVS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a bounding box vertex shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create pixel shader
-		unsigned int uiPS = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(uiPS, 1, &UI_PS_CODE, nullptr);
-		glCompileShader(uiPS);
-		glGetShaderiv(uiPS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(uiPS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a bounding box pixel shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
 		// create a shader program for gizmo
-		m_zoomShader = glCreateProgram();
-		glAttachShader(m_zoomShader, uiVS);
-		glAttachShader(m_zoomShader, uiPS);
-		glLinkProgram(m_zoomShader);
-		glGetProgramiv(m_zoomShader, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_zoomShader, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to create a bounding box shader program", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		glDeleteShader(uiVS);
-		glDeleteShader(uiPS);
+		m_zoomShader = gl::CreateShader(&UI_VS_CODE, &UI_PS_CODE, "magnifier");
 
 		m_uMatWVPLoc = glGetUniformLocation(m_zoomShader, "uMatWVP");
 	}

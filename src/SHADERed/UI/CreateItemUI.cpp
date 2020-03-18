@@ -1,4 +1,3 @@
-#include <SHADERed/UI/CreateItemUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/Model.h>
@@ -8,6 +7,7 @@
 #include <SHADERed/Objects/ShaderTranscompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
+#include <SHADERed/UI/CreateItemUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <string.h>
@@ -20,6 +20,16 @@
 #define PATH_SPACE_LEFT Settings::Instance().CalculateSize(-40)
 
 namespace ed {
+	CreateItemUI::CreateItemUI(GUIManager* ui, InterfaceManager* objects, const std::string& name, bool visible)
+			: UIView(ui, objects, name, visible)
+	{
+		SetOwner(nullptr);
+		m_item.Data = nullptr;
+		m_selectedGroup = 0;
+		m_errorOccured = false;
+		memset(m_owner, 0, PIPELINE_ITEM_NAME_LENGTH * sizeof(char));
+	}
+
 	void CreateItemUI::OnEvent(const SDL_Event& e)
 	{
 	}
@@ -465,11 +475,7 @@ namespace ed {
 			ImGui::InputInt("##cui_stencilmask", (int*)&data->StencilMask);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
-			if (data->StencilMask < 0)
-				data->StencilMask = 0;
-			if (data->StencilMask > 255)
-				data->StencilMask = 255;
+			data->StencilMask = glm::clamp<int>(data->StencilMask, 0, 255);
 
 			// stencil reference
 			ImGui::Text("Stencil reference:");
@@ -478,11 +484,7 @@ namespace ed {
 			ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // TODO: imgui uint input??
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
-			if (data->StencilReference < 0)
-				data->StencilReference = 0;
-			if (data->StencilReference > 255)
-				data->StencilReference = 255;
+			data->StencilReference = glm::clamp<int>(data->StencilReference, 0, 255);
 
 			// front face function
 			ImGui::Text("Stencil front face function:");

@@ -19,6 +19,8 @@ namespace ed {
 		GLuint CreateSimpleFramebuffer(GLint width, GLint height, GLuint& texColor, GLuint& texDepth, GLuint fmt = GL_RGBA);
 		void FreeSimpleFramebuffer(GLuint& fbo, GLuint& color, GLuint& depth);
 
+		GLuint CreateShader(const char** vsCode, const char** psCode, const std::string& name = "");
+
 		GLuint CompileShader(GLenum type, const GLchar* str);
 		bool CheckShaderCompilationStatus(GLuint shader, GLchar* msg);
 		bool CheckShaderLinkStatus(GLuint shader, GLchar* msg);

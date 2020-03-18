@@ -10,6 +10,7 @@
 #include <imgui/imgui_internal.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/common.hpp>
 
 #define BUTTON_SPACE_LEFT Settings::Instance().CalculateSize(-40)
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
@@ -460,18 +461,9 @@ namespace ed {
 					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
 					if (ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f))
 						m_data->Parser.ModifyProject();
-					if (rotaDeg.x > 360)
-						rotaDeg.x = 0;
-					if (rotaDeg.x < 0)
-						rotaDeg.x = 360;
-					if (rotaDeg.y > 360)
-						rotaDeg.y = 0;
-					if (rotaDeg.y < 0)
-						rotaDeg.y = 360;
-					if (rotaDeg.z > 360)
-						rotaDeg.z = 0;
-					if (rotaDeg.z < 0)
-						rotaDeg.z = 360;
+					rotaDeg = glm::fmod(rotaDeg, glm::vec3(360.0f));
+					if (glm::any(glm::lessThan(rotaDeg, glm::vec3(0.0))))
+						rotaDeg += glm::vec3(360.0f);
 					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
@@ -1172,9 +1164,8 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::Separator();
 			ImGui::Columns(1);
-		} else {
+		} else
 			ImGui::TextWrapped("Right click on an item -> Properties");
-		}
 	}
 	void PropertyUI::Open(ed::PipelineItem* item)
 	{

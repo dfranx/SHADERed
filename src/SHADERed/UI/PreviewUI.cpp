@@ -827,45 +827,8 @@ namespace ed {
 	{
 		Logger::Get().Log("Setting up bounding box...");
 
-		GLint success = 0;
-		char infoLog[512];
-
-		// create vertex shader
-		unsigned int boxVS = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(boxVS, 1, &BOX_VS_CODE, nullptr);
-		glCompileShader(boxVS);
-		glGetShaderiv(boxVS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(boxVS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a bounding box vertex shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create pixel shader
-		unsigned int boxPS = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(boxPS, 1, &BOX_PS_CODE, nullptr);
-		glCompileShader(boxPS);
-		glGetShaderiv(boxPS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(boxPS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a bounding box pixel shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
 		// create a shader program for gizmo
-		m_boxShader = glCreateProgram();
-		glAttachShader(m_boxShader, boxVS);
-		glAttachShader(m_boxShader, boxPS);
-		glLinkProgram(m_boxShader);
-		glGetProgramiv(m_boxShader, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_boxShader, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to create a bounding box shader program", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		glDeleteShader(boxVS);
-		glDeleteShader(boxPS);
+		m_boxShader = gl::CreateShader(&BOX_VS_CODE, &BOX_PS_CODE, "bounding box");
 
 		m_uMatWVPLoc = glGetUniformLocation(m_boxShader, "uMatWVP");
 		m_uColorLoc = glGetUniformLocation(m_boxShader, "uColor");

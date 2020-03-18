@@ -1,5 +1,6 @@
 #include <SHADERed/Objects/GizmoObject.h>
 #include <SHADERed/Engine/GeometryFactory.h>
+#include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/Ray.h>
 #include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/Objects/Logger.h>
@@ -155,78 +156,8 @@ namespace ed {
 		ed::Logger::Get().Log("Initializing gizmo...", false, __FILE__, __LINE__);
 		ed::Logger::Get().Log("Loading shaders...");
 
-		// create vertex shader
-		unsigned int gizmoVS = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(gizmoVS, 1, &GIZMO_VS_CODE, nullptr);
-		glCompileShader(gizmoVS);
-		glGetShaderiv(gizmoVS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(gizmoVS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a gizmo vertex shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create pixel shader
-		unsigned int gizmoPS = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(gizmoPS, 1, &GIZMO_PS_CODE, nullptr);
-		glCompileShader(gizmoPS);
-		glGetShaderiv(gizmoPS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(gizmoPS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a gizmo pixel shader", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create vertex shader
-		unsigned int uiVS = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(uiVS, 1, &GUI_VS_CODE, nullptr);
-		glCompileShader(uiVS);
-		glGetShaderiv(uiVS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(uiVS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a GUI vertex shader", true, __FILE__, __LINE__);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create pixel shader
-		unsigned int uiPS = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(uiPS, 1, &GUI_PS_CODE, nullptr);
-		glCompileShader(uiPS);
-		glGetShaderiv(uiPS, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(uiPS, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to compile a GUI pixel shader", true, __FILE__, __LINE__);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create a shader program for gizmo
-		m_gizmoShader = glCreateProgram();
-		glAttachShader(m_gizmoShader, gizmoVS);
-		glAttachShader(m_gizmoShader, gizmoPS);
-		glLinkProgram(m_gizmoShader);
-		glGetProgramiv(m_gizmoShader, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_gizmoShader, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to create a gizmo shader program", true);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		// create a shader program for gui
-		m_uiShader = glCreateProgram();
-		glAttachShader(m_uiShader, uiVS);
-		glAttachShader(m_uiShader, uiPS);
-		glLinkProgram(m_uiShader);
-		glGetProgramiv(m_uiShader, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_uiShader, 512, NULL, infoLog);
-			ed::Logger::Get().Log("Failed to create a GUI shader program", true, __FILE__, __LINE__);
-			ed::Logger::Get().Log(infoLog, true);
-		}
-
-		glDeleteShader(gizmoVS);
-		glDeleteShader(gizmoPS);
-		glDeleteShader(uiVS);
-		glDeleteShader(uiPS);
+		m_gizmoShader = gl::CreateShader(&GIZMO_VS_CODE, &GIZMO_PS_CODE, "gizmo");
+		m_uiShader = gl::CreateShader(&GUI_VS_CODE, &GUI_PS_CODE, "gizmo");
 
 		// cache uniform locations
 		m_uMatWorldLoc = glGetUniformLocation(m_gizmoShader, "uMatWorld");

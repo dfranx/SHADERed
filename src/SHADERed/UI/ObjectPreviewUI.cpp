@@ -247,60 +247,60 @@ namespace ed {
 
 			for (int y = 0; y < cols; y++) {
 				if (type == ShaderVariable::ValueType::Float2x2)
-					ret = ret || ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
 				else if (type == ShaderVariable::ValueType::Float3x3)
-					ret = ret || ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
 				else
-					ret = ret || ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
 			}
 		} break;
 		case ed::ShaderVariable::ValueType::Float1:
-			ret = ret || ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float2:
-			ret = ret || ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float3:
-			ret = ret || ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float4:
-			ret = ret || ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer1:
-			ret = ret || ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer2:
-			ret = ret || ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer3:
-			ret = ret || ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer4:
-			ret = ret || ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean1:
-			ret = ret || ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
+			ret |= ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean2:
-			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean3:
-			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
+			ret |= ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean4:
-			ret = ret || ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
+			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
+			ret |= ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
 			ImGui::SameLine();
-			ret = ret || ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data) + 3);
+			ret |= ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data) + 3);
 			break;
 		}
 

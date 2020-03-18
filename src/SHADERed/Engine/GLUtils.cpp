@@ -1,4 +1,5 @@
 #include <SHADERed/Engine/GLUtils.h>
+#include <SHADERed/Objects/Logger.h>
 #include <sstream>
 #include <string>
 
@@ -37,14 +38,53 @@ namespace ed {
 		}
 		void FreeSimpleFramebuffer(GLuint& fbo, GLuint& color, GLuint& depth)
 		{
-			if (color != 0)
-				glDeleteTextures(1, &color);
+			glDeleteTextures(1, &color);
+			glDeleteTextures(1, &depth);
+			glDeleteFramebuffers(1, &fbo);
+		}
+		GLuint CreateShader(const char** vsCode, const char** psCode, const std::string& name)
+		{
+			GLint success = 0;
+			char infoLog[512];
 
-			if (color != 0)
-				glDeleteTextures(1, &depth);
+			// create vertex shader
+			unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(vs, 1, vsCode, nullptr);
+			glCompileShader(vs);
+			glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
+			if (!success) {
+				glGetShaderInfoLog(vs, 512, NULL, infoLog);
+				ed::Logger::Get().Log("Failed to compile " + name + " vertex shader", true);
+				ed::Logger::Get().Log(infoLog, true);
+			}
 
-			if (fbo != 0)
-				glDeleteFramebuffers(1, &fbo);
+			// create pixel shader
+			unsigned int ps = glCreateShader(GL_FRAGMENT_SHADER);
+			glShaderSource(ps, 1, psCode, nullptr);
+			glCompileShader(ps);
+			glGetShaderiv(ps, GL_COMPILE_STATUS, &success);
+			if (!success) {
+				glGetShaderInfoLog(ps, 512, NULL, infoLog);
+				ed::Logger::Get().Log("Failed to compile " + name + " pixel shader", true);
+				ed::Logger::Get().Log(infoLog, true);
+			}
+
+			// create a shader program for cubemap preview
+			GLuint shader = glCreateProgram();
+			glAttachShader(shader, vs);
+			glAttachShader(shader, ps);
+			glLinkProgram(shader);
+			glGetProgramiv(shader, GL_LINK_STATUS, &success);
+			if (!success) {
+				glGetProgramInfoLog(shader, 512, NULL, infoLog);
+				ed::Logger::Get().Log("Failed to create a " + name + " shader program", true);
+				ed::Logger::Get().Log(infoLog, true);
+			}
+
+			glDeleteShader(vs);
+			glDeleteShader(ps);
+
+			return shader;
 		}
 		GLuint CompileShader(GLenum type, const GLchar* code)
 		{
@@ -79,16 +119,13 @@ namespace ed {
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{
 			int fmtIndex = 0;
-
-			if (geoVAO != 0)
-				glDeleteVertexArrays(1, &geoVAO);
-
+			
+			glDeleteVertexArrays(1, &geoVAO);
 			glGenVertexArrays(1, &geoVAO);
+
 			glBindVertexArray(geoVAO);
 			glBindBuffer(GL_ARRAY_BUFFER, geoVBO);
-
-			if (geoEBO != 0)
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geoEBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geoEBO);
 
 			for (const auto& layitem : ilayout) {
 				// vertex positions

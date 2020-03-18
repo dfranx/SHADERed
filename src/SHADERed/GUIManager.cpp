@@ -159,15 +159,12 @@ namespace ed {
 
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
-		// get dpi
-		float dpi;
-		int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
-		SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
-
-		dpi /= 96.0f;
-
 		// enable dpi awareness
 		if (Settings::Instance().General.AutoScale) {
+			float dpi = 0.0f;
+			int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
+			SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
+			dpi /= 96.0f;
 			Settings::Instance().DPIScale = dpi;
 			Logger::Get().Log("Setting DPI to " + std::to_string(dpi));
 		}
@@ -251,7 +248,10 @@ namespace ed {
 
 			SDL_free(droppedFile);
 		} else if (e.type == SDL_WINDOWEVENT) {
-			if (e.window.event == SDL_WINDOWEVENT_MOVED || e.window.event == SDL_WINDOWEVENT_MAXIMIZED || e.window.event == SDL_WINDOWEVENT_RESIZED) {
+			if (e.window.event == SDL_WINDOWEVENT_MOVED ||
+				e.window.event == SDL_WINDOWEVENT_MAXIMIZED ||
+				e.window.event == SDL_WINDOWEVENT_RESIZED)
+			{
 				SDL_GetWindowSize(m_wnd, &m_width, &m_height);
 			}
 		}
@@ -798,45 +798,19 @@ namespace ed {
 			}
 			if (ImGui::BeginMenu("Help")) {
 				if (ImGui::BeginMenu("Support")) {
-					if (ImGui::MenuItem("Patreon")) {
-#if defined(__APPLE__)
-						system("open https://www.patreon.com/dfranx"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-						system("xdg-open https://www.patreon.com/dfranx");
-#elif defined(_WIN32)
-						ShellExecuteW(NULL, L"open", L"https://www.patreon.com/dfranx", NULL, NULL, SW_SHOWNORMAL);
-#endif
-					}
-					if (ImGui::MenuItem("PayPal")) {
-#if defined(__APPLE__)
-						system("open https://www.paypal.me/dfranx"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-						system("xdg-open https://www.paypal.me/dfranx");
-#elif defined(_WIN32)
-						ShellExecuteW(NULL, L"open", L"https://www.paypal.me/dfranx", NULL, NULL, SW_SHOWNORMAL);
-#endif
-					}
+					if (ImGui::MenuItem("Patreon"))
+						UIHelper::ShellOpen("https://www.patreon.com/dfranx");
+					if (ImGui::MenuItem("PayPal"))
+						UIHelper::ShellOpen("https://www.paypal.me/dfranx");
 					ImGui::EndMenu();
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("Tutorial")) {
-#if defined(__APPLE__)
-					system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-					system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
-#elif defined(_WIN32)
-					ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
-#endif
-				}
-				if (ImGui::MenuItem("Send feedback")) {
-#if defined(__APPLE__)
-					system("open https://www.github.com/dfranx/SHADERed/issues"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-					system("xdg-open https://www.github.com/dfranx/SHADERed/issues");
-#elif defined(_WIN32)
-					ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed/issues", NULL, NULL, SW_SHOWNORMAL);
-#endif
-				}
+				if (ImGui::MenuItem("Tutorial"))
+					UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
+
+				if (ImGui::MenuItem("Send feedback"))
+					UIHelper::ShellOpen("https://www.github.com/dfranx/SHADERed/issues");
+
 				if (ImGui::MenuItem("Information")) { m_isInfoOpened = true; }
 				if (ImGui::MenuItem("About SHADERed")) { m_isAboutOpen = true; }
 
@@ -847,18 +821,9 @@ namespace ed {
 					std::make_pair("Hugo Locurcio", "https://hugo.pro")
 				};
 
-				for (auto& sitem : slist) {
-					if (ImGui::MenuItem(sitem.first.c_str())) {
-#if defined(__APPLE__)
-						system(("open " + sitem.second).c_str()); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-						system(("xdg-open " + sitem.second).c_str());
-#elif defined(_WIN32)
-						std::wstring wstr(sitem.second.begin(), sitem.second.end());
-						ShellExecuteW(NULL, L"open", wstr.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#endif
-					}
-				}
+				for (auto& sitem : slist)
+					if (ImGui::MenuItem(sitem.first.c_str()))
+						UIHelper::ShellOpen(sitem.second);
 
 				ImGui::EndMenu();
 			}
@@ -1190,15 +1155,8 @@ namespace ed {
 			ImGui::NewLine();
 			ImGui::TextWrapped("This app is open sourced: ");
 			ImGui::SameLine();
-			if (ImGui::Button("link")) {
-#if defined(__APPLE__)
-				system("open https://www.github.com/dfranx/SHADERed"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-				system("xdg-open https://www.github.com/dfranx/SHADERed");
-#elif defined(_WIN32)
-				ShellExecuteW(NULL, L"open", L"https://www.github.com/dfranx/SHADERed", NULL, NULL, SW_SHOWNORMAL);
-#endif
-			}
+			if (ImGui::Button("link"))
+				UIHelper::ShellOpen("https://www.github.com/dfranx/SHADERed");
 
 			ImGui::Separator();
 
@@ -1708,13 +1666,7 @@ namespace ed {
 				ImGui::Text("A new version of SHADERed is available!");
 				ImGui::SameLine();
 				if (ImGui::Button("UPDATE")) {
-#if defined(__APPLE__)
-					system("open https://github.com/dfranx/SHADERed/releases"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-					system("xdg-open https://github.com/dfranx/SHADERed/releases");
-#elif defined(_WIN32)
-					ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/releases", NULL, NULL, SW_SHOWNORMAL);
-#endif
+					UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/releases");
 					m_isUpdateNotificationOpened = false;
 				}
 			}
@@ -1904,13 +1856,7 @@ namespace ed {
 			if (restoreCached) {
 				for (auto& file : files) {
 					PipelineItem* item = m_data->Pipeline.Get(file.first.c_str());
-
-					if (file.second == ShaderStage::Vertex)
-						editor->Open(item, ShaderStage::Vertex);
-					else if (file.second == ShaderStage::Pixel)
-						editor->Open(item, ShaderStage::Pixel);
-					else if (file.second == ShaderStage::Geometry)
-						editor->Open(item, ShaderStage::Geometry);
+					editor->Open(item, file.second);
 				}
 				editor->SetOpenedFilesData(filesData);
 				editor->SaveAll();
@@ -2086,13 +2032,7 @@ namespace ed {
 			Get(ViewID::Properties)->Visible = !Get(ViewID::Properties)->Visible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Help", [=]() {
-#if defined(__APPLE__)
-			system("open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md"); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-				system("xdg-open https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
-#elif defined(_WIN32)
-				ShellExecuteW(NULL, L"open", L"https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md", NULL, NULL, SW_SHOWNORMAL);
-#endif
+			UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.Options", [=]() {
 			m_optionsOpened = true;

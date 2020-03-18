@@ -157,7 +157,7 @@ namespace ed {
 			if (codeHasFocus && !(hotkey.first.find("Editor") != std::string::npos || hotkey.first.find("CodeUI") != std::string::npos || hotkey.first.find("Debug") != std::string::npos || hotkey.first == "Project.Save"))
 				continue;
 
-			Shortcut s = hotkey.second;
+			const Shortcut& s = hotkey.second;
 			if (s.Alt == alt && s.Ctrl == ctrl && s.Shift == shift) {
 				int key2 = m_keys[1];
 				if (s.Key2 == -1 && s.Key1 == key2 && s.Function != nullptr) {
