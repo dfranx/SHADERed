@@ -291,6 +291,7 @@ int main(int argc, char* argv[])
 	save.put(fullscreen);
 	save.put(maximized);
 	save.put(engine.UI().IsPerformanceMode());
+	save.write(converter.data, 2);
 
 	save.close();
 

@@ -3,6 +3,7 @@
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
+#include <imgui_markdown/imgui_markdown.h>
 #include <nativefiledialog/nfd.h>
 #include <clocale>
 #include <iomanip>
@@ -202,5 +203,17 @@ namespace ed {
 		}
 
 		return ret;
+	}
+	
+	void MarkdownLinkCallback(ImGui::MarkdownLinkCallbackData data_)
+	{
+		std::string url(data_.link, data_.linkLength);
+		if (!data_.isImage)
+			UIHelper::ShellOpen(url);
+	}
+	void UIHelper::Markdown(const std::string& md)
+	{
+		static ImGui::MarkdownConfig mdConfig { MarkdownLinkCallback, NULL, "", { { NULL, true }, { NULL, true }, { NULL, false } } };
+		ImGui::Markdown(md.c_str(), md.length(), mdConfig);
 	}
 }

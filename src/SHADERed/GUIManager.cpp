@@ -3,6 +3,7 @@
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/Export/ExportCPP.h>
+#include <SHADERed/Objects/ChangelogFetcher.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
@@ -89,6 +90,7 @@ namespace ed {
 		m_cacheProjectModified = false;
 		m_isCreateImg3DOpened = false;
 		m_isInfoOpened = false;
+		m_isChangelogOpened = false;
 		m_savePreviewSeqDuration = 5.5f;
 		m_savePreviewSeqFPS = 30;
 		m_savePreviewSupersample = 0;
@@ -179,10 +181,16 @@ namespace ed {
 			});
 		}
 
+		m_checkChangelog();
+
 		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
 	}
 	GUIManager::~GUIManager()
 	{
+		std::ofstream verWriter("current_version.txt");
+		verWriter << UpdateChecker::MyVersion;
+		verWriter.close();
+
 		Logger::Get().Log("Shutting down UI");
 
 		for (auto& view : m_views)
@@ -961,6 +969,12 @@ namespace ed {
 			m_exportAsCPPOpened = false;
 		}
 
+		// open export as c++ app
+		if (m_isChangelogOpened) {
+			ImGui::OpenPopup("Update changelog##main_upd_changelog");
+			m_isChangelogOpened = false;
+		}
+
 		// Create Item popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(530), Settings::Instance().CalculateSize(300)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("Create Item##main_create_item", 0, ImGuiWindowFlags_NoResize)) {
@@ -1644,6 +1658,20 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 
+		// Update changelog
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(370), Settings::Instance().CalculateSize(420)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Update changelog##main_upd_changelog", 0, ImGuiWindowFlags_NoResize)) {
+			UIHelper::Markdown(m_changelogText);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Ok"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		
+
 		// update notification
 		if (m_isUpdateNotificationOpened) {
 			const float DISTANCE = 15.0f;
@@ -2077,6 +2105,23 @@ namespace ed {
 
 			SDL_SetWindowFullscreen(m_wnd, (!isFullscreen) * SDL_WINDOW_FULLSCREEN_DESKTOP);
 		});
+	}
+	void GUIManager::m_checkChangelog()
+	{
+		std::ifstream verReader("current_version.txt");
+		int curVer = 0;
+		if (verReader.is_open()) {
+			verReader >> curVer;
+			verReader.close();
+		}
+
+		if (curVer < UpdateChecker::MyVersion) {
+			ed::ChangelogFetcher fetcher;
+			fetcher.Fetch([&](const std::string& str) -> void {
+				m_isChangelogOpened = true;
+				m_changelogText = str;
+			});
+		}
 	}
 	void GUIManager::m_loadTemplateList()
 	{

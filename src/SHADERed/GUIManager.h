@@ -123,6 +123,10 @@ namespace ed {
 		std::string m_previewSavePath;
 		glm::ivec2 m_previewSaveSize;
 
+		bool m_isChangelogOpened;
+		std::string m_changelogText;
+		void m_checkChangelog();
+
 		bool m_expcppError;
 		int m_expcppBackend;
 		bool m_expcppCmakeFiles;

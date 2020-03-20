@@ -1,3 +1,6 @@
+[v1.3.2]
+* add 'Changelog' popup whcih shows up on startup after an update
+
 [v1.3.1]
 + add confirmation dialog when deleting a shader pass item
 + add CTRL + scroll to change text editor font size
