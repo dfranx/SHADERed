@@ -971,7 +971,7 @@ namespace ed {
 
 		// open export as c++ app
 		if (m_isChangelogOpened) {
-			ImGui::OpenPopup("Update changelog##main_upd_changelog");
+			ImGui::OpenPopup("Changelog##main_upd_changelog");
 			m_isChangelogOpened = false;
 		}
 
@@ -1658,9 +1658,9 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 
-		// Update changelog
+		// Changelog popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(370), Settings::Instance().CalculateSize(420)), ImGuiCond_Always);
-		if (ImGui::BeginPopupModal("Update changelog##main_upd_changelog", 0, ImGuiWindowFlags_NoResize)) {
+		if (ImGui::BeginPopupModal("Changelog##main_upd_changelog", 0, ImGuiWindowFlags_NoResize)) {
 			UIHelper::Markdown(m_changelogText);
 
 			ImGui::Separator();
