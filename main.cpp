@@ -33,7 +33,6 @@
 void SetIcon(SDL_Window* wnd);
 void SetDpiAware();
 
-#include <SHADERed/Objects/TipFetcher.h>
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));

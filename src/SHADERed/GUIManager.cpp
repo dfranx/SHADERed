@@ -106,6 +106,7 @@ namespace ed {
 		strcpy(m_expcppProjectName, "ShaderProject");
 		m_expcppSavePath = "./export.cpp";
 		m_expcppError = false;
+		m_tipOpened = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -187,7 +188,7 @@ namespace ed {
 			tips.Fetch([&](int n, int i, const std::string& title, const std::string& text) {
 				m_tipCount = n;
 				m_tipIndex = i;
-				m_tipTitle = title;
+				m_tipTitle = title + " (tip " + std::to_string(m_tipIndex + 1) + "/" + std::to_string(m_tipCount) + ")";
 				m_tipText = text;
 				m_tipOpened = true;
 			});
@@ -989,7 +990,7 @@ namespace ed {
 
 		// open tips popup
 		if (m_tipOpened) {
-			ImGui::OpenPopup("Tips##main_tip");
+			ImGui::OpenPopup("###main_tips");
 			m_tipOpened = false;
 		}
 
@@ -1690,13 +1691,11 @@ namespace ed {
 
 		// Tips popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(470), Settings::Instance().CalculateSize(420)), ImGuiCond_Once);
-		if (ImGui::BeginPopupModal("Tips##main_tip", 0)) {
-			ImGui::Text("Tip %d/%d (%s)", m_tipIndex, m_tipCount, m_tipTitle.c_str());
-			ImGui::Separator();
+		if (ImGui::BeginPopupModal((m_tipTitle + "###main_tips").c_str(), 0)) {
 			UIHelper::Markdown(m_tipText);
 
-			ImGui::Separator();
 
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - Settings::Instance().CalculateSize(50), ImGui::GetWindowSize().y - Settings::Instance().CalculateSize(40)));
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
