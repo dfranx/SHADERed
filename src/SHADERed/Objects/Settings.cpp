@@ -26,6 +26,7 @@ namespace ed {
 		General.AutoScale = true;
 		General.Log = true;
 		General.PipeLogsToTerminal = false;
+		General.Tips = false;
 		DPIScale = 1.0f;
 		strcpy(General.Font, "null");
 		General.FontSize = 15;
@@ -93,6 +94,7 @@ namespace ed {
 		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
 		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
+		General.Tips = ini.GetBoolean("general", "tips", true);
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "data/NotoSans.ttf").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 18);
@@ -168,6 +170,7 @@ namespace ed {
 		ini << "fontsize=" << General.FontSize << std::endl;
 		ini << "autoscale=" << General.AutoScale << std::endl;
 		ini << "uiscale=" << DPIScale << std::endl;
+		ini << "tips=" << General.Tips << std::endl;
 
 		ini << "hlslext=";
 		for (int i = 0; i < General.HLSLExtensions.size(); i++) {

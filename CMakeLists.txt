@@ -45,6 +45,7 @@ set(SOURCES
 	src/SHADERed/Objects/ShaderVariableContainer.cpp
 	src/SHADERed/Objects/SystemVariableManager.cpp
 	src/SHADERed/Objects/ThemeContainer.cpp
+	src/SHADERed/Objects/TipFetcher.cpp
 	src/SHADERed/Objects/UpdateChecker.cpp
 
 # UI Tools

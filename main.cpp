@@ -33,8 +33,11 @@
 void SetIcon(SDL_Window* wnd);
 void SetDpiAware();
 
+#include <SHADERed/Objects/TipFetcher.h>
 int main(int argc, char* argv[])
 {
+	srand(time(NULL));
+
 	std::filesystem::path cmdDir = std::filesystem::current_path();
 	if (argc > 0) {
 		if (std::filesystem::exists(std::filesystem::path(argv[0]).parent_path())) {

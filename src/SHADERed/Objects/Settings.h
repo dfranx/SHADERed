@@ -36,6 +36,7 @@ namespace ed {
 			char Font[MAX_PATH];
 			int FontSize;
 			bool AutoScale;
+			bool Tips;
 			std::vector<std::string> HLSLExtensions;
 			std::vector<std::string> VulkanGLSLExtensions;
 		} General;

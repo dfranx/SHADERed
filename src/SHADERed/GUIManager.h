@@ -137,6 +137,10 @@ namespace ed {
 		char m_expcppProjectName[64];
 		std::string m_expcppSavePath;
 
+		bool m_tipOpened;
+		int m_tipIndex, m_tipCount;
+		std::string m_tipTitle, m_tipText;
+
 		bool m_savePreviewSeq;
 		float m_savePreviewSeqDuration;
 		int m_savePreviewSeqFPS;

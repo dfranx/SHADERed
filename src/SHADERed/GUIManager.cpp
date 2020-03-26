@@ -4,6 +4,7 @@
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/Export/ExportCPP.h>
 #include <SHADERed/Objects/ChangelogFetcher.h>
+#include <SHADERed/Objects/TipFetcher.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
@@ -178,6 +179,17 @@ namespace ed {
 			m_updateCheck.CheckForUpdates([&]() {
 				m_isUpdateNotificationOpened = true;
 				m_updateNotifyClock.restart();
+			});
+		}
+
+		if (Settings::Instance().General.Tips) {
+			ed::TipFetcher tips;
+			tips.Fetch([&](int n, int i, const std::string& title, const std::string& text) {
+				m_tipCount = n;
+				m_tipIndex = i;
+				m_tipTitle = title;
+				m_tipText = text;
+				m_tipOpened = true;
 			});
 		}
 
@@ -969,10 +981,16 @@ namespace ed {
 			m_exportAsCPPOpened = false;
 		}
 
-		// open export as c++ app
+		// open changelog popup
 		if (m_isChangelogOpened) {
 			ImGui::OpenPopup("Changelog##main_upd_changelog");
 			m_isChangelogOpened = false;
+		}
+
+		// open tips popup
+		if (m_tipOpened) {
+			ImGui::OpenPopup("Tips##main_tip");
+			m_tipOpened = false;
 		}
 
 		// Create Item popup
@@ -1662,6 +1680,20 @@ namespace ed {
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(370), Settings::Instance().CalculateSize(420)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("Changelog##main_upd_changelog", 0, ImGuiWindowFlags_NoResize)) {
 			UIHelper::Markdown(m_changelogText);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Ok"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Tips popup
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(470), Settings::Instance().CalculateSize(420)), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Tips##main_tip", 0)) {
+			ImGui::Text("Tip %d/%d (%s)", m_tipIndex, m_tipCount, m_tipTitle.c_str());
+			ImGui::Separator();
+			UIHelper::Markdown(m_tipText);
 
 			ImGui::Separator();
 

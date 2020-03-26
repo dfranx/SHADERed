@@ -250,6 +250,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_selectdblclk", &settings->General.SelectItemOnDblClk);
 
+		/* TIPS ON STARTUP: */
+		ImGui::Text("Show tips on startup: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_tips", &settings->General.Tips);
+
 		/* STARTUP TEMPLATE: */
 		ImGui::Text("Default template: ");
 		ImGui::SameLine();
