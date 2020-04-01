@@ -1236,7 +1236,7 @@ namespace ed {
 		// Create new project
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(450), Settings::Instance().CalculateSize(150)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj", 0, ImGuiWindowFlags_NoResize)) {
-			ImGui::TextWrapped("You will lose your unsaved progress if you create a new project");
+			ImGui::TextWrapped("You will lose your unsaved progress if you create a new project. Are you sure you want to continue?");
 			if (ImGui::Button("Yes")) {
 				std::string oldFile = m_data->Parser.GetOpenedFile();
 

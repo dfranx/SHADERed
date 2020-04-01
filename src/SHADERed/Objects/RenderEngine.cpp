@@ -294,8 +294,8 @@ namespace ed {
 
 						if (geoData->Type == pipe::GeometryItem::Rectangle) {
 							// TODO: don't multiply with m_renderer->GetLastRenderSize() but rather with actual RT size
-							glm::vec3 scaleRect(geoData->Scale.x * width, geoData->Scale.y * height, 1.0f);
-							glm::vec3 posRect((geoData->Position.x + 0.5f) * width, (geoData->Position.y + 0.5f) * height, -1000.0f);
+							glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
+							glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
 							systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
 						} else
 							systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
