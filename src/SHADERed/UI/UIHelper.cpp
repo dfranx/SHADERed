@@ -204,6 +204,87 @@ namespace ed {
 
 		return ret;
 	}
+	bool UIHelper::CreateTextureMinFilterCombo(const char* name, GLenum& filter)
+	{
+		bool ret = false;
+		unsigned int op = 0;
+		for (unsigned int i = 0; i < HARRAYSIZE(TEXTURE_MIN_FILTER_VALUES); i++)
+			if (TEXTURE_MIN_FILTER_VALUES[i] == filter)
+				op = i;
+
+		if (ImGui::BeginCombo(name, TEXTURE_MIN_FILTER_NAMES[op])) {
+			for (int i = 0; i < HARRAYSIZE(TEXTURE_MIN_FILTER_NAMES); i++) {
+				bool is_selected = ((int)op == i);
+
+				if (strlen(TEXTURE_MIN_FILTER_NAMES[i]) > 1)
+					if (ImGui::Selectable(TEXTURE_MIN_FILTER_NAMES[i], is_selected)) {
+						filter = TEXTURE_MIN_FILTER_VALUES[i];
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
+	bool UIHelper::CreateTextureMagFilterCombo(const char* name, GLenum& filter)
+	{
+		bool ret = false;
+		unsigned int op = 0;
+		for (unsigned int i = 0; i < HARRAYSIZE(TEXTURE_MAG_FILTER_VALUES); i++)
+			if (TEXTURE_MAG_FILTER_VALUES[i] == filter)
+				op = i;
+
+		if (ImGui::BeginCombo(name, TEXTURE_MAG_FILTER_NAMES[op])) {
+			for (int i = 0; i < HARRAYSIZE(TEXTURE_MAG_FILTER_NAMES); i++) {
+				bool is_selected = ((int)op == i);
+
+				if (strlen(TEXTURE_MAG_FILTER_NAMES[i]) > 1)
+					if (ImGui::Selectable(TEXTURE_MAG_FILTER_NAMES[i], is_selected)) {
+						filter = TEXTURE_MAG_FILTER_VALUES[i];
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
+	bool UIHelper::CreateTextureWrapCombo(const char* name, GLenum& mode)
+	{
+		bool ret = false;
+		unsigned int op = 0;
+		for (unsigned int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+			if (TEXTURE_WRAP_VALUES[i] == mode)
+				op = i;
+
+		if (ImGui::BeginCombo(name, TEXTURE_WRAP_NAMES[op])) {
+			for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_NAMES); i++) {
+				bool is_selected = ((int)op == i);
+
+				if (strlen(TEXTURE_WRAP_NAMES[i]) > 1)
+					if (ImGui::Selectable(TEXTURE_WRAP_NAMES[i], is_selected)) {
+						mode = TEXTURE_WRAP_VALUES[i];
+						ret = true;
+					}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return ret;
+	}
 	
 	void MarkdownLinkCallback(ImGui::MarkdownLinkCallbackData data_)
 	{

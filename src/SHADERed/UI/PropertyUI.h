@@ -20,6 +20,7 @@ namespace ed {
 
 		inline bool IsPipelineItem() { return m_current != nullptr; }
 		inline bool IsRenderTexture() { return m_currentObj != nullptr && m_currentObj->RT != nullptr; }
+		inline bool IsTexture() { return m_currentObj != nullptr && m_currentObj->IsTexture; }
 		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Image != nullptr; }
 		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Image3D != nullptr; }
 		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Plugin != nullptr; }

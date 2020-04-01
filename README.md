@@ -223,7 +223,6 @@ This project uses:
  - [benhoyt/inih](https://github.com/benhoyt/inih)
  - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
- - [gulrak/filesystem](https://github.com/gulrak/filesystem)
  - [nothings/stb](https://github.com/nothings/stb)
  - [mlabbe/nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 

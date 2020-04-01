@@ -30,6 +30,9 @@ namespace ed {
 		static bool CreateCullModeCombo(const char* name, GLenum& cull);
 		static bool CreateComparisonFunctionCombo(const char* name, GLenum& comp);
 		static bool CreateStencilOperationCombo(const char* name, GLenum& op);
+		static bool CreateTextureMinFilterCombo(const char* name, GLenum& filter);
+		static bool CreateTextureMagFilterCombo(const char* name, GLenum& filter);
+		static bool CreateTextureWrapCombo(const char* name, GLenum& mode);
 
 		static void Markdown(const std::string& md);
 	};

@@ -81,6 +81,11 @@ namespace ed {
 			FlippedTexture = 0;
 			IsCube = false;
 			IsTexture = false;
+			Texture_VFlipped = false;
+			Texture_MinFilter = GL_LINEAR;
+			Texture_MagFilter = GL_NEAREST;
+			Texture_WrapS = GL_REPEAT;
+			Texture_WrapT = GL_REPEAT;
 			CubemapPaths.clear();
 			SoundBuffer = nullptr;
 			Sound = nullptr;
@@ -135,6 +140,9 @@ namespace ed {
 		bool IsTexture;
 		std::vector<std::string> CubemapPaths;
 
+		bool Texture_VFlipped;
+		GLuint Texture_MinFilter, Texture_MagFilter, Texture_WrapS, Texture_WrapT;
+
 		sf::SoundBuffer* SoundBuffer;
 		sf::Sound* Sound;
 		bool SoundMuted;
@@ -173,6 +181,7 @@ namespace ed {
 		bool IsAudioMuted(const std::string& name);
 		bool IsBuffer(const std::string& name);
 		bool IsImage(const std::string& name);
+		bool IsTexture(const std::string& name);
 		bool IsImage3D(const std::string& name);
 		bool IsPluginObject(const std::string& name);
 		bool IsPluginObject(GLuint id);
@@ -214,6 +223,9 @@ namespace ed {
 		std::string GetItemNameByTextureID(GLuint texID);
 
 		std::vector<ed::ShaderVariable::ValueType> ParseBufferFormat(const std::string& str);
+
+		void FlipTexture(const std::string& name);
+		void UpdateTextureParameters(const std::string& name);
 
 		void Bind(const std::string& file, PipelineItem* pass);
 		void Unbind(const std::string& file, PipelineItem* pass);

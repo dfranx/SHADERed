@@ -555,6 +555,7 @@ namespace ed {
 				bool isImage = m_objects->IsImage(texs[i]);
 				bool isImage3D = m_objects->IsImage3D(texs[i]);
 				bool isPluginOwner = m_objects->IsPluginObject(texs[i]);
+				bool isTexture = m_objects->IsTexture(texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
@@ -590,6 +591,16 @@ namespace ed {
 					textureNode.append_attribute("bottom").set_value(texmaps[3].c_str());
 					textureNode.append_attribute("right").set_value(texmaps[4].c_str());
 					textureNode.append_attribute("back").set_value(texmaps[4].c_str());
+				}
+
+				if (isTexture) {
+					ObjectManagerItem* item = m_objects->GetObjectManagerItem(texs[i]);
+
+					textureNode.append_attribute("vflip").set_value(item->Texture_VFlipped);
+					textureNode.append_attribute("min_filter").set_value(ed::gl::String::TextureMinFilter(item->Texture_MinFilter));
+					textureNode.append_attribute("mag_filter").set_value(ed::gl::String::TextureMagFilter(item->Texture_MagFilter));
+					textureNode.append_attribute("wrap_s").set_value(ed::gl::String::TextureWrap(item->Texture_WrapS));
+					textureNode.append_attribute("wrap_t").set_value(ed::gl::String::TextureWrap(item->Texture_WrapT));
 				}
 
 				if (isImage) {
@@ -2593,6 +2604,60 @@ namespace ed {
 						}
 					}
 				}
+
+				// texture properties
+				if (!isCube) {
+					ObjectManagerItem* itemData = m_objects->GetObjectManagerItem(name);
+
+					// vflip
+					bool vflip = false;
+					if (!objectNode.attribute("vflip").empty())
+						vflip = objectNode.attribute("vflip").as_bool();
+					if (vflip)
+						m_objects->FlipTexture(name);
+
+					// min filter
+					if (!objectNode.attribute("min_filter").empty()) {
+						auto filterName = objectNode.attribute("min_filter").as_string();
+						for (int i = 0; i < HARRAYSIZE(TEXTURE_MIN_FILTER_VALUES); i++)
+							if (strcmp(filterName, TEXTURE_MIN_FILTER_NAMES[i]) == 0) {
+								itemData->Texture_MinFilter = TEXTURE_MIN_FILTER_VALUES[i];
+								break;
+							}
+					}
+
+					// mag filter
+					if (!objectNode.attribute("mag_filter").empty()) {
+						auto filterName = objectNode.attribute("mag_filter").as_string();
+						for (int i = 0; i < HARRAYSIZE(TEXTURE_MAG_FILTER_VALUES); i++)
+							if (strcmp(filterName, TEXTURE_MAG_FILTER_NAMES[i]) == 0) {
+								itemData->Texture_MagFilter = TEXTURE_MAG_FILTER_VALUES[i];
+								break;
+							}
+					}
+
+					// wrap x
+					if (!objectNode.attribute("wrap_s").empty()) {
+						auto filterName = objectNode.attribute("wrap_s").as_string();
+						for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+							if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
+								itemData->Texture_WrapS = TEXTURE_WRAP_VALUES[i];
+								break;
+							}
+					}
+
+					// wrap y
+					if (!objectNode.attribute("wrap_t").empty()) {
+						auto filterName = objectNode.attribute("wrap_t").as_string();
+						for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+							if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
+								itemData->Texture_WrapT = TEXTURE_WRAP_VALUES[i];
+								break;
+							}
+					}
+
+					m_objects->UpdateTextureParameters(name);
+				}
 			} else if (strcmp(objType, "rendertexture") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
@@ -2917,10 +2982,10 @@ namespace ed {
 						int type = 0; // pipeline item
 						if (!settingItem.attribute("item").empty()) {
 							const pugi::char_t* itemType = settingItem.attribute("item").as_string();
-							if (strcmp(itemType, "rt") == 0)
+							if (strcmp(itemType, "pipe") == 0)
+								type = 0;
+							else
 								type = 1;
-							else if (strcmp(itemType, "image") == 0)
-								type = 2;
 						}
 
 						const pugi::char_t* itemName = settingItem.attribute("name").as_string();

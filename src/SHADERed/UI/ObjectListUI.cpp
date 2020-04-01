@@ -150,7 +150,7 @@ namespace ed {
 					ImGui::Separator();
 				}
 
-				if (m_data->Objects.IsRenderTexture(items[i]) || m_data->Objects.IsImage(items[i]) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
+				if (m_data->Objects.IsRenderTexture(items[i]) || m_data->Objects.IsImage(items[i]) || m_data->Objects.IsTexture(items[i]) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
 						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
 				}

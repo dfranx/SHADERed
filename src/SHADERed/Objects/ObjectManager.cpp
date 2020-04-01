@@ -184,35 +184,37 @@ namespace ed {
 		// normal texture
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
+		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// flipped texture
 		unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
-
+		unsigned char* dataPtr = paddedData;
+		if (nrChannels == 4)
+			dataPtr = data;
+		
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
-				if (nrChannels == 4) { // use data
-					flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
-					flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
-					flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
-					flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
-				} else { // use paddedData
-					flippedData[(y * width + x) * 4 + 0] = paddedData[((height - y - 1) * width + x) * 4 + 0];
-					flippedData[(y * width + x) * 4 + 1] = paddedData[((height - y - 1) * width + x) * 4 + 1];
-					flippedData[(y * width + x) * 4 + 2] = paddedData[((height - y - 1) * width + x) * 4 + 2];
-					flippedData[(y * width + x) * 4 + 3] = paddedData[((height - y - 1) * width + x) * 4 + 3];
-				}
+				flippedData[(y * width + x) * 4 + 0] = dataPtr[((height - y - 1) * width + x) * 4 + 0];
+				flippedData[(y * width + x) * 4 + 1] = dataPtr[((height - y - 1) * width + x) * 4 + 1];
+				flippedData[(y * width + x) * 4 + 2] = dataPtr[((height - y - 1) * width + x) * 4 + 2];
+				flippedData[(y * width + x) * 4 + 3] = dataPtr[((height - y - 1) * width + x) * 4 + 3];
 			}
 		}
 
 		glGenTextures(1, &item->FlippedTexture);
 		glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
+		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		item->ImageSize = glm::ivec2(width, height);
@@ -748,6 +750,13 @@ namespace ed {
 				return m_itemData[i]->Image != nullptr;
 		return false;
 	}
+	bool ObjectManager::IsTexture(const std::string& name)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == name)
+				return m_itemData[i]->IsTexture;
+		return false;
+	}
 	bool ObjectManager::IsImage3D(const std::string& name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
@@ -927,24 +936,61 @@ namespace ed {
 		return "";
 	}
 
+	void ObjectManager::FlipTexture(const std::string& name)
+	{
+		ObjectManagerItem* item = GetObjectManagerItem(name);
+
+		if (item != nullptr) {
+			GLuint tex = item->Texture;
+			for (auto& key : m_binds)
+				for (int i = 0; i < key.second.size(); i++)
+					if (key.second[i] == tex)
+						key.second[i] = item->FlippedTexture;
+			for (auto& key : m_uniformBinds)
+				for (int i = 0; i < key.second.size(); i++)
+					if (key.second[i] == tex)
+						key.second[i] = item->FlippedTexture;
+
+			item->Texture = item->FlippedTexture;
+			item->FlippedTexture = tex;
+			item->Texture_VFlipped = !item->Texture_VFlipped;
+		}
+	}
+	void ObjectManager::UpdateTextureParameters(const std::string& name)
+	{
+		ObjectManagerItem* item = GetObjectManagerItem(name);
+
+		if (item != nullptr) {
+			glBindTexture(GL_TEXTURE_2D, item->Texture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+
+			glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
+
 	void ObjectManager::Mute(const std::string& name)
 	{
-		for (int i = 0; i < m_items.size(); i++) {
-			if (m_items[i] == name) {
-				m_itemData[i]->SoundMuted = true;
-				m_itemData[i]->Sound->setVolume(0);
-				break;
-			}
+		ObjectManagerItem* item = GetObjectManagerItem(name);
+		if (item != nullptr) {
+			item->SoundMuted = true;
+			item->Sound->setVolume(0);
 		}
 	}
 	void ObjectManager::Unmute(const std::string& name)
 	{
-		for (int i = 0; i < m_items.size(); i++) {
-			if (m_items[i] == name) {
-				m_itemData[i]->SoundMuted = false;
-				m_itemData[i]->Sound->setVolume(100);
-				break;
-			}
+		ObjectManagerItem* item = GetObjectManagerItem(name);
+		if (item != nullptr) {
+			item->SoundMuted = false;
+			item->Sound->setVolume(100);
 		}
 	}
 

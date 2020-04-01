@@ -44,6 +44,8 @@ namespace ed {
 				ImGui::Text(m_data->Objects.GetObjectManagerItemName(m_currentObj).c_str());
 				if (IsRenderTexture())
 					ImGui::Text("Render Texture");
+				else if (IsTexture())
+					ImGui::Text("Texture");
 				else if (IsImage())
 					ImGui::Text("Image");
 				else if (IsImage3D())
@@ -1116,6 +1118,63 @@ namespace ed {
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
+			} else if (IsTexture()) {
+				/* VFLIP */
+				ImGui::Text("VFlip:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				bool flipped = m_currentObj->Texture_VFlipped, paramsUpdated = false;
+				if (ImGui::Checkbox("##prop_tex_vflip", &flipped)) {
+					m_data->Objects.FlipTexture(m_itemName);
+					m_data->Parser.ModifyProject();
+				}
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* MIN FILTER */
+				ImGui::Text("MinFilter:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureMinFilterCombo("##prop_tex_min", m_currentObj->Texture_MinFilter))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* MAG FILTER */
+				ImGui::Text("MagFilter:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureMagFilterCombo("##prop_tex_mag", m_currentObj->Texture_MagFilter))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* WRAP S */
+				ImGui::Text("Wrap S:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_s", m_currentObj->Texture_WrapS))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* WRAP T */
+				ImGui::Text("Wrap T:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_t", m_currentObj->Texture_WrapT))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				if (paramsUpdated) {
+					m_data->Objects.UpdateTextureParameters(m_itemName);
+					m_data->Parser.ModifyProject();
+				}
 			} else if (IsImage3D()) {
 				ed::Image3DObject* m_currentImg3D = m_currentObj->Image3D;
 
@@ -1124,7 +1183,7 @@ namespace ed {
 				ImGui::NextColumn();
 
 				ImGui::PushItemWidth(-1);
-				if (ImGui::DragInt3("##prop_rt_fsize", glm::value_ptr(m_currentImg3D->Size), 1)) {
+				if (ImGui::DragInt3("##prop_img_fsize", glm::value_ptr(m_currentImg3D->Size), 1)) {
 					if (m_currentImg3D->Size.x <= 0)
 						m_currentImg3D->Size.x = 1;
 					if (m_currentImg3D->Size.y <= 0)
@@ -1142,7 +1201,7 @@ namespace ed {
 				ImGui::Text("Format:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				if (ImGui::BeginCombo("##pui_format_combo", gl::String::Format(m_currentImg3D->Format))) {
+				if (ImGui::BeginCombo("##pui_img_format_combo", gl::String::Format(m_currentImg3D->Format))) {
 					int len = (sizeof(FORMAT_NAMES) / sizeof(*FORMAT_NAMES));
 					for (int i = 0; i < len; i++) {
 						if (ImGui::Selectable(FORMAT_NAMES[i], FORMAT_VALUES[i] == m_currentImg3D->Format)) {

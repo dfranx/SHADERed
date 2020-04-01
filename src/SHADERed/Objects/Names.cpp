@@ -185,6 +185,23 @@ const char* CULL_MODE_NAMES[] = {
 	"Front",
 	"Back"
 };
+const char* TEXTURE_MIN_FILTER_NAMES[] = {
+	"Nearest",
+	"Linear",
+	"Nearest_MipmapNearest",
+	"Linear_MipmapNearest",
+	"Nearest_MipmapLinear",
+	"Linear_MipmapLinear"
+};
+const char* TEXTURE_MAG_FILTER_NAMES[] = {
+	"Nearest",
+	"Linear"
+};
+const char* TEXTURE_WRAP_NAMES[] = {
+	"ClampToEdge",
+	"Repeat",
+	"MirroredRepeat"
+};
 const char* FORMAT_NAMES[] = {
 	"UNKNOWN",
 	"RGBA",
@@ -445,6 +462,23 @@ const unsigned int CULL_MODE_VALUES[] = {
 	GL_FRONT,
 	GL_BACK
 };
+const unsigned int TEXTURE_MIN_FILTER_VALUES[] = {
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_NEAREST_MIPMAP_NEAREST,
+	GL_LINEAR_MIPMAP_NEAREST,
+	GL_NEAREST_MIPMAP_LINEAR,
+	GL_LINEAR_MIPMAP_LINEAR
+};
+const unsigned int TEXTURE_MAG_FILTER_VALUES[] = {
+	GL_NEAREST,
+	GL_LINEAR,
+};
+const unsigned int TEXTURE_WRAP_VALUES[] = {
+	GL_CLAMP_TO_EDGE,
+	GL_REPEAT,
+	GL_MIRRORED_REPEAT
+};
 const unsigned int TOPOLOGY_ITEM_VALUES[] = {
 	-1, // "Undefined"
 	GL_POINTS,
@@ -504,6 +538,33 @@ namespace ed {
 				if (val == STENCIL_OPERATION_VALUES[i])
 					return STENCIL_OPERATION_NAMES[i];
 			return STENCIL_OPERATION_NAMES[0];
+		}
+		const char* String::TextureMinFilter(unsigned int val)
+		{
+			int len = (sizeof(TEXTURE_MIN_FILTER_VALUES) / sizeof(*TEXTURE_MIN_FILTER_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == TEXTURE_MIN_FILTER_VALUES[i])
+					return TEXTURE_MIN_FILTER_NAMES[i];
+			return TEXTURE_MIN_FILTER_NAMES[4];
+		}
+		const char* String::TextureMagFilter(unsigned int val)
+		{
+			int len = (sizeof(TEXTURE_MAG_FILTER_VALUES) / sizeof(*TEXTURE_MAG_FILTER_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == TEXTURE_MAG_FILTER_VALUES[i])
+					return TEXTURE_MAG_FILTER_NAMES[i];
+			return TEXTURE_MAG_FILTER_NAMES[1];
+		}
+		const char* String::TextureWrap(unsigned int val)
+		{
+			int len = (sizeof(TEXTURE_WRAP_VALUES) / sizeof(*TEXTURE_WRAP_VALUES));
+
+			for (int i = 0; i < len; i++)
+				if (val == TEXTURE_WRAP_VALUES[i])
+					return TEXTURE_WRAP_NAMES[i];
+			return TEXTURE_WRAP_NAMES[1];
 		}
 	}
 }
