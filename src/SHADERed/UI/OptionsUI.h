@@ -25,6 +25,7 @@ namespace ed {
 			memset(m_pluginSearch, 0, 256);
 			m_pluginNotLoadedLB = 0;
 			m_pluginLoadedLB = 0;
+			m_overwriteShortcutOpened = false;
 		}
 		//using UIView::UIView;
 
@@ -59,6 +60,8 @@ namespace ed {
 	private:
 		Page m_page;
 
+		bool m_overwriteShortcutOpened;
+		std::string m_exisitingShortcut; 
 		char m_shortcutSearch[256];
 		int m_selectedShortcut;
 		KeyboardShortcuts::Shortcut m_newShortcut;

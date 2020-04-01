@@ -47,6 +47,7 @@ namespace ed {
 		void Save();
 
 		// set vk2 to negative if not used
+		std::string Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift);
 		bool Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift);
 		inline void Remove(const std::string& name)
 		{

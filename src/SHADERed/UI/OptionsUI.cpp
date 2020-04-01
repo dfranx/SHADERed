@@ -74,6 +74,31 @@ namespace ed {
 			m_renderProject();
 
 		ImGui::EndChild();
+
+		if (m_overwriteShortcutOpened) {
+			ImGui::OpenPopup("Are you sure?##opts_popup_shrtct");
+			m_overwriteShortcutOpened = false;
+		}
+
+		if (ImGui::BeginPopupModal("Are you sure?##opts_popup_shrtct")) {
+			ImGui::Text("This will unassign %s, are you sure you want to proceed?", m_exisitingShortcut.c_str());
+			
+			if (ImGui::Button("Yes")) {
+				std::vector<std::string> names = KeyboardShortcuts::Instance().GetNameList();
+				bool updated = KeyboardShortcuts::Instance().Set(names[m_selectedShortcut], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+				if (!updated)
+					KeyboardShortcuts::Instance().Remove(names[m_selectedShortcut]);
+				m_selectedShortcut = -1;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("No")) {
+				m_selectedShortcut = -1;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 
 	void OptionsUI::ApplyTheme()
@@ -553,10 +578,15 @@ namespace ed {
 				ImGui::Text(txt.c_str());
 				ImGui::SameLine();
 				if (ImGui::Button("ASSIGN")) {
-					bool updated = KeyboardShortcuts::Instance().Set(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
-					if (!updated)
-						KeyboardShortcuts::Instance().Remove(names[i]);
-					m_selectedShortcut = -1;
+					m_exisitingShortcut = KeyboardShortcuts::Instance().Exists(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+
+					if (m_exisitingShortcut.empty()) {
+						bool updated = KeyboardShortcuts::Instance().Set(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+						if (!updated)
+							KeyboardShortcuts::Instance().Remove(names[i]);
+						m_selectedShortcut = -1;
+					} else
+						m_overwriteShortcutOpened = true;
 				}
 				ImGui::SameLine();
 				if (ImGui::Button("CANCEL"))

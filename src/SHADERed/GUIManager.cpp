@@ -1183,10 +1183,8 @@ namespace ed {
 			ImGui::TextWrapped("Version 1.3.2");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
-			ImGui::TextWrapped("This app is open sourced: ");
-			ImGui::SameLine();
-			if (ImGui::Button("link"))
-				UIHelper::ShellOpen("https://www.github.com/dfranx/SHADERed");
+			UIHelper::Markdown("This app is open sourced: [link](https://www.github.com/dfranx/SHADERed)");
+			ImGui::NewLine();
 
 			ImGui::Separator();
 
@@ -1722,7 +1720,7 @@ namespace ed {
 				ImGui::Text("A new version of SHADERed is available!");
 				ImGui::SameLine();
 				if (ImGui::Button("UPDATE")) {
-					UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/releases");
+					UIHelper::ShellOpen("https://shadered.org/download.php");
 					m_isUpdateNotificationOpened = false;
 				}
 			}

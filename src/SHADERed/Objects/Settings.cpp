@@ -94,7 +94,7 @@ namespace ed {
 		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
 		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
-		General.Tips = ini.GetBoolean("general", "tips", true);
+		General.Tips = ini.GetBoolean("general", "tips", false);
 		DPIScale = ini.GetReal("general", "uiscale", 1.0f);
 		strcpy(General.Font, ini.Get("general", "font", "data/NotoSans.ttf").c_str());
 		General.FontSize = ini.GetInteger("general", "fontsize", 18);

@@ -1,8 +1,10 @@
 #include <SHADERed/Objects/TipFetcher.h>
+#include <SHADERed/Objects/UpdateChecker.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SFML/Network.hpp>
 
 #include <pugixml/src/pugixml.hpp>
+#include <fstream>
 #include <thread>
 #include <random>
 
@@ -74,6 +76,16 @@ namespace ed {
 	}
 	void TipFetcher::Fetch(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
+		std::ifstream verReader("current_version.txt");
+		int curVer = 0;
+		if (verReader.is_open()) {
+			verReader >> curVer;
+			verReader.close();
+		}
+
+		if (curVer < UpdateChecker::MyVersion)
+			return;
+
 		if (m_thread != nullptr && m_thread->joinable())
 			m_thread->join();
 		delete m_thread;

@@ -87,19 +87,28 @@ namespace ed {
 
 		return;
 	}
+	std::string KeyboardShortcuts::Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift)
+	{
+		for (auto& i : m_data)
+			if (name != i.first && i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
+				if (!(name == "CodeUI.Save" && i.first == "Project.Save") && !(name == "Project.Save" && i.first == "CodeUI.Save") &&
+					((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) || (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor
+					(name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos))))
+				{
+					return i.first;
+				}
+			}
+		return "";
+	}
 	bool KeyboardShortcuts::Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift)
 	{
 		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && !m_canSolo(name, VK1)))
 			return false;
 
-		for (auto& i : m_data)
-			if (i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
-				if (!(name == "CodeUI.Save" && i.first == "Project.Save") && !(name == "Project.Save" && i.first == "CodeUI.Save") && ((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) || (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor
-																																		   (name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos)))) {
-					i.second.Ctrl = i.second.Alt = i.second.Shift = false;
-					i.second.Key1 = i.second.Key2 = -1;
-				}
-			}
+		std::string ext = Exists(name, VK1, VK2, alt, ctrl, shift);
+		if (!ext.empty())
+			Remove(ext);
+
 		m_data[name].Alt = alt;
 		m_data[name].Ctrl = ctrl;
 		m_data[name].Shift = shift;
