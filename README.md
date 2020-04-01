@@ -83,9 +83,9 @@ Instancing, buffers, audio shaders, ability to have more than one camera, shader
 You can also check this list too: [link](https://shadered.org/features.php).
 
 ## Supporters
-**Silver supporter(s):**
-[Hugo Locurcio](https://hugo.pro)
-
+**Supporter(s):**
+  * [Hugo Locurcio](https://hugo.pro)
+  * Senthil Kumaran Rajasekaran
 
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
