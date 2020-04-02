@@ -86,7 +86,7 @@ namespace ed {
 	void ShaderVariableContainer::Bind(void* item)
 	{
 		for (int i = 0; i < m_vars.size(); i++) {
-			FunctionVariableManager::AddToList(m_vars[i]);
+			FunctionVariableManager::Instance().AddToList(m_vars[i]);
 
 			if (m_uLocs.count(m_vars[i]->Name) == 0)
 				continue;
@@ -95,7 +95,7 @@ namespace ed {
 
 			// update values if needed
 			SystemVariableManager::Instance().Update(m_vars[i], item);
-			FunctionVariableManager::Update(m_vars[i]);
+			FunctionVariableManager::Instance().Update(m_vars[i]);
 
 			// update uniform every time we bind this container
 			// TODO: maybe we shouldn't update variables that havent changed

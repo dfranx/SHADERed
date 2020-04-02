@@ -5,115 +5,26 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace ed {
-	int FunctionVariableManager::CurrentIndex = 0;
-	std::vector<ed::ShaderVariable*> FunctionVariableManager::VariableList = std::vector<ed::ShaderVariable*>();
-
-	size_t FunctionVariableManager::GetArgumentCount(ed::FunctionShaderVariable func)
+	FunctionVariableManager::FunctionVariableManager()
 	{
-		switch (func) {
-		case FunctionShaderVariable::MatrixIdentity: return 0;
-		case FunctionShaderVariable::MatrixLookAtLH: return 9;
-		case FunctionShaderVariable::MatrixLookToLH: return 9;
-		case FunctionShaderVariable::MatrixOrthographicLH: return 4;
-		case FunctionShaderVariable::MatrixPerspectiveFovLH: return 4;
-		case FunctionShaderVariable::MatrixPerspectiveLH: return 4;
-		case FunctionShaderVariable::MatrixRotationAxis: return 4;
-		case FunctionShaderVariable::MatrixRotationNormal: return 4;
-		case FunctionShaderVariable::MatrixRotationRollPitchYaw: return 3;
-		case FunctionShaderVariable::MatrixRotationX: return 1;
-		case FunctionShaderVariable::MatrixRotationY: return 1;
-		case FunctionShaderVariable::MatrixRotationZ: return 1;
-		case FunctionShaderVariable::MatrixScaling: return 3;
-		case FunctionShaderVariable::MatrixTranslation: return 3;
-		case FunctionShaderVariable::ScalarCos: return 1;
-		case FunctionShaderVariable::ScalarSin: return 1;
-		case FunctionShaderVariable::Pointer: return 1;
-		case FunctionShaderVariable::CameraSnapshot: return 1;
-		case FunctionShaderVariable::VectorNormalize: return 4;
-		}
-		return 0;
+		m_currentIndex = 0;
 	}
-	void FunctionVariableManager::AllocateArgumentSpace(ed::ShaderVariable* var, ed::FunctionShaderVariable func)
+
+	void FunctionVariableManager::Initialize(PipelineManager* pipe)
 	{
-		size_t args = GetArgumentCount(func) * sizeof(float);
-		if (func == FunctionShaderVariable::PluginFunction)
-			args = var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
-		var->Function = func;
-
-		if (func == ed::FunctionShaderVariable::Pointer || func == ed::FunctionShaderVariable::CameraSnapshot)
-			args = sizeof(char) * VARIABLE_NAME_LENGTH;
-
-		if (var->Arguments != nullptr) {
-			free(var->Arguments);
-			var->Arguments = (char*)calloc(args, 1);
-
-			// set default values
-			switch (func) {
-			case FunctionShaderVariable::MatrixLookAtLH:
-				*LoadFloat(var->Arguments, 5) = 1;
-				*LoadFloat(var->Arguments, 7) = 1;
-				break;
-			case FunctionShaderVariable::MatrixLookToLH:
-				*LoadFloat(var->Arguments, 5) = 1;
-				*LoadFloat(var->Arguments, 7) = 1;
-				break;
-			case FunctionShaderVariable::MatrixPerspectiveLH:
-			case FunctionShaderVariable::MatrixOrthographicLH:
-				*LoadFloat(var->Arguments, 0) = 800;
-				*LoadFloat(var->Arguments, 1) = 600;
-				*LoadFloat(var->Arguments, 2) = 0.1f;
-				*LoadFloat(var->Arguments, 3) = 100.0f;
-				break;
-			case FunctionShaderVariable::MatrixPerspectiveFovLH:
-				*LoadFloat(var->Arguments, 0) = glm::half_pi<float>();
-				*LoadFloat(var->Arguments, 1) = 800 / 600.0f;
-				*LoadFloat(var->Arguments, 2) = 0.1f;
-				*LoadFloat(var->Arguments, 3) = 100.0f;
-				break;
-			case FunctionShaderVariable::MatrixRotationAxis:
-				*LoadFloat(var->Arguments, 0) = 1;
-				break;
-			case FunctionShaderVariable::MatrixRotationNormal:
-				*LoadFloat(var->Arguments, 0) = 1;
-				break;
-			case FunctionShaderVariable::VectorNormalize:
-				*LoadFloat(var->Arguments, 0) = 1;
-				break;
-			case FunctionShaderVariable::Pointer:
-				memset(var->Arguments, 0, VARIABLE_NAME_LENGTH * sizeof(char));
-				break;
-			case FunctionShaderVariable::CameraSnapshot:
-				memset(var->Arguments, 0, VARIABLE_NAME_LENGTH * sizeof(char));
-				break;
-			}
-		} else
-			var->Arguments = (char*)calloc(args, 1);
+		m_pipeline = pipe;
+		m_currentIndex = 0;
 	}
-	bool FunctionVariableManager::HasValidReturnType(ShaderVariable::ValueType ret, ed::FunctionShaderVariable func)
-	{
-		if (func >= FunctionShaderVariable::MatrixIdentity && func <= FunctionShaderVariable::MatrixTranslation)
-			return ret == ShaderVariable::ValueType::Float4x4;
-		else if (func >= FunctionShaderVariable::ScalarCos && func <= FunctionShaderVariable::ScalarSin)
-			return ret == ShaderVariable::ValueType::Float1;
-		else if (func == FunctionShaderVariable::VectorNormalize)
-			return ret > ShaderVariable::ValueType::Float1 && ret <= ShaderVariable::ValueType::Float4;
-		else if (func == FunctionShaderVariable::CameraSnapshot)
-			return ret == ShaderVariable::ValueType::Float4x4;
-		else if (func == FunctionShaderVariable::Pointer)
-			return true;
-		return false;
-	}
+
 	void FunctionVariableManager::AddToList(ed::ShaderVariable* var)
 	{
-		int& curIndex = FunctionVariableManager::CurrentIndex;
-		std::vector<ed::ShaderVariable*>& varList = FunctionVariableManager::VariableList;
-		for (int i = 0; i < curIndex; i++)
-			if (varList[i] == var)
+		for (int i = 0; i < m_currentIndex; i++)
+			if (VariableList[i] == var)
 				return; // already exists
-		if (curIndex % 20 == 0)
-			varList.resize(curIndex + 20);
-		varList[curIndex] = var;
-		curIndex++;
+		if (m_currentIndex % 20 == 0)
+			VariableList.resize(m_currentIndex + 20);
+		VariableList[m_currentIndex] = var;
+		m_currentIndex++;
 	}
 	void FunctionVariableManager::Update(ed::ShaderVariable* var)
 	{
@@ -121,19 +32,47 @@ namespace ed {
 			return;
 
 		if (var->Function == FunctionShaderVariable::Pointer) {
-			std::vector<ed::ShaderVariable*>& varList = FunctionVariableManager::VariableList;
-			for (int i = 0; i < varList.size(); i++) {
-				if (varList[i] == nullptr)
+			for (int i = 0; i < VariableList.size(); i++) {
+				if (VariableList[i] == nullptr)
 					continue;
 
-				if (strcmp(varList[i]->Name, var->Arguments) == 0) {
-					memcpy(var->Data, varList[i]->Data, ShaderVariable::GetSize(var->GetType()));
+				if (strcmp(VariableList[i]->Name, var->Arguments) == 0) {
+					memcpy(var->Data, VariableList[i]->Data, ShaderVariable::GetSize(var->GetType()));
 					break;
 				}
 			}
 		} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 			glm::mat4 camVal = CameraSnapshots::Get(var->Arguments);
 			memcpy(var->Data, glm::value_ptr(camVal), sizeof(glm::mat4));
+		} else if (var->Function == FunctionShaderVariable::ObjectProperty) {
+			ed::PipelineItem* item = m_pipeline->Get(var->Arguments);
+			char* propName = var->Arguments + PIPELINE_ITEM_NAME_LENGTH;
+			glm::vec4 dataVal(0.0f);
+
+			if (item->Type == PipelineItem::ItemType::Geometry) {
+				pipe::GeometryItem* geom = (pipe::GeometryItem*)item->Data;
+
+				if (strcmp(propName, "Position") == 0)
+					dataVal = glm::vec4(geom->Position, 1.0f);
+				else if (strcmp(propName, "Scale") == 0)
+					dataVal = glm::vec4(geom->Scale, 0.0f);
+				else if (strcmp(propName, "Rotation") == 0)
+					dataVal = glm::vec4(geom->Rotation, 0.0f);
+			} else if (item->Type == PipelineItem::ItemType::Model) {
+				pipe::Model* mdl = (pipe::Model*)item->Data;
+
+				if (strcmp(propName, "Position") == 0)
+					dataVal = glm::vec4(mdl->Position, 1.0f);
+				else if (strcmp(propName, "Scale") == 0)
+					dataVal = glm::vec4(mdl->Scale, 0.0f);
+				else if (strcmp(propName, "Rotation") == 0)
+					dataVal = glm::vec4(mdl->Rotation, 0.0f);
+			}
+
+			if (var->GetType() == ShaderVariable::ValueType::Float3)
+				memcpy(var->Data, glm::value_ptr(dataVal), sizeof(glm::vec3));
+			else if (var->GetType() == ShaderVariable::ValueType::Float4)
+				memcpy(var->Data, glm::value_ptr(dataVal), sizeof(glm::vec4));
 		} else if (var->Function >= FunctionShaderVariable::MatrixIdentity && var->Function <= FunctionShaderVariable::MatrixTranslation) {
 			glm::mat4 matrix;
 
@@ -264,8 +203,106 @@ namespace ed {
 	}
 	void FunctionVariableManager::ClearVariableList()
 	{
-		FunctionVariableManager::VariableList.clear();
-		FunctionVariableManager::CurrentIndex = 0;
+		VariableList.clear();
+		m_currentIndex = 0;
+	}
+
+	void FunctionVariableManager::AllocateArgumentSpace(ed::ShaderVariable* var, ed::FunctionShaderVariable func)
+	{
+		size_t args = GetArgumentCount(func) * sizeof(float);
+		if (func == FunctionShaderVariable::PluginFunction)
+			args = var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
+		var->Function = func;
+
+		if (func == ed::FunctionShaderVariable::Pointer || func == ed::FunctionShaderVariable::CameraSnapshot || func == ed::FunctionShaderVariable::ObjectProperty)
+			args = sizeof(char) * VARIABLE_NAME_LENGTH;
+
+		if (var->Arguments != nullptr) {
+			free(var->Arguments);
+			var->Arguments = (char*)calloc(args, 1);
+
+			// set default values
+			switch (func) {
+			case FunctionShaderVariable::MatrixLookAtLH:
+				*LoadFloat(var->Arguments, 5) = 1;
+				*LoadFloat(var->Arguments, 7) = 1;
+				break;
+			case FunctionShaderVariable::MatrixLookToLH:
+				*LoadFloat(var->Arguments, 5) = 1;
+				*LoadFloat(var->Arguments, 7) = 1;
+				break;
+			case FunctionShaderVariable::MatrixPerspectiveLH:
+			case FunctionShaderVariable::MatrixOrthographicLH:
+				*LoadFloat(var->Arguments, 0) = 800;
+				*LoadFloat(var->Arguments, 1) = 600;
+				*LoadFloat(var->Arguments, 2) = 0.1f;
+				*LoadFloat(var->Arguments, 3) = 100.0f;
+				break;
+			case FunctionShaderVariable::MatrixPerspectiveFovLH:
+				*LoadFloat(var->Arguments, 0) = glm::half_pi<float>();
+				*LoadFloat(var->Arguments, 1) = 800 / 600.0f;
+				*LoadFloat(var->Arguments, 2) = 0.1f;
+				*LoadFloat(var->Arguments, 3) = 100.0f;
+				break;
+			case FunctionShaderVariable::MatrixRotationAxis:
+				*LoadFloat(var->Arguments, 0) = 1;
+				break;
+			case FunctionShaderVariable::MatrixRotationNormal:
+				*LoadFloat(var->Arguments, 0) = 1;
+				break;
+			case FunctionShaderVariable::VectorNormalize:
+				*LoadFloat(var->Arguments, 0) = 1;
+				break;
+			case FunctionShaderVariable::CameraSnapshot:
+			case FunctionShaderVariable::ObjectProperty:
+			case FunctionShaderVariable::Pointer:
+				memset(var->Arguments, 0, VARIABLE_NAME_LENGTH * sizeof(char));
+				break;
+			}
+		} else
+			var->Arguments = (char*)calloc(args, 1);
+	}
+	size_t FunctionVariableManager::GetArgumentCount(ed::FunctionShaderVariable func)
+	{
+		switch (func) {
+		case FunctionShaderVariable::MatrixIdentity: return 0;
+		case FunctionShaderVariable::MatrixLookAtLH: return 9;
+		case FunctionShaderVariable::MatrixLookToLH: return 9;
+		case FunctionShaderVariable::MatrixOrthographicLH: return 4;
+		case FunctionShaderVariable::MatrixPerspectiveFovLH: return 4;
+		case FunctionShaderVariable::MatrixPerspectiveLH: return 4;
+		case FunctionShaderVariable::MatrixRotationAxis: return 4;
+		case FunctionShaderVariable::MatrixRotationNormal: return 4;
+		case FunctionShaderVariable::MatrixRotationRollPitchYaw: return 3;
+		case FunctionShaderVariable::MatrixRotationX: return 1;
+		case FunctionShaderVariable::MatrixRotationY: return 1;
+		case FunctionShaderVariable::MatrixRotationZ: return 1;
+		case FunctionShaderVariable::MatrixScaling: return 3;
+		case FunctionShaderVariable::MatrixTranslation: return 3;
+		case FunctionShaderVariable::ScalarCos: return 1;
+		case FunctionShaderVariable::ScalarSin: return 1;
+		case FunctionShaderVariable::Pointer: return 1;
+		case FunctionShaderVariable::CameraSnapshot: return 1;
+		case FunctionShaderVariable::ObjectProperty: return 2;
+		case FunctionShaderVariable::VectorNormalize: return 4;
+		}
+		return 0;
+	}
+	bool FunctionVariableManager::HasValidReturnType(ShaderVariable::ValueType ret, ed::FunctionShaderVariable func)
+	{
+		if (func >= FunctionShaderVariable::MatrixIdentity && func <= FunctionShaderVariable::MatrixTranslation)
+			return ret == ShaderVariable::ValueType::Float4x4;
+		else if (func >= FunctionShaderVariable::ScalarCos && func <= FunctionShaderVariable::ScalarSin)
+			return ret == ShaderVariable::ValueType::Float1;
+		else if (func == FunctionShaderVariable::VectorNormalize)
+			return ret > ShaderVariable::ValueType::Float1 && ret <= ShaderVariable::ValueType::Float4;
+		else if (func == FunctionShaderVariable::CameraSnapshot)
+			return ret == ShaderVariable::ValueType::Float4x4;
+		else if (func == FunctionShaderVariable::Pointer)
+			return true;
+		else if (func == FunctionShaderVariable::ObjectProperty)
+			return ret == ShaderVariable::ValueType::Float4 || ret == ShaderVariable::ValueType::Float3;
+		return false;
 	}
 	float* FunctionVariableManager::LoadFloat(char* data, int index)
 	{

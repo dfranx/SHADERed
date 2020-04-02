@@ -974,6 +974,13 @@ namespace ed {
 						strcpy(var->Arguments, value.text().as_string());
 					else if (var->Function == FunctionShaderVariable::CameraSnapshot)
 						strcpy(var->Arguments, value.text().as_string());
+					else if (var->Function == FunctionShaderVariable::ObjectProperty) {
+						if (colID == 0)
+							strcpy(var->Arguments, value.text().as_string());
+						else
+							strcpy(var->Arguments + PIPELINE_ITEM_NAME_LENGTH, value.text().as_string());
+						colID++;
+					}
 					else if (var->Function == FunctionShaderVariable::PluginFunction)
 						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, getInnerXML(value).c_str());
 					else
@@ -1016,6 +1023,9 @@ namespace ed {
 				valueRowNode.append_child("value").text().set(var->Arguments);
 			} else if (var->Function == FunctionShaderVariable::CameraSnapshot) {
 				valueRowNode.append_child("value").text().set(var->Arguments);
+			} else if (var->Function == FunctionShaderVariable::ObjectProperty) {
+				valueRowNode.append_child("value").text().set(var->Arguments);
+				valueRowNode.append_child("value").text().set(var->Arguments + PIPELINE_ITEM_NAME_LENGTH);
 			} else if (var->Function == FunctionShaderVariable::PluginFunction) {
 				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
 
@@ -1023,9 +1033,8 @@ namespace ed {
 				valueRowNode.append_child("value").append_buffer(valNode, strlen(valNode));
 			} else {
 				// save arguments
-				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++) {
+				for (int i = 0; i < FunctionVariableManager::GetArgumentCount(var->Function); i++)
 					valueRowNode.append_child("value").text().set(*FunctionVariableManager::LoadFloat(var->Arguments, i));
-				}
 			}
 		}
 	}

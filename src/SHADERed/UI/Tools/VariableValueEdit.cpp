@@ -1,5 +1,6 @@
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
+#include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/Tools/VariableValueEdit.h>
@@ -194,7 +195,7 @@ namespace ed {
 
 		ImGui::Columns(2, 0, false);
 
-		ImGui::SetColumnWidth(0, 15 + 105);
+		ImGui::SetColumnWidth(0, Settings::Instance().CalculateWidth(120));
 
 		ImGui::Indent(15);
 		switch (m_var->Function) {
@@ -202,7 +203,7 @@ namespace ed {
 			ImGui::Text("Variable:");
 			ImGui::NextColumn();
 
-			auto& varList = FunctionVariableManager::VariableList;
+			auto& varList = FunctionVariableManager::Instance().VariableList;
 			if (ImGui::BeginCombo(("##ptrVars" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
 				for (int n = 0; n < varList.size(); n++) {
 					if (m_var == varList[n] || varList[n] == nullptr)
@@ -229,7 +230,7 @@ namespace ed {
 			ImGui::NextColumn();
 
 			auto& camList = CameraSnapshots::GetList();
-			if (ImGui::BeginCombo(("##ptrCams" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
+			if (ImGui::BeginCombo(("##camSnaps" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
 				for (int n = 0; n < camList.size(); n++) {
 					bool is_selected = strcmp(m_var->Arguments, camList[n].c_str()) == 0;
 					if (ImGui::Selectable(camList[n].c_str(), is_selected)) {
@@ -242,6 +243,71 @@ namespace ed {
 				ImGui::EndCombo();
 			}
 			ImGui::NextColumn();
+		} break;
+
+		case FunctionShaderVariable::ObjectProperty: {
+			auto& pipeList = m_data->Pipeline.GetList();
+			ImGui::Text("Item:");
+			ImGui::NextColumn();
+			if (ImGui::BeginCombo(("##pipeItems" + std::string(m_var->Name)).c_str(), m_var->Arguments)) {
+				for (int n = 0; n < pipeList.size(); n++) {
+					if (pipeList[n]->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pipeList[n]->Data;
+						for (int j = 0; j < pass->Items.size(); j++) {
+							PipelineItem* item = pass->Items[j];
+
+							if (item->Type != PipelineItem::ItemType::Geometry && item->Type != PipelineItem::ItemType::Model)
+								continue;
+							
+							bool is_selected = strcmp(m_var->Arguments, item->Name) == 0;
+							if (ImGui::Selectable(item->Name, is_selected)) {
+								strcpy(m_var->Arguments, item->Name);
+								ret = true;
+							}
+							if (is_selected)
+								ImGui::SetItemDefaultFocus();
+						}
+					}
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::NextColumn();
+
+			char* propName = m_var->Arguments + PIPELINE_ITEM_NAME_LENGTH;
+			ImGui::Text("Property:");
+			ImGui::NextColumn();
+			if (ImGui::BeginCombo(("##itemProps" + std::string(m_var->Name)).c_str(), propName)) {
+				/* POSITION */
+				bool isSelected = strcmp(propName, "Position") == 0;
+				if (ImGui::Selectable("Position", isSelected)) {
+					strcpy(propName, "Position");
+					ret = true;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
+				/* SCALE */
+				isSelected = strcmp(propName, "Scale") == 0;
+				if (ImGui::Selectable("Scale", isSelected)) {
+					strcpy(propName, "Scale");
+					ret = true;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
+				/* ROTATION */
+				isSelected = strcmp(propName, "Rotation") == 0;
+				if (ImGui::Selectable("Rotation", isSelected)) {
+					strcpy(propName, "Rotation");
+					ret = true;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
+				ImGui::EndCombo();
+			}
+			ImGui::NextColumn();
+
 		} break;
 
 		case FunctionShaderVariable::MatrixLookAtLH: {

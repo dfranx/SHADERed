@@ -196,6 +196,8 @@ namespace ed {
 
 		m_checkChangelog();
 
+		FunctionVariableManager::Instance().Initialize(&objects->Pipeline);
+
 		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
 	}
 	GUIManager::~GUIManager()
@@ -515,7 +517,7 @@ namespace ed {
 
 		// update audio textures
 		m_data->Objects.Update(delta);
-		FunctionVariableManager::ClearVariableList();
+		FunctionVariableManager::Instance().ClearVariableList();
 
 		// update editor & workspace font
 		if (((CodeEditorUI*)Get(ViewID::Code))->NeedsFontUpdate() || ((m_cachedFont != settings.General.Font || m_cachedFontSize != settings.General.FontSize) && strcmp(settings.General.Font, "null") != 0) || m_fontNeedsUpdate) {

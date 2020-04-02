@@ -88,6 +88,7 @@ const char* FUNCTION_NAMES[] = {
 	"None",
 	"Pointer",
 	"CameraSnapshot",
+	"ObjectProperty",
 	"MatrixIdentity",
 	"MatrixLookAtLH",
 	"MatrixLookToLH",

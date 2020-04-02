@@ -1,20 +1,35 @@
 #pragma once
 #include <SHADERed/Objects/ShaderVariable.h>
+#include <SHADERed/Objects/PipelineManager.h>
 #include <vector>
 
 namespace ed {
 	class FunctionVariableManager {
 	public:
-		static size_t GetArgumentCount(ed::FunctionShaderVariable func);
+		FunctionVariableManager();
+
+		void Initialize(PipelineManager* pipe);
+
+		void AddToList(ed::ShaderVariable* var);
+		void Update(ed::ShaderVariable* var);
+
 		static void AllocateArgumentSpace(ed::ShaderVariable* var, ed::FunctionShaderVariable func);
+		static size_t GetArgumentCount(ed::FunctionShaderVariable func);
 		static bool HasValidReturnType(ShaderVariable::ValueType ret, ed::FunctionShaderVariable func);
-		static void AddToList(ed::ShaderVariable* var);
-		static void Update(ed::ShaderVariable* var);
 		static float* LoadFloat(char* data, int index);
 
-		static void ClearVariableList();
+		void ClearVariableList();
 
-		static int CurrentIndex;
-		static std::vector<ed::ShaderVariable*> VariableList;
+		std::vector<ed::ShaderVariable*> VariableList;
+
+		static inline FunctionVariableManager& Instance()
+		{
+			static FunctionVariableManager ret;
+			return ret;
+		}
+
+	private:
+		int m_currentIndex;
+		PipelineManager* m_pipeline;
 	};
 }
