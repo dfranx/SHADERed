@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tips>
+	<tip author="dfranx">
+		<title>Input layout / Vertex attributes</title>
+<text>To render the geometry, you have to specify the format of the vertex buffer. This is done through the input layout manager (right click on shader pass -> Input layout).
+Following vertex attributes are currently available:
+  * POSITION
+  * NORMAL
+  * TEXCOORD
+  * TANGENT
+  * BITANGENT
+  * COLOR</text>
+	</tip>
+	
+	
+	<tip author="dfranx">
+		<title>Resource manager</title>
+<text>You can reorder resources bound to the shader pass through the resource manager. To access the resource manager, right click on the desired shader pass and press the "Resources" button.</text>
+	</tip>
+</tips>

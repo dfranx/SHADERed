@@ -1,6 +1,7 @@
 [v1.3.2]
 + add texture properties
-+ add shader variables that point to shader properties
++ add shader variables that point to pipeline item properties
++ add a splash screen
 + add "Changelog" popup which shows up on startup after an update
 + add "Show tips on startup" option
 + add "This will unassign Shortcut.ID" popup when changing shortcuts

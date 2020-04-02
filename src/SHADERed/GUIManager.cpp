@@ -37,15 +37,13 @@
 #include <filesystem>
 #include <fstream>
 
+#include <stb/stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
 #define STBIR_DEFAULT_FILTER_DOWNSAMPLE STBIR_FILTER_CATMULLROM
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize.h>
-/*	STBIR_FILTER_CUBICBSPLINE
-	STBIR_FILTER_CATMULLROM
-	STBIR_FILTER_MITCHELL		*/
 
 #if defined(__APPLE__)
 // no includes on mac os
@@ -107,9 +105,12 @@ namespace ed {
 		m_expcppSavePath = "./export.cpp";
 		m_expcppError = false;
 		m_tipOpened = false;
+		m_splashScreen = true;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
+
+		SDL_GetWindowSize(m_wnd, &m_width, &m_height);
 
 		Logger::Get().Log("Initializing Dear ImGUI");
 
@@ -176,29 +177,12 @@ namespace ed {
 
 		ImGui::GetStyle().ScaleAllSizes(Settings::Instance().DPIScale);
 
-		if (Settings::Instance().General.CheckUpdates) {
-			m_updateCheck.CheckForUpdates([&]() {
-				m_isUpdateNotificationOpened = true;
-				m_updateNotifyClock.restart();
-			});
-		}
-
-		if (Settings::Instance().General.Tips) {
-			ed::TipFetcher tips;
-			tips.Fetch([&](int n, int i, const std::string& title, const std::string& text) {
-				m_tipCount = n;
-				m_tipIndex = i;
-				m_tipTitle = title + " (tip " + std::to_string(m_tipIndex + 1) + "/" + std::to_string(m_tipCount) + ")";
-				m_tipText = text;
-				m_tipOpened = true;
-			});
-		}
-
-		m_checkChangelog();
+		((OptionsUI*)m_options)->ApplyTheme();
 
 		FunctionVariableManager::Instance().Initialize(&objects->Pipeline);
-
 		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
+
+		m_splashScreenLoad();
 	}
 	GUIManager::~GUIManager()
 	{
@@ -226,6 +210,11 @@ namespace ed {
 	void GUIManager::OnEvent(const SDL_Event& e)
 	{
 		m_imguiHandleEvent(e);
+
+		if (m_splashScreen) {
+
+			return;
+		}
 
 		// check for shortcut presses
 		if (e.type == SDL_KEYDOWN) {
@@ -288,206 +277,6 @@ namespace ed {
 			dview->OnEvent(e);
 
 		m_data->Plugins.OnEvent(e);
-	}
-	void GUIManager::Destroy()
-	{
-		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
-	}
-	void GUIManager::m_tooltip(const std::string& text)
-	{
-		if (ImGui::IsItemHovered()) {
-			ImGui::PopFont(); // TODO: remove this if its being used in non-toolbar places
-
-			ImGui::BeginTooltip();
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			ImGui::TextUnformatted(text.c_str());
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-
-			ImGui::PushFont(m_iconFontLarge);
-		}
-	}
-	void GUIManager::m_renderToolbar()
-	{
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + ImGui::GetFrameHeight()));
-		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("##toolbar", 0, window_flags);
-		ImGui::PopStyleVar(3);
-
-		float bHeight = TOOLBAR_HEIGHT / 2 + ImGui::GetStyle().FramePadding.y * 2;
-
-		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - Settings::Instance().CalculateSize(bHeight) / 2);
-		ImGui::Indent(Settings::Instance().CalculateSize(15));
-
-		/*
-			project (open, open directory, save, empty, new shader) ||
-			objects (new texture, new cubemap, new audio, new render texture) ||
-			preview (screenshot, pause, zoom in, zoom out, maximize) ||
-			random (settings)
-		*/
-		ImGui::Columns(4);
-
-		ImGui::PushFont(m_iconFontLarge);
-
-		const ImVec2 labelSize = ImGui::CalcTextSize(UI_ICON_DOCUMENT_FOLDER, NULL, true);
-		const float btnWidth = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
-		const float scaledBtnWidth = Settings::Instance().CalculateWidth(btnWidth) + ImGui::GetStyle().ItemSpacing.x * 2.0f;
-
-		ImGui::SetColumnWidth(0, 5 * scaledBtnWidth);
-		ImGui::SetColumnWidth(1, 8 * scaledBtnWidth);
-		ImGui::SetColumnWidth(2, 4 * scaledBtnWidth);
-
-		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
-		// repetitions
-		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) { // OPEN PROJECT
-			bool cont = true;
-			if (m_data->Parser.IsProjectModified()) {
-				int btnID = this->AreYouSure();
-				if (btnID == 2)
-					cont = false;
-			}
-
-			if (cont) {
-				std::string file;
-				if (UIHelper::GetOpenFileDialog(file, "sprj"))
-					Open(file);
-			}
-		}
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		m_tooltip("Open a project");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_SAVE)) // SAVE
-			Save();
-		m_tooltip("Save project");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_FILE)) { // EMPTY PROJECT
-			m_selectedTemplate = "?empty";
-			m_isNewProjectPopupOpened = true;
-		}
-		m_tooltip("New empty project");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FOLDER_OPEN)) { // OPEN DIRECTORY
-			std::string prpath = m_data->Parser.GetProjectPath("");
-#if defined(__APPLE__)
-			system(("open " + prpath).c_str()); // [MACOS]
-#elif defined(__linux__) || defined(__unix__)
-			system(("xdg-open " + prpath).c_str());
-#elif defined(_WIN32)
-			ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#endif
-		}
-		m_tooltip("Open project directory");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_CODE)) { // NEW SHADER FILE
-			std::string file;
-			bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
-
-			if (success) {
-				// create a file (cross platform)
-				std::ofstream ofs(file);
-				ofs << "// empty shader file\n";
-				ofs.close();
-			}
-		}
-		m_tooltip("New shader file");
-		ImGui::NextColumn();
-
-		if (ImGui::Button(UI_ICON_PIXELS)) this->CreateNewShaderPass();
-		m_tooltip("New shader pass");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FX)) this->CreateNewComputePass();
-		m_tooltip("New compute pass");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
-		m_tooltip("New texture");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_IMAGE)) this->CreateNewImage();
-		m_tooltip("New empty image");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_WAVE)) this->CreateNewAudio();
-		m_tooltip("New audio");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_TRANSPARENT)) this->CreateNewRenderTexture();
-		m_tooltip("New render texture");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_CUBE)) this->CreateNewCubemap();
-		m_tooltip("New cubemap");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_FILE_TEXT)) this->CreateNewBuffer();
-		m_tooltip("New buffer");
-		ImGui::NextColumn();
-
-		if (ImGui::Button(UI_ICON_REFRESH)) { // REBUILD PROJECT
-			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
-			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
-			for (PipelineItem*& pass : passes)
-				m_data->Renderer.Recompile(pass->Name);
-		}
-		m_tooltip("Rebuild");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_CAMERA)) m_savePreviewPopupOpened = true; // TAKE A SCREENSHOT
-		m_tooltip("Render");
-		ImGui::SameLine();
-		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE))
-			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
-		m_tooltip("Pause preview");
-		ImGui::SameLine();
-		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
-		m_tooltip("Performance mode");
-		ImGui::NextColumn();
-
-		if (ImGui::Button(UI_ICON_GEAR)) { // SETTINGS BUTTON
-			m_optionsOpened = true;
-			*m_settingsBkp = Settings::Instance();
-			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
-		}
-		m_tooltip("Settings");
-		ImGui::NextColumn();
-
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
-		ImGui::Columns(1);
-
-		ImGui::End();
-	}
-	int GUIManager::AreYouSure()
-	{
-		const SDL_MessageBoxButtonData buttons[] = {
-			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
-			{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
-			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
-		};
-		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_INFORMATION,						/* .flags */
-			m_wnd,											/* .window */
-			"SHADERed",										/* .title */
-			"Save changes to the project before quitting?", /* .message */
-			SDL_arraysize(buttons),							/* .numbuttons */
-			buttons,										/* .buttons */
-			NULL											/* .colorScheme */
-		};
-		int buttonid;
-		if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
-			Logger::Get().Log("Failed to open message box.", true);
-			return -1;
-		}
-
-		if (buttonid == 0) // save
-			Save();
-
-		return buttonid;
-	}
-	void GUIManager::StopDebugging()
-	{
-		CodeEditorUI* codeUI = (CodeEditorUI*)Get(ViewID::Code);
-		codeUI->StopDebugging();
-		m_data->Debugger.SetDebugging(false);
 	}
 	void GUIManager::Update(float delta)
 	{
@@ -569,6 +358,12 @@ namespace ed {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL2_NewFrame(m_wnd);
 		ImGui::NewFrame();
+
+		// splash screen
+		if (m_splashScreen) {
+			m_splashScreenRender();
+			return;
+		}
 
 		// toolbar
 		static bool initializedToolbar = false;
@@ -1736,6 +1531,333 @@ namespace ed {
 		// render ImGUI
 		ImGui::Render();
 	}
+	void GUIManager::Render()
+	{
+		ImDrawData* drawData = ImGui::GetDrawData();
+		if (drawData != NULL) {
+			// actually render to back buffer
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+			// Update and Render additional Platform Windows
+			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+				ImGui::UpdatePlatformWindows();
+				ImGui::RenderPlatformWindowsDefault();
+			}
+		}
+	}
+
+	void GUIManager::m_splashScreenRender()
+	{
+		SDL_GetWindowSize(m_wnd, &m_width, &m_height);
+		float wndRounding = ImGui::GetStyle().WindowRounding;
+		float wndBorder = ImGui::GetStyle().WindowBorderSize;
+		ImGui::GetStyle().WindowRounding = 0.0f;
+		ImGui::GetStyle().WindowBorderSize = 0.0f;
+
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(m_width, m_height));
+		if (ImGui::Begin("##splash_screen", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, (m_height - 324) / 6));
+			ImGui::Image((ImTextureID)m_splashScreenIcon, ImVec2(350, 324));
+
+			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, m_height - 326));
+			ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(350, 324));
+		}
+		ImGui::End();
+
+		ImGui::GetStyle().WindowRounding = wndRounding;
+		ImGui::GetStyle().WindowBorderSize = wndBorder;
+
+		// render ImGUI
+		ImGui::Render();
+
+		if (m_splashScreenTimer.GetElapsedTime() > 0.85f && m_splashScreenLoaded)
+			m_splashScreen = false;
+
+		// rather than moving everything on the other thread rn, load on this one but first render the splash screen (maybe TODO)
+		if (m_splashScreenFrame < 5)
+			m_splashScreenFrame++;
+		else if (!m_splashScreenLoaded) {
+			// check for updates
+			if (Settings::Instance().General.CheckUpdates) {
+				m_updateCheck.CheckForUpdates([&]() {
+					m_isUpdateNotificationOpened = true;
+					m_updateNotifyClock.restart();
+				});
+			}
+
+			// check for tips
+			if (Settings::Instance().General.Tips) {
+				ed::TipFetcher tips;
+				tips.Fetch([&](int n, int i, const std::string& title, const std::string& text) {
+					m_tipCount = n;
+					m_tipIndex = i;
+					m_tipTitle = title + " (tip " + std::to_string(m_tipIndex + 1) + "/" + std::to_string(m_tipCount) + ")";
+					m_tipText = text;
+					m_tipOpened = true;
+				});
+			}
+
+			// check the changelog
+			m_checkChangelog();
+
+			// load plugins
+			m_data->Plugins.Init(m_data, this);
+
+			m_splashScreenLoaded = true;
+		}
+	}
+	void GUIManager::m_splashScreenLoad()
+	{
+		stbi_set_flip_vertically_on_load(0);
+
+		// logo 
+		int req_format = STBI_rgb_alpha;
+		int width, height, orig_format;
+		unsigned char* data = stbi_load("./data/splash_screen_logo.png", &width, &height, &orig_format, req_format);
+		if (data == NULL) {
+			ed::Logger::Get().Log("Failed to load splash screen icon", true);
+			return;
+		}
+		glGenTextures(1, &m_splashScreenIcon);
+		glBindTexture(GL_TEXTURE_2D, m_splashScreenIcon);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		stbi_image_free(data);
+
+		// check if we should use black or white text
+		bool white = true;
+		ImVec4 wndBg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+		float avgWndBg = (wndBg.x + wndBg.y + wndBg.z) / 3.0f;
+		if (avgWndBg >= 0.5f)
+			white = false;
+
+		// text
+		data = stbi_load(white ? "./data/splash_screen_text_white.png" : "./data/splash_screen_text_black.png", &width, &height, &orig_format, req_format);
+		if (data == NULL) {
+			ed::Logger::Get().Log("Failed to load splash screen icon", true);
+			return;
+		}
+		glGenTextures(1, &m_splashScreenText);
+		glBindTexture(GL_TEXTURE_2D, m_splashScreenText);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		stbi_image_free(data);
+
+		stbi_set_flip_vertically_on_load(1);
+
+		m_splashScreenFrame = 0;
+		m_splashScreenLoaded = false;
+		m_splashScreenTimer.Restart();
+	}
+
+	void GUIManager::StopDebugging()
+	{
+		CodeEditorUI* codeUI = (CodeEditorUI*)Get(ViewID::Code);
+		codeUI->StopDebugging();
+		m_data->Debugger.SetDebugging(false);
+	}
+	void GUIManager::Destroy()
+	{
+		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
+	}
+
+	int GUIManager::AreYouSure()
+	{
+		const SDL_MessageBoxButtonData buttons[] = {
+			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
+			{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
+			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+		};
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_INFORMATION,						/* .flags */
+			m_wnd,											/* .window */
+			"SHADERed",										/* .title */
+			"Save changes to the project before quitting?", /* .message */
+			SDL_arraysize(buttons),							/* .numbuttons */
+			buttons,										/* .buttons */
+			NULL											/* .colorScheme */
+		};
+		int buttonid;
+		if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+			Logger::Get().Log("Failed to open message box.", true);
+			return -1;
+		}
+
+		if (buttonid == 0) // save
+			Save();
+
+		return buttonid;
+	}
+	void GUIManager::m_tooltip(const std::string& text)
+	{
+		if (ImGui::IsItemHovered()) {
+			ImGui::PopFont(); // TODO: remove this if its being used in non-toolbar places
+
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(text.c_str());
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+
+			ImGui::PushFont(m_iconFontLarge);
+		}
+	}
+	void GUIManager::m_renderToolbar()
+	{
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + ImGui::GetFrameHeight()));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("##toolbar", 0, window_flags);
+		ImGui::PopStyleVar(3);
+
+		float bHeight = TOOLBAR_HEIGHT / 2 + ImGui::GetStyle().FramePadding.y * 2;
+
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 2 - Settings::Instance().CalculateSize(bHeight) / 2);
+		ImGui::Indent(Settings::Instance().CalculateSize(15));
+
+		/*
+			project (open, open directory, save, empty, new shader) ||
+			objects (new texture, new cubemap, new audio, new render texture) ||
+			preview (screenshot, pause, zoom in, zoom out, maximize) ||
+			random (settings)
+		*/
+		ImGui::Columns(4);
+
+		ImGui::PushFont(m_iconFontLarge);
+
+		const ImVec2 labelSize = ImGui::CalcTextSize(UI_ICON_DOCUMENT_FOLDER, NULL, true);
+		const float btnWidth = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
+		const float scaledBtnWidth = Settings::Instance().CalculateWidth(btnWidth) + ImGui::GetStyle().ItemSpacing.x * 2.0f;
+
+		ImGui::SetColumnWidth(0, 5 * scaledBtnWidth);
+		ImGui::SetColumnWidth(1, 8 * scaledBtnWidth);
+		ImGui::SetColumnWidth(2, 4 * scaledBtnWidth);
+
+		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
+		// repetitions
+		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) { // OPEN PROJECT
+			bool cont = true;
+			if (m_data->Parser.IsProjectModified()) {
+				int btnID = this->AreYouSure();
+				if (btnID == 2)
+					cont = false;
+			}
+
+			if (cont) {
+				std::string file;
+				if (UIHelper::GetOpenFileDialog(file, "sprj"))
+					Open(file);
+			}
+		}
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		m_tooltip("Open a project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_SAVE)) // SAVE
+			Save();
+		m_tooltip("Save project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_FILE)) { // EMPTY PROJECT
+			m_selectedTemplate = "?empty";
+			m_isNewProjectPopupOpened = true;
+		}
+		m_tooltip("New empty project");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FOLDER_OPEN)) { // OPEN DIRECTORY
+			std::string prpath = m_data->Parser.GetProjectPath("");
+#if defined(__APPLE__)
+			system(("open " + prpath).c_str()); // [MACOS]
+#elif defined(__linux__) || defined(__unix__)
+			system(("xdg-open " + prpath).c_str());
+#elif defined(_WIN32)
+			ShellExecuteA(NULL, "open", prpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+		}
+		m_tooltip("Open project directory");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_CODE)) { // NEW SHADER FILE
+			std::string file;
+			bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
+
+			if (success) {
+				// create a file (cross platform)
+				std::ofstream ofs(file);
+				ofs << "// empty shader file\n";
+				ofs.close();
+			}
+		}
+		m_tooltip("New shader file");
+		ImGui::NextColumn();
+
+		if (ImGui::Button(UI_ICON_PIXELS)) this->CreateNewShaderPass();
+		m_tooltip("New shader pass");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FX)) this->CreateNewComputePass();
+		m_tooltip("New compute pass");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
+		m_tooltip("New texture");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_IMAGE)) this->CreateNewImage();
+		m_tooltip("New empty image");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_WAVE)) this->CreateNewAudio();
+		m_tooltip("New audio");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_TRANSPARENT)) this->CreateNewRenderTexture();
+		m_tooltip("New render texture");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_CUBE)) this->CreateNewCubemap();
+		m_tooltip("New cubemap");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_TEXT)) this->CreateNewBuffer();
+		m_tooltip("New buffer");
+		ImGui::NextColumn();
+
+		if (ImGui::Button(UI_ICON_REFRESH)) { // REBUILD PROJECT
+			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
+			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+			for (PipelineItem*& pass : passes)
+				m_data->Renderer.Recompile(pass->Name);
+		}
+		m_tooltip("Rebuild");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_CAMERA)) m_savePreviewPopupOpened = true; // TAKE A SCREENSHOT
+		m_tooltip("Render");
+		ImGui::SameLine();
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE))
+			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+		m_tooltip("Pause preview");
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
+		m_tooltip("Performance mode");
+		ImGui::NextColumn();
+
+		if (ImGui::Button(UI_ICON_GEAR)) { // SETTINGS BUTTON
+			m_optionsOpened = true;
+			*m_settingsBkp = Settings::Instance();
+			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
+		}
+		m_tooltip("Settings");
+		ImGui::NextColumn();
+
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		ImGui::Columns(1);
+
+		ImGui::End();
+	}
 	void GUIManager::m_renderOptions()
 	{
 		OptionsUI* options = (OptionsUI*)m_options;
@@ -1799,20 +1921,6 @@ namespace ed {
 			KeyboardShortcuts::Instance().SetMap(m_shortcutsBkp);
 			((OptionsUI*)m_options)->ApplyTheme();
 			m_optionsOpened = false;
-		}
-	}
-	void GUIManager::Render()
-	{
-		ImDrawData* drawData = ImGui::GetDrawData();
-		if (drawData != NULL) {
-			// actually render to back buffer
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-			// Update and Render additional Platform Windows
-			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-				ImGui::UpdatePlatformWindows();
-				ImGui::RenderPlatformWindowsDefault();
-			}
 		}
 	}
 

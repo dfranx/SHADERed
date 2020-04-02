@@ -29,7 +29,7 @@ namespace ed {
 		sf::Http http("http://api.shadered.org");
 		sf::Http::Request request;
 		request.setUri("/tips.xml");
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.75f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();

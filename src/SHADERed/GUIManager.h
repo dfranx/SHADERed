@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/UpdateChecker.h>
+#include <SHADERed/Engine/Timer.h>
 
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>
@@ -140,6 +141,14 @@ namespace ed {
 		bool m_tipOpened;
 		int m_tipIndex, m_tipCount;
 		std::string m_tipTitle, m_tipText;
+
+		void m_splashScreenRender();
+		void m_splashScreenLoad();
+		bool m_splashScreen;
+		unsigned int m_splashScreenIcon, m_splashScreenText;
+		unsigned int m_splashScreenFrame;
+		eng::Timer m_splashScreenTimer;
+		bool m_splashScreenLoaded;
 
 		bool m_savePreviewSeq;
 		float m_savePreviewSeqDuration;
