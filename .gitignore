@@ -1,35 +1,46 @@
-./Debug*
+# IDE directories
+.vs/
+.vscode/
+
+# Generated build system files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
 install_manifest.txt
-./Release*
 *.vcxproj.*
-.vs
-.vscode
+VSProject
+vsproject32
+Makefile
+libs/**/*.cmake
+
+# Generated files
 vNext.txt
-settings.ini
 examples/GLSLtest
 examples/test
-CMakeFiles
-libs/**/Makefile
-libs/**/*.a
-libs/**/*.cmake
-libs/**/bin
 libs/**/*.tcl
-cmake_install.cmake
-CMakeCache.txt
+
+# Compiled binaries
+./Debug*
+./Release*
+*.a
+*.exe
+*.dll
+*.ilk
+*.pdb
 bin/SHADERed
 bin/SHADERed.exe
-bin/log.txt
-bin/*.dll
-bin/*.ilk
-bin/*.pdb
 bin/plugins/*
 bin/Debug
 bin/Release
-VSProject
-vsproject32
-test
-CMakeCache.txt
-Makefile
+
+# Local application settings
+settings.ini
+
+# Autoupdate information
+bin/current_version.txt
+
+# Logs
+bin/log.txt
 
 # Ignore out-of-source build directory.
 build/
