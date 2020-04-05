@@ -1,4 +1,5 @@
 [v1.3.3]
++ fix a bug that caused SHADERed to crash when parsing error messages
 
 [v1.3.2]
 + add texture properties

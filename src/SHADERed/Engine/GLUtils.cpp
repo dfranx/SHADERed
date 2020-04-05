@@ -187,6 +187,13 @@ namespace ed {
 			return ret;
 		}
 
+		bool isAllDigits(const std::string& str)
+		{
+			for (int i = 0; i < str.size(); i++)
+				if (!isdigit(str[i]))
+					return false;
+			return true;
+		}
 		std::vector<MessageStack::Message> ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias)
 		{
 			std::vector<MessageStack::Message> ret;
@@ -210,13 +217,19 @@ namespace ed {
 						if (secondD == std::string::npos || thirdD == std::string::npos)
 							continue;
 
-						int lineNr = std::stoi(line.substr(secondD + 1, thirdD - (secondD + 1)));
+						int lineNr = -1;
+						std::string lineStr = line.substr(secondD + 1, thirdD - (secondD + 1));
+						if (isAllDigits(lineStr))
+							lineNr = std::stoi(lineStr) - lineBias;
 						std::string msg = line.substr(thirdD + 2);
 						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
 
 					} else {
 						// Nvidia error
-						int lineNr = std::stoi(line.substr(firstPar + 1, lastPar - (firstPar + 1))) - lineBias;
+						int lineNr = -1;
+						std::string lineStr = line.substr(firstPar + 1, lastPar - (firstPar + 1));
+						if (isAllDigits(lineStr))
+							lineNr = std::stoi(lineStr) - lineBias;
 						std::string msg = line.substr(firstD + 2);
 						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
 					}
@@ -241,7 +254,10 @@ namespace ed {
 					if (firstD == std::string::npos || secondD == std::string::npos || thirdD == std::string::npos)
 						continue;
 
-					int lineNr = std::stoi(line.substr(secondD + 1, thirdD - (secondD + 1)));
+					int lineNr = -1;
+					std::string lineStr = line.substr(secondD + 1, thirdD - (secondD + 1));
+					if (isAllDigits(lineStr))
+						lineNr = std::stoi(lineStr);
 					std::string msg = line.substr(thirdD + 2);
 					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
 				}
