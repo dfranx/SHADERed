@@ -197,9 +197,30 @@ namespace ed {
 				if (line.find("error") != std::string::npos) {
 					size_t firstPar = line.find_first_of('(');
 					size_t lastPar = line.find_first_of(')', firstPar);
-					int lineNr = std::stoi(line.substr(firstPar + 1, lastPar - (firstPar + 1))) - lineBias;
-					std::string msg = line.substr(line.find_first_of(':') + 2);
-					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
+					size_t firstD = line.find_first_of(':');
+
+					if (firstPar == std::string::npos || lastPar == std::string::npos || firstD == std::string::npos)
+						continue;
+
+					if (line[firstPar + 1] == '#') {
+						// AMD error
+						size_t secondD = line.find_first_of(':', firstD + 1);
+						size_t thirdD = line.find_first_of(':', secondD + 1);
+
+						if (secondD == std::string::npos || thirdD == std::string::npos)
+							continue;
+
+						int lineNr = std::stoi(line.substr(secondD + 1, thirdD - (secondD + 1)));
+						std::string msg = line.substr(thirdD + 2);
+						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
+
+					} else {
+						// Nvidia error
+						int lineNr = std::stoi(line.substr(firstPar + 1, lastPar - (firstPar + 1))) - lineBias;
+						std::string msg = line.substr(firstD + 2);
+						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
+					}
+
 				}
 			}
 
