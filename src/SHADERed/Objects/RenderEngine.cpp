@@ -1136,14 +1136,21 @@ namespace ed {
 
 						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
 							m_msgs->Add(gl::ParseMessages(name, 2, cMsg, lineBias));
+
+						if (gsContent.empty())
+							gsCompiled = false;
 					}
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!vsCompiled || !psCompiled || !gsCompiled) {
+					if (!vsCompiled || !psCompiled || !gsCompiled || vsContent.empty() || psContent.empty()) {
 						Logger::Get().Log("Shaders not compiled", true);
-						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+						if (vsContent.empty() || psContent.empty())
+							m_msgs->Add(MessageStack::Type::Error, name, "Shader source empty - try recompiling");
+						else
+							m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+
 						m_shaders[i] = 0;
 					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the shaders.");
@@ -1190,9 +1197,12 @@ namespace ed {
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!compiled) {
+					if (!compiled || content.empty()) {
 						Logger::Get().Log("Compute shader was not compiled", true);
-						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
+						if (content.empty())
+							m_msgs->Add(MessageStack::Type::Error, name, "Shader source empty - try recompiling");
+						else
+							m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
 						m_shaders[i] = 0;
 					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the compute shader.");

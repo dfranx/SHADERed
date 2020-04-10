@@ -1,5 +1,5 @@
 [v1.3.3]
-+ 
++ fix a bug that caused preview window to sometimes go blank when using an external text editor
 + fix a bug that caused SHADERed to crash when parsing error messages
 + fix a bug that caused SHADERed to recompile each shader two times when using CTRL+S
 
