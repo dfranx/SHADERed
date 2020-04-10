@@ -101,6 +101,7 @@ namespace ed {
 		bool m_fontNeedsUpdate;
 
 		bool m_cacheProjectModified;
+		bool m_recompiledAll;
 
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,

@@ -107,6 +107,7 @@ namespace ed {
 		m_tipOpened = false;
 		m_splashScreen = true;
 		m_splashScreenLoaded = false;
+		m_recompiledAll = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -396,16 +397,19 @@ namespace ed {
 
 		// rebuild
 		if (((CodeEditorUI*)Get(ViewID::Code))->TrackedFilesNeedUpdate()) {
-			std::vector<bool> needsUpdate = ((CodeEditorUI*)Get(ViewID::Code))->TrackedNeedsUpdate();
-			std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
-			int ind = 0;
-			if (needsUpdate.size() >= passes.size()) {
-				for (PipelineItem*& pass : passes) {
-					if (needsUpdate[ind])
-						m_data->Renderer.Recompile(pass->Name);
-					ind++;
+			if (!m_recompiledAll) {
+				std::vector<bool> needsUpdate = ((CodeEditorUI*)Get(ViewID::Code))->TrackedNeedsUpdate();
+				std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+				int ind = 0;
+				if (needsUpdate.size() >= passes.size()) {
+					for (PipelineItem*& pass : passes) {
+						if (needsUpdate[ind])
+							m_data->Renderer.Recompile(pass->Name);
+						ind++;
+					}
 				}
 			}
+
 			((CodeEditorUI*)Get(ViewID::Code))->EmptyTrackedFiles();
 		}
 		((CodeEditorUI*)Get(ViewID::Code))->UpdateAutoRecompileItems();
@@ -1406,6 +1410,8 @@ namespace ed {
 				m_data->Renderer.Pause(m_wasPausedPrior);
 			}
 			ImGui::EndPopup();
+
+			m_recompiledAll = false;
 		}
 
 		// Export as C++ app
@@ -1991,6 +1997,8 @@ namespace ed {
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 		for (PipelineItem*& pass : passes)
 			m_data->Renderer.Recompile(pass->Name);
+
+		m_recompiledAll = true; 
 
 		return true;
 	}
