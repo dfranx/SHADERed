@@ -289,7 +289,7 @@ namespace ed {
 						continue;
 
 					for (int i = 0; i < mesh.Vertices.size(); i += 3) {
-						glm::vec3 v0 = matWorld * glm::vec4(mesh.Vertices[i + 0].Position, 1); // TODO: this is inefficient... idk why inverse(matWorld) isnt worked
+						glm::vec3 v0 = matWorld * glm::vec4(mesh.Vertices[i + 0].Position, 1);
 						glm::vec3 v1 = matWorld * glm::vec4(mesh.Vertices[i + 1].Position, 1);
 						glm::vec3 v2 = matWorld * glm::vec4(mesh.Vertices[i + 2].Position, 1);
 

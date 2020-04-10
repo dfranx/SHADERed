@@ -51,7 +51,6 @@ namespace ed {
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().string();
 
-				// TODO: linux
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				void* procDLL = dlopen(("./plugins/" + pdir + "/plugin.so").c_str(), RTLD_NOW);
 

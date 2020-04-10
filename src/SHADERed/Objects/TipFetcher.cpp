@@ -49,7 +49,6 @@ namespace ed {
 			pugi::xml_node tip;
 			int curInd = 0;
 
-			// TODO: why can't i access elements using the index??
 			for (auto cTip : tips.children("tip")) {
 				if (curInd == index) {
 					tip = cTip;

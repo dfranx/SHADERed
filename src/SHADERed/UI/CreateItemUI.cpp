@@ -472,19 +472,17 @@ namespace ed {
 			ImGui::Text("Stencil mask:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::InputInt("##cui_stencilmask", (int*)&data->StencilMask);
+			ImGui::InputScalar("##cui_stencilmask", ImGuiDataType_U8, (int*)&data->StencilMask);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-			data->StencilMask = glm::clamp<int>(data->StencilMask, 0, 255);
 
 			// stencil reference
 			ImGui::Text("Stencil reference:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::InputInt("##cui_sref", (int*)&data->StencilReference); // TODO: imgui uint input??
+			ImGui::InputScalar("##cui_sref", ImGuiDataType_U8, (int*)&data->StencilReference);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-			data->StencilReference = glm::clamp<int>(data->StencilReference, 0, 255);
 
 			// front face function
 			ImGui::Text("Stencil front face function:");

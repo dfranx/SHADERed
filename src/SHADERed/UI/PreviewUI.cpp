@@ -355,7 +355,6 @@ namespace ed {
 		if (settings.Preview.Gizmo && m_picks.size() != 0) {
 			if (m_tempTrans != m_prevTrans || m_tempScale != m_prevScale || m_tempRota != m_prevRota) {
 				for (int i = 0; i < m_picks.size(); i++) {
-					// TODO: tidy this up
 					glm::vec3 t = m_tempTrans - m_prevTrans;
 					glm::vec3 s = m_tempScale - m_prevScale;
 					glm::vec3 r = m_tempRota - m_prevRota;
@@ -373,21 +372,12 @@ namespace ed {
 						orot = &obj->Rotation;
 					}
 
-					if (ot != nullptr) {
-						ot->x += t.x;
-						ot->y += t.y;
-						ot->z += t.z;
-					}
-					if (os != nullptr) {
-						os->x += s.x;
-						os->y += s.y;
-						os->z += s.z;
-					}
-					if (orot != nullptr) {
-						orot->x += r.x;
-						orot->y += r.y;
-						orot->z += r.z;
-					}
+					if (ot != nullptr)
+						*ot += t;
+					if (os != nullptr)
+						*os += s;
+					if (orot != nullptr)
+						*orot += r;
 				}
 
 				m_prevTrans = m_tempTrans;
@@ -870,7 +860,7 @@ namespace ed {
 			} else if (item->Type == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* model = (pipe::Model*)item->Data;
 
-				minPosItem = model->Data->GetMinBound() * model->Scale; // TODO: add positions so that it works for multiple objects
+				minPosItem = model->Data->GetMinBound() * model->Scale;
 				maxPosItem = model->Data->GetMaxBound() * model->Scale;
 
 				rota = model->Rotation;

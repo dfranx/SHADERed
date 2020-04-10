@@ -1513,8 +1513,8 @@ namespace ed {
 			glm::vec3 maxb = obj->Data->GetMaxBound();
 
 			float triDist = std::numeric_limits<float>::infinity();
-			if (ray::IntersectBox(minb, maxb, vec3Origin, vec3Dir, triDist)) { // TODO: test this optimization
-				if (triDist < m_pickDist) {									   // optimization: check if bounding box is closer than selected object
+			if (ray::IntersectBox(minb, maxb, vec3Origin, vec3Dir, triDist)) {
+				if (triDist < m_pickDist) {
 					bool donetris = false;
 					for (auto& mesh : obj->Data->Meshes) {
 						for (int i = 0; i + 2 < mesh.Vertices.size(); i += 3) {

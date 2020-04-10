@@ -59,6 +59,8 @@ namespace ed {
 		std::vector<std::string> GetOpenedFilesData();
 		std::vector<std::pair<std::string, ShaderStage>> GetOpenedFiles();
 
+		bool RequestedProjectSave;
+
 	private:
 		void m_setupShortcuts();
 		void m_loadEditorShortcuts(TextEditor* editor);

@@ -771,31 +771,21 @@ namespace ed {
 					ImGui::Text("Stencil mask:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::InputInt("##cui_stencilmask", (int*)&data->StencilMask))
+					if (ImGui::InputScalar("##cui_stencilmask", ImGuiDataType_U8, (int*) & data->StencilMask))
 						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (data->StencilMask < 0)
-						data->StencilMask = 0;
-					if (data->StencilMask > 255)
-						data->StencilMask = 255;
-
 					// stencil reference
 					ImGui::Text("Stencil reference:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::InputInt("##cui_sref", (int*)&data->StencilReference))
-						m_data->Parser.ModifyProject(); // TODO: imgui uint input??
+					if (ImGui::InputScalar("##cui_sref", ImGuiDataType_U8, (int*)&data->StencilReference))
+						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
-
-					if (data->StencilReference < 0)
-						data->StencilReference = 0;
-					if (data->StencilReference > 255)
-						data->StencilReference = 255;
 
 					// front face function
 					ImGui::Text("Stencil front face function:");

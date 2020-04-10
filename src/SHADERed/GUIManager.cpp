@@ -224,8 +224,10 @@ namespace ed {
 			if (!(m_optionsOpened && ((OptionsUI*)m_options)->IsListening())) {
 				bool codeHasFocus = ((CodeEditorUI*)Get(ViewID::Code))->HasFocus();
 
-				if (!(ImGui::GetIO().WantTextInput && !codeHasFocus))
+				if (!(ImGui::GetIO().WantTextInput && !codeHasFocus)) {
 					KeyboardShortcuts::Instance().Check(e, codeHasFocus);
+					((CodeEditorUI*)Get(ViewID::Code))->RequestedProjectSave = false;
+				}
 			}
 		} else if (e.type == SDL_MOUSEMOTION)
 			m_perfModeClock.restart();
@@ -2021,8 +2023,11 @@ namespace ed {
 	}
 	bool GUIManager::Save()
 	{
-		if (m_data->Parser.GetOpenedFile() == "")
-			return SaveAsProject(true);
+		if (m_data->Parser.GetOpenedFile() == "") {
+			if (!((CodeEditorUI*)Get(ViewID::Code))->RequestedProjectSave)
+				return SaveAsProject(true);
+			return false;
+		}
 
 		m_data->Parser.Save();
 

@@ -88,8 +88,6 @@ namespace ed {
 		}
 		GLuint CompileShader(GLenum type, const GLchar* code)
 		{
-			// TODO: change it to CompileShaders(char* vs, char* ps) and use it everywhere
-
 			// create pixel shader
 			GLuint ret = glCreateShader(type);
 

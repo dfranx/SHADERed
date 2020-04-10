@@ -232,7 +232,7 @@ namespace ed {
 
 					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 					if (props->CurrentItemName() == itemText)
-						props->Open(nullptr); // TODO: test this, deleting RT while having sth opened in properties
+						props->Open(nullptr);
 					m_data->Objects.Remove(items[i]);
 				}
 

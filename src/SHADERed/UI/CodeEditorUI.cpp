@@ -55,6 +55,8 @@ namespace ed {
 		m_autoRecompilerRunning = false;
 		m_autoRecompile = false;
 
+		RequestedProjectSave = false;
+
 		m_setupShortcuts();
 	}
 	CodeEditorUI::~CodeEditorUI()
@@ -89,8 +91,10 @@ namespace ed {
 		bool canSave = true;
 
 		// prompt user to choose a project location first
-		if (m_data->Parser.GetOpenedFile() == "")
+		if (m_data->Parser.GetOpenedFile() == "") {
 			canSave = m_ui->SaveAsProject(true);
+			RequestedProjectSave = true;
+		}
 		if (!canSave)
 			return;
 

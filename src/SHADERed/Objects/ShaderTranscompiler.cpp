@@ -343,7 +343,7 @@ namespace ed {
 			while (std::getline(ss, line)) {
 
 				// i know, ewww, but idk if there's a function to do this (this = converting UBO
-				// to separate uniforms)...
+				// to separate uniforms)... TODO
 				if (line.find("layout(binding") != std::string::npos && line.find("uniform") != std::string::npos && line.find("sampler") == std::string::npos && line.find("image") == std::string::npos && line.find(" buffer ") == std::string::npos) {
 					inUBO = true;
 					deleteUboPos = source.size();
@@ -358,7 +358,7 @@ namespace ed {
 					if (line == "{")
 						continue;
 					else if (line[0] == '}') {
-						// i know this is yucky but are there glslang/spirv-cross functions for these?
+						// i know this is yucky but are there glslang/spirv-cross functions for these? TODO
 						inUBO = false;
 						std::string uboName = line.substr(2, line.size() - 3);
 						bool isGenBySpirvCross = false;
