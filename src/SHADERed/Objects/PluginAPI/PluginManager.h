@@ -46,11 +46,16 @@ namespace ed {
 
 		inline const std::vector<IPlugin*>& Plugins() { return m_plugins; }
 
+		inline const std::vector<std::string>& GetIncompatiblePlugins() { return m_incompatible; }
+
 	private:
 		std::vector<void*> m_proc;
 		std::vector<IPlugin*> m_plugins;
 		std::vector<bool> m_isActive;
 		std::vector<std::string> m_names;
 		std::vector<int> m_pluginVersion, m_apiVersion;
+
+		
+		std::vector<std::string> m_incompatible;
 	};
 }

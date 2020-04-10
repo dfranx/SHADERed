@@ -42,6 +42,11 @@ namespace ed {
 
 		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
 
+		std::string pluginExt = "dll";
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+		pluginExt = "so";
+#endif
+
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().string();
@@ -55,51 +60,11 @@ namespace ed {
 					continue;
 				}
 
-				// GetPluginAPIVersion() function
+				// global functions
 				GetPluginAPIVersionFn fnGetPluginAPIVersion = (GetPluginAPIVersionFn)dlsym(procDLL, "GetPluginAPIVersion");
-				if (!fnGetPluginAPIVersion) {
-					ed::Logger::Get().Log(pdir + "/plugin.so doesn't contain GetPluginAPIVersion.", true);
-					dlclose(procDLL);
-					continue;
-				}
-
-				int apiVer = (*fnGetPluginAPIVersion)();
-				m_apiVersion.push_back(apiVer);
-
-				// GetPluginAPIVersion() function
 				GetPluginVersionFn fnGetPluginVersion = (GetPluginVersionFn)dlsym(procDLL, "GetPluginVersion");
-				if (!fnGetPluginVersion) {
-					ed::Logger::Get().Log(pdir + "/plugin.so doesn't contain GetPluginVersion.", true);
-					dlclose(procDLL);
-					continue;
-				}
-
-				int pluginVersion = (*fnGetPluginVersion)();
-				m_pluginVersion.push_back(pluginVersion);
-
-				// CreatePlugin() function
 				CreatePluginFn fnCreatePlugin = (CreatePluginFn)dlsym(procDLL, "CreatePlugin");
-				if (!fnCreatePlugin) {
-					ed::Logger::Get().Log(pdir + "/plugin.so doesn't contain CreatePlugin.", true);
-					dlclose(procDLL);
-					continue;
-				}
-
-				// GetPluginName() function
 				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)dlsym(procDLL, "GetPluginName");
-				if (!fnGetPluginName) {
-					ed::Logger::Get().Log(pdir + "/plugin.so doesn't contain GetPluginName.", true);
-					dlclose(procDLL);
-					continue;
-				}
-
-				// create the actual plugin
-				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
-				if (plugin == nullptr) {
-					ed::Logger::Get().Log(pdir + "/plugin.so CreatePlugin returned nullptr.", true);
-					dlclose(procDLL);
-					continue;
-				}
 #else
 				HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
 
@@ -108,21 +73,42 @@ namespace ed {
 					continue;
 				}
 
-				// GetPluginAPIVersion() function
+				// global functions
 				GetPluginAPIVersionFn fnGetPluginAPIVersion = (GetPluginAPIVersionFn)GetProcAddress(procDLL, "GetPluginAPIVersion");
+				GetPluginVersionFn fnGetPluginVersion = (GetPluginVersionFn)GetProcAddress(procDLL, "GetPluginVersion");
+				CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
+				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)GetProcAddress(procDLL, "GetPluginName");
+#endif
+
+				// GetPluginName() function
+				if (!fnGetPluginName) {
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginName.", true);
+					FreeLibrary(procDLL);
+					continue;
+				}
+				std::string pname = (*fnGetPluginName)();
+
+				// GetPluginAPIVersion()
 				if (!fnGetPluginAPIVersion) {
-					ed::Logger::Get().Log(pdir + "/plugin.dll doesn't contain GetPluginAPIVersion.", true);
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginAPIVersion.", true);
 					FreeLibrary(procDLL);
 					continue;
 				}
 
 				int apiVer = (*fnGetPluginAPIVersion)();
+				if (apiVer != CURRENT_PLUGINAPI_VERSION) {
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " uses newer/older plugin API version. Please update the plugin or update SHADERed.", true);
+					FreeLibrary(procDLL);
+					const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
+					if (std::count(notLoaded.begin(), notLoaded.end(), pname) == 0)
+						m_incompatible.push_back(pname);
+					continue;
+				}
 				m_apiVersion.push_back(apiVer);
 
 				// GetPluginVersion() function
-				GetPluginVersionFn fnGetPluginVersion = (GetPluginVersionFn)GetProcAddress(procDLL, "GetPluginVersion");
 				if (!fnGetPluginVersion) {
-					ed::Logger::Get().Log(pdir + "/plugin.dll doesn't contain GetPluginVersion.", true);
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginVersion.", true);
 					FreeLibrary(procDLL);
 					continue;
 				}
@@ -131,17 +117,8 @@ namespace ed {
 				m_pluginVersion.push_back(pluginVer);
 
 				// CreatePlugin() function
-				CreatePluginFn fnCreatePlugin = (CreatePluginFn)GetProcAddress(procDLL, "CreatePlugin");
 				if (!fnCreatePlugin) {
-					ed::Logger::Get().Log(pdir + "/plugin.dll doesn't contain CreatePlugin.", true);
-					FreeLibrary(procDLL);
-					continue;
-				}
-
-				// GetPluginName() function
-				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)GetProcAddress(procDLL, "GetPluginName");
-				if (!fnGetPluginName) {
-					ed::Logger::Get().Log(pdir + "/plugin.dll doesn't contain GetPluginName.", true);
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain CreatePlugin.", true);
 					FreeLibrary(procDLL);
 					continue;
 				}
@@ -149,15 +126,13 @@ namespace ed {
 				// create the actual plugin
 				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
 				if (plugin == nullptr) {
-					ed::Logger::Get().Log(pdir + "/plugin.dll CreatePlugin returned nullptr.", true);
+					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " CreatePlugin returned nullptr.", true);
 					FreeLibrary(procDLL);
 					continue;
 				}
-#endif
 
 				// list of loaded plugins
 				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
-				std::string pname = (*fnGetPluginName)();
 
 				// set up pointers to app functions
 				plugin->ObjectManager = (void*)&data->Objects;

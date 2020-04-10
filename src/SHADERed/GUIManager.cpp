@@ -108,6 +108,7 @@ namespace ed {
 		m_splashScreen = true;
 		m_splashScreenLoaded = false;
 		m_recompiledAll = false;
+		m_isIncompatPluginsOpened = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -745,6 +746,12 @@ namespace ed {
 		if (m_isCreateImg3DOpened) {
 			ImGui::OpenPopup("Create 3D image##main_create_img3D");
 			m_isCreateImg3DOpened = false;
+		}
+
+		// open popup that shows the list of incompatible plugins
+		if (m_isIncompatPluginsOpened) {
+			ImGui::OpenPopup("Incompatible plugins##main_incompat_plugins");
+			m_isIncompatPluginsOpened = false;
 		}
 
 		// open popup for creating camera snapshot
@@ -1503,6 +1510,23 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 
+		// Incompatible plugins
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(470), 0), ImGuiCond_Appearing);
+		if (ImGui::BeginPopupModal("Incompatible plugins##main_incompat_plugins")) {
+			std::string text = "There's a mismatch between SHADERed's plugin API version and the following plugins' API version:\n";
+			for (int i = 0; i < m_data->Plugins.GetIncompatiblePlugins().size(); i++)
+				text += "  * " + m_data->Plugins.GetIncompatiblePlugins()[i] + "\n";
+			text += "Either update your instance of SHADERed or update these plugins.";
+			
+			UIHelper::Markdown(text);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Ok"))
+				ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
 		
 
 		// update notification
@@ -1612,6 +1636,16 @@ namespace ed {
 			m_data->Plugins.Init(m_data, this);
 
 			m_splashScreenLoaded = true;
+			m_isIncompatPluginsOpened = !m_data->Plugins.GetIncompatiblePlugins().empty();
+
+			if (m_isIncompatPluginsOpened) {
+				const std::vector<std::string>& incompat = m_data->Plugins.GetIncompatiblePlugins();
+				std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
+				
+				for (const auto& plg : incompat)
+					if (std::count(notLoaded.begin(), notLoaded.end(), plg) == 0)
+						notLoaded.push_back(plg);
+			}
 		}
 	}
 	void GUIManager::m_splashScreenLoad()
