@@ -98,11 +98,21 @@ namespace ed {
 				ret = true;
 			break;
 		case ed::ShaderVariable::ValueType::Float3:
-			if (ImGui::DragFloat3(("##valuedit" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), 0.01f))
+			ImGui::PushItemWidth(Settings::Instance().CalculateSize(-30));
+			if (ImGui::DragFloat3(("##valuedit" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), 0.1f))
+				ret = true;
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (ImGui::ColorEdit3(("##valuedit_cpick_" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), ImGuiColorEditFlags_NoInputs))
 				ret = true;
 			break;
 		case ed::ShaderVariable::ValueType::Float4:
-			if (ImGui::DragFloat4(("##valuedit_" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), 0.01f))
+			ImGui::PushItemWidth(Settings::Instance().CalculateSize(-30));
+			if (ImGui::DragFloat4(("##valuedit" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), 0.1f))
+				ret = true;
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (ImGui::ColorEdit4(("##valuedit_cpick_" + std::string(m_var->Name)).c_str(), m_var->AsFloatPtr(), ImGuiColorEditFlags_NoInputs))
 				ret = true;
 			break;
 		case ed::ShaderVariable::ValueType::Integer1:

@@ -877,10 +877,9 @@ namespace ed {
 
 				if (data->Type == pipe::GeometryItem::GeometryType::Cube)
 					data->VAO = eng::GeometryFactory::CreateCube(data->VBO, data->Size.x, data->Size.y, data->Size.z, inpLayout);
-				else if (data->Type == pipe::GeometryItem::Circle) {
+				else if (data->Type == pipe::GeometryItem::Circle)
 					data->VAO = eng::GeometryFactory::CreateCircle(data->VBO, data->Size.x, data->Size.y, inpLayout);
-					data->Topology = GL_TRIANGLE_STRIP;
-				} else if (data->Type == pipe::GeometryItem::Plane)
+				else if (data->Type == pipe::GeometryItem::Plane)
 					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, data->Size.x, data->Size.y, inpLayout);
 				else if (data->Type == pipe::GeometryItem::Rectangle)
 					data->VAO = eng::GeometryFactory::CreatePlane(data->VBO, 1, 1, inpLayout);

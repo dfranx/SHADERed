@@ -270,7 +270,7 @@ namespace ed {
 		unsigned int GeometryFactory::CreateCircle(unsigned int& vbo, float rx, float ry, const std::vector<InputLayoutItem>& inp)
 		{
 			const int numPoints = 32 * 3;
-			int numSegs = numPoints / 3;
+			const int numSegs = numPoints / 3;
 
 			GLfloat circleData[numPoints * 18];
 
@@ -285,9 +285,9 @@ namespace ed {
 				float xVal2 = sin(step * (i + 1));
 				float yVal2 = cos(step * (i + 1));
 
-				GLfloat point1[18] = { 0, 0, 0, 0, 0, 1, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
-				GLfloat point2[18] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, 1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
-				GLfloat point3[18] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, 1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+				GLfloat point1[18] = { 0, 0, 0, 0, 0, -1, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+				GLfloat point2[18] = { xVal1 * rx, yVal1 * ry, 0, 0, 0, -1, xVal1 * 0.5f + 0.5f, yVal1 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
+				GLfloat point3[18] = { xVal2 * rx, yVal2 * ry, 0, 0, 0, -1, xVal2 * 0.5f + 0.5f, yVal2 * 0.5f + 0.5f, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 };
 
 				memcpy(ptrData + 0, point1, 18 * sizeof(GLfloat));
 				memcpy(ptrData + 18, point2, 18 * sizeof(GLfloat));
@@ -314,12 +314,12 @@ namespace ed {
 
 			// clang-format off
 			GLfloat planeData[] = {
-				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
-				halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
-				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
-				-halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
-				halfX, halfY, 0, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
-				-halfX, -halfY, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, 0, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, -halfY, 0, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, 0, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, halfY, 0, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				halfX, halfY, 0, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, 0,0,0, 0,0,0, 1,1,1,1,
+				-halfX, -halfY, 0, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0,0,0, 0,0,0, 1,1,1,1,
 			};
 			// clang-format on
 
