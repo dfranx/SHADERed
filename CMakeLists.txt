@@ -112,11 +112,16 @@ if(CMAKE_TOOLCHAIN_FILE)
     include(${CMAKE_TOOLCHAIN_FILE})
 endif(CMAKE_TOOLCHAIN_FILE)
 
+# pkg
+if (UNIX)
+  # find sdl2 on linux
+  find_package(PkgConfig REQUIRED)
+endif()
+
 # sdl2
 if(WIN32 OR APPLE OR NOT ${USE_PKG_CHECK_SDL})
   find_package(SDL2 REQUIRED)
 else()
-  # find sdl2 on linux
   pkg_check_modules(SDL2 REQUIRED sdl2)
 endif()
 

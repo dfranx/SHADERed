@@ -10,37 +10,37 @@ Collapsed=0
 
 [Window][Pinned]
 Pos=0,471
-Size=282,544
+Size=338,544
 Collapsed=0
 DockId=0x00000004,1
 
 [Window][Preview]
-Pos=889,25
-Size=654,810
+Pos=1065,25
+Size=785,810
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Output]
-Pos=889,837
-Size=654,178
+Pos=1065,837
+Size=785,178
 Collapsed=0
 DockId=0x00000006,0
 
 [Window][Objects]
 Pos=0,25
-Size=282,444
+Size=338,444
 Collapsed=0
 DockId=0x00000003,1
 
 [Window][Pipeline]
 Pos=0,25
-Size=282,444
+Size=338,444
 Collapsed=0
 DockId=0x00000003,0
 
 [Window][Properties]
 Pos=0,471
-Size=282,544
+Size=338,544
 Collapsed=0
 DockId=0x00000004,0
 
@@ -50,14 +50,14 @@ Size=1170,690
 Collapsed=0
 
 [Window][###code_viewVS0]
-Pos=284,25
-Size=603,267
+Pos=340,25
+Size=723,267
 Collapsed=0
 DockId=0x00000009,0
 
 [Window][###code_viewPS0]
-Pos=284,25
-Size=603,990
+Pos=340,294
+Size=723,721
 Collapsed=0
 DockId=0x0000000A,0
 
@@ -81,7 +81,7 @@ DockId=0x00000007,1
 
 [Window][##toolbar]
 Pos=0,25
-Size=1654,50
+Size=1850,50
 Collapsed=0
 
 [Window][###objprev0]
@@ -143,6 +143,11 @@ Pos=889,837
 Size=654,178
 Collapsed=0
 DockId=0x00000006,3
+
+[Window][##splash_screen]
+Pos=0,0
+Size=1850,1016
+Collapsed=0
 
 [Docking][Data]
 DockSpace                 ID=0x160B189F Window=0x912BA114 Pos=0,25 Size=1850,990 Split=X

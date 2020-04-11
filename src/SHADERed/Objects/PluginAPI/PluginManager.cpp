@@ -45,6 +45,9 @@ namespace ed {
 		std::string pluginExt = "dll";
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 		pluginExt = "so";
+		int (*ptrFreeLibrary)(void*) = &dlclose;
+#else
+		BOOL (*ptrFreeLibrary)(HMODULE) = &FreeLibrary;
 #endif
 
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
@@ -82,7 +85,7 @@ namespace ed {
 				// GetPluginName() function
 				if (!fnGetPluginName) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginName.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
 				std::string pname = (*fnGetPluginName)();
@@ -90,14 +93,14 @@ namespace ed {
 				// GetPluginAPIVersion()
 				if (!fnGetPluginAPIVersion) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginAPIVersion.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
 
 				int apiVer = (*fnGetPluginAPIVersion)();
 				if (apiVer != CURRENT_PLUGINAPI_VERSION) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " uses newer/older plugin API version. Please update the plugin or update SHADERed.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 					if (std::count(notLoaded.begin(), notLoaded.end(), pname) == 0)
 						m_incompatible.push_back(pname);
@@ -110,7 +113,7 @@ namespace ed {
 				// GetPluginVersion() function
 				if (!fnGetPluginVersion) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginVersion.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
 
@@ -120,7 +123,7 @@ namespace ed {
 				// CreatePlugin() function
 				if (!fnCreatePlugin) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain CreatePlugin.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
 
@@ -128,7 +131,7 @@ namespace ed {
 				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
 				if (plugin == nullptr) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " CreatePlugin returned nullptr.", true);
-					FreeLibrary(procDLL);
+					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
 
