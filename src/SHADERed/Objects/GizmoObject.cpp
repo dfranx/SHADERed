@@ -6,6 +6,9 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/intersect.hpp>
+
 #include <iostream>
 
 const char* GIZMO_VS_CODE = R"(
@@ -360,15 +363,18 @@ namespace ed {
 		glm::vec3 rayDir = glm::normalize(glm::vec3(worldPos));
 		glm::vec4 rayOrigin = SystemVariableManager::Instance().GetCamera()->GetPosition();
 
-		glm::vec4 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2, 0);
-		glm::vec3 tAxisVec = glm::normalize(glm::mat3(invVP) * glm::vec3(axisVec));
+		glm::vec3 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2);
+		glm::vec4 planeNormal = glm::vec4(m_axisSelected == 2, 0, m_axisSelected == 0 || m_axisSelected == 1, 0);
+		glm::vec3 planeOrigin = *m_trans;
+
+		float switchNormal = -glm::sign(glm::dot(rayDir, glm::vec3(planeNormal)));
+		planeNormal = planeNormal * switchNormal;
 
 		float depth = std::numeric_limits<float>::infinity();
-		int axis = m_getBasicAxisSelection(x, y, m_vw, m_vh, depth);
-		if (axis == -1)
-			depth = m_lastDepth;
-		else
-			m_lastDepth = depth;
+		bool rpInters = glm::intersectRayPlane(rayOrigin, glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
+		
+		if (!rpInters || depth == std::numeric_limits<float>::infinity())
+			return false;
 
 		glm::vec4 mouseVec = rayOrigin + depth * glm::vec4(rayDir, 0.0f);
 		glm::vec3 moveVec = glm::vec3(glm::vec3(mouseVec) - m_clickStart);
@@ -493,7 +499,7 @@ namespace ed {
 			glm::vec3 b2 = xWorld * glm::vec4(maxP, 1);
 
 			float distX, distY, distZ, dist = std::numeric_limits<float>::infinity();
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distX))
+			if (ray::IntersectBox(rayOrigin, rayDir, b1, b2, distX))
 				axisRet = 0, dist = distX;
 			else
 				distX = std::numeric_limits<float>::infinity();
@@ -502,7 +508,7 @@ namespace ed {
 			b1 = yWorld * glm::vec4(minP, 1);
 			b2 = yWorld * glm::vec4(maxP, 1);
 
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distY) && distY < distX)
+			if (ray::IntersectBox(rayOrigin, rayDir, b1, b2, distY) && distY < distX)
 				axisRet = 1, dist = distY;
 			else
 				distY = std::numeric_limits<float>::infinity();
@@ -511,7 +517,7 @@ namespace ed {
 			b1 = zWorld * glm::vec4(minP, 1);
 			b2 = zWorld * glm::vec4(maxP, 1);
 
-			if (ray::IntersectBox(b1, b2, rayOrigin, rayDir, distZ) && distZ < distY && distZ < distX)
+			if (ray::IntersectBox(rayOrigin, rayDir, b1, b2, distZ) && distZ < distY && distZ < distX)
 				axisRet = 2, dist = distZ;
 			else
 				distZ = std::numeric_limits<float>::infinity();

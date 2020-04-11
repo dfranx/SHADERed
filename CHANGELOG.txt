@@ -8,6 +8,7 @@
 + fix a bug that caused preview window to sometimes go blank when using an external text editor
 + fix a bug that caused SHADERed to recompile each shader two times when using CTRL+S
 + fix a bug that caused "Save As" file dialog to open twice when saving templates
++ fix gizmo
 + fix file dialogs
 + fix current line highlighting in the text editor
 + fix plane and circle normals

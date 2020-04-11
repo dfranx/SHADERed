@@ -1474,7 +1474,7 @@ namespace ed {
 				glm::vec3 b2(geo->Size.x * geo->Scale.x / 2, geo->Size.y * geo->Scale.y / 2, geo->Size.z * geo->Scale.z / 2);
 
 				float distHit;
-				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, distHit))
+				if (ray::IntersectBox(vec3Origin, vec3Dir, b1, b2, distHit))
 					myDist = distHit;
 			} else if (geo->Type == pipe::GeometryItem::GeometryType::Triangle) {
 				float size = geo->Size.x * geo->Scale.x;
@@ -1496,14 +1496,14 @@ namespace ed {
 				glm::vec3 b2(geo->Size.x * geo->Scale.x / 2, geo->Size.y * geo->Scale.y / 2, 0.0001f);
 
 				float hit;
-				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, hit))
+				if (ray::IntersectBox(vec3Origin, vec3Dir, b1, b2, hit))
 					myDist = hit;
 			} else if (geo->Type == pipe::GeometryItem::GeometryType::Circle) {
 				glm::vec3 b1(-geo->Size.x * geo->Scale.x, -geo->Size.y * geo->Scale.y, -0.0001f);
 				glm::vec3 b2(geo->Size.x * geo->Scale.x, geo->Size.y * geo->Scale.y, 0.0001f);
 
 				float hit;
-				if (ray::IntersectBox(b1, b2, vec3Origin, vec3Dir, hit))
+				if (ray::IntersectBox(vec3Origin, vec3Dir, b1, b2, hit))
 					myDist = hit;
 			}
 		} else if (item->Type == PipelineItem::ItemType::Model) {
@@ -1513,7 +1513,7 @@ namespace ed {
 			glm::vec3 maxb = obj->Data->GetMaxBound();
 
 			float triDist = std::numeric_limits<float>::infinity();
-			if (ray::IntersectBox(minb, maxb, vec3Origin, vec3Dir, triDist)) {
+			if (ray::IntersectBox(vec3Origin, vec3Dir, minb, maxb, triDist)) {
 				if (triDist < m_pickDist) {
 					bool donetris = false;
 					for (auto& mesh : obj->Data->Meshes) {

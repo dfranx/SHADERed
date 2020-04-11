@@ -4,7 +4,7 @@
 namespace ed {
 	namespace ray {
 		/* https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection */
-		bool IntersectBox(glm::vec3 minp, glm::vec3 maxp, glm::vec3 orig, glm::vec3 dir, float& distHit)
+		bool IntersectBox(glm::vec3 orig, glm::vec3 dir, glm::vec3 minp, glm::vec3 maxp, float& distHit)
 		{
 			dir = glm::normalize(dir);
 
