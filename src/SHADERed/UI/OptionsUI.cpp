@@ -384,7 +384,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
 			std::string file;
-			bool success = UIHelper::GetOpenFileDialog(file, "ttf;otf");
+			bool success = UIHelper::GetOpenFileDialog(file, "*.ttf;*.otf");
 			if (success) {
 				file = std::filesystem::relative(file).generic_string();
 				strcpy(settings->General.Font, file.c_str());
@@ -480,7 +480,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
 			std::string file;
-			bool success = UIHelper::GetOpenFileDialog(file, "ttf;otf");
+			bool success = UIHelper::GetOpenFileDialog(file, "*.ttf;*.otf");
 			if (success)
 				strcpy(settings->Editor.Font, file.c_str());
 		}

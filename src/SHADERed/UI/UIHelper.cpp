@@ -4,7 +4,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui_markdown/imgui_markdown.h>
-#include <nativefiledialog/nfd.h>
+#include <tinyfiledialogs/tinyfiledialogs.h>
 #include <clocale>
 #include <iomanip>
 #include <sstream>
@@ -16,48 +16,38 @@
 namespace ed {
 	bool UIHelper::GetOpenDirectoryDialog(std::string& outPath)
 	{
-		nfdchar_t* path = NULL;
-		nfdresult_t result = NFD_PickFolder(NULL, &path);
-		setlocale(LC_ALL, "C");
+		const char* selectionLoc = tinyfd_selectFolderDialog("Select folder", NULL);
 
-		outPath = "";
-		if (result == NFD_OKAY) {
-			outPath = std::string(path);
-			return true;
-		} else if (result == NFD_ERROR)
-			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
+		if (selectionLoc == nullptr)
+			return false;
 
-		return false;
+		outPath = selectionLoc;
+
+		return true;
 	}
 	bool UIHelper::GetOpenFileDialog(std::string& outPath, const std::string& files)
 	{
-		nfdchar_t* path = NULL;
-		nfdresult_t result = NFD_OpenDialog(NULL, NULL, &path);
-		setlocale(LC_ALL, "C");
+		const char* filters = files.c_str();
+		const char* openLoc = tinyfd_openFileDialog("Open", NULL, files.empty() ? 0 : 1, files.empty() ? NULL : &filters, NULL, 0);
 
-		outPath = "";
-		if (result == NFD_OKAY) {
-			outPath = std::string(path);
-			return true;
-		} else if (result == NFD_ERROR)
-			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
+		if (openLoc == nullptr)
+			return false;
 
-		return false;
+		outPath = openLoc;
+
+		return true;
 	}
 	bool UIHelper::GetSaveFileDialog(std::string& outPath, const std::string& files)
 	{
-		nfdchar_t* path = NULL;
-		nfdresult_t result = NFD_SaveDialog(files.size() == 0 ? NULL : files.c_str(), NULL, &path);
-		setlocale(LC_ALL, "C");
+		const char* filters = files.c_str();
+		const char* saveLoc = tinyfd_saveFileDialog("Save", NULL, files.empty() ? 0 : 1, files.empty() ? NULL : &filters, NULL);
 
-		outPath = "";
-		if (result == NFD_OKAY) {
-			outPath = std::string(path);
-			return true;
-		} else if (result == NFD_ERROR)
-			ed::Logger::Get().Log("An error occured with file dialog library \"" + std::string(NFD_GetError()) + "\"", true, __FILE__, __LINE__);
+		if (saveLoc == nullptr)
+			return false;
 
-		return false;
+		outPath = saveLoc;
+		
+		return true;
 	}
 	void UIHelper::ShellOpen(const std::string& path)
 	{

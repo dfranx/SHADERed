@@ -105,6 +105,8 @@ namespace ed {
 				}
 				m_apiVersion.push_back(apiVer);
 
+				// TODO: ImGui::DebugCheckVersionAndDataLayout()
+
 				// GetPluginVersion() function
 				if (!fnGetPluginVersion) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " doesn't contain GetPluginVersion.", true);

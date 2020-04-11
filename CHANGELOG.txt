@@ -1,13 +1,14 @@
 [v1.3.3]
 + add horizontal scrolling with mouse cursor while selecting text
 + add SHIFT + left click to select text
-+ vec3 and vec4 variables now also show color preview
++ add color preview to vec3 and vec4 shader variables
 + line numbers & breakpoints in text editor should now be "pinned" to the left side
 + fix a bug that unfocused text editor after pressing AltGr
 + fix a bug that caused SHADERed to crash when parsing error messages
 + fix a bug that caused preview window to sometimes go blank when using an external text editor
 + fix a bug that caused SHADERed to recompile each shader two times when using CTRL+S
 + fix a bug that caused "Save As" file dialog to open twice when saving templates
++ fix file dialogs
 + fix current line highlighting in the text editor
 + fix plane and circle normals
 

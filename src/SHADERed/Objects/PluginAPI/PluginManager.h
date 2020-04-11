@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#define CURRENT_PLUGINAPI_VERSION 1
+#define CURRENT_PLUGINAPI_VERSION 2
 
 namespace ed {
 	class InterfaceManager;

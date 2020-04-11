@@ -457,7 +457,7 @@ namespace ed {
 				}
 				if (ImGui::MenuItem("Create shader file")) {
 					std::string file;
-					bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
+					bool success = UIHelper::GetSaveFileDialog(file, "*.glsl;*.hlsl;*.vert;*.frag;*.geom");
 
 					if (success) {
 						// create a file (cross platform)
@@ -476,7 +476,7 @@ namespace ed {
 
 					if (cont) {
 						std::string file;
-						bool success = UIHelper::GetOpenFileDialog(file, "sprj");
+						bool success = UIHelper::GetOpenFileDialog(file, "*.sprj");
 
 						if (success)
 							Open(file);
@@ -833,7 +833,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##left")) {
-				UIHelper::GetOpenFileDialog(left, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(left, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				left = m_data->Parser.GetRelativePath(left);
 			}
 
@@ -841,7 +841,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##top")) {
-				UIHelper::GetOpenFileDialog(top, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(top, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				top = m_data->Parser.GetRelativePath(top);
 			}
 
@@ -849,7 +849,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##front")) {
-				UIHelper::GetOpenFileDialog(front, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(front, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				front = m_data->Parser.GetRelativePath(front);
 			}
 
@@ -857,7 +857,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##bottom")) {
-				UIHelper::GetOpenFileDialog(bottom, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(bottom, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				bottom = m_data->Parser.GetRelativePath(bottom);
 			}
 
@@ -865,7 +865,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##right")) {
-				UIHelper::GetOpenFileDialog(right, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(right, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				right = m_data->Parser.GetRelativePath(right);
 			}
 
@@ -873,7 +873,7 @@ namespace ed {
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##back")) {
-				UIHelper::GetOpenFileDialog(back, "png;bmp;jpg,jpeg;tga");
+				UIHelper::GetOpenFileDialog(back, "*.png;*.bmp;*.jpg;*.jpeg;*.tga");
 				back = m_data->Parser.GetRelativePath(back);
 			}
 
@@ -1094,7 +1094,7 @@ namespace ed {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
-				UIHelper::GetSaveFileDialog(m_previewSavePath, "png;jpg,jpeg;bmp;tga");
+				UIHelper::GetSaveFileDialog(m_previewSavePath, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
 
 			ImGui::Text("Width: ");
 			ImGui::SameLine();
@@ -1430,7 +1430,7 @@ namespace ed {
 			ImGui::TextWrapped("Output file: %s", m_expcppSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##expcpp_savepath"))
-				UIHelper::GetSaveFileDialog(m_expcppSavePath, "cpp");
+				UIHelper::GetSaveFileDialog(m_expcppSavePath, "*.cpp");
 
 			// store shaders in files
 			ImGui::Text("Store shaders in memory: ");
@@ -1800,7 +1800,7 @@ namespace ed {
 
 			if (cont) {
 				std::string file;
-				if (UIHelper::GetOpenFileDialog(file, "sprj"))
+				if (UIHelper::GetOpenFileDialog(file, "*.sprj"))
 					Open(file);
 			}
 		}
@@ -1831,7 +1831,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_CODE)) { // NEW SHADER FILE
 			std::string file;
-			bool success = UIHelper::GetSaveFileDialog(file, "hlsl;glsl;vert;frag;geom");
+			bool success = UIHelper::GetSaveFileDialog(file, "*.glsl;*.hlsl;*.vert;*.frag;*.geom");
 
 			if (success) {
 				// create a file (cross platform)
@@ -2044,7 +2044,7 @@ namespace ed {
 	bool GUIManager::SaveAsProject(bool restoreCached)
 	{
 		std::string file;
-		bool success = UIHelper::GetSaveFileDialog(file, "sprj");
+		bool success = UIHelper::GetSaveFileDialog(file, "*.sprj");
 
 		if (success) {
 			m_data->Parser.SaveAs(file, true);
@@ -2116,7 +2116,7 @@ namespace ed {
 	void GUIManager::CreateNewTexture()
 	{
 		std::string path;
-		bool success = UIHelper::GetOpenFileDialog(path, "png;jpg;jpeg;bmp");
+		bool success = UIHelper::GetOpenFileDialog(path, "*.png;*.jpg;*.jpeg;*.bmp");
 
 		if (!success)
 			return;
@@ -2128,7 +2128,7 @@ namespace ed {
 	void GUIManager::CreateNewAudio()
 	{
 		std::string path;
-		bool success = UIHelper::GetOpenFileDialog(path, "wav;flac;ogg;midi");
+		bool success = UIHelper::GetOpenFileDialog(path, "*.wav;*.flac;*.ogg;*.midi");
 
 		if (!success)
 			return;
@@ -2168,7 +2168,7 @@ namespace ed {
 
 			if (cont) {
 				std::string file;
-				bool success = UIHelper::GetOpenFileDialog(file, "sprj");
+				bool success = UIHelper::GetOpenFileDialog(file, "*.sprj");
 
 				if (success)
 					this->Open(file);

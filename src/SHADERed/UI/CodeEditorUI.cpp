@@ -828,7 +828,7 @@ namespace ed {
 
 		// run this loop until we close the thread
 		while (m_trackerRunning) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
 			for (int j = 0; j < m_trackedNeedsUpdate.size(); j++)
 				m_trackedNeedsUpdate[j] = false;

@@ -95,7 +95,7 @@ set(SOURCES
 	libs/SPIRVCross/spirv_cross_parsed_ir.cpp
 	libs/SPIRVCross/spirv_glsl.cpp
 	libs/SPIRVCross/spirv_parser.cpp
-	libs/nativefiledialog/nfd_common.c
+	libs/tinyfiledialogs/tinyfiledialogs.c
 	libs/pugixml/src/pugixml.cpp
 )
 
@@ -103,25 +103,8 @@ set(SOURCES
 if(WIN32)
 	set(SOURCES
 		"${SOURCES}"
-		libs/nativefiledialog/nfd_win.cpp
 		resource.rc
 	)
-elseif(APPLE)
-	set(SOURCES
-		"${SOURCES}"
-		libs/nativefiledialog/nfd_cocoa.m
-	)
-else()
-	set(SOURCES
-		"${SOURCES}"
-		libs/nativefiledialog/nfd_gtk.c
-	)
-
-	# link gtk on linux
-	find_package(PkgConfig REQUIRED)
-	pkg_check_modules(GTK REQUIRED gtk+-3.0)
-	link_directories(${GTK_LIBRARY_DIRS})
-	add_definitions(${GTK_CFLAGS})
 endif()
 
 # cmake toolchain
