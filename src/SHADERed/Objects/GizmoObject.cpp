@@ -1,5 +1,4 @@
 #include <SHADERed/Engine/GLUtils.h>
-#include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/Ray.h>
 #include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/Objects/GizmoObject.h>
@@ -362,6 +361,8 @@ namespace ed {
 
 		glm::vec3 rayDir = glm::normalize(glm::vec3(worldPos));
 		glm::vec4 rayOrigin = SystemVariableManager::Instance().GetCamera()->GetPosition();
+
+		bool normalView = glm::abs(glm::dot(rayDir, glm::vec3(0, 1, 0))) < 0.7f;
 
 		glm::vec3 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2);
 		glm::vec4 planeNormal = glm::vec4(m_axisSelected == 2, 0, m_axisSelected == 0 || m_axisSelected == 1, 0);

@@ -197,6 +197,11 @@ namespace ed {
 							for (auto& mesh : mitem->Data->Meshes)
 								gl::CreateVAO(mesh.VAO, mesh.VBO, pass->InputLayout, mesh.EBO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
 						}
+					} else if (pitem->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* mitem = (pipe::VertexBuffer*)pitem->Data;
+						BufferObject* bobj = (BufferObject*)mitem->Buffer;
+						if (bobj != nullptr)
+							gl::CreateBufferVAO(mitem->VAO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
 					}
 				}
 
@@ -356,6 +361,10 @@ namespace ed {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
 						m_createUI.SetType(PipelineItem::ItemType::Model);
+					} else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::VertexBuffer)) && ImGui::MenuItem("Vertex Buffer")) {
+						m_isCreateViewOpened = true;
+						m_createUI.SetOwner(items[index]->Name);
+						m_createUI.SetType(PipelineItem::ItemType::VertexBuffer);
 					} else if ((!isPlugin || pldata->Owner->CanPipelineItemHaveChild(pldata->Type, plugin::PipelineItemType::RenderState)) && ImGui::MenuItem("Render State")) {
 						m_isCreateViewOpened = true;
 						m_createUI.SetOwner(items[index]->Name);
@@ -431,7 +440,7 @@ namespace ed {
 					m_modalItem = items[index];
 				}
 
-			} else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model) {
+			} else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model || items[index]->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 				if (ImGui::MenuItem("Change Variables")) {
 					m_isChangeVarsOpened = true;
 					m_modalItem = items[index];
@@ -768,8 +777,27 @@ namespace ed {
 					((pipe::ComputePass*)itemData)->Variables.Remove(el->Name);
 				else if (isAudio)
 					((pipe::AudioPass*)itemData)->Variables.Remove(el->Name);
-				else
+				else {
+					// remove item variable values
+					auto& itemVarValues = m_data->Renderer.GetItemVariableValues();
+					const auto& vars = ((pipe::ShaderPass*)itemData)->Variables.GetVariables();
+					ed::ShaderVariable* var = nullptr;
+
+					for (auto v : vars)
+						if (strcmp(v->Name, el->Name) == 0) {
+							var = v;
+							break;
+						}
+
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Variable == var) {
+							itemVarValues.erase(itemVarValues.begin() + k);
+							k--;
+						}
+
+					// remove actual variable
 					((pipe::ShaderPass*)itemData)->Variables.Remove(el->Name);
+				}
 
 				ImGui::PopStyleColor();
 				continue;
@@ -1046,6 +1074,7 @@ namespace ed {
 		}
 
 		ImGui::PushItemWidth(-ImGui::GetStyle().FramePadding.x);
+		shaderVarSel = std::min<int>(shaderVarSel, vars.size()-1);
 		const char* inputComboPreview = vars.size() > 0 ? vars[shaderVarSel]->Name : "-- NONE --";
 		if (ImGui::BeginCombo(("##itemvarname" + std::to_string(id)).c_str(), inputComboPreview)) {
 			for (int n = 0; n < vars.size(); n++) {
@@ -1548,6 +1577,23 @@ namespace ed {
 					itemData = newData;
 				}
 
+				// duplicate VertexBuffer:
+				else if (dropItem->Type == PipelineItem::ItemType::VertexBuffer) {
+					pipe::VertexBuffer* newData = new pipe::VertexBuffer();
+					pipe::VertexBuffer* origData = (pipe::VertexBuffer*)dropItem->Data;
+
+					newData->Scale = origData->Scale;
+					newData->Position = origData->Position;
+					newData->Rotation = origData->Rotation;
+					newData->Topology = origData->Topology;
+					newData->Buffer = origData->Buffer;
+
+					if (newData->Buffer != 0)
+						gl::CreateBufferVAO(newData->VAO, ((ed::BufferObject*)newData->Buffer)->ID, m_data->Objects.ParseBufferFormat(((ed::BufferObject*)newData->Buffer)->ViewFormat));
+
+					itemData = newData;
+				}
+
 				// duplicate RenderState:
 				else if (dropItem->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* newData = new pipe::RenderState();
@@ -1778,6 +1824,23 @@ namespace ed {
 						itemData = newData;
 					}
 
+					// duplicate VertexBuffer:
+					else if (dropItem->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* newData = new pipe::VertexBuffer();
+						pipe::VertexBuffer* origData = (pipe::VertexBuffer*)dropItem->Data;
+
+						newData->Scale = origData->Scale;
+						newData->Position = origData->Position;
+						newData->Rotation = origData->Rotation;
+						newData->Topology = origData->Topology;
+						newData->Buffer = origData->Buffer;
+
+						if (newData->Buffer != 0)
+							gl::CreateBufferVAO(newData->VAO, ((ed::BufferObject*)newData->Buffer)->ID, m_data->Objects.ParseBufferFormat(((ed::BufferObject*)newData->Buffer)->ViewFormat));
+
+						itemData = newData;
+					}
+
 					// duplicate RenderState:
 					else if (dropItem->Type == PipelineItem::ItemType::RenderState) {
 						pipe::RenderState* newData = new pipe::RenderState();
@@ -1838,7 +1901,7 @@ namespace ed {
 				}
 
 				if (Settings::Instance().General.SelectItemOnDblClk) {
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || isPluginPickable) {
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || isPluginPickable) {
 						bool proceed = true;
 						if (item->Type == PipelineItem::ItemType::Geometry)
 							proceed = ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::Rectangle && ((pipe::GeometryItem*)item->Data)->Type != pipe::GeometryItem::GeometryType::ScreenQuadNDC;

@@ -101,6 +101,9 @@ namespace ed {
 				ImGui::DragFloat("##cui_geosize", &data->Size.x);
 				ImGui::NextColumn();
 			}
+		} else if (m_item.Type == PipelineItem::ItemType::VertexBuffer) {
+			pipe::VertexBuffer* data = (pipe::VertexBuffer*)m_item.Data;
+
 		} else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
 
@@ -632,6 +635,13 @@ namespace ed {
 			allocatedData->Type = pipe::GeometryItem::GeometryType::Cube;
 			allocatedData->Size = allocatedData->Scale = glm::vec3(1, 1, 1);
 			m_item.Data = allocatedData;
+		} else if (m_item.Type == PipelineItem::ItemType::VertexBuffer) {
+			Logger::Get().Log("Opening a CreateItemUI for creating VertexBuffer object...");
+
+			pipe::VertexBuffer* allocatedData = new pipe::VertexBuffer();
+			allocatedData->Scale = glm::vec3(1, 1, 1);
+			allocatedData->Buffer = 0;
+			m_item.Data = allocatedData;
 		} else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating ShaderPass object...");
 
@@ -923,7 +933,22 @@ namespace ed {
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 				return !m_errorOccured;
-			}
+			} else if (m_item.Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* data = new pipe::VertexBuffer();
+				pipe::VertexBuffer* origData = (pipe::VertexBuffer*)m_item.Data;
+
+				data->Position = glm::vec3(0, 0, 0);
+				data->Rotation = glm::vec3(0, 0, 0);
+				data->Scale = glm::vec3(1, 1, 1);
+				data->Topology = GL_TRIANGLES;
+				data->Buffer = origData->Buffer;
+
+				if (data->Buffer != 0)
+					gl::CreateBufferVAO(data->VAO, ((ed::BufferObject*)data->Buffer)->ID, m_data->Objects.ParseBufferFormat(((ed::BufferObject*)data->Buffer)->ViewFormat));
+
+				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
+				return !m_errorOccured;
+			} 
 		}
 
 		return false;

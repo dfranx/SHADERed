@@ -114,6 +114,32 @@ namespace ed {
 			return (bool)ret;
 		}
 
+		void CreateBufferVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<ed::ShaderVariable::ValueType>& ilayout)
+		{
+			int fmtIndex = 0;
+
+			glDeleteVertexArrays(1, &geoVAO);
+			glGenVertexArrays(1, &geoVAO);
+
+			glBindVertexArray(geoVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, geoVBO);
+
+			int rowStride = 0, curStride = 0;
+			for (const auto& layitem : ilayout)
+				rowStride += ShaderVariable::GetSize(layitem);
+
+			for (const auto& layitem : ilayout) {
+				// vertex positions
+				glVertexAttribPointer(fmtIndex, ShaderVariable::GetSize(layitem) / 4, GL_FLOAT, GL_FALSE, rowStride, (void*)curStride);
+				glEnableVertexAttribArray(fmtIndex);
+				fmtIndex++;
+				curStride += ShaderVariable::GetSize(layitem);
+			}
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO, GLuint bufVBO, std::vector<ed::ShaderVariable::ValueType> types)
 		{
 			int fmtIndex = 0;

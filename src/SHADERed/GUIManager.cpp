@@ -326,16 +326,21 @@ namespace ed {
 			ImFontAtlas* fonts = ImGui::GetIO().Fonts;
 			fonts->Clear();
 
-			ImFont* font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
+			ImFont* font = nullptr;
+			if (std::filesystem::exists(m_cachedFont))
+				font = fonts->AddFontFromFileTTF(m_cachedFont.c_str(), m_cachedFontSize * Settings::Instance().DPIScale);
 
 			// icon font
-			ImGuiIO& io = ImGui::GetIO();
-			ImFontConfig config;
-			config.MergeMode = true;
 			static const ImWchar icon_ranges[] = { 0xea5b, 0xf026, 0 };
-			io.Fonts->AddFontFromFileTTF("data/icofont.ttf", m_cachedFontSize * Settings::Instance().DPIScale, &config, icon_ranges);
+			if (font && std::filesystem::exists("data/icofont.ttf")) {
+				ImFontConfig config;
+				config.MergeMode = true;
+				fonts->AddFontFromFileTTF("data/icofont.ttf", m_cachedFontSize * Settings::Instance().DPIScale, &config, icon_ranges);
+			}
 
-			ImFont* edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
+			ImFont* edFontPtr = nullptr;
+			if (std::filesystem::exists(edFont.first))
+				edFontPtr = fonts->AddFontFromFileTTF(edFont.first.c_str(), edFont.second * Settings::Instance().DPIScale);
 
 			if (font == nullptr || edFontPtr == nullptr) {
 				fonts->Clear();
@@ -346,8 +351,10 @@ namespace ed {
 			}
 
 			// icon font large
-			ImFontConfig configIconsLarge;
-			m_iconFontLarge = io.Fonts->AddFontFromFileTTF("data/icofont.ttf", Settings::Instance().CalculateSize(TOOLBAR_HEIGHT / 2), &configIconsLarge, icon_ranges);
+			if (std::filesystem::exists("data/icofont.ttf")) {
+				ImFontConfig configIconsLarge;
+				m_iconFontLarge = ImGui::GetIO().Fonts->AddFontFromFileTTF("data/icofont.ttf", Settings::Instance().CalculateSize(TOOLBAR_HEIGHT / 2), &configIconsLarge, icon_ranges);
+			}
 
 			ImGui::GetIO().FontDefault = font;
 			fonts->Build();

@@ -7,6 +7,7 @@ namespace ed {
 			Geometry,
 			RenderState,
 			Model,
+			VertexBuffer,
 			ComputePass,
 			AudioPass,
 			PluginItem,

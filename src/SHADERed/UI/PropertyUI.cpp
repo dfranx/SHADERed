@@ -976,7 +976,99 @@ namespace ed {
 
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
 					pdata->Owner->ShowPipelineItemProperties(pdata->Type, pdata->PluginData);
-				}
+				} else if (m_current->Type == ed::PipelineItem::ItemType::VertexBuffer) {
+					ed::pipe::VertexBuffer* item = reinterpret_cast<ed::pipe::VertexBuffer*>(m_current->Data);
+
+					/* buffers */
+					ImGui::Text("Buffer:");
+					ImGui::NextColumn();
+
+					const auto& bufList = m_data->Objects.GetItemDataList();
+					auto& bufNames = m_data->Objects.GetObjects();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##pui_vb_buffer", ((item->Buffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->Buffer)->ID).c_str())))) {
+						// null element
+						if (ImGui::Selectable("NULL", item->Buffer == nullptr)) {
+							item->Buffer = nullptr;
+
+							glDeleteVertexArrays(1, &item->VAO);
+							item->VAO = 0;
+
+							m_data->Parser.ModifyProject();
+						}
+
+						for (int i = 0; i < bufList.size(); i++) {
+							if (bufList[i]->Buffer == nullptr)
+								continue;
+
+							ed::BufferObject* buf = bufList[i]->Buffer;
+
+							if (ImGui::Selectable(bufNames[i].c_str(), buf == item->Buffer)) {
+								item->Buffer = buf;
+								auto fmtList = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+
+								char* owner = m_data->Pipeline.GetItemOwner(m_current->Name);
+								pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
+								gl::CreateBufferVAO(item->VAO, buf->ID, m_data->Objects.ParseBufferFormat(buf->ViewFormat));
+
+								m_data->Parser.ModifyProject();
+							}
+						}
+
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* position */
+					ImGui::Text("Position:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::DragFloat3("##pui_geopos", glm::value_ptr(item->Position), 0.01f))
+						m_data->Parser.ModifyProject();
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* scale */
+					ImGui::Text("Scale:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::DragFloat3("##pui_geoscale", glm::value_ptr(item->Scale), 0.01f))
+						m_data->Parser.ModifyProject();
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* rotation */
+					ImGui::Text("Rotation:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					glm::vec3 rotaDeg(glm::degrees(item->Rotation.x), glm::degrees(item->Rotation.y), glm::degrees(item->Rotation.z));
+					if (ImGui::DragFloat3("##pui_georota", glm::value_ptr(rotaDeg), 0.01f))
+						m_data->Parser.ModifyProject();
+					rotaDeg = glm::fmod(rotaDeg, glm::vec3(360.0f));
+					if (glm::any(glm::lessThan(rotaDeg, glm::vec3(0.0))))
+						rotaDeg += glm::vec3(360.0f);
+					item->Rotation = glm::vec3(glm::radians(rotaDeg.x), glm::radians(rotaDeg.y), glm::radians(rotaDeg.z));
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* topology type */
+					ImGui::Text("Topology:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+						m_data->Parser.ModifyProject();
+					ImGui::PopItemWidth();
+				} 
 			} else if (IsRenderTexture()) {
 				ed::RenderTextureObject* m_currentRT = m_currentObj->RT;
 

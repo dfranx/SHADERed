@@ -266,7 +266,7 @@ namespace ed {
 						for (int j = 0; j < pass->Items.size(); j++) {
 							PipelineItem* item = pass->Items[j];
 
-							if (item->Type != PipelineItem::ItemType::Geometry && item->Type != PipelineItem::ItemType::Model)
+							if (item->Type != PipelineItem::ItemType::Geometry && item->Type != PipelineItem::ItemType::Model && item->Type != PipelineItem::ItemType::VertexBuffer)
 								continue;
 							
 							bool is_selected = strcmp(m_var->Arguments, item->Name) == 0;

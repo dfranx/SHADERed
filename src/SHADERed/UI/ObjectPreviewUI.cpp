@@ -23,7 +23,11 @@ namespace ed {
 		if (buffer != nullptr) {
 			BufferObject* buf = (BufferObject*)buffer;
 			i.CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
-			i.CachedSize = buf->Size;
+			
+			int stride = 0;
+			for (const auto& vType : i.CachedFormat)
+				stride += ShaderVariable::GetSize(vType);
+			i.CachedSize = buf->Size/stride;
 		}
 
 		m_items.push_back(i);
@@ -130,18 +134,24 @@ namespace ed {
 						for (int i = 0; i < item->CachedFormat.size(); i++)
 							perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
 						ImGui::Text("Size per row: %d bytes", perRow);
+						ImGui::Text("Total size: %d bytes", buf->Size);
 
-						ImGui::Text("Size in bytes:");
+						ImGui::Text("Row count:");
 						ImGui::SameLine();
 						ImGui::PushItemWidth(200);
-						ImGui::InputInt("##objprev_bsize", &item->CachedSize, 1, 100, ImGuiInputTextFlags_AlwaysInsertMode);
+						ImGui::InputInt("##objprev_rowcount", &item->CachedSize, 1, 10, ImGuiInputTextFlags_AlwaysInsertMode);
 						ImGui::PopItemWidth();
 						ImGui::SameLine();
 						if (ImGui::Button("APPLY##objprev_applysize")) {
-							buf->Size = item->CachedSize;
+							int oldSize = buf->Size;
+							
+							buf->Size = item->CachedSize * perRow;
 							if (buf->Size < 0) buf->Size = 0;
 
-							buf->Data = realloc(buf->Data, buf->Size);
+							void* newData = calloc(1, buf->Size);
+							memcpy(newData, buf->Data, std::min<int>(oldSize, buf->Size));
+							free(buf->Data);
+							buf->Data = newData;
 
 							glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
 							glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
@@ -161,7 +171,7 @@ namespace ed {
 
 						// update buffer data every 330ms
 						ImGui::Text("Buffer view is updated every 330ms");
-						if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) {
+						if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) { // TODO: pause button
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
 							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);

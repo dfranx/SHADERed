@@ -1243,6 +1243,36 @@ namespace ed {
 					itemNode.append_child("instancecount").text().set(data->InstanceCount);
 				if (data->InstanceBuffer != nullptr)
 					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
+			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+				itemNode.append_attribute("type").set_value("vertexbuffer");
+
+				pipe::VertexBuffer* tData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+
+				itemNode.append_child("buffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->Buffer)->ID).c_str());
+				if (tData->Scale.x != 1.0f)
+					itemNode.append_child("scaleX").text().set(tData->Scale.x);
+				if (tData->Scale.y != 1.0f)
+					itemNode.append_child("scaleY").text().set(tData->Scale.y);
+				if (tData->Scale.z != 1.0f)
+					itemNode.append_child("scaleZ").text().set(tData->Scale.z);
+				if (tData->Rotation.z != 0.0f)
+					itemNode.append_child("roll").text().set(tData->Rotation.z);
+				if (tData->Rotation.x != 0.0f)
+					itemNode.append_child("pitch").text().set(tData->Rotation.x);
+				if (tData->Rotation.y != 0.0f)
+					itemNode.append_child("yaw").text().set(tData->Rotation.y);
+				if (tData->Position.x != 0.0f)
+					itemNode.append_child("x").text().set(tData->Position.x);
+				if (tData->Position.y != 0.0f)
+					itemNode.append_child("y").text().set(tData->Position.y);
+				if (tData->Position.z != 0.0f)
+					itemNode.append_child("z").text().set(tData->Position.z);
+				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
+					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
+						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
+						break;
+					}
+				}
 			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)item->Data;
 				m_addPlugin(m_plugins->GetPluginName(plData->Owner));
@@ -1261,7 +1291,8 @@ namespace ed {
 	}
 	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
-		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs)
+		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs,
+		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>>& vbUBOs)
 	{
 		for (pugi::xml_node itemNode : node.children()) {
 			char itemName[PIPELINE_ITEM_NAME_LENGTH];
@@ -1454,6 +1485,43 @@ namespace ed {
 
 				if (strlen(mdata->Filename) > 0)
 					strcpy(mdata->Filename, toGenericPath(mdata->Filename).c_str());
+			} else if (strcmp(itemNode.attribute("type").as_string(), "vertexbuffer") == 0) {
+				itemType = ed::PipelineItem::ItemType::VertexBuffer;
+				itemData = new pipe::VertexBuffer;
+				pipe::VertexBuffer* vbData = (pipe::VertexBuffer*)itemData;
+
+				vbData->Buffer = 0;
+				vbData->Scale = glm::vec3(1, 1, 1);
+				vbData->Position = glm::vec3(0, 0, 0);
+				vbData->Rotation = glm::vec3(0, 0, 0);
+
+				for (pugi::xml_node attrNode : itemNode.children()) {
+					if (strcmp(attrNode.name(), "scaleX") == 0)
+						vbData->Scale.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleY") == 0)
+						vbData->Scale.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "scaleZ") == 0)
+						vbData->Scale.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "roll") == 0)
+						vbData->Rotation.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "yaw") == 0)
+						vbData->Rotation.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "pitch") == 0)
+						vbData->Rotation.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "x") == 0)
+						vbData->Position.x = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "y") == 0)
+						vbData->Position.y = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "z") == 0)
+						vbData->Position.z = attrNode.text().as_float();
+					else if (strcmp(attrNode.name(), "buffer") == 0)
+						vbUBOs[vbData] = std::make_pair(attrNode.text().as_string(), data);
+					else if (strcmp(attrNode.name(), "topology") == 0) {
+						for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
+							if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
+								vbData->Topology = TOPOLOGY_ITEM_VALUES[k];
+					}
+				}
 			} else if (strcmp(itemNode.attribute("type").as_string(), "plugin") == 0) {
 				itemType = PipelineItem::ItemType::PluginItem;
 				itemData = new pipe::PluginItemData;
@@ -2117,6 +2185,7 @@ namespace ed {
 		std::map<pipe::ShaderPass*, std::vector<std::string>> fbos;
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>> geoUBOs; // buffers that are bound to pipeline items
 		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>> modelUBOs;
+		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>> vbUBOs;
 
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
@@ -2308,7 +2377,7 @@ namespace ed {
 				}
 
 				// parse items
-				m_importItems(name, data, passNode.child("items"), data->InputLayout, geoUBOs, modelUBOs);
+				m_importItems(name, data, passNode.child("items"), data->InputLayout, geoUBOs, modelUBOs, vbUBOs);
 
 				// parse item values
 				for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
@@ -2542,7 +2611,7 @@ namespace ed {
 				// add the item
 				m_pipe->AddPluginItem(nullptr, name, otype.c_str(), pluginData, plugin);
 
-				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, name), geoUBOs, modelUBOs);
+				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, name), geoUBOs, modelUBOs, vbUBOs);
 			}
 		}
 
@@ -2951,7 +3020,6 @@ namespace ed {
 		}
 
 		// bind ARRAY_BUFFERS
-		// TODO: recreate vao on load
 		for (auto& geo : geoUBOs) {
 			BufferObject* bojb = m_objects->GetBuffer(geo.second.first);
 			geo.first->InstanceBuffer = bojb;
@@ -2959,15 +3027,22 @@ namespace ed {
 		}
 		for (auto& mdl : modelUBOs) {
 			if (mdl.second.first.size() > 0) {
-				BufferObject* bojb = m_objects->GetBuffer(mdl.second.first);
-				mdl.first->InstanceBuffer = bojb;
+				BufferObject* bobj = m_objects->GetBuffer(mdl.second.first);
+				mdl.first->InstanceBuffer = bobj;
 
 				for (auto& mesh : mdl.first->Data->Meshes)
-					gl::CreateVAO(mesh.VAO, mesh.VBO, mdl.second.second->InputLayout, mesh.EBO, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
+					gl::CreateVAO(mesh.VAO, mesh.VBO, mdl.second.second->InputLayout, mesh.EBO, bobj->ID, m_objects->ParseBufferFormat(bobj->ViewFormat));
 			} else { // recreate vao anyway
 				for (auto& mesh : mdl.first->Data->Meshes)
 					gl::CreateVAO(mesh.VAO, mesh.VBO, mdl.second.second->InputLayout, mesh.EBO);
 			}
+		}
+		for (auto& vb : vbUBOs) {
+			BufferObject* bobj = m_objects->GetBuffer(vb.second.first);
+			vb.first->Buffer = bobj;
+
+			if (bobj)
+				gl::CreateBufferVAO(vb.first->VAO, bobj->ID, m_objects->ParseBufferFormat(bobj->ViewFormat));
 		}
 
 		// bind objects

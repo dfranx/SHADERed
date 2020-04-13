@@ -28,6 +28,7 @@ namespace ed {
 		std::vector<MessageStack::Message> ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias = 0);
 		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
 
+		void CreateBufferVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<ed::ShaderVariable::ValueType>& ilayout);
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
 
 		std::vector<InputLayoutItem> CreateDefaultInputLayout();

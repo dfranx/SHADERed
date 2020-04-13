@@ -70,7 +70,7 @@ namespace ed {
 				copyFloatData(pixel.Vertex[2], &bufData[36]);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		} else {
+		} else if (pixel.Object->Type == PipelineItem::ItemType::Model) {
 			int vertStart = ((int)(vertID / vertCount)) * vertCount;
 
 			// TODO: mesh id??
@@ -80,7 +80,10 @@ namespace ed {
 			pixel.Vertex[2] = mdl->Data->Meshes[0].Vertices[vertStart + 2];
 
 			isInstanced = mdl->Instanced;
+		} else if (pixel.Object->Type == PipelineItem::ItemType::VertexBuffer) {
+			// TODO
 		}
+
 		pixel.VertexCount = vertCount;
 
 		// get the instance id if this object uses instancing

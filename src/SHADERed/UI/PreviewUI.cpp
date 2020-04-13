@@ -116,7 +116,7 @@ namespace ed {
 
 				ed::pipe::ShaderPass* pdata = (ed::pipe::ShaderPass*)pass[i]->Data;
 				for (int j = 0; j < pdata->Items.size(); j++) {
-					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry || pdata->Items[j]->Type == PipelineItem::ItemType::Model)
+					if (pdata->Items[j]->Type == PipelineItem::ItemType::Geometry || pdata->Items[j]->Type == PipelineItem::ItemType::Model || pdata->Items[j]->Type == PipelineItem::ItemType::VertexBuffer)
 						Pick(pdata->Items[j], true);
 				}
 			}
@@ -211,6 +211,9 @@ namespace ed {
 				pos = geo->Position;
 			} else if (m_picks[i]->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* obj = (pipe::Model*)m_picks[i]->Data;
+				pos = obj->Position;
+			} else if (m_picks[i]->Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* obj = (pipe::VertexBuffer*)m_picks[i]->Data;
 				pos = obj->Position;
 			}
 			m_prevTrans.x += pos.x;
@@ -370,6 +373,11 @@ namespace ed {
 						ot = &obj->Position;
 						os = &obj->Scale;
 						orot = &obj->Rotation;
+					} else if (m_picks[i]->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* obj = (pipe::VertexBuffer*)m_picks[i]->Data;
+						ot = &obj->Position;
+						os = &obj->Scale;
+						orot = &obj->Rotation;
 					}
 
 					if (ot != nullptr)
@@ -400,6 +408,18 @@ namespace ed {
 					}
 				} else if (m_picks[0]->Type == PipelineItem::ItemType::Model) {
 					pipe::Model* obj = (pipe::Model*)m_picks[0]->Data;
+					if (obj->Position != m_tempTrans) {
+						m_prevTrans = m_tempTrans = obj->Position;
+						m_buildBoundingBox();
+					} else if (obj->Scale != m_tempScale) {
+						m_prevScale = m_tempScale = obj->Scale;
+						m_buildBoundingBox();
+					} else if (obj->Rotation != m_tempRota) {
+						m_prevRota = m_tempRota = obj->Rotation;
+						m_buildBoundingBox();
+					}
+				} else if (m_picks[0]->Type == PipelineItem::ItemType::VertexBuffer) {
+					pipe::VertexBuffer* obj = (pipe::VertexBuffer*)m_picks[0]->Data;
 					if (obj->Position != m_tempTrans) {
 						m_prevTrans = m_tempTrans = obj->Position;
 						m_buildBoundingBox();
@@ -684,6 +704,25 @@ namespace ed {
 				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, data);
 			}
 
+			// duplicate VertexBuffer:
+			else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* newData = new pipe::VertexBuffer();
+				pipe::VertexBuffer* origData = (pipe::VertexBuffer*)item->Data;
+
+				pipe::ShaderPass* ownerData = (pipe::ShaderPass*)(m_data->Pipeline.Get(owner)->Data);
+
+				newData->Scale = origData->Scale;
+				newData->Position = origData->Position;
+				newData->Rotation = origData->Rotation;
+				newData->Topology = origData->Topology;
+				newData->Buffer = origData->Buffer;
+
+				if (newData->Buffer != 0)
+					gl::CreateBufferVAO(newData->VAO, ((ed::BufferObject*)newData->Buffer)->ID, m_data->Objects.ParseBufferFormat(((ed::BufferObject*)newData->Buffer)->ViewFormat));
+
+				m_data->Pipeline.AddItem(owner, name.c_str(), item->Type, newData);
+			}
+
 			duplicated.push_back(m_data->Pipeline.Get(name.c_str()));
 		}
 
@@ -865,6 +904,10 @@ namespace ed {
 
 				rota = model->Rotation;
 				pos = model->Position;
+			} else if (item->Type == ed::PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* model = (pipe::VertexBuffer*)item->Data;
+
+				// TODO: vertexbuffer
 			} else if (item->Type == ed::PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 

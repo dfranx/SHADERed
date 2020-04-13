@@ -124,6 +124,7 @@ const char* PIPELINE_ITEM_NAMES[] = {
 	"Geometry",
 	"Render State",
 	"Model",
+	"Vertex Buffer",
 	"Compute Pass",
 	"Audio Pass",
 	"Plugin Item"

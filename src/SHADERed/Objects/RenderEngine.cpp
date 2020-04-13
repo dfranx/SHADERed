@@ -274,7 +274,7 @@ namespace ed {
 					systemVM.SetPicked(false);
 
 					// update the value for this element and check if we picked it
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
 						if (m_pickAwaiting) m_pickItem(item, m_wasMultiPick);
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
@@ -320,6 +320,29 @@ namespace ed {
 						data->Variables.Bind(item);
 
 						objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+					} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+						ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
+
+						if (bobj != 0) {
+							auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
+							int stride = 0;
+							for (const auto& f : bobjFmt)
+								stride += ShaderVariable::GetSize(f);
+
+							if (stride != 0) {
+								int vertCount = bobj->Size / stride;
+
+								systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+								systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+								// bind variables
+								data->Variables.Bind(item);
+
+								glBindVertexArray(vbData->VAO);
+								glDrawArrays(vbData->Topology, 0, vertCount);
+							}
+						}
 					} else if (item->Type == PipelineItem::ItemType::RenderState) {
 						pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
@@ -384,7 +407,7 @@ namespace ed {
 					}
 
 					// set the old value back
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -753,7 +776,7 @@ namespace ed {
 			PipelineItem* item = vertexPass->Items[j];
 
 			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
 				if (item != vertexItem)
 					continue;
 				for (int k = 0; k < itemVarValues.size(); k++)
@@ -791,6 +814,27 @@ namespace ed {
 				vertexPass->Variables.Bind(item);
 
 				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+				ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
+
+				auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
+				int stride = 0;
+				for (const auto& f : bobjFmt)
+					stride += ShaderVariable::GetSize(f);
+
+				if (stride != 0) {
+					int vertCount = bobj->Size / stride;
+
+					systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+					// bind variables
+					vertexPass->Variables.Bind(item);
+
+					glBindVertexArray(vbData->VAO);
+					glDrawArrays(vbData->Topology, 0, vertCount);
+				}
 			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
@@ -804,7 +848,7 @@ namespace ed {
 			}
 
 			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
 				for (int k = 0; k < itemVarValues.size(); k++)
 					if (itemVarValues[k].Item == item)
 						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -953,7 +997,7 @@ namespace ed {
 			PipelineItem* item = vertexPass->Items[j];
 
 			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
 				if (item != vertexItem)
 					continue;
 				for (int k = 0; k < itemVarValues.size(); k++)
@@ -1004,7 +1048,7 @@ namespace ed {
 			}
 
 			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model)
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
 				for (int k = 0; k < itemVarValues.size(); k++)
 					if (itemVarValues[k].Item == item)
 						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -1456,7 +1500,11 @@ namespace ed {
 			float plMat[16];
 			pldata->Owner->GetPipelineItemWorldMatrix(item->Name, plMat);
 			world = glm::make_mat4(plMat);
-		}
+		} else if (item->Type == PipelineItem::ItemType::Model) {
+			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
+
+			world = glm::translate(glm::mat4(1), obj->Position) * glm::scale(glm::mat4(1.0f), obj->Scale) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
+		} 
 
 		glm::mat4 invWorld = glm::inverse(world);
 
@@ -1539,6 +1587,8 @@ namespace ed {
 				} else
 					myDist = triDist;
 			}
+		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+			// TODO: vertexbuffer picking
 		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
 
@@ -1596,7 +1646,7 @@ namespace ed {
 					PipelineItem* item = data->Items[j];
 
 					// update the value for this element and check if we picked it
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model) {
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
 						if (debugID == id)
 							return std::make_pair(it, item);
 

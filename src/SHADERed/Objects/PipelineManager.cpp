@@ -42,7 +42,10 @@ namespace ed {
 					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 						pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
-					}
+					} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
+						glDeleteVertexArrays(1, &vb->VAO);
+					} 
 
 					FreeData(passItem->Data, passItem->Type);
 					delete passItem;
@@ -66,7 +69,10 @@ namespace ed {
 					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
 						pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
-					}
+					} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
+						pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
+						glDeleteVertexArrays(1, &vb->VAO);
+					} 
 
 					FreeData(passItem->Data, passItem->Type);
 					delete passItem;
@@ -259,7 +265,10 @@ namespace ed {
 						} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
 							pdata->Owner->RemovePipelineItem(passItem->Name, pdata->Type, pdata->PluginData);
-						}
+						} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
+							pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
+							glDeleteVertexArrays(1, &vb->VAO);
+						} 
 
 						FreeData(passItem->Data, passItem->Type);
 						delete passItem;
@@ -280,7 +289,10 @@ namespace ed {
 						} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
 							pdata->Owner->RemovePipelineItem(passItem->Name, pldata->Type, pldata->PluginData);
-						}
+						} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
+							pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
+							glDeleteVertexArrays(1, &vb->VAO);
+						} 
 
 						FreeData(passItem->Data, passItem->Type);
 						delete passItem;
@@ -298,19 +310,21 @@ namespace ed {
 					for (int j = 0; j < data->Items.size(); j++) {
 						if (strcmp(data->Items[j]->Name, name) == 0) {
 							ed::PipelineItem* child = data->Items[j];
+
 							if (child->Type == PipelineItem::ItemType::Geometry) {
 								pipe::GeometryItem* geo = (pipe::GeometryItem*)child->Data;
 								glDeleteVertexArrays(1, &geo->VAO);
 								glDeleteVertexArrays(1, &geo->VBO);
-							}
+							} else if (child->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* pdata = (pipe::PluginItemData*)child->Data;
+								pdata->Owner->RemovePipelineItem(child->Name, pdata->Type, pdata->PluginData);
+							} else if (child->Type == PipelineItem::ItemType::VertexBuffer) {
+								pipe::VertexBuffer* vb = (pipe::VertexBuffer*)child->Data;
+								glDeleteVertexArrays(1, &vb->VAO);
+							} 
 
-							if (data->Items[j]->Type == PipelineItem::ItemType::PluginItem) {
-								pipe::PluginItemData* pdata = (pipe::PluginItemData*)data->Items[j]->Data;
-								pdata->Owner->RemovePipelineItem(data->Items[j]->Name, pdata->Type, pdata->PluginData);
-							}
-
-							FreeData(data->Items[j]->Data, data->Items[j]->Type);
-							data->Items[j]->Data = nullptr;
+							FreeData(child->Data, child->Type);
+							child->Data = nullptr;
 							data->Items.erase(data->Items.begin() + j);
 							break;
 						}
@@ -322,19 +336,21 @@ namespace ed {
 					for (int j = 0; j < data->Items.size(); j++) {
 						if (strcmp(data->Items[j]->Name, name) == 0) {
 							ed::PipelineItem* child = data->Items[j];
+
 							if (child->Type == PipelineItem::ItemType::Geometry) {
 								pipe::GeometryItem* geo = (pipe::GeometryItem*)child->Data;
 								glDeleteVertexArrays(1, &geo->VAO);
 								glDeleteVertexArrays(1, &geo->VBO);
-							}
+							} else if (child->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* pdata = (pipe::PluginItemData*)child->Data;
+								pdata->Owner->RemovePipelineItem(child->Name, pdata->Type, pdata->PluginData);
+							} else if (child->Type == PipelineItem::ItemType::VertexBuffer) {
+								pipe::VertexBuffer* vb = (pipe::VertexBuffer*)child->Data;
+								glDeleteVertexArrays(1, &vb->VAO);
+							} 
 
-							if (data->Items[j]->Type == PipelineItem::ItemType::PluginItem) {
-								pipe::PluginItemData* pdata = (pipe::PluginItemData*)data->Items[j]->Data;
-								pdata->Owner->RemovePipelineItem(data->Items[j]->Name, pdata->Type, pdata->PluginData);
-							}
-
-							FreeData(data->Items[j]->Data, data->Items[j]->Type);
-							data->Items[j]->Data = nullptr;
+							FreeData(child->Data, child->Type);
+							child->Data = nullptr;
 							data->Items.erase(data->Items.begin() + j);
 							break;
 						}
@@ -423,6 +439,9 @@ namespace ed {
 			break;
 		case PipelineItem::ItemType::Model:
 			delete (pipe::Model*)data;
+			break;
+		case PipelineItem::ItemType::VertexBuffer:
+			delete (pipe::VertexBuffer*)data;
 			break;
 		case PipelineItem::ItemType::ComputePass:
 			delete (pipe::ComputePass*)data;

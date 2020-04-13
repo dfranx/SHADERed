@@ -223,6 +223,14 @@ namespace ed {
 											gl::CreateVAO(mesh.VAO, mesh.VBO, pdata->InputLayout, mesh.EBO);
 										mitem->InstanceBuffer = nullptr;
 									}
+								} else if (pitem->Type == ed::PipelineItem::ItemType::VertexBuffer) {
+									pipe::VertexBuffer* vbitem = (pipe::VertexBuffer*)pitem->Data;
+
+									if (vbitem->Buffer == m_data->Objects.GetBuffer(items[i])) {
+										vbitem->Buffer = nullptr;
+										glDeleteVertexArrays(1, &vbitem->VAO);
+										vbitem->VAO = 0;
+									}
 								}
 							}
 						}

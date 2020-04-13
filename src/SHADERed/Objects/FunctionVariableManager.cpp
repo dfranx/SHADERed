@@ -46,6 +46,10 @@ namespace ed {
 			memcpy(var->Data, glm::value_ptr(camVal), sizeof(glm::mat4));
 		} else if (var->Function == FunctionShaderVariable::ObjectProperty) {
 			ed::PipelineItem* item = m_pipeline->Get(var->Arguments);
+
+			if (item == nullptr)
+				return;
+
 			char* propName = var->Arguments + PIPELINE_ITEM_NAME_LENGTH;
 			glm::vec4 dataVal(0.0f);
 
@@ -67,6 +71,15 @@ namespace ed {
 					dataVal = glm::vec4(mdl->Scale, 0.0f);
 				else if (strcmp(propName, "Rotation") == 0)
 					dataVal = glm::vec4(mdl->Rotation, 0.0f);
+			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* vbuf = (pipe::VertexBuffer*)item->Data;
+
+				if (strcmp(propName, "Position") == 0)
+					dataVal = glm::vec4(vbuf->Position, 1.0f);
+				else if (strcmp(propName, "Scale") == 0)
+					dataVal = glm::vec4(vbuf->Scale, 0.0f);
+				else if (strcmp(propName, "Rotation") == 0)
+					dataVal = glm::vec4(vbuf->Rotation, 0.0f);
 			}
 
 			if (var->GetType() == ShaderVariable::ValueType::Float3)

@@ -25,6 +25,7 @@ namespace ed {
 			Geometry,
 			RenderState,
 			Model,
+			VertexBuffer,
 			ComputePass,
 			AudioPass,
 			PluginItem,
@@ -164,6 +165,24 @@ namespace ed {
 			bool Instanced;
 			int InstanceCount;
 			void* InstanceBuffer;
+		};
+
+		struct VertexBuffer {
+			VertexBuffer()
+			{
+				Position = glm::vec3(0, 0, 0);
+				Rotation = glm::vec3(0, 0, 0);
+				Scale = glm::vec3(1, 1, 1);
+				Topology = GL_TRIANGLES;
+				Buffer = 0;
+				VAO = 0;
+			}
+
+			void* Buffer;
+			GLuint VAO;
+
+			unsigned int Topology;
+			glm::vec3 Position, Rotation, Scale;
 		};
 
 		struct RenderState {

@@ -341,6 +341,8 @@ namespace ed {
 
 			isInstanced = objData->Instanced;
 			instanceBuffer = (BufferObject*)objData->InstanceBuffer;
+		} else if (pixel.Object->Type == PipelineItem::ItemType::VertexBuffer) {
+			// TODO
 		}
 
 		// update variables
@@ -763,7 +765,7 @@ namespace ed {
 		}
 
 		// return old values
-		if (pixel.Object->Type == PipelineItem::ItemType::Geometry || pixel.Object->Type == PipelineItem::ItemType::Model)
+		if (pixel.Object->Type == PipelineItem::ItemType::Geometry || pixel.Object->Type == PipelineItem::ItemType::Model || pixel.Object->Type == PipelineItem::ItemType::VertexBuffer)
 			for (int k = 0; k < itemVarValues.size(); k++)
 				if (itemVarValues[k].Item == pixel.Object)
 					itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;

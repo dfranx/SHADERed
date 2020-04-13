@@ -435,8 +435,18 @@ namespace ed {
 		return true;
 	}
 
-	ShaderVariable::ValueType getValueType(const std::string& name)
+	ShaderVariable::ValueType getValueType(const std::string& arg)
 	{
+		size_t trimLeft = 0, trimRight = arg.size();
+		for (; trimLeft < arg.size(); trimLeft++)
+			if (!isspace(arg[trimLeft]))
+				break;
+		for (; trimRight > 0; trimRight--)
+			if (!isspace(arg[trimRight]))
+				break;
+
+		std::string name = arg.substr(trimLeft, trimRight - trimLeft);
+
 		if (name == "bool")
 			return ShaderVariable::ValueType::Boolean1;
 		else if (name == "bvec2" || name == "bool2")
@@ -473,24 +483,17 @@ namespace ed {
 	std::vector<ShaderVariable::ValueType> ObjectManager::ParseBufferFormat(const std::string& str)
 	{
 		std::vector<ed::ShaderVariable::ValueType> ret;
-		std::string tok = str;
-		size_t pos = tok.find_first_of(';');
-		while (pos != std::string::npos) {
-			std::string tokpart = tok.substr(0, pos);
-			if (tokpart.size() > 0)
-				ret.push_back(getValueType(tokpart));
 
-			if (pos + 1 < tok.size())
-				tok = tok.substr(pos + 1);
-			else {
-				tok = tok.substr(pos);
-				break;
+		size_t pos = 0, lastIndex = 0;
+		for (; pos < str.size(); pos++) {
+			if (str[pos] == ';') {
+				ret.push_back(getValueType(str.substr(lastIndex, pos - lastIndex)));
+				lastIndex = pos + 1;
 			}
-			pos = tok.find_first_of(';');
 		}
 
-		if (tok.size() > 2)
-			ret.push_back(getValueType(tok));
+		if (lastIndex < str.size())
+			ret.push_back(getValueType(str.substr(lastIndex, str.size() - lastIndex)));
 
 		return ret;
 	}

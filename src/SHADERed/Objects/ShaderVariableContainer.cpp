@@ -43,6 +43,8 @@ namespace ed {
 		GLsizei length;				// name length
 		GLuint samplerLoc = 0;
 
+		m_uLocs.clear();
+
 		glGetProgramiv(pass, GL_ACTIVE_UNIFORMS, &count);
 		for (GLuint i = 0; i < count; i++) {
 			GLint size;
