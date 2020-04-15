@@ -267,7 +267,9 @@ namespace ed {
 
 		m_fpsUpdateTime += delta;
 		m_elapsedTime += delta;
-		if (capWholeApp || m_fpsLimit <= 0 || m_elapsedTime >= 1.0f / m_fpsLimit) {
+
+		bool useFpsLimit = !capWholeApp && m_fpsLimit > 0 && m_elapsedTime >= 1.0f / m_fpsLimit;
+		if (capWholeApp || m_fpsLimit <= 0 || useFpsLimit) {
 			if (!paused)
 				renderer->Render(imageSize.x, imageSize.y);
 
@@ -277,7 +279,7 @@ namespace ed {
 				m_fpsUpdateTime -= FPS_UPDATE_RATE;
 			}
 
-			m_elapsedTime -= 1 / m_fpsLimit;
+			m_elapsedTime -= (1 / m_fpsLimit) * useFpsLimit + (delta * !useFpsLimit);
 		}
 
 		if (capWholeApp && 1000 / delta > m_fpsLimit)

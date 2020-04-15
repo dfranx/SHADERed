@@ -16,7 +16,8 @@
 + fix a bug caused by deleting variables used in the "Change Variables" popup
 + fix gizmo
 + fix file dialogs
-+ fix current line highlighting in the text editor
++ fix fps limit options
++ fix line highlighting in the text editor
 + fix plane and circle normals
 
 [v1.3.2]
