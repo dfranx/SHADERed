@@ -109,6 +109,7 @@ namespace ed {
 		m_splashScreenLoaded = false;
 		m_recompiledAll = false;
 		m_isIncompatPluginsOpened = false;
+		m_minimalMode = false;
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
@@ -379,7 +380,7 @@ namespace ed {
 
 		// toolbar
 		static bool initializedToolbar = false;
-		bool actuallyToolbar = settings.General.Toolbar && !m_performanceMode;
+		bool actuallyToolbar = settings.General.Toolbar && !m_performanceMode && !m_minimalMode;
 		if (!initializedToolbar) { // some hacks ew
 			m_renderToolbar();
 			initializedToolbar = true;
@@ -387,7 +388,7 @@ namespace ed {
 			m_renderToolbar();
 
 		// create a fullscreen imgui panel that will host a dockspace
-		bool showMenu = !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.getElapsedTime().asSeconds() > 2.5f);
+		bool showMenu = !m_minimalMode && !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.getElapsedTime().asSeconds() > 2.5f);
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | (ImGuiWindowFlags_MenuBar * showMenu) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
@@ -400,7 +401,7 @@ namespace ed {
 		ImGui::PopStyleVar(3);
 
 		// DockSpace
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode) {
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode && !m_minimalMode) {
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
@@ -661,12 +662,12 @@ namespace ed {
 			ImGui::EndMainMenuBar();
 		}
 
-		if (m_performanceMode)
+		if (m_performanceMode || m_minimalMode)
 			((PreviewUI*)Get(ViewID::Preview))->Update(delta);
 
 		ImGui::End();
 
-		if (!m_performanceMode) {
+		if (!m_performanceMode && !m_minimalMode) {
 			for (auto& view : m_views)
 				if (view->Visible) {
 					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
@@ -687,7 +688,7 @@ namespace ed {
 		}
 
 		// object preview
-		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun() && !m_performanceMode)
+		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun() && !m_performanceMode && !m_minimalMode)
 			m_objectPrev->Update(delta);
 
 		// handle the "build occured" event

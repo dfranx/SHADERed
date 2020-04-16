@@ -6,6 +6,7 @@
 #include <SHADERed/EditorEngine.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Objects/CommandLineOptionParser.h>
 #include <glslang/Public/ShaderLang.h>
 
 #include <chrono>
@@ -36,6 +37,7 @@ int main(int argc, char* argv[])
 	srand(time(NULL));
 
 	std::filesystem::path cmdDir = std::filesystem::current_path();
+
 	if (argc > 0) {
 		if (std::filesystem::exists(std::filesystem::path(argv[0]).parent_path())) {
 			std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
@@ -43,6 +45,9 @@ int main(int argc, char* argv[])
 			ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 		}
 	}
+
+	ed::CommandLineOptionParser coptsParser;
+	coptsParser.Parse(cmdDir, argc - 1, argv + 1);
 
 #if defined(__linux__) || defined(__unix__)
 	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
@@ -133,6 +138,17 @@ int main(int argc, char* argv[])
 		std::filesystem::remove("./data/workspace.dat", errCode);
 	}
 
+	// apply parsed CL options
+	if (coptsParser.MinimalMode)
+		maximized = false;
+	if (coptsParser.WindowWidth > 0)
+		wndWidth = coptsParser.WindowWidth;
+	if (coptsParser.WindowHeight > 0)
+		wndHeight = coptsParser.WindowHeight;
+	perfMode = perfMode || coptsParser.PerformanceMode;
+	fullscreen = fullscreen || coptsParser.Fullscreen;
+	maximized = maximized || coptsParser.Maximized;
+
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -173,17 +189,13 @@ int main(int argc, char* argv[])
 	SetIcon(wnd);
 
 	// open an item if given in arguments
-	if (argc >= 2) {
-		ed::Logger::Get().Log("Openning a file provided through argument " + std::string(argv[1]));
-		engine.UI().Open(argv[1]);
-		std::filesystem::path argFile = cmdDir / std::filesystem::path(argv[1]);
-		if (std::filesystem::exists(argv[1]))
-			engine.UI().Open(argv[1]);
-		else if (std::filesystem::exists(argFile))
-			engine.UI().Open(argFile.generic_string().c_str());
+	if (!coptsParser.ProjectFile.empty()) {
+		ed::Logger::Get().Log("Openning a file provided through argument " + coptsParser.ProjectFile);
+		engine.UI().Open(coptsParser.ProjectFile);
 	}
 
 	engine.UI().SetPerformanceMode(perfMode);
+	engine.UI().SetMinimalMode(coptsParser.MinimalMode);
 	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
 
 	// timer for time delta

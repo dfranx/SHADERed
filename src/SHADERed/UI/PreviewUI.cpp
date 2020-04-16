@@ -247,7 +247,8 @@ namespace ed {
 
 		bool paused = m_data->Renderer.IsPaused();
 		bool capWholeApp = settings.Preview.ApplyFPSLimitToApp;
-		bool statusbar = settings.Preview.StatusBar;
+		bool isNotMinimalMode = !m_ui->IsMinimalMode();
+		bool statusbar = settings.Preview.StatusBar && isNotMinimalMode;
 		float fpsLimit = settings.Preview.FPSLimit;
 		if (fpsLimit != m_fpsLimit) {
 			m_elapsedTime = 0;
@@ -298,7 +299,7 @@ namespace ed {
 			renderer->Render(imageSize.x, imageSize.y);
 
 		// render the gizmo/bounding box/zoom area if necessary
-		if ((m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)) || m_zoom.IsSelecting()) {
+		if (isNotMinimalMode && (m_zoom.IsSelecting() || (m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)))) {
 			// recreate render texture if size is changed
 			if (m_lastSize.x != (int)imageSize.x || m_lastSize.y != (int)imageSize.y) {
 				m_lastSize.x = imageSize.x;
@@ -463,7 +464,7 @@ namespace ed {
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
-			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && (settings.Preview.Gizmo || settings.Preview.BoundingBox) && !ImGui::GetIO().KeyAlt) {
+			if (isNotMinimalMode && ((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && (settings.Preview.Gizmo || settings.Preview.BoundingBox) && !ImGui::GetIO().KeyAlt) {
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 

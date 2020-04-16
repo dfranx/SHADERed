@@ -69,6 +69,8 @@ namespace ed {
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
+		inline void SetMinimalMode(bool mode) { m_minimalMode = mode; }
+		inline bool IsMinimalMode() { return m_minimalMode; }
 
 		void StopDebugging();
 
@@ -99,6 +101,8 @@ namespace ed {
 		std::string m_cachedFont;
 		int m_cachedFontSize;
 		bool m_fontNeedsUpdate;
+
+		bool m_minimalMode;
 
 		bool m_cacheProjectModified;
 		bool m_recompiledAll;

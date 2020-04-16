@@ -26,6 +26,7 @@ set(SOURCES
 	src/SHADERed/Objects/AudioShaderStream.cpp
 	src/SHADERed/Objects/CameraSnapshots.cpp
 	src/SHADERed/Objects/ChangelogFetcher.cpp
+	src/SHADERed/Objects/CommandLineOptionParser.cpp
 	src/SHADERed/Objects/DefaultState.cpp
 	src/SHADERed/Objects/DebugInformation.cpp
 	src/SHADERed/Objects/FirstPersonCamera.cpp
