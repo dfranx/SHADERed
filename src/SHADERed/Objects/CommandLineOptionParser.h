@@ -9,6 +9,8 @@ namespace ed {
 
 		void Parse(const std::filesystem::path& cmdDir, int argc, char* argv[]);
 
+		bool LaunchUI;
+
 		bool Fullscreen;
 		bool Maximized;
 		bool PerformanceMode;

@@ -8,6 +8,7 @@ namespace ed {
 		Maximized = false;
 		MinimalMode = false;
 		PerformanceMode = false;
+		LaunchUI = true;
 		ProjectFile = "";
 		WindowWidth = WindowHeight = 0;
 	}
@@ -47,6 +48,28 @@ namespace ed {
 			// --performance, -p
 			else if (strcmp(argv[i], "--performance") == 0 || strcmp(argv[i], "-p") == 0) {
 				PerformanceMode = true;
+			}
+			// --help, -h
+			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+				static const std::vector<std::pair<std::string, std::string>> opts = {
+					{ "--help | -h", "print this message" },
+					{ "--minimal | -m", "launch SHADERed with no UI" },
+					{ "--wwidth | -ww [width]", "set window width" },
+					{ "--wheight | -wh [height]", "set window height" },
+					{ "--fullscreen | -fs", "launch SHADERed in fullscreen mode" },
+					{ "--maxmimized | -max", "maximize SHADERed's window" },
+					{ "--performance | -p", "launch SHADERed in performance mode" },
+				};
+				
+				int maxSize = 0;
+				for (const auto& opt : opts)
+					maxSize = std::max<int>(opt.first.size(), maxSize);
+				
+				for (const auto& opt : opts) {
+					printf("\t%s%*s - %s\n", opt.first.c_str(), maxSize - opt.first.size(), "", opt.second.c_str());
+				}
+				
+				LaunchUI = false;
 			}
 			// file path
 			else if (std::filesystem::exists(cmdDir / argv[i]))

@@ -48,6 +48,8 @@ int main(int argc, char* argv[])
 
 	ed::CommandLineOptionParser coptsParser;
 	coptsParser.Parse(cmdDir, argc - 1, argv + 1);
+	if (!coptsParser.LaunchUI)
+		return 0;
 
 #if defined(__linux__) || defined(__unix__)
 	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
