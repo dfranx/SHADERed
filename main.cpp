@@ -4,9 +4,9 @@
 
 #include <SDL2/SDL.h>
 #include <SHADERed/EditorEngine.h>
+#include <SHADERed/Objects/CommandLineOptionParser.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/CommandLineOptionParser.h>
 #include <glslang/Public/ShaderLang.h>
 
 #include <chrono>
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 #if defined(__linux__) || defined(__unix__)
 	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
 	// TODO: if more arguments get added, use different methods to check if working directory is being set explicitly
-	if (argc <= 1) {
+	{
 		char result[PATH_MAX];
 		ssize_t readlinkRes = readlink("/proc/self/exe", result, PATH_MAX);
 		std::string exePath = "";
