@@ -1,5 +1,7 @@
 #include <SHADERed/Objects/CommandLineOptionParser.h>
+#include <string.h>
 #include <filesystem>
+#include <vector>
 
 namespace ed {
 	CommandLineOptionParser::CommandLineOptionParser()
@@ -60,14 +62,14 @@ namespace ed {
 					{ "--maxmimized | -max", "maximize SHADERed's window" },
 					{ "--performance | -p", "launch SHADERed in performance mode" },
 				};
-				
+
 				int maxSize = 0;
 				for (const auto& opt : opts)
 					maxSize = std::max<int>(opt.first.size(), maxSize);
-				
+
 				for (const auto& opt : opts)
 					printf("\t%s%*s - %s\n", opt.first.c_str(), maxSize - opt.first.size(), "", opt.second.c_str());
-				
+
 				LaunchUI = false;
 			}
 			// file path
