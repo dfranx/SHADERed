@@ -547,7 +547,7 @@ namespace ed {
 			int vertCount = 0;
 			for (auto mesh : mdl.Meshes)
 				vertCount += mesh.Vertices.size();
-			int bufSize = vertCount * 3 * sizeof(float);
+			int bufSize = vertCount * 4 * sizeof(float);
 
 			buf->Size = bufSize;
 			buf->Data = realloc(buf->Data, bufSize);
@@ -559,7 +559,8 @@ namespace ed {
 					fData[index + 0] = vert.Position.x;
 					fData[index + 1] = vert.Position.y;
 					fData[index + 2] = vert.Position.z;
-					index += 3;
+					fData[index + 3] = 1.0f;
+					index += 4;
 				}
 
 			glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);

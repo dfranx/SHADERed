@@ -1,3 +1,6 @@
+[v1.3.4]
++ fix buffer's "load data from 3D model"
+
 [v1.3.3]
 + add VertexBuffer
 + add command line arguments
