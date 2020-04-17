@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple" type="shader" active="true">
+			<shader type="vs" path="shaders\VertexBuffer_SimpleVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\VertexBuffer_SimplePS.glsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
+			<rendertexture />
+			<items>
+				<item name="VertexBuffer" type="vertexbuffer">
+					<buffer>triangle</buffer>
+					<topology>TriangleList</topology>
+				</item>
+			</items>
+			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+			</variables>
+			<macros />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="buffer" name="triangle" size="192" format="vec3;vec3;vec2;" pausedpreview="false" />
+	</objects>
+	<cameras />
+	<settings>
+		<entry type="property" name="VertexBuffer" item="pipe" />
+		<entry type="camera" fp="false">
+			<distance>8</distance>
+			<pitch>-2</pitch>
+			<yaw>177</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
+	</settings>
+</project>
