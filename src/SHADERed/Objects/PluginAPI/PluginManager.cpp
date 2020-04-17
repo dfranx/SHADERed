@@ -28,6 +28,18 @@ namespace ed {
 	typedef int (*GetPluginVersionFn)();
 	typedef const char* (*GetPluginNameFn)();
 
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+	void ptrFreeLibrary(void* so)
+	{
+		dlclose(so);
+	}
+#else
+	void ptrFreeLibrary(HINSTANCE dll)
+	{
+		FreeLibrary(dll);
+	}
+#endif
+
 	void PluginManager::OnEvent(const SDL_Event& e)
 	{
 		for (const auto& plugin : m_plugins)
@@ -45,10 +57,8 @@ namespace ed {
 		std::string pluginExt = "dll";
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 		pluginExt = "so";
-		int (*ptrFreeLibrary)(void*) = &dlclose;
-#else
-		BOOL (*ptrFreeLibrary)(HMODULE) = &FreeLibrary;
 #endif
+
 
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {

@@ -9,7 +9,7 @@ namespace ed {
 		sf::Http http("http://api.shadered.org");
 		sf::Http::Request request;
 		request.setUri("/changelog.php");
-		request.setField("version", std::to_string(UpdateChecker::MyVersion));
+		request.setBody("version=" + std::to_string(UpdateChecker::MyVersion));
 		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
