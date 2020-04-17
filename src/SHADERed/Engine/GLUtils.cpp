@@ -126,14 +126,14 @@ namespace ed {
 
 			int rowStride = 0, curStride = 0;
 			for (const auto& layitem : ilayout)
-				rowStride += ShaderVariable::GetSize(layitem);
+				rowStride += ShaderVariable::GetSize(layitem, true);
 
 			for (const auto& layitem : ilayout) {
 				// vertex positions
 				glVertexAttribPointer(fmtIndex, ShaderVariable::GetSize(layitem) / 4, GL_FLOAT, GL_FALSE, rowStride, (void*)curStride);
 				glEnableVertexAttribArray(fmtIndex);
 				fmtIndex++;
-				curStride += ShaderVariable::GetSize(layitem);
+				curStride += ShaderVariable::GetSize(layitem, true);
 			}
 
 			glBindVertexArray(0);

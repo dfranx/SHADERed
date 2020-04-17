@@ -639,6 +639,7 @@ namespace ed {
 
 					textureNode.append_attribute("size").set_value(bobj->Size);
 					textureNode.append_attribute("format").set_value(bobj->ViewFormat);
+					textureNode.append_attribute("pausedpreview").set_value(bobj->PreviewPaused);
 
 					std::string bPath = GetProjectPath("buffers/" + texs[i] + ".buf");
 					if (!std::filesystem::exists(GetProjectPath("buffers")))
@@ -2951,6 +2952,9 @@ namespace ed {
 				}
 				if (!objectNode.attribute("format").empty())
 					strcpy(buf->ViewFormat, objectNode.attribute("format").as_string());
+
+				if (!objectNode.attribute("pausedpreview").empty())
+					buf->PreviewPaused = objectNode.attribute("pausedpreview").as_bool();
 
 				std::string bPath = GetProjectPath("buffers/" + std::string(objName) + ".buf");
 				std::ifstream bufRead(bPath, std::ios::binary);

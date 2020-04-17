@@ -49,6 +49,7 @@ namespace ed {
 		void* Data;
 		char ViewFormat[256]; // vec3;vec3;vec2
 		GLuint ID;
+		bool PreviewPaused;
 	};
 
 	struct ImageObject {
@@ -192,6 +193,10 @@ namespace ed {
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);
 		void ResizeImage(const std::string& name, glm::ivec2 size);
 		void ResizeImage3D(const std::string& name, glm::ivec3 size);
+
+		bool LoadBufferFromTexture(BufferObject* buf, const std::string& str, bool convertToFloat = false);
+		bool LoadBufferFromModel(BufferObject* buf, const std::string& str);
+		bool LoadBufferFromFile(BufferObject* buf, const std::string& str);
 
 		void Clear();
 

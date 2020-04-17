@@ -1,10 +1,12 @@
 [v1.3.3]
 + add VertexBuffer
++ add command line arguments
++ add an option to pause buffer preview
++ add an option to load buffer data from texture, 3D models and regular files
 + add horizontal scrolling with mouse cursor while selecting text
 + add SHIFT + left click to select text
 + add color preview to vec3 and vec4 shader variables
 + line numbers & breakpoints in text editor should now be "pinned" to the left side
-+ buffer size can now only be changed using row count
 + fix a bug that unfocused text editor on AltGr key press
 + fix a bug that caused SHADERed to crash when parsing error messages
 + fix a bug that caused SHADERed to crash when using ObjectProperty variables

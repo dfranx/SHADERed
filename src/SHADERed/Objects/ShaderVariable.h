@@ -104,13 +104,13 @@ namespace ed {
 			Flags = 0;
 		}
 
-		static inline int GetSize(ValueType type)
+		static inline int GetSize(ValueType type, bool isBuffer = false)
 		{
 			switch (type) {
-			case ValueType::Boolean1: return 1 * 4;
-			case ValueType::Boolean2: return 2 * 4;
-			case ValueType::Boolean3: return 3 * 4;
-			case ValueType::Boolean4: return 4 * 4;
+			case ValueType::Boolean1: return 1 * (isBuffer ? 1 : 4);
+			case ValueType::Boolean2: return 2 * (isBuffer ? 1 : 4);
+			case ValueType::Boolean3: return 3 * (isBuffer ? 1 : 4);
+			case ValueType::Boolean4: return 4 * (isBuffer ? 1 : 4);
 
 			case ValueType::Integer1: return 1 * 4;
 			case ValueType::Integer2: return 2 * 4;

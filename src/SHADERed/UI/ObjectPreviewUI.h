@@ -14,6 +14,7 @@ namespace ed {
 			m_cubePrev.Init(256, 192);
 			m_curHoveredItem = -1;
 			m_lastZoomSize = glm::vec2(0, 0);
+			m_initRowSize = false;
 		}
 		~ObjectPreviewUI() { }
 
@@ -51,6 +52,8 @@ namespace ed {
 		std::vector<mItem> m_items;
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_samples[512], m_fft[512];
+
+		bool m_initRowSize;
 
 		// tools
 		CubemapPreview m_cubePrev;

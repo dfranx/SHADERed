@@ -3,6 +3,7 @@
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Engine/Model.h>
 
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
@@ -343,6 +344,7 @@ namespace ed {
 		ed::BufferObject* bObj = item->Buffer = new ed::BufferObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
+		bObj->PreviewPaused = false;
 		bObj->Size = 0;
 		bObj->Data = nullptr;
 		strcpy(bObj->ViewFormat, "float");
@@ -447,13 +449,13 @@ namespace ed {
 
 		std::string name = arg.substr(trimLeft, trimRight - trimLeft);
 
-		if (name == "bool")
+		if (name == "bool" || name == "byte")
 			return ShaderVariable::ValueType::Boolean1;
-		else if (name == "bvec2" || name == "bool2")
+		else if (name == "bvec2" || name == "bool2" || name == "byte2")
 			return ShaderVariable::ValueType::Boolean2;
-		else if (name == "bvec3" || name == "bool3")
+		else if (name == "bvec3" || name == "bool3" || name == "byte3")
 			return ShaderVariable::ValueType::Boolean3;
-		else if (name == "bvec4" || name == "bool4")
+		else if (name == "bvec4" || name == "bool4" || name == "byte4")
 			return ShaderVariable::ValueType::Boolean4;
 		else if (name == "int")
 			return ShaderVariable::ValueType::Integer1;
@@ -494,6 +496,101 @@ namespace ed {
 
 		if (lastIndex < str.size())
 			ret.push_back(getValueType(str.substr(lastIndex, str.size() - lastIndex)));
+
+		return ret;
+	}
+
+	bool ObjectManager::LoadBufferFromTexture(BufferObject* buf, const std::string& str, bool convertToFloat)
+	{
+		std::string path = m_parser->GetProjectPath(str);
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		
+		if (data != nullptr) {
+			m_parser->ModifyProject();
+
+			if (convertToFloat) {
+				buf->Size = width * height * nrChannels * sizeof(float);
+				buf->Data = realloc(buf->Data, buf->Size);
+				float* fData = (float*)buf->Data;
+
+				for (int x = 0; x < width; x++) {
+					for (int y = 0; y < height; y++) {
+						for (int z = 0; z < nrChannels; z++) {
+							int index = ((y * width) + x) * nrChannels + z;
+							fData[index] = data[index] / 255.0f;
+						}
+					}
+				}
+			} else {
+				buf->Size = width * height * nrChannels * sizeof(char);
+				buf->Data = realloc(buf->Data, buf->Size);
+				memcpy(buf->Data, data, buf->Size);
+			}
+
+			stbi_image_free(data);
+
+			
+			glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+			glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // upload data
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		}
+
+		return data != nullptr;
+	}
+	bool ObjectManager::LoadBufferFromModel(BufferObject* buf, const std::string& str)
+	{
+		ed::eng::Model mdl;
+		bool ret = mdl.LoadFromFile(str);
+
+		if (ret) {
+			int vertCount = 0;
+			for (auto mesh : mdl.Meshes)
+				vertCount += mesh.Vertices.size();
+			int bufSize = vertCount * 3 * sizeof(float);
+
+			buf->Size = bufSize;
+			buf->Data = realloc(buf->Data, bufSize);
+
+			int index = 0;
+			float* fData = (float*)buf->Data;
+			for (auto mesh : mdl.Meshes)
+				for (auto vert : mesh.Vertices) {
+					fData[index + 0] = vert.Position.x;
+					fData[index + 1] = vert.Position.y;
+					fData[index + 2] = vert.Position.z;
+					index += 3;
+				}
+
+			glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+			glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // upload data
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		}
+
+		return ret;
+	}
+	bool ObjectManager::LoadBufferFromFile(BufferObject* buf, const std::string& str)
+	{
+		std::string bPath = m_parser->GetProjectPath(str);
+		std::ifstream bufRead(bPath, std::ios::binary | std::ios::ate);
+		size_t bufSize = bufRead.tellg();
+		bufRead.seekg(0, std::ios::beg);
+
+		bool ret = bufRead.is_open();
+		if (ret) {
+			buf->Size = bufSize;
+			buf->Data = realloc(buf->Data, bufSize);
+			char* data = (char*)calloc(1, bufSize);
+			bufRead.read(data, bufSize);
+			memcpy(buf->Data, data, bufSize);
+			free(data);
+
+			glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
+			glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // upload data
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		}
+
+		bufRead.close();
 
 		return ret;
 	}

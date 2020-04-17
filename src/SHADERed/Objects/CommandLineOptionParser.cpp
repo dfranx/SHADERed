@@ -65,9 +65,8 @@ namespace ed {
 				for (const auto& opt : opts)
 					maxSize = std::max<int>(opt.first.size(), maxSize);
 				
-				for (const auto& opt : opts) {
+				for (const auto& opt : opts)
 					printf("\t%s%*s - %s\n", opt.first.c_str(), maxSize - opt.first.size(), "", opt.second.c_str());
-				}
 				
 				LaunchUI = false;
 			}

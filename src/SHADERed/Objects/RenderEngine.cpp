@@ -328,7 +328,7 @@ namespace ed {
 							auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
 							int stride = 0;
 							for (const auto& f : bobjFmt)
-								stride += ShaderVariable::GetSize(f);
+								stride += ShaderVariable::GetSize(f, true);
 
 							if (stride != 0) {
 								int vertCount = bobj->Size / stride;
@@ -821,7 +821,7 @@ namespace ed {
 				auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
 				int stride = 0;
 				for (const auto& f : bobjFmt)
-					stride += ShaderVariable::GetSize(f);
+					stride += ShaderVariable::GetSize(f, true);
 
 				if (stride != 0) {
 					int vertCount = bobj->Size / stride;

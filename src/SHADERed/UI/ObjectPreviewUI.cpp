@@ -1,6 +1,7 @@
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
+#include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
 
 namespace ed {
@@ -23,11 +24,7 @@ namespace ed {
 		if (buffer != nullptr) {
 			BufferObject* buf = (BufferObject*)buffer;
 			i.CachedFormat = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
-			
-			int stride = 0;
-			for (const auto& vType : i.CachedFormat)
-				stride += ShaderVariable::GetSize(vType);
-			i.CachedSize = buf->Size/stride;
+			i.CachedSize = buf->Size;
 		}
 
 		m_items.push_back(i);
@@ -132,20 +129,20 @@ namespace ed {
 
 						int perRow = 0;
 						for (int i = 0; i < item->CachedFormat.size(); i++)
-							perRow += ShaderVariable::GetSize(item->CachedFormat[i]);
+							perRow += ShaderVariable::GetSize(item->CachedFormat[i], true);
 						ImGui::Text("Size per row: %d bytes", perRow);
 						ImGui::Text("Total size: %d bytes", buf->Size);
 
-						ImGui::Text("Row count:");
+						ImGui::Text("New buffer size (in bytes):");
 						ImGui::SameLine();
 						ImGui::PushItemWidth(200);
-						ImGui::InputInt("##objprev_rowcount", &item->CachedSize, 1, 10, ImGuiInputTextFlags_AlwaysInsertMode);
+						ImGui::InputInt("##objprev_newsize", &item->CachedSize, 1, 10, ImGuiInputTextFlags_AlwaysInsertMode);
 						ImGui::PopItemWidth();
 						ImGui::SameLine();
 						if (ImGui::Button("APPLY##objprev_applysize")) {
 							int oldSize = buf->Size;
 							
-							buf->Size = item->CachedSize * perRow;
+							buf->Size = item->CachedSize;
 							if (buf->Size < 0) buf->Size = 0;
 
 							void* newData = calloc(1, buf->Size);
@@ -159,19 +156,55 @@ namespace ed {
 
 							m_data->Parser.ModifyProject();
 						}
+
+						ImGui::Separator();
+						ImGui::Text("Controls: ");
+
 						if (ImGui::Button("CLEAR##objprev_clearbuf")) {
 							memset(buf->Data, 0, buf->Size);
 
 							glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
-							glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // resize
+							glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // upload data
 							glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 							m_data->Parser.ModifyProject();
 						}
+						ImGui::SameLine();
+						if (ImGui::Button(buf->PreviewPaused  ? "UNPAUSE##objprev_unpause" : "PAUSE##objprev_pause"))
+							buf->PreviewPaused = !buf->PreviewPaused;
+						ImGui::SameLine();
+						if (ImGui::Button("LOAD BYTE DATA FROM TEXTURE")) {
+							std::string textureFile;
+							bool isOpen = UIHelper::GetOpenFileDialog(textureFile);
+							if (isOpen)
+								m_data->Objects.LoadBufferFromTexture(buf, textureFile);
+						}
+						ImGui::SameLine();
+						if (ImGui::Button("LOAD FLOAT DATA FROM TEXTURE")) {
+							std::string textureFile;
+							bool isOpen = UIHelper::GetOpenFileDialog(textureFile);
+							if (isOpen)
+								m_data->Objects.LoadBufferFromTexture(buf, textureFile, true);
+						}
+						if (ImGui::Button("LOAD DATA FROM 3D MODEL")) {
+							std::string modelFile;
+							bool isOpen = UIHelper::GetOpenFileDialog(modelFile);
+							if (isOpen)
+								m_data->Objects.LoadBufferFromModel(buf, modelFile);
+						}
+						ImGui::SameLine();
+						if (ImGui::Button("LOAD RAW DATA")) {
+							std::string filePath;
+							bool isOpen = UIHelper::GetOpenFileDialog(filePath);
+							if (isOpen)
+								m_data->Objects.LoadBufferFromFile(buf, filePath);
+						}
 
-						// update buffer data every 330ms
-						ImGui::Text("Buffer view is updated every 330ms");
-						if (m_bufUpdateClock.getElapsedTime().asMilliseconds() > 330) { // TODO: pause button
+						ImGui::Separator();
+
+						// update buffer data every 350ms
+						ImGui::Text(buf->PreviewPaused ? "Buffer view is paused" : "Buffer view is updated every 350ms");
+						if (!buf->PreviewPaused && m_bufUpdateClock.getElapsedTime().asMilliseconds() > 350) {
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
 							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -182,16 +215,38 @@ namespace ed {
 							ImGui::Separator();
 
 							int rows = buf->Size / perRow;
-							ImGui::Columns(item->CachedFormat.size());
+							float offsetY = ImGui::GetCursorPosY();
+							float scrollY = std::max<float>(0.0f, ImGui::GetScrollY() - offsetY);
+							float yAdvance = ImGui::GetTextLineHeightWithSpacing() + 2 * ImGui::GetStyle().FramePadding.y + 2.0f;
+							ImVec2 contentSize = ImGui::GetWindowContentRegionMax();
 
+							ImGui::BeginChild("##buf_container", ImVec2(0, (rows + 1) * yAdvance));
+
+							ImGui::Columns(item->CachedFormat.size() + 1);
+							if (!m_initRowSize) { // imgui hax
+								ImGui::SetColumnWidth(0, Settings::Instance().CalculateSize(50.0f));
+								m_initRowSize = true;
+							}
+							ImGui::Text("Row");
+							ImGui::NextColumn();
 							for (int j = 0; j < item->CachedFormat.size(); j++) {
 								ImGui::Text(VARIABLE_TYPE_NAMES[(int)item->CachedFormat[j]]);
 								ImGui::NextColumn();
 							}
+							ImGui::Separator();
 
-							for (int i = 0; i < rows; i++) {
+							int rowNo = std::max<int>(0, (int)floor(scrollY / yAdvance) - 5);
+							int rowMax = std::max<int>(0, std::min<int>((int)rows, rowNo + (int)floor((scrollY + contentSize.y + offsetY) / yAdvance) + 10));
+							float cursorY = ImGui::GetCursorPosY();
+
+							for (int i = rowNo; i < rowMax; i++) {
+								ImGui::SetCursorPosY(cursorY + i * yAdvance);
+								ImGui::Text("%d", i+1);
+								ImGui::NextColumn();
 								int curColOffset = 0;
 								for (int j = 0; j < item->CachedFormat.size(); j++) {
+									ImGui::SetCursorPosY(cursorY + i * yAdvance);
+
 									int dOffset = i * perRow + curColOffset;
 									if (m_drawBufferElement(i, j, (void*)(((char*)buf->Data) + dOffset), item->CachedFormat[j])) {
 										glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
@@ -200,12 +255,14 @@ namespace ed {
 
 										m_data->Parser.ModifyProject();
 									}
-									curColOffset += ShaderVariable::GetSize(item->CachedFormat[j]);
+									curColOffset += ShaderVariable::GetSize(item->CachedFormat[j], true);
 									ImGui::NextColumn();
 								}
 							}
 
 							ImGui::Columns(1);
+
+							ImGui::EndChild();
 						}
 
 					} else {
@@ -277,40 +334,28 @@ namespace ed {
 			ret |= ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer1:
-			ret |= ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer2:
-			ret |= ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer3:
-			ret |= ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer4:
-			ret |= ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 0.3f);
+			ret |= ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean1:
-			ret |= ImGui::Checkbox(("##valuedit" + id).c_str(), (bool*)data);
+			ret |= ImGui::DragScalar(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean2:
-			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
+			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 2, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean3:
-			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
+			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 3, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean4:
-			ret |= ImGui::Checkbox(("##valuedit1" + id).c_str(), (bool*)(data) + 0);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit2" + id).c_str(), (bool*)(data) + 1);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit3" + id).c_str(), (bool*)(data) + 2);
-			ImGui::SameLine();
-			ret |= ImGui::Checkbox(("##valuedit4" + id).c_str(), (bool*)(data) + 3);
+			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 4, 1.0f);
 			break;
 		}
 
