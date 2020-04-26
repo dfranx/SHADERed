@@ -86,6 +86,7 @@ You can also check this list too: [link](https://shadered.org/features.php).
 **Supporter(s):**
   * [Hugo Locurcio](https://hugo.pro)
   * Senthil Kumaran Rajasekaran
+  * [Vladimir Alyamkin](https://alyamkin.com/)
 
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
@@ -134,9 +135,9 @@ git submodule update --init --recursive
 Install all the libraries that are needed:
 ```
 # Ubuntu
-sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
+sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libgtk-3-dev
 # Fedora
-sudo dnf install assimp-devel SFML-devel glm-devel glew-devel SDL2-devel gtk3-devel
+sudo dnf install SFML-devel glm-devel glew-devel SDL2-devel gtk3-devel
 ```
 
 Build:
@@ -169,7 +170,7 @@ Run:
 Install all the libraries that are needed:
 
 ```sh
-brew install sdl2 sfml glew glm assimp
+brew install sdl2 sfml glew glm
 ```
 
 Build:
@@ -193,7 +194,7 @@ Run:
 ```
 
 ### Windows
-1. Install SDL2, SFML, GLEW, GLM, ASSIMP through your favourite package manager (I recommend vcpkg)
+1. Install SDL2, SFML, GLEW & GLM through your favourite package manager (I recommend vcpkg)
 2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable
 3. Press Configure and then Generate if no errors occured
 4. Open the .sln and build the project!

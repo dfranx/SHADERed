@@ -135,15 +135,19 @@ find_package(GLEW REQUIRED)
 # glm
 find_package(GLM REQUIRED)
 
-# ASSIMP
-find_package(ASSIMP REQUIRED)
-
 # sfml audio
 find_package(SFML COMPONENTS system audio network)
 
+# assimp
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Static lib" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Assimp's tools" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
+set(ASSIMP_WERROR OFF CACHE BOOL "Warnings as errors" FORCE)
+add_subdirectory(libs/assimp)
+
 # glslang
-set(ENABLE_GLSLANG_BINARIES OFF)
-set(ENABLE_SPVREMAPPER OFF)
+set(ENABLE_SPVREMAPPER OFF CACHE BOOL "Enables building of SPVRemapper" FORCE)
+set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "Builds glslangValidator and spirv-remap" FORCE)
 add_subdirectory(libs/glslang)
 
 # Native macOS frameworks
@@ -172,7 +176,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} ${ASSIMP_LIBRARIES} glslang SPIRV ShaderDebugger)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV ShaderDebugger)
 
 # link sfml
 if(${USE_FINDSFML})
@@ -183,13 +187,13 @@ endif()
 
 if(WIN32)
 	# link specific win32 libraries
-	target_link_libraries(SHADERed GLEW::GLEW SDL2::SDL2 SDL2::SDL2main)
+	target_link_libraries(SHADERed GLEW::GLEW assimp::assimp SDL2::SDL2 SDL2::SDL2main)
 
 elseif(UNIX AND NOT APPLE)
 	# link linux libraries
-	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${ASSIMP_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 elseif(APPLE)
-	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${ASSIMP_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()
 
 if (NOT MSVC)
