@@ -176,7 +176,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV ShaderDebugger)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV ShaderDebugger assimp::assimp)
 
 # link sfml
 if(${USE_FINDSFML})
@@ -187,13 +187,13 @@ endif()
 
 if(WIN32)
 	# link specific win32 libraries
-	target_link_libraries(SHADERed GLEW::GLEW assimp::assimp SDL2::SDL2 SDL2::SDL2main)
+	target_link_libraries(SHADERed GLEW::GLEW SDL2::SDL2 SDL2::SDL2main)
 
 elseif(UNIX AND NOT APPLE)
 	# link linux libraries
-	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${ASSIMP_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 elseif(APPLE)
-	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${ASSIMP_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()
 
 if (NOT MSVC)
