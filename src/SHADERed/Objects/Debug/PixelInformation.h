@@ -1,6 +1,6 @@
 #pragma once
 #include <SHADERed/Engine/Model.h>
-#include <SHADERed/Objects/PipelineItem.h> // TODO: add_include_dirs(Objects)
+#include <SHADERed/Objects/PipelineItem.h>
 
 #include <glm/glm.hpp>
 #include <unordered_map>
