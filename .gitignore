@@ -13,6 +13,10 @@ VSProject
 vsproject32
 Makefile
 libs/**/*.cmake
+SPIRV-Tools-linkConfig.cmake
+SPIRV-Tools-optConfig.cmake
+SPIRV-Tools-reduceConfig.cmake
+SPIRV-ToolsConfig.cmake
 
 # Generated files
 libs/**/*.tcl

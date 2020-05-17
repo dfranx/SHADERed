@@ -227,7 +227,7 @@ namespace ed {
 								spvm_image_t tex = res->image_data;
 								
 								if (isCube) {
-									m_cubePrev.Draw((GLuint)tex->user_data);
+									m_cubePrev.Draw((GLuint)((uintptr_t)tex->user_data));
 									ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
 								} else
 									ImGui::Image((ImTextureID)tex->user_data, ImVec2(128.0f, 128.0f * (tex->height / (float)tex->width)), ImVec2(0, 1), ImVec2(1, 0));
