@@ -11,7 +11,7 @@
 #include <SHADERed/Objects/PluginAPI/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/RenderEngine.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <SHADERed/Engine/GLUtils.h>
@@ -29,7 +29,7 @@
 namespace ed {
 	std::string getExtension(const std::string& filename)
 	{
-		switch (ShaderTranscompiler::GetShaderTypeFromExtension(filename)) {
+		switch (ShaderCompiler::GetShaderLanguageFromExtension(filename)) {
 		case ShaderLanguage::HLSL: return Settings::Instance().General.HLSLExtensions[0];
 		case ShaderLanguage::GLSL: return "glsl";
 		case ShaderLanguage::VulkanGLSL: return Settings::Instance().General.VulkanGLSLExtensions[0];

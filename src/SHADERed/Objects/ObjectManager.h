@@ -172,6 +172,8 @@ namespace ed {
 
 		void Update(float delta);
 
+		void Pause(bool pause);
+
 		void Remove(const std::string& file);
 
 		glm::ivec2 GetRenderTextureSize(const std::string& name);

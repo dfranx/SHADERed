@@ -54,12 +54,8 @@ namespace ed {
 			if (strcmp(m_input, "? clear") == 0) { // this is just a debug thingy, maybe support actual commands
 				m_clear();
 			} else {
-				bv_variable exprValue = m_data->Debugger.Engine.Immediate(m_input);
-
 				m_addLog(std::string(m_input));
-				m_addLog(m_data->Debugger.VariableValueToString(exprValue));
-
-				bv_variable_deinitialize(&exprValue);
+				m_addLog("Not implemented");
 			}
 
 			m_input[0] = 0;

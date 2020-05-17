@@ -38,7 +38,7 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="buffer" name="InputData" size="16384" format="vec4;vec4;">
+		<object type="buffer" name="InputData" size="16384" format="vec4;vec4;" pausedpreview="false">
 			<bind slot="0" name="Compute" />
 		</object>
 	</objects>
@@ -47,9 +47,9 @@
 		<entry type="property" name="Compute" item="pipe" />
 		<entry type="file" name="Compute" shader="cs" />
 		<entry type="camera" fp="false">
-			<distance>34</distance>
-			<pitch>-8</pitch>
-			<yaw>84</yaw>
+			<distance>50</distance>
+			<pitch>6</pitch>
+			<yaw>8</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

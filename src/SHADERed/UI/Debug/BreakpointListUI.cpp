@@ -32,7 +32,7 @@ namespace ed {
 				ImGui::Text(fileName);
 				ImGui::NextColumn();
 
-				const sd::Breakpoint& b = bkpt.second[i];
+				const dbg::Breakpoint& b = bkpt.second[i];
 				isEnabled = bkptStates[bkpt.first][i];
 				if (ImGui::Checkbox(("##bkpt_state" + std::to_string(i)).c_str(), &isEnabled))
 					m_data->Debugger.SetBreakpointEnabled(bkpt.first, b.Line, isEnabled);

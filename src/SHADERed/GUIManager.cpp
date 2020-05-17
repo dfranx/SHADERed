@@ -149,7 +149,7 @@ namespace ed {
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
 
-		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watch"));
+		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watches"));
 		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
 		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
 		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
@@ -190,6 +190,8 @@ namespace ed {
 	}
 	GUIManager::~GUIManager()
 	{
+		glDeleteShader(Magnifier::Shader);
+
 		std::ofstream verWriter("current_version.txt");
 		verWriter << UpdateChecker::MyVersion;
 		verWriter.close();
@@ -603,8 +605,22 @@ namespace ed {
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
 
-					for (auto& dview : m_debugViews)
+					for (auto& dview : m_debugViews) {
+						bool isTempDisabled = (dview->Name == "Immediate" || dview->Name == "Watches"); // remove this later
+
+						if (isTempDisabled) {
+							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+							dview->Visible = false;
+						}
+						
 						ImGui::MenuItem(dview->Name.c_str(), 0, &dview->Visible);
+
+						if (isTempDisabled) {
+							ImGui::PopStyleVar();
+							ImGui::PopItemFlag();
+						}
+					}
 
 					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PopStyleVar();
@@ -677,7 +693,7 @@ namespace ed {
 				}
 			if (m_data->Debugger.IsDebugging()) {
 				for (auto& dview : m_debugViews)
-					if (dview->Visible) {
+					if (dview->Visible && (dview->Name != "Immediate" && dview->Name != "Watches")) {
 						ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
 						if (ImGui::Begin(dview->Name.c_str(), &dview->Visible)) dview->Update(delta);
 						ImGui::End();
@@ -686,11 +702,11 @@ namespace ed {
 
 			m_data->Plugins.Update(delta);
 			Get(ViewID::Code)->Update(delta);
-		}
 
-		// object preview
-		if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun() && !m_performanceMode && !m_minimalMode)
-			m_objectPrev->Update(delta);
+			// object preview
+			if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
+				m_objectPrev->Update(delta);
+		}
 
 		// handle the "build occured" event
 		if (settings.General.AutoOpenErrorWindow && m_data->Messages.BuildOccured) {
@@ -824,8 +840,10 @@ namespace ed {
 					ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
+			if (ImGui::Button("Cancel")) {
+				m_createUI->Reset();
 				ImGui::CloseCurrentPopup();
+			}
 			ImGui::EndPopup();
 		}
 
@@ -1160,6 +1178,8 @@ namespace ed {
 
 			ImGui::Separator();
 			if (ImGui::CollapsingHeader("Advanced")) {
+				bool requiresPreviewUpdate = false;
+
 				/* TIME */
 				ImGui::Text("Time:");
 				ImGui::SameLine();
@@ -1167,6 +1187,7 @@ namespace ed {
 				if (ImGui::DragFloat("##save_prev_time", &m_savePreviewTime)) {
 					float timeAdvance = m_savePreviewTime - SystemVariableManager::Instance().GetTime();
 					SystemVariableManager::Instance().AdvanceTimer(timeAdvance);
+					requiresPreviewUpdate = true;
 				}
 				ImGui::PopItemWidth();
 
@@ -1174,43 +1195,59 @@ namespace ed {
 				ImGui::Text("Time delta:");
 				ImGui::SameLine();
 				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##save_prev_timed", &m_savePreviewTimeDelta);
+				if (ImGui::DragFloat("##save_prev_timed", &m_savePreviewTimeDelta))
+					requiresPreviewUpdate = true;
 				ImGui::PopItemWidth();
 
 				/* FRAME INDEX */
 				ImGui::Text("Frame index:");
 				ImGui::SameLine();
 				ImGui::PushItemWidth(-1);
-				ImGui::DragInt("##save_prev_findex", &m_savePreviewFrameIndex);
+				if (ImGui::DragInt("##save_prev_findex", &m_savePreviewFrameIndex))
+					requiresPreviewUpdate = true;
 				ImGui::PopItemWidth();
 
 				/* WASD */
 				ImGui::Text("WASD:");
 				ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keyw", &m_savePreviewWASD[0]);
+				if (ImGui::Checkbox("##save_prev_keyw", &m_savePreviewWASD[0]))
+					requiresPreviewUpdate = true;
 				ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keya", &m_savePreviewWASD[1]);
+				if (ImGui::Checkbox("##save_prev_keya", &m_savePreviewWASD[1]))
+					requiresPreviewUpdate = true;
 				ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keys", &m_savePreviewWASD[2]);
+				if (ImGui::Checkbox("##save_prev_keys", &m_savePreviewWASD[2]))
+					requiresPreviewUpdate = true;
 				ImGui::SameLine();
-				ImGui::Checkbox("##save_prev_keyd", &m_savePreviewWASD[3]);
+				if (ImGui::Checkbox("##save_prev_keyd", &m_savePreviewWASD[3]))
+					requiresPreviewUpdate = true;
 
 				/* MOUSE */
 				ImGui::Text("Mouse:");
 				ImGui::SameLine();
-				if (ImGui::DragFloat2("##save_prev_mpos", glm::value_ptr(m_savePreviewMouse)))
+				if (ImGui::DragFloat2("##save_prev_mpos", glm::value_ptr(m_savePreviewMouse))) {
 					SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+					requiresPreviewUpdate = true;
+				}
 				ImGui::SameLine();
 				bool isLeftDown = m_savePreviewMouse.z >= 1.0f;
-				ImGui::Checkbox("##save_prev_btnleft", &isLeftDown);
+				if (ImGui::Checkbox("##save_prev_btnleft", &isLeftDown))
+					requiresPreviewUpdate = true;
 				ImGui::SameLine();
 				m_savePreviewMouse.z = isLeftDown;
 				bool isRightDown = m_savePreviewMouse.w >= 1.0f;
-				ImGui::Checkbox("##save_prev_btnright", &isRightDown);
+				if (ImGui::Checkbox("##save_prev_btnright", &isRightDown))
+					requiresPreviewUpdate = true;
 				m_savePreviewMouse.w = isRightDown;
 				SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+			
+				if (requiresPreviewUpdate)
+					m_data->Renderer.Render();
 			}
 			ImGui::Separator();
+
+			bool rerenderPreview = false;
+			glm::ivec2 rerenderSize = m_data->Renderer.GetLastRenderSize();
 
 			if (ImGui::Button("Save")) {
 				int sizeMulti = 1;
@@ -1235,7 +1272,9 @@ namespace ed {
 
 						m_data->Renderer.Render(actualSizeX, actualSizeY);
 
-						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTime);
+					
+						rerenderPreview = true;
 					}
 
 					unsigned char* pixels = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
@@ -1416,6 +1455,8 @@ namespace ed {
 						delete[] threadPool;
 
 						stbi_write_png_compression_level = 8; // set back to default compression level
+
+						rerenderPreview = true;
 					}
 				}
 
@@ -1425,9 +1466,14 @@ namespace ed {
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) {
 				ImGui::CloseCurrentPopup();
+				SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTime);
 				m_data->Renderer.Pause(m_wasPausedPrior);
+				rerenderPreview = true;
 			}
 			ImGui::EndPopup();
+
+			if (rerenderPreview)
+				m_data->Renderer.Render(rerenderSize.x, rerenderSize.y);
 
 			m_recompiledAll = false;
 		}
@@ -1717,6 +1763,7 @@ namespace ed {
 	}
 	void GUIManager::Destroy()
 	{
+		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
 		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
 	}
 
@@ -1992,7 +2039,7 @@ namespace ed {
 		m_data->Renderer.FlushCache();
 		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 		((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
-		((PreviewUI*)Get(ViewID::Preview))->Pick(nullptr);
+		((PreviewUI*)Get(ViewID::Preview))->Reset();
 		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
 		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 		((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();

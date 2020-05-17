@@ -63,20 +63,26 @@ namespace ed {
 
 			size_t lastSlash = items[i].find_last_of("/\\");
 			std::string itemText = items[i];
+			std::string fullItemText = items[i];
 
 			if (lastSlash != std::string::npos && !isPluginOwner)
 				itemText = itemText.substr(lastSlash + 1);
 
-			ImGui::Selectable(itemText.c_str());
+			PluginObject* pobj = m_data->Objects.GetPluginObject(items[i]);
+
+			bool isBuf = m_data->Objects.IsBuffer(items[i]);
+			bool isImg3D = m_data->Objects.IsImage3D(items[i]);
+			bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
+			
+			if (ImGui::Selectable(itemText.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+				// open preview on double click
+				if (ImGui::IsMouseDoubleClicked(0) && (hasPluginExtendedPreview || !isPluginOwner) && !isImg3D)
+					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex, m_data->Objects.IsCubeMap(items[i]), m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr, m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr, isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr, isPluginOwner ? pobj : nullptr);
+			}
 
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
 
-				PluginObject* pobj = m_data->Objects.GetPluginObject(items[i]);
-
-				bool isBuf = m_data->Objects.IsBuffer(items[i]);
-				bool isImg3D = m_data->Objects.IsImage3D(items[i]);
-				bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
 				if ((hasPluginExtendedPreview || !isPluginOwner) && !isImg3D && (isBuf ? ImGui::Selectable("Edit") : ImGui::Selectable("Preview"))) {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex, m_data->Objects.IsCubeMap(items[i]), m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr, m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr, isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr, isPluginOwner ? pobj : nullptr);
 				}
@@ -239,7 +245,7 @@ namespace ed {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Close(items[i]);
 
 					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
-					if (props->CurrentItemName() == itemText)
+					if (props->CurrentItemName() == fullItemText)
 						props->Open(nullptr);
 					m_data->Objects.Remove(items[i]);
 				}

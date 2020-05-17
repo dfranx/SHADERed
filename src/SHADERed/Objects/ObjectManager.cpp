@@ -8,6 +8,8 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
+#include <fstream>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -137,6 +139,8 @@ namespace ed {
 			Logger::Get().Log("Cannot create a texture " + file + " because that texture is already added to the project", true);
 			return false;
 		}
+
+		stbi_set_flip_vertically_on_load(1);
 
 		std::string path = m_parser->GetProjectPath(file);
 		int width, height, nrChannels;
@@ -596,6 +600,22 @@ namespace ed {
 		return ret;
 	}
 
+	void ObjectManager::Pause(bool pause)
+	{
+		for (auto& it : m_itemData) {
+			if (it->SoundBuffer == nullptr)
+				continue;
+
+			// get samples and fft data
+			sf::Sound* player = it->Sound;
+			
+
+			if (pause)
+				player->pause();
+			else
+				player->play();
+		}
+	}
 	void ObjectManager::Update(float delta)
 	{
 		for (auto& it : m_itemData) {

@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/UI/UIView.h>
+#include <ImGuiColorTextEdit/TextEditor.h>
 
 namespace ed {
 	class StatsPage : public UIView {
@@ -8,9 +9,15 @@ namespace ed {
 		StatsPage(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = true)
 				: UIView(ui, objects, name, visible)
 		{
+			m_spirv.SetReadOnly(true);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
+
+		void Refresh(PipelineItem* item, ShaderStage stage);
+
+	private:
+		TextEditor m_spirv;
 	};
 }

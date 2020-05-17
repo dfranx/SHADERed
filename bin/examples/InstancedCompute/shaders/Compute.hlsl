@@ -21,14 +21,14 @@ void main( uint3 id : SV_DispatchThreadID )
 	
 	if (abs(pos.x) >= 10.0f) {
 		data[id.x].Velocity.x = -vel.x;
-		data[id.x].Position.x = 9.9f * sign(pos.x);
+		data[id.x].Position.x = 9.99f * sign(pos.x);
 	}
 	if (abs(pos.y) >= 10.0f) {
 		data[id.x].Velocity.y = -vel.y;
-		data[id.x].Position.y = 9.9f * sign(pos.y);
+		data[id.x].Position.y = 9.99f * sign(pos.y);
 	}
 	if (abs(pos.z) >= 10.0f) {
 		data[id.x].Velocity.z = -vel.z;
-		data[id.x].Position.z = 9.9f * sign(pos.z);
+		data[id.x].Position.z = 9.99f * sign(pos.z);
 	}
 }

@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 17)
 project(SHADERed)
 
-# ShaderDebugger
-add_subdirectory(libs/ShaderDebugger)
-
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
@@ -32,7 +29,7 @@ set(SOURCES
 	src/SHADERed/Objects/FirstPersonCamera.cpp
 	src/SHADERed/Objects/FunctionVariableManager.cpp
 	src/SHADERed/Objects/GizmoObject.cpp
-	src/SHADERed/Objects/ShaderTranscompiler.cpp
+	src/SHADERed/Objects/ShaderCompiler.cpp
 	src/SHADERed/Objects/KeyboardShortcuts.cpp
 	src/SHADERed/Objects/Logger.cpp
 	src/SHADERed/Objects/InputLayout.cpp
@@ -54,6 +51,7 @@ set(SOURCES
 	src/SHADERed/UI/Tools/Magnifier.cpp
 	src/SHADERed/UI/Tools/StatsPage.cpp
 	src/SHADERed/UI/Tools/VariableValueEdit.cpp
+	src/SHADERed/UI/Tools/DebuggerOutline.cpp
 
 # UI Debug
 	src/SHADERed/UI/Debug/BreakpointListUI.cpp
@@ -115,7 +113,6 @@ endif(CMAKE_TOOLCHAIN_FILE)
 
 # pkg
 if (UNIX)
-  # find sdl2 on linux
   find_package(PkgConfig REQUIRED)
 endif()
 
@@ -145,10 +142,25 @@ set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
 set(ASSIMP_WERROR OFF CACHE BOOL "Warnings as errors" FORCE)
 add_subdirectory(libs/assimp)
 
+# spirv-headers
+set(SPIRV_HEADERS_SKIP_EXAMPLES ON CACHE BOOL "Skip example" FORCE)
+add_subdirectory(libs/spirv-headers)
+
+# spirv-tools
+set(SPIRV_BUILD_FUZZER OFF CACHE BOOL "Build the spirv-fuzz tool" FORCE)
+set(SPIRV_COLOR_TERMINAL OFF CACHE BOOL "Enables color console output" FORCE)
+set(SPIRV_SKIP_TESTS ON CACHE BOOL "Build only the library and the command line tools" FORCE)
+set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "Build only the library" FORCE)
+set(SPIRV_WERROR OFF CACHE BOOL "Forces a compilation error on any warnings encountered" FORCE)
+add_subdirectory(libs/spirv-tools)
+
 # glslang
 set(ENABLE_SPVREMAPPER OFF CACHE BOOL "Enables building of SPVRemapper" FORCE)
 set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "Builds glslangValidator and spirv-remap" FORCE)
 add_subdirectory(libs/glslang)
+
+# SPIRV-VM
+add_subdirectory(libs/SPIRV-VM)
 
 # Native macOS frameworks
 if (APPLE)
@@ -170,13 +182,13 @@ set_target_properties(SHADERed PROPERTIES
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/ShaderDebugger/inc)
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV ShaderDebugger assimp::assimp)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
 
 # link sfml
 if(${USE_FINDSFML})

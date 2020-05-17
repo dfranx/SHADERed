@@ -36,6 +36,9 @@ namespace ed {
 	}
 	void ShaderVariableContainer::UpdateUniformInfo(GLuint pass)
 	{
+		if (pass == 0)
+			return;
+
 		GLint count;
 
 		const GLsizei bufSize = 64; // maximum name length
@@ -119,6 +122,8 @@ namespace ed {
 
 			switch (type) {
 			case ShaderVariable::ValueType::Boolean1:
+				glUniform1i(loc, m_vars[i]->AsBoolean());
+				break;
 			case ShaderVariable::ValueType::Integer1:
 				glUniform1i(loc, m_vars[i]->AsInteger());
 				break;

@@ -8,6 +8,8 @@ namespace ed {
 		Compute,
 
 		Audio,
-		Plugin
+		Plugin,
+
+		Count
 	};
 }

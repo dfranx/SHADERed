@@ -11,11 +11,6 @@
 #include <GL/gl.h>
 #endif
 
-extern "C" {
-#include <BlueVM/bv_object.h>
-#include <BlueVM/bv_variable.h>
-}
-
 namespace ed {
 	class UIHelper {
 	public:

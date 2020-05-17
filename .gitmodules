@@ -19,3 +19,12 @@
 [submodule "libs/assimp"]
 	path = libs/assimp
 	url = https://github.com/dfranx/assimp.git
+[submodule "libs/SPIRV-VM"]
+	path = libs/SPIRV-VM
+	url = https://github.com/dfranx/SPIRV-VM.git
+[submodule "libs/spirv-tools"]
+	path = libs/spirv-tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git
+[submodule "libs/spirv-headers"]
+	path = libs/spirv-headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers

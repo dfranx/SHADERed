@@ -790,6 +790,21 @@ namespace ed {
 		ImGui::Text("Show variable values when hovering over them: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optdbg_values", &settings->Debug.ShowValuesOnHover);
+
+		/* AUTOFETCH: */
+		ImGui::Text("Auto fetch: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optdbg_autofetch", &settings->Debug.AutoFetch);
+
+		/* PIXEL OUTLINE: */
+		ImGui::Text("Pixel outline: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optdbg_pxoutline", &settings->Debug.PixelOutline);
+
+		/* PRIMITIVE OUTLINE: */
+		ImGui::Text("Primitive outline: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optdbg_primitiveoutline", &settings->Debug.PrimitiveOutline);
 	}
 	void OptionsUI::m_renderProject()
 	{

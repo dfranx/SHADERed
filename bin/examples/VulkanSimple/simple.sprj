@@ -31,12 +31,12 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Simple" item="pipe" />
-		<entry type="file" name="Simple" shader="vs" />
 		<entry type="file" name="Simple" shader="ps" />
+		<entry type="file" name="Simple" shader="vs" />
 		<entry type="camera" fp="false">
-			<distance>4</distance>
-			<pitch>34</pitch>
-			<yaw>54</yaw>
+			<distance>3</distance>
+			<pitch>23</pitch>
+			<yaw>133</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />

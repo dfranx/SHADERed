@@ -1,5 +1,46 @@
 [v1.3.4]
++ replace ShaderDebugger with SPIRV-VM (introduces significant improvements to the SHADERed's debugger)
++ add pixel outline to debugger's overlay
++ add debugger overlay to render texture's preview
++ add Stats page (currently only shows SPIR-V)
++ add "Auto fetch" option
++ add "Primitive outline" & "Pixel outline" options
++ add a feature that automatically creates shader files when creating a shader pass
++ add line numbers in the "Function stack" window
++ add statusbar to render texture's preview
++ add new templates (QuadHLSL and QuadGLSL)
++ primitive's outline is now shown even after zooming in when paused and debugging
++ changing properties in Save Preview -> Advanced should now accordingly update the preview window
++ use glslang for error messages
++ use more powerful GPU by default (NvOptimusEnablement & AmdPowerXpressRequestHighPerformance)
++ double clicking on an object in the "Objects" window now opens its preview
++ make it possible to pick pixels on the render texture's preview window
++ show pixel coordinates in "Pixel Inspect" window
++ update text editor's light theme (better current line and "selection" colors)
++ reset zoom on project load
++ pause music & audio shader when preview is paused
++ [DEBUGGER] now works with buffers, 3D textures and cubemaps
++ [DEBUGGER] now works with VertexBuffer items
++ [DEBUGGER] add support for derivative functions
++ remove "Immediate" window, "Watches" & conditional breakpoints
++ fix a bug where buffer objects couldn't be bound to vertex/pixel shaders
++ fix (render) texture's preview alignment
++ fix (render) texture's preview magnifier
++ fix gizmo
++ fix VertexBuffer picking + bounding box
++ fix 3D model picking
++ fix "Step Out" (it's now possible to use "Step In" multiple times on the same line)
++ fix a bug that caused breakpoints to duplicate when a new line is added
++ fix a bug that caused SHADERed to change current time after a render to file even if user didn't change it
++ fix a bug that caused SHADERed to crash when deleting a texture that's open in properties
++ fix a bug that caused magnifier not to zoom sometimes
++ fix a bug that made it possible to open preview for the same object several times
++ fix a bug that caused debugger to produce wrong numbers when it is rendered to the same render texture multiple times in the project
++ fix a bug that caused buffer to stay bound to compute pass even after it has been unbound
 + fix buffer's "load data from 3D model"
++ fix text editor's UI when user horizontally scrolls
++ fix a bug that would apply user's custom render states to the magnifier UI
++ fix TextEditor::EnsureCursorVisible()
 
 [v1.3.3]
 + add VertexBuffer

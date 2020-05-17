@@ -14,7 +14,6 @@
 			<shader type="ps" path="shaders\ScreenQuadPS.hlsl" entry="main" />
 			<inputlayout>
 				<item value="Position" semantic="POSITION" />
-				<item value="Normal" semantic="NORMAL" />
 				<item value="Texcoord" semantic="TEXCOORD0" />
 			</inputlayout>
 			<rendertexture />
@@ -40,8 +39,6 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Simple" item="pipe" />
-		<entry type="file" name="Simple" shader="vs" />
-		<entry type="file" name="Simple" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>4</distance>
 			<pitch>28</pitch>

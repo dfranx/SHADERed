@@ -48,6 +48,9 @@ namespace ed {
 		Editor.FunctionTooltips = true;
 
 		Debug.ShowValuesOnHover = true;
+		Debug.AutoFetch = false;
+		Debug.PrimitiveOutline = true;
+		Debug.PixelOutline = true;
 
 		Preview.PausedOnStartup = false;
 		Preview.SwitchLeftRightClick = false;
@@ -116,6 +119,9 @@ namespace ed {
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
+		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", false);
+		Debug.PixelOutline = ini.GetBoolean("debug", "pixeloutline", true);
+		Debug.PrimitiveOutline = ini.GetBoolean("debug", "primitiveoutline", true);
 
 		Preview.PausedOnStartup = ini.GetBoolean("preview", "pausedonstartup", false);
 		Preview.SwitchLeftRightClick = ini.GetBoolean("preview", "switchleftrightclick", false);
@@ -222,6 +228,9 @@ namespace ed {
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;
+		ini << "autofetch=" << Debug.AutoFetch << std::endl;
+		ini << "pixeloutline=" << Debug.PixelOutline << std::endl;
+		ini << "primitiveoutline=" << Debug.PrimitiveOutline << std::endl;
 
 		ini << "[plugins]" << std::endl;
 		ini << "notloaded=";

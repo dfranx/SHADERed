@@ -10,6 +10,7 @@
 #include <SHADERed/UI/PipelineUI.h>
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
+#include <SHADERed/UI/Tools/DebuggerOutline.h>
 
 #include <imgui/imgui_internal.h>
 #include <chrono>
@@ -48,6 +49,7 @@ void main()
 )";
 
 namespace ed {
+
 	void PreviewUI::m_setupShortcuts()
 	{
 		KeyboardShortcuts::Instance().SetCallback("Gizmo.Position", [=]() {
@@ -97,6 +99,8 @@ namespace ed {
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.TogglePause", [=]() {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+			m_data->Objects.Pause(m_data->Renderer.IsPaused());
+			m_ui->StopDebugging();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
 			m_picks.clear();
@@ -295,8 +299,10 @@ namespace ed {
 
 		m_hasFocus = ImGui::IsWindowFocused();
 
-		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() && ((pixelList.size() > 0 && ((ImGui::IsMouseClicked(0) && ImGui::IsItemHovered()) || !pixelList[0].Fetched)) || (pixelList.size() == 0)))
+		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() &&!m_data->Debugger.IsDebugging()) {
 			renderer->Render(imageSize.x, imageSize.y);
+			pixelList.clear();
+		}
 
 		// render the gizmo/bounding box/zoom area if necessary
 		if (isNotMinimalMode && (m_zoom.IsSelecting() || (m_picks.size() != 0 && (settings.Preview.Gizmo || settings.Preview.BoundingBox)))) {
@@ -309,8 +315,9 @@ namespace ed {
 				m_overlayFBO = gl::CreateSimpleFramebuffer(imageSize.x, imageSize.y, m_overlayColor, m_overlayDepth);
 			}
 			glBindFramebuffer(GL_FRAMEBUFFER, m_overlayFBO);
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // TODO: is this needed?
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			glViewport(0.0f, 0.0f, imageSize.x, imageSize.y);
 
 			if (settings.Preview.Gizmo && m_picks.size() != 0 && pixelList.size() == 0) {
 				m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
@@ -530,8 +537,9 @@ namespace ed {
 				cam->MoveUpDown((ImGui::IsKeyDown(SDL_SCANCODE_S) - ImGui::IsKeyDown(SDL_SCANCODE_W)) / 70.0f);
 				cam->MoveLeftRight((ImGui::IsKeyDown(SDL_SCANCODE_D) - ImGui::IsKeyDown(SDL_SCANCODE_A)) / 70.0f);
 			}
-		} else if (m_mouseHovers) // else if paused - pixel inspection
-		{
+		}
+		// else if paused - pixel inspection
+		else if (m_mouseHovers) {
 			// handle left click - pixel selection
 			if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
 				m_ui->StopDebugging();
@@ -539,7 +547,7 @@ namespace ed {
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 
-				m_data->Renderer.DebugPixelPick(s);
+				m_data->DebugClick(s);
 			}
 		}
 
@@ -578,33 +586,28 @@ namespace ed {
 			m_renderStatusbar(imageSize.x, imageSize.y);
 
 		// debugger vertex outline
-		if (paused && zPos == glm::vec2(0, 0) && zSize == glm::vec2(1, 1) && (!m_data->Debugger.IsDebugging() || m_data->Debugger.GetShaderStage() == sd::ShaderType::Vertex)) {
-			if (pixelList.size() > 0) {
-				if (pixelList[0].Fetched) { // we only care about window's pixel info here
-					unsigned int vertOutlineColor = 0xffffffff;
+		if (paused && pixelList.size() > 0 && (settings.Debug.PixelOutline || settings.Debug.PrimitiveOutline)) {
+			unsigned int outlineColor = 0xffffffff;
+			auto drawList = ImGui::GetWindowDrawList();
+			static char pxCoord[32] = { 0 };
 
-					// render the lines
-					ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
-					ImVec2 uiPos = ImGui::GetCursorScreenPos();
+			for (int i = 0; i < pixelList.size(); i++) {
+				if (pixelList[i].RenderTexture.empty() && pixelList[i].Fetched) { // we only care about window's pixel info here
 
-					glm::vec2 screenSize(imageSize.x, imageSize.y);
+					if (settings.Debug.PrimitiveOutline) {
+						// render the lines
+						ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
+						ImVec2 uiPos = ImGui::GetCursorScreenPos();
 
-					glm::ivec2 vertPos1 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 0) * screenSize;
-					glm::ivec2 vertPos2 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 1) * screenSize;
-					glm::ivec2 vertPos3 = m_data->Debugger.GetVertexScreenPosition(pixelList[0], 2) * screenSize;
+						DebuggerOutline::RenderPrimitiveOutline(pixelList[i], glm::vec2(uiPos.x, uiPos.y), glm::vec2(imageSize.x, imageSize.y), zPos, zSize);
+					}
+					if (settings.Debug.PixelOutline) {
+						// render the lines
+						ImGui::SetCursorPosY(ImGui::GetWindowContentRegionMin().y);
+						ImVec2 uiPos = ImGui::GetCursorScreenPos();
 
-					vertPos1.y = screenSize.y - vertPos1.y;
-					vertPos2.y = screenSize.y - vertPos2.y;
-					vertPos3.y = screenSize.y - vertPos3.y;
-
-					auto drawList = ImGui::GetWindowDrawList();
-					drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), vertOutlineColor);
-					drawList->AddLine(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), vertOutlineColor);
-					drawList->AddLine(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), vertOutlineColor);
-
-					drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), vertOutlineColor, "0");
-					drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), vertOutlineColor, "1");
-					drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), vertOutlineColor, "2");
+						DebuggerOutline::RenderPixelOutline(pixelList[i], glm::vec2(uiPos.x, uiPos.y), glm::vec2(imageSize.x, imageSize.y), zPos, zSize);
+					}
 				}
 			}
 		}
@@ -809,17 +812,8 @@ namespace ed {
 
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+			m_data->Objects.Pause(m_data->Renderer.IsPaused());
 			m_ui->StopDebugging();
-
-			auto& audioItems = m_data->Objects.GetItemDataList();
-			for (auto& audioItem : audioItems) {
-				if (audioItem->Sound != nullptr) {
-					if (m_data->Renderer.IsPaused())
-						audioItem->Sound->pause();
-					else
-						audioItem->Sound->play();
-				}
-			}
 		}
 
 		ImGui::SameLine(0, BUTTON_INDENT);
@@ -908,9 +902,14 @@ namespace ed {
 				rota = model->Rotation;
 				pos = model->Position;
 			} else if (item->Type == ed::PipelineItem::ItemType::VertexBuffer) {
-				pipe::VertexBuffer* model = (pipe::VertexBuffer*)item->Data;
+				pipe::VertexBuffer* vertBuffer = (pipe::VertexBuffer*)item->Data;
+				gl::GetVertexBufferBounds(&m_data->Objects, vertBuffer, minPosItem, maxPosItem);
+			
+				minPosItem *= vertBuffer->Scale;
+				maxPosItem *= vertBuffer->Scale;
 
-				// TODO: vertexbuffer
+				rota = vertBuffer->Rotation;
+				pos = vertBuffer->Position;
 			} else if (item->Type == ed::PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 

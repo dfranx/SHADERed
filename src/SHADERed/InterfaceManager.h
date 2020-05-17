@@ -19,7 +19,8 @@ namespace ed {
 		void OnEvent(const SDL_Event& e);
 		void Update(float delta);
 
-		bool FetchPixel(PixelInformation& pixel);
+		void DebugClick(glm::vec2 r);
+		void FetchPixel(PixelInformation& pixel);
 
 		PluginManager Plugins;
 		RenderEngine Renderer;
@@ -31,5 +32,7 @@ namespace ed {
 
 	private:
 		GUIManager* m_ui;
+
+		void m_fetchVertices(PixelInformation& pixel);
 	};
 }

@@ -61,12 +61,11 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Depth" item="pipe" />
-		<entry type="file" name="Depth" shader="vs" />
-		<entry type="file" name="Depth" shader="ps" />
+		<entry type="file" name="Edge" shader="ps" />
 		<entry type="camera" fp="false">
 			<distance>3</distance>
-			<pitch>15</pitch>
-			<yaw>327</yaw>
+			<pitch>28</pitch>
+			<yaw>292</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="1" />

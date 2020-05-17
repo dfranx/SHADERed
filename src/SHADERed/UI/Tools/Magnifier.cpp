@@ -1,5 +1,6 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/UI/Tools/Magnifier.h>
 
 #include <algorithm>
@@ -31,7 +32,11 @@ void main()
 }
 )";
 
+
 namespace ed {
+	GLuint Magnifier::Shader = 0;
+	bool Magnifier::ShaderInitialized = false;
+
 	Magnifier::Magnifier()
 	{
 		m_mousePos = glm::vec2(0.5f, 0.5f);
@@ -45,15 +50,18 @@ namespace ed {
 		m_dragging = false;
 
 		// create a shader program for gizmo
-		m_zoomShader = gl::CreateShader(&UI_VS_CODE, &UI_PS_CODE, "magnifier");
+		if (!Magnifier::ShaderInitialized) {
+			Magnifier::Shader = gl::CreateShader(&UI_VS_CODE, &UI_PS_CODE, "magnifier");
+			Magnifier::ShaderInitialized = true;
+		}
 
+		m_zoomShader = Magnifier::Shader;
 		m_uMatWVPLoc = glGetUniformLocation(m_zoomShader, "uMatWVP");
 	}
 	Magnifier::~Magnifier()
 	{
 		glDeleteBuffers(1, &m_zoomVBO);
 		glDeleteVertexArrays(1, &m_zoomVAO);
-		glDeleteProgram(m_zoomShader);
 	}
 
 	void Magnifier::Drag()
@@ -117,7 +125,7 @@ namespace ed {
 			if (m_size.y >= m_size.x)
 				m_size.x = m_size.y;
 
-			if (m_size.x < 25.0f / m_w && m_size.y < 25.0f / m_h)
+			if (m_size.x < (25.0f / m_w) * oldSize.x && m_size.y < (25.0f / m_h) * oldSize.y)
 				m_size = oldSize;
 
 			m_size.x = std::max<float>(std::min<float>(m_size.x, 1.0f), 25.0f / m_w);
@@ -211,6 +219,8 @@ namespace ed {
 	}
 	void Magnifier::Render()
 	{
+		DefaultState::Bind();
+
 		glUseProgram(m_zoomShader);
 
 		float mpy = 1 - m_mousePos.y;

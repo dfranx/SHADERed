@@ -2,7 +2,7 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-#define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(20)
+#define STATUSBAR_HEIGHT Settings::Instance().CalculateSize(30)
 
 namespace ed {
 	CodeEditorUI::CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name, bool visible)
@@ -80,7 +80,13 @@ namespace ed {
 			m_save(m_selectedItem);
 		});
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.SwitchView", [=]() {
-			// REMOVED
+			if (m_selectedItem == -1 || m_selectedItem >= m_items.size())
+				return;
+
+			m_stats[m_selectedItem].Visible = !m_stats[m_selectedItem].Visible;
+
+			if (m_stats[m_selectedItem].Visible)
+				m_stats[m_selectedItem].Refresh(m_items[m_selectedItem], m_shaderStage[m_selectedItem]);
 		});
 		KeyboardShortcuts::Instance().SetCallback("CodeUI.ToggleStatusbar", [=]() {
 			Settings::Instance().Editor.StatusBar = !Settings::Instance().Editor.StatusBar;
@@ -88,6 +94,9 @@ namespace ed {
 	}
 	void CodeEditorUI::m_save(int id)
 	{
+		if (id >= m_editor.size())
+			return;
+
 		bool canSave = true;
 
 		// prompt user to choose a project location first
@@ -130,6 +139,9 @@ namespace ed {
 	}
 	void CodeEditorUI::m_compile(int id)
 	{
+		if (id >= m_editor.size())
+			return;
+
 		if (m_trackerRunning) {
 			std::lock_guard<std::mutex> lock(m_trackFilesMutex);
 			m_trackIgnore.push_back(m_items[id]->Name);
@@ -194,8 +206,11 @@ namespace ed {
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str(), nullptr, false)) { }
-
+							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) {
+								m_stats[i].Visible = true;
+								m_stats[i].Refresh(m_items[i], m_shaderStage[i]);
+							}
+							
 							if (m_stats[i].Visible && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].Visible = false;
 							ImGui::Separator();
 							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i]->CanUndo())) m_editor[i]->Undo();
@@ -212,16 +227,24 @@ namespace ed {
 						ImGui::EndMenuBar();
 					}
 
-					if (m_stats[i].Visible)
+					if (m_stats[i].Visible) {
+						ImGui::PushFont(m_font);
 						m_stats[i].Update(delta);
-					else {
+						ImGui::PopFont();
+					} else {
 						// add error markers if needed
 						auto msgs = m_data->Messages.GetMessages();
 						int groupMsg = 0;
 						TextEditor::ErrorMarkers groupErrs;
-						for (int j = 0; j < msgs.size(); j++)
-							if (msgs[j].Line > 0 && msgs[j].Group == m_items[i]->Name && msgs[j].Shader == (int)m_shaderStage[i])
-								groupErrs[msgs[j].Line] = msgs[j].Text;
+						for (int j = 0; j < msgs.size(); j++) {
+							ed::MessageStack::Message* msg = &msgs[j];
+
+							if (groupErrs.count(msg->Line))
+								continue;
+
+							if (msg->Line > 0 && msg->Group == m_items[i]->Name && msg->Shader == m_shaderStage[i])
+								groupErrs[msg->Line] = msg->Text;
+						}
 						m_editor[i]->SetErrorMarkers(groupErrs);
 
 						bool statusbar = Settings::Instance().Editor.StatusBar;
@@ -416,7 +439,7 @@ namespace ed {
 		editor->SetPath(shaderPath);
 		m_loadEditorShortcuts(editor);
 
-		bool isHLSL = ShaderTranscompiler::GetShaderTypeFromExtension(shaderPath) == ShaderLanguage::HLSL;
+		bool isHLSL = ShaderCompiler::GetShaderLanguageFromExtension(shaderPath) == ShaderLanguage::HLSL;
 		editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
 
 		// apply breakpoints
@@ -559,26 +582,17 @@ namespace ed {
 	}
 	void CodeEditorUI::m_applyBreakpoints(TextEditor* editor, const std::string& path)
 	{
-		const std::vector<sd::Breakpoint>& bkpts = m_data->Debugger.GetBreakpointList(path);
+		const std::vector<dbg::Breakpoint>& bkpts = m_data->Debugger.GetBreakpointList(path);
 		const std::vector<bool>& states = m_data->Debugger.GetBreakpointStateList(path);
 
 		for (size_t i = 0; i < bkpts.size(); i++)
 			editor->AddBreakpoint(bkpts[i].Line, bkpts[i].IsConditional ? bkpts[i].Condition : "", states[i]);
 
 		editor->OnBreakpointRemove = [&](TextEditor* ed, int line) {
-			m_data->Debugger.Engine.ClearBreakpoint(line);
 			m_data->Debugger.RemoveBreakpoint(ed->GetPath(), line);
 		};
 		editor->OnBreakpointUpdate = [&](TextEditor* ed, int line, const std::string& cond, bool enabled) {
-			// save it for later use
 			m_data->Debugger.AddBreakpoint(ed->GetPath(), line, cond, enabled);
-
-			if (!enabled) return;
-
-			if (cond.empty())
-				m_data->Debugger.Engine.AddBreakpoint(line);
-			else
-				m_data->Debugger.Engine.AddConditionalBreakpoint(line, cond);
 		};
 	}
 
@@ -599,7 +613,7 @@ namespace ed {
 
 	void CodeEditorUI::UpdateAutoRecompileItems()
 	{
-		if (m_autoRecompileRequest) {
+		if (m_autoRecompileRequest && m_data->Debugger.GetPixelList().size() == 0) {
 			std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
 			for (const auto& it : m_ariiList) {
 				if (it.second.SPass != nullptr)
@@ -671,13 +685,13 @@ namespace ed {
 
 					if (m_shaderStage[i] == ShaderStage::Vertex) {
 						inf->VS = m_editor[i]->GetText();
-						inf->VS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->VSPath);
+						inf->VS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->VSPath);
 					} else if (m_shaderStage[i] == ShaderStage::Pixel) {
 						inf->PS = m_editor[i]->GetText();
-						inf->PS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->PSPath);
+						inf->PS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->PSPath);
 					} else if (m_shaderStage[i] == ShaderStage::Geometry) {
 						inf->GS = m_editor[i]->GetText();
-						inf->GS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->GSPath);
+						inf->GS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->GSPath);
 					}
 				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
@@ -688,7 +702,7 @@ namespace ed {
 					inf->PluginData = nullptr;
 
 					inf->CS = m_editor[i]->GetText();
-					inf->CS_SLang = ShaderTranscompiler::GetShaderTypeFromExtension(pass->Path);
+					inf->CS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
 				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
 					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
@@ -715,17 +729,30 @@ namespace ed {
 			std::vector<ed::MessageStack::Message> msgPrev = m_data->Messages.GetMessages();
 			m_autoRecompileCachedMsgs.clear();
 
-			for (auto& it : m_ariiList) {
-				if (it.second.SPass != nullptr) {
-					if (it.second.VS_SLang != ShaderLanguage::GLSL)
-						it.second.VS = ShaderTranscompiler::TranscompileSource(it.second.VS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->VSPath), it.second.VS, 0, it.second.SPass->VSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
-					if (it.second.PS_SLang != ShaderLanguage::GLSL)
-						it.second.PS = ShaderTranscompiler::TranscompileSource(it.second.PS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->PSPath), it.second.PS, 1, it.second.SPass->PSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
-					if (it.second.GS_SLang != ShaderLanguage::GLSL)
-						it.second.GS = ShaderTranscompiler::TranscompileSource(it.second.GS_SLang, m_data->Parser.GetProjectPath(it.second.SPass->GSPath), it.second.GS, 2, it.second.SPass->GSEntry, it.second.SPass->Macros, it.second.SPass->GSUsed, &m_data->Messages, &m_data->Parser);
-				} else if (it.second.CPass != nullptr) {
-					if (it.second.CS_SLang != ShaderLanguage::GLSL)
-						it.second.CS = ShaderTranscompiler::TranscompileSource(it.second.CS_SLang, m_data->Parser.GetProjectPath(it.second.CPass->Path), it.second.CS, 3, it.second.CPass->Entry, it.second.CPass->Macros, false, &m_data->Messages, &m_data->Parser);
+			if (m_data->Debugger.GetPixelList().size() == 0) {
+				for (auto& it : m_ariiList) {
+					if (it.second.SPass != nullptr) {
+						std::vector<unsigned int> spv;
+						if (it.second.VS_SLang != ShaderLanguage::GLSL) {
+							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.VS_SLang, it.second.SPass->VSPath, it.second.VS, ShaderStage::Vertex, it.second.SPass->VSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
+							it.second.VS = ShaderCompiler::ConvertToGLSL(spv, it.second.VS_SLang, ShaderStage::Vertex, it.second.SPass->GSUsed, &m_data->Messages);
+						}
+						if (it.second.PS_SLang != ShaderLanguage::GLSL) {
+							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.PS_SLang, it.second.SPass->PSPath, it.second.PS, ShaderStage::Pixel, it.second.SPass->PSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
+							it.second.PS = ShaderCompiler::ConvertToGLSL(spv, it.second.PS_SLang, ShaderStage::Pixel, it.second.SPass->GSUsed, &m_data->Messages);
+						}
+
+						if (it.second.GS_SLang != ShaderLanguage::GLSL) {
+							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.GS_SLang, it.second.SPass->GSPath, it.second.GS, ShaderStage::Geometry, it.second.SPass->GSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
+							it.second.GS = ShaderCompiler::ConvertToGLSL(spv, it.second.GS_SLang, ShaderStage::Geometry, it.second.SPass->GSUsed, &m_data->Messages);
+						}
+					} else if (it.second.CPass != nullptr) {
+						if (it.second.CS_SLang != ShaderLanguage::GLSL) {
+							std::vector<unsigned int> spv;
+							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.CS_SLang, it.second.CPass->Path, it.second.CS, ShaderStage::Compute, it.second.CPass->Entry, it.second.CPass->Macros, &m_data->Messages, &m_data->Parser);
+							it.second.CS = ShaderCompiler::ConvertToGLSL(spv, it.second.CS_SLang, ShaderStage::Compute, false, &m_data->Messages);
+						}
+					}
 				}
 			}
 

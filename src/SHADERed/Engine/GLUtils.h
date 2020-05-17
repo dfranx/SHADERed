@@ -10,6 +10,7 @@
 #endif
 #include <string>
 
+#include <SHADERed/Objects/PipelineItem.h>
 #include <SHADERed/Objects/InputLayout.h>
 #include <SHADERed/Objects/MessageStack.h>
 #include <SHADERed/Objects/ShaderVariable.h>
@@ -22,14 +23,15 @@ namespace ed {
 		GLuint CreateShader(const char** vsCode, const char** psCode, const std::string& name = "");
 
 		GLuint CompileShader(GLenum type, const GLchar* str);
-		bool CheckShaderCompilationStatus(GLuint shader, GLchar* msg);
+		bool CheckShaderCompilationStatus(GLuint shader, GLchar* msg = nullptr);
 		bool CheckShaderLinkStatus(GLuint shader, GLchar* msg);
 
-		std::vector<MessageStack::Message> ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias = 0);
-		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str);
+		std::vector<MessageStack::Message> ParseGlslangMessages(const std::string& owner, ShaderStage stage, const std::string& str);
 
 		void CreateBufferVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<ed::ShaderVariable::ValueType>& ilayout);
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
+
+		void GetVertexBufferBounds(ObjectManager* objs, pipe::VertexBuffer* model, glm::vec3& minPosItem, glm::vec3& maxPosItem);
 
 		std::vector<InputLayoutItem> CreateDefaultInputLayout();
 	}

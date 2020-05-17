@@ -1,7 +1,7 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
@@ -233,7 +233,7 @@ namespace ed {
 					ImGui::Text("VS Entry:");
 					ImGui::NextColumn();
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->VSPath) != ShaderLanguage::GLSL) {
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->VSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_vsentry", item->VSEntry, 32))
 							m_data->Parser.ModifyProject();
@@ -279,7 +279,7 @@ namespace ed {
 					ImGui::Text("PS Entry:");
 					ImGui::NextColumn();
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->PSPath) != ShaderLanguage::GLSL) {
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->PSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_psentry", item->PSEntry, 32))
 							m_data->Parser.ModifyProject();
@@ -332,7 +332,7 @@ namespace ed {
 					// gs entry
 					ImGui::Text("GS entry:");
 					ImGui::NextColumn();
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_gsentry", item->GSEntry, 32))
 							m_data->Parser.ModifyProject();
@@ -378,7 +378,7 @@ namespace ed {
 					ImGui::Text("Entry:");
 					ImGui::NextColumn();
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(item->Path) != ShaderLanguage::GLSL) {
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->Path) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_csentry", item->Entry, 32))
 							m_data->Parser.ModifyProject();

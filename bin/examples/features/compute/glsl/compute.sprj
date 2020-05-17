@@ -2,16 +2,20 @@
 <project version="2">
 	<pipeline>
 		<pass name="Compute" type="compute">
-			<shader type="cs" path="shaders/compute.glsl" entry="main" />
+			<shader type="cs" path="shaders\compute.glsl" entry="main" />
 			<groupsize x="32" y="32" z="1" />
 			<variables>
 				<variable type="float" name="roll" system="Time" />
 			</variables>
 			<macros />
 		</pass>
-		<pass name="Simple" type="shader">
-			<shader type="vs" path="shaders/ScreenQuadVS.glsl" entry="main" />
-			<shader type="ps" path="shaders/ScreenQuadPS.glsl" entry="main" />
+		<pass name="Simple" type="shader" active="true">
+			<shader type="vs" path="shaders\ScreenQuadVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\ScreenQuadPS.glsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture />
 			<items>
 				<item name="ScreenQuad" type="geometry">
@@ -27,14 +31,16 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="image" name="ComputeOutput" width="512" height="512" read="false" write="true" format="R32G32B32A32_FLOAT">
-			<bind slot="0" name="Compute" />
-			<bind slot="0" name="Simple" />
+		<object type="image" name="ComputeOutput" width="512" height="512" format="R32G32B32A32_FLOAT">
+			<bind slot="0" name="Compute" uav="1" />
+			<bind slot="0" name="Simple" uav="0" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
 		<entry type="property" name="Compute" item="pipe" />
-		<entry type="file" name="Compute" shader="cs" />
+		<entry type="file" name="Simple" shader="ps" />
+		<entry type="file" name="Simple" shader="vs" />
 		<entry type="camera" fp="false">
 			<distance>4</distance>
 			<pitch>28</pitch>

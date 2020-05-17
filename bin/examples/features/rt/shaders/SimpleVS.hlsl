@@ -16,8 +16,7 @@ struct VSOutput
 	float4 Color : COLOR;
 };
 
-VSOutput main(VSInput vin)
-{
+VSOutput main(VSInput vin) {
 	VSOutput vout = (VSOutput)0;
 
 	vout.Position = mul(mul(float4(vin.Position, 1.0f), matGeo), matVP);

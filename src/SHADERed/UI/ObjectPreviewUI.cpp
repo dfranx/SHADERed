@@ -1,5 +1,6 @@
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/UI/Tools/DebuggerOutline.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
@@ -7,6 +8,12 @@
 namespace ed {
 	void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
 	{
+		for (int i = 0; i < m_items.size(); i++) {
+			mItem* item = &m_items[i];
+			if (item->IsOpen && item->Name == name)
+				return;
+		}
+
 		mItem i;
 		i.Name = name;
 		i.Width = w;
@@ -28,7 +35,11 @@ namespace ed {
 		}
 
 		m_items.push_back(i);
-		m_zoom.push_back(Magnifier()); // TODO: only create magnifier tools for textures to lower down GPU resource usage
+		m_zoom.push_back(Magnifier());
+		m_zoomColor.push_back(0);
+		m_zoomDepth.push_back(0);
+		m_zoomFBO.push_back(0);
+		m_lastRTSize.push_back(glm::vec2(0.0f, 0.0f));
 	}
 	void ObjectPreviewUI::OnEvent(const SDL_Event& e)
 	{
@@ -45,9 +56,11 @@ namespace ed {
 				}
 			} else if (e.type == SDL_MOUSEMOTION)
 				m_zoom[m_curHoveredItem].Drag();
-			else if (e.type == SDL_MOUSEBUTTONUP)
-				m_zoom[m_curHoveredItem].EndMouseAction();
 		}
+
+		if (e.type == SDL_MOUSEBUTTONUP)
+			for (int i = 0; i < m_items.size(); i++)
+				m_zoom[i].EndMouseAction();
 	}
 	void ObjectPreviewUI::Update(float delta)
 	{
@@ -84,19 +97,27 @@ namespace ed {
 						ImGui::SetCursorPosX(posX);
 						ImGui::SetCursorPosY(posY);
 
-						m_cubePrev.Draw(item->Texture);
+						glm::vec2 mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x) / aSize.x,
+							1.0f - (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y) / aSize.y);
+						m_zoom[i].SetCurrentMousePosition(mousePos);
+
 						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
 						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
+						m_cubePrev.Draw(item->Texture);
 						ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 
 						if (ImGui::IsItemHovered()) m_curHoveredItem = i;
-						if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
-							m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
-							m_zoom[i].RebuildVBO(aSize.x, aSize.y);
-						}
+
 						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
 							m_zoom[i].Reset();
-					} else if (item->Audio != nullptr) {
+
+						m_renderZoom(i, glm::vec2(aSize.x, aSize.y));
+
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+						ImGui::Image((void*)(intptr_t)m_zoomColor[i], aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+					}
+					else if (item->Audio != nullptr) {
 						sf::Sound* player = m_data->Objects.GetAudioPlayer(item->Name);
 						sf::SoundBuffer* buffer = (sf::SoundBuffer*)item->Audio;
 						int channels = buffer->getChannelCount();
@@ -116,7 +137,8 @@ namespace ed {
 
 						ImGui::PlotHistogram("Frequencies", m_fft, IM_ARRAYSIZE(m_fft), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
 						ImGui::PlotHistogram("Samples", m_samples, IM_ARRAYSIZE(m_samples), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80));
-					} else if (item->Buffer != nullptr) {
+					} 
+					else if (item->Buffer != nullptr) {
 						BufferObject* buf = (BufferObject*)item->Buffer;
 
 						ImGui::Text("Format:");
@@ -265,24 +287,92 @@ namespace ed {
 							ImGui::EndChild();
 						}
 
-					} else {
-						ImVec2 posSize = ImGui::GetContentRegionAvail();
-						float posX = (posSize.x - aSize.x) / 2;
-						float posY = (posSize.y - aSize.y) / 2;
+					} 
+					else {
+						ImVec2 posSize = ImGui::GetWindowContentRegionMax();
+						ImVec2 test = ImGui::GetWindowContentRegionMin();
+						float posX = (posSize.x - aSize.x + test.x) / 2;
+						float posY = (posSize.y - aSize.y + test.y) / 2;
 						ImGui::SetCursorPosX(posX);
 						ImGui::SetCursorPosY(posY);
 
+						glm::vec2 mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x) / aSize.x,
+							1.0f - (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y) / aSize.y);
+						m_zoom[i].SetCurrentMousePosition(mousePos);
+
 						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
 						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
+						
 						ImGui::Image((void*)(intptr_t)item->Texture, aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 
-						if (ImGui::IsItemHovered()) m_curHoveredItem = i;
-						if (m_zoom[i].IsSelecting() && m_lastZoomSize != glm::vec2(aSize.x, aSize.y)) {
-							m_lastZoomSize = glm::vec2(aSize.x, aSize.y);
-							m_zoom[i].RebuildVBO(aSize.x, aSize.y);
+						if (ImGui::IsItemHovered()) {
+							m_curHoveredItem = i;
+						
+							// handle pixel selection
+							if (item->RT != nullptr && ((ImGui::IsMouseClicked(0) && !Settings::Instance().Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && Settings::Instance().Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
+								m_ui->StopDebugging();
+
+								// screen space position
+								glm::vec2 s(zPos.x + zSize.x * mousePos.x, zPos.y + zSize.y * mousePos.y);
+
+								m_data->DebugClick(s);
+							}
 						}
+
 						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
 							m_zoom[i].Reset();
+						
+						m_renderZoom(i, glm::vec2(aSize.x, aSize.y));
+
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+						ImGui::Image((void*)(intptr_t)m_zoomColor[i], aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+
+						// statusbar & debugger overlay
+						if (item->RT != nullptr) {
+
+							auto& pixelList = m_data->Debugger.GetPixelList();
+
+							// debugger overlay
+							if (pixelList.size() > 0 && (Settings::Instance().Debug.PixelOutline || Settings::Instance().Debug.PrimitiveOutline)) {
+								unsigned int outlineColor = 0xffffffff;
+								auto drawList = ImGui::GetWindowDrawList();
+								static char pxCoord[32] = { 0 };
+
+								for (int i = 0; i < pixelList.size(); i++) {
+									if (pixelList[i].RenderTexture == item->Name && pixelList[i].Fetched) { // we only care about window's pixel info here
+
+										if (Settings::Instance().Debug.PrimitiveOutline) {
+											ImGui::SetCursorPosX(posX);
+											ImGui::SetCursorPosY(posY);
+
+											ImVec2 uiPos = ImGui::GetCursorScreenPos();
+
+											DebuggerOutline::RenderPrimitiveOutline(pixelList[i], glm::vec2(uiPos.x, uiPos.y), glm::vec2(aSize.x, aSize.y), zPos, zSize);
+										}
+										if (Settings::Instance().Debug.PixelOutline) {
+											ImGui::SetCursorPosX(posX);
+											ImGui::SetCursorPosY(posY);
+
+											ImVec2 uiPos = ImGui::GetCursorScreenPos();
+
+											DebuggerOutline::RenderPixelOutline(pixelList[i], glm::vec2(uiPos.x, uiPos.y), glm::vec2(aSize.x, aSize.y), zPos, zSize);
+										}
+									}
+								}
+							}
+	
+							
+							// statusbar
+							ImGui::SetCursorPosY(posSize.y - Settings::Instance().CalculateSize(25));
+
+							ImGui::Text("%dx%d", iSize.x, iSize.y);
+							ImGui::SameLine();
+
+							ImGui::SameLine(Settings::Instance().CalculateSize(75));
+							ImGui::Text("FMT: %s", gl::String::Format(((ed::RenderTextureObject*)item->RT)->Format));
+							ImGui::SameLine();
+						}
 					}
 				}
 			}
@@ -290,6 +380,11 @@ namespace ed {
 
 			if (!item->IsOpen) {
 				m_items.erase(m_items.begin() + i);
+				m_zoom.erase(m_zoom.begin() + i);
+				m_zoomColor.erase(m_zoomColor.begin() + i);
+				m_zoomDepth.erase(m_zoomDepth.begin() + i);
+				m_zoomFBO.erase(m_zoomFBO.begin() + i);
+				m_lastRTSize.erase(m_lastRTSize.begin() + i);
 				i--;
 			}
 		}
@@ -362,6 +457,27 @@ namespace ed {
 		ImGui::PopItemWidth();
 
 		return ret;
+	}
+	void ObjectPreviewUI::m_renderZoom(int ind, glm::vec2 itemSize)
+	{
+		if (itemSize != m_lastRTSize[ind]) {
+			m_lastRTSize[ind] = itemSize;
+			gl::FreeSimpleFramebuffer(m_zoomFBO[ind], m_zoomColor[ind], m_zoomDepth[ind]);
+			m_zoomFBO[ind] = gl::CreateSimpleFramebuffer(itemSize.x, itemSize.y, m_zoomColor[ind], m_zoomDepth[ind]);
+		
+			m_zoom[ind].RebuildVBO(itemSize.x, itemSize.y);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_zoomFBO[ind]);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glViewport(0, 0, itemSize.x, itemSize.y);
+
+		if (m_zoom[ind].IsSelecting())
+			m_zoom[ind].Render();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	}
 	void ObjectPreviewUI::Close(const std::string& name)
 	{

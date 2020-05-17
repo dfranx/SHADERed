@@ -12,7 +12,7 @@ namespace ed {
 	{
 		m_msgs.insert(m_msgs.end(), msgs.begin(), msgs.end());
 	}
-	void MessageStack::Add(Type type, const std::string& group, const std::string& message, int ln, int sh)
+	void MessageStack::Add(Type type, const std::string& group, const std::string& message, int ln, ShaderStage sh)
 	{
 		m_msgs.push_back({ type, group, message, ln, sh });
 	}

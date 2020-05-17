@@ -14,6 +14,9 @@ namespace ed {
 		Magnifier();
 		~Magnifier();
 
+		static bool ShaderInitialized;
+		static GLuint Shader;
+
 		inline bool IsSelecting() { return m_selecting; }
 		inline bool IsDragging() { return m_dragging; }
 

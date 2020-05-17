@@ -32,6 +32,9 @@ extern const unsigned int TEXTURE_MAG_FILTER_VALUES[2];
 extern const unsigned int TEXTURE_WRAP_VALUES[3];
 extern const unsigned int TOPOLOGY_ITEM_VALUES[10];
 
+extern const unsigned char TOPOLOGY_SINGLE_VERTEX_COUNT[10];
+extern const unsigned char TOPOLOGY_IS_STRIP[10];
+
 namespace ed {
 	namespace gl {
 		class String {

@@ -1,4 +1,4 @@
-#version 330
+#version 450  
 
 uniform mat4 matVP;
 uniform mat4 matGeo;
@@ -6,8 +6,8 @@ uniform mat4 matGeo;
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 
-layout (std140) uniform ubo {
-	vec4 test[10];
+layout (binding = 0) buffer ubo {
+	vec4 test[15];
 };
 
 out vec4 color;

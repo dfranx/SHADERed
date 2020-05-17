@@ -1,7 +1,7 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/AudioShaderStream.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
@@ -84,8 +84,12 @@ namespace ed {
 		}
 
 		std::string psTrans = "";
-		if (isHLSL)
-			psTrans = ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, 1, "main", macros, false, m_msgs, project);
+		if (isHLSL) {
+			std::vector<unsigned int> spv;
+
+			ShaderCompiler::CompileSourceToSPIRV(spv, ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, ShaderStage::Pixel, "main", macros, m_msgs, project);
+			psTrans = ShaderCompiler::ConvertToGLSL(spv, ed::ShaderLanguage::HLSL, ShaderStage::Pixel, false, m_msgs);
+		}
 		const char* psSource = isHLSL ? psTrans.c_str() : psCodeIn.c_str();
 
 		GLint success = 0;
@@ -95,32 +99,17 @@ namespace ed {
 		unsigned int audioVS = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(audioVS, 1, &vsCode, nullptr);
 		glCompileShader(audioVS);
-		glGetShaderiv(audioVS, GL_COMPILE_STATUS, &success);
-		if (!success && !isHLSL) {
-			glGetShaderInfoLog(audioVS, 512, NULL, infoLog);
-			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
-		}
 
 		// create pixel shader
 		unsigned int audioPS = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(audioPS, 1, &psSource, nullptr);
 		glCompileShader(audioPS);
-		glGetShaderiv(audioPS, GL_COMPILE_STATUS, &success);
-		if (!success && !isHLSL) {
-			glGetShaderInfoLog(audioPS, 512, NULL, infoLog);
-			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
-		}
 
 		// create a shader program for cubemap preview
 		m_shader = glCreateProgram();
 		glAttachShader(m_shader, audioVS);
 		glAttachShader(m_shader, audioPS);
 		glLinkProgram(m_shader);
-		glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
-		if (!success && !isHLSL) {
-			glGetProgramInfoLog(m_shader, 512, NULL, infoLog);
-			m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, infoLog));
-		}
 
 		glDeleteShader(audioVS);
 		glDeleteShader(audioPS);

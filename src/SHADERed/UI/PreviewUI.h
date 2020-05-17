@@ -43,6 +43,12 @@ namespace ed {
 		void Pick(PipelineItem* item, bool add = false);
 		inline bool IsPicked(PipelineItem* item) { return std::count(m_picks.begin(), m_picks.end(), item) > 0; }
 
+		inline void Reset()
+		{
+			m_zoom.Reset();
+			Pick(nullptr);
+		}
+
 	private:
 		void m_setupShortcuts();
 

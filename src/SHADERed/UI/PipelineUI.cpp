@@ -2,7 +2,7 @@
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/GUIManager.h>
 #include <SHADERed/Objects/Names.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Options.h>
@@ -678,7 +678,7 @@ namespace ed {
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
 
-		bool isGLSL = ShaderTranscompiler::GetShaderTypeFromExtension(((pipe::ShaderPass*)itemData)->VSPath) != ShaderLanguage::HLSL;
+		bool isGLSL = ShaderCompiler::GetShaderLanguageFromExtension(((pipe::ShaderPass*)itemData)->VSPath) != ShaderLanguage::HLSL;
 
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 

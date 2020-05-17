@@ -28,12 +28,11 @@ namespace ed {
 		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins, DebugInformation* debugger);
 		~RenderEngine();
 
-		void DebugPixelPick(glm::vec2 r);
-		int DebugVertexPick(PipelineItem* pass, PipelineItem* item, glm::vec2 r);
-		int DebugInstancePick(PipelineItem* pass, PipelineItem* item, glm::vec2 r);
+		int DebugVertexPick(PipelineItem* pass, PipelineItem* item, glm::vec2 r, int group);
+		int DebugInstancePick(PipelineItem* pass, PipelineItem* item, glm::vec2 r, int group);
 
-		void Render(int width, int height, bool isDebug = false);
-		inline void Render(bool isDebug = false) { Render(m_lastSize.x, m_lastSize.y, isDebug); }
+		void Render(int width, int height, bool isDebug = false, PipelineItem* breakItem = nullptr);
+		inline void Render(bool isDebug = false, PipelineItem* breakItem = nullptr) { Render(m_lastSize.x, m_lastSize.y, isDebug, breakItem); }
 		void Recompile(const char* name);
 		void RecompileFile(const char* fname);
 		void RecompileFromSource(const char* name, const std::string& vs = "", const std::string& ps = "", const std::string& gs = "");
@@ -44,7 +43,7 @@ namespace ed {
 		void FlushCache();
 		void AddPickedItem(PipelineItem* pipe, bool multiPick = false);
 
-		std::pair<PipelineItem*, PipelineItem*> GetPipelineItemByID(int id); // get pipeline item by it's debug id
+		std::pair<PipelineItem*, PipelineItem*> GetPipelineItemByDebugID(int id); // get pipeline item by it's debug id
 
 		inline void AllowComputeShaders(bool cs) { m_computeSupported = cs; }
 
@@ -135,16 +134,17 @@ namespace ed {
 		std::vector<PipelineItem*> m_items;
 		std::vector<GLuint> m_shaders;
 		std::vector<GLuint> m_debugShaders;
-		std::map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
-		std::map<pipe::ShaderPass*, GLuint> m_fboMS; // multisampled fbo's
-		std::map<pipe::ShaderPass*, GLuint> m_fboCount;
+		std::unordered_map<pipe::ShaderPass*, std::vector<GLuint>> m_fbos;
+		std::unordered_map<pipe::ShaderPass*, GLuint> m_fboMS; // multisampled fbo's
+		std::unordered_map<pipe::ShaderPass*, GLuint> m_fboCount;
+		std::unordered_map<pipe::ComputePass*, int> m_uboMax;
 		struct ShaderPack {
 			ShaderPack() { VS = GS = PS = 0; }
 			GLuint VS, PS, GS;
 		};
 		std::vector<ShaderPack> m_shaderSources;
 
-		GLuint m_debugPixelShader, m_debugVertexPickShader, m_debugInstancePickShader;
+		GLuint m_generalDebugShader;
 
 		void m_updatePassFBO(ed::pipe::ShaderPass* pass);
 

@@ -14,10 +14,13 @@ namespace ed {
 		void SetOwner(const char* shaderPass);
 		void SetType(PipelineItem::ItemType type);
 		bool Create();
+		void Reset();
 
 	private:
 		void m_autoVariablePopulate(pipe::ShaderPass* pass);
 		ed::SystemShaderVariable m_autoSystemValue(const std::string& name);
+
+		void m_createFile(const std::string& filen);
 
 		std::vector<std::string> m_groups;
 		int m_selectedGroup;
@@ -26,5 +29,7 @@ namespace ed {
 
 		char m_owner[PIPELINE_ITEM_NAME_LENGTH];
 		PipelineItem m_item;
+
+		bool m_isShaderFileAuto[3];
 	};
 }

@@ -1,7 +1,10 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/ObjectManager.h>
 #include <sstream>
 #include <string>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace ed {
 	namespace gl {
@@ -101,7 +104,7 @@ namespace ed {
 		{
 			GLint ret = 0;
 			glGetShaderiv(shader, GL_COMPILE_STATUS, &ret);
-			if (!ret)
+			if (!ret && msg)
 				glGetShaderInfoLog(shader, 1024, NULL, msg);
 			return (bool)ret;
 		}
@@ -211,6 +214,46 @@ namespace ed {
 			return ret;
 		}
 
+		void GetVertexBufferBounds(ObjectManager* objs, pipe::VertexBuffer* model, glm::vec3& minPosItem, glm::vec3& maxPosItem)
+		{
+			BufferObject* buffer = (BufferObject*)model->Buffer;
+
+			std::vector<ShaderVariable::ValueType> tData = objs->ParseBufferFormat(buffer->ViewFormat);
+
+			int stride = 0;
+			for (const auto& dataEl : tData)
+				stride += ShaderVariable::GetSize(dataEl, true);
+
+			GLfloat* bufPtr = (GLfloat*)malloc(buffer->Size);
+
+			glBindBuffer(GL_ARRAY_BUFFER, buffer->ID);
+			glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer->Size, &bufPtr[0]);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			int rows = buffer->Size / stride;
+
+			if (tData.size() > 0) {
+				minPosItem = glm::vec3(0.0f);
+				maxPosItem = glm::vec3(0.0f);
+
+				int rowStride = stride / 4;
+
+				for (int r = 0; r < rows; r++) {
+					GLfloat* curPtr = bufPtr + r * rowStride;
+
+					int elCount = ShaderVariable::GetSize(tData[0]) / 4;
+					if (elCount >= 4) elCount = 3;
+
+					for (int c = 0; c < elCount; c++) {
+						minPosItem[c] = glm::min(minPosItem[c], curPtr[c]);
+						maxPosItem[c] = glm::max(maxPosItem[c], curPtr[c]);
+					}
+				}
+			}
+
+			free(bufPtr);
+		}
+
 		bool isAllDigits(const std::string& str)
 		{
 			for (int i = 0; i < str.size(); i++)
@@ -218,52 +261,7 @@ namespace ed {
 					return false;
 			return true;
 		}
-		std::vector<MessageStack::Message> ParseMessages(const std::string& owner, int shader, const std::string& str, int lineBias)
-		{
-			std::vector<MessageStack::Message> ret;
-
-			std::istringstream f(str);
-			std::string line;
-			while (std::getline(f, line)) {
-				if (line.find("error") != std::string::npos) {
-					size_t firstPar = line.find_first_of('(');
-					size_t lastPar = line.find_first_of(')', firstPar);
-					size_t firstD = line.find_first_of(':');
-
-					if (firstPar == std::string::npos || lastPar == std::string::npos || firstD == std::string::npos)
-						continue;
-
-					if (line[firstPar + 1] == '#') {
-						// AMD error
-						size_t secondD = line.find_first_of(':', firstD + 1);
-						size_t thirdD = line.find_first_of(':', secondD + 1);
-
-						if (secondD == std::string::npos || thirdD == std::string::npos)
-							continue;
-
-						int lineNr = -1;
-						std::string lineStr = line.substr(secondD + 1, thirdD - (secondD + 1));
-						if (isAllDigits(lineStr))
-							lineNr = std::stoi(lineStr) - lineBias;
-						std::string msg = line.substr(thirdD + 2);
-						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
-
-					} else {
-						// Nvidia error
-						int lineNr = -1;
-						std::string lineStr = line.substr(firstPar + 1, lastPar - (firstPar + 1));
-						if (isAllDigits(lineStr))
-							lineNr = std::stoi(lineStr) - lineBias;
-						std::string msg = line.substr(firstD + 2);
-						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
-					}
-
-				}
-			}
-
-			return ret;
-		}
-		std::vector<MessageStack::Message> ParseHLSLMessages(const std::string& owner, int shader, const std::string& str)
+		std::vector<MessageStack::Message> ParseGlslangMessages(const std::string& owner, ShaderStage stage, const std::string& str)
 		{
 			std::vector<MessageStack::Message> ret;
 
@@ -283,7 +281,19 @@ namespace ed {
 					if (isAllDigits(lineStr))
 						lineNr = std::stoi(lineStr);
 					std::string msg = line.substr(thirdD + 2);
-					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, shader));
+					ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, stage));
+				} else if (line.size() > 0 && line[0] == '(' && line.find("error") != std::string::npos) {
+					size_t firstP = line.find_first_of(')');
+
+					int lineNr = -1;
+					std::string lineStr = line.substr(1, firstP - 1);
+					if (isAllDigits(lineStr))
+						lineNr = std::stoi(lineStr);
+
+					if (line.size() > firstP + 3) {
+						std::string msg = line.substr(firstP + 3);
+						ret.push_back(MessageStack::Message(MessageStack::Type::Error, owner, msg, lineNr, stage));
+					}
 				}
 			}
 

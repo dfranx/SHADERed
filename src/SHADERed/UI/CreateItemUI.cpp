@@ -4,12 +4,14 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CreateItemUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
+#include <filesystem>
+#include <fstream>
 #include <string.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -56,7 +58,31 @@ namespace ed {
 
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		ImGui::InputText("##cui_name", m_item.Name, PIPELINE_ITEM_NAME_LENGTH);
+		if (ImGui::InputText("##cui_name", m_item.Name, PIPELINE_ITEM_NAME_LENGTH)) {
+			// generate filenames
+			if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
+
+				if (m_isShaderFileAuto[0])
+					strcpy(data->VSPath, ("shaders/" + std::string(m_item.Name) + "VS.glsl").c_str());
+				if (m_isShaderFileAuto[1])
+					strcpy(data->PSPath, ("shaders/" + std::string(m_item.Name) + "PS.glsl").c_str());
+				if (m_isShaderFileAuto[2] && data->GSUsed)
+					strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS.glsl").c_str());
+			}
+			else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+				pipe::ComputePass* data = (pipe::ComputePass*)m_item.Data;
+
+				if (m_isShaderFileAuto[0])
+					strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "CS.glsl").c_str());
+			}
+			else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass* data = (pipe::AudioPass*)m_item.Data;
+
+				if (m_isShaderFileAuto[0])
+					strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "AS.glsl").c_str());
+			}
+		}
 		ImGui::NextColumn();
 
 		if (m_item.Type == PipelineItem::ItemType::Geometry) {
@@ -101,10 +127,12 @@ namespace ed {
 				ImGui::DragFloat("##cui_geosize", &data->Size.x);
 				ImGui::NextColumn();
 			}
-		} else if (m_item.Type == PipelineItem::ItemType::VertexBuffer) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* data = (pipe::VertexBuffer*)m_item.Data;
 
-		} else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
 
 			// vs path
@@ -122,6 +150,7 @@ namespace ed {
 				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->VSPath, file.c_str());
+					m_isShaderFileAuto[0] = false;
 
 					if (m_data->Parser.FileExists(file))
 						m_data->Messages.ClearGroup(m_item.Name);
@@ -153,6 +182,7 @@ namespace ed {
 				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->PSPath, file.c_str());
+					m_isShaderFileAuto[1] = false;
 
 					if (m_data->Parser.FileExists(file))
 						m_data->Messages.ClearGroup(m_item.Name);
@@ -173,7 +203,10 @@ namespace ed {
 			ImGui::Text("Use geometry shader:");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Checkbox("##cui_spgsuse", &data->GSUsed);
+			if (ImGui::Checkbox("##cui_spgsuse", &data->GSUsed)) {
+				if (m_isShaderFileAuto[2] && data->GSUsed)
+					strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS.glsl").c_str());
+			}
 			ImGui::NextColumn();
 
 			if (!data->GSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -193,6 +226,7 @@ namespace ed {
 				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->GSPath, file.c_str());
+					m_isShaderFileAuto[2] = false;
 
 					if (m_data->Parser.FileExists(file))
 						m_data->Messages.ClearGroup(m_item.Name);
@@ -210,7 +244,8 @@ namespace ed {
 			ImGui::NextColumn();
 
 			if (!data->GSUsed) ImGui::PopItemFlag();
-		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
 			pipe::ComputePass* data = (pipe::ComputePass*)m_item.Data;
 
 			// cs path
@@ -228,6 +263,7 @@ namespace ed {
 				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->Path, file.c_str());
+					m_isShaderFileAuto[0] = false;
 
 					if (m_data->Parser.FileExists(file))
 						m_data->Messages.ClearGroup(m_item.Name);
@@ -255,7 +291,8 @@ namespace ed {
 			data->WorkX = std::max<int>(groupSize.x, 1);
 			data->WorkY = std::max<int>(groupSize.y, 1);
 			data->WorkZ = std::max<int>(groupSize.z, 1);
-		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
 			pipe::AudioPass* data = (pipe::AudioPass*)m_item.Data;
 
 			// ss path
@@ -273,6 +310,7 @@ namespace ed {
 				if (success) {
 					file = m_data->Parser.GetRelativePath(file);
 					strcpy(data->Path, file.c_str());
+					m_isShaderFileAuto[0] = false;
 
 					if (m_data->Parser.FileExists(file))
 						m_data->Messages.ClearGroup(m_item.Name);
@@ -281,7 +319,8 @@ namespace ed {
 				}
 			}
 			ImGui::NextColumn();
-		} else if (m_item.Type == PipelineItem::ItemType::RenderState) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			pipe::RenderState* data = (pipe::RenderState*)m_item.Data;
 
 			// enable/disable wireframe rendering
@@ -555,7 +594,8 @@ namespace ed {
 				ImGui::PopItemFlag();
 				ImGui::PopStyleVar();
 			}
-		} else if (m_item.Type == PipelineItem::ItemType::Model) {
+		}
+		else if (m_item.Type == PipelineItem::ItemType::Model) {
 			pipe::Model* data = (pipe::Model*)m_item.Data;
 
 			// model filepath
@@ -650,6 +690,7 @@ namespace ed {
 			strcpy(allocatedData->PSEntry, "main");
 			strcpy(allocatedData->GSEntry, "main");
 			m_item.Data = allocatedData;
+			m_item.Name[0] = 0;
 
 			allocatedData->RenderTextures[0] = m_data->Renderer.GetTexture();
 		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
@@ -658,11 +699,13 @@ namespace ed {
 			pipe::ComputePass* allocatedData = new pipe::ComputePass();
 			strcpy(allocatedData->Entry, "main");
 			m_item.Data = allocatedData;
+			m_item.Name[0] = 0;
 		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
 			Logger::Get().Log("Opening a CreateItemUI for creating AudioPass object...");
 
 			pipe::AudioPass* allocatedData = new pipe::AudioPass();
 			m_item.Data = allocatedData;
+			m_item.Name[0] = 0;
 		} else if (m_item.Type == PipelineItem::ItemType::RenderState) {
 			Logger::Get().Log("Opening a CreateItemUI for creating RenderState object...");
 
@@ -682,25 +725,33 @@ namespace ed {
 	}
 	void CreateItemUI::m_autoVariablePopulate(pipe::ShaderPass* shader)
 	{
+		// TODO: maybe use SPIRV-VM to get uniforms
+
 		if (m_data->Parser.FileExists(shader->VSPath)) {
 			std::string psContent = "", vsContent = "",
 						vsEntry = shader->VSEntry,
 						psEntry = shader->PSEntry;
+			ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath);
+			ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->PSPath);
 
 			// pixel shader
-			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
+			if (psLang == ShaderLanguage::GLSL)
 				psContent = m_data->Parser.LoadProjectFile(shader->PSPath);
 			else {
-				psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_data->Parser.GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
+				std::vector<unsigned int> spv;
+				ShaderCompiler::CompileToSPIRV(spv, psLang, shader->PSPath, ShaderStage::Pixel, shader->PSEntry, shader->Macros, nullptr, &m_data->Parser);
+				psContent = ShaderCompiler::ConvertToGLSL(spv, psLang, ShaderStage::Pixel, shader->GSUsed, nullptr);
 				psEntry = "main";
 			}
 			GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
 
 			// vertex shader
-			if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL)
+			if (ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath) == ShaderLanguage::GLSL)
 				vsContent = m_data->Parser.LoadProjectFile(shader->VSPath);
 			else {
-				vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_data->Parser.GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
+				std::vector<unsigned int> spv;
+				ShaderCompiler::CompileToSPIRV(spv, vsLang, shader->VSPath, ShaderStage::Vertex, shader->VSEntry, shader->Macros, nullptr, &m_data->Parser);
+				vsContent = ShaderCompiler::ConvertToGLSL(spv, vsLang, ShaderStage::Vertex, shader->GSUsed, nullptr);
 				vsEntry = "main";
 			}
 			GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
@@ -710,11 +761,13 @@ namespace ed {
 			if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 				std::string gsContent = "",
 							gsEntry = shader->GSEntry;
-
-				if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
+				ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
+				if (gsLang == ShaderLanguage::GLSL)
 					gsContent = m_data->Parser.LoadProjectFile(shader->GSPath);
 				else { // HLSL / VK
-					gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_data->Parser.GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, nullptr, &m_data->Parser);
+					std::vector<unsigned int> spv;
+					ShaderCompiler::CompileToSPIRV(spv, gsLang, shader->GSPath, ShaderStage::Geometry, shader->GSEntry, shader->Macros, nullptr, &m_data->Parser);
+					gsContent = ShaderCompiler::ConvertToGLSL(spv, gsLang, ShaderStage::Geometry, shader->GSUsed, nullptr);
 					gsEntry = "main";
 				}
 
@@ -834,6 +887,11 @@ namespace ed {
 			pipe::ShaderPass* data = new pipe::ShaderPass();
 			pipe::ShaderPass* origData = (pipe::ShaderPass*)m_item.Data;
 
+			m_createFile(origData->VSPath);
+			m_createFile(origData->PSPath);
+			if (origData->GSUsed)
+				m_createFile(origData->GSPath);
+
 			strcpy(data->PSEntry, origData->PSEntry);
 			strcpy(data->PSPath, origData->PSPath);
 			strcpy(data->VSEntry, origData->VSEntry);
@@ -850,6 +908,8 @@ namespace ed {
 			pipe::ComputePass* data = new pipe::ComputePass();
 			pipe::ComputePass* origData = (pipe::ComputePass*)m_item.Data;
 
+			m_createFile(origData->Path);
+
 			strcpy(data->Entry, origData->Entry);
 			strcpy(data->Path, origData->Path);
 			data->WorkX = origData->WorkX;
@@ -861,6 +921,8 @@ namespace ed {
 		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
 			pipe::AudioPass* data = new pipe::AudioPass();
 			pipe::AudioPass* origData = (pipe::AudioPass*)m_item.Data;
+
+			m_createFile(origData->Path);
 
 			strcpy(data->Path, origData->Path);
 
@@ -952,5 +1014,24 @@ namespace ed {
 		}
 
 		return false;
+	}
+	void CreateItemUI::Reset()
+	{
+		m_isShaderFileAuto[0] = true;
+		m_isShaderFileAuto[1] = true;
+		m_isShaderFileAuto[2] = true;
+	}
+	void CreateItemUI::m_createFile(const std::string& filename)
+	{
+		std::string fname = m_data->Parser.GetProjectPath(filename);
+
+		if (!std::filesystem::exists(fname)) {
+			std::filesystem::path path(fname);
+			if (path.has_parent_path())
+				std::filesystem::create_directories(path.parent_path());
+			std::ofstream shdr(fname);
+			shdr << "// empty shader file\n";
+			shdr.close();
+		}
 	}
 }

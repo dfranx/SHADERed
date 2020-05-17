@@ -42,8 +42,8 @@ namespace ed {
 			ImGui::Text(m->Group.c_str());
 			ImGui::NextColumn();
 
-			if (m->Shader != -1)
-				ImGui::Text(m->Shader == 0 ? "VS" : (m->Shader == 1 ? "PS" : (m->Shader == 2 ? "GS" : "CS")));
+			if (m->Shader != ShaderStage::Count) // TODO: array? duh
+				ImGui::Text(m->Shader == ShaderStage::Vertex ? "VS" : (m->Shader == ShaderStage::Pixel ? "PS" : (m->Shader == ShaderStage::Geometry ? "GS" : "CS")));
 			ImGui::NextColumn();
 
 			if (m->Line != -1)

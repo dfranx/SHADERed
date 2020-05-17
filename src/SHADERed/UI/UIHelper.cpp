@@ -9,8 +9,6 @@
 #include <iomanip>
 #include <sstream>
 
-#include <ShaderDebugger/Utils.h>
-
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
 namespace ed {

@@ -1,10 +1,11 @@
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Objects/Export/ExportCPP.h>
 #include <SHADERed/Objects/Names.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -370,7 +371,7 @@ namespace ed {
 		// get list of all shader files
 		std::vector<std::string> allShaderFiles;
 		std::vector<std::string> allShaderEntries;
-		std::vector<int> allShaderTypes;
+		std::vector<ShaderStage> allShaderTypes;
 		const auto& pipeItems = data->Pipeline.GetList();
 		for (int i = 0; i < pipeItems.size(); i++) {
 			if (pipeItems[i]->Type == ed::PipelineItem::ItemType::ShaderPass) {
@@ -380,13 +381,13 @@ namespace ed {
 				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->VSPath) == 0) {
 					allShaderFiles.push_back(pass->VSPath);
 					allShaderEntries.push_back(pass->VSEntry);
-					allShaderTypes.push_back(0);
+					allShaderTypes.push_back(ShaderStage::Vertex);
 				}
 				// PS
 				if (std::count(allShaderFiles.begin(), allShaderFiles.end(), pass->PSPath) == 0) {
 					allShaderFiles.push_back(pass->PSPath);
 					allShaderEntries.push_back(pass->PSEntry);
-					allShaderTypes.push_back(1);
+					allShaderTypes.push_back(ShaderStage::Pixel);
 				}
 			}
 		}
@@ -401,10 +402,13 @@ namespace ed {
 				if (externalShaders) {
 				} else {
 					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
-
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
+					ShaderLanguage shdrLanguage = ShaderCompiler::GetShaderLanguageFromExtension(allShaderFiles[i].c_str());
+					if (shdrLanguage != ShaderLanguage::GLSL) {
 						std::vector<ed::ShaderMacro> tempMacros;
-						shdrSource = ed::ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, false, nullptr, nullptr);
+						std::vector<unsigned int> tempSPV;
+
+						ShaderCompiler::CompileSourceToSPIRV(tempSPV, shdrLanguage, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, nullptr, nullptr);
+						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, nullptr);
 					}
 
 					shadersSrc += "std::string " + getShaderFilename(allShaderFiles[i]) + " = R\"(\n";
@@ -433,9 +437,13 @@ namespace ed {
 
 					// copy the shader
 					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(allShaderFiles[i].c_str()) != ShaderLanguage::GLSL) {
+					ShaderLanguage shdrLanguage = ShaderCompiler::GetShaderLanguageFromExtension(allShaderFiles[i].c_str());
+					if (shdrLanguage != ShaderLanguage::GLSL) {
 						std::vector<ed::ShaderMacro> tempMacros;
-						shdrSource = ed::ShaderTranscompiler::TranscompileSource(ed::ShaderLanguage::HLSL, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, false, nullptr, nullptr);
+						std::vector<unsigned int> tempSPV;
+
+						ShaderCompiler::CompileSourceToSPIRV(tempSPV, shdrLanguage, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, nullptr, nullptr);
+						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, nullptr);
 					}
 
 					std::ofstream shaderWriter(shdrFile);

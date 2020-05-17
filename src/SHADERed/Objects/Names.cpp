@@ -21,6 +21,12 @@ const char* TOPOLOGY_ITEM_NAMES[] = {
 	"TriangleListAdjecent",
 	"TriangleStripAdjecent"
 };
+const unsigned char TOPOLOGY_SINGLE_VERTEX_COUNT[] = {
+	0, 1, 2, 2, 3, 3, 2, 2, 3, 3
+};
+const unsigned char TOPOLOGY_IS_STRIP[] = {
+	0, 0, 0, 1, 0, 2, 0, 1, 0, 2
+};
 
 const char* SHADER_TYPE_NAMES[] = {
 	"Pixel",

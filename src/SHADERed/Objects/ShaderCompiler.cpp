@@ -8,7 +8,7 @@
 #include <SHADERed/Objects/HLSLFileIncluder.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
 #include <glslang/glslang/Public/ShaderLang.h>
@@ -124,125 +124,22 @@ const TBuiltInResource DefaultTBuiltInResource = {
 };
 
 namespace ed {
-	std::string ShaderTranscompiler::Transcompile(ShaderLanguage inLang, const std::string& filename, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs, ProjectParser* project)
+	std::string ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>& spvIn, ShaderLanguage inLang, ShaderStage sType, bool gsUsed, MessageStack* msgs)
 	{
-		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
+		if (spvIn.empty())
+			return "";
 
-		//Load HLSL into a string
-		std::ifstream file(filename);
+		// Read SPIR-V
+		spirv_cross::CompilerGLSL glsl(std::move(spvIn));
 
-		if (!file.is_open()) {
-			if (msgs != nullptr)
-				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
-			file.close();
-			return "errorFile";
-		}
-
-		std::string inputHLSL((std::istreambuf_iterator<char>(file)),
-			std::istreambuf_iterator<char>());
-
-		file.close();
-
-		return ShaderTranscompiler::TranscompileSource(inLang, filename, inputHLSL, sType, entry, macros, gsUsed, msgs, project);
-	}
-	std::string ShaderTranscompiler::TranscompileSource(ShaderLanguage inLang, const std::string& filename, const std::string& inputHLSL, int sType, const std::string& entry, std::vector<ShaderMacro>& macros, bool gsUsed, MessageStack* msgs, ProjectParser* project)
-	{
-		const char* inputStr = inputHLSL.c_str();
-
-		// create shader
-		EShLanguage shaderType = EShLangVertex;
-		if (sType == 1)
-			shaderType = EShLangFragment;
-		else if (sType == 2)
-			shaderType = EShLangGeometry;
-		else if (sType == 3)
-			shaderType = EShLangCompute;
-
-		glslang::TShader shader(shaderType);
-		if (entry.size() > 0 && entry != "main") {
-			shader.setEntryPoint(entry.c_str());
-			shader.setSourceEntryPoint(entry.c_str());
-		}
-		shader.setStrings(&inputStr, 1);
-
-		// set macros
-		std::string preambleStr = (inLang == ShaderLanguage::VulkanGLSL) ? "" : "#extension GL_GOOGLE_include_directive : enable\n";
-		for (auto& macro : macros) {
-			if (!macro.Active)
-				continue;
-			preambleStr += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
-		}
-		if (preambleStr.size() > 0)
-			shader.setPreamble(preambleStr.c_str());
-
-		// set up
-		int sVersion = (sType == 3) ? 430 : 330;
-		glslang::EShTargetClientVersion vulkanVersion = glslang::EShTargetVulkan_1_0;
-		glslang::EShTargetLanguageVersion targetVersion = glslang::EShTargetSpv_1_0;
-
-		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, glslang::EShClientVulkan, sVersion);
-		shader.setEnvClient(glslang::EShClientVulkan, vulkanVersion);
-		shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
-
-		TBuiltInResource res = DefaultTBuiltInResource;
-		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
-
-		const int defVersion = sVersion;
-
-		// includer
-		ed::HLSLFileIncluder includer;
-		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
-		if (project != nullptr)
-			for (auto& str : Settings::Instance().Project.IncludePaths)
-				includer.pushExternalLocalDirectory(project->GetProjectPath(str));
-
-		std::string processedShader;
-
-		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer)) {
-			if (msgs != nullptr) {
-				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
-				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
-			}
-			return "error";
-		}
-
-		// update strings
-		const char* processedStr = processedShader.c_str();
-		shader.setStrings(&processedStr, 1);
-
-		// parse
-		if (!shader.parse(&res, 100, false, messages)) {
-			if (msgs != nullptr)
-				msgs->Add(gl::ParseHLSLMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
-			return "error";
-		}
-
-		// link
-		glslang::TProgram prog;
-		prog.addShader(&shader);
-
-		if (!prog.link(messages)) {
-			if (msgs != nullptr)
-				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
-			return "error";
-		}
-
-		// convert to spirv
-		std::vector<unsigned int> spv;
-		spv::SpvBuildLogger logger;
-		glslang::SpvOptions spvOptions;
-
-		spvOptions.optimizeSize = false;
-		spvOptions.disableOptimizer = true;
-
-		glslang::GlslangToSpv(*prog.getIntermediate(shaderType), spv, &logger, &spvOptions);
-
-		// Read SPIR-V from disk or similar.
-		spirv_cross::CompilerGLSL glsl(std::move(spv));
-
-		// Set some options.
+		// Set options
 		spirv_cross::CompilerGLSL::Options options;
-		options.version = sVersion;
+
+		int ver = 330;
+		if (GLEW_ARB_shader_storage_buffer_object)
+			ver = 430;
+
+		options.version = (sType == ShaderStage::Compute) ? 430 : ver;
 
 		glsl.set_common_options(options);
 
@@ -251,9 +148,9 @@ namespace ed {
 		// rename outputs
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 		std::string outputName = "outputVS";
-		if (shaderType == EShLangFragment)
+		if (sType == ShaderStage::Pixel)
 			outputName = "outputPS";
-		else if (shaderType == EShLangGeometry)
+		else if (sType == ShaderStage::Geometry)
 			outputName = "outputGS";
 		for (auto& resource : resources.stage_outputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
@@ -262,9 +159,9 @@ namespace ed {
 
 		// rename inputs
 		std::string inputName = "inputVS";
-		if (shaderType == EShLangFragment)
+		if (sType == ShaderStage::Pixel)
 			inputName = gsUsed ? "outputGS" : "outputVS";
-		else if (shaderType == EShLangGeometry)
+		else if (sType == ShaderStage::Geometry)
 			inputName = "outputVS";
 		for (auto& resource : resources.stage_inputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
@@ -293,7 +190,7 @@ namespace ed {
 			return "error";
 		}
 
-		// WARNING: lost of hacks in the following code
+		// WARNING: lots of hacks in the following code
 		// remove all the UBOs when transcompiling from HLSL
 		if (inLang == ShaderLanguage::HLSL) {
 			std::stringstream ss(source);
@@ -339,7 +236,7 @@ namespace ed {
 			bool inUBO = false;
 			std::vector<std::string> uboNames;
 			int deleteUboPos = 0, deleteUboLength = 0;
-			std::string uboExt = (shaderType == 0) ? "VS" : (shaderType == 1 ? "PS" : "GS");
+			std::string uboExt = (sType == ShaderStage::Vertex) ? "VS" : (sType == ShaderStage::Pixel ? "PS" : "GS");
 			while (std::getline(ss, line)) {
 
 				// i know, ewww, but idk if there's a function to do this (this = converting UBO
@@ -413,7 +310,134 @@ namespace ed {
 
 		return source;
 	}
-	ShaderLanguage ShaderTranscompiler::GetShaderTypeFromExtension(const std::string& file)
+	bool ShaderCompiler::CompileToSPIRV(std::vector<unsigned int>& spvOut, ShaderLanguage inLang, const std::string& filename, ShaderStage sType, const std::string& entry, std::vector<ShaderMacro>& macros, MessageStack* msgs, ProjectParser* project)
+	{
+		ed::Logger::Get().Log("Starting to transcompile a HLSL shader " + filename);
+
+		std::string source;
+
+		if (project != nullptr)
+			source = project->LoadProjectFile(filename);
+		else {
+			//Load source into a string
+			std::ifstream file(filename);
+
+			if (!file.is_open()) {
+				if (msgs != nullptr)
+					msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Failed to open file " + filename, -1, sType);
+				file.close();
+				return false;
+			}
+			source = std::string((std::istreambuf_iterator<char>(file)),
+				std::istreambuf_iterator<char>());
+
+			file.close();
+		}
+
+		return ShaderCompiler::CompileSourceToSPIRV(spvOut, inLang, filename, source, sType, entry, macros, msgs, project);	
+	}
+	bool ShaderCompiler::CompileSourceToSPIRV(std::vector<unsigned int>& spvOut, ShaderLanguage inLang, const std::string& filename, const std::string& source, ShaderStage sType, const std::string& entry, std::vector<ShaderMacro>& macros, MessageStack* msgs, ProjectParser* project)
+	{
+		spvOut.clear();
+
+		const char* inputStr = source.c_str();
+
+		// create shader
+		EShLanguage shaderType = EShLangVertex;
+		if (sType == ShaderStage::Pixel)
+			shaderType = EShLangFragment;
+		else if (sType == ShaderStage::Geometry)
+			shaderType = EShLangGeometry;
+		else if (sType == ShaderStage::Compute)
+			shaderType = EShLangCompute;
+
+		glslang::TShader shader(shaderType);
+		if (entry.size() > 0 && entry != "main") {
+			shader.setEntryPoint(entry.c_str());
+			shader.setSourceEntryPoint(entry.c_str());
+		}
+		shader.setStrings(&inputStr, 1);
+
+		// set macros
+		std::string preambleStr = (inLang == ShaderLanguage::HLSL) ? "#extension GL_GOOGLE_include_directive : enable\n" : "";
+		for (auto& macro : macros) {
+			if (!macro.Active)
+				continue;
+			preambleStr += "#define " + std::string(macro.Name) + " " + std::string(macro.Value) + "\n";
+		}
+		if (preambleStr.size() > 0)
+			shader.setPreamble(preambleStr.c_str());
+		
+
+		// set up
+		int sVersion = (sType == ShaderStage::Compute) ? 430 : 330;
+		glslang::EShTargetClientVersion targetClientVersion = glslang::EShTargetOpenGL_450;
+		glslang::EShTargetLanguageVersion targetLanguageVersion = glslang::EShTargetSpv_1_5;
+
+		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, glslang::EShClientOpenGL, sVersion);
+		shader.setEnvClient(glslang::EShClientOpenGL, targetClientVersion);
+		shader.setEnvTarget(glslang::EShTargetSpv, targetLanguageVersion);
+
+		TBuiltInResource res = DefaultTBuiltInResource;
+		EShMessages messages = (EShMessages)(EShMsgSpvRules);
+
+		const int defVersion = sVersion;
+
+		// includer
+		ed::HLSLFileIncluder includer;
+		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
+		if (project != nullptr)
+			for (auto& str : Settings::Instance().Project.IncludePaths)
+				includer.pushExternalLocalDirectory(project->GetProjectPath(str));
+
+		std::string processedShader;
+
+		if (!shader.preprocess(&res, defVersion, ENoProfile, false, false, messages, &processedShader, includer)) {
+			if (msgs != nullptr) {
+				msgs->Add(gl::ParseGlslangMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader preprocessing failed", -1, sType);
+			}
+			return false;
+		}
+
+		// update strings
+		const char* processedStr = processedShader.c_str();
+		shader.setStrings(&processedStr, 1);
+
+		// shader.setAutoMapBindings(true);
+		shader.setAutoMapLocations(true);
+
+		// parse
+		if (!shader.parse(&res, 100, false, messages)) {
+			if (msgs != nullptr)
+				msgs->Add(gl::ParseGlslangMessages(msgs->CurrentItem, sType, shader.getInfoLog()));
+			return false;
+		}
+
+		// link
+		glslang::TProgram prog;
+		prog.addShader(&shader);
+
+		if (!prog.link(messages)) {
+			if (msgs != nullptr)
+				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
+			return false;
+		}
+
+		// convert to spirv
+		spv::SpvBuildLogger logger;
+		glslang::SpvOptions spvOptions;
+
+		spvOptions.optimizeSize = false;
+		spvOptions.disableOptimizer = true;
+		spvOptions.generateDebugInfo = true;
+		spvOptions.validate = true;
+
+		glslang::GlslangToSpv(*prog.getIntermediate(shaderType), spvOut, &logger, &spvOptions);
+	
+		return true;
+	}
+	ShaderLanguage ShaderCompiler::GetShaderLanguageFromExtension(const std::string& file)
 	{
 		std::vector<std::string>& hlslExts = Settings::Instance().General.HLSLExtensions;
 		std::vector<std::string>& vkExts = Settings::Instance().General.VulkanGLSLExtensions;

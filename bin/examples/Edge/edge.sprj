@@ -74,11 +74,12 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Edge" item="pipe" />
+		<entry type="file" name="Edge" shader="vs" />
 		<entry type="file" name="Edge" shader="ps" />
 		<entry type="camera" fp="false">
-			<distance>9</distance>
-			<pitch>26</pitch>
-			<yaw>155</yaw>
+			<distance>7</distance>
+			<pitch>34</pitch>
+			<yaw>161</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0.00392156886" />

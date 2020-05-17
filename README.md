@@ -10,9 +10,7 @@ open source, cross-platform (runs on Windows & Linux - HLSL shaders work on both
 ### Shader debugger
 Shader debugger is the newest addition to SHADERed. It is simple to use - you just pause the preview and select the pixel that you are interested in. After starting the debug process, you will be able to:
 * step through your shader code line by line
-* place normal and conditional breakpoints
-* run custom expressions in the Immediate window
-* create watches
+* place breakpoints
 * see list of all variables and their values
 <img src="https://shadered.org/img/gallery/seddbg_watch_vars.gif"/>
 
@@ -128,7 +126,7 @@ First clone the project & submodules:
 ```
 git clone https://github.com/dfranx/SHADERed.git
 cd SHADERed
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 ### Linux

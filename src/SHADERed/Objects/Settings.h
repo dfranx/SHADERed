@@ -59,6 +59,9 @@ namespace ed {
 
 		struct strDebug {
 			bool ShowValuesOnHover;
+			bool AutoFetch;
+			bool PrimitiveOutline;
+			bool PixelOutline;
 		} Debug;
 
 		struct strPreview {

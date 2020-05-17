@@ -314,6 +314,8 @@ namespace ed {
 	}
 	int GizmoObject::Click(int x, int y, int vw, int vh)
 	{
+		// update the hover data
+		HandleMouseMove(x, y, vw, vh);
 		// handle control selection
 		m_axisSelected = m_axisHovered;
 		if (m_axisSelected != -1) {
@@ -365,12 +367,9 @@ namespace ed {
 		bool normalView = glm::abs(glm::dot(rayDir, glm::vec3(0, 1, 0))) < 0.7f;
 
 		glm::vec3 axisVec(m_axisSelected == 0, m_axisSelected == 1, m_axisSelected == 2);
-		glm::vec4 planeNormal = glm::vec4(m_axisSelected == 2, 0, m_axisSelected == 0 || m_axisSelected == 1, 0);
 		glm::vec3 planeOrigin = *m_trans;
-
-		float switchNormal = -glm::sign(glm::dot(rayDir, glm::vec3(planeNormal)));
-		planeNormal = planeNormal * switchNormal;
-
+		glm::vec4 planeNormal = glm::vec4(glm::normalize(planeOrigin - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())), 0);
+		
 		float depth = std::numeric_limits<float>::infinity();
 		bool rpInters = glm::intersectRayPlane(rayOrigin, glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
 		
@@ -523,8 +522,11 @@ namespace ed {
 			else
 				distZ = std::numeric_limits<float>::infinity();
 
-			if (axisRet != -1)
-				depth = dist;
+			if (axisRet != -1) {
+				glm::vec3 planeOrigin = *m_trans;
+				glm::vec4 planeNormal = glm::vec4(glm::normalize(planeOrigin - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())), 0);
+				glm::intersectRayPlane(glm::vec4(rayOrigin, 1), glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
+			}
 		}
 
 		return axisRet;

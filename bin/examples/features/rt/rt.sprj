@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="Simple">
-			<shader type="vs" path="shaders/SimpleVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders/SimplePS.hlsl" entry="main" />
+		<pass name="Simple" type="shader" active="true">
+			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
 			<rendertexture name="rt" />
-			<variables>
-				<variable type="float4x4" name="matVP" system="ViewProjection" />
-				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
-			</variables>
-			<macros />
 			<items>
 				<item name="Sphere" type="geometry">
 					<type>Sphere</type>
@@ -20,17 +20,21 @@
 				</item>
 			</items>
 			<itemvalues />
-		</pass>
-		<pass name="RenderTxt">
-			<shader type="vs" path="shaders/RenderTxtVS.hlsl" entry="main" />
-			<shader type="ps" path="shaders/RenderTxtPS.hlsl" entry="main" />
-			<rendertexture />
 			<variables>
-				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
 				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
-				<variable type="float2" name="mPos" system="MousePosition" />
 			</variables>
 			<macros />
+		</pass>
+		<pass name="RenderTxt" type="shader" active="true">
+			<shader type="vs" path="shaders\RenderTxtVS.hlsl" entry="main" />
+			<shader type="ps" path="shaders\RenderTxtPS.hlsl" entry="main" />
+			<inputlayout>
+				<item value="Position" semantic="POSITION" />
+				<item value="Normal" semantic="NORMAL" />
+				<item value="Texcoord" semantic="TEXCOORD0" />
+			</inputlayout>
+			<rendertexture />
 			<items>
 				<item name="Rect" type="geometry">
 					<type>ScreenQuad</type>
@@ -41,6 +45,12 @@
 				</item>
 			</items>
 			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matVP" system="Orthographic" />
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float2" name="mPos" system="MousePosition" />
+			</variables>
+			<macros />
 		</pass>
 	</pipeline>
 	<objects>
@@ -48,7 +58,9 @@
 			<bind slot="0" name="RenderTxt" />
 		</object>
 	</objects>
+	<cameras />
 	<settings>
+		<entry type="file" name="Simple" shader="vs" />
 		<entry type="camera" fp="false">
 			<distance>6</distance>
 			<pitch>43</pitch>
@@ -56,5 +68,6 @@
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
 	</settings>
 </project>

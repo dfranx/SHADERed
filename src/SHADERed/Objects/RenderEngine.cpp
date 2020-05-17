@@ -3,61 +3,87 @@
 #include <SHADERed/Engine/Ray.h>
 #include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/PipelineManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/Settings.h>
-#include <SHADERed/Objects/ShaderTranscompiler.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <algorithm>
 #include <glm/gtx/intersect.hpp>
 
 static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
-static const char* PixelDebugShaderCode = R"(
+static const char* GeneralDebugShaderCode = R"(
 #version 330
 
-uniform vec3 _sed_dbg_pixel_color;
+uniform vec4 _sed_dbg_pixel_color;
 out vec4 outColor;
 
 void main()
 {
-	outColor = vec4(_sed_dbg_pixel_color, 1.0f);
+	outColor = _sed_dbg_pixel_color;
 }
 )";
-static const char* PixelDebugVertexShaderCode = R"(
-#version 330
 
-flat in int _sed_dbg_vertexID;
-out vec4 outColor;
-
-void main()
-{
-	float r = (_sed_dbg_vertexID & 0xFF) / 255.0f;
-	float g = ((_sed_dbg_vertexID >> 8)  & 0xFF) / 255.0f;
-	float b = ((_sed_dbg_vertexID >> 16) & 0xFF) / 255.0f;
-
-	outColor = vec4(r, g, b, 1.0f);
-}
-)";
-static const char* PixelDebugInstanceShaderCode = R"(
-#version 330
-
-flat in int _sed_dbg_instanceID;
-out vec4 outColor;
-
-void main()
-{
-	float r = (_sed_dbg_instanceID & 0xFF) / 255.0f;
-	float g = ((_sed_dbg_instanceID >> 8)  & 0xFF) / 255.0f;
-	float b = ((_sed_dbg_instanceID >> 16) & 0xFF) / 255.0f;
-
-	outColor = vec4(r, g, b, 1.0f);
-}
-)";
-#define DEBUG_ID_START 1
 
 namespace ed {
+
+	void DebugDrawPrimitives(int& vertexStart, int vertexCount, int maxVertexCount, int vertexStrip, GLuint topology, GLuint varLoc, bool instanced, int instanceCount, bool useIndices = false, int vbase = 0)
+	{
+		int actualVertexCount = vertexCount;
+		while (vertexStart < maxVertexCount) {
+			float r = ((vertexStart + vbase) & 0x000000FF) / 255.0f;
+			float g = (((vertexStart + vbase) & 0x0000FF00) >> 8) / 255.0f;
+			float b = (((vertexStart + vbase) & 0x00FF0000) >> 16) / 255.0f;
+			glUniform4f(varLoc, r, g, b, 0.0f);
+
+			actualVertexCount = std::min<int>(vertexCount, maxVertexCount - vertexStart);
+			if (actualVertexCount <= 0) break;
+
+			if (useIndices) {
+				if (instanced)
+					glDrawElementsInstanced(GL_TRIANGLES, actualVertexCount, GL_UNSIGNED_INT, (void*)(vertexStart * sizeof(GLuint)), instanceCount);
+				else
+					glDrawElements(GL_TRIANGLES, actualVertexCount, GL_UNSIGNED_INT, (void*)(vertexStart * sizeof(GLuint)));
+			} else {
+				if (instanced)
+					glDrawArraysInstanced(topology, vertexStart, actualVertexCount, instanceCount);
+				else
+					glDrawArrays(topology, vertexStart, actualVertexCount);
+			}
+			vertexStart += vertexCount - vertexStrip;
+		}
+	}
+	void DebugDrawInstanced(int& iStart, int iStep, int iCount, int vertexCount, GLuint topology, GLuint varLoc, bool useIndices = false)
+	{
+		while (iStart < iCount) {
+			float r = (iStart & 0x000000FF) / 255.0f;
+			float g = ((iStart & 0x0000FF00) >> 8) / 255.0f;
+			float b = ((iStart & 0x00FF0000) >> 16) / 255.0f;
+			glUniform4f(varLoc, r, g, b, 0.0f);
+
+			if (useIndices)
+				glDrawElementsInstanced(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, nullptr, std::min<int>(iStart + iStep, iCount));
+			else
+				glDrawArraysInstanced(topology, 0, vertexCount, std::min<int>(iStart + iStep, iCount)); // hax since baseInstance is 4.2 feature
+			iStart += iStep;
+		}
+	}
+	uint8_t* GetRawPixel(GLuint rt, uint8_t* data, int x, int y, int width)
+	{
+		glBindTexture(GL_TEXTURE_2D, rt);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		return &data[(x + y * width) * 4];
+	}
+	uint32_t GetPixelID(GLuint rt, uint8_t* data, int x, int y, int width)
+	{
+		uint8_t* pxData = GetRawPixel(rt, data, x, y, width);
+		return ((uint32_t)pxData[0] << 0) | ((uint32_t)pxData[1] << 8) | ((uint32_t)pxData[2] << 16) | ((uint32_t)pxData[3] << 24);
+	}
+
 	RenderEngine::RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins, DebugInformation* debugger)
 			: m_pipeline(pipeline)
 			, m_objects(objects)
@@ -81,20 +107,10 @@ namespace ed {
 		glGenTextures(1, &m_rtDepthMS);
 
 		GLchar msg[1024];
-		m_debugPixelShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugShaderCode);
-		bool psCompiled = gl::CheckShaderCompilationStatus(m_debugPixelShader, msg);
-		if (!psCompiled)
-			Logger::Get().Log("Failed to compile the pixel shader for debugging.", true);
-
-		m_debugVertexPickShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugVertexShaderCode);
-		psCompiled = gl::CheckShaderCompilationStatus(m_debugVertexPickShader, msg);
-		if (!psCompiled)
-			Logger::Get().Log("Failed to compile the pixel shader for vertex picking.", true);
-
-		m_debugInstancePickShader = gl::CompileShader(GL_FRAGMENT_SHADER, PixelDebugInstanceShaderCode);
-		psCompiled = gl::CheckShaderCompilationStatus(m_debugVertexPickShader, msg);
-		if (!psCompiled)
-			Logger::Get().Log("Failed to compile the pixel shader used for getting instance ID.", true);
+		m_generalDebugShader = gl::CompileShader(GL_FRAGMENT_SHADER, GeneralDebugShaderCode);
+		bool isDebugShaderCompiled = gl::CheckShaderCompilationStatus(m_generalDebugShader, msg);
+		if (!isDebugShaderCompiled)
+			Logger::Get().Log("Failed to compile the debug pixel shader.", true);
 	}
 	RenderEngine::~RenderEngine()
 	{
@@ -102,12 +118,10 @@ namespace ed {
 		glDeleteTextures(1, &m_rtDepth);
 		glDeleteTextures(1, &m_rtColorMS);
 		glDeleteTextures(1, &m_rtDepthMS);
-		glDeleteShader(m_debugPixelShader);
-		glDeleteShader(m_debugVertexPickShader);
-		glDeleteShader(m_debugInstancePickShader);
+		glDeleteShader(m_generalDebugShader);
 		FlushCache();
 	}
-	void RenderEngine::Render(int width, int height, bool isDebug)
+	void RenderEngine::Render(int width, int height, bool isDebug, PipelineItem* breakItem)
 	{
 		bool isMSAA = (Settings::Instance().Preview.MSAA != 1) && !isDebug;
 
@@ -167,7 +181,7 @@ namespace ed {
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0 || (isDebug && data->GSUsed))
+				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0 /* || (isDebug && data->GSUsed) */)
 					continue;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -233,7 +247,6 @@ namespace ed {
 				glViewport(0, 0, rtSize.x, rtSize.y);
 
 				// bind shaders
-
 				if (isDebug) {
 					data->Variables.UpdateUniformInfo(m_debugShaders[i]);
 					glUseProgram(m_debugShaders[i]);
@@ -253,12 +266,13 @@ namespace ed {
 					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+					
+					if (ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
 						data->Variables.UpdateTexture(m_shaders[i], j);
 				}
 
 				for (int j = 0; j < ubos.size(); j++)
-					glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
+					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 
 				// clear messages
 				//if (m_msgs->GetGroupWarningMsgCount(it->Name) > 0)
@@ -284,7 +298,8 @@ namespace ed {
 							float r = (debugID & 0x000000FF) / 255.0f;
 							float g = ((debugID & 0x0000FF00) >> 8) / 255.0f;
 							float b = ((debugID & 0x00FF0000) >> 16) / 255.0f;
-							glUniform3f(glGetUniformLocation(m_debugShaders[i], "_sed_dbg_pixel_color"), r, g, b);
+							float a = 0.0f; // Maybe pack additional data here?
+							glUniform4f(glGetUniformLocation(m_debugShaders[i], "_sed_dbg_pixel_color"), r, g, b, a);
 							debugID++;
 						}
 					}
@@ -364,7 +379,7 @@ namespace ed {
 						glFrontFace(state->FrontFace);
 
 						// disable blending
-						if (state->Blend) {
+						if (state->Blend && !isDebug) {
 							glEnable(GL_BLEND);
 							glBlendEquationSeparate(state->BlendFunctionColor, state->BlendFunctionAlpha);
 							glBlendFuncSeparate(state->BlendSourceFactorRGB, state->BlendDestinationFactorRGB, state->BlendSourceFactorAlpha, state->BlendDestinationFactorAlpha);
@@ -448,11 +463,15 @@ namespace ed {
 					else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+					if (ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::GLSL)
 						data->Variables.UpdateTexture(m_shaders[i], j);
 				}
 
 				// bind buffers
+				int cMax = (m_uboMax[data] = std::max<int>(ubos.size(), m_uboMax[data]));
+				for (int j = ubos.size(); j < cMax; j++)
+					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, 0);
+
 				for (int j = 0; j < ubos.size(); j++) {
 					if (m_objects->IsImage(ubos[j])) {
 						ImageObject* iobj = m_objects->GetImage(m_objects->GetImageNameByID(ubos[j])); // TODO: GetImageByID
@@ -495,7 +514,7 @@ namespace ed {
 					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+					if (ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
 						data->Variables.UpdateTexture(m_shaders[i], j);
 				}
 
@@ -514,6 +533,9 @@ namespace ed {
 
 				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
 			}
+
+			if (it == breakItem && breakItem != nullptr)
+				break;
 		}
 
 		m_plugins->EndRender();
@@ -538,172 +560,20 @@ namespace ed {
 		if (isMSAA)
 			glDisable(GL_MULTISAMPLE);
 	}
-	void RenderEngine::DebugPixelPick(glm::vec2 r)
-	{
-		m_debug->ClearPixelList();
-
-		int x = r.x * m_lastSize.x;
-		int y = r.y * m_lastSize.y;
-
-		const std::vector<ObjectManagerItem*>& objs = m_objects->GetItemDataList();
-		glm::ivec2 maxRTSize = m_lastSize;
-		for (int i = 0; i < objs.size(); i++) {
-			if (objs[i]->RT != nullptr) {
-				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
-				if (rtSize.x > maxRTSize.x)
-					maxRTSize.x = rtSize.x;
-				if (rtSize.y > maxRTSize.y)
-					maxRTSize.y = rtSize.y;
-			}
-		}
-
-		uint8_t* mainPixelData = new uint8_t[maxRTSize.x * maxRTSize.y * 4];
-
-		std::unordered_map<GLuint, glm::vec4> pixelColors;
-
-		// window pixel color
-		glBindTexture(GL_TEXTURE_2D, m_rtColor);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		uint8_t* pxData = &mainPixelData[(x + y * m_lastSize.x) * 4];
-		pixelColors[m_rtColor] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
-
-		// rt pixel colors
-		for (int i = 0; i < objs.size(); i++) {
-			if (objs[i]->RT != nullptr) {
-				GLuint tex = objs[i]->Texture;
-				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
-
-				glBindTexture(GL_TEXTURE_2D, tex);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				pxData = &mainPixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
-
-				pixelColors[tex] = glm::vec4(pxData[0] / 255.0f, pxData[1] / 255.0f, pxData[2] / 255.0f, pxData[3] / 255.0f);
-			}
-		}
-
-		// render in debug mode
-		Render(true);
-
-		// window item id
-
-		glBindTexture(GL_TEXTURE_2D, m_rtColor);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		pxData = &mainPixelData[(x + m_lastSize.x * y) * 4];
-		int id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
-		if (id != 0 && !m_isGSUsedSet(m_rtColor)) {
-			std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
-
-			PixelInformation dpxInfo;
-			dpxInfo.Color = pixelColors[m_rtColor];
-			dpxInfo.RenderTexture = "Window";
-			dpxInfo.Fetched = false;
-			dpxInfo.Object = itemData.second;
-			dpxInfo.Owner = itemData.first;
-			dpxInfo.Coordinate = glm::ivec2(x, y);
-			dpxInfo.RelativeCoordinate = r;
-
-			pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
-			for (int j = 0; j < passData->RTCount; j++) {
-				if (passData->RenderTextures[j] == m_rtColor) {
-					dpxInfo.RenderTextureIndex = j;
-					break;
-				}
-			}
-
-			m_debug->AddPixel(dpxInfo);
-		}
-
-		// rt item id
-		for (int i = 0; i < objs.size(); i++) {
-			if (objs[i]->RT != nullptr) {
-				GLuint tex = objs[i]->Texture;
-				glm::ivec2 rtSize = m_objects->GetRenderTextureSize(objs[i]->RT->Name);
-
-				glBindTexture(GL_TEXTURE_2D, tex);
-				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				pxData = &mainPixelData[((int)(r.x * rtSize.x) + (int)(r.y * rtSize.y) * rtSize.x) * 4];
-				id = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
-				if (id != 0 && !m_isGSUsedSet(tex)) {
-					std::pair<PipelineItem*, PipelineItem*> itemData = GetPipelineItemByID(id);
-
-					PixelInformation dpxInfo;
-					dpxInfo.Color = pixelColors[tex];
-					dpxInfo.RenderTexture = objs[i]->RT->Name;
-					dpxInfo.Fetched = false;
-					dpxInfo.Object = itemData.second;
-					dpxInfo.Owner = itemData.first;
-					dpxInfo.Coordinate = glm::ivec2(r.x * rtSize.x, r.y * rtSize.y);
-					dpxInfo.RelativeCoordinate = glm::vec2(r.x, r.y);
-
-					pipe::ShaderPass* passData = (pipe::ShaderPass*)itemData.first->Data;
-					for (int j = 0; j < passData->RTCount; j++) {
-						if (passData->RenderTextures[j] == tex) {
-							dpxInfo.RenderTextureIndex = j;
-							break;
-						}
-					}
-
-					m_debug->AddPixel(dpxInfo);
-				}
-			}
-		}
-
-		// return the actual RT that was shown before
-		Render();
-
-		delete[] mainPixelData;
-	}
-	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
+	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r, int group)
 	{
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
-		std::string vsCode = "";
 
-		int x = r.x * m_lastSize.x;
-		int y = r.y * m_lastSize.y;
+		int vertexPassID = 0;
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == vertexData)
+				vertexPassID = i;
 
-		// vertex shader
-		int lineBias = 0;
-		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) { // GLSL
-			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
-			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
-			m_applyMacros(vsCode, vertexPass);
-		} else // HLSL / VK
-			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
-
-		// modify user's vertex shader
-		// TODO: the following code is hacky (for example, it wont work if you have a commented out main())
-		// TODO: wait for ShaderParser
-		size_t mainPos = vsCode.find("main(");
-		while (mainPos != std::string::npos && !isspace(vsCode[mainPos - 1]))
-			mainPos = vsCode.find("main(", mainPos + 1);
-		if (mainPos != std::string::npos && isspace(vsCode[mainPos - 1])) {
-			size_t bracketPos = vsCode.find('{', mainPos);
-			if (bracketPos != std::string::npos)
-				vsCode.insert(bracketPos + 1, "\n_sed_dbg_vertexID = gl_VertexID;\n");
-		}
-
-		size_t versionPos = vsCode.find("#version");
-		if (versionPos != std::string::npos) {
-			size_t newLinePos = vsCode.find('\n', versionPos);
-			if (newLinePos != std::string::npos)
-				vsCode.insert(newLinePos, "\nflat out int _sed_dbg_vertexID;\n");
-		}
-
-		GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsCode.c_str());
-
-		GLuint customProgram = glCreateProgram();
-		glAttachShader(customProgram, vs);
-		glAttachShader(customProgram, m_debugVertexPickShader);
-		glLinkProgram(customProgram);
+		// _sed_dbg_pixel_color
+		GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
 
 		// update info
-		vertexPass->Variables.UpdateUniformInfo(customProgram);
+		vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
 
 		// get resources
 		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
@@ -738,15 +608,11 @@ namespace ed {
 			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
 		}
 
-		// update the size accordingly
-		x = rtSize.x * r.x;
-		y = rtSize.y * r.y;
-
 		// update viewport value
 		glViewport(0, 0, rtSize.x, rtSize.y);
 
 		// bind shaders
-		glUseProgram(customProgram);
+		glUseProgram(m_debugShaders[vertexPassID]);
 
 		// bind shader resource views
 		for (int j = 0; j < srvs.size(); j++) {
@@ -761,17 +627,22 @@ namespace ed {
 			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
-				vertexPass->Variables.UpdateTexture(customProgram, j);
+			if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+				vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
 		}
 		for (int j = 0; j < ubos.size(); j++)
 			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
 
 		// bind default states for each shader pass
-		DefaultState::Bind();
 		SystemVariableManager& systemVM = SystemVariableManager::Instance();
 
+		// data
+		int x = r.x * rtSize.x;
+		int y = r.y * rtSize.y;
+		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
+		
 		// render pipeline items
+		DefaultState::Bind();
 		for (int j = 0; j < vertexPass->Items.size(); j++) {
 			PipelineItem* item = vertexPass->Items[j];
 
@@ -799,11 +670,16 @@ namespace ed {
 				// bind variables
 				vertexPass->Variables.Bind(item);
 
+				int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[geoData->Topology];
+				int vertexStart = (group >= 0) * group;
+				int maxVertexCount = (group < 0 ? eng::GeometryFactory::VertexCount[geoData->Type] : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
+				int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
+				int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[geoData->Topology];
+
+				maxVertexCount = std::min<int>(maxVertexCount, eng::GeometryFactory::VertexCount[geoData->Type]);
+
 				glBindVertexArray(geoData->VAO);
-				if (geoData->Instanced)
-					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
-				else
-					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+				DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, geoData->Topology, sedVarLoc, geoData->Instanced, geoData->InstanceCount);
 			} else if (item->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
@@ -812,8 +688,20 @@ namespace ed {
 
 				// bind variables
 				vertexPass->Variables.Bind(item);
+				
+				int vbase = 0;
+				for (const auto& mesh : objData->Data->Meshes) {
+					int vertexStart = (group >= 0) * group;
+					int maxVertexCount = (group < 0 ? mesh.Indices.size() : (vertexStart + DEBUG_PRIMITIVE_GROUP * 3));
+					int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * 3;
 
-				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+					maxVertexCount = std::min<int>(maxVertexCount, mesh.Indices.size());
+
+					glBindVertexArray(mesh.VAO);
+					DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, 0, GL_TRIANGLES, objData->Instanced, objData->InstanceCount, true, vbase);
+				
+					vbase += mesh.Indices.size();
+				}
 			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
 				ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
@@ -824,7 +712,7 @@ namespace ed {
 					stride += ShaderVariable::GetSize(f, true);
 
 				if (stride != 0) {
-					int vertCount = bobj->Size / stride;
+					int actualMaxVertexCount = bobj->Size / stride;
 
 					systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
 					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
@@ -832,13 +720,30 @@ namespace ed {
 					// bind variables
 					vertexPass->Variables.Bind(item);
 
+					int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[vbData->Topology];
+					int vertexStart = (group >= 0) * group;
+					int maxVertexCount = (group < 0 ? actualMaxVertexCount : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
+					int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
+					int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[vbData->Topology];
+
+					maxVertexCount = std::min<int>(maxVertexCount, actualMaxVertexCount);
+
 					glBindVertexArray(vbData->VAO);
-					glDrawArrays(vbData->Topology, 0, vertCount);
+					DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, vbData->Topology, sedVarLoc, false, 0);
 				}
 			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
-				// culling and front face (only thing we care about when picking a vertex, i think)
+				// depth clamp
+				if (state->DepthClamp)
+					glEnable(GL_DEPTH_CLAMP);
+				else
+					glDisable(GL_DEPTH_CLAMP);
+
+				// fill mode
+				glPolygonMode(GL_FRONT_AND_BACK, state->PolygonMode);
+
+				// culling and front face
 				if (state->CullFace)
 					glEnable(GL_CULL_FACE);
 				else
@@ -855,76 +760,41 @@ namespace ed {
 		}
 
 		// window pixel color
-		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
-		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
-		int vertexID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
+		int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+		
+		// return old info
+		vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
 		delete[] mainPixelData;
 
-		// return old info
-		for (int i = 0; i < m_items.size(); i++) {
-			PipelineItem* it = m_items[i];
-			if (it == vertexData) {
-				vertexPass->Variables.UpdateUniformInfo(m_shaders[i]);
-				break;
-			}
-		}
-
-		// return the actual RT that was shown before
-		Render();
-
-		glDeleteShader(vs);
-		glDeleteProgram(customProgram);
-
-		return vertexID;
+		return vertexGroup;
 	}
-	int RenderEngine::DebugInstancePick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r)
+	int RenderEngine::DebugInstancePick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r, int group)
 	{
+		if (vertexItem->Type == PipelineItem::ItemType::Geometry) {
+			pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(vertexItem->Data);
+			if (!geoData->Instanced)
+				return 0;
+		} else if (vertexItem->Type == PipelineItem::ItemType::Model) {
+			pipe::Model* objData = reinterpret_cast<pipe::Model*>(vertexItem->Data);
+			if (!objData->Instanced)
+				return 0;
+		} else
+			return 0;
+
+		// TODO: groups
+
 		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
-		std::string vsCode = "";
 
-		int x = r.x * m_lastSize.x;
-		int y = r.y * m_lastSize.y;
+		int vertexPassID = 0;
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == vertexData)
+				vertexPassID = i;
 
-		// vertex shader
-		int lineBias = 0;
-		if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath) == ShaderLanguage::GLSL) { // GLSL
-			vsCode = m_project->LoadProjectFile(vertexPass->VSPath);
-			m_includeCheck(vsCode, std::vector<std::string>(), lineBias);
-			m_applyMacros(vsCode, vertexPass);
-		} else // HLSL / VK
-			vsCode = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->VSPath), m_project->GetProjectPath(std::string(vertexPass->VSPath)), 0, vertexPass->VSEntry, vertexPass->Macros, vertexPass->GSUsed, m_msgs, m_project);
-
-		// modify user's vertex shader
-		// TODO: the following code is hacky (for example, it wont work if you have a commented out main())
-		// TODO: wait for ShaderParser
-		size_t mainPos = vsCode.find("main(");
-		while (mainPos != std::string::npos && !isspace(vsCode[mainPos - 1]))
-			mainPos = vsCode.find("main(", mainPos + 1);
-		if (mainPos != std::string::npos && isspace(vsCode[mainPos - 1])) {
-			size_t bracketPos = vsCode.find('{', mainPos);
-			if (bracketPos != std::string::npos)
-				vsCode.insert(bracketPos + 1, "\n_sed_dbg_instanceID = gl_InstanceID;\n");
-		}
-
-		size_t versionPos = vsCode.find("#version");
-		if (versionPos != std::string::npos) {
-			size_t newLinePos = vsCode.find('\n', versionPos);
-			if (newLinePos != std::string::npos)
-				vsCode.insert(newLinePos, "\nflat out int _sed_dbg_instanceID;\n");
-		}
-
-		GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsCode.c_str());
-
-		GLuint customProgram = glCreateProgram();
-		glAttachShader(customProgram, vs);
-		glAttachShader(customProgram, m_debugInstancePickShader);
-		glLinkProgram(customProgram);
+		// _sed_dbg_pixel_color
+		GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
 
 		// update info
-		vertexPass->Variables.UpdateUniformInfo(customProgram);
+		vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
 
 		// get resources
 		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
@@ -959,15 +829,11 @@ namespace ed {
 			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
 		}
 
-		// update px pos
-		x = rtSize.x * r.x;
-		y = rtSize.y * r.y;
-
 		// update viewport value
 		glViewport(0, 0, rtSize.x, rtSize.y);
 
 		// bind shaders
-		glUseProgram(customProgram);
+		glUseProgram(m_debugShaders[vertexPassID]);
 
 		// bind shader resource views
 		for (int j = 0; j < srvs.size(); j++) {
@@ -982,17 +848,22 @@ namespace ed {
 			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
-			if (ShaderTranscompiler::GetShaderTypeFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
-				vertexPass->Variables.UpdateTexture(customProgram, j);
+			if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+				vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
 		}
 		for (int j = 0; j < ubos.size(); j++)
 			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
 
 		// bind default states for each shader pass
-		DefaultState::Bind();
 		SystemVariableManager& systemVM = SystemVariableManager::Instance();
 
+		// data
+		int x = r.x * rtSize.x;
+		int y = r.y * rtSize.y;
+		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
+
 		// render pipeline items
+		DefaultState::Bind();
 		for (int j = 0; j < vertexPass->Items.size(); j++) {
 			PipelineItem* item = vertexPass->Items[j];
 
@@ -1020,11 +891,15 @@ namespace ed {
 				// bind variables
 				vertexPass->Variables.Bind(item);
 
+				int vertexCount = eng::GeometryFactory::VertexCount[geoData->Type];
+				int iStart = (group >= 0) * group;
+				int iCount = group < 0 ? geoData->InstanceCount : (geoData->InstanceCount + DEBUG_INSTANCE_GROUP);
+				int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
+				
+				iCount = std::min<int>(iCount, geoData->InstanceCount);
+
 				glBindVertexArray(geoData->VAO);
-				if (geoData->Instanced)
-					glDrawArraysInstanced(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type], geoData->InstanceCount);
-				else
-					glDrawArrays(geoData->Topology, 0, eng::GeometryFactory::VertexCount[geoData->Type]);
+				DebugDrawInstanced(iStart, iStep, iCount, vertexCount, geoData->Topology, sedVarLoc);
 			} else if (item->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
@@ -1034,7 +909,17 @@ namespace ed {
 				// bind variables
 				vertexPass->Variables.Bind(item);
 
-				objData->Data->Draw(objData->Instanced, objData->InstanceCount);
+				for (const auto& mesh : objData->Data->Meshes) {
+					int vertexCount = mesh.Indices.size();
+					int iStart = (group >= 0) * group;
+					int iCount = group < 0 ? objData->InstanceCount : (objData->InstanceCount + DEBUG_INSTANCE_GROUP);
+					int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
+				
+					iCount = std::min<int>(iCount, objData->InstanceCount);
+
+					glBindVertexArray(mesh.VAO);
+					DebugDrawInstanced(iStart, iStep, iCount, vertexCount, GL_TRIANGLES, sedVarLoc);
+				}
 			} else if (item->Type == PipelineItem::ItemType::RenderState) {
 				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
@@ -1055,30 +940,13 @@ namespace ed {
 		}
 
 		// window pixel color
-		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
-		glBindTexture(GL_TEXTURE_2D, vertexPass->RenderTextures[0]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainPixelData);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		uint8_t* pxData = &mainPixelData[(x + y * (int)rtSize.x) * 4];
-		int instanceID = (pxData[0] << 0) | (pxData[1] << 8) | (pxData[2] << 16);
-		delete[] mainPixelData;
+		int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
 
 		// return old info
-		for (int i = 0; i < m_items.size(); i++) {
-			PipelineItem* it = m_items[i];
-			if (it == vertexData) {
-				vertexPass->Variables.UpdateUniformInfo(m_shaders[i]);
-				break;
-			}
-		}
+		vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
+		delete[] mainPixelData;
 
-		// return the actual RT that was shown before
-		Render();
-
-		glDeleteShader(vs);
-		glDeleteProgram(customProgram);
-
-		return instanceID;
+		return vertexGroup;
 	}
 	void RenderEngine::Pause(bool pause)
 	{
@@ -1089,6 +957,18 @@ namespace ed {
 		else
 			SystemVariableManager::Instance().GetTimeClock().Resume();
 
+		auto& itemList = m_pipeline->GetList();
+		for (int i = 0; i < itemList.size(); i++) {
+			if (itemList[i]->Type == PipelineItem::ItemType::AudioPass) {
+				pipe::AudioPass* pass = (pipe::AudioPass*)itemList[i]->Data;
+
+				if (m_paused)
+					pass->Stream.pause();
+				else
+					pass->Stream.play();
+			}
+		}
+
 		m_debug->ClearPixelList();
 	}
 	void RenderEngine::Recompile(const char* name)
@@ -1097,8 +977,6 @@ namespace ed {
 
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
-
-		GLchar cMsg[1024] = { 0 };
 
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
@@ -1117,42 +995,39 @@ namespace ed {
 								vsEntry = shader->VSEntry,
 								psEntry = shader->PSEntry;
 					int lineBias = 0;
+					ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->PSPath);
+					ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath);
+					ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
 
 					// pixel shader
-					m_msgs->CurrentItemType = 1;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL) { // GLSL
+					bool psCompiled = ShaderCompiler::CompileToSPIRV(shader->PSSPV, psLang, shader->PSPath, ShaderStage::Pixel, psEntry, shader->Macros, m_msgs, m_project);
+					if (psLang == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(shader->PSPath);
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, shader);
 					} else { // HLSL / VK
-						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath), m_project->GetProjectPath(std::string(shader->PSPath)), 1, shader->PSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
+						psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->GSUsed, m_msgs);
 						psEntry = "main";
 					}
 
 					shader->Variables.UpdateTextureList(psContent);
 					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
-
-					if (!psCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 1, cMsg, lineBias));
+					psCompiled &= gl::CheckShaderCompilationStatus(ps);
 
 					// vertex shader
-					m_msgs->CurrentItemType = 0;
 					lineBias = 0;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL) { // GLSL
+					bool vsCompiled = ShaderCompiler::CompileToSPIRV(shader->VSSPV, vsLang, shader->VSPath, ShaderStage::Vertex, vsEntry, shader->Macros, m_msgs, m_project);
+					if (vsLang == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(shader->VSPath);
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, shader);
 					} else { // HLSL / VK
-						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath), m_project->GetProjectPath(std::string(shader->VSPath)), 0, shader->VSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
+						vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->GSUsed, m_msgs);
 						vsEntry = "main";
 					}
 
 					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-					if (!vsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 0, cMsg, lineBias));
+					vsCompiled &= gl::CheckShaderCompilationStatus(vs);
 
 					// geometry shader
 					bool gsCompiled = true;
@@ -1161,14 +1036,14 @@ namespace ed {
 						std::string gsContent = "",
 									gsEntry = shader->GSEntry;
 
-						m_msgs->CurrentItemType = 2;
 						lineBias = 0;
-						if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL) { // GLSL
+						gsCompiled = ShaderCompiler::CompileToSPIRV(shader->GSSPV, gsLang, shader->GSPath, ShaderStage::Geometry, gsEntry, shader->Macros, m_msgs, m_project);
+						if (ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath) == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
 						} else { // HLSL / VK
-							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath), m_project->GetProjectPath(std::string(shader->GSPath)), 2, shader->GSEntry, shader->Macros, shader->GSUsed, m_msgs, m_project);
+							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
 							gsEntry = "main";
 
 							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
@@ -1176,10 +1051,7 @@ namespace ed {
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
-
-						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(name, 2, cMsg, lineBias));
+						gsCompiled &= gl::CheckShaderCompilationStatus(gs);
 
 						if (gsContent.empty())
 							gsCompiled = false;
@@ -1219,24 +1091,22 @@ namespace ed {
 
 					std::string content = "", entry = shader->Entry;
 					int lineBias = 0;
+					ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(shader->Path);
 
 					// compute shader
-					m_msgs->CurrentItemType = 3;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL) { // GLSL
+					bool compiled = ShaderCompiler::CompileToSPIRV(shader->SPV, lang, shader->Path, ShaderStage::Compute, entry, shader->Macros, m_msgs, m_project);
+					if (lang == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(shader->Path);
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, shader);
 					} else { // HLSL / VK
-						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path), m_project->GetProjectPath(std::string(shader->Path)), 3, entry, shader->Macros, false, m_msgs, m_project);
+						content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, m_msgs);
 						entry = "main";
 					}
 
 					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
 					GLuint cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
-					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
-
-					if (!compiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(name, 3, cMsg, lineBias));
+					compiled &= gl::CheckShaderCompilationStatus(cs);
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
@@ -1268,11 +1138,10 @@ namespace ed {
 					std::string content = m_project->LoadProjectFile(shader->Path);
 
 					// compute shader
-					m_msgs->CurrentItemType = 1;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
+					if (ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, shader);
 
-					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::HLSL);
+					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::HLSL);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
 				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
@@ -1322,13 +1191,9 @@ namespace ed {
 
 					// pixel shader
 					if (pssrc.size() > 0) {
-						m_msgs->CurrentItemType = 1;
 						shader->Variables.UpdateTextureList(pssrc);
 						GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, pssrc.c_str());
 						psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
-
-						if (!psCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->PSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(name, 1, cMsg));
 
 						glDeleteShader(m_shaderSources[i].PS);
 						m_shaderSources[i].PS = ps;
@@ -1336,12 +1201,8 @@ namespace ed {
 
 					// vertex shader
 					if (vssrc.size() > 0) {
-						m_msgs->CurrentItemType = 0;
 						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vssrc.c_str());
 						vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-						if (!vsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(name, 0, cMsg));
 
 						glDeleteShader(m_shaderSources[i].VS);
 						m_shaderSources[i].VS = vs;
@@ -1355,11 +1216,8 @@ namespace ed {
 							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
 							gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
 
-							if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->GSPath) == ShaderLanguage::GLSL)
-								m_msgs->Add(gl::ParseMessages(name, 2, cMsg));
-
 							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
-							if (ShaderTranscompiler::GetShaderTypeFromExtension(shader->VSPath) == ShaderLanguage::HLSL)
+							if (ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath) == ShaderLanguage::HLSL)
 								m_msgs->Add(MessageStack::Type::Warning, name, "HLSL geometry shaders are currently not supported by glslang");
 
 							m_shaderSources[i].GS = gs;
@@ -1393,12 +1251,8 @@ namespace ed {
 
 					// compute shader
 					if (vssrc.size() > 0) {
-						m_msgs->CurrentItemType = 3;
 						cs = gl::CompileShader(GL_COMPUTE_SHADER, vssrc.c_str());
 						compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
-
-						if (!compiled && ShaderTranscompiler::GetShaderTypeFromExtension(shader->Path) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(name, 3, cMsg));
 					}
 
 					if (m_shaders[i] != 0)
@@ -1500,11 +1354,11 @@ namespace ed {
 			float plMat[16];
 			pldata->Owner->GetPipelineItemWorldMatrix(item->Name, plMat);
 			world = glm::make_mat4(plMat);
-		} else if (item->Type == PipelineItem::ItemType::Model) {
+		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
 
 			world = glm::translate(glm::mat4(1), obj->Position) * glm::scale(glm::mat4(1.0f), obj->Scale) * glm::yawPitchRoll(obj->Rotation.y, obj->Rotation.x, obj->Rotation.z);
-		} 
+		}
 
 		glm::mat4 invWorld = glm::inverse(world);
 
@@ -1562,33 +1416,40 @@ namespace ed {
 
 			float triDist = std::numeric_limits<float>::infinity();
 			if (ray::IntersectBox(vec3Origin, vec3Dir, minb, maxb, triDist)) {
-				if (triDist < m_pickDist) {
-					bool donetris = false;
-					for (auto& mesh : obj->Data->Meshes) {
-						for (int i = 0; i + 2 < mesh.Vertices.size(); i += 3) {
-							glm::vec3 v0 = mesh.Vertices[i + 0].Position;
-							glm::vec3 v1 = mesh.Vertices[i + 1].Position;
-							glm::vec3 v2 = mesh.Vertices[i + 2].Position;
+				bool donetris = false;
+				for (auto& mesh : obj->Data->Meshes) {
+					for (int i = 0; i + 2 < mesh.Vertices.size(); i += 3) {
+						glm::vec3 v0 = mesh.Vertices[i + 0].Position;
+						glm::vec3 v1 = mesh.Vertices[i + 1].Position;
+						glm::vec3 v2 = mesh.Vertices[i + 2].Position;
 
-							if (ray::IntersectTriangle(vec3Origin, vec3Dir, v0, v1, v2, triDist))
-								if (triDist < myDist) {
-									myDist = triDist;
+						if (ray::IntersectTriangle(vec3Origin, vec3Dir, v0, v1, v2, triDist))
+							if (triDist < myDist) {
+								myDist = triDist;
 
-									if (triDist < m_pickDist) {
-										donetris = true;
-										break;
-									}
+								if (triDist < m_pickDist) {
+									donetris = true;
+									break;
 								}
-						}
-
-						if (donetris)
-							break;
+							}
 					}
-				} else
-					myDist = triDist;
+
+					if (donetris)
+						break;
+				}
 			}
 		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
-			// TODO: vertexbuffer picking
+			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
+
+			glm::vec3 b1(0.0f);
+			glm::vec3 b2(0.0f);
+			gl::GetVertexBufferBounds(m_objects, obj, b1, b2);
+
+			// TODO: use ray-triangle intersection for more precision
+
+			float distHit;
+			if (ray::IntersectBox(vec3Origin, vec3Dir, b1, b2, distHit))
+				myDist = distHit;
 		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
 
@@ -1629,7 +1490,7 @@ namespace ed {
 			}
 		}
 	}
-	std::pair<PipelineItem*, PipelineItem*> RenderEngine::GetPipelineItemByID(int id)
+	std::pair<PipelineItem*, PipelineItem*> RenderEngine::GetPipelineItemByDebugID(int id)
 	{
 		int debugID = DEBUG_ID_START;
 		for (int i = 0; i < m_items.size(); i++) {
@@ -1672,6 +1533,7 @@ namespace ed {
 		m_items.clear();
 		m_shaders.clear();
 		m_shaderSources.clear();
+		m_uboMax.clear();
 		m_fbosNeedUpdate = true;
 
 		// clear textures
@@ -1695,8 +1557,6 @@ namespace ed {
 			else
 				return;
 		}
-
-		GLchar cMsg[1024];
 
 		// check if some item was added
 		for (int i = 0; i < items.size(); i++) {
@@ -1737,69 +1597,64 @@ namespace ed {
 
 					m_msgs->CurrentItem = items[i]->Name;
 
+					int lineBias = 0;
 					std::string psContent = "", vsContent = "",
 								vsEntry = data->VSEntry,
 								psEntry = data->PSEntry;
-					int lineBias = 0;
-
+					ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->VSPath);
+					ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath);
+					
 					// vertex shader
-					m_msgs->CurrentItemType = 0;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath) == ShaderLanguage::GLSL) { // GLSL
+					bool vsCompiled = ShaderCompiler::CompileToSPIRV(data->VSSPV, vsLang, data->VSPath, ShaderStage::Vertex, vsEntry, data->Macros, m_msgs, m_project);
+					if (vsLang == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(data->VSPath);
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, data);
 					} else { // HLSL / VK
-						vsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath), m_project->GetProjectPath(std::string(data->VSPath)), 0, data->VSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
+						vsContent = ShaderCompiler::ConvertToGLSL(data->VSSPV, vsLang, ShaderStage::Vertex, data->GSUsed, m_msgs);
 						vsEntry = "main";
 					}
 
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-					bool vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
-
-					if (!vsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->VSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 0, cMsg, lineBias));
-
+					vsCompiled &= gl::CheckShaderCompilationStatus(vs);
+					
 					// pixel shader
-					m_msgs->CurrentItemType = 1;
 					lineBias = 0;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL) { // GLSL
+					bool psCompiled = ShaderCompiler::CompileToSPIRV(data->PSSPV, psLang, data->PSPath, ShaderStage::Pixel, psEntry, data->Macros, m_msgs, m_project);
+					if (psLang == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(data->PSPath);
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, data);
 					} else { // HLSL / VK
-						psContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath), m_project->GetProjectPath(std::string(data->PSPath)), 1, data->PSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
+						psContent = ShaderCompiler::ConvertToGLSL(data->PSSPV, psLang, ShaderStage::Pixel, data->GSUsed, m_msgs);
 						psEntry = "main";
 					}
 
 					data->Variables.UpdateTextureList(psContent);
 					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-					bool psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
-
-					if (!psCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->PSPath) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 1, cMsg, lineBias));
-
+					psCompiled &= gl::CheckShaderCompilationStatus(ps);
+					
 					// geometry shader
 					lineBias = 0;
 					bool gsCompiled = true;
 					if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
 						std::string gsContent = "", gsEntry = data->GSEntry;
-						m_msgs->CurrentItemType = 2;
-						if (ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL) { // GLSL
+						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath);
+						
+						gsCompiled = ShaderCompiler::CompileToSPIRV(data->GSSPV, gsLang, data->GSPath, ShaderStage::Geometry, gsEntry, data->Macros, m_msgs, m_project);
+						if (gsLang == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(data->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, data);
 						} else { // HLSL
-							gsContent = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath), m_project->GetProjectPath(std::string(data->GSPath)), 2, data->GSEntry, data->Macros, data->GSUsed, m_msgs, m_project);
+							gsContent = ShaderCompiler::ConvertToGLSL(data->GSSPV, gsLang, ShaderStage::Geometry, data->GSUsed, m_msgs);
 							gsEntry = "main";
 
 							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-						gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
-
-						if (!gsCompiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->GSPath) == ShaderLanguage::GLSL)
-							m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 2, cMsg, lineBias));
+						gsCompiled &= gl::CheckShaderCompilationStatus(gs);
 					}
 
 					if (m_shaders[i] != 0)
@@ -1821,8 +1676,9 @@ namespace ed {
 						glLinkProgram(m_shaders[i]);
 
 						m_debugShaders[i] = glCreateProgram();
-						glAttachShader(m_debugShaders[i], m_debugPixelShader);
+						glAttachShader(m_debugShaders[i], m_generalDebugShader);
 						glAttachShader(m_debugShaders[i], vs);
+						if (data->GSUsed) glAttachShader(m_debugShaders[i], gs);
 						glLinkProgram(m_debugShaders[i]);
 					}
 
@@ -1854,23 +1710,21 @@ namespace ed {
 
 					std::string content = "", entry = data->Entry;
 					int lineBias = 0;
+					ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(data->Path);
 
 					// vertex shader
-					m_msgs->CurrentItemType = 3;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL) { // GLSL
+					bool compiled = ShaderCompiler::CompileToSPIRV(data->SPV, lang, data->Path, ShaderStage::Compute, entry, data->Macros, m_msgs, m_project);
+					if (lang == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(data->Path);
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, data);
 					} else { // HLSL / VK
-						content = ShaderTranscompiler::Transcompile(ShaderTranscompiler::GetShaderTypeFromExtension(data->Path), m_project->GetProjectPath(std::string(data->Path)), 3, entry, data->Macros, false, m_msgs, m_project);
+						content = ShaderCompiler::ConvertToGLSL(data->SPV, lang, ShaderStage::Compute, false, m_msgs);
 						entry = "main";
 					}
 
 					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
-					bool compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
-
-					if (!compiled && ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
-						m_msgs->Add(gl::ParseMessages(m_msgs->CurrentItem, 3, cMsg, lineBias));
+					compiled &= gl::CheckShaderCompilationStatus(cs);
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
@@ -1907,10 +1761,9 @@ namespace ed {
 					std::string content = m_project->LoadProjectFile(data->Path);
 
 					// vertex shader
-					m_msgs->CurrentItemType = 1;
-					if (ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::GLSL)
+					if (ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, data);
-					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderTranscompiler::GetShaderTypeFromExtension(data->Path) == ShaderLanguage::HLSL);
+					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::HLSL);
 
 					data->Variables.UpdateUniformInfo(data->Stream.getShader());
 				} else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {

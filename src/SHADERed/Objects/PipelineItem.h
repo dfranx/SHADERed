@@ -70,6 +70,7 @@ namespace ed {
 
 			char Path[MAX_PATH];
 			char Entry[32];
+			std::vector<unsigned int> SPV; // SPIR-V
 
 			GLuint WorkX, WorkY, WorkZ;
 			ShaderVariableContainer Variables;
@@ -116,12 +117,15 @@ namespace ed {
 
 			char VSPath[MAX_PATH];
 			char VSEntry[32];
+			std::vector<unsigned int> VSSPV; // VS SPIR-V
 
 			char PSPath[MAX_PATH];
 			char PSEntry[32];
+			std::vector<unsigned int> PSSPV; // PS SPIR-V
 
 			char GSPath[MAX_PATH];
 			char GSEntry[32];
+			std::vector<unsigned int> GSSPV; // GS SPIR-V
 			bool GSUsed;
 
 			ShaderVariableContainer Variables;

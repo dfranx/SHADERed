@@ -13,7 +13,6 @@ namespace ed {
 		{
 			m_cubePrev.Init(256, 192);
 			m_curHoveredItem = -1;
-			m_lastZoomSize = glm::vec2(0, 0);
 			m_initRowSize = false;
 		}
 		~ObjectPreviewUI() { }
@@ -60,8 +59,9 @@ namespace ed {
 
 		// for each item opened
 		int m_curHoveredItem;
-		glm::vec2 m_lastZoomSize;
 		std::vector<Magnifier> m_zoom;
+		std::vector<glm::vec2> m_lastRTSize;
+		std::vector<GLuint> m_zoomColor, m_zoomDepth, m_zoomFBO;
 		void m_renderZoom(int ind, glm::vec2 itemSize);
 	};
 }
