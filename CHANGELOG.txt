@@ -1,3 +1,6 @@
+[v1.3.5]
++ fix HLSL geometry shaders
+
 [v1.3.4]
 + replace ShaderDebugger with SPIRV-VM (introduces significant improvements to the SHADERed's debugger)
 + add pixel outline to debugger's overlay
