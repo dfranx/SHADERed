@@ -133,8 +133,6 @@ You don't have to do anything special to write HLSL shaders. They even work on L
 shader file ends with the specific extension: `.hlsl`.
 The extensions can be changed in the settings
 
-**HLSL geometry shaders currently don't work - [issue link](https://github.com/KhronosGroup/glslang/issues/1660)**
-
 # Build your own theme
 Create an `.ini` file. Under `[general]` write the name of your theme and the version. Also, there is an
 option to set the text editor theme. Set `editor` variable to "Dark"/"Light" to use built-in code editor

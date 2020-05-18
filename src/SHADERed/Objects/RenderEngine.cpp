@@ -1045,9 +1045,6 @@ namespace ed {
 						} else { // HLSL / VK
 							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
 							gsEntry = "main";
-
-							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
-							m_msgs->Add(MessageStack::Type::Warning, name, "HLSL geometry shaders are currently not supported by glslang");
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
@@ -1215,10 +1212,6 @@ namespace ed {
 						if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
 							gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
-
-							// TODO: delete this when glslang fixes this https://github.com/KhronosGroup/glslang/issues/1660
-							if (ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath) == ShaderLanguage::HLSL)
-								m_msgs->Add(MessageStack::Type::Warning, name, "HLSL geometry shaders are currently not supported by glslang");
 
 							m_shaderSources[i].GS = gs;
 						}
@@ -1649,8 +1642,6 @@ namespace ed {
 						} else { // HLSL
 							gsContent = ShaderCompiler::ConvertToGLSL(data->GSSPV, gsLang, ShaderStage::Geometry, data->GSUsed, m_msgs);
 							gsEntry = "main";
-
-							m_msgs->Add(MessageStack::Type::Warning, m_msgs->CurrentItem, "Geometry shaders are currently not supported by glslang");
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
