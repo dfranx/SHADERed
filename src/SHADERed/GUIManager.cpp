@@ -2384,8 +2384,8 @@ namespace ed {
 
 		if (m_selectedTemplate.size() == 0) {
 			if (m_templates.size() != 0) {
-				Logger::Get().Log("Default template set to " + m_selectedTemplate);
 				m_selectedTemplate = m_templates[0];
+				Logger::Get().Log("Default template set to " + m_selectedTemplate);
 			} else {
 				m_selectedTemplate = "?empty";
 				Logger::Get().Log("No templates found", true);
