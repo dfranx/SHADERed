@@ -184,8 +184,6 @@ namespace ed {
 		m_w = w;
 		m_h = h;
 
-		Logger::Get().Log("Building the zoom area rectangle...");
-
 		// lines
 		std::vector<glm::vec3> verts = {
 			{ glm::vec3(0, 0, -1) },
