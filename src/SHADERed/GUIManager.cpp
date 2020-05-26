@@ -233,7 +233,7 @@ namespace ed {
 				}
 			}
 		} else if (e.type == SDL_MOUSEMOTION)
-			m_perfModeClock.restart();
+			m_perfModeClock.Restart();
 		else if (e.type == SDL_DROPFILE) {
 
 			char* droppedFile = e.drop.file;
@@ -390,7 +390,7 @@ namespace ed {
 			m_renderToolbar();
 
 		// create a fullscreen imgui panel that will host a dockspace
-		bool showMenu = !m_minimalMode && !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.getElapsedTime().asSeconds() > 2.5f);
+		bool showMenu = !m_minimalMode && !(m_performanceMode && settings.Preview.HideMenuInPerformanceMode && m_perfModeClock.GetElapsedTime() > 2.5f);
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | (ImGuiWindowFlags_MenuBar * showMenu) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + actuallyToolbar * Settings::Instance().CalculateSize(TOOLBAR_HEIGHT)));
@@ -1593,14 +1593,14 @@ namespace ed {
 			ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, io.DisplaySize.y - DISTANCE);
 			ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f);
 			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-			ImGui::SetNextWindowBgAlpha(1.0f - glm::clamp(m_updateNotifyClock.getElapsedTime().asSeconds() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
+			ImGui::SetNextWindowBgAlpha(1.0f - glm::clamp(m_updateNotifyClock.GetElapsedTime() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
 			ImVec4 textClr = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 			ImVec4 windowClr = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, textClr);
 			ImGui::PushStyleColor(ImGuiCol_Text, windowClr);
 			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
 				if (ImGui::IsWindowHovered())
-					m_updateNotifyClock.restart();
+					m_updateNotifyClock.Restart();
 
 				ImGui::Text("A new version of SHADERed is available!");
 				ImGui::SameLine();
@@ -1612,7 +1612,7 @@ namespace ed {
 			ImGui::PopStyleColor(2);
 			ImGui::End();
 
-			if (m_updateNotifyClock.getElapsedTime().asSeconds() > 7.0f)
+			if (m_updateNotifyClock.GetElapsedTime() > 7.0f)
 				m_isUpdateNotificationOpened = false;
 		}
 
@@ -1670,7 +1670,7 @@ namespace ed {
 			if (Settings::Instance().General.CheckUpdates) {
 				m_updateCheck.CheckForUpdates([&]() {
 					m_isUpdateNotificationOpened = true;
-					m_updateNotifyClock.restart();
+					m_updateNotifyClock.Restart();
 				});
 			}
 

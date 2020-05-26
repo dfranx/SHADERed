@@ -5,7 +5,6 @@
 
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_video.h>
-#include <SFML/System/Clock.hpp>
 #include <glm/glm.hpp>
 #include <map>
 #include <string>
@@ -114,7 +113,7 @@ namespace ed {
 			m_isIncompatPluginsOpened;
 
 		bool m_isUpdateNotificationOpened;
-		sf::Clock m_updateNotifyClock;
+		eng::Timer m_updateNotifyClock;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
@@ -161,7 +160,7 @@ namespace ed {
 		int m_savePreviewSeqFPS;
 
 		bool m_performanceMode, m_perfModeFake;
-		sf::Clock m_perfModeClock;
+		eng::Timer m_perfModeClock;
 
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;

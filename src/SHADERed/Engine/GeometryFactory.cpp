@@ -1,6 +1,5 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
-#include <SHADERed/Objects/PipelineItem.h>
 
 #include <GL/glew.h>
 #if defined(__APPLE__)
