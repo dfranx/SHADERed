@@ -112,7 +112,7 @@ namespace ed {
 		{
 			GLint ret = 0;
 			glGetProgramiv(shader, GL_LINK_STATUS, &ret);
-			if (!ret)
+			if (!ret && msg)
 				glGetProgramInfoLog(shader, 1024, NULL, msg);
 			return (bool)ret;
 		}
