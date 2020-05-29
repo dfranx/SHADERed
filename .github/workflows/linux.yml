@@ -8,13 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
     - name: Checkout submodules
-      uses: srt32/git-actions@v0.0.3
-      with:
-        args: git submodule update --init --recursive
+      uses: actions/checkout@v2
     - name: Install libs
-      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libassimp-dev libgtk-3-dev
+      run: sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libgtk-3-dev
     - name: cmake
       run: sudo cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++-9 -DCMAKE_C_COMPILER=/usr/bin/gcc-9 .
     - name: make
