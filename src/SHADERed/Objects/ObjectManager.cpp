@@ -417,7 +417,7 @@ namespace ed {
 
 		return true;
 	}
-	bool ObjectManager::CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin* owner)
+	bool ObjectManager::CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin1* owner)
 	{
 		Logger::Get().Log("Creating a plugin object " + name + " of type " + objtype + "...");
 

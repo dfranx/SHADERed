@@ -65,7 +65,7 @@ namespace ed {
 		void m_setupShortcuts();
 		void m_loadEditorShortcuts(TextEditor* editor);
 
-		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin* plugin, ShaderStage stage, const char* itemType, const char* filePath);
+		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin1* plugin, int languageID);
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 
 		// code editor font

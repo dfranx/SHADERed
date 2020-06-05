@@ -14,7 +14,7 @@ namespace ed {
 		void Clear();
 
 		bool AddItem(const char* owner, const char* name, PipelineItem::ItemType type, void* data);
-		bool AddPluginItem(char* owner, const char* name, const char* type, void* data, IPlugin* plugin);
+		bool AddPluginItem(char* owner, const char* name, const char* type, void* data, IPlugin1* plugin);
 		bool AddShaderPass(const char* name, ed::pipe::ShaderPass* data);
 		bool AddComputePass(const char* name, pipe::ComputePass* data);
 		bool AddAudioPass(const char* name, pipe::AudioPass* data);

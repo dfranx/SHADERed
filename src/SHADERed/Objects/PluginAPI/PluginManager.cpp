@@ -22,8 +22,8 @@
 #endif
 
 namespace ed {
-	typedef IPlugin* (*CreatePluginFn)(ImGuiContext* ctx);
-	typedef void (*DestroyPluginFn)(IPlugin* plugin);
+	typedef IPlugin1* (*CreatePluginFn)();
+	typedef void (*DestroyPluginFn)(IPlugin1* plugin);
 	typedef int (*GetPluginAPIVersionFn)();
 	typedef int (*GetPluginVersionFn)();
 	typedef const char* (*GetPluginNameFn)();
@@ -52,13 +52,12 @@ namespace ed {
 			return;
 		}
 
-		ImGuiContext* uiCtx = ImGui::GetCurrentContext();
-
 		std::string pluginExt = "dll";
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 		pluginExt = "so";
 #endif
-
+		
+		const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {
@@ -79,8 +78,9 @@ namespace ed {
 				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)dlsym(procDLL, "GetPluginName");
 #else
 				HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
-
+				
 				if (!procDLL) {
+					DWORD test = GetLastError();
 					ed::Logger::Get().Log("LoadLibraryA(\"" + pdir + "/plugin.dll\") has failed.");
 					continue;
 				}
@@ -111,7 +111,6 @@ namespace ed {
 				if (apiVer != CURRENT_PLUGINAPI_VERSION) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " uses newer/older plugin API version. Please update the plugin or update SHADERed.", true);
 					(*ptrFreeLibrary)(procDLL);
-					const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 					if (std::count(notLoaded.begin(), notLoaded.end(), pname) == 0)
 						m_incompatible.push_back(pname);
 					continue;
@@ -138,15 +137,12 @@ namespace ed {
 				}
 
 				// create the actual plugin
-				IPlugin* plugin = (*fnCreatePlugin)(uiCtx);
+				IPlugin1* plugin = (*fnCreatePlugin)();
 				if (plugin == nullptr) {
 					ed::Logger::Get().Log(pdir + "/plugin." + pluginExt + " CreatePlugin returned nullptr.", true);
 					(*ptrFreeLibrary)(procDLL);
 					continue;
 				}
-
-				// list of loaded plugins
-				std::vector<std::string> notLoaded = Settings::Instance().Plugins.NotLoaded;
 
 				// set up pointers to app functions
 				plugin->ObjectManager = (void*)&data->Objects;
@@ -159,7 +155,7 @@ namespace ed {
 
 				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
 					ObjectManager* objm = (ObjectManager*)objectManager;
-					objm->CreatePluginItem(name, type, data, id, (IPlugin*)owner);
+					objm->CreatePluginItem(name, type, data, id, (IPlugin1*)owner);
 				};
 				plugin->AddCustomPipelineItem = [](void* pipeManager, void* parentPtr, const char* name, const char* type, void* data, void* owner) -> bool {
 					PipelineManager* pipe = (PipelineManager*)pipeManager;
@@ -169,7 +165,7 @@ namespace ed {
 					if (parent != nullptr)
 						parentName = parent->Name;
 
-					return pipe->AddPluginItem(parentName, name, type, data, (IPlugin*)owner);
+					return pipe->AddPluginItem(parentName, name, type, data, (IPlugin1*)owner);
 				};
 				plugin->AddMessage = [](void* messages, plugin::MessageType mtype, const char* group, const char* txt, int ln) {
 					MessageStack* msgs = (MessageStack*)messages;
@@ -434,6 +430,9 @@ namespace ed {
 				m_names.push_back(pname);
 			}
 		}
+
+
+
 	}
 	void PluginManager::Destroy()
 	{
@@ -476,7 +475,7 @@ namespace ed {
 				m_plugins[i]->EndRender();
 	}
 
-	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin* plugin, const char* itemName)
+	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin1* plugin, const char* itemName)
 	{
 		int size = plugin->GetPipelineItemInputLayoutSize(itemName);
 		std::vector<InputLayoutItem> inpLayout;
@@ -494,7 +493,7 @@ namespace ed {
 		return inpLayout;
 	}
 
-	IPlugin* PluginManager::GetPlugin(const std::string& plugin)
+	IPlugin1* PluginManager::GetPlugin(const std::string& plugin)
 	{
 		for (int i = 0; i < m_names.size(); i++)
 			if (m_names[i] == plugin)
@@ -502,7 +501,7 @@ namespace ed {
 
 		return nullptr;
 	}
-	std::string PluginManager::GetPluginName(IPlugin* plugin)
+	std::string PluginManager::GetPluginName(IPlugin1* plugin)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
 			if (m_plugins[i] == plugin)
@@ -550,7 +549,7 @@ namespace ed {
 				m_plugins[i]->ShowContextItems(menu.c_str(), owner, extraData);
 			}
 	}
-	void PluginManager::ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner)
+	void PluginManager::ShowContextItems(IPlugin1* plugin, const std::string& menu, void* owner)
 	{
 		if (plugin->HasContextItems(menu.c_str())) {
 			ImGui::Separator();

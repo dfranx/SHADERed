@@ -33,6 +33,7 @@ namespace ed {
 		case ShaderLanguage::HLSL: return Settings::Instance().General.HLSLExtensions[0];
 		case ShaderLanguage::GLSL: return "glsl";
 		case ShaderLanguage::VulkanGLSL: return Settings::Instance().General.VulkanGLSLExtensions[0];
+		case ShaderLanguage::Plugin: return filename.substr(filename.find_last_of('.') + 1);
 		}
 
 		return "glsl";
@@ -93,7 +94,7 @@ namespace ed {
 
 			m_pluginList.push_back(pname);
 
-			IPlugin* plugin = m_plugins->GetPlugin(pname);
+			IPlugin1* plugin = m_plugins->GetPlugin(pname);
 			if (plugin == nullptr) {
 				pluginTest = false;
 
@@ -1528,7 +1529,7 @@ namespace ed {
 				itemData = new pipe::PluginItemData;
 				pipe::PluginItemData* tData = (pipe::PluginItemData*)itemData;
 
-				IPlugin* plugin = m_plugins->GetPlugin(itemNode.attribute("plugin").as_string());
+				IPlugin1* plugin = m_plugins->GetPlugin(itemNode.attribute("plugin").as_string());
 				std::string otype(itemNode.attribute("itemtype").as_string());
 
 				tData->Items.clear();
@@ -2604,7 +2605,7 @@ namespace ed {
 				// add the item
 				m_pipe->AddAudioPass(name, data);
 			} else if (type == PipelineItem::ItemType::PluginItem) {
-				IPlugin* plugin = m_plugins->GetPlugin(passNode.attribute("plugin").as_string());
+				IPlugin1* plugin = m_plugins->GetPlugin(passNode.attribute("plugin").as_string());
 				std::string otype(passNode.attribute("itemtype").as_string());
 
 				void* pluginData = plugin->ImportPipelineItem(nullptr, name, otype.c_str(), getInnerXML(passNode.child("data")).c_str());
@@ -2983,7 +2984,7 @@ namespace ed {
 			} else if (strcmp(objType, "pluginobject") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
-				IPlugin* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
+				IPlugin1* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
 				std::string otype(objectNode.attribute("objecttype").as_string());
 
 				plugin->ImportObject(objName, otype.c_str(), getInnerXML(objectNode).c_str());

@@ -192,7 +192,7 @@ namespace ed {
 					if (modified) {
 						m_data->Parser.ModifyProject();
 						m_var->Function = FunctionShaderVariable::PluginFunction;
-						m_var->Arguments = (char*)malloc(m_var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(m_var->PluginFuncData.Name, (plugin::VariableType)m_var->GetType()));
+						m_var->Arguments = (char*)malloc(m_var->PluginFuncData.Owner->GetVariableFunctionArgsSize(m_var->PluginFuncData.Name, (plugin::VariableType)m_var->GetType()));
 						m_var->PluginFuncData.Owner->InitVariableFunctionArguments(m_var->Arguments, m_var->PluginFuncData.Name, (plugin::VariableType)m_var->GetType());
 					}
 				}

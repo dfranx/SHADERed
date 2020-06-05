@@ -73,8 +73,10 @@ namespace ed {
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
-	class IPlugin {
+	class IPlugin1 {
 	public:
+		virtual int GetVersion() { return 1; }
+		
 		virtual bool Init() = 0;
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
 		virtual void Update(float delta) = 0;
@@ -111,7 +113,7 @@ namespace ed {
 		virtual const char* GetVariableFunctionName(plugin::VariableType varType, int index) = 0;
 		virtual bool ShowFunctionArgumentEdit(char* fname, char* args, plugin::VariableType vtype) = 0;
 		virtual void UpdateVariableFunctionValue(char* data, char* args, char* fname, plugin::VariableType varType) = 0;
-		virtual int GetVariableFunctionArgSpaceSize(char* fname, plugin::VariableType varType) = 0;
+		virtual int GetVariableFunctionArgsSize(char* fname, plugin::VariableType varType) = 0;
 		virtual void InitVariableFunctionArguments(char* args, char* fname, plugin::VariableType vtype) = 0;
 		virtual const char* ExportFunctionArguments(char* fname, plugin::VariableType vtype, char* args) = 0;
 		virtual void ImportFunctionArguments(char* fname, plugin::VariableType vtype, char* args, const char* argsString) = 0;
@@ -165,6 +167,12 @@ namespace ed {
 		// options
 		virtual bool HasSectionInOptions() = 0;
 		virtual void ShowOptions() = 0;
+
+		// languages
+		virtual int GetCustomLanguageCount() = 0;
+		virtual const char* GetCustomLanguageName(int langID) = 0;
+		virtual const unsigned int* CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, size_t* spv_length, bool* compiled) = 0;
+		virtual const char* ProcessGLSL(int langID, const char* src) = 0;
 
 		// code editor
 		virtual void SaveCodeEditorItem(const char* src, int srcLen, int id) = 0;

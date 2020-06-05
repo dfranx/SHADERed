@@ -66,7 +66,7 @@ namespace ed {
 
 	struct PluginObject {
 		char Type[128];
-		IPlugin* Owner;
+		IPlugin1* Owner;
 
 		GLuint ID;
 		void* Data;
@@ -168,7 +168,7 @@ namespace ed {
 		bool CreateBuffer(const std::string& file);
 		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1, 1));
 		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1));
-		bool CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin* owner);
+		bool CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin1* owner);
 
 		void Update(float delta);
 

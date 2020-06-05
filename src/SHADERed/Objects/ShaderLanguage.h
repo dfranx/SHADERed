@@ -4,6 +4,7 @@ namespace ed {
 	enum class ShaderLanguage {
 		GLSL,
 		HLSL,
-		VulkanGLSL
+		VulkanGLSL,
+		Plugin
 	};
 }

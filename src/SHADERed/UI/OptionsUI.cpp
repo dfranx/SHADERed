@@ -295,7 +295,7 @@ namespace ed {
 		ImGui::PopItemWidth();
 
 		/* HLSL EXTENSIONS: */
-		ImGui::Text("HLSL extensions: ");
+		ImGui::Text("HLSL file extensions: ");
 		ImGui::SameLine();
 		ImGui::Indent(settings->CalculateSize(150));
 		static char hlslExtEntry[64] = { 0 };
@@ -332,7 +332,7 @@ namespace ed {
 		ImGui::Unindent(settings->CalculateSize(150));
 
 		/* VULKAN EXTENSIONS: */
-		ImGui::Text("Vulkan GLSL extensions: ");
+		ImGui::Text("Vulkan GLSL file extensions: ");
 		ImGui::SameLine();
 		ImGui::Indent(settings->CalculateSize(180));
 		static char vkExtEntry[64] = { 0 };
@@ -367,6 +367,51 @@ namespace ed {
 				}
 		}
 		ImGui::Unindent(settings->CalculateSize(180));
+
+		/* PLUGIN SHADER FILE EXTENSIONS: */
+		const auto& plugins = m_data->Plugins.Plugins();
+		for (IPlugin1* pl : plugins) {
+			int langCount = pl->GetCustomLanguageCount();
+			for (int i = 0; i < langCount; i++) {
+				std::string langName = pl->GetCustomLanguageName(i);
+				std::vector<std::string>& extVec = settings->General.PluginShaderExtensions[langName];
+				ImGui::Text("%s file extensions: ", langName.c_str());
+				ImGui::SameLine();
+				ImGui::Indent(settings->CalculateSize(150));
+				static char plExtEntry[64] = { 0 };
+				if (ImGui::ListBoxHeader(("##optg_" + langName + "exts").c_str(), ImVec2(settings->CalculateSize(100), settings->CalculateSize(100)))) {
+					for (auto& ext : extVec)
+						if (ImGui::Selectable(ext.c_str()))
+							strcpy(plExtEntry, ext.c_str());
+					ImGui::ListBoxFooter();
+				}
+				ImGui::PushItemWidth(settings->CalculateSize(100));
+				ImGui::InputText(("##optg_" + langName + "ext_inp").c_str(), plExtEntry, 64);
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button(("ADD##optg_btnadd" + langName + "ext").c_str())) {
+					int exists = -1;
+					std::string hlslExtEntryStr(plExtEntry);
+					for (int i = 0; i < extVec.size(); i++)
+						if (extVec[i] == hlslExtEntryStr) {
+							exists = i;
+							break;
+						}
+					if (exists == -1 && hlslExtEntryStr.size() >= 1)
+						extVec.push_back(hlslExtEntryStr);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("REMOVE##optg_btnremext")) {
+					std::string extEntryStr(plExtEntry);
+					for (int i = 0; i < extVec.size(); i++)
+						if (extVec[i] == extEntryStr) {
+							extVec.erase(extVec.begin() + i);
+							break;
+						}
+				}
+				ImGui::Unindent(settings->CalculateSize(150));
+			}
+		}
 
 		/* WORKSPACE STUFF */
 		ImGui::NewLine();

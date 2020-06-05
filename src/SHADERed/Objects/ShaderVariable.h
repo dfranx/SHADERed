@@ -7,12 +7,12 @@
 namespace ed {
 	struct PluginSystemVariableData {
 		char Name[64];
-		IPlugin* Owner;
+		IPlugin1* Owner;
 	};
 
 	struct PluginFunctionData {
 		char Name[64];
-		IPlugin* Owner;
+		IPlugin1* Owner;
 	};
 
 	// TODO: add these to TUTORIAL.md / wiki

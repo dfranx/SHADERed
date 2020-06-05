@@ -1,4 +1,6 @@
 [v1.3.5]
++ plugins are backward and forward compatible
++ plugins can define their own shader language
 + fix HLSL geometry shaders
 
 [v1.3.4]

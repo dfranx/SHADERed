@@ -146,7 +146,7 @@ namespace ed {
 
 		return false;
 	}
-	bool PipelineManager::AddPluginItem(char* owner, const char* name, const char* type, void* data, IPlugin* plugin)
+	bool PipelineManager::AddPluginItem(char* owner, const char* name, const char* type, void* data, IPlugin1* plugin)
 	{
 		Logger::Get().Log("Adding a plugin pipeline item " + std::string(name) + " to the project");
 

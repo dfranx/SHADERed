@@ -117,6 +117,10 @@ namespace ed {
 		void m_applyMacros(std::string& source, pipe::ComputePass* pass);
 		void m_applyMacros(std::string& source, pipe::AudioPass* pass); // TODO: merge this function with the ones above
 
+		// compile to spirv - plugin edition
+		bool m_pluginCompileToSpirv(std::vector<GLuint>& spv, const std::string& path, const std::string& entry, plugin::ShaderStage stage);
+		const char* m_pluginProcessGLSL(const char* path, const char* src);
+
 		// does a shader pass with GSUsed set also use this texture
 		bool m_isGSUsedSet(GLuint rt);
 

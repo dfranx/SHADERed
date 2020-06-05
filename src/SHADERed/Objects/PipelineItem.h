@@ -52,7 +52,7 @@ namespace ed {
 	namespace pipe {
 		struct PluginItemData {
 			char Type[64];
-			IPlugin* Owner;
+			IPlugin1* Owner;
 			void* PluginData;
 
 			std::vector<PipelineItem*> Items;

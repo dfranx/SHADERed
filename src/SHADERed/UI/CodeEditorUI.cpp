@@ -422,9 +422,6 @@ namespace ed {
 
 		TextEditor* editor = m_editor[m_editor.size() - 1];
 
-		TextEditor::LanguageDefinition defHLSL = TextEditor::LanguageDefinition::HLSL();
-		TextEditor::LanguageDefinition defGLSL = TextEditor::LanguageDefinition::GLSL();
-
 		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		editor->SetTabSize(Settings::Instance().Editor.TabSize);
 		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
@@ -439,8 +436,17 @@ namespace ed {
 		editor->SetPath(shaderPath);
 		m_loadEditorShortcuts(editor);
 
-		bool isHLSL = ShaderCompiler::GetShaderLanguageFromExtension(shaderPath) == ShaderLanguage::HLSL;
-		editor->SetLanguageDefinition(isHLSL ? defHLSL : defGLSL);
+		ShaderLanguage sLang = ShaderCompiler::GetShaderLanguageFromExtension(shaderPath);
+		
+		if (sLang == ShaderLanguage::HLSL)
+			editor->SetLanguageDefinition(TextEditor::LanguageDefinition::HLSL());
+		else if (sLang == ShaderLanguage::Plugin) {
+			int langID = 0;
+			IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, shaderPath, m_data->Plugins.Plugins());
+			editor->SetLanguageDefinition(m_buildLanguageDefinition(plugin, langID));
+		}
+		else
+			editor->SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());
 
 		// apply breakpoints
 		m_applyBreakpoints(editor, shaderPath);
@@ -483,7 +489,7 @@ namespace ed {
 
 		TextEditor* editor = m_editor[m_editor.size() - 1];
 
-		TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, shaderStage, shader->Type, filepath);
+		TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, id);
 
 		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		editor->SetTabSize(Settings::Instance().Editor.TabSize);
@@ -1220,47 +1226,39 @@ namespace ed {
 #endif
 	}
 
-	TextEditor::LanguageDefinition CodeEditorUI::m_buildLanguageDefinition(IPlugin* plugin, ShaderStage stage, const char* itemType, const char* filePath)
+	TextEditor::LanguageDefinition CodeEditorUI::m_buildLanguageDefinition(IPlugin1* plugin, int languageID)
 	{
-		std::function<TextEditor::Identifier(const std::string&)> desc = [](const std::string& str) {
-			TextEditor::Identifier id;
-			id.mDeclaration = str;
-			return id;
-		};
-
-		int sid = (int)stage; // TODO: custom plugin stages!!!
-
 		TextEditor::LanguageDefinition langDef;
 
-		int keywordCount = plugin->GetLanguageDefinitionKeywordCount(sid);
-		const char** keywords = plugin->GetLanguageDefinitionKeywords(sid);
+		int keywordCount = plugin->GetLanguageDefinitionKeywordCount(languageID);
+		const char** keywords = plugin->GetLanguageDefinitionKeywords(languageID);
 
 		for (int i = 0; i < keywordCount; i++)
 			langDef.mKeywords.insert(keywords[i]);
 
-		int identifierCount = plugin->GetLanguageDefinitionIdentifierCount(sid);
+		int identifierCount = plugin->GetLanguageDefinitionIdentifierCount(languageID);
 		for (int i = 0; i < identifierCount; i++) {
-			const char* ident = plugin->GetLanguageDefinitionIdentifier(i, sid);
-			const char* identDesc = plugin->GetLanguageDefinitionIdentifierDesc(i, sid);
-			langDef.mIdentifiers.insert(std::make_pair(ident, desc(identDesc)));
+			const char* ident = plugin->GetLanguageDefinitionIdentifier(i, languageID);
+			const char* identDesc = plugin->GetLanguageDefinitionIdentifierDesc(i, languageID);
+			langDef.mIdentifiers.insert(std::make_pair(ident, TextEditor::Identifier(identDesc)));
 		}
 		// m_GLSLDocumentation(langDef.mIdentifiers);
 
-		int tokenRegexs = plugin->GetLanguageDefinitionTokenRegexCount(sid);
+		int tokenRegexs = plugin->GetLanguageDefinitionTokenRegexCount(languageID);
 		for (int i = 0; i < tokenRegexs; i++) {
 			plugin::TextEditorPaletteIndex palIndex;
-			const char* regStr = plugin->GetLanguageDefinitionTokenRegex(i, palIndex, sid);
+			const char* regStr = plugin->GetLanguageDefinitionTokenRegex(i, palIndex, languageID);
 			langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, TextEditor::PaletteIndex>(regStr, (TextEditor::PaletteIndex)palIndex));
 		}
 
-		langDef.mCommentStart = plugin->GetLanguageDefinitionCommentStart(sid);
-		langDef.mCommentEnd = plugin->GetLanguageDefinitionCommentEnd(sid);
-		langDef.mSingleLineComment = plugin->GetLanguageDefinitionLineComment(sid);
+		langDef.mCommentStart = plugin->GetLanguageDefinitionCommentStart(languageID);
+		langDef.mCommentEnd = plugin->GetLanguageDefinitionCommentEnd(languageID);
+		langDef.mSingleLineComment = plugin->GetLanguageDefinitionLineComment(languageID);
 
-		langDef.mCaseSensitive = plugin->IsLanguageDefinitionCaseSensitive(sid);
-		langDef.mAutoIndentation = plugin->GetLanguageDefinitionAutoIndent(sid);
+		langDef.mCaseSensitive = plugin->IsLanguageDefinitionCaseSensitive(languageID);
+		langDef.mAutoIndentation = plugin->GetLanguageDefinitionAutoIndent(languageID);
 
-		langDef.mName = plugin->GetLanguageDefinitionName(sid);
+		langDef.mName = plugin->GetLanguageDefinitionName(languageID);
 
 		return langDef;
 	}

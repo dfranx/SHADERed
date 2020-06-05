@@ -678,7 +678,8 @@ namespace ed {
 		bool isCompute = m_modalItem->Type == PipelineItem::ItemType::ComputePass;
 		bool isAudio = m_modalItem->Type == PipelineItem::ItemType::AudioPass;
 
-		bool isGLSL = ShaderCompiler::GetShaderLanguageFromExtension(((pipe::ShaderPass*)itemData)->VSPath) != ShaderLanguage::HLSL;
+		ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(((pipe::ShaderPass*)itemData)->VSPath);
+		bool isGLSL = (vsLang == ShaderLanguage::GLSL) || (vsLang == ShaderLanguage::VulkanGLSL);
 
 		ImGui::TextWrapped("Add or remove variables bound to this shader pass.");
 

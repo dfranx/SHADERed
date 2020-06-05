@@ -224,7 +224,7 @@ namespace ed {
 	{
 		size_t args = GetArgumentCount(func) * sizeof(float);
 		if (func == FunctionShaderVariable::PluginFunction)
-			args = var->PluginFuncData.Owner->GetVariableFunctionArgSpaceSize(var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
+			args = var->PluginFuncData.Owner->GetVariableFunctionArgsSize(var->PluginFuncData.Name, (plugin::VariableType)var->GetType());
 		var->Function = func;
 
 		if (func == ed::FunctionShaderVariable::Pointer || func == ed::FunctionShaderVariable::CameraSnapshot || func == ed::FunctionShaderVariable::ObjectProperty)

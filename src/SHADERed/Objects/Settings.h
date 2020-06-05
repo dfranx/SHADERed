@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/Options.h>
 #include <glm/glm.hpp>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,7 @@ namespace ed {
 			bool Tips;
 			std::vector<std::string> HLSLExtensions;
 			std::vector<std::string> VulkanGLSLExtensions;
+			std::unordered_map<std::string, std::vector<std::string>> PluginShaderExtensions;
 		} General;
 
 		struct strEditor {
@@ -109,5 +111,6 @@ namespace ed {
 
 	private:
 		void m_parseExt(const std::string& str, std::vector<std::string>& extcontainer);
+		void m_parsePluginExt(const std::string& str, std::unordered_map<std::string, std::vector<std::string>>& extcontainer);
 	};
 }

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#define CURRENT_PLUGINAPI_VERSION 2
+#define CURRENT_PLUGINAPI_VERSION 1
 
 namespace ed {
 	class InterfaceManager;
@@ -21,8 +21,8 @@ namespace ed {
 		void BeginRender();
 		void EndRender();
 
-		IPlugin* GetPlugin(const std::string& plugin);
-		std::string GetPluginName(IPlugin* plugin);
+		IPlugin1* GetPlugin(const std::string& plugin);
+		std::string GetPluginName(IPlugin1* plugin);
 		int GetPluginVersion(const std::string& plugin);
 		int GetPluginAPIVersion(const std::string& plugin);
 		bool IsActive(const std::string& plugin);
@@ -32,7 +32,7 @@ namespace ed {
 		void ShowCustomMenu();
 		void ShowMenuItems(const std::string& menu);
 		void ShowContextItems(const std::string& menu, void* owner = nullptr, void* extraData = nullptr);
-		void ShowContextItems(IPlugin* plugin, const std::string& menu, void* owner = nullptr);
+		void ShowContextItems(IPlugin1* plugin, const std::string& menu, void* owner = nullptr);
 		void ShowOptions(const std::string& searchString = "");
 
 		void HandleDropFile(const char* filename);
@@ -40,17 +40,17 @@ namespace ed {
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);
 
-		std::vector<InputLayoutItem> BuildInputLayout(IPlugin* plugin, const char* itemName);
+		std::vector<InputLayoutItem> BuildInputLayout(IPlugin1* plugin, const char* itemName);
 
 		void OnEvent(const SDL_Event& e);
 
-		inline const std::vector<IPlugin*>& Plugins() { return m_plugins; }
+		inline const std::vector<IPlugin1*>& Plugins() { return m_plugins; }
 
 		inline const std::vector<std::string>& GetIncompatiblePlugins() { return m_incompatible; }
 
 	private:
 		std::vector<void*> m_proc;
-		std::vector<IPlugin*> m_plugins;
+		std::vector<IPlugin1*> m_plugins;
 		std::vector<bool> m_isActive;
 		std::vector<std::string> m_names;
 		std::vector<int> m_pluginVersion, m_apiVersion;

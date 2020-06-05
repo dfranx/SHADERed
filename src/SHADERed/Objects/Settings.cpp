@@ -103,6 +103,7 @@ namespace ed {
 		General.FontSize = ini.GetInteger("general", "fontsize", 18);
 		m_parseExt(ini.Get("general", "hlslext", "hlsl"), General.HLSLExtensions);
 		m_parseExt(ini.Get("general", "vkext", "vk"), General.VulkanGLSLExtensions);
+		m_parsePluginExt(ini.Get("general", "plext", ""), General.PluginShaderExtensions);
 
 		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "data/inconsolata.ttf").c_str());
@@ -194,6 +195,18 @@ namespace ed {
 		}
 		ini << std::endl;
 
+		ini << "plext=";
+		for (const auto& pair : General.PluginShaderExtensions) {
+			ini << pair.first << "{";
+			for (int i = 0; i < pair.second.size(); i++) {
+				ini << pair.second[i];
+				if (i != pair.second.size() - 1)
+					ini << " ";
+			}
+			ini << "}";
+		}
+		ini << std::endl;
+
 		ini << "[preview]" << std::endl;
 		ini << "pausedonstartup=" << Preview.PausedOnStartup << std::endl;
 		ini << "switchleftrightclick=" << Preview.SwitchLeftRightClick << std::endl;
@@ -242,6 +255,24 @@ namespace ed {
 		ini << std::endl;
 	}
 
+	void Settings::m_parsePluginExt(const std::string& str, std::unordered_map<std::string, std::vector<std::string>>& extcontainer)
+	{
+		// Slang{slang, sl}Unity{...}
+		std::string cpy = str;
+
+		size_t start = cpy.find_first_of('{');
+		while (start != std::string::npos) {
+			size_t end = cpy.find_first_of('}', start);
+
+			std::string langName = cpy.substr(0, start);
+			std::string exts = cpy.substr(start+1, end-start-1);
+
+			m_parseExt(exts, extcontainer[langName]);
+
+			cpy = cpy.substr(end+1);
+			start = cpy.find_first_of('{');
+		}
+	}
 	void Settings::m_parseExt(const std::string& str, std::vector<std::string>& extcontainer)
 	{
 		std::stringstream ss(str);

@@ -80,5 +80,15 @@ namespace ed {
 			ErrorMessage,
 			Max
 		};
+
+		enum class ShaderStage {
+			Vertex,
+			Pixel,
+			Geometry,
+			Compute,
+			Audio,
+			Plugin,
+			Count
+		};
 	}
 }

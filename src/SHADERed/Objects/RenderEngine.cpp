@@ -14,6 +14,9 @@
 #include <algorithm>
 #include <glm/gtx/intersect.hpp>
 
+#include <spirv-tools/libspirv.h>
+#include <spirv-tools/optimizer.hpp>
+
 static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
 static const char* GeneralDebugShaderCode = R"(
 #version 330
@@ -1000,7 +1003,13 @@ namespace ed {
 					ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
 
 					// pixel shader
-					bool psCompiled = ShaderCompiler::CompileToSPIRV(shader->PSSPV, psLang, shader->PSPath, ShaderStage::Pixel, psEntry, shader->Macros, m_msgs, m_project);
+					bool psCompiled = false;
+					
+					if (psLang == ShaderLanguage::Plugin)
+						psCompiled = m_pluginCompileToSpirv(shader->PSSPV, shader->PSPath, psEntry, plugin::ShaderStage::Pixel);
+					else
+						psCompiled = ShaderCompiler::CompileToSPIRV(shader->PSSPV, psLang, shader->PSPath, ShaderStage::Pixel, psEntry, shader->Macros, m_msgs, m_project);
+					
 					if (psLang == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(shader->PSPath);
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
@@ -1008,6 +1017,9 @@ namespace ed {
 					} else { // HLSL / VK
 						psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->GSUsed, m_msgs);
 						psEntry = "main";
+
+						if (psLang == ShaderLanguage::Plugin)
+							psContent = m_pluginProcessGLSL(shader->PSPath, psContent.c_str());		
 					}
 
 					shader->Variables.UpdateTextureList(psContent);
@@ -1016,7 +1028,14 @@ namespace ed {
 
 					// vertex shader
 					lineBias = 0;
-					bool vsCompiled = ShaderCompiler::CompileToSPIRV(shader->VSSPV, vsLang, shader->VSPath, ShaderStage::Vertex, vsEntry, shader->Macros, m_msgs, m_project);
+					bool vsCompiled = false;
+
+					if (vsLang == ShaderLanguage::Plugin)
+						vsCompiled = m_pluginCompileToSpirv(shader->VSSPV, shader->VSPath, vsEntry, plugin::ShaderStage::Vertex);
+					else
+						vsCompiled = ShaderCompiler::CompileToSPIRV(shader->VSSPV, vsLang, shader->VSPath, ShaderStage::Vertex, vsEntry, shader->Macros, m_msgs, m_project);
+					
+					// generate glsl
 					if (vsLang == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(shader->VSPath);
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
@@ -1024,6 +1043,9 @@ namespace ed {
 					} else { // HLSL / VK
 						vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->GSUsed, m_msgs);
 						vsEntry = "main";
+
+						if (vsLang == ShaderLanguage::Plugin)
+							vsContent = m_pluginProcessGLSL(shader->VSPath, vsContent.c_str());
 					}
 
 					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
@@ -1037,7 +1059,12 @@ namespace ed {
 									gsEntry = shader->GSEntry;
 
 						lineBias = 0;
-						gsCompiled = ShaderCompiler::CompileToSPIRV(shader->GSSPV, gsLang, shader->GSPath, ShaderStage::Geometry, gsEntry, shader->Macros, m_msgs, m_project);
+						
+						if (gsLang == ShaderLanguage::Plugin)
+							gsCompiled = m_pluginCompileToSpirv(shader->GSSPV, shader->GSPath, gsEntry, plugin::ShaderStage::Geometry);
+						else
+							gsCompiled = ShaderCompiler::CompileToSPIRV(shader->GSSPV, gsLang, shader->GSPath, ShaderStage::Geometry, gsEntry, shader->Macros, m_msgs, m_project);
+						
 						if (ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath) == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
@@ -1045,6 +1072,9 @@ namespace ed {
 						} else { // HLSL / VK
 							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
 							gsEntry = "main";
+
+							if (gsLang == ShaderLanguage::Plugin)
+								gsContent = m_pluginProcessGLSL(shader->GSPath, gsContent.c_str());
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
@@ -1091,7 +1121,13 @@ namespace ed {
 					ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(shader->Path);
 
 					// compute shader
-					bool compiled = ShaderCompiler::CompileToSPIRV(shader->SPV, lang, shader->Path, ShaderStage::Compute, entry, shader->Macros, m_msgs, m_project);
+					bool compiled = false;
+						
+					if (lang == ShaderLanguage::Plugin)
+						compiled = m_pluginCompileToSpirv(shader->SPV, shader->Path, entry, plugin::ShaderStage::Compute);
+					else
+						compiled = ShaderCompiler::CompileToSPIRV(shader->SPV, lang, shader->Path, ShaderStage::Compute, entry, shader->Macros, m_msgs, m_project);
+					
 					if (lang == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(shader->Path);
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
@@ -1099,6 +1135,9 @@ namespace ed {
 					} else { // HLSL / VK
 						content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, m_msgs);
 						entry = "main";
+
+						if (lang == ShaderLanguage::Plugin)
+							content = m_pluginProcessGLSL(shader->Path, content.c_str());		
 					}
 
 					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
@@ -1134,7 +1173,7 @@ namespace ed {
 
 					std::string content = m_project->LoadProjectFile(shader->Path);
 
-					// compute shader
+					// audio shader
 					if (ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, shader);
 
@@ -1596,16 +1635,26 @@ namespace ed {
 								psEntry = data->PSEntry;
 					ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->VSPath);
 					ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath);
-					
+
 					// vertex shader
-					bool vsCompiled = ShaderCompiler::CompileToSPIRV(data->VSSPV, vsLang, data->VSPath, ShaderStage::Vertex, vsEntry, data->Macros, m_msgs, m_project);
+					bool vsCompiled = false;
+
+					if (vsLang == ShaderLanguage::Plugin)
+						vsCompiled = m_pluginCompileToSpirv(data->VSSPV, data->VSPath, vsEntry, plugin::ShaderStage::Vertex);
+					else
+						vsCompiled = ShaderCompiler::CompileToSPIRV(data->VSSPV, vsLang, data->VSPath, ShaderStage::Vertex, vsEntry, data->Macros, m_msgs, m_project);
+					
+					// generate glsl
 					if (vsLang == ShaderLanguage::GLSL) { // GLSL
 						vsContent = m_project->LoadProjectFile(data->VSPath);
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, data);
-					} else { // HLSL / VK
+					} else if (vsCompiled) {
 						vsContent = ShaderCompiler::ConvertToGLSL(data->VSSPV, vsLang, ShaderStage::Vertex, data->GSUsed, m_msgs);
 						vsEntry = "main";
+
+						if (vsLang == ShaderLanguage::Plugin)
+							vsContent = std::string(m_pluginProcessGLSL(data->VSPath, vsContent.c_str()));
 					}
 
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
@@ -1613,14 +1662,23 @@ namespace ed {
 					
 					// pixel shader
 					lineBias = 0;
-					bool psCompiled = ShaderCompiler::CompileToSPIRV(data->PSSPV, psLang, data->PSPath, ShaderStage::Pixel, psEntry, data->Macros, m_msgs, m_project);
+					bool psCompiled = false;
+
+					if (psLang == ShaderLanguage::Plugin)
+						psCompiled = m_pluginCompileToSpirv(data->PSSPV, data->PSPath, psEntry, plugin::ShaderStage::Pixel);
+					else
+						psCompiled = ShaderCompiler::CompileToSPIRV(data->PSSPV, psLang, data->PSPath, ShaderStage::Pixel, psEntry, data->Macros, m_msgs, m_project);
+					
 					if (psLang == ShaderLanguage::GLSL) { // GLSL
 						psContent = m_project->LoadProjectFile(data->PSPath);
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, data);
-					} else { // HLSL / VK
+					} else if (psCompiled) { // HLSL / VK
 						psContent = ShaderCompiler::ConvertToGLSL(data->PSSPV, psLang, ShaderStage::Pixel, data->GSUsed, m_msgs);
 						psEntry = "main";
+
+						if (psLang == ShaderLanguage::Plugin)
+							psContent = m_pluginProcessGLSL(data->PSPath, psContent.c_str());
 					}
 
 					data->Variables.UpdateTextureList(psContent);
@@ -1634,14 +1692,21 @@ namespace ed {
 						std::string gsContent = "", gsEntry = data->GSEntry;
 						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath);
 						
-						gsCompiled = ShaderCompiler::CompileToSPIRV(data->GSSPV, gsLang, data->GSPath, ShaderStage::Geometry, gsEntry, data->Macros, m_msgs, m_project);
+						if (gsLang == ShaderLanguage::Plugin)
+							gsCompiled = m_pluginCompileToSpirv(data->GSSPV, data->GSPath, gsEntry, plugin::ShaderStage::Geometry);
+						else
+							gsCompiled = ShaderCompiler::CompileToSPIRV(data->GSSPV, gsLang, data->GSPath, ShaderStage::Geometry, gsEntry, data->Macros, m_msgs, m_project);
+						
 						if (gsLang == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(data->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, data);
-						} else { // HLSL
+						} else if (gsCompiled) { // HLSL
 							gsContent = ShaderCompiler::ConvertToGLSL(data->GSSPV, gsLang, ShaderStage::Geometry, data->GSUsed, m_msgs);
 							gsEntry = "main";
+
+							if (gsLang == ShaderLanguage::Plugin)
+								gsContent = m_pluginProcessGLSL(data->GSPath, gsContent.c_str());
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
@@ -1703,15 +1768,24 @@ namespace ed {
 					int lineBias = 0;
 					ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(data->Path);
 
-					// vertex shader
-					bool compiled = ShaderCompiler::CompileToSPIRV(data->SPV, lang, data->Path, ShaderStage::Compute, entry, data->Macros, m_msgs, m_project);
+					// compute shader
+					bool compiled = false;
+
+					if (lang == ShaderLanguage::Plugin)
+						compiled = m_pluginCompileToSpirv(data->SPV, data->Path, entry, plugin::ShaderStage::Compute);
+					else
+						compiled = ShaderCompiler::CompileToSPIRV(data->SPV, lang, data->Path, ShaderStage::Compute, entry, data->Macros, m_msgs, m_project);
+					
 					if (lang == ShaderLanguage::GLSL) { // GLSL
 						content = m_project->LoadProjectFile(data->Path);
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, data);
-					} else { // HLSL / VK
+					} else if (compiled) { // HLSL / VK
 						content = ShaderCompiler::ConvertToGLSL(data->SPV, lang, ShaderStage::Compute, false, m_msgs);
 						entry = "main";
+
+						if (lang == ShaderLanguage::Plugin)
+							content = m_pluginProcessGLSL(data->Path, content.c_str());
 					}
 
 					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
@@ -1884,6 +1958,33 @@ namespace ed {
 
 		if (strMacro.size() > 0)
 			src.insert(lineLoc, strMacro);
+	}
+	
+	
+	const char* RenderEngine::m_pluginProcessGLSL(const char* path, const char* src)
+	{
+		bool ret = false;
+
+		int plLang = 0;
+		IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&plLang, path, m_plugins->Plugins());
+
+		return plugin->ProcessGLSL(plLang, src);
+	}
+	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage)
+	{
+		bool ret = false;
+
+		int plLang = 0;
+		IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&plLang, path, m_plugins->Plugins());
+
+		std::string source = m_project->LoadProjectFile(path);
+
+		size_t spv_length = 0;
+		const unsigned int* spv = plugin->CompileToSPIRV(plLang, source.c_str(), source.size(), stage, entry.c_str(), &spv_length, &ret);
+
+		spvvec = std::vector<GLuint>(spv, spv + spv_length);
+		
+		return ret;
 	}
 	void RenderEngine::m_includeCheck(std::string& src, std::vector<std::string> includeStack, int& lineBias)
 	{
