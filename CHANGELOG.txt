@@ -2,6 +2,7 @@
 + plugins are backward and forward compatible
 + plugins can define their own shader language
 + fix HLSL geometry shaders
++ fix a bug that caused deleted plugins to stay in the "Not loaded" list in options
 
 [v1.3.4]
 + replace ShaderDebugger with SPIRV-VM (introduces significant improvements to the SHADERed's debugger)

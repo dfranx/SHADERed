@@ -57,7 +57,7 @@ namespace ed {
 		pluginExt = "so";
 #endif
 		
-		const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
+		std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
 			if (entry.is_directory()) {
@@ -432,7 +432,20 @@ namespace ed {
 		}
 
 
-
+		// check if plugins listed in not loaded even exist
+		for (int i = 0; i < notLoaded.size(); i++) {
+			bool exists = false;
+			for (int j = 0; j < m_names.size(); j++) {
+				if (notLoaded[i] == m_names[j]) {
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				notLoaded.erase(notLoaded.begin() + i);
+				i--;
+			}
+		}
 	}
 	void PluginManager::Destroy()
 	{
