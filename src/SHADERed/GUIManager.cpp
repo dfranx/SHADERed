@@ -653,7 +653,7 @@ namespace ed {
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Tutorial"))
-					UIHelper::ShellOpen("https://github.com/dfranx/SHADERed/blob/master/TUTORIAL.md");
+					UIHelper::ShellOpen("http://docs.shadered.org");
 
 				if (ImGui::MenuItem("Send feedback"))
 					UIHelper::ShellOpen("https://www.github.com/dfranx/SHADERed/issues");
