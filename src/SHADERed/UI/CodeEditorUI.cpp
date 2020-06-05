@@ -293,7 +293,6 @@ namespace ed {
 			}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(200, 75), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Save Changes##code_save")) {
 			ImGui::Text("Do you want to save changes?");
 			if (ImGui::Button("Yes")) {
