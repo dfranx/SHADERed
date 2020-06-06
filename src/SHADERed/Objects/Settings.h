@@ -45,6 +45,7 @@ namespace ed {
 
 		struct strEditor {
 			bool SmartPredictions;
+			bool ActiveSmartPredictions;
 			char Font[MAX_PATH];
 			int FontSize;
 			bool ShowWhitespace;

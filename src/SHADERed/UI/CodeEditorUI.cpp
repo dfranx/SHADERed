@@ -380,7 +380,6 @@ namespace ed {
 	void CodeEditorUI::ApplySettings()
 	{
 		for (TextEditor* editor : m_editor) {
-
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
 			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
 			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
@@ -390,6 +389,10 @@ namespace ed {
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetUIScale(Settings::Instance().TempScale);
+			editor->SetUIFontSize(Settings::Instance().General.FontSize);
+			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
+			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			m_loadEditorShortcuts(editor);
 		}
 
@@ -473,6 +476,10 @@ namespace ed {
 		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 		editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
 		editor->SetPath(shaderPath);
+		editor->SetUIScale(Settings::Instance().DPIScale);
+		editor->SetUIFontSize(Settings::Instance().General.FontSize);
+		editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
+		editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 		m_loadEditorShortcuts(editor);
 
 		ShaderLanguage sLang = ShaderCompiler::GetShaderLanguageFromExtension(shaderPath);
@@ -541,6 +548,11 @@ namespace ed {
 		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 		editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+		editor->SetPath(filepath);
+		editor->SetUIScale(Settings::Instance().DPIScale);
+		editor->SetUIFontSize(Settings::Instance().General.FontSize);
+		editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
+		editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 		m_loadEditorShortcuts(editor);
 
 		editor->SetLanguageDefinition(defPlugin);

@@ -505,9 +505,22 @@ namespace ed {
 		Settings* settings = &Settings::Instance();
 
 		/* SMART PREDICTIONS: */
-		ImGui::Text("Smart predictions: ");
+		ImGui::Text("Autocomplete: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_smart_pred", &settings->Editor.SmartPredictions);
+
+		/* ACTIVE SMART PREDICTIONS: */
+		if (!settings->Editor.SmartPredictions) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+		ImGui::Text("Active autocomplete: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_active_smart_pred", &settings->Editor.ActiveSmartPredictions);
+		if (!settings->Editor.SmartPredictions) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
 
 		/* SHOW WHITESPACE: */
 		ImGui::Text("Show whitespace: ");

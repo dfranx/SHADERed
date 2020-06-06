@@ -33,7 +33,8 @@ namespace ed {
 		m_parseExt("hlsl", General.HLSLExtensions);
 		m_parseExt("vk", General.VulkanGLSLExtensions);
 
-		Editor.SmartPredictions = false;
+		Editor.SmartPredictions = true;
+		Editor.ActiveSmartPredictions = false;
 		strcpy(Editor.Font, "data/inconsolata.ttf");
 		Editor.FontSize = 15;
 		Editor.ShowWhitespace = false;
@@ -105,7 +106,8 @@ namespace ed {
 		m_parseExt(ini.Get("general", "vkext", "vk"), General.VulkanGLSLExtensions);
 		m_parsePluginExt(ini.Get("general", "plext", ""), General.PluginShaderExtensions);
 
-		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", false);
+		Editor.SmartPredictions = ini.GetBoolean("editor", "smartpred", true);
+		Editor.ActiveSmartPredictions = ini.GetBoolean("editor", "activesmartpred", false);
 		strcpy(Editor.Font, ini.Get("editor", "font", "data/inconsolata.ttf").c_str());
 		Editor.FontSize = ini.GetInteger("editor", "fontsize", 17);
 		Editor.ShowWhitespace = ini.GetBoolean("editor", "whitespace", false);
@@ -226,6 +228,7 @@ namespace ed {
 
 		ini << "[editor]" << std::endl;
 		ini << "smartpred=" << Editor.SmartPredictions << std::endl;
+		ini << "activesmartpred=" << Editor.ActiveSmartPredictions << std::endl;
 		ini << "font=" << Editor.Font << std::endl;
 		ini << "fontsize=" << Editor.FontSize << std::endl;
 		ini << "whitespace=" << Editor.ShowWhitespace << std::endl;
