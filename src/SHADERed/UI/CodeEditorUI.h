@@ -22,6 +22,8 @@ namespace ed {
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
+		void UpdateAutoRecompileItems();
+
 		void StopThreads();
 		void StopDebugging();
 		void CloseAll(PipelineItem* item = nullptr);
@@ -33,7 +35,6 @@ namespace ed {
 
 		void SetTheme(const TextEditor::Palette& colors);
 		void SetFont(const std::string& filename, int size = 15);
-		void SetAutoRecompile(bool autorecompile);
 		void SetTrackFileChanges(bool track);
 		void ApplySettings();
 
@@ -48,8 +49,6 @@ namespace ed {
 			else
 				m_font = ImGui::GetIO().Fonts->Fonts[0];
 		}
-
-		void UpdateAutoRecompileItems();
 
 		inline bool TrackedFilesNeedUpdate() { return m_trackUpdatesNeeded > 0; }
 		inline void EmptyTrackedFiles() { m_trackUpdatesNeeded = 0; }
@@ -94,37 +93,9 @@ namespace ed {
 		int m_selectedItem;
 
 		// auto recompile
-		void m_autoRecompiler();
-		bool m_autoRecompile;
-		std::thread* m_autoRecompileThread;
-		std::atomic<bool> m_autoRecompilerRunning, m_autoRecompileRequest;
-		std::vector<ed::MessageStack::Message> m_autoRecompileCachedMsgs;
-		std::shared_mutex m_autoRecompilerMutex;
-		struct AutoRecompilerItemInfo {
-			AutoRecompilerItemInfo()
-			{
-				VS = PS = GS = CS = "";
-				VS_SLang = PS_SLang = GS_SLang = CS_SLang = ShaderLanguage::GLSL;
-
-				SPass = nullptr;
-				CPass = nullptr;
-			}
-			std::string VS, PS, GS;
-			ShaderLanguage VS_SLang, PS_SLang, GS_SLang;
-			pipe::ShaderPass* SPass;
-
-			std::string CS;
-			ShaderLanguage CS_SLang;
-			pipe::ComputePass* CPass;
-
-			std::string AS;
-			pipe::AudioPass* APass;
-
-			std::string PluginCode;
-			int PluginID;
-			pipe::PluginItemData* PluginData;
-		};
-		std::unordered_map<std::string, AutoRecompilerItemInfo> m_ariiList;
+		bool m_contentChanged;
+		std::vector<TextEditor*> m_changedEditors;
+		eng::Timer m_lastAutoRecompile;
 
 		// all the variables needed for the file change notifications
 		void m_trackWorker();

@@ -164,8 +164,7 @@ namespace ed {
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
-		((CodeEditorUI*)Get(ViewID::Code))->SetAutoRecompile(Settings::Instance().General.AutoRecompile);
-
+		
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
 		// enable dpi awareness

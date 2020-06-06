@@ -246,7 +246,7 @@ namespace ed {
 		ImGui::Checkbox("##optg_trackfilechange", &settings->General.RecompileOnFileChange);
 
 		/* AUTO RECOMPILE */
-		ImGui::Text("Recompile shader every 200ms: ");
+		ImGui::Text("Recompile shader on content change: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autorecompile", &settings->General.AutoRecompile);
 

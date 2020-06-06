@@ -1065,7 +1065,7 @@ namespace ed {
 						else
 							gsCompiled = ShaderCompiler::CompileToSPIRV(shader->GSSPV, gsLang, shader->GSPath, ShaderStage::Geometry, gsEntry, shader->Macros, m_msgs, m_project);
 						
-						if (ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath) == ShaderLanguage::GLSL) { // GLSL
+						if (gsLang == ShaderLanguage::GLSL) { // GLSL
 							gsContent = m_project->LoadProjectFile(shader->GSPath);
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
@@ -1213,8 +1213,6 @@ namespace ed {
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 
-		GLchar cMsg[1024];
-
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
@@ -1224,12 +1222,32 @@ namespace ed {
 					m_msgs->ClearGroup(name);
 
 					bool vsCompiled = true, psCompiled = true, gsCompiled = true;
+					int lineBias = 0;
 
 					// pixel shader
 					if (pssrc.size() > 0) {
-						shader->Variables.UpdateTextureList(pssrc);
-						GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, pssrc.c_str());
-						psCompiled = gl::CheckShaderCompilationStatus(ps, cMsg);
+						ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->PSPath);
+						if (psLang == ShaderLanguage::Plugin)
+							psCompiled = m_pluginCompileToSpirv(shader->PSSPV, shader->PSPath, shader->PSEntry, plugin::ShaderStage::Pixel, pssrc);
+						else
+							psCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->PSSPV, psLang, shader->PSPath, pssrc, ShaderStage::Pixel, shader->PSEntry, shader->Macros, m_msgs, m_project);
+
+						std::string psContent = pssrc;
+						if (psLang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(psContent, std::vector<std::string>(), lineBias);
+							m_applyMacros(psContent, shader);
+						} else { // HLSL / VK
+							psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->GSUsed, m_msgs);
+							
+							if (psLang == ShaderLanguage::Plugin)
+								psContent = m_pluginProcessGLSL(shader->PSPath, psContent.c_str());
+						}
+
+
+
+						shader->Variables.UpdateTextureList(psContent);
+						GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
+						psCompiled &= gl::CheckShaderCompilationStatus(ps);
 
 						glDeleteShader(m_shaderSources[i].PS);
 						m_shaderSources[i].PS = ps;
@@ -1237,8 +1255,29 @@ namespace ed {
 
 					// vertex shader
 					if (vssrc.size() > 0) {
-						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vssrc.c_str());
-						vsCompiled = gl::CheckShaderCompilationStatus(vs, cMsg);
+						lineBias = 0;
+						
+						ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath);
+						if (vsLang == ShaderLanguage::Plugin)
+							vsCompiled = m_pluginCompileToSpirv(shader->VSSPV, shader->VSPath, shader->VSEntry, plugin::ShaderStage::Vertex, vssrc);
+						else
+							vsCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->VSSPV, vsLang, shader->VSPath, vssrc, ShaderStage::Vertex, shader->VSEntry, shader->Macros, m_msgs, m_project);
+
+						std::string vsContent = vssrc;
+						if (vsLang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
+							m_applyMacros(vsContent, shader);
+						} else { // HLSL / VK
+							vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->GSUsed, m_msgs);
+
+							if (vsLang == ShaderLanguage::Plugin)
+								vsContent = m_pluginProcessGLSL(shader->VSPath, vsContent.c_str());
+						}
+
+
+
+						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
+						vsCompiled &= gl::CheckShaderCompilationStatus(vs);
 
 						glDeleteShader(m_shaderSources[i].VS);
 						m_shaderSources[i].VS = vs;
@@ -1246,11 +1285,31 @@ namespace ed {
 
 					// geometry shader
 					if (gssrc.size() > 0) {
+						lineBias = 0;
+
+						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
+						if (gsLang == ShaderLanguage::Plugin)
+							gsCompiled = m_pluginCompileToSpirv(shader->GSSPV, shader->GSPath, shader->GSEntry, plugin::ShaderStage::Geometry, gssrc);
+						else
+							gsCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->GSSPV, gsLang, shader->GSPath, gssrc, ShaderStage::Geometry, shader->GSEntry, shader->Macros, m_msgs, m_project);
+
+						std::string gsContent = gssrc;
+						if (gsLang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
+							m_applyMacros(gsContent, shader);
+						} else { // HLSL / VK
+							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
+
+							if (gsLang == ShaderLanguage::Plugin)
+								gsContent = m_pluginProcessGLSL(shader->GSPath, gsContent.c_str());
+						}
+
+
 						GLuint gs = 0;
 						glDeleteShader(m_shaderSources[i].GS);
 						if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
-							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gssrc.c_str());
-							gsCompiled = gl::CheckShaderCompilationStatus(gs, cMsg);
+							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
+							gsCompiled &= gl::CheckShaderCompilationStatus(gs);
 
 							m_shaderSources[i].GS = gs;
 						}
@@ -1283,8 +1342,28 @@ namespace ed {
 
 					// compute shader
 					if (vssrc.size() > 0) {
-						cs = gl::CompileShader(GL_COMPUTE_SHADER, vssrc.c_str());
-						compiled = gl::CheckShaderCompilationStatus(cs, cMsg);
+						int lineBias = 0;
+
+						ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(shader->Path);
+						if (lang == ShaderLanguage::Plugin)
+							compiled = m_pluginCompileToSpirv(shader->SPV, shader->Path, shader->Entry, plugin::ShaderStage::Compute, vssrc);
+						else
+							compiled = ShaderCompiler::CompileSourceToSPIRV(shader->SPV, lang, shader->Path, vssrc, ShaderStage::Compute, shader->Entry, shader->Macros, m_msgs, m_project);
+
+						std::string content = vssrc;
+						if (lang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(content, std::vector<std::string>(), lineBias);
+							m_applyMacros(content, shader);
+						} else { // HLSL / VK
+							content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, m_msgs);
+
+							if (lang == ShaderLanguage::Plugin)
+								content = m_pluginProcessGLSL(shader->Path, content.c_str());
+						}
+
+
+						cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
+						compiled &= gl::CheckShaderCompilationStatus(cs);
 					}
 
 					if (m_shaders[i] != 0)
@@ -1970,14 +2049,16 @@ namespace ed {
 
 		return plugin->ProcessGLSL(plLang, src);
 	}
-	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage)
+	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage, const std::string& actualSource)
 	{
 		bool ret = false;
 
 		int plLang = 0;
 		IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&plLang, path, m_plugins->Plugins());
 
-		std::string source = m_project->LoadProjectFile(path);
+		std::string source = actualSource;
+		if (actualSource.empty())
+			source = m_project->LoadProjectFile(path);
 
 		size_t spv_length = 0;
 		const unsigned int* spv = plugin->CompileToSPIRV(plLang, source.c_str(), source.size(), stage, entry.c_str(), &spv_length, &ret);

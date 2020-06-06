@@ -51,9 +51,7 @@ namespace ed {
 		m_focusWindow = false;
 		m_trackFileChanges = false;
 		m_trackThread = nullptr;
-		m_autoRecompileThread = nullptr;
-		m_autoRecompilerRunning = false;
-		m_autoRecompile = false;
+		m_contentChanged = false;
 
 		RequestedProjectSave = false;
 
@@ -61,7 +59,6 @@ namespace ed {
 	}
 	CodeEditorUI::~CodeEditorUI()
 	{
-		delete m_autoRecompileThread;
 		delete m_trackThread;
 	}
 
@@ -339,6 +336,42 @@ namespace ed {
 		}
 	}
 
+	void CodeEditorUI::UpdateAutoRecompileItems()
+	{
+		if (m_contentChanged && m_lastAutoRecompile.GetElapsedTime() > 0.35f) {
+			for (int i = 0; i < m_changedEditors.size(); i++) {
+
+				for (int j = 0; j < m_editor.size(); j++) {
+					if (m_editor[j] == m_changedEditors[i]) {
+						if (m_items[j]->Type == PipelineItem::ItemType::ShaderPass) {
+							std::string vs = "", ps = "", gs = "";
+							if (m_shaderStage[j] == ShaderStage::Vertex)
+								vs = m_editor[j]->GetText();
+							else if (m_shaderStage[j] == ShaderStage::Pixel)
+								ps = m_editor[j]->GetText();
+							else if (m_shaderStage[j] == ShaderStage::Geometry)
+								gs = m_editor[j]->GetText();
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs);
+						} else if (m_items[j]->Type == PipelineItem::ItemType::ComputePass)
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, m_editor[j]->GetText());
+						else if (m_items[j]->Type == PipelineItem::ItemType::AudioPass)
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, m_editor[j]->GetText());
+						else if (m_items[j]->Type == PipelineItem::ItemType::PluginItem) {
+							std::string pluginCode = m_editor[j]->GetText();
+							((pipe::PluginItemData*)m_items[j]->Data)->Owner->HandleRecompileFromSource(m_items[j]->Name, (int)m_shaderStage[j], pluginCode.c_str(), pluginCode.size());
+						}
+
+						break;
+					}
+				}
+			}
+
+			m_changedEditors.clear();
+			m_lastAutoRecompile.Restart();
+			m_contentChanged = false;
+		}
+	}
+
 	void CodeEditorUI::SetTheme(const TextEditor::Palette& colors)
 	{
 		for (TextEditor* editor : m_editor)
@@ -361,8 +394,7 @@ namespace ed {
 		}
 
 		SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
-		SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
-		SetAutoRecompile(Settings::Instance().General.AutoRecompile);
+		SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange); 
 	}
 	void CodeEditorUI::SetFont(const std::string& filename, int size)
 	{
@@ -420,6 +452,14 @@ namespace ed {
 		m_paths.push_back(shaderPath);
 
 		TextEditor* editor = m_editor[m_editor.size() - 1];
+
+		editor->OnContentUpdate = [&](TextEditor* chEditor) {
+			if (Settings::Instance().General.AutoRecompile) {
+				if (std::count(m_changedEditors.begin(), m_changedEditors.end(), chEditor) == 0)
+					m_changedEditors.push_back(chEditor);
+				m_contentChanged = true;
+			}
+		};
 
 		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		editor->SetTabSize(Settings::Instance().Editor.TabSize);
@@ -608,176 +648,9 @@ namespace ed {
 	}
 	void CodeEditorUI::StopThreads()
 	{
-		m_autoRecompilerRunning = false;
-		if (m_autoRecompileThread)
-			m_autoRecompileThread->detach();
 		m_trackerRunning = false;
 		if (m_trackThread)
 			m_trackThread->detach();
-	}
-
-	void CodeEditorUI::UpdateAutoRecompileItems()
-	{
-		if (m_autoRecompileRequest && m_data->Debugger.GetPixelList().size() == 0) {
-			std::shared_lock<std::shared_mutex> lk(m_autoRecompilerMutex);
-			for (const auto& it : m_ariiList) {
-				if (it.second.SPass != nullptr)
-					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.VS, it.second.PS, it.second.GS);
-				else if (it.second.CPass != nullptr)
-					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.CS);
-				else if (it.second.APass != nullptr)
-					m_data->Renderer.RecompileFromSource(it.first.c_str(), it.second.AS);
-				else if (it.second.PluginData != nullptr)
-					it.second.PluginData->Owner->HandleRecompileFromSource(it.first.c_str(), it.second.PluginID, it.second.PluginCode.c_str(), it.second.PluginCode.size());
-			}
-			if (m_autoRecompileCachedMsgs.size() > 0)
-				m_data->Messages.Add(m_autoRecompileCachedMsgs);
-			m_autoRecompileRequest = false;
-		}
-	}
-	void CodeEditorUI::SetAutoRecompile(bool autorec)
-	{
-		if (m_autoRecompile == autorec)
-			return;
-
-		m_autoRecompile = autorec;
-
-		if (autorec) {
-			Logger::Get().Log("Starting auto-recompiler...");
-
-			// stop if it was running before
-			m_autoRecompilerRunning = false;
-			if (m_autoRecompileThread != nullptr && m_autoRecompileThread->joinable())
-				m_autoRecompileThread->join();
-			delete m_autoRecompileThread;
-			m_autoRecompileThread = nullptr;
-
-			// rerun
-			m_autoRecompilerRunning = true;
-			m_autoRecompileThread = new std::thread(&CodeEditorUI::m_autoRecompiler, this);
-		} else {
-			Logger::Get().Log("Stopping auto-recompiler...");
-
-			m_autoRecompilerRunning = false;
-
-			if (m_autoRecompileThread && m_autoRecompileThread->joinable())
-				m_autoRecompileThread->join();
-			delete m_autoRecompileThread;
-			m_autoRecompileThread = nullptr;
-		}
-	}
-	void CodeEditorUI::m_autoRecompiler()
-	{
-		while (m_autoRecompilerRunning) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-			// get all the sources
-			if (!m_autoRecompilerMutex.try_lock())
-				continue;
-
-			m_ariiList.clear();
-			for (int i = 0; i < m_editor.size(); i++) {
-				if (!m_editor[i]->IsTextChanged())
-					continue;
-
-				if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
-					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
-					pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
-					inf->SPass = pass;
-					inf->CPass = nullptr;
-					inf->APass = nullptr;
-					inf->PluginData = nullptr;
-
-					if (m_shaderStage[i] == ShaderStage::Vertex) {
-						inf->VS = m_editor[i]->GetText();
-						inf->VS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->VSPath);
-					} else if (m_shaderStage[i] == ShaderStage::Pixel) {
-						inf->PS = m_editor[i]->GetText();
-						inf->PS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->PSPath);
-					} else if (m_shaderStage[i] == ShaderStage::Geometry) {
-						inf->GS = m_editor[i]->GetText();
-						inf->GS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->GSPath);
-					}
-				} else if (m_items[i]->Type == PipelineItem::ItemType::ComputePass) {
-					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
-					pipe::ComputePass* pass = (pipe::ComputePass*)m_items[i]->Data;
-					inf->CPass = pass;
-					inf->SPass = nullptr;
-					inf->APass = nullptr;
-					inf->PluginData = nullptr;
-
-					inf->CS = m_editor[i]->GetText();
-					inf->CS_SLang = ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
-				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
-					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
-					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
-					inf->APass = pass;
-					inf->SPass = nullptr;
-					inf->CPass = nullptr;
-					inf->PluginData = nullptr;
-
-					inf->AS = m_editor[i]->GetText();
-				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
-					AutoRecompilerItemInfo* inf = &m_ariiList[m_items[i]->Name];
-					pipe::PluginItemData* pass = (pipe::PluginItemData*)m_items[i]->Data;
-					inf->APass = nullptr;
-					inf->SPass = nullptr;
-					inf->CPass = nullptr;
-					inf->PluginData = pass;
-
-					inf->PluginCode = m_editor[i]->GetText();
-					inf->PluginID = (int)m_shaderStage[i]; // TODO
-				}
-			}
-
-			// cache
-			std::vector<ed::MessageStack::Message> msgPrev = m_data->Messages.GetMessages();
-			m_autoRecompileCachedMsgs.clear();
-
-			if (m_data->Debugger.GetPixelList().size() == 0) {
-				for (auto& it : m_ariiList) {
-					if (it.second.SPass != nullptr) {
-						std::vector<unsigned int> spv;
-						if (it.second.VS_SLang != ShaderLanguage::GLSL) {
-							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.VS_SLang, it.second.SPass->VSPath, it.second.VS, ShaderStage::Vertex, it.second.SPass->VSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
-							it.second.VS = ShaderCompiler::ConvertToGLSL(spv, it.second.VS_SLang, ShaderStage::Vertex, it.second.SPass->GSUsed, &m_data->Messages);
-						}
-						if (it.second.PS_SLang != ShaderLanguage::GLSL) {
-							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.PS_SLang, it.second.SPass->PSPath, it.second.PS, ShaderStage::Pixel, it.second.SPass->PSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
-							it.second.PS = ShaderCompiler::ConvertToGLSL(spv, it.second.PS_SLang, ShaderStage::Pixel, it.second.SPass->GSUsed, &m_data->Messages);
-						}
-
-						if (it.second.GS_SLang != ShaderLanguage::GLSL) {
-							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.GS_SLang, it.second.SPass->GSPath, it.second.GS, ShaderStage::Geometry, it.second.SPass->GSEntry, it.second.SPass->Macros, &m_data->Messages, &m_data->Parser);
-							it.second.GS = ShaderCompiler::ConvertToGLSL(spv, it.second.GS_SLang, ShaderStage::Geometry, it.second.SPass->GSUsed, &m_data->Messages);
-						}
-					} else if (it.second.CPass != nullptr) {
-						if (it.second.CS_SLang != ShaderLanguage::GLSL) {
-							std::vector<unsigned int> spv;
-							ShaderCompiler::CompileSourceToSPIRV(spv, it.second.CS_SLang, it.second.CPass->Path, it.second.CS, ShaderStage::Compute, it.second.CPass->Entry, it.second.CPass->Macros, &m_data->Messages, &m_data->Parser);
-							it.second.CS = ShaderCompiler::ConvertToGLSL(spv, it.second.CS_SLang, ShaderStage::Compute, false, &m_data->Messages);
-						}
-					}
-				}
-			}
-
-			std::vector<ed::MessageStack::Message> msgCurr = m_data->Messages.GetMessages();
-			for (int i = 0; i < msgCurr.size(); i++) {
-				for (int j = 0; j < msgPrev.size(); j++) {
-					if (msgCurr[i].Text == msgPrev[j].Text) {
-						msgCurr.erase(msgCurr.begin() + i);
-						msgPrev.erase(msgPrev.begin() + j);
-						i--;
-						break;
-					}
-				}
-			}
-			m_autoRecompileCachedMsgs = msgCurr;
-
-			m_autoRecompileRequest = m_ariiList.size() > 0;
-
-			m_autoRecompilerMutex.unlock();
-		}
 	}
 
 	void CodeEditorUI::SetTrackFileChanges(bool track)

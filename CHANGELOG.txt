@@ -1,9 +1,11 @@
 [v1.3.5]
 + plugins are backward and forward compatible
 + plugins can define their own shader language
++ improve the "auto recompile" feature
 + fix HLSL geometry shaders
 + fix a bug that caused deleted plugins to stay in the "Not loaded" list in options
 + fix text editor's "Save changes" popup
++ rename "Recompile shader every 200ms" to "Recompile shader on content change"
 
 [v1.3.4]
 + replace ShaderDebugger with SPIRV-VM (introduces significant improvements to the SHADERed's debugger)
