@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -33,5 +35,6 @@ namespace ed {
 		std::unordered_map<std::string, Function> Functions;
 		std::unordered_map<std::string, std::vector<Variable>> UserTypes;
 		std::vector<Variable> Uniforms;
+		std::vector<std::string> Globals;
 	};
 }

@@ -25,6 +25,7 @@ namespace ed {
 		Functions.clear();
 		UserTypes.clear();
 		Uniforms.clear();
+		Globals.clear();
 
 		std::string curFunc = "";
 		int lastOpLine = -1;
@@ -71,21 +72,35 @@ namespace ed {
 				spv_word loc = ir[++i];
 
 				spv_word memCount = wordCount - 1;
-				std::vector<Variable> mems(memCount);
-				for (spv_word j = 0; j < memCount; j++) {
-					spv_word type = ir[++i];
-					fetchType(mems[j], j);
+				if (UserTypes.count(names[loc]) == 0) {
+					std::vector<Variable> mems(memCount);
+					for (spv_word j = 0; j < memCount; j++) {
+						spv_word type = ir[++i];
+						fetchType(mems[j], j);
+					}
+
+					UserTypes.insert(std::make_pair(names[loc], mems));
+				} else {
+					auto& typeInfo = UserTypes[names[loc]];
+					for (spv_word j = 0; j < memCount && j < typeInfo.size(); j++)
+						fetchType(typeInfo[j], j);
 				}
-				
+
 				types[loc] = std::make_pair(ValueType::Struct, loc);
-				UserTypes.insert(std::make_pair(names[loc], mems));
 			} else if (opcode == spv::OpMemberName) {
 				spv_word owner = ir[++i];
 				spv_word index = ir[++i]; // index
 
 				spv_word stringLength = wordCount - 2;
 
-				UserTypes[names[owner]][index].Name = spvReadString(ir.data(), stringLength, ++i);
+				auto& typeInfo = UserTypes[names[owner]];
+
+				if (index < typeInfo.size())
+					typeInfo[index].Name = spvReadString(ir.data(), stringLength, ++i);
+				else {
+					typeInfo.resize(index + 1);
+					typeInfo[index].Name = spvReadString(ir.data(), stringLength, ++i);
+				}
 			} else if (opcode == spv::OpFunction) {
 				++i; // skip type
 				spv_word loc = ir[++i];
@@ -114,7 +129,8 @@ namespace ed {
 						fetchType(uni, type);
 						
 						Uniforms.push_back(uni);
-					}
+					} else if (varName.size() > 0 && varName[0] != 0)
+						Globals.push_back(varName);
 				} else
 					Functions[curFunc].Locals.push_back(varName);
 			} else if (opcode == spv::OpFunctionParameter) {
@@ -157,31 +173,6 @@ namespace ed {
 			}
 
 			i = iStart + wordCount + 1;
-		}
-
-		// debug
-		printf("found: \n=====================\n");
-		printf("structures:\n");
-		for (const auto& pair : UserTypes) {
-			printf("%s\n", pair.first.c_str());
-			for (const auto& member : pair.second)
-				printf("\t%s\n", member.Name.c_str());
-		}
-		printf("functions:\n");
-		for (const auto& func : Functions) {
-			printf("%s [%d - %d]\n", func.first.c_str(), func.second.LineStart, func.second.LineEnd);
-			
-			printf("\targs:\n");
-			for (const auto& arg : func.second.Arguments)
-				printf("\t\t%s\n", arg.c_str());
-
-			printf("\tlocals:\n");
-			for (const auto& loc : func.second.Locals)
-				printf("\t\t%s\n", loc.c_str());
-		}
-		printf("uniforms:\n");
-		for (const auto& pair : Uniforms) {
-			printf("%s\n", pair.Name.c_str());
 		}
 	}
 }

@@ -5,6 +5,7 @@
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderLanguage.h>
 #include <SHADERed/Objects/ShaderStage.h>
+#include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/UI/Tools/StatsPage.h>
 #include <SHADERed/UI/UIView.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
@@ -37,6 +38,8 @@ namespace ed {
 		void SetFont(const std::string& filename, int size = 15);
 		void SetTrackFileChanges(bool track);
 		void ApplySettings();
+
+		void FillAutocomplete(TextEditor* tEdit, const SPIRVParser& spv, bool colorize = true);
 
 		inline bool HasFocus() { return m_selectedItem != -1; }
 		inline bool NeedsFontUpdate() const { return m_fontNeedsUpdate; }

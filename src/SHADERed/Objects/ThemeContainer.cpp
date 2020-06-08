@@ -111,7 +111,14 @@ namespace ed {
 			"CurrentLineFill",
 			"CurrentLineFillInactive",
 			"CurrentLineEdge",
-			"ErrorMessage"
+			"ErrorMessage",
+			"BreakpointDisabled",
+			"UserFunction",
+			"UserType",
+			"UniformVariable",
+			"GlobalVariable",
+			"LocalVariable",
+			"FunctionArgument"
 		};
 
 		INIReader ini("./themes/" + filename);

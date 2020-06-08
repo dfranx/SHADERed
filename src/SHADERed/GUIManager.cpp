@@ -430,6 +430,7 @@ namespace ed {
 		// parse
 		if (!m_data->Renderer.SPIRVQueue.empty()) {
 			auto& spvQueue = m_data->Renderer.SPIRVQueue;
+			CodeEditorUI* codeEditor = ((CodeEditorUI*)Get(ViewID::Code));
 			for (int i = 0; i < spvQueue.size(); i++) {
 				bool hasDups = false;
 
@@ -440,11 +441,33 @@ namespace ed {
 						hasDups = true;
 			
 				if (!hasDups) {
-					printf("SPV parsing %s\n", spvItem->Name);
 					SPIRVParser spvParser;
 					if (spvItem->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
-						spvParser.Parse(pass->PSSPV);
+
+						if (pass->PSSPV.size() > 0) {
+							spvParser.Parse(pass->PSSPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+						}
+						if (pass->VSSPV.size() > 0) {
+							spvParser.Parse(pass->VSSPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Vertex);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+						}
+						if (pass->GSSPV.size() > 0) {
+							spvParser.Parse(pass->GSSPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Geometry);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+						}
+					} else if (spvItem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)spvItem->Data;
+
+						if (pass->SPV.size() > 0) {
+							spvParser.Parse(pass->SPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Compute);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+						}
 					}
 				}
 			}

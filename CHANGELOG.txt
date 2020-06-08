@@ -1,5 +1,7 @@
 [v1.3.5]
 + add "Active autocomplete"
++ add user defined functions, variables & structures to text editor's autocomplete
++ add BreakpointDisabled, UserFunction, UserType, UniformVariable, GlobalVariable, LocalVariable, FunctionArgument entries to TextEditor's theme
 + plugins are backward and forward compatible
 + plugins can define their own shader language
 + improve the "auto recompile" feature

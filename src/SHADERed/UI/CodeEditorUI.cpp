@@ -399,6 +399,98 @@ namespace ed {
 		SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
 		SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange); 
 	}
+	void CodeEditorUI::FillAutocomplete(TextEditor* tEdit, const SPIRVParser& spv, bool colorize)
+	{
+		bool changed = false;
+
+		if (colorize) {
+			// check if there are any function changes
+			for (const auto& func : spv.Functions) {
+				bool funcExists = false;
+				for (const auto& editor : tEdit->GetAutocompleteFunctions()) {
+					if (editor.first == func.first) {
+						funcExists = true;
+
+						// check for argument changes
+						for (const auto& arg : func.second.Arguments) {
+							bool argExists = false;
+							for (const auto& editorArg : editor.second.Arguments) {
+								if (arg == editorArg) {
+									argExists = true;
+									break;
+								}
+							}
+							if (!argExists) changed = true;
+						}
+
+						// check for local variable changes
+						for (const auto& loc : func.second.Locals) {
+							bool locExists = false;
+							for (const auto& editorLoc : editor.second.Locals) {
+								if (loc == editorLoc) {
+									locExists = true;
+									break;
+								}
+							}
+							if (!locExists) changed = true;
+						}
+
+						break;
+					}
+				}
+
+				if (!funcExists) changed = true;
+			}
+			// check if there are any user type changes
+			for (const auto& type : spv.UserTypes) {
+				bool typeExists = false;
+				for (const auto& editor : tEdit->GetAutocompleteUserTypes()) {
+					if (type.first == editor) {
+						typeExists = true;
+						break;
+					}
+				}
+				if (!typeExists) changed = true;
+			}
+			// check if there are any uniform var changes
+			for (const auto& unif : spv.Uniforms) {
+				bool unifExists = false;
+				for (const auto& editor : tEdit->GetAutocompleteUniforms()) {
+					if (unif.Name == editor) {
+						unifExists = true;
+						break;
+					}
+				}
+				if (!unifExists) changed = true;
+			}
+			// check if there are any global var changes
+			for (const auto& glob : spv.Globals) {
+				bool globExists = false;
+				for (const auto& editor : tEdit->GetAutocompleteGlobals()) {
+					if (glob == editor) {
+						globExists = true;
+						break;
+					}
+				}
+				if (!globExists) changed = true;
+			}
+		}
+
+		// pass the data to text editor
+		tEdit->ClearAutocompleteData();
+		for (const auto& pair : spv.Functions)
+			tEdit->AddAutocompleteFunction(pair.first, pair.second.LineStart, pair.second.LineEnd, pair.second.Arguments, pair.second.Locals);
+		for (const auto& pair : spv.UserTypes)
+			tEdit->AddAutocompleteUserType(pair.first);
+		for (const auto& uni : spv.Uniforms)
+			tEdit->AddAutocompleteUniform(uni.Name);
+		for (const auto& glob : spv.Globals)
+			tEdit->AddAutocompleteGlobal(glob);
+
+		// colorize if needed
+		if (changed)
+			tEdit->Colorize();
+	}
 	void CodeEditorUI::SetFont(const std::string& filename, int size)
 	{
 		m_fontNeedsUpdate = m_fontFilename != filename || m_fontSize != size;
@@ -410,19 +502,26 @@ namespace ed {
 	{
 		std::string shaderPath = "";
 		std::string shaderContent = "";
+		bool externalEditor = Settings::Instance().General.UseExternalEditor;
+		SPIRVParser spvData;
 
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {
 			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(item->Data);
 
-			if (stage == ShaderStage::Vertex)
+			if (stage == ShaderStage::Vertex) {
 				shaderPath = shader->VSPath;
-			else if (stage == ShaderStage::Pixel)
+				if (!externalEditor) spvData.Parse(shader->VSSPV);
+			} else if (stage == ShaderStage::Pixel) {
 				shaderPath = shader->PSPath;
-			else if (stage == ShaderStage::Geometry)
+				if (!externalEditor) spvData.Parse(shader->PSSPV);
+			} else if (stage == ShaderStage::Geometry) {
 				shaderPath = shader->GSPath;
+				if (!externalEditor) spvData.Parse(shader->PSSPV);
+			}
 		} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(item->Data);
 			shaderPath = shader->Path;
+			if (!externalEditor) spvData.Parse(shader->SPV);
 		} else if (item->Type == PipelineItem::ItemType::AudioPass) {
 			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(item->Data);
 			shaderPath = shader->Path;
@@ -430,7 +529,7 @@ namespace ed {
 
 		shaderPath = m_data->Parser.GetProjectPath(shaderPath);
 
-		if (Settings::Instance().General.UseExternalEditor) {
+		if (externalEditor) {
 			UIHelper::ShellOpen(shaderPath);
 			return;
 		}
@@ -499,6 +598,8 @@ namespace ed {
 
 		editor->SetText(shaderContent);
 		editor->ResetTextChanged();
+
+		FillAutocomplete(editor, spvData, false);
 	}
 	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
 	{
