@@ -338,7 +338,7 @@ namespace ed {
 
 	void CodeEditorUI::UpdateAutoRecompileItems()
 	{
-		if (m_contentChanged && m_lastAutoRecompile.GetElapsedTime() > 0.35f) {
+		if (m_contentChanged && m_lastAutoRecompile.GetElapsedTime() > 0.8f) {
 			for (int i = 0; i < m_changedEditors.size(); i++) {
 
 				for (int j = 0; j < m_editor.size(); j++) {

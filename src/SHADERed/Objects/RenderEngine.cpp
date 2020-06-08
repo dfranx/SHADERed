@@ -988,6 +988,8 @@ namespace ed {
 				if (item->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
 
+					SPIRVQueue.push_back(item);
+
 					m_msgs->ClearGroup(name);
 
 					glDeleteShader(m_shaderSources[i].VS);
@@ -1114,6 +1116,8 @@ namespace ed {
 				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 
+					SPIRVQueue.push_back(item);
+
 					m_msgs->ClearGroup(name);
 
 					std::string content = "", entry = shader->Entry;
@@ -1220,6 +1224,8 @@ namespace ed {
 				if (item->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
 					m_msgs->ClearGroup(name);
+
+					SPIRVQueue.push_back(item);
 
 					bool vsCompiled = true, psCompiled = true, gsCompiled = true;
 					int lineBias = 0;
@@ -1336,6 +1342,8 @@ namespace ed {
 				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 					m_msgs->ClearGroup(name);
+
+					SPIRVQueue.push_back(item);
 
 					bool compiled = false;
 					GLuint cs = 0;
@@ -1688,6 +1696,8 @@ namespace ed {
 					m_shaders.insert(m_shaders.begin() + i, 0);
 					m_debugShaders.insert(m_debugShaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+					
+					SPIRVQueue.push_back(items[i]);
 
 					if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
 						Logger::Get().Log("No shader paths are set", true);
@@ -1829,6 +1839,8 @@ namespace ed {
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+
+					SPIRVQueue.push_back(items[i]);
 
 					if (strlen(data->Path) == 0) {
 						Logger::Get().Log("No shader paths are set", true);

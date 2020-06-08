@@ -10,6 +10,7 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
@@ -425,6 +426,30 @@ namespace ed {
 			((CodeEditorUI*)Get(ViewID::Code))->EmptyTrackedFiles();
 		}
 		((CodeEditorUI*)Get(ViewID::Code))->UpdateAutoRecompileItems();
+
+		// parse
+		if (!m_data->Renderer.SPIRVQueue.empty()) {
+			auto& spvQueue = m_data->Renderer.SPIRVQueue;
+			for (int i = 0; i < spvQueue.size(); i++) {
+				bool hasDups = false;
+
+				PipelineItem* spvItem = spvQueue[i];
+
+				if (i + 1 < spvQueue.size())
+					if (std::count(spvQueue.begin() + i + 1, spvQueue.end(), spvItem) > 0)
+						hasDups = true;
+			
+				if (!hasDups) {
+					printf("SPV parsing %s\n", spvItem->Name);
+					SPIRVParser spvParser;
+					if (spvItem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
+						spvParser.Parse(pass->PSSPV);
+					}
+				}
+			}
+			spvQueue.clear();
+		}
 
 		// menu
 		if (showMenu && ImGui::BeginMainMenuBar()) {

@@ -18,7 +18,6 @@ namespace ed {
 
 	private:
 		void m_autoVariablePopulate(pipe::ShaderPass* pass);
-		ed::SystemShaderVariable m_autoSystemValue(const std::string& name);
 
 		void m_createFile(const std::string& filen);
 

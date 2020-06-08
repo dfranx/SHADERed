@@ -194,4 +194,39 @@ namespace ed {
 			}
 		}
 	}
+	ed::SystemShaderVariable SystemVariableManager::GetTypeFromName(const std::string& name)
+	{
+		std::string vname = name;
+		std::transform(vname.begin(), vname.end(), vname.begin(), tolower);
+
+		// list of rules for detection:
+		if (vname.find("time") != std::string::npos && vname.find("d") == std::string::npos && vname.find("del") == std::string::npos && vname.find("delta") == std::string::npos)
+			return SystemShaderVariable::Time;
+		else if (vname.find("time") != std::string::npos && (vname.find("d") != std::string::npos || vname.find("del") != std::string::npos || vname.find("delta") != std::string::npos))
+			return SystemShaderVariable::TimeDelta;
+		else if (vname.find("frame") != std::string::npos || vname.find("index") != std::string::npos)
+			return SystemShaderVariable::FrameIndex;
+		else if (vname.find("size") != std::string::npos || vname.find("window") != std::string::npos || vname.find("viewport") != std::string::npos || vname.find("resolution") != std::string::npos || vname.find("res") != std::string::npos)
+			return SystemShaderVariable::ViewportSize;
+		else if (vname.find("mouse") != std::string::npos || vname == "mpos")
+			return SystemShaderVariable::MousePosition;
+		else if (vname == "view" || vname == "matview" || vname == "matv" || vname == "mview")
+			return SystemShaderVariable::View;
+		else if (vname == "proj" || vname == "matproj" || vname == "matp" || vname == "mproj" || vname == "projection" || vname == "matprojection" || vname == "mprojection")
+			return SystemShaderVariable::Projection;
+		else if (vname == "matvp" || vname == "matviewproj" || vname == "matviewprojection" || vname == "viewprojection" || vname == "viewproj" || vname == "mvp")
+			return SystemShaderVariable::ViewProjection;
+		else if (vname.find("ortho") != std::string::npos)
+			return SystemShaderVariable::Orthographic;
+		else if (vname.find("geo") != std::string::npos || vname.find("model") != std::string::npos)
+			return SystemShaderVariable::GeometryTransform;
+		else if (vname.find("pick") != std::string::npos)
+			return SystemShaderVariable::IsPicked;
+		else if (vname.find("cam") != std::string::npos)
+			return SystemShaderVariable::CameraPosition3;
+		else if (vname.find("keys") != std::string::npos || vname.find("wasd") != std::string::npos)
+			return SystemShaderVariable::KeysWASD;
+
+		return SystemShaderVariable::None;
+	}
 }

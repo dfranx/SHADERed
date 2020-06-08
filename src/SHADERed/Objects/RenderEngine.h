@@ -55,6 +55,9 @@ namespace ed {
 		inline bool IsPaused() { return m_paused; }
 		void Pause(bool pause);
 
+		// list of items waiting to be parsed
+		std::vector<PipelineItem*> SPIRVQueue;
+
 	public:
 		struct ItemVariableValue {
 			ItemVariableValue(ed::ShaderVariable* var)

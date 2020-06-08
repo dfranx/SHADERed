@@ -380,7 +380,7 @@ namespace ed {
 		shader.setEnvTarget(glslang::EShTargetSpv, targetLanguageVersion);
 
 		TBuiltInResource res = DefaultTBuiltInResource;
-		EShMessages messages = (EShMessages)(EShMsgSpvRules);
+		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgKeepUncalled);
 
 		const int defVersion = sVersion;
 

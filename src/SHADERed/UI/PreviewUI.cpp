@@ -742,45 +742,55 @@ namespace ed {
 
 	void PreviewUI::m_renderStatusbar(float width, float height)
 	{
+		bool isItemListVisible = width >= Settings::Instance().CalculateSize(675);
+		bool isZoomVisible = width >= Settings::Instance().CalculateSize(565);
+		bool isTimeVisible = width >= Settings::Instance().CalculateSize(445);
+		bool areControlsVisible = width >= Settings::Instance().CalculateSize(330);
+
+		int offset = (-100 * !isZoomVisible) + (-100 * !isTimeVisible);
+
 		float FPS = 1.0f / m_fpsDelta;
 		ImGui::Separator();
 		ImGui::Text("FPS: %.2f", FPS);
-		ImGui::SameLine();
 
-		ImGui::SameLine(Settings::Instance().CalculateSize(120));
-		ImGui::Text("Time: %.2f", SystemVariableManager::Instance().GetTime());
-		ImGui::SameLine();
+		if (isTimeVisible) {
+			ImGui::SameLine(Settings::Instance().CalculateSize(120));
+			ImGui::Text("Time: %.2f", SystemVariableManager::Instance().GetTime());
+		}
 
-		ImGui::SameLine(Settings::Instance().CalculateSize(240));
-		ImGui::Text("Zoom: %d%%", (int)((1.0f / m_zoom.GetZoomSize().x) * 100.0f));
-		ImGui::SameLine();
+		if (isZoomVisible) {
+			ImGui::SameLine(Settings::Instance().CalculateSize(240));
+			ImGui::Text("Zoom: %d%%", (int)((1.0f / m_zoom.GetZoomSize().x) * 100.0f));
+		}
 
-		ImGui::SameLine(Settings::Instance().CalculateSize(340));
-		if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
-			m_pickMode = 0;
-			m_gizmo.SetMode(m_pickMode);
-		} else if (m_pickMode == 0)
-			ImGui::PopStyleColor();
-		ImGui::SameLine();
+		if (areControlsVisible) {
+			ImGui::SameLine(Settings::Instance().CalculateSize(340 + offset));
+			if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
+				m_pickMode = 0;
+				m_gizmo.SetMode(m_pickMode);
+			} else if (m_pickMode == 0)
+				ImGui::PopStyleColor();
 
-		if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
-			m_pickMode = 1;
-			m_gizmo.SetMode(m_pickMode);
-		} else if (m_pickMode == 1)
-			ImGui::PopStyleColor();
-		ImGui::SameLine();
+			ImGui::SameLine();
+			if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
+				m_pickMode = 1;
+				m_gizmo.SetMode(m_pickMode);
+			} else if (m_pickMode == 1)
+				ImGui::PopStyleColor();
 
-		if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
-			m_pickMode = 2;
-			m_gizmo.SetMode(m_pickMode);
-		} else if (m_pickMode == 2)
-			ImGui::PopStyleColor();
-		ImGui::SameLine();
+			ImGui::SameLine();
+			if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
+				m_pickMode = 2;
+				m_gizmo.SetMode(m_pickMode);
+			} else if (m_pickMode == 2)
+				ImGui::PopStyleColor();
+		}
 
-		if (m_picks.size() != 0) {
+		ImGui::SameLine();
+		if (m_picks.size() != 0 && isItemListVisible) {
 			ImGui::SameLine(0, Settings::Instance().CalculateSize(20));
 			ImGui::Text("Picked: ");
 
@@ -801,15 +811,15 @@ namespace ed {
 			ImGui::SameLine();
 		}
 
-		/* PAUSE BUTTON */
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-
 		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
 		if (ImGui::GetCursorPosX() >= pauseStartX - 100)
 			ImGui::SameLine();
 		else
 			ImGui::SetCursorPosX(pauseStartX);
 
+
+		/* PAUSE BUTTON */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
 			m_data->Objects.Pause(m_data->Renderer.IsPaused());

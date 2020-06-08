@@ -41,6 +41,7 @@ set(SOURCES
 	src/SHADERed/Objects/RenderEngine.cpp
 	src/SHADERed/Objects/Settings.cpp
 	src/SHADERed/Objects/ShaderVariableContainer.cpp
+	src/SHADERed/Objects/SPIRVParser.cpp
 	src/SHADERed/Objects/SystemVariableManager.cpp
 	src/SHADERed/Objects/ThemeContainer.cpp
 	src/SHADERed/Objects/TipFetcher.cpp

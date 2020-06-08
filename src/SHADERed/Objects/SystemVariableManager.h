@@ -61,6 +61,8 @@ namespace ed {
 
 		void Update(ed::ShaderVariable* var, void* item = nullptr);
 
+		static ed::SystemShaderVariable GetTypeFromName(const std::string& name);
+
 		void Reset();
 		void CopyState();
 
