@@ -591,7 +591,7 @@ namespace ed {
 					textureNode.append_attribute("front").set_value(texmaps[2].c_str());
 					textureNode.append_attribute("bottom").set_value(texmaps[3].c_str());
 					textureNode.append_attribute("right").set_value(texmaps[4].c_str());
-					textureNode.append_attribute("back").set_value(texmaps[4].c_str());
+					textureNode.append_attribute("back").set_value(texmaps[5].c_str());
 				}
 
 				if (isTexture) {
