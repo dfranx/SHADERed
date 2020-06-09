@@ -21,6 +21,7 @@ namespace ed {
 		General.AutoUniforms = true;
 		General.AutoUniformsPin = false;
 		General.AutoUniformsFunction = false;
+		General.AutoUniformsDelete = false;
 		General.ReopenShaders = true;
 		General.UseExternalEditor = true;
 		General.OpenShadersOnDblClk = true;
@@ -104,6 +105,7 @@ namespace ed {
 		General.AutoUniforms = ini.GetBoolean("general", "autouniforms", true);
 		General.AutoUniformsPin = ini.GetBoolean("general", "autouniformspin", false);
 		General.AutoUniformsFunction = ini.GetBoolean("general", "autouniformsfunction", false);
+		General.AutoUniformsDelete = ini.GetBoolean("general", "autouniformsdelete", false);
 		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		General.Tips = ini.GetBoolean("general", "tips", false);
@@ -185,6 +187,7 @@ namespace ed {
 		ini << "autouniforms=" << General.AutoUniforms << std::endl;
 		ini << "autouniformspin=" << General.AutoUniformsPin << std::endl;
 		ini << "autouniformsfunction=" << General.AutoUniformsFunction << std::endl;
+		ini << "autouniformsdelete=" << General.AutoUniformsDelete << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;

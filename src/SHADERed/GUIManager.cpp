@@ -444,33 +444,56 @@ namespace ed {
 					SPIRVParser spvParser;
 					if (spvItem->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
+						std::vector<std::string> allUniforms;
 
 						if (pass->PSSPV.size() > 0) {
 							spvParser.Parse(pass->PSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) m_autoUniforms(pass->Variables, spvParser);
+							if (settings.General.AutoUniforms) {
+								m_autoUniforms(pass->Variables, spvParser);
+								for (const auto& uni : spvParser.Uniforms)
+									allUniforms.push_back(uni.Name);
+							}
 						}
 						if (pass->VSSPV.size() > 0) {
 							spvParser.Parse(pass->VSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Vertex);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) m_autoUniforms(pass->Variables, spvParser);
+							if (settings.General.AutoUniforms) {
+								m_autoUniforms(pass->Variables, spvParser);
+								for (const auto& uni : spvParser.Uniforms)
+									allUniforms.push_back(uni.Name);
+							}
 						}
 						if (pass->GSSPV.size() > 0) {
 							spvParser.Parse(pass->GSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Geometry);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) m_autoUniforms(pass->Variables, spvParser);
+							if (settings.General.AutoUniforms) {
+								m_autoUniforms(pass->Variables, spvParser);
+								for (const auto& uni : spvParser.Uniforms)
+									allUniforms.push_back(uni.Name);
+							}
 						}
+
+						if (settings.General.AutoUniforms && settings.General.AutoUniformsDelete && pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed))
+							m_deleteUnusedUniforms(pass->Variables, allUniforms);
 					} else if (spvItem->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass* pass = (pipe::ComputePass*)spvItem->Data;
+						std::vector<std::string> allUniforms;
 
 						if (pass->SPV.size() > 0) {
 							spvParser.Parse(pass->SPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Compute);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) m_autoUniforms(pass->Variables, spvParser);
+							if (settings.General.AutoUniforms) {
+								m_autoUniforms(pass->Variables, spvParser);
+								for (const auto& uni : spvParser.Uniforms)
+									allUniforms.push_back(uni.Name);
+								if (settings.General.AutoUniformsDelete)
+									m_deleteUnusedUniforms(pass->Variables, allUniforms);
+							}
 						}
 					}
 				}
@@ -2203,6 +2226,25 @@ namespace ed {
 
 				if (Settings::Instance().General.AutoUniformsPin&& usage == SystemShaderVariable::None)
 					pinUI->Add(ptr);
+			}
+		}
+	}
+	void GUIManager::m_deleteUnusedUniforms(ShaderVariableContainer& varManager, const std::vector<std::string>& spv)
+	{
+		PinnedUI* pinUI = ((PinnedUI*)Get(ViewID::Pinned));
+		std::vector<ShaderVariable*> vars = varManager.GetVariables();
+
+		for (ShaderVariable* var : vars) {
+			bool exists = false;
+			for (const auto& unif : spv)
+				if (strcmp(var->Name, unif.c_str()) == 0) {
+					exists = true;
+					break;
+				}
+
+			if (!exists) {
+				pinUI->Remove(var->Name);
+				varManager.Remove(var->Name);
 			}
 		}
 	}

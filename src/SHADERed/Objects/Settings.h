@@ -27,6 +27,7 @@ namespace ed {
 			bool AutoUniforms;
 			bool AutoUniformsPin;
 			bool AutoUniformsFunction;
+			bool AutoUniformsDelete;
 			bool ReopenShaders;
 			bool UseExternalEditor;
 			bool OpenShadersOnDblClk;

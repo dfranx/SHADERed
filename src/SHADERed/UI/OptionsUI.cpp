@@ -271,6 +271,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autouniformsfunction", &settings->General.AutoUniformsFunction);
 
+		/* DELETE UNIFORMS */
+		ImGui::Text("Delete unused uniforms: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_autouniformsdelete", &settings->General.AutoUniformsDelete);
+
 		ImGui::Unindent(settings->CalculateSize(60));
 		if (!settings->General.AutoUniforms) {
 			ImGui::PopStyleVar();
