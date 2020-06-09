@@ -20,7 +20,7 @@ namespace ed {
 		~ShaderVariableContainer();
 
 		inline void Add(ShaderVariable* var) { m_vars.push_back(var); }
-		void AddCopy(ShaderVariable var);
+		ShaderVariable* AddCopy(ShaderVariable var);
 		void Remove(const char* name);
 
 		bool ContainsVariable(const char* name);

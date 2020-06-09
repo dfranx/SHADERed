@@ -1,4 +1,5 @@
 [v1.3.5]
++ add a feature that automatically detects and adds uniforms to variable manager
 + add "Active autocomplete"
 + add user defined functions, variables & structures to text editor's autocomplete
 + add BreakpointDisabled, UserFunction, UserType, UniformVariable, GlobalVariable, LocalVariable, FunctionArgument entries to TextEditor's theme

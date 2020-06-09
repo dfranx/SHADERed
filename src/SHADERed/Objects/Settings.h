@@ -18,13 +18,15 @@ namespace ed {
 
 		struct strGeneral {
 			bool VSync;
-			// std::string Language;	// [TODO] Not implemented
 			bool AutoOpenErrorWindow;
 			bool Toolbar;
 			bool Recovery; // [TODO] Not implemented
 			bool CheckUpdates;
 			bool RecompileOnFileChange;
 			bool AutoRecompile;
+			bool AutoUniforms;
+			bool AutoUniformsPin;
+			bool AutoUniformsFunction;
 			bool ReopenShaders;
 			bool UseExternalEditor;
 			bool OpenShadersOnDblClk;

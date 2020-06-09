@@ -16,6 +16,11 @@ namespace ed {
 		General.Toolbar = false;
 		General.Recovery = false;
 		General.CheckUpdates = true;
+		General.RecompileOnFileChange = false;
+		General.AutoRecompile = false;
+		General.AutoUniforms = true;
+		General.AutoUniformsPin = false;
+		General.AutoUniformsFunction = false;
 		General.ReopenShaders = true;
 		General.UseExternalEditor = true;
 		General.OpenShadersOnDblClk = true;
@@ -96,6 +101,9 @@ namespace ed {
 		General.SelectItemOnDblClk = ini.GetBoolean("general", "selectitemdblclk", true);
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", false);
 		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
+		General.AutoUniforms = ini.GetBoolean("general", "autouniforms", true);
+		General.AutoUniformsPin = ini.GetBoolean("general", "autouniformspin", false);
+		General.AutoUniformsFunction = ini.GetBoolean("general", "autouniformsfunction", false);
 		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		General.Tips = ini.GetBoolean("general", "tips", false);
@@ -174,6 +182,9 @@ namespace ed {
 		ini << "selectitemdblclk=" << General.SelectItemOnDblClk << std::endl;
 		ini << "trackfilechange=" << General.RecompileOnFileChange << std::endl;
 		ini << "autorecompile=" << General.AutoRecompile << std::endl;
+		ini << "autouniforms=" << General.AutoUniforms << std::endl;
+		ini << "autouniformspin=" << General.AutoUniformsPin << std::endl;
+		ini << "autouniformsfunction=" << General.AutoUniformsFunction << std::endl;
 		ini << "template=" << General.StartUpTemplate << std::endl;
 		ini << "font=" << General.Font << std::endl;
 		ini << "fontsize=" << General.FontSize << std::endl;

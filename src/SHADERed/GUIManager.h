@@ -1,6 +1,8 @@
 #pragma once
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/UpdateChecker.h>
+#include <SHADERed/Objects/ShaderVariableContainer.h>
+#include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/Engine/Timer.h>
 
 #include <SDL2/SDL_events.h>
@@ -83,6 +85,8 @@ namespace ed {
 		void m_setupShortcuts();
 
 		void m_imguiHandleEvent(const SDL_Event& e);
+
+		void m_autoUniforms(ShaderVariableContainer& vars, SPIRVParser& spv);
 
 		void m_tooltip(const std::string& str);
 		void m_renderToolbar();

@@ -16,10 +16,11 @@ namespace ed {
 			delete m_vars[i];
 		}
 	}
-	void ShaderVariableContainer::AddCopy(ShaderVariable var)
+	ShaderVariable* ShaderVariableContainer::AddCopy(ShaderVariable var)
 	{
 		ShaderVariable* n = new ShaderVariable(var);
 		m_vars.push_back(n);
+		return n;
 	}
 	void ShaderVariableContainer::Remove(const char* name)
 	{

@@ -250,6 +250,33 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_autorecompile", &settings->General.AutoRecompile);
 
+		/* AUTO UNIFORMS: */
+		ImGui::Text("Automatically detect and add uniforms to variable manager: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_autouniforms", &settings->General.AutoUniforms);
+
+		if (!settings->General.AutoUniforms) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+		ImGui::Indent(settings->CalculateSize(60));
+
+		/* PIN UNIFORMS */
+		ImGui::Text("Pin detected uniforms: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_autouniformspin", &settings->General.AutoUniformsPin);
+
+		/* UNIFORM FUNCTION */
+		ImGui::Text("Detect uniform's usage: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_autouniformsfunction", &settings->General.AutoUniformsFunction);
+
+		ImGui::Unindent(settings->CalculateSize(60));
+		if (!settings->General.AutoUniforms) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
 		/* REOPEN: */
 		ImGui::Text("Reopen shaders after openning a project: ");
 		ImGui::SameLine();
