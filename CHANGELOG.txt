@@ -13,6 +13,7 @@
 + fix cubemap saving
 + fix text editor's "Save changes" popup
 + fix "Autocomplete" option
++ fix "Brace completion"
 + rename "Recompile shader every 200ms" to "Recompile shader on content change"
 + rename "Smart predictions" to "Autocomplete"
 
