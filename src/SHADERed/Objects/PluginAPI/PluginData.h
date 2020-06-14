@@ -90,5 +90,11 @@ namespace ed {
 			Plugin,
 			Count
 		};
+
+		struct ShaderMacro {
+			bool Active;
+			char Name[32];
+			char Value[512];
+		};
 	}
 }

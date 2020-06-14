@@ -588,6 +588,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_show_functooltips", &settings->Editor.FunctionTooltips);
 
+		/* SYNTAX HIGHLIGHTING: */
+		ImGui::Text("Syntax highlighting: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_syntax_highlgt", &settings->Editor.SyntaxHighlighting);
+
 		/* AUTO BRACE COMPLETION: */
 		ImGui::Text("Brace completion: ");
 		ImGui::SameLine();

@@ -421,6 +421,18 @@ namespace ed {
 
 					return ret;
 				};
+				plugin->GetIncludePathCount = []() -> int {
+					return Settings::Instance().Project.IncludePaths.size();
+				};
+				plugin->GetIncludePath = [](void* project, int index) -> const char* {
+					return Settings::Instance().Project.IncludePaths[index].c_str();
+				};
+				plugin->GetMessagesCurrentItem = [](void* messages) -> const char* {
+					return ((ed::MessageStack*)messages)->CurrentItem.c_str();
+				};
+
+				pluginfn::GetOpenFileDialogFn GetIncludePathCount;
+				pluginfn::GetSaveFileDialogFn GetIncludePath;
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
 				plugin->Init();

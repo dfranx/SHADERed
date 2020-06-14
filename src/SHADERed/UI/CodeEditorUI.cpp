@@ -393,6 +393,7 @@ namespace ed {
 			editor->SetUIFontSize(Settings::Instance().General.FontSize);
 			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
+			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			m_loadEditorShortcuts(editor);
 		}
 
@@ -579,6 +580,7 @@ namespace ed {
 		editor->SetUIFontSize(Settings::Instance().General.FontSize);
 		editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 		editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
+		editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 		m_loadEditorShortcuts(editor);
 
 		ShaderLanguage sLang = ShaderCompiler::GetShaderLanguageFromExtension(shaderPath);
@@ -654,6 +656,7 @@ namespace ed {
 		editor->SetUIFontSize(Settings::Instance().General.FontSize);
 		editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 		editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
+		editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 		m_loadEditorShortcuts(editor);
 
 		editor->SetLanguageDefinition(defPlugin);

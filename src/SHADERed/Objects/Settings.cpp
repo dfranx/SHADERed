@@ -19,9 +19,9 @@ namespace ed {
 		General.RecompileOnFileChange = false;
 		General.AutoRecompile = false;
 		General.AutoUniforms = true;
-		General.AutoUniformsPin = false;
-		General.AutoUniformsFunction = false;
-		General.AutoUniformsDelete = false;
+		General.AutoUniformsPin = true;
+		General.AutoUniformsFunction = true;
+		General.AutoUniformsDelete = true;
 		General.ReopenShaders = true;
 		General.UseExternalEditor = true;
 		General.OpenShadersOnDblClk = true;
@@ -53,6 +53,7 @@ namespace ed {
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
 		Editor.FunctionTooltips = true;
+		Editor.SyntaxHighlighting = true;
 
 		Debug.ShowValuesOnHover = true;
 		Debug.AutoFetch = false;
@@ -103,9 +104,9 @@ namespace ed {
 		General.RecompileOnFileChange = ini.GetBoolean("general", "trackfilechange", false);
 		General.AutoRecompile = ini.GetBoolean("general", "autorecompile", false);
 		General.AutoUniforms = ini.GetBoolean("general", "autouniforms", true);
-		General.AutoUniformsPin = ini.GetBoolean("general", "autouniformspin", false);
-		General.AutoUniformsFunction = ini.GetBoolean("general", "autouniformsfunction", false);
-		General.AutoUniformsDelete = ini.GetBoolean("general", "autouniformsdelete", false);
+		General.AutoUniformsPin = ini.GetBoolean("general", "autouniformspin", true);
+		General.AutoUniformsFunction = ini.GetBoolean("general", "autouniformsfunction", true);
+		General.AutoUniformsDelete = ini.GetBoolean("general", "autouniformsdelete", true);
 		General.StartUpTemplate = ini.Get("general", "template", "GLSL");
 		General.AutoScale = ini.GetBoolean("general", "autoscale", true);
 		General.Tips = ini.GetBoolean("general", "tips", false);
@@ -130,6 +131,7 @@ namespace ed {
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
+		Editor.SyntaxHighlighting = ini.GetBoolean("editor", "syntaxhighlighting", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", false);
@@ -255,6 +257,7 @@ namespace ed {
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 		ini << "functooltips=" << Editor.FunctionTooltips << std::endl;
+		ini << "syntaxhighlighting=" << Editor.SyntaxHighlighting << std::endl;
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;

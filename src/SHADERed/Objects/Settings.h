@@ -60,6 +60,7 @@ namespace ed {
 			bool SmartIndent;
 			bool InsertSpaces;
 			bool FunctionTooltips;
+			bool SyntaxHighlighting;
 			int TabSize;
 		} Editor;
 

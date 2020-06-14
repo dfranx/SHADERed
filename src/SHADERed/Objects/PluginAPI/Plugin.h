@@ -70,6 +70,10 @@ namespace ed {
 		typedef bool (*GetOpenDirectoryDialogFn)(char* out);
 		typedef bool (*GetOpenFileDialogFn)(char* out, const char* files);
 		typedef bool (*GetSaveFileDialogFn)(char* out, const char* files);
+
+		typedef int (*GetIncludePathCountFn)();
+		typedef const char* (*GetIncludePathFn)(void* project, int index);
+		typedef const char* (*GetMessagesCurrentItemFn)(void* messages);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -171,7 +175,7 @@ namespace ed {
 		// languages
 		virtual int GetCustomLanguageCount() = 0;
 		virtual const char* GetCustomLanguageName(int langID) = 0;
-		virtual const unsigned int* CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, size_t* spv_length, bool* compiled) = 0;
+		virtual const unsigned int* CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
 		virtual const char* ProcessGLSL(int langID, const char* src) = 0;
 
 		// code editor
@@ -258,5 +262,8 @@ namespace ed {
 		pluginfn::GetOpenDirectoryDialogFn GetOpenDirectoryDialog;
 		pluginfn::GetOpenFileDialogFn GetOpenFileDialog;
 		pluginfn::GetSaveFileDialogFn GetSaveFileDialog;
+		pluginfn::GetIncludePathCountFn GetIncludePathCount;
+		pluginfn::GetIncludePathFn GetIncludePath;
+		pluginfn::GetMessagesCurrentItemFn GetMessagesCurrentItem;
 	};
 }

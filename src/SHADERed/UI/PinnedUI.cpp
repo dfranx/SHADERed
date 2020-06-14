@@ -15,8 +15,8 @@ namespace ed {
 			if (m_editor.Update())
 				m_data->Parser.ModifyProject();
 
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2 - 22);
-			if (ImGui::Button(("CLOSE##pin_cls_" + std::string(var->Name)).c_str(), ImVec2(44, 0))) {
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2 - Settings::Instance().CalculateSize(25));
+			if (ImGui::Button(("CLOSE##pin_cls_" + std::string(var->Name)).c_str(), ImVec2(Settings::Instance().CalculateSize(50), 0))) {
 				Remove(var->Name);
 				m_data->Parser.ModifyProject();
 			}
@@ -27,7 +27,7 @@ namespace ed {
 		}
 
 		if (m_pinnedVars.size() == 0)
-			ImGui::TextWrapped("Pin variables here for easy editing");
+			ImGui::TextWrapped("Pin variables here for easy access");
 	}
 	void PinnedUI::Add(ed::ShaderVariable* inp)
 	{

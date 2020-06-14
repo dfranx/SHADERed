@@ -1,14 +1,16 @@
 [v1.3.5]
 + add a feature that automatically detects and adds uniforms to variable manager
-+ add "Active autocomplete"
++ add "Active autocomplete" option
 + add user defined functions, variables & structures to text editor's autocomplete
 + add BreakpointDisabled, UserFunction, UserType, UniformVariable, GlobalVariable, LocalVariable, FunctionArgument entries to TextEditor's theme
++ add "Syntax highlighting" option
 + plugins are backward and forward compatible
 + plugins can define their own shader language
 + improve the "auto recompile" feature
 + fix text editor's ui scaling
 + fix HLSL geometry shaders
 + fix a bug that caused deleted plugins to stay in the "Not loaded" list in options
++ fix cubemap saving
 + fix text editor's "Save changes" popup
 + fix "Autocomplete" option
 + rename "Recompile shader every 200ms" to "Recompile shader on content change"
