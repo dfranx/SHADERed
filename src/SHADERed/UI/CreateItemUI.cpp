@@ -140,7 +140,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::InputText("##cui_spvspath", data->VSPath, MAX_PATH);
+			ImGui::InputText("##cui_spvspath", data->VSPath, SHADERED_MAX_PATH);
 			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -172,7 +172,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::InputText("##cui_sppspath", data->PSPath, MAX_PATH);
+			ImGui::InputText("##cui_sppspath", data->PSPath, SHADERED_MAX_PATH);
 			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -216,7 +216,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::InputText("##cui_spgspath", data->GSPath, MAX_PATH);
+			ImGui::InputText("##cui_spgspath", data->GSPath, SHADERED_MAX_PATH);
 			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
@@ -253,7 +253,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
-			ImGui::InputText("##cui_cppath", data->Path, MAX_PATH);
+			ImGui::InputText("##cui_cppath", data->Path, SHADERED_MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::PopItemFlag();
 			ImGui::SameLine();
@@ -300,7 +300,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
-			ImGui::InputText("##cui_appath", data->Path, MAX_PATH);
+			ImGui::InputText("##cui_appath", data->Path, SHADERED_MAX_PATH);
 			ImGui::PopItemWidth();
 			ImGui::PopItemFlag();
 			ImGui::SameLine();
@@ -603,7 +603,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(PATH_SPACE_LEFT);
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::InputText("##cui_objfile", data->Filename, MAX_PATH);
+			ImGui::InputText("##cui_objfile", data->Filename, SHADERED_MAX_PATH);
 			ImGui::PopItemFlag();
 			ImGui::PopItemWidth();
 			ImGui::SameLine();

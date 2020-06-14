@@ -37,7 +37,7 @@ namespace ed {
 			bool StreamLogs;
 			bool PipeLogsToTerminal;
 			std::string StartUpTemplate;
-			char Font[MAX_PATH];
+			char Font[SHADERED_MAX_PATH];
 			int FontSize;
 			bool AutoScale;
 			bool Tips;
@@ -49,7 +49,7 @@ namespace ed {
 		struct strEditor {
 			bool SmartPredictions;
 			bool ActiveSmartPredictions;
-			char Font[MAX_PATH];
+			char Font[SHADERED_MAX_PATH];
 			int FontSize;
 			bool ShowWhitespace;
 			bool HiglightCurrentLine;

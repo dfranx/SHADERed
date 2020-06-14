@@ -361,6 +361,14 @@ namespace ed {
 
 		// set macros
 		std::string preambleStr = (inLang == ShaderLanguage::HLSL) ? "#extension GL_GOOGLE_include_directive : enable\n" : "";
+
+#ifdef SHADERED_WEB
+		preambleStr += "#define SHADERED_WEB\n";
+#else
+		preambleStr += "#define SHADERED_DESKTOP\n";
+#endif
+		preambleStr += "#define SHADERED_VERSION " + std::to_string(SHADERED_VERSION) + "\n";
+
 		for (auto& macro : macros) {
 			if (!macro.Active)
 				continue;

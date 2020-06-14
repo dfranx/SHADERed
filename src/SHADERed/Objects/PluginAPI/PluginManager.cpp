@@ -435,7 +435,11 @@ namespace ed {
 				pluginfn::GetSaveFileDialogFn GetIncludePath;
 
 				// now we can add the plugin and the proc to the list, init the plugin, etc...
-				plugin->Init();
+#ifdef SHADERED_DESKTOP
+				plugin->Init(false, SHADERED_VERSION);
+#else
+				plugin->Init(true, SHADERED_VERSION);
+#endif
 				m_plugins.push_back(plugin);
 				m_proc.push_back(procDLL);
 				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);

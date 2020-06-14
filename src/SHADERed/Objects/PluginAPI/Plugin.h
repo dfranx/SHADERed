@@ -81,7 +81,7 @@ namespace ed {
 	public:
 		virtual int GetVersion() { return 1; }
 		
-		virtual bool Init() = 0;
+		virtual bool Init(bool isWeb, int sedVersion) = 0;
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;

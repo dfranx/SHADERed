@@ -62,13 +62,13 @@ namespace ed {
 			ComputePass()
 			{
 				Macros.clear();
-				memset(Path, 0, sizeof(char) * MAX_PATH);
+				memset(Path, 0, sizeof(char) * SHADERED_MAX_PATH);
 				memset(Entry, 0, sizeof(char) * 32);
 
 				WorkX = WorkY = WorkZ = 1;
 			}
 
-			char Path[MAX_PATH];
+			char Path[SHADERED_MAX_PATH];
 			char Entry[32];
 			std::vector<unsigned int> SPV; // SPIR-V
 
@@ -81,11 +81,11 @@ namespace ed {
 			AudioPass()
 			{
 				Macros.clear();
-				memset(Path, 0, sizeof(char) * MAX_PATH);
+				memset(Path, 0, sizeof(char) * SHADERED_MAX_PATH);
 			}
 
 			ed::AudioShaderStream Stream;
-			char Path[MAX_PATH];
+			char Path[SHADERED_MAX_PATH];
 			ShaderVariableContainer Variables;
 			std::vector<ShaderMacro> Macros;
 		};
@@ -100,9 +100,9 @@ namespace ed {
 				GSUsed = false;
 				Active = true;
 				Macros.clear();
-				memset(VSPath, 0, sizeof(char) * MAX_PATH);
-				memset(PSPath, 0, sizeof(char) * MAX_PATH);
-				memset(GSPath, 0, sizeof(char) * MAX_PATH);
+				memset(VSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
+				memset(PSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
+				memset(GSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
 				memset(VSEntry, 0, sizeof(char) * 32);
 				memset(PSEntry, 0, sizeof(char) * 32);
 				memset(GSEntry, 0, sizeof(char) * 32);
@@ -115,15 +115,15 @@ namespace ed {
 
 			bool Active;
 
-			char VSPath[MAX_PATH];
+			char VSPath[SHADERED_MAX_PATH];
 			char VSEntry[32];
 			std::vector<unsigned int> VSSPV; // VS SPIR-V
 
-			char PSPath[MAX_PATH];
+			char PSPath[SHADERED_MAX_PATH];
 			char PSEntry[32];
 			std::vector<unsigned int> PSSPV; // PS SPIR-V
 
-			char GSPath[MAX_PATH];
+			char GSPath[SHADERED_MAX_PATH];
 			char GSEntry[32];
 			std::vector<unsigned int> GSSPV; // GS SPIR-V
 			bool GSUsed;
@@ -253,7 +253,7 @@ namespace ed {
 		struct Model {
 			bool OnlyGroup; // render only a group
 			char GroupName[MODEL_GROUP_NAME_LENGTH];
-			char Filename[MAX_PATH];
+			char Filename[SHADERED_MAX_PATH];
 
 			eng::Model* Data;
 

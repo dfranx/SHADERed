@@ -205,7 +205,7 @@ namespace ed {
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::InputText("##pui_vspath", item->VSPath, MAX_PATH);
+					ImGui::InputText("##pui_vspath", item->VSPath, SHADERED_MAX_PATH);
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -250,7 +250,7 @@ namespace ed {
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					if (ImGui::InputText("##pui_pspath", item->PSPath, MAX_PATH))
+					if (ImGui::InputText("##pui_pspath", item->PSPath, SHADERED_MAX_PATH))
 						m_data->Parser.ModifyProject();
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
@@ -306,7 +306,7 @@ namespace ed {
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::InputText("##pui_gspath", item->GSPath, MAX_PATH);
+					ImGui::InputText("##pui_gspath", item->GSPath, SHADERED_MAX_PATH);
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -351,7 +351,7 @@ namespace ed {
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::InputText("##pui_cspath", item->Path, MAX_PATH);
+					ImGui::InputText("##pui_cspath", item->Path, SHADERED_MAX_PATH);
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();
@@ -411,7 +411,7 @@ namespace ed {
 
 					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::InputText("##pui_sspath", item->Path, MAX_PATH);
+					ImGui::InputText("##pui_sspath", item->Path, SHADERED_MAX_PATH);
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 					ImGui::SameLine();

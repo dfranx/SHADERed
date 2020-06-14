@@ -931,7 +931,7 @@ namespace ed {
 		ImGui::Text("Include directories: ");
 		ImGui::SameLine();
 		ImGui::Indent(settings->CalculateSize(150));
-		static char ipathEntry[MAX_PATH] = { 0 };
+		static char ipathEntry[SHADERED_MAX_PATH] = { 0 };
 		if (ImGui::ListBoxHeader("##optpr_ipaths", ImVec2(0, settings->CalculateSize(250)))) {
 			for (auto& ext : settings->Project.IncludePaths)
 				if (ImGui::Selectable(ext.c_str()))
@@ -940,7 +940,7 @@ namespace ed {
 		}
 		ImGui::PushItemWidth(settings->CalculateSize(-125));
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::InputText("##optpr_ipath_inp", ipathEntry, MAX_PATH);
+		ImGui::InputText("##optpr_ipath_inp", ipathEntry, SHADERED_MAX_PATH);
 		ImGui::PopItemFlag();
 		ImGui::PopItemWidth();
 		ImGui::SameLine();

@@ -10,17 +10,16 @@
 #define SDL_GLSL_VERSION "#version 330"
 #define IMGUI_INI_FILE "data/workspace.dat"
 
+#define SHADERED_DESKTOP
+// #define SHADERED_WEB
+#define SHADERED_VERSION 1003005
+
 #define DEBUG_ID_START 1
 #define DEBUG_PRIMITIVE_GROUP 170
 #define DEBUG_INSTANCE_GROUP 512
 
-// TODO: maybe dont use MAX_PATH but rather custom define?
-#ifdef MAX_PATH
-#undef MAX_PATH
-#endif
-
 #ifdef _WIN32
-#define MAX_PATH 260
+#define SHADERED_MAX_PATH 260
 #else
-#define MAX_PATH 512
+#define SHADERED_MAX_PATH 512
 #endif

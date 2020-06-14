@@ -1627,7 +1627,7 @@ namespace ed {
 				std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
 
 				// parse path and type
-				pugi::char_t shaderPath[MAX_PATH];
+				pugi::char_t shaderPath[SHADERED_MAX_PATH];
 				strcpy(shaderPath, toGenericPath(shaderNode.child("path").text().as_string()).c_str());
 				const pugi::char_t* shaderEntry = shaderNode.child("entry").text().as_string();
 				if (shaderNodeType == "vs") {
@@ -1955,10 +1955,10 @@ namespace ed {
 			const pugi::char_t* objType = objectNode.attribute("type").as_string();
 
 			if (strcmp(objType, "texture") == 0) {
-				pugi::char_t name[MAX_PATH];
+				pugi::char_t name[SHADERED_MAX_PATH];
 				bool isCube = false;
-				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
-					cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
+				pugi::char_t cubeLeft[SHADERED_MAX_PATH], cubeRight[SHADERED_MAX_PATH], cubeTop[SHADERED_MAX_PATH],
+					cubeBottom[SHADERED_MAX_PATH], cubeFront[SHADERED_MAX_PATH], cubeBack[SHADERED_MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
@@ -2055,7 +2055,7 @@ namespace ed {
 					}
 				}
 			} else if (strcmp(objType, "audio") == 0) {
-				pugi::char_t objPath[MAX_PATH];
+				pugi::char_t objPath[SHADERED_MAX_PATH];
 				strcpy(objPath, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
 				m_objects->CreateAudio(std::string(objPath));
@@ -2244,7 +2244,7 @@ namespace ed {
 					std::string shaderNodeType(shaderNode.attribute("type").as_string()); // "vs" or "ps" or "gs"
 
 					// parse path and type
-					pugi::char_t shaderPath[MAX_PATH];
+					pugi::char_t shaderPath[SHADERED_MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
 					const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
 
@@ -2417,7 +2417,7 @@ namespace ed {
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
 				for (pugi::xml_node shaderNode : passNode.children("shader")) {
 					// parse path and type
-					pugi::char_t shaderPath[MAX_PATH];
+					pugi::char_t shaderPath[SHADERED_MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
 					const pugi::char_t* shaderEntry = shaderNode.attribute("entry").as_string();
 
@@ -2522,7 +2522,7 @@ namespace ed {
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
 				for (pugi::xml_node shaderNode : passNode.children("shader")) {
 					// parse path and type
-					pugi::char_t shaderPath[MAX_PATH];
+					pugi::char_t shaderPath[SHADERED_MAX_PATH];
 					strcpy(shaderPath, toGenericPath(shaderNode.attribute("path").as_string()).c_str());
 
 					strcpy(data->Path, shaderPath);
@@ -2645,10 +2645,10 @@ namespace ed {
 			const pugi::char_t* objType = objectNode.attribute("type").as_string();
 
 			if (strcmp(objType, "texture") == 0) {
-				pugi::char_t name[MAX_PATH];
+				pugi::char_t name[SHADERED_MAX_PATH];
 				bool isCube = false;
-				pugi::char_t cubeLeft[MAX_PATH], cubeRight[MAX_PATH], cubeTop[MAX_PATH],
-					cubeBottom[MAX_PATH], cubeFront[MAX_PATH], cubeBack[MAX_PATH];
+				pugi::char_t cubeLeft[SHADERED_MAX_PATH], cubeRight[SHADERED_MAX_PATH], cubeTop[SHADERED_MAX_PATH],
+					cubeBottom[SHADERED_MAX_PATH], cubeFront[SHADERED_MAX_PATH], cubeBack[SHADERED_MAX_PATH];
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
 
@@ -2922,7 +2922,7 @@ namespace ed {
 					}
 				}
 			} else if (strcmp(objType, "audio") == 0) {
-				pugi::char_t objPath[MAX_PATH];
+				pugi::char_t objPath[SHADERED_MAX_PATH];
 				strcpy(objPath, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
 				m_objects->CreateAudio(std::string(objPath));

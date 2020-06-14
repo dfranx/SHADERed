@@ -844,7 +844,7 @@ namespace ed {
 		const int bufferLen = 2048;
 		char buffer[bufferLen];
 		DWORD bytesReturned;
-		char filename[MAX_PATH];
+		char filename[SHADERED_MAX_PATH];
 #endif
 
 		// run this loop until we close the thread
@@ -1099,7 +1099,7 @@ namespace ed {
 						if (event->mask & IN_ISDIR) { /* it is a directory - do nothing */
 						} else {
 							// check if its our shader and push it on the update queue if it is
-							char filename[MAX_PATH];
+							char filename[SHADERED_MAX_PATH];
 							strcpy(filename, event->name);
 
 							int pathIndex = 0;

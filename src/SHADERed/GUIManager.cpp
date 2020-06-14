@@ -1445,7 +1445,7 @@ namespace ed {
 								outPixels[i] = nullptr;
 
 							threadPool[i] = new std::thread([ext, filename, sizeMulti, actualSizeX, actualSizeY, &outPixels, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
-								char prevSavePath[MAX_PATH];
+								char prevSavePath[SHADERED_MAX_PATH];
 								while (!isOver) {
 									if (needsUpdate[worker])
 										continue;

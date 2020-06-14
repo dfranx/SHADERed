@@ -2008,6 +2008,13 @@ namespace ed {
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
+#ifdef SHADERED_WEB
+		strMacro += "#define SHADERED_WEB\n";
+#else
+		strMacro += "#define SHADERED_DESKTOP\n";
+#endif
+		strMacro += "#define SHADERED_VERSION " + std::to_string(SHADERED_VERSION) + "\n";
+
 		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
 				continue;
@@ -2024,6 +2031,13 @@ namespace ed {
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
 
+#ifdef SHADERED_WEB
+		strMacro += "#define SHADERED_WEB\n";
+#else
+		strMacro += "#define SHADERED_DESKTOP\n";
+#endif
+		strMacro += "#define SHADERED_VERSION " + std::to_string(SHADERED_VERSION) + "\n";
+
 		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
 				continue;
@@ -2039,6 +2053,13 @@ namespace ed {
 		size_t verLoc = src.find_first_of("#version");
 		size_t lineLoc = src.find_first_of('\n', verLoc + 1) + 1;
 		std::string strMacro = "";
+
+#ifdef SHADERED_WEB
+		strMacro += "#define SHADERED_WEB\n";
+#else
+		strMacro += "#define SHADERED_DESKTOP\n";
+#endif
+		strMacro += "#define SHADERED_VERSION " + std::to_string(SHADERED_VERSION) + "\n";
 
 		for (auto& macro : pass->Macros) {
 			if (!macro.Active)
