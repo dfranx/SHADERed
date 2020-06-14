@@ -53,6 +53,7 @@
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
+#include <queue>
 
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 #define TOOLBAR_HEIGHT 48
@@ -450,31 +451,22 @@ namespace ed {
 							spvParser.Parse(pass->PSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) {
-								m_autoUniforms(pass->Variables, spvParser);
-								for (const auto& uni : spvParser.Uniforms)
-									allUniforms.push_back(uni.Name);
-							}
+							if (settings.General.AutoUniforms)
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->VSSPV.size() > 0) {
 							spvParser.Parse(pass->VSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Vertex);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) {
-								m_autoUniforms(pass->Variables, spvParser);
-								for (const auto& uni : spvParser.Uniforms)
-									allUniforms.push_back(uni.Name);
-							}
+							if (settings.General.AutoUniforms)
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->GSSPV.size() > 0) {
 							spvParser.Parse(pass->GSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Geometry);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) {
-								m_autoUniforms(pass->Variables, spvParser);
-								for (const auto& uni : spvParser.Uniforms)
-									allUniforms.push_back(uni.Name);
-							}
+							if (settings.General.AutoUniforms)
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 
 						if (settings.General.AutoUniforms && settings.General.AutoUniformsDelete && pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed))
@@ -488,9 +480,7 @@ namespace ed {
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Compute);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
 							if (settings.General.AutoUniforms) {
-								m_autoUniforms(pass->Variables, spvParser);
-								for (const auto& uni : spvParser.Uniforms)
-									allUniforms.push_back(uni.Name);
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 								if (settings.General.AutoUniformsDelete)
 									m_deleteUnusedUniforms(pass->Variables, allUniforms);
 							}
@@ -2171,11 +2161,13 @@ namespace ed {
 			if (compCount == 2) return ShaderVariable::ValueType::Boolean2;
 			if (compCount == 3) return ShaderVariable::ValueType::Boolean3;
 			if (compCount == 4) return ShaderVariable::ValueType::Boolean4;
-		} else if (valType == ShaderVariable::ValueType::Integer1) {
+		}
+		else if (valType == ShaderVariable::ValueType::Integer1) {
 			if (compCount == 2) return ShaderVariable::ValueType::Integer2;
 			if (compCount == 3) return ShaderVariable::ValueType::Integer3;
 			if (compCount == 4) return ShaderVariable::ValueType::Integer4;
-		} else if (valType == ShaderVariable::ValueType::Float1) {
+		}
+		else if (valType == ShaderVariable::ValueType::Float1) {
 			if (compCount == 2) return ShaderVariable::ValueType::Float2;
 			if (compCount == 3) return ShaderVariable::ValueType::Float3;
 			if (compCount == 4) return ShaderVariable::ValueType::Float4;
@@ -2191,11 +2183,11 @@ namespace ed {
 
 		return ShaderVariable::ValueType::Count;
 	}
-	void GUIManager::m_autoUniforms(ShaderVariableContainer& varManager, SPIRVParser& spv)
+	void GUIManager::m_autoUniforms(ShaderVariableContainer& varManager, SPIRVParser& spv, std::vector<std::string>& uniformList)
 	{
 		PinnedUI* pinUI = ((PinnedUI*)Get(ViewID::Pinned));
 		std::vector<ShaderVariable*> vars = varManager.GetVariables();
-		
+
 		// add variables
 		for (const auto& unif : spv.Uniforms) {
 			bool exists = false;
@@ -2204,6 +2196,8 @@ namespace ed {
 					exists = true;
 					break;
 				}
+
+			uniformList.push_back(unif.Name);
 
 			// add it 
 			if (!exists) {
@@ -2216,16 +2210,68 @@ namespace ed {
 						valType = formMatrixType(getTypeFromSPV(unif.BaseType), unif.TypeComponentCount);
 				}
 
-				// usage
-				SystemShaderVariable usage = SystemShaderVariable::None;
-				if (Settings::Instance().General.AutoUniformsFunction)
-					usage = SystemVariableManager::GetTypeFromName(unif.Name);
+				if (valType == ShaderVariable::ValueType::Count) {
+					std::queue<std::string> curName;
+					std::queue<SPIRVParser::Variable> curType;
 
-				ShaderVariable newVariable = ShaderVariable(valType, unif.Name.c_str(), usage);
-				ShaderVariable* ptr = varManager.AddCopy(newVariable);
+					curType.push(unif);
+					curName.push(unif.Name);
 
-				if (Settings::Instance().General.AutoUniformsPin&& usage == SystemShaderVariable::None)
-					pinUI->Add(ptr);
+					while (!curType.empty()) {
+						SPIRVParser::Variable type = curType.front();
+						std::string name = curName.front();
+
+						curType.pop();
+						curName.pop();
+
+						if (type.Type != SPIRVParser::ValueType::Struct) {
+							for (ShaderVariable* var : vars)
+								if (strcmp(var->Name, name.c_str()) == 0) {
+									exists = true;
+									break;
+								}
+
+							uniformList.push_back(name);
+
+							if (!exists) {
+								// add variable
+								valType = getTypeFromSPV(type.Type);
+								if (valType == ShaderVariable::ValueType::Count) {
+									if (type.Type == SPIRVParser::ValueType::Vector)
+										valType = formVectorType(getTypeFromSPV(type.BaseType), type.TypeComponentCount);
+									else if (type.Type == SPIRVParser::ValueType::Matrix)
+										valType = formMatrixType(getTypeFromSPV(type.BaseType), type.TypeComponentCount);
+								}
+
+								ShaderVariable newVariable = ShaderVariable(valType, name.c_str(), SystemShaderVariable::None);
+								ShaderVariable* ptr = varManager.AddCopy(newVariable);
+								if (Settings::Instance().General.AutoUniformsPin)
+									pinUI->Add(ptr);
+							}
+						} else {
+							// branch
+							if (spv.UserTypes.count(type.TypeName) > 0) {
+								const std::vector<SPIRVParser::Variable>& mems = spv.UserTypes[type.TypeName];
+								for (int m = 0; m < mems.size(); m++) {
+									std::string memName = std::string(name.c_str()) + "." + mems[m].Name; // hack for \0
+									curType.push(mems[m]);
+									curName.push(memName);
+								}
+							}
+						}
+					}
+				} else {
+					// usage
+					SystemShaderVariable usage = SystemShaderVariable::None;
+					if (Settings::Instance().General.AutoUniformsFunction)
+						usage = SystemVariableManager::GetTypeFromName(unif.Name);
+
+					// add and pin
+					ShaderVariable newVariable = ShaderVariable(valType, unif.Name.c_str(), usage);
+					ShaderVariable* ptr = varManager.AddCopy(newVariable);
+					if (Settings::Instance().General.AutoUniformsPin && usage == SystemShaderVariable::None)
+						pinUI->Add(ptr);
+				}
 			}
 		}
 	}

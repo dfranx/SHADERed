@@ -76,14 +76,16 @@ namespace ed {
 					std::vector<Variable> mems(memCount);
 					for (spv_word j = 0; j < memCount; j++) {
 						spv_word type = ir[++i];
-						fetchType(mems[j], j);
+						fetchType(mems[j], type);
 					}
 
 					UserTypes.insert(std::make_pair(names[loc], mems));
 				} else {
 					auto& typeInfo = UserTypes[names[loc]];
-					for (spv_word j = 0; j < memCount && j < typeInfo.size(); j++)
-						fetchType(typeInfo[j], j);
+					for (spv_word j = 0; j < memCount && j < typeInfo.size(); j++) {
+						spv_word type = ir[++i];
+						fetchType(typeInfo[j], type);
+					}
 				}
 
 				types[loc] = std::make_pair(ValueType::Struct, loc);
@@ -127,8 +129,15 @@ namespace ed {
 						Variable uni;
 						uni.Name = varName;
 						fetchType(uni, type);
-						
-						Uniforms.push_back(uni);
+
+						if (uni.Name.size() == 0 || uni.Name[0] == 0) {
+							if (UserTypes.count(uni.TypeName) > 0) {
+								const std::vector<Variable>& mems = UserTypes[uni.TypeName];
+								for (const auto& mem : mems)
+									Uniforms.push_back(mem);
+							}
+						} else 
+							Uniforms.push_back(uni);
 					} else if (varName.size() > 0 && varName[0] != 0)
 						Globals.push_back(varName);
 				} else
