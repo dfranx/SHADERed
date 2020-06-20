@@ -286,6 +286,7 @@ namespace ed {
 	}
 	void InterfaceManager::OnEvent(const SDL_Event& e)
 	{
+		Objects.OnEvent(e);
 	}
 	void InterfaceManager::Update(float delta)
 	{

@@ -2,6 +2,7 @@
 + add a feature that automatically detects and adds uniforms to variable manager
 + add "Active autocomplete" option
 + add user defined functions, variables & structures to text editor's autocomplete
++ add KeyboardTexture object
 + add BreakpointDisabled, UserFunction, UserType, UniformVariable, GlobalVariable, LocalVariable, FunctionArgument entries to TextEditor's theme
 + add "Syntax highlighting" option
 + add SHADERED_WEB, SHADERED_DESKTOP & SHADERED_VERSION preprocessor definitions to shaders

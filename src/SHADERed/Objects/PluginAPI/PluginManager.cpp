@@ -434,8 +434,7 @@ namespace ed {
 				pluginfn::GetOpenFileDialogFn GetIncludePathCount;
 				pluginfn::GetSaveFileDialogFn GetIncludePath;
 
-				// now we can add the plugin and the proc to the list, init the plugin, etc...
-#ifdef SHADERED_DESKTOP
+#ifdef SHADERED_DESKTOP 
 				plugin->Init(false, SHADERED_VERSION);
 #else
 				plugin->Init(true, SHADERED_VERSION);

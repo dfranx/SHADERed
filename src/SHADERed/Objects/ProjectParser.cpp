@@ -549,21 +549,21 @@ namespace ed {
 			// textures & buffers
 			std::vector<std::string> texs = m_objects->GetObjects();
 			for (int i = 0; i < texs.size(); i++) {
-				bool isRT = m_objects->IsRenderTexture(texs[i]);
-				bool isAudio = m_objects->IsAudio(texs[i]);
-				bool isCube = m_objects->IsCubeMap(texs[i]);
-				bool isBuffer = m_objects->IsBuffer(texs[i]);
-				bool isImage = m_objects->IsImage(texs[i]);
-				bool isImage3D = m_objects->IsImage3D(texs[i]);
-				bool isPluginOwner = m_objects->IsPluginObject(texs[i]);
-				bool isTexture = m_objects->IsTexture(texs[i]);
+				ObjectManagerItem* item = m_objects->GetObjectManagerItem(texs[i]);
+
+				bool isRT = item->RT != nullptr;
+				bool isAudio = item->Sound != nullptr;
+				bool isCube = item->IsCube;
+				bool isBuffer = item->Buffer != nullptr;
+				bool isImage = item->Image != nullptr;
+				bool isImage3D = item->Image3D != nullptr;
+				bool isPluginOwner = item->Plugin != nullptr;
+				bool isTexture = item->IsTexture;
+				bool isKeyboardTexture = item->IsKeyboardTexture;
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
-				textureNode.append_attribute((isRT || isCube || isBuffer || isImage || isImage3D || isPluginOwner) ? "name" : "path").set_value(texs[i].c_str());
-
-				if (!isRT && !isAudio && !isBuffer && !isImage && !isImage3D && !isPluginOwner && isCube)
-					textureNode.append_attribute("cube").set_value(isCube);
+				textureNode.append_attribute((isTexture || isAudio) ? "path" : "name").set_value(texs[i].c_str());
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
@@ -586,6 +586,8 @@ namespace ed {
 				if (isCube) {
 					std::vector<std::string> texmaps = m_objects->GetCubemapTextures(texs[i]);
 
+					textureNode.append_attribute("cube").set_value(isCube);
+
 					textureNode.append_attribute("left").set_value(texmaps[0].c_str());
 					textureNode.append_attribute("top").set_value(texmaps[1].c_str());
 					textureNode.append_attribute("front").set_value(texmaps[2].c_str());
@@ -594,7 +596,7 @@ namespace ed {
 					textureNode.append_attribute("back").set_value(texmaps[5].c_str());
 				}
 
-				if (isTexture) {
+				if (isTexture && !isKeyboardTexture) {
 					ObjectManagerItem* item = m_objects->GetObjectManagerItem(texs[i]);
 
 					textureNode.append_attribute("vflip").set_value(item->Texture_VFlipped);
@@ -603,6 +605,9 @@ namespace ed {
 					textureNode.append_attribute("wrap_s").set_value(ed::gl::String::TextureWrap(item->Texture_WrapS));
 					textureNode.append_attribute("wrap_t").set_value(ed::gl::String::TextureWrap(item->Texture_WrapT));
 				}
+
+				if (isKeyboardTexture)
+					textureNode.append_attribute("keyboard_texture").set_value(isKeyboardTexture);
 
 				if (isImage) {
 					ImageObject* iobj = m_objects->GetImage(texs[i]);
@@ -2647,25 +2652,33 @@ namespace ed {
 			if (strcmp(objType, "texture") == 0) {
 				pugi::char_t name[SHADERED_MAX_PATH];
 				bool isCube = false;
+				bool isKeyboardTexture = false;
 				pugi::char_t cubeLeft[SHADERED_MAX_PATH], cubeRight[SHADERED_MAX_PATH], cubeTop[SHADERED_MAX_PATH],
 					cubeBottom[SHADERED_MAX_PATH], cubeFront[SHADERED_MAX_PATH], cubeBack[SHADERED_MAX_PATH];
+				
 				if (!objectNode.attribute("cube").empty())
 					isCube = objectNode.attribute("cube").as_bool();
+				if (!objectNode.attribute("keyboard_texture").empty())
+					isKeyboardTexture = objectNode.attribute("keyboard_texture").as_bool();
+
+				if (isCube || isKeyboardTexture)
+					strcpy(name, objectNode.attribute("name").as_string());
+				else
+					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
 
 				if (isCube) {
-					strcpy(name, objectNode.attribute("name").as_string());
-
 					strcpy(cubeLeft, toGenericPath(objectNode.attribute("left").as_string()).c_str());
 					strcpy(cubeTop, toGenericPath(objectNode.attribute("top").as_string()).c_str());
 					strcpy(cubeFront, toGenericPath(objectNode.attribute("front").as_string()).c_str());
 					strcpy(cubeBottom, toGenericPath(objectNode.attribute("bottom").as_string()).c_str());
 					strcpy(cubeRight, toGenericPath(objectNode.attribute("right").as_string()).c_str());
 					strcpy(cubeBack, toGenericPath(objectNode.attribute("back").as_string()).c_str());
-				} else
-					strcpy(name, toGenericPath(objectNode.attribute("path").as_string()).c_str());
+				}
 
 				if (isCube)
 					m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
+				else if (isKeyboardTexture)
+					m_objects->CreateKeyboardTexture(name);
 				else
 					m_objects->CreateTexture(name);
 

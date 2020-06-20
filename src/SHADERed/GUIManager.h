@@ -65,6 +65,7 @@ namespace ed {
 		inline void CreateNewImage() { m_isCreateImgOpened = true; }
 		inline void CreateNewImage3D() { m_isCreateImg3DOpened = true; }
 		inline void CreateNewCameraSnapshot() { m_isRecordCameraSnapshotOpened = true; }
+		inline void CreateKeyboardTexture() { m_isCreateKBTxtOpened = true; }
 		void CreateNewComputePass();
 		void CreateNewAudioPass();
 
@@ -115,7 +116,7 @@ namespace ed {
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
 			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
 			m_isInfoOpened, m_isCreateImg3DOpened, m_isRecordCameraSnapshotOpened,
-			m_isIncompatPluginsOpened;
+			m_isIncompatPluginsOpened, m_isCreateKBTxtOpened;
 
 		bool m_isUpdateNotificationOpened;
 		eng::Timer m_updateNotifyClock;

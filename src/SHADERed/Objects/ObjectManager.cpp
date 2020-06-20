@@ -8,6 +8,7 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
+#include <unordered_map>
 #include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -19,6 +20,7 @@ namespace ed {
 			, m_renderer(rnd)
 	{
 		m_binds.clear();
+		memset(m_kbTexture, 0, sizeof(unsigned char) * 256 * 3);
 	}
 	ObjectManager::~ObjectManager()
 	{
@@ -440,7 +442,43 @@ namespace ed {
 
 		return true;
 	}
+	bool ObjectManager::CreateKeyboardTexture(const std::string& name)
+	{
+		Logger::Get().Log("Creating a keyboard texture " + name + " ...");
 
+		if (Exists(name)) {
+			Logger::Get().Log("Cannot create a keyboard texture " + name + " because an object with that name already exists", true);
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem();
+		m_itemData.push_back(item);
+		m_items.push_back(name);
+
+		item->IsTexture = true;
+		item->IsKeyboardTexture = true;
+
+		GLenum fmt = GL_RED;
+		int width = 256, height = 3;
+
+		// normal texture
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_kbTexture);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		item->ImageSize = glm::ivec2(width, height);
+
+		return true;
+	}
+		
 	ShaderVariable::ValueType getValueType(const std::string& arg)
 	{
 		size_t trimLeft = 0, trimRight = arg.size();
@@ -616,32 +654,172 @@ namespace ed {
 				player->play();
 		}
 	}
+	void ObjectManager::OnEvent(const SDL_Event& e)
+	{
+		std::unordered_map<SDL_Keycode, int> keyIDs = {
+			{ SDLK_BACKSPACE, 8 },
+			{ SDLK_TAB, 9 },
+			{ SDLK_RETURN, 13 },
+			// { SHIFT, 16 },
+			// { CTRL, 17 },
+			// { ALT, 18 },
+			{ SDLK_PAUSE, 19 },
+			{ SDLK_CAPSLOCK, 20 }, 
+			{ SDLK_ESCAPE, 27 },
+			{ SDLK_PAGEUP, 33 },
+			{ SDLK_SPACE, 32 },
+			{ SDLK_PAGEDOWN, 34 },
+			{ SDLK_END, 35 },
+			{ SDLK_HOME, 36 },
+			{ SDLK_LEFT, 37 },
+			{ SDLK_UP, 38 },
+			{ SDLK_RIGHT, 39 },
+			{ SDLK_DOWN, 40 },
+			{ SDLK_PRINTSCREEN, 44 }, 
+			{ SDLK_INSERT, 45 },
+			{ SDLK_DELETE, 46 },
+			{ SDLK_0, 48 },
+			{ SDLK_1, 49 },
+			{ SDLK_2, 50 },
+			{ SDLK_3, 51 },
+			{ SDLK_4, 52 },
+			{ SDLK_5, 53 },
+			{ SDLK_6, 54 },
+			{ SDLK_7, 55 },
+			{ SDLK_8, 56 },
+			{ SDLK_9, 57 },
+			{ SDLK_a, 65 },
+			{ SDLK_b, 66 },
+			{ SDLK_c, 67 },
+			{ SDLK_d, 68 },
+			{ SDLK_e, 69 },
+			{ SDLK_f, 70 },
+			{ SDLK_g, 71 },
+			{ SDLK_h, 72 },
+			{ SDLK_i, 73 },
+			{ SDLK_j, 74 },
+			{ SDLK_k, 75 },
+			{ SDLK_l, 76 },
+			{ SDLK_m, 77 },
+			{ SDLK_n, 78 },
+			{ SDLK_o, 79 },
+			{ SDLK_p, 80 },
+			{ SDLK_q, 81 },
+			{ SDLK_r, 82 },
+			{ SDLK_s, 83 },
+			{ SDLK_t, 84 },
+			{ SDLK_u, 85 },
+			{ SDLK_v, 86 },
+			{ SDLK_w, 87 },
+			{ SDLK_x, 88 },
+			{ SDLK_y, 89 },
+			{ SDLK_z, 90 },
+			{ SDLK_SELECT, 93 },
+			{ SDLK_KP_0, 96 },
+			{ SDLK_KP_1, 97 },
+			{ SDLK_KP_2, 98 },
+			{ SDLK_KP_3, 99 },
+			{ SDLK_KP_4, 100 },
+			{ SDLK_KP_5, 101 },
+			{ SDLK_KP_6, 102 },
+			{ SDLK_KP_7, 103 },
+			{ SDLK_KP_8, 104 },
+			{ SDLK_KP_9, 105 },
+			{ SDLK_KP_MULTIPLY, 106 },
+			{ SDLK_KP_PLUS, 107 },
+			{ SDLK_KP_MINUS, 109 },
+			{ SDLK_KP_DECIMAL, 110 }, 
+			{ SDLK_KP_DIVIDE, 111 },
+			{ SDLK_F1, 112 },
+			{ SDLK_F2, 113 },
+			{ SDLK_F3, 114 },
+			{ SDLK_F4, 115 },
+			{ SDLK_F5, 116 },
+			{ SDLK_F6, 117 },
+			{ SDLK_F7, 118 }, 
+			{ SDLK_F8, 119 }, 
+			{ SDLK_F9, 120 }, 
+			{ SDLK_F10, 121 }, 
+			{ SDLK_F11, 122 }, 
+			{ SDLK_F12, 123 }, 
+			{ SDLK_NUMLOCKCLEAR, 144 },
+			{ SDLK_SCROLLLOCK, 145 },
+			{ SDLK_SEMICOLON, 186 },
+			{ SDLK_EQUALS, 187 },
+			{ SDLK_COMMA, 188 },
+			{ SDLK_MINUS, 189 },
+			{ SDLK_PERIOD, 190 },
+			{ SDLK_SLASH, 191 },
+			{ SDLK_LEFTBRACKET, 219 },
+			{ SDLK_BACKSLASH, 220 },
+			{ SDLK_RIGHTBRACKET, 221 },
+			{ SDLK_QUOTE, 222 },
+		};
+
+		if (e.type == SDL_KEYDOWN) {
+			int keyCode = 0;
+			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
+				keyCode = 16;
+			else if (e.key.keysym.sym == SDLK_LCTRL || e.key.keysym.sym == SDLK_RCTRL)
+				keyCode = 17;
+			else if (e.key.keysym.sym == SDLK_LALT || e.key.keysym.sym == SDLK_RALT)
+				keyCode = 18;
+			else if (keyIDs.count(e.key.keysym.sym))
+				keyCode = keyIDs[e.key.keysym.sym];
+
+			if (keyCode > 0) {
+				m_kbTexture[keyCode] = 0xFF;
+				m_kbTexture[256 + keyCode] = 0xFF;
+				m_kbTexture[512 + keyCode] = ~m_kbTexture[512 + keyCode];
+			}
+		} else if (e.type == SDL_KEYUP) {
+			int keyCode = 0;
+			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
+				keyCode = 16;
+			else if (e.key.keysym.sym == SDLK_LCTRL || e.key.keysym.sym == SDLK_RCTRL)
+				keyCode = 17;
+			else if (e.key.keysym.sym == SDLK_LALT || e.key.keysym.sym == SDLK_RALT)
+				keyCode = 18;
+			else if (keyIDs.count(e.key.keysym.sym))
+				keyCode = keyIDs[e.key.keysym.sym];
+
+			if (keyCode > 0)
+				m_kbTexture[keyCode] = 0;
+		}
+	}
 	void ObjectManager::Update(float delta)
 	{
 		for (auto& it : m_itemData) {
-			if (it->SoundBuffer == nullptr)
-				continue;
+			// update audio items
+			if (it->SoundBuffer != nullptr) {
+				// get samples and fft data
+				sf::Sound* player = it->Sound;
+				int channels = it->SoundBuffer->getChannelCount();
+				int perChannel = it->SoundBuffer->getSampleCount() / channels;
+				int curSample = (int)((player->getPlayingOffset().asSeconds() / it->SoundBuffer->getDuration().asSeconds()) * perChannel);
 
-			// get samples and fft data
-			sf::Sound* player = it->Sound;
-			int channels = it->SoundBuffer->getChannelCount();
-			int perChannel = it->SoundBuffer->getSampleCount() / channels;
-			int curSample = (int)((player->getPlayingOffset().asSeconds() / it->SoundBuffer->getDuration().asSeconds()) * perChannel);
+				double* fftData = m_audioAnalyzer.FFT(*(it->SoundBuffer), curSample);
 
-			double* fftData = m_audioAnalyzer.FFT(*(it->SoundBuffer), curSample);
+				const sf::Int16* samples = it->SoundBuffer->getSamples();
+				for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
+					sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
+					float sf = (float)s / (float)INT16_MAX;
 
-			const sf::Int16* samples = it->SoundBuffer->getSamples();
-			for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
-				sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
-				float sf = (float)s / (float)INT16_MAX;
+					m_audioTempTexData[i] = fftData[i / 2];
+					m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf * 0.5f + 0.5f;
+				}
 
-				m_audioTempTexData[i] = fftData[i / 2];
-				m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf * 0.5f + 0.5f;
+				glBindTexture(GL_TEXTURE_2D, it->Texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 2, 0, GL_RED, GL_FLOAT, m_audioTempTexData);
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
-
-			glBindTexture(GL_TEXTURE_2D, it->Texture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 2, 0, GL_RED, GL_FLOAT, m_audioTempTexData);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			// update kb texture
+			else if (it->IsKeyboardTexture) {
+				glBindTexture(GL_TEXTURE_2D, it->Texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 256, 3, 0, GL_RED, GL_UNSIGNED_BYTE, m_kbTexture);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				memset(&m_kbTexture[256], 0, sizeof(unsigned char) * 256);
+			}
 		}
 	}
 	void ObjectManager::Remove(const std::string& file)
@@ -990,6 +1168,13 @@ namespace ed {
 			if (m_items[i] == name)
 				return m_itemData[i]->Image3D->Size;
 		return glm::ivec3(0, 0, 0);
+	}
+	bool ObjectManager::HasKeyboardTexture()
+	{
+		for (const auto& obj : m_itemData)
+			if (obj->IsKeyboardTexture)
+				return true;
+		return false;
 	}
 	RenderTextureObject* ObjectManager::GetRenderTexture(const std::string& name)
 	{

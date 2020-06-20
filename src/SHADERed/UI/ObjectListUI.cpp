@@ -26,52 +26,56 @@ namespace ed {
 		ImGui::BeginChild("##object_scroll_container", containerSize);
 
 		if (items.size() == 0)
-			ImGui::TextWrapped("Right click on this window or go to Create menu in the menu bar to create an item.");
+			ImGui::TextWrapped("Right click here or go to Project -> Create menu in the menu bar to create an item.");
 
 		for (int i = 0; i < items.size(); i++) {
-			bool isPluginOwner = m_data->Objects.IsPluginObject(items[i]);
+			ObjectManagerItem* oItem = m_data->Objects.GetObjectManagerItem(items[i]);
+			bool isPluginOwner = oItem->Plugin != nullptr;
 
-			GLuint tex = m_data->Objects.GetTexture(items[i]);
-			if (m_data->Objects.IsImage(items[i]))
-				tex = m_data->Objects.GetImage(items[i])->Texture;
-			else if (m_data->Objects.IsImage3D(items[i]))
-				tex = m_data->Objects.GetImage3D(items[i])->Texture;
+			GLuint tex = oItem->Texture;
+			if (oItem->Image != nullptr)
+				tex = oItem->Image->Texture;
+			else if (oItem->Image3D != nullptr)
+				tex = oItem->Image3D->Texture;
 
 			float imgWH = 0.0f;
 			glm::vec2 imgSize(0, 0);
-			if (m_data->Objects.IsRenderTexture(items[i])) {
+			if (oItem->RT != nullptr) {
 				glm::ivec2 rtSize = m_data->Objects.GetRenderTextureSize(items[i]);
 				imgWH = (float)rtSize.y / rtSize.x;
 				imgSize = glm::vec2(rtSize.x, rtSize.y);
-			} else if (m_data->Objects.IsAudio(items[i])) {
+			} else if (oItem->Sound != nullptr) {
 				imgWH = 2.0f / 512.0f;
 				imgSize = glm::vec2(512, 2);
-			} else if (m_data->Objects.IsCubeMap(items[i])) {
+			} else if (oItem->IsCube) {
 				imgWH = 375.0f / 512.0f;
 				imgSize = glm::vec2(512, 375);
-			} else if (m_data->Objects.IsImage(items[i])) {
-				imgSize = m_data->Objects.GetImageSize(items[i]);
+			} else if (oItem->Image != nullptr) {
+				imgSize = oItem->Image->Size;
 				imgWH = imgSize.y / imgSize.x;
-			} else if (m_data->Objects.IsImage3D(items[i])) {
-				imgSize = m_data->Objects.GetImage3DSize(items[i]);
+			} else if (oItem->Image3D != nullptr) {
+				imgSize = oItem->Image3D->Size;
 				imgWH = imgSize.y / imgSize.x;
 			} else if (!isPluginOwner) {
-				auto img = m_data->Objects.GetTextureSize(items[i]);
+				auto img = oItem->ImageSize;
 				imgWH = (float)img.y / img.x;
 				imgSize = glm::vec2(img);
 			}
 
-			size_t lastSlash = items[i].find_last_of("/\\");
 			std::string itemText = items[i];
 			std::string fullItemText = items[i];
 
-			if (lastSlash != std::string::npos && !isPluginOwner)
-				itemText = itemText.substr(lastSlash + 1);
+			if (oItem->IsTexture || oItem->Sound != nullptr) {
+				size_t lastSlash = items[i].find_last_of("/\\");
 
-			PluginObject* pobj = m_data->Objects.GetPluginObject(items[i]);
+				if (lastSlash != std::string::npos && !isPluginOwner)
+					itemText = itemText.substr(lastSlash + 1);
+			}
 
-			bool isBuf = m_data->Objects.IsBuffer(items[i]);
-			bool isImg3D = m_data->Objects.IsImage3D(items[i]);
+			PluginObject* pobj = oItem->Plugin;
+
+			bool isBuf = oItem->Buffer != nullptr;
+			bool isImg3D = oItem->Image3D != nullptr;
 			bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
 			
 			if (ImGui::Selectable(itemText.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
@@ -88,7 +92,7 @@ namespace ed {
 				}
 
 				bool hasPluginPreview = isPluginOwner && pobj->Owner->HasObjectPreview(pobj->Type);
-				if (m_data->Objects.IsCubeMap(items[i])) {
+				if (oItem->IsCube) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				} else if (!isBuf && !isImg3D && !isPluginOwner)
@@ -98,7 +102,7 @@ namespace ed {
 
 				ImGui::Separator();
 
-				if (m_data->Objects.IsImage(items[i]) || isImg3D) {
+				if (oItem->Image != nullptr || isImg3D) {
 					if (ImGui::BeginMenu(isImg3D ? "Bind UAV/image3D" : "Bind UAV/image2D")) {
 						for (int j = 0; j < passes.size(); j++) {
 							if (passes[j]->Type == PipelineItem::ItemType::ComputePass) {
@@ -156,13 +160,13 @@ namespace ed {
 					ImGui::Separator();
 				}
 
-				if (m_data->Objects.IsRenderTexture(items[i]) || m_data->Objects.IsImage(items[i]) || m_data->Objects.IsTexture(items[i]) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
+				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
 						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
 				}
 
-				if (m_data->Objects.IsAudio(items[i])) {
-					bool isMuted = m_data->Objects.IsAudioMuted(items[i]);
+				if (oItem->Sound != nullptr) {
+					bool isMuted = oItem->SoundMuted;
 					if (ImGui::MenuItem("Mute", (const char*)0, &isMuted)) {
 						if (isMuted)
 							m_data->Objects.Mute(items[i]);
@@ -264,6 +268,17 @@ namespace ed {
 			if (ImGui::Selectable("Create Buffer")) { m_ui->CreateNewBuffer(); }
 			if (ImGui::Selectable("Create Empty Image")) m_ui->CreateNewImage();
 			if (ImGui::Selectable("Create Empty 3D Image")) m_ui->CreateNewImage3D();
+			
+			bool hasKBTexture = m_data->Objects.HasKeyboardTexture();
+			if (hasKBTexture) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+			if (ImGui::Selectable("Create KeyboardTexture")) m_ui->CreateKeyboardTexture();
+			if (hasKBTexture) {
+				ImGui::PopStyleVar();
+				ImGui::PopItemFlag();
+			}
 
 			m_data->Plugins.ShowContextItems("objects");
 

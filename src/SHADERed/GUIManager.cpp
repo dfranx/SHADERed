@@ -79,6 +79,7 @@ namespace ed {
 		m_isCreateItemPopupOpened = false;
 		m_isCreateCubemapOpened = false;
 		m_isCreateRTOpened = false;
+		m_isCreateKBTxtOpened = false;
 		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
 		m_isUpdateNotificationOpened = false;
@@ -857,6 +858,12 @@ namespace ed {
 			m_isCreateRTOpened = false;
 		}
 
+		// open popup for creating keyboard texture
+		if (m_isCreateKBTxtOpened) {
+			ImGui::OpenPopup("Create KeyboardTexture##main_create_kbtxt");
+			m_isCreateKBTxtOpened = false;
+		}
+
 		// open popup for openning new project
 		if (m_isNewProjectPopupOpened) {
 			ImGui::OpenPopup("Are you sure?##main_new_proj");
@@ -989,6 +996,22 @@ namespace ed {
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+			ImGui::EndPopup();
+		}
+
+		// Create KB texture
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(155)), ImGuiCond_Always);
+		if (ImGui::BeginPopupModal("Create KeyboardTexture##main_create_kbtxt", 0, ImGuiWindowFlags_NoResize)) {
+			static char buf[65] = { 0 };
+			ImGui::InputText("Name", buf, 65);
+
+			if (ImGui::Button("Ok")) {
+				if (m_data->Objects.CreateKeyboardTexture(buf))
+					ImGui::CloseCurrentPopup();
+			}
+
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
