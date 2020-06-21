@@ -31,6 +31,7 @@ namespace ed {
 			m_mouseVisible = true;
 			m_mouseLock = false;
 			m_fullWindowFocus = true;
+			m_pauseTime = false;
 		}
 		~PreviewUI()
 		{
@@ -100,6 +101,7 @@ namespace ed {
 		// uniform locations
 		GLuint m_uMatWVPLoc, m_uColorLoc;
 
+		bool m_pauseTime;
 		bool m_mouseVisible;
 		bool m_mouseLock;
 		bool m_fullWindowFocus;

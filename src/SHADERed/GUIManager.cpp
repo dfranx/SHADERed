@@ -744,7 +744,8 @@ namespace ed {
 			if (ImGui::BeginMenu("Supporters")) {
 				static const std::vector<std::pair<std::string, std::string>> slist = {
 					std::make_pair("Hugo Locurcio", "https://hugo.pro"),
-					std::make_pair("Vladimir Alyamkin", "https://alyamkin.com")
+					std::make_pair("Vladimir Alyamkin", "https://alyamkin.com"),
+					std::make_pair("Wogos Media", "http://theWogos.com"),
 				};
 
 				for (auto& sitem : slist)

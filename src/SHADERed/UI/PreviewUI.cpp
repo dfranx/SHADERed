@@ -131,6 +131,14 @@ namespace ed {
 		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleMouseLock", [=]() {
 			m_mouseLock = !m_mouseLock;
 		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleTimePause", [=]() {
+			m_pauseTime = !m_pauseTime;
+			if (m_pauseTime)
+				SystemVariableManager::Instance().GetTimeClock().Pause();
+			else
+				SystemVariableManager::Instance().GetTimeClock().Resume();
+		});
+
 	}
 	void PreviewUI::OnEvent(const SDL_Event& e)
 	{
