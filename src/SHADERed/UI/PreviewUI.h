@@ -28,6 +28,9 @@ namespace ed {
 			m_startWrap = false;
 			m_mouseHovers = false;
 			m_lastButtonUpdate = false;
+			m_mouseVisible = true;
+			m_mouseLock = false;
+			m_fullWindowFocus = true;
 		}
 		~PreviewUI()
 		{
@@ -96,5 +99,9 @@ namespace ed {
 
 		// uniform locations
 		GLuint m_uMatWVPLoc, m_uColorLoc;
+
+		bool m_mouseVisible;
+		bool m_mouseLock;
+		bool m_fullWindowFocus;
 	};
 }

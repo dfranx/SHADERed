@@ -83,7 +83,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating a render texture " + name + " ...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create a render texture " + name + " because a rt with such name already exists", true);
 			return false;
 		}
@@ -336,7 +336,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating a buffer " + name + " ...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create the buffer " + name + " because an item with such name already exists", true);
 			return false;
 		}
@@ -366,7 +366,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating an image " + name + " ...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create the image " + name + " because an item with exact name already exists", true);
 			return false;
 		}
@@ -395,7 +395,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating an image " + name + " ...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create the image " + name + " because an item with exact name already exists", true);
 			return false;
 		}
@@ -423,7 +423,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating a plugin object " + name + " of type " + objtype + "...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create the plugin object " + name + " because an item with that name already exists", true);
 			return false;
 		}
@@ -446,7 +446,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Creating a keyboard texture " + name + " ...");
 
-		if (Exists(name)) {
+		if (name.size() == 0 || Exists(name)) {
 			Logger::Get().Log("Cannot create a keyboard texture " + name + " because an object with that name already exists", true);
 			return false;
 		}

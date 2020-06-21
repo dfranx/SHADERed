@@ -125,6 +125,12 @@ namespace ed {
 				}
 			}
 		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleMouseVisibility", [=]() {
+			m_mouseVisible = !m_mouseVisible;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleMouseLock", [=]() {
+			m_mouseLock = !m_mouseLock;
+		});
 	}
 	void PreviewUI::OnEvent(const SDL_Event& e)
 	{
@@ -160,6 +166,14 @@ namespace ed {
 			}
 
 			m_zoom.Drag();
+
+			// mouse visibility
+			if (!m_mouseVisible && m_fullWindowFocus) {
+				if (m_mousePos.x >= 0.0f && m_mousePos.x <= 1.0f && m_mousePos.y >= 0.0f && m_mousePos.y <= 1.0f)
+					SDL_ShowCursor(0);
+				else
+					SDL_ShowCursor(1);
+			}
 		} else if (e.type == SDL_MOUSEBUTTONUP) {
 			SDL_CaptureMouse(SDL_FALSE);
 			m_startWrap = false;
@@ -172,6 +186,15 @@ namespace ed {
 			}
 
 			m_zoom.EndMouseAction();
+		} else if (e.type == SDL_KEYDOWN) {
+			if (e.key.keysym.sym == SDLK_ESCAPE) {
+				m_mouseVisible = true;
+				m_mouseLock = false;
+			}
+		} else if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+			m_fullWindowFocus = true;
+		} else if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+			m_fullWindowFocus = false;
 		}
 	}
 	void PreviewUI::Pick(PipelineItem* item, bool add)
@@ -552,26 +575,33 @@ namespace ed {
 		}
 
 		// mouse wrapping
-		if (m_startWrap) {
+		if (m_startWrap || (m_mouseLock && m_fullWindowFocus)) {
 			int ptX, ptY;
 			SDL_GetMouseState(&ptX, &ptY);
 
 			// screen space position
-			glm::vec2 s = m_mousePos;
+			bool needsXAdjust = m_ui->IsPerformanceMode();
+			bool needsYAdjust = needsXAdjust && !statusbar;
+
+			ImVec2 mouseStart = ImGui::GetWindowContentRegionMin();
+			mouseStart.x += ImGui::GetWindowPos().x;
+			mouseStart.y += ImGui::GetWindowPos().y + ImGui::GetScrollY() + !needsXAdjust * ImGui::GetStyle().FramePadding.y;
 
 			bool wrappedMouse = false;
-			const float mPercent = 0.00f;
-			if (s.x < mPercent) {
-				ptX += imageSize.x * (1 - mPercent);
+			const float mPercentX = needsXAdjust ? 0.005f : 0.00f;
+			const float mPercentYTop = 0.00f;
+			const float mPercentYBottom = needsYAdjust ? 0.005f : 0.00f;
+			if (m_mousePos.x < mPercentX) {
+				ptX = mouseStart.x + imageSize.x * (1 - mPercentX) - 2;
 				wrappedMouse = true;
-			} else if (s.x > 1 - mPercent) {
-				ptX -= imageSize.x * (1 - mPercent);
+			} else if (m_mousePos.x > 1 - mPercentX) {
+				ptX = mouseStart.x + imageSize.x * mPercentX + 2;
 				wrappedMouse = true;
-			} else if (s.y > 1 - mPercent) {
-				ptY += imageSize.y * (1 - mPercent);
+			} else if (m_mousePos.y > 1 - mPercentYTop) {
+				ptY = mouseStart.y + imageSize.y * (1 - mPercentYTop) - 2;
 				wrappedMouse = true;
-			} else if (s.y < mPercent) {
-				ptY -= imageSize.y * (1 - mPercent);
+			} else if (m_mousePos.y < mPercentYBottom) {
+				ptY = mouseStart.y + imageSize.y * mPercentYBottom + 2;
 				wrappedMouse = true;
 			}
 

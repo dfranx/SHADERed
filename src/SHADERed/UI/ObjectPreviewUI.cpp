@@ -309,7 +309,7 @@ namespace ed {
 							m_curHoveredItem = i;
 						
 							// handle pixel selection
-							if (item->RT != nullptr && ((ImGui::IsMouseClicked(0) && !Settings::Instance().Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && Settings::Instance().Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
+							if (m_data->Renderer.IsPaused() && item->RT != nullptr && ((ImGui::IsMouseClicked(0) && !Settings::Instance().Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && Settings::Instance().Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
 								m_ui->StopDebugging();
 
 								// screen space position

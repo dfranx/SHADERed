@@ -626,6 +626,19 @@ namespace ed {
 					if (ImGui::MenuItem("Empty 3D image", KeyboardShortcuts::Instance().GetString("Project.NewImage3D").c_str()))
 						this->CreateNewImage3D();
 
+					
+					bool hasKBTexture = m_data->Objects.HasKeyboardTexture();
+					if (hasKBTexture) {
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+					if (ImGui::MenuItem("KeyboardTexture", KeyboardShortcuts::Instance().GetString("Project.NewKeyboardTexture").c_str()))
+						this->CreateKeyboardTexture();
+					if (hasKBTexture) {
+						ImGui::PopStyleVar();
+						ImGui::PopItemFlag();
+					}
+					
 					m_data->Plugins.ShowMenuItems("createitem");
 
 					ImGui::EndMenu();
@@ -2485,6 +2498,9 @@ namespace ed {
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewImage3D", [=]() {
 			CreateNewImage3D();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewKeyboardTexture", [=]() {
+			CreateKeyboardTexture();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewCubeMap", [=]() {
 			CreateNewCubemap();

@@ -184,26 +184,24 @@ namespace ed {
 
 							pipe::ShaderPass* sData = (pipe::ShaderPass*)passes[j]->Data;
 
-							// check if shader pass uses this rt
+							// check if this shader pass has a window bound to it
+							bool alreadyUsesWindow = false;
+							for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
+								if (sData->RenderTextures[l] == m_data->Renderer.GetTexture()) {
+									alreadyUsesWindow = true;
+									break;
+								}
+
+							// move everything
 							for (int k = 0; k < MAX_RENDER_TEXTURES; k++) {
 								if (tex == sData->RenderTextures[k]) {
-									// TODO: maybe implement better logic for what to replace the deleted RT with
-									bool alreadyUsesWindow = false;
-									for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
-										if (sData->RenderTextures[l] == m_data->Renderer.GetTexture()) {
-											alreadyUsesWindow = true;
-											break;
-										}
-
-									if (!alreadyUsesWindow)
+									if (sData->RTCount == 1 && k == 0)
 										sData->RenderTextures[k] = m_data->Renderer.GetTexture();
-									else if (k != 0) {
-										for (int l = j; l < MAX_RENDER_TEXTURES; l++)
-											sData->RenderTextures[l] = 0;
-									} else {
-										for (int l = 0; l < MAX_RENDER_TEXTURES; l++)
-											sData->RenderTextures[l] = 0;
-										sData->RenderTextures[0] = m_data->Renderer.GetTexture();
+									else {
+										for (int l = k; l < sData->RTCount - 1; l++)
+											sData->RenderTextures[l] = sData->RenderTextures[l + 1];
+										sData->RenderTextures[sData->RTCount - 1] = 0;
+										sData->RTCount--;
 									}
 								}
 							}
