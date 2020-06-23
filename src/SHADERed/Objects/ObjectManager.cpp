@@ -754,6 +754,11 @@ namespace ed {
 			{ SDLK_BACKSLASH, 220 },
 			{ SDLK_RIGHTBRACKET, 221 },
 			{ SDLK_QUOTE, 222 },
+			//{ LEFT MOUSE CLICK, 245 },
+			//{ MIDDLE MOUSE CLICK, 246 },
+			//{ RIGHT MOUSE CLICK, 247 },
+			//{ MSCROLL_UP, 250 },
+			//{ MSCROLL_DOWN, 251 },
 		};
 
 		if (e.type == SDL_KEYDOWN) {
@@ -772,8 +777,9 @@ namespace ed {
 				m_kbTexture[256 + keyCode] = 0xFF;
 				m_kbTexture[512 + keyCode] = ~m_kbTexture[512 + keyCode];
 			}
-		} else if (e.type == SDL_KEYUP) {
-			int keyCode = 0;
+		} 
+		else if (e.type == SDL_KEYUP) {
+			int keyCode = -1;
 			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
 				keyCode = 16;
 			else if (e.key.keysym.sym == SDLK_LCTRL || e.key.keysym.sym == SDLK_RCTRL)
@@ -785,6 +791,48 @@ namespace ed {
 
 			if (keyCode > 0)
 				m_kbTexture[keyCode] = 0;
+		} else if (e.type == SDL_MOUSEBUTTONDOWN) {
+			int keyCode = -1;
+			if (e.button.button == SDL_BUTTON_LEFT)
+				keyCode = 245;
+			else if (e.button.button == SDL_BUTTON_MIDDLE)
+				keyCode = 246;
+			else if (e.button.button == SDL_BUTTON_RIGHT)
+				keyCode = 247;
+
+			if (keyCode > 0) {
+				m_kbTexture[keyCode] = 0xFF;
+				m_kbTexture[256 + keyCode] = 0xFF;
+				m_kbTexture[512 + keyCode] = ~m_kbTexture[512 + keyCode];
+			}
+		} else if (e.type == SDL_MOUSEBUTTONUP) {
+			int keyCode = -1;
+			if (e.button.button == SDL_BUTTON_LEFT)
+				keyCode = 245;
+			else if (e.button.button == SDL_BUTTON_MIDDLE)
+				keyCode = 246;
+			else if (e.button.button == SDL_BUTTON_RIGHT)
+				keyCode = 247;
+
+			if (keyCode > 0)
+				m_kbTexture[keyCode] = 0;
+		} else if (e.type == SDL_MOUSEWHEEL) {
+			int keyCode = -1;
+			if (e.wheel.y > 0)
+				keyCode = 250;
+			else if (e.wheel.y < 0)
+				keyCode = 251;
+
+			if (keyCode > 0) {
+				m_kbTexture[256 + keyCode] = 0xFF;
+				if (e.wheel.y > 0) {
+					m_kbTexture[512 + keyCode]++;
+					m_kbTexture[512 + keyCode + 1]++;
+				} else if (e.wheel.y < 0) {
+					m_kbTexture[512 + keyCode]--;
+					m_kbTexture[512 + keyCode - 1]--;
+				}
+			}
 		}
 	}
 	void ObjectManager::Update(float delta)

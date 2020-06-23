@@ -563,7 +563,7 @@ namespace ed {
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
-				textureNode.append_attribute((isTexture || isAudio) ? "path" : "name").set_value(texs[i].c_str());
+				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isAudio) ? "path" : "name").set_value(texs[i].c_str());
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
