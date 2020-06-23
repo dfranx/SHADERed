@@ -70,6 +70,22 @@ namespace ed {
 		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin1* plugin, int languageID);
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 
+		struct PluginShaderEditor {
+			PluginShaderEditor() {
+				Plugin = nullptr;
+				LanguageID = -1;
+				ID = -1;
+			}
+			PluginShaderEditor(IPlugin1* pl, int langID, int id) {
+				Plugin = pl;
+				LanguageID = langID;
+				ID = id;
+			}
+			IPlugin1* Plugin;
+			int LanguageID;
+			int ID;
+		};
+
 		// code editor font
 		ImFont* m_font;
 
@@ -82,6 +98,7 @@ namespace ed {
 		std::vector<StatsPage> m_stats;
 		std::vector<std::string> m_paths;
 		std::vector<ShaderStage> m_shaderStage;
+		std::vector<PluginShaderEditor> m_pluginEditor;
 		std::deque<bool> m_editorOpen;
 
 		bool m_fontNeedsUpdate;

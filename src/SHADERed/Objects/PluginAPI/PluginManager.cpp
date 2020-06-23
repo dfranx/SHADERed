@@ -439,6 +439,7 @@ namespace ed {
 #else
 				plugin->Init(true, SHADERED_VERSION);
 #endif
+				plugin->InitUI(ImGui::GetCurrentContext());
 				m_plugins.push_back(plugin);
 				m_proc.push_back(procDLL);
 				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);

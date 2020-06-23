@@ -82,6 +82,7 @@ namespace ed {
 		virtual int GetVersion() { return 1; }
 		
 		virtual bool Init(bool isWeb, int sedVersion) = 0;
+		virtual void InitUI(void* ctx) = 0;
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;
@@ -177,7 +178,14 @@ namespace ed {
 		virtual const char* GetCustomLanguageName(int langID) = 0;
 		virtual const unsigned int* CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
 		virtual const char* ProcessGLSL(int langID, const char* src) = 0;
+		virtual bool HasLanguageAutoUniforms(int langID) = 0;
 
+		// language text editor
+		virtual bool HasLanguageCustomEditor(int langID) = 0;
+		virtual void OpenLanguageEditor(int langID, int editorID, const char* data, int dataLen) = 0;
+		virtual void RenderLanguageEditor(int langID, int editorID) = 0;
+		virtual void CloseLanguageEditor(int langID, int editorID) = 0;
+		
 		// code editor
 		virtual void SaveCodeEditorItem(const char* src, int srcLen, int id) = 0;
 		virtual void CloseCodeEditorItem(int id) = 0;

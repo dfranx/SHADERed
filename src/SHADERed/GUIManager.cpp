@@ -11,6 +11,7 @@
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/SPIRVParser.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
@@ -447,12 +448,16 @@ namespace ed {
 					if (spvItem->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
 						std::vector<std::string> allUniforms;
+						
 
 						if (pass->PSSPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->PSPath, m_data->Plugins.Plugins());
+
 							spvParser.Parse(pass->PSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms)
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->HasLanguageAutoUniforms(langID))))
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->VSSPV.size() > 0) {

@@ -8,7 +8,7 @@
 + add SHADERED_WEB, SHADERED_DESKTOP & SHADERED_VERSION preprocessor definitions to shaders
 + add Preview.ToggleMouseVisibility, Preview.ToggleMouseLock & Preview.ToggleTimePause shortcuts
 + plugins are backward and forward compatible
-+ plugins can define their own shader language
++ plugins can implement their own shader language & editor
 + improve the "auto recompile" feature
 + fix text editor's ui scaling
 + fix HLSL geometry shaders
