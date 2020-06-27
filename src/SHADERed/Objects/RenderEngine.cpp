@@ -265,7 +265,7 @@ namespace ed {
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else if (m_objects->IsPluginObject(srvs[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
 					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -413,15 +413,15 @@ namespace ed {
 					} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-						if (m_pickAwaiting && pldata->Owner->IsPipelineItemPickable(pldata->Type))
+						if (m_pickAwaiting && pldata->Owner->PipelineItem_IsPickable(pldata->Type))
 							m_pickItem(item, m_wasMultiPick);
 
-						if (pldata->Owner->IsPipelineItemPickable(pldata->Type))
+						if (pldata->Owner->PipelineItem_IsPickable(pldata->Type))
 							systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 						else
 							systemVM.SetPicked(false);
 
-						pldata->Owner->ExecutePipelineItem(data, plugin::PipelineItemType::ShaderPass, pldata->Type, pldata->PluginData);
+						pldata->Owner->PipelineItem_Execute(data, plugin::PipelineItemType::ShaderPass, pldata->Type, pldata->PluginData);
 					}
 
 					// set the old value back
@@ -484,7 +484,7 @@ namespace ed {
 						glBindImageTexture(j, ubos[j], 0, GL_TRUE, 0, GL_WRITE_ONLY | GL_READ_ONLY, iobj->Format);
 					} else if (m_objects->IsPluginObject(ubos[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(ubos[j]);
-						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
 					} else
 						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, ubos[j]);
 				}
@@ -513,7 +513,7 @@ namespace ed {
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else if (m_objects->IsPluginObject(srvs[j])) {
 						PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-						pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
 					} else
 						glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -534,7 +534,7 @@ namespace ed {
 			} else if (it->Type == PipelineItem::ItemType::PluginItem && !isDebug) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
 
-				pldata->Owner->ExecutePipelineItem(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
+				pldata->Owner->PipelineItem_Execute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
 			}
 
 			if (it == breakItem && breakItem != nullptr)
@@ -626,7 +626,7 @@ namespace ed {
 				glBindTexture(GL_TEXTURE_3D, srvs[j]);
 			else if (m_objects->IsPluginObject(srvs[j])) {
 				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+				pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
 			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -847,7 +847,7 @@ namespace ed {
 				glBindTexture(GL_TEXTURE_3D, srvs[j]);
 			else if (m_objects->IsPluginObject(srvs[j])) {
 				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-				pobj->Owner->BindObject(pobj->Type, pobj->Data, pobj->ID);
+				pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
 			} else
 				glBindTexture(GL_TEXTURE_2D, srvs[j]);
 
@@ -1471,7 +1471,7 @@ namespace ed {
 			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 			float plMat[16];
-			pldata->Owner->GetPipelineItemWorldMatrix(item->Name, plMat);
+			pldata->Owner->PipelineItem_GetWorldMatrix(item->Name, plMat);
 			world = glm::make_mat4(plMat);
 		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
@@ -1573,7 +1573,7 @@ namespace ed {
 			pipe::PluginItemData* obj = (pipe::PluginItemData*)item->Data;
 
 			float hit;
-			if (obj->Owner->IntersectPipelineItem(obj->Type, obj->PluginData, glm::value_ptr(vec3Origin), glm::value_ptr(vec3Dir), hit))
+			if (obj->Owner->PipelineItem_Intersect(obj->Type, obj->PluginData, glm::value_ptr(vec3Origin), glm::value_ptr(vec3Dir), hit))
 				myDist = hit;
 		}
 
@@ -2080,7 +2080,7 @@ namespace ed {
 		int plLang = 0;
 		IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&plLang, path, m_plugins->Plugins());
 
-		return plugin->ProcessGLSL(plLang, src);
+		return plugin->CustomLanguage_ProcessGeneratedGLSL(plLang, src);
 	}
 	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSource)
 	{
@@ -2094,7 +2094,7 @@ namespace ed {
 			source = m_project->LoadProjectFile(path);
 
 		size_t spv_length = 0;
-		const unsigned int* spv = plugin->CompileToSPIRV(plLang, source.c_str(), source.size(), stage, entry.c_str(), (plugin::ShaderMacro*)macros, macroCount, &spv_length, &ret);
+		const unsigned int* spv = plugin->CustomLanguage_CompileToSPIRV(plLang, source.c_str(), source.size(), stage, entry.c_str(), (plugin::ShaderMacro*)macros, macroCount, &spv_length, &ret);
 
 		spvvec = std::vector<GLuint>(spv, spv + spv_length);
 		

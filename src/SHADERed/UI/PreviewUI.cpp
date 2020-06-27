@@ -962,7 +962,7 @@ namespace ed {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 				float minPos[3], maxPos[3];
-				pldata->Owner->GetPipelineItemBoundingBox(item->Name, minPos, maxPos);
+				pldata->Owner->PipelineItem_GetBoundingBox(item->Name, minPos, maxPos);
 
 				minPosItem = glm::make_vec3(minPos);
 				maxPosItem = glm::make_vec3(maxPos);

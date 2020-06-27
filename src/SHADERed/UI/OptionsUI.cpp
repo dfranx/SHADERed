@@ -403,9 +403,9 @@ namespace ed {
 		/* PLUGIN SHADER FILE EXTENSIONS: */
 		const auto& plugins = m_data->Plugins.Plugins();
 		for (IPlugin1* pl : plugins) {
-			int langCount = pl->GetCustomLanguageCount();
+			int langCount = pl->CustomLanguage_GetCount();
 			for (int i = 0; i < langCount; i++) {
-				std::string langName = pl->GetCustomLanguageName(i);
+				std::string langName = pl->CustomLanguage_GetName(i);
 				std::vector<std::string>& extVec = settings->General.PluginShaderExtensions[langName];
 				ImGui::Text("%s file extensions: ", langName.c_str());
 				ImGui::SameLine();

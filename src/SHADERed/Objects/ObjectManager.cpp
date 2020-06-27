@@ -68,7 +68,7 @@ namespace ed {
 		for (int i = 0; i < m_itemData.size(); i++) {
 			if (m_itemData[i]->Plugin != nullptr) {
 				PluginObject* pobj = m_itemData[i]->Plugin;
-				pobj->Owner->RemoveObject(m_items[i].c_str(), pobj->Type, pobj->Data, pobj->ID);
+				pobj->Owner->Object_Remove(m_items[i].c_str(), pobj->Type, pobj->Data, pobj->ID);
 			}
 
 			delete m_itemData[i];
@@ -903,7 +903,7 @@ namespace ed {
 
 		if (IsPluginObject(file)) {
 			PluginObject* pobj = GetPluginObject(file);
-			pobj->Owner->RemoveObject(file.c_str(), pobj->Type, pobj->Data, pobj->ID);
+			pobj->Owner->Object_Remove(file.c_str(), pobj->Type, pobj->Data, pobj->ID);
 		}
 
 		delete m_itemData[index];

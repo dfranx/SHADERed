@@ -430,6 +430,7 @@ namespace ed {
 				plugin->GetMessagesCurrentItem = [](void* messages) -> const char* {
 					return ((ed::MessageStack*)messages)->CurrentItem.c_str();
 				};
+				plugin->OnEditorContentChange = nullptr; // will be set by CodeEditorUI
 
 				pluginfn::GetOpenFileDialogFn GetIncludePathCount;
 				pluginfn::GetSaveFileDialogFn GetIncludePath;
@@ -506,11 +507,11 @@ namespace ed {
 
 	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin1* plugin, const char* itemName)
 	{
-		int size = plugin->GetPipelineItemInputLayoutSize(itemName);
+		int size = plugin->PipelineItem_GetInputLayoutSize(itemName);
 		std::vector<InputLayoutItem> inpLayout;
 		for (int j = 0; j < size; j++) {
 			plugin::InputLayoutItem inpOut;
-			plugin->GetPipelineItemInputLayoutItem(itemName, j, inpOut);
+			plugin->PipelineItem_GetInputLayoutItem(itemName, j, inpOut);
 
 			InputLayoutItem inp;
 			inp.Value = (InputLayoutValue)inpOut.Value;
@@ -596,7 +597,7 @@ namespace ed {
 	void PluginManager::ShowCustomMenu()
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasCustomMenu())
+			if (m_isActive[i] && m_plugins[i]->HasCustomMenuItem())
 				if (ImGui::BeginMenu(m_names[i].c_str())) {
 					m_plugins[i]->ShowMenuItems("custom");
 					ImGui::EndMenu();
@@ -608,12 +609,12 @@ namespace ed {
 		std::transform(qLower.begin(), qLower.end(), qLower.begin(), tolower);
 
 		for (int i = 0; i < m_plugins.size(); i++) {
-			if (m_isActive[i] && m_plugins[i]->HasSectionInOptions()) {
+			if (m_isActive[i] && m_plugins[i]->Options_HasSection()) {
 				std::string pluginName = m_names[i];
 				std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), tolower);
 				if (qLower.empty() || pluginName.find(qLower) != std::string::npos) {
 					if (ImGui::CollapsingHeader(m_names[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen))
-						m_plugins[i]->ShowOptions();
+						m_plugins[i]->Options_RenderSection();
 				}
 			}
 		}
@@ -621,12 +622,12 @@ namespace ed {
 	bool PluginManager::ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type)
 	{
 		bool ret = false;
-		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasSystemVariables((plugin::VariableType)type)) {
-				int nameCount = m_plugins[i]->GetSystemVariableNameCount((plugin::VariableType)type);
+		for (int i = 0; i < m_plugins.size(); i++) {
+			int nameCount = m_plugins[i]->SystemVariables_GetNameCount((plugin::VariableType)type);
+			if (m_isActive[i] && nameCount > 0) {
 
 				for (int j = 0; j < nameCount; j++) {
-					const char* name = m_plugins[i]->GetSystemVariableName((plugin::VariableType)type, j);
+					const char* name = m_plugins[i]->SystemVariables_GetName((plugin::VariableType)type, j);
 					if (ImGui::Selectable(name)) {
 						data->Owner = m_plugins[i];
 						strcpy(data->Name, name);
@@ -634,18 +635,19 @@ namespace ed {
 					}
 				}
 			}
+		}
 
 		return ret;
 	}
 	bool PluginManager::ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type)
 	{
 		bool ret = false;
-		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasVariableFunctions((plugin::VariableType)type)) {
-				int nameCount = m_plugins[i]->GetVariableFunctionNameCount((plugin::VariableType)type);
-
+		for (int i = 0; i < m_plugins.size(); i++) {
+			int nameCount = m_plugins[i]->VariableFunctions_GetNameCount((plugin::VariableType)type);
+			
+			if (m_isActive[i] && nameCount > 0) {
 				for (int j = 0; j < nameCount; j++) {
-					const char* name = m_plugins[i]->GetVariableFunctionName((plugin::VariableType)type, j);
+					const char* name = m_plugins[i]->VariableFunctions_GetName((plugin::VariableType)type, j);
 					if (ImGui::Selectable(name)) {
 						data->Owner = m_plugins[i];
 						strcpy(data->Name, name);
@@ -653,6 +655,7 @@ namespace ed {
 					}
 				}
 			}
+		}
 
 		return ret;
 	}

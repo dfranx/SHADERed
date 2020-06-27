@@ -76,7 +76,7 @@ namespace ed {
 
 			bool isBuf = oItem->Buffer != nullptr;
 			bool isImg3D = oItem->Image3D != nullptr;
-			bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->HasObjectExtendedPreview(pobj->Type);
+			bool hasPluginExtendedPreview = isPluginOwner && pobj->Owner->Object_HasExtendedPreview(pobj->Type);
 			
 			if (ImGui::Selectable(itemText.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 				// open preview on double click
@@ -91,14 +91,14 @@ namespace ed {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex, m_data->Objects.IsCubeMap(items[i]), m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr, m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr, isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr, isPluginOwner ? pobj : nullptr);
 				}
 
-				bool hasPluginPreview = isPluginOwner && pobj->Owner->HasObjectPreview(pobj->Type);
+				bool hasPluginPreview = isPluginOwner && pobj->Owner->Object_HasPreview(pobj->Type);
 				if (oItem->IsCube) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				} else if (!isBuf && !isImg3D && !isPluginOwner)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				else if (hasPluginPreview)
-					pobj->Owner->ShowObjectPreview(pobj->Type, pobj->Data, pobj->ID);
+					pobj->Owner->Object_ShowPreview(pobj->Type, pobj->Data, pobj->ID);
 
 				ImGui::Separator();
 
@@ -121,9 +121,9 @@ namespace ed {
 					}
 				}
 
-				bool isPluginObjBindable = isPluginOwner && (pobj->Owner->IsObjectBindable(pobj->Type) || pobj->Owner->IsObjectBindableUAV(pobj->Type));
+				bool isPluginObjBindable = isPluginOwner && (pobj->Owner->Object_IsBindable(pobj->Type) || pobj->Owner->Object_IsBindableUAV(pobj->Type));
 				if ((isPluginObjBindable || !isPluginOwner) && ImGui::BeginMenu("Bind")) {
-					bool isPluginObjUAV = isPluginOwner && pobj->Owner->IsObjectBindableUAV(pobj->Type);
+					bool isPluginObjUAV = isPluginOwner && pobj->Owner->Object_IsBindableUAV(pobj->Type);
 
 					if (isBuf || isPluginObjUAV) {
 						for (int j = 0; j < passes.size(); j++) {
@@ -153,14 +153,14 @@ namespace ed {
 					ImGui::EndMenu();
 				}
 
-				bool hasPluginContext = isPluginOwner && pobj->Owner->HasObjectContext(pobj->Type);
+				bool hasPluginContext = isPluginOwner && pobj->Owner->Object_HasContext(pobj->Type);
 				if (hasPluginContext) {
 					ImGui::Separator();
-					pobj->Owner->ShowObjectContext(pobj->Type, pobj->Data);
+					pobj->Owner->Object_ShowContext(pobj->Type, pobj->Data);
 					ImGui::Separator();
 				}
 
-				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture) || isImg3D || (isPluginOwner && pobj->Owner->HasObjectProperties(pobj->Type))) {
+				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture) || isImg3D || (isPluginOwner && pobj->Owner->Object_HasProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
 						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
 				}

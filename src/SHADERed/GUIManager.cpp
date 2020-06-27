@@ -457,7 +457,7 @@ namespace ed {
 							spvParser.Parse(pass->PSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->HasLanguageAutoUniforms(langID))))
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->VSSPV.size() > 0) {

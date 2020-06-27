@@ -74,6 +74,8 @@ namespace ed {
 		typedef int (*GetIncludePathCountFn)();
 		typedef const char* (*GetIncludePathFn)(void* project, int index);
 		typedef const char* (*GetMessagesCurrentItemFn)(void* messages);
+	
+		typedef void (*OnEditorContentChangeFn)(void* UI, void* plugin, int langID, int editorID);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -90,12 +92,12 @@ namespace ed {
 		virtual void BeginRender() = 0;
 		virtual void EndRender() = 0;
 
-		virtual void BeginProjectLoading() = 0;
-		virtual void EndProjectLoading() = 0;
-		virtual void BeginProjectSaving() = 0;
-		virtual void EndProjectSaving() = 0;
+		virtual void BeginProjectLoad() = 0;
+		virtual void EndProjectLoad() = 0;
+		virtual void BeginProjectSave() = 0;
+		virtual void EndProjectSave() = 0;
 		virtual void CopyFilesOnSave(const char* dir) = 0;
-		virtual bool HasCustomMenu() = 0;
+		virtual bool HasCustomMenuItem() = 0;
 
 		/* list: file, newproject, project, createitem, window, custom */
 		virtual bool HasMenuItems(const char* name) = 0;
@@ -106,115 +108,127 @@ namespace ed {
 		virtual void ShowContextItems(const char* name, void* owner = nullptr, void* extraData = nullptr) = 0;
 
 		// system variable methods
-		virtual bool HasSystemVariables(plugin::VariableType varType) = 0;
-		virtual int GetSystemVariableNameCount(plugin::VariableType varType) = 0;
-		virtual const char* GetSystemVariableName(plugin::VariableType varType, int index) = 0;
-		virtual bool HasLastFrame(char* name, plugin::VariableType varType) = 0;
-		virtual void UpdateSystemVariableValue(char* data, char* name, plugin::VariableType varType, bool isLastFrame) = 0;
+		virtual int SystemVariables_GetNameCount(plugin::VariableType varType) = 0;
+		virtual const char* SystemVariables_GetName(plugin::VariableType varType, int index) = 0;
+		virtual bool SystemVariables_HasLastFrame(char* name, plugin::VariableType varType) = 0;
+		virtual void SystemVariables_UpdateValue(char* data, char* name, plugin::VariableType varType, bool isLastFrame) = 0;
 
 		// function variables
-		virtual bool HasVariableFunctions(plugin::VariableType vtype) = 0;
-		virtual int GetVariableFunctionNameCount(plugin::VariableType vtype) = 0;
-		virtual const char* GetVariableFunctionName(plugin::VariableType varType, int index) = 0;
-		virtual bool ShowFunctionArgumentEdit(char* fname, char* args, plugin::VariableType vtype) = 0;
-		virtual void UpdateVariableFunctionValue(char* data, char* args, char* fname, plugin::VariableType varType) = 0;
-		virtual int GetVariableFunctionArgsSize(char* fname, plugin::VariableType varType) = 0;
-		virtual void InitVariableFunctionArguments(char* args, char* fname, plugin::VariableType vtype) = 0;
-		virtual const char* ExportFunctionArguments(char* fname, plugin::VariableType vtype, char* args) = 0;
-		virtual void ImportFunctionArguments(char* fname, plugin::VariableType vtype, char* args, const char* argsString) = 0;
+		virtual int VariableFunctions_GetNameCount(plugin::VariableType vtype) = 0;
+		virtual const char* VariableFunctions_GetName(plugin::VariableType varType, int index) = 0;
+		virtual bool VariableFunctions_ShowArgumentEdit(char* fname, char* args, plugin::VariableType vtype) = 0;
+		virtual void VariableFunctions_UpdateValue(char* data, char* args, char* fname, plugin::VariableType varType) = 0;
+		virtual int VariableFunctions_GetArgsSize(char* fname, plugin::VariableType varType) = 0;
+		virtual void VariableFunctions_InitArguments(char* args, char* fname, plugin::VariableType vtype) = 0;
+		virtual const char* VariableFunctions_ExportArguments(char* fname, plugin::VariableType vtype, char* args) = 0;
+		virtual void VariableFunctions_ImportArguments(char* fname, plugin::VariableType vtype, char* args, const char* argsString) = 0;
 
 		// object manager stuff
-		void* ObjectManager;
-		pluginfn::AddObjectFn AddObject;
-		virtual bool HasObjectPreview(const char* type) = 0;
-		virtual void ShowObjectPreview(const char* type, void* data, unsigned int id) = 0;
-		virtual bool IsObjectBindable(const char* type) = 0;
-		virtual bool IsObjectBindableUAV(const char* type) = 0;
-		virtual void RemoveObject(const char* name, const char* type, void* data, unsigned int id) = 0;
-		virtual bool HasObjectExtendedPreview(const char* type) = 0;
-		virtual void ShowObjectExtendedPreview(const char* type, void* data, unsigned int id) = 0;
-		virtual bool HasObjectProperties(const char* type) = 0;
-		virtual void ShowObjectProperties(const char* type, void* data, unsigned int id) = 0;
-		virtual void BindObject(const char* type, void* data, unsigned int id) = 0;
-		virtual const char* ExportObject(char* type, void* data, unsigned int id) = 0;
-		virtual void ImportObject(const char* name, const char* type, const char* argsString) = 0;
-		virtual bool HasObjectContext(const char* type) = 0;
-		virtual void ShowObjectContext(const char* type, void* data) = 0;
+		virtual bool Object_HasPreview(const char* type) = 0;
+		virtual void Object_ShowPreview(const char* type, void* data, unsigned int id) = 0;
+		virtual bool Object_IsBindable(const char* type) = 0;
+		virtual bool Object_IsBindableUAV(const char* type) = 0;
+		virtual void Object_Remove(const char* name, const char* type, void* data, unsigned int id) = 0;
+		virtual bool Object_HasExtendedPreview(const char* type) = 0;
+		virtual void Object_ShowExtendedPreview(const char* type, void* data, unsigned int id) = 0;
+		virtual bool Object_HasProperties(const char* type) = 0;
+		virtual void Object_ShowProperties(const char* type, void* data, unsigned int id) = 0;
+		virtual void Object_Bind(const char* type, void* data, unsigned int id) = 0;
+		virtual const char* Object_Export(char* type, void* data, unsigned int id) = 0;
+		virtual void Object_Import(const char* name, const char* type, const char* argsString) = 0;
+		virtual bool Object_HasContext(const char* type) = 0;
+		virtual void Object_ShowContext(const char* type, void* data) = 0;
 
 		// pipeline item stuff
-		void* PipelineManager;
-		pluginfn::AddCustomPipelineItemFn AddCustomPipelineItem;
-		virtual bool HasPipelineItemProperties(const char* type) = 0;
-		virtual void ShowPipelineItemProperties(const char* type, void* data) = 0;
-		virtual bool IsPipelineItemPickable(const char* type) = 0;
-		virtual bool HasPipelineItemShaders(const char* type) = 0; // so that they can be opened in the shader editor
-		virtual void OpenPipelineItemInEditor(void* CodeEditor, const char* type, void* data) = 0;
-		virtual bool CanPipelineItemHaveChild(const char* type, plugin::PipelineItemType itemType) = 0;
-		virtual int GetPipelineItemInputLayoutSize(const char* itemName) = 0; // this must be supported if this item can have geometry as child..
-		virtual void GetPipelineItemInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
-		virtual void RemovePipelineItem(const char* itemName, const char* type, void* data) = 0;
-		virtual void RenamePipelineItem(const char* oldName, const char* newName) = 0;
-		virtual void AddPipelineItemChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
-		virtual bool CanPipelineItemHaveChildren(const char* type) = 0;
-		virtual void* CopyPipelineItemData(const char* type, void* data) = 0;
-		virtual void ExecutePipelineItem(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
-		virtual void ExecutePipelineItem(const char* type, void* data, void* children, int count) = 0;
-		virtual void GetPipelineItemWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
-		virtual bool IntersectPipelineItem(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
-		virtual void GetPipelineItemBoundingBox(const char* name, float (&minPos)[3], float (&maxPos)[3]) = 0;
-		virtual bool HasPipelineItemContext(const char* type) = 0;
-		virtual void ShowPipelineItemContext(const char* type, void* data) = 0;
-		virtual const char* ExportPipelineItem(const char* type, void* data) = 0;
-		virtual void* ImportPipelineItem(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
-		virtual void MovePipelineItemDown(void* ownerData, const char* ownerType, const char* itemName) = 0;
-		virtual void MovePipelineItemUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
+		virtual bool PipelineItem_HasProperties(const char* type) = 0;
+		virtual void PipelineItem_ShowProperties(const char* type, void* data) = 0;
+		virtual bool PipelineItem_IsPickable(const char* type) = 0;
+		virtual bool PipelineItem_HasShaders(const char* type) = 0; // so that they can be opened in the shader editor
+		virtual void PipelineItem_OpenInEditor(void* CodeEditor, const char* type, void* data) = 0;
+		virtual bool PipelineItem_CanHaveChild(const char* type, plugin::PipelineItemType itemType) = 0;
+		virtual int PipelineItem_GetInputLayoutSize(const char* itemName) = 0; // this must be supported if this item can have geometry as child..
+		virtual void PipelineItem_GetInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
+		virtual void PipelineItem_Remove(const char* itemName, const char* type, void* data) = 0;
+		virtual void PipelineItem_Rename(const char* oldName, const char* newName) = 0;
+		virtual void PipelineItem_AddChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
+		virtual bool PipelineItem_CanHaveChildren(const char* type) = 0;
+		virtual void* PipelineItem_CopyData(const char* type, void* data) = 0;
+		virtual void PipelineItem_Execute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
+		virtual void PipelineItem_Execute(const char* type, void* data, void* children, int count) = 0;
+		virtual void PipelineItem_GetWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
+		virtual bool PipelineItem_Intersect(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
+		virtual void PipelineItem_GetBoundingBox(const char* name, float (&minPos)[3], float (&maxPos)[3]) = 0;
+		virtual bool PipelineItem_HasContext(const char* type) = 0;
+		virtual void PipelineItem_ShowContext(const char* type, void* data) = 0;
+		virtual const char* PipelineItem_Export(const char* type, void* data) = 0;
+		virtual void* PipelineItem_Import(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
+		virtual void PipelineItem_MoveDown(void* ownerData, const char* ownerType, const char* itemName) = 0;
+		virtual void PipelineItem_MoveUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
 
 		// options
-		virtual bool HasSectionInOptions() = 0;
-		virtual void ShowOptions() = 0;
+		virtual bool Options_HasSection() = 0;
+		virtual void Options_RenderSection() = 0;
 
 		// languages
-		virtual int GetCustomLanguageCount() = 0;
-		virtual const char* GetCustomLanguageName(int langID) = 0;
-		virtual const unsigned int* CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
-		virtual const char* ProcessGLSL(int langID, const char* src) = 0;
-		virtual bool HasLanguageAutoUniforms(int langID) = 0;
+		virtual int CustomLanguage_GetCount() = 0;
+		virtual const char* CustomLanguage_GetName(int langID) = 0;
+		virtual const unsigned int* CustomLanguage_CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
+		virtual const char* CustomLanguage_ProcessGeneratedGLSL(int langID, const char* src) = 0;
+		virtual bool CustomLanguage_SupportsAutoUniforms(int langID) = 0;
 
 		// language text editor
-		virtual bool HasLanguageCustomEditor(int langID) = 0;
-		virtual void OpenLanguageEditor(int langID, int editorID, const char* data, int dataLen) = 0;
-		virtual void RenderLanguageEditor(int langID, int editorID) = 0;
-		virtual void CloseLanguageEditor(int langID, int editorID) = 0;
-		
+		virtual bool ShaderEditor_Supports(int langID) = 0;
+		virtual void ShaderEditor_Open(int langID, int editorID, const char* data, int dataLen) = 0;
+		virtual void ShaderEditor_Render(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Close(int langID, int editorID) = 0;
+		virtual const char* ShaderEditor_GetContent(int langID, int editorID, size_t* dataLength) = 0;
+		virtual bool ShaderEditor_IsChanged(int langID, int editorID) = 0;
+		virtual void ShaderEditor_ResetChangeState(int langID, int editorID) = 0;
+		virtual bool ShaderEditor_CanUndo(int langID, int editorID) = 0;
+		virtual bool ShaderEditor_CanRedo(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Undo(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Redo(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Cut(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Paste(int langID, int editorID) = 0;
+		virtual void ShaderEditor_Copy(int langID, int editorID) = 0;
+		virtual void ShaderEditor_SelectAll(int langID, int editorID) = 0;
+		virtual bool ShaderEditor_HasStats(int langID, int editorID) = 0;
+
 		// code editor
-		virtual void SaveCodeEditorItem(const char* src, int srcLen, int id) = 0;
-		virtual void CloseCodeEditorItem(int id) = 0;
-		virtual int GetLanguageDefinitionKeywordCount(int id) = 0;
-		virtual const char** GetLanguageDefinitionKeywords(int id) = 0;
-		virtual int GetLanguageDefinitionTokenRegexCount(int id) = 0;
-		virtual const char* GetLanguageDefinitionTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int id) = 0;
-		virtual int GetLanguageDefinitionIdentifierCount(int id) = 0;
-		virtual const char* GetLanguageDefinitionIdentifier(int index, int id) = 0;
-		virtual const char* GetLanguageDefinitionIdentifierDesc(int index, int id) = 0;
-		virtual const char* GetLanguageDefinitionCommentStart(int id) = 0;
-		virtual const char* GetLanguageDefinitionCommentEnd(int id) = 0;
-		virtual const char* GetLanguageDefinitionLineComment(int id) = 0;
-		virtual bool IsLanguageDefinitionCaseSensitive(int id) = 0;
-		virtual bool GetLanguageDefinitionAutoIndent(int id) = 0;
-		virtual const char* GetLanguageDefinitionName(int id) = 0;
-		virtual const char* GetLanguageAbbreviation(int id) = 0;
+		virtual void CodeEditor_SaveItem(const char* src, int srcLen, int id) = 0;
+		virtual void CodeEditor_CloseItem(int id) = 0;
+		virtual int LanguageDefinition_GetKeywordCount(int id) = 0;
+		virtual const char** LanguageDefinition_GetKeywords(int id) = 0;
+		virtual int LanguageDefinition_GetTokenRegexCount(int id) = 0;
+		virtual const char* LanguageDefinition_GetTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int id) = 0;
+		virtual int LanguageDefinition_GetIdentifierCount(int id) = 0;
+		virtual const char* LanguageDefinition_GetIdentifier(int index, int id) = 0;
+		virtual const char* LanguageDefinition_GetIdentifierDesc(int index, int id) = 0;
+		virtual const char* LanguageDefinition_GetCommentStart(int id) = 0;
+		virtual const char* LanguageDefinition_GetCommentEnd(int id) = 0;
+		virtual const char* LanguageDefinition_GetLineComment(int id) = 0;
+		virtual bool LanguageDefinition_IsCaseSensitive(int id) = 0;
+		virtual bool LanguageDefinition_GetAutoIndent(int id) = 0;
+		virtual const char* LanguageDefinition_GetName(int id) = 0;
+		virtual const char* LanguageDefinition_GetNameAbbreviation(int id) = 0;
+
+		// file change checks
+		virtual int ShaderFilePath_GetCount() = 0;
+		virtual const char* ShaderFilePath_Get(int index) = 0;
+		virtual bool ShaderFilePath_HasChanged() = 0;
+		virtual void ShaderFilePath_Update() = 0;
 
 		// misc
 		virtual bool HandleDropFile(const char* filename) = 0;
 		virtual void HandleRecompile(const char* itemName) = 0;
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
-		virtual int GetShaderFilePathCount() = 0; // for file change checks
-		virtual const char* GetShaderFilePath(int index) = 0;
-		virtual bool HasShaderFilePathChanged() = 0;
-		virtual void UpdateShaderFilePath() = 0;
-
-		// some functions exported from SHADERed
+		
+		// host functions
 		void *Renderer, *Messages, *Project, *CodeEditor, *UI;
+		void* ObjectManager;
+		void* PipelineManager;
+		pluginfn::AddObjectFn AddObject;
+		pluginfn::AddCustomPipelineItemFn AddCustomPipelineItem;
 		pluginfn::AddMessageFn AddMessage;
 		pluginfn::CreateRenderTextureFn CreateRenderTexture;
 		pluginfn::CreateImageFn CreateImage;
@@ -273,5 +287,6 @@ namespace ed {
 		pluginfn::GetIncludePathCountFn GetIncludePathCount;
 		pluginfn::GetIncludePathFn GetIncludePath;
 		pluginfn::GetMessagesCurrentItemFn GetMessagesCurrentItem;
+		pluginfn::OnEditorContentChangeFn OnEditorContentChange;
 	};
 }

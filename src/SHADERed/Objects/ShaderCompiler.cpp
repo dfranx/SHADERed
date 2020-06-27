@@ -458,9 +458,9 @@ namespace ed {
 			}
 
 		for (IPlugin1* pl : pls) {
-			int langlen = pl->GetCustomLanguageCount();
+			int langlen = pl->CustomLanguage_GetCount();
 			for (int i = 0; i < langlen; i++) {
-				if (langName == std::string(pl->GetCustomLanguageName(i))) {
+				if (langName == std::string(pl->CustomLanguage_GetName(i))) {
 					*lang = i;
 					return pl;
 				}

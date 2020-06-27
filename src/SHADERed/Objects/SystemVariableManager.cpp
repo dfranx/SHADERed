@@ -98,7 +98,7 @@ namespace ed {
 				} break;
 				case ed::SystemShaderVariable::PluginVariable: {
 					PluginSystemVariableData* pvData = &var->PluginSystemVarData;
-					pvData->Owner->UpdateSystemVariableValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
+					pvData->Owner->SystemVariables_UpdateValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
 				} break;
 				}
 			} else {
@@ -188,7 +188,7 @@ namespace ed {
 				} break;
 				case ed::SystemShaderVariable::PluginVariable: {
 					PluginSystemVariableData* pvData = &var->PluginSystemVarData;
-					pvData->Owner->UpdateSystemVariableValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
+					pvData->Owner->SystemVariables_UpdateValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
 				} break;
 				}
 			}

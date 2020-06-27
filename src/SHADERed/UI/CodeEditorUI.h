@@ -63,6 +63,8 @@ namespace ed {
 
 		bool RequestedProjectSave;
 
+		void ChangePluginShaderEditor(IPlugin1* plugin, int langID, int editorID);
+
 	private:
 		void m_setupShortcuts();
 		void m_loadEditorShortcuts(TextEditor* editor);
@@ -71,12 +73,14 @@ namespace ed {
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 
 		struct PluginShaderEditor {
-			PluginShaderEditor() {
+			PluginShaderEditor()
+			{
 				Plugin = nullptr;
 				LanguageID = -1;
 				ID = -1;
 			}
-			PluginShaderEditor(IPlugin1* pl, int langID, int id) {
+			PluginShaderEditor(IPlugin1* pl, int langID, int id)
+			{
 				Plugin = pl;
 				LanguageID = langID;
 				ID = id;
@@ -115,6 +119,7 @@ namespace ed {
 		// auto recompile
 		bool m_contentChanged;
 		std::vector<TextEditor*> m_changedEditors;
+		std::vector<PluginShaderEditor*> m_changedPluginEditors;
 		eng::Timer m_lastAutoRecompile;
 
 		// all the variables needed for the file change notifications

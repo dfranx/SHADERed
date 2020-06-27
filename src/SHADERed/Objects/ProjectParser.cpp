@@ -212,7 +212,7 @@ namespace ed {
 
 		// notify plugins that we've finished with loading
 		for (const auto& pname : m_pluginList)
-			m_plugins->GetPlugin(pname)->BeginProjectLoading();
+			m_plugins->GetPlugin(pname)->BeginProjectLoad();
 
 		switch (projectVersion) {
 		case 1: m_parseV1(projectNode); break;
@@ -229,7 +229,7 @@ namespace ed {
 
 		// notify plugins that we've finished with loading
 		for (const auto& pname : m_pluginList)
-			m_plugins->GetPlugin(pname)->EndProjectLoading();
+			m_plugins->GetPlugin(pname)->EndProjectLoad();
 
 		Logger::Get().Log("Finished with parsing a project file");
 	}
@@ -518,7 +518,7 @@ namespace ed {
 				}
 
 				pugi::xml_node dataNode = passNode.append_child("data");
-				const char* pObjectSrc = plData->Owner->ExportPipelineItem(plData->Type, plData->PluginData);
+				const char* pObjectSrc = plData->Owner->PipelineItem_Export(plData->Type, plData->PluginData);
 				dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
 			}
 		}
@@ -626,7 +626,7 @@ namespace ed {
 				}
 
 				PluginObject* pluginObj = (PluginObject*)m_objects->GetPluginObject(texs[i]);
-				bool isPluginObjectUAV = isPluginOwner && pluginObj->Owner->IsObjectBindableUAV(pluginObj->Type);
+				bool isPluginObjectUAV = isPluginOwner && pluginObj->Owner->Object_IsBindableUAV(pluginObj->Type);
 
 				if (isPluginOwner) {
 					m_addPlugin(m_plugins->GetPluginName(pluginObj->Owner));
@@ -634,7 +634,7 @@ namespace ed {
 					textureNode.append_attribute("plugin").set_value(m_plugins->GetPluginName(pluginObj->Owner).c_str());
 					textureNode.append_attribute("objecttype").set_value(pluginObj->Type);
 
-					const char* pObjectSrc = pluginObj->Owner->ExportObject(pluginObj->Type, pluginObj->Data, pluginObj->ID);
+					const char* pObjectSrc = pluginObj->Owner->Object_Export(pluginObj->Type, pluginObj->Data, pluginObj->ID);
 
 					if (pObjectSrc != nullptr)
 						textureNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
@@ -989,7 +989,7 @@ namespace ed {
 						colID++;
 					}
 					else if (var->Function == FunctionShaderVariable::PluginFunction)
-						var->PluginFuncData.Owner->ImportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, getInnerXML(value).c_str());
+						var->PluginFuncData.Owner->VariableFunctions_ImportArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments, getInnerXML(value).c_str());
 					else
 						*FunctionVariableManager::LoadFloat(var->Arguments, colID++) = value.text().as_float();
 				} else {
@@ -1036,7 +1036,7 @@ namespace ed {
 			} else if (var->Function == FunctionShaderVariable::PluginFunction) {
 				m_addPlugin(m_plugins->GetPluginName(var->PluginFuncData.Owner));
 
-				const char* valNode = var->PluginFuncData.Owner->ExportFunctionArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments);
+				const char* valNode = var->PluginFuncData.Owner->VariableFunctions_ExportArguments(var->PluginFuncData.Name, (plugin::VariableType)var->GetType(), var->Arguments);
 				valueRowNode.append_child("value").append_buffer(valNode, strlen(valNode));
 			} else {
 				// save arguments
@@ -1289,7 +1289,7 @@ namespace ed {
 				itemNode.append_attribute("itemtype").set_value(plData->Type);
 
 				pugi::xml_node dataNode = itemNode.append_child("data");
-				const char* pObjectSrc = plData->Owner->ExportPipelineItem(plData->Type, plData->PluginData);
+				const char* pObjectSrc = plData->Owner->PipelineItem_Export(plData->Type, plData->PluginData);
 
 				if (pObjectSrc != nullptr)
 					dataNode.append_buffer(pObjectSrc, strlen(pObjectSrc));
@@ -1540,7 +1540,7 @@ namespace ed {
 				tData->Items.clear();
 				tData->Owner = plugin;
 				strcpy(tData->Type, otype.c_str());
-				tData->PluginData = plugin->ImportPipelineItem(name, itemName, otype.c_str(), getInnerXML(itemNode.child("data")).c_str());
+				tData->PluginData = plugin->PipelineItem_Import(name, itemName, otype.c_str(), getInnerXML(itemNode.child("data")).c_str());
 			}
 
 			// create and modify if needed
@@ -2613,7 +2613,7 @@ namespace ed {
 				IPlugin1* plugin = m_plugins->GetPlugin(passNode.attribute("plugin").as_string());
 				std::string otype(passNode.attribute("itemtype").as_string());
 
-				void* pluginData = plugin->ImportPipelineItem(nullptr, name, otype.c_str(), getInnerXML(passNode.child("data")).c_str());
+				void* pluginData = plugin->PipelineItem_Import(nullptr, name, otype.c_str(), getInnerXML(passNode.child("data")).c_str());
 
 				// add the item
 				m_pipe->AddPluginItem(nullptr, name, otype.c_str(), pluginData, plugin);
@@ -3000,9 +3000,9 @@ namespace ed {
 				IPlugin1* plugin = m_plugins->GetPlugin(objectNode.attribute("plugin").as_string());
 				std::string otype(objectNode.attribute("objecttype").as_string());
 
-				plugin->ImportObject(objName, otype.c_str(), getInnerXML(objectNode).c_str());
+				plugin->Object_Import(objName, otype.c_str(), getInnerXML(objectNode).c_str());
 
-				if (plugin->IsObjectBindableUAV(otype.c_str())) {
+				if (plugin->Object_IsBindableUAV(otype.c_str())) {
 					for (pugi::xml_node bindNode : objectNode.children("bind")) {
 						const pugi::char_t* passBindName = bindNode.attribute("name").as_string();
 						int slot = bindNode.attribute("slot").as_int();

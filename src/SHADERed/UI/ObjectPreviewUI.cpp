@@ -80,7 +80,7 @@ namespace ed {
 
 				if (item->Plugin != nullptr) {
 					PluginObject* pobj = ((PluginObject*)item->Plugin);
-					pobj->Owner->ShowObjectExtendedPreview(pobj->Type, pobj->Data, pobj->ID);
+					pobj->Owner->Object_ShowExtendedPreview(pobj->Type, pobj->Data, pobj->ID);
 				} else {
 					glm::ivec2 iSize(item->Width, item->Height);
 					if (item->RT != nullptr)

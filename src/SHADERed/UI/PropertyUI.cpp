@@ -86,7 +86,7 @@ namespace ed {
 					else if (m_current != nullptr) {
 						if (m_current->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
-							pdata->Owner->RenamePipelineItem(m_current->Name, m_itemName);
+							pdata->Owner->PipelineItem_Rename(m_current->Name, m_itemName);
 						}
 
 						m_data->Messages.RenameGroup(m_current->Name, m_itemName);
@@ -975,7 +975,7 @@ namespace ed {
 					ImGui::Columns(1);
 
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
-					pdata->Owner->ShowPipelineItemProperties(pdata->Type, pdata->PluginData);
+					pdata->Owner->PipelineItem_ShowProperties(pdata->Type, pdata->PluginData);
 				} else if (m_current->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 					ed::pipe::VertexBuffer* item = reinterpret_cast<ed::pipe::VertexBuffer*>(m_current->Data);
 
@@ -1300,7 +1300,7 @@ namespace ed {
 			} else if (IsPlugin()) {
 				ImGui::Columns(1);
 
-				m_currentObj->Plugin->Owner->ShowObjectProperties(m_currentObj->Plugin->Type, m_currentObj->Plugin->Data, m_currentObj->Plugin->ID);
+				m_currentObj->Plugin->Owner->Object_ShowProperties(m_currentObj->Plugin->Type, m_currentObj->Plugin->Data, m_currentObj->Plugin->ID);
 			}
 
 			ImGui::NextColumn();
@@ -1314,7 +1314,7 @@ namespace ed {
 		if (item != nullptr) {
 			if (item->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
-				if (!pldata->Owner->HasPipelineItemProperties(pldata->Type))
+				if (!pldata->Owner->PipelineItem_HasProperties(pldata->Type))
 					return; // doesnt support properties
 			}
 

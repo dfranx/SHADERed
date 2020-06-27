@@ -104,8 +104,17 @@ namespace ed {
 		if (!canSave)
 			return;
 
+		PluginShaderEditor* pluginEd = &m_pluginEditor[id];
 		TextEditor* ed = m_editor[id];
-		std::string text = ed->GetText();
+		std::string text = "";
+		if (ed == nullptr) {
+			size_t textLength = 0;
+			
+			const char* tempText = pluginEd->Plugin->ShaderEditor_GetContent(pluginEd->LanguageID, pluginEd->ID, &textLength);
+			text = std::string(tempText, textLength);
+		} else 
+			text = ed->GetText();
+
 		std::string path = "";
 
 		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
@@ -125,12 +134,15 @@ namespace ed {
 			path = shader->Path;
 		}
 
-		ed->ResetTextChanged();
+		if (ed)
+			ed->ResetTextChanged();
+		else
+			pluginEd->Plugin->ShaderEditor_ResetChangeState(pluginEd->LanguageID, pluginEd->ID);
 
 		if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
 			std::string edsrc = m_editor[id]->GetText();
-			shader->Owner->SaveCodeEditorItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
+			shader->Owner->CodeEditor_SaveItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
 		} else
 			m_data->Parser.SaveProjectFile(path, text);
 	}
@@ -186,15 +198,19 @@ namespace ed {
 				bool isPluginItem = m_items[i]->Type == PipelineItem::ItemType::PluginItem;
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)m_items[i]->Data;
 
-				std::string shaderType = isPluginItem ? plData->Owner->GetLanguageAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
+				std::string shaderType = isPluginItem ? plData->Owner->LanguageDefinition_GetNameAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 
-				if (m_editor[i] && m_editor[i]->IsTextChanged() && !m_data->Parser.IsProjectModified())
+				int pluginLanguageID = m_pluginEditor[i].LanguageID;
+				int pluginEditorID = m_pluginEditor[i].ID;
+				bool isPluginEditorChanged = m_pluginEditor[i].Plugin != nullptr && m_pluginEditor[i].Plugin->ShaderEditor_IsChanged(pluginLanguageID, pluginEditorID);
+				bool isTextEditorChanged = m_editor[i] && m_editor[i]->IsTextChanged();
+				if ((isTextEditorChanged || isPluginEditorChanged) && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
 
 				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(300, 300));
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * (m_editor[i] && m_editor[i]->IsTextChanged())) | ImGuiWindowFlags_MenuBar)) {
+				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * (isTextEditorChanged || isPluginEditorChanged)) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
@@ -203,20 +219,35 @@ namespace ed {
 						if (ImGui::BeginMenu("Code")) {
 							if (ImGui::MenuItem("Compile", KeyboardShortcuts::Instance().GetString("CodeUI.Compile").c_str())) m_compile(i);
 
-							if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) {
-								m_stats[i].Visible = true;
-								m_stats[i].Refresh(m_items[i], m_shaderStage[i]);
-							}
+							bool showStats = m_pluginEditor[i].Plugin == nullptr || (m_pluginEditor[i].Plugin && m_pluginEditor[i].Plugin->ShaderEditor_HasStats(pluginLanguageID, pluginEditorID));
 							
-							if (m_stats[i].Visible && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].Visible = false;
-							ImGui::Separator();
-							if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i]->CanUndo())) m_editor[i]->Undo();
-							if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i]->CanRedo())) m_editor[i]->Redo();
-							ImGui::Separator();
-							if (ImGui::MenuItem("Cut", "CTRL+X")) m_editor[i]->Cut();
-							if (ImGui::MenuItem("Copy", "CTRL+C")) m_editor[i]->Copy();
-							if (ImGui::MenuItem("Paste", "CTRL+V")) m_editor[i]->Paste();
-							if (ImGui::MenuItem("Select All", "CTRL+A")) m_editor[i]->SelectAll();
+							if (showStats) {
+								if (!m_stats[i].Visible && ImGui::MenuItem("Stats", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) {
+									m_stats[i].Visible = true;
+									m_stats[i].Refresh(m_items[i], m_shaderStage[i]);
+								}
+								if (m_stats[i].Visible && ImGui::MenuItem("Code", KeyboardShortcuts::Instance().GetString("CodeUI.SwitchView").c_str())) m_stats[i].Visible = false;
+							}
+
+							if (m_editor[i]) {
+								ImGui::Separator();
+								if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_editor[i]->CanUndo())) m_editor[i]->Undo();
+								if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_editor[i]->CanRedo())) m_editor[i]->Redo();
+								ImGui::Separator();
+								if (ImGui::MenuItem("Cut", "CTRL+X")) m_editor[i]->Cut();
+								if (ImGui::MenuItem("Copy", "CTRL+C")) m_editor[i]->Copy();
+								if (ImGui::MenuItem("Paste", "CTRL+V")) m_editor[i]->Paste();
+								if (ImGui::MenuItem("Select All", "CTRL+A")) m_editor[i]->SelectAll();
+							} else {
+								ImGui::Separator();
+								if (ImGui::MenuItem("Undo", "CTRL+Z", nullptr, m_pluginEditor[i].Plugin->ShaderEditor_CanUndo(pluginLanguageID, pluginEditorID))) m_pluginEditor[i].Plugin->ShaderEditor_Undo(pluginLanguageID, pluginEditorID);
+								if (ImGui::MenuItem("Redo", "CTRL+Y", nullptr, m_pluginEditor[i].Plugin->ShaderEditor_CanRedo(pluginLanguageID, pluginEditorID))) m_pluginEditor[i].Plugin->ShaderEditor_Redo(pluginLanguageID, pluginEditorID);
+								ImGui::Separator();
+								if (ImGui::MenuItem("Cut", "CTRL+X")) m_pluginEditor[i].Plugin->ShaderEditor_Cut(pluginLanguageID, pluginEditorID);
+								if (ImGui::MenuItem("Copy", "CTRL+C")) m_pluginEditor[i].Plugin->ShaderEditor_Copy(pluginLanguageID, pluginEditorID);
+								if (ImGui::MenuItem("Paste", "CTRL+V")) m_pluginEditor[i].Plugin->ShaderEditor_Paste(pluginLanguageID, pluginEditorID);
+								if (ImGui::MenuItem("Select All", "CTRL+A")) m_pluginEditor[i].Plugin->ShaderEditor_SelectAll(pluginLanguageID, pluginEditorID);
+							}
 
 							ImGui::EndMenu();
 						}
@@ -267,7 +298,7 @@ namespace ed {
 							PluginShaderEditor* pluginData = &m_pluginEditor[i];
 							if (pluginData->Plugin) {
 								ImGui::PushFont(m_font);
-								pluginData->Plugin->RenderLanguageEditor(pluginData->LanguageID, pluginData->ID);
+								pluginData->Plugin->ShaderEditor_Render(pluginData->LanguageID, pluginData->ID);
 								ImGui::PopFont();
 							}
 						}
@@ -329,12 +360,12 @@ namespace ed {
 				if (!m_editorOpen[i]) {
 					if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-						shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]);
+						shader->Owner->CodeEditor_CloseItem((int)m_shaderStage[i]);
 					}
 
 					IPlugin1* plugin = m_pluginEditor[i].Plugin;
 					if (plugin)
-						plugin->CloseLanguageEditor(m_pluginEditor[i].LanguageID, m_pluginEditor[i].ID);
+						plugin->ShaderEditor_Close(m_pluginEditor[i].LanguageID, m_pluginEditor[i].ID);
 
 					m_items.erase(m_items.begin() + i);
 					delete m_editor[i];
@@ -350,11 +381,29 @@ namespace ed {
 		}
 	}
 
+	void CodeEditorUI::ChangePluginShaderEditor(IPlugin1* plugin, int langID, int editorID)
+	{
+		PluginShaderEditor* plEditor = nullptr;
+
+		if (Settings::Instance().General.AutoRecompile) {
+			for (int i = 0; i < m_pluginEditor.size(); i++) {
+				if (m_pluginEditor[i].Plugin != nullptr)
+					if (m_pluginEditor[i].LanguageID == langID && m_pluginEditor[i].ID == editorID &&
+						m_pluginEditor[i].Plugin == plugin)
+						plEditor = &m_pluginEditor[i];
+			}
+		}
+
+		if (plEditor) {
+			if (std::count(m_changedPluginEditors.begin(), m_changedPluginEditors.end(), plEditor) == 0)
+				m_changedPluginEditors.push_back(plEditor);
+			m_contentChanged = true;
+		}
+	}
 	void CodeEditorUI::UpdateAutoRecompileItems()
 	{
 		if (m_contentChanged && m_lastAutoRecompile.GetElapsedTime() > 0.8f) {
 			for (int i = 0; i < m_changedEditors.size(); i++) {
-
 				for (int j = 0; j < m_editor.size(); j++) {
 					if (m_editor[j] == m_changedEditors[i]) {
 						if (m_items[j]->Type == PipelineItem::ItemType::ShaderPass) {
@@ -379,7 +428,43 @@ namespace ed {
 					}
 				}
 			}
+			for (int i = 0; i < m_changedPluginEditors.size(); i++) {
+				for (int j = 0; j < m_pluginEditor.size(); j++) {
+					int langID = m_changedPluginEditors[i]->LanguageID;
+					int editorID = m_changedPluginEditors[i]->ID;
+					IPlugin1* plugin = m_changedPluginEditors[i]->Plugin;
 
+					if (langID == m_pluginEditor[j].LanguageID &&
+						editorID == m_pluginEditor[j].ID &&
+						plugin == m_pluginEditor[j].Plugin)
+					{
+						size_t contentLength = 0;
+						const char* tempText = plugin->ShaderEditor_GetContent(langID, editorID, &contentLength);
+
+						if (m_items[j]->Type == PipelineItem::ItemType::ShaderPass) {
+							std::string vs = "", ps = "", gs = "";
+							if (m_shaderStage[j] == ShaderStage::Vertex)
+								vs = std::string(tempText, contentLength);
+							else if (m_shaderStage[j] == ShaderStage::Pixel)
+								ps = std::string(tempText, contentLength);
+							else if (m_shaderStage[j] == ShaderStage::Geometry)
+								gs = std::string(tempText, contentLength);
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs);
+						} else if (m_items[j]->Type == PipelineItem::ItemType::ComputePass)
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, std::string(tempText, contentLength));
+						else if (m_items[j]->Type == PipelineItem::ItemType::AudioPass)
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, std::string(tempText, contentLength));
+						else if (m_items[j]->Type == PipelineItem::ItemType::PluginItem) {
+							std::string pluginCode = std::string(tempText, contentLength);
+							((pipe::PluginItemData*)m_items[j]->Data)->Owner->HandleRecompileFromSource(m_items[j]->Name, (int)m_shaderStage[j], pluginCode.c_str(), pluginCode.size());
+						}
+
+						break;
+					}
+				}
+			}
+
+			m_changedPluginEditors.clear();
 			m_changedEditors.clear();
 			m_lastAutoRecompile.Restart();
 			m_contentChanged = false;
@@ -578,7 +663,7 @@ namespace ed {
 		m_paths.push_back(shaderPath);
 		m_pluginEditor.push_back(PluginShaderEditor());
 
-		if (plugin != nullptr && plugin->HasLanguageCustomEditor(langID))
+		if (plugin != nullptr && plugin->ShaderEditor_Supports(langID))
 			m_editor.push_back(nullptr);
 		else
 			m_editor.push_back(new TextEditor());
@@ -636,6 +721,14 @@ namespace ed {
 			pluginEditor->LanguageID = langID;
 			pluginEditor->Plugin = plugin;
 			pluginEditor->ID = idMax + 1;
+
+			pluginEditor->Plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
+				GUIManager* gui = (GUIManager*)UI;
+				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
+				code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
+			};
+
+			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
 		}
 	}
 	void CodeEditorUI::OpenPluginCode(PipelineItem* item, const char* filepath, int id)
@@ -714,7 +807,7 @@ namespace ed {
 			if (m_items[i] == item || item == nullptr) {
 				if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-					shader->Owner->CloseCodeEditorItem((int)m_shaderStage[i]);
+					shader->Owner->CodeEditor_CloseItem((int)m_shaderStage[i]);
 				}
 
 				delete m_editor[i];
@@ -958,9 +1051,9 @@ namespace ed {
 				} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
 
-					if (data->Owner->HasShaderFilePathChanged()) {
+					if (data->Owner->ShaderFilePath_HasChanged()) {
 						needsUpdate = true;
-						data->Owner->UpdateShaderFilePath();
+						data->Owner->ShaderFilePath_Update();
 					}
 				}
 			}
@@ -1042,10 +1135,10 @@ namespace ed {
 					} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* data = (pipe::PluginItemData*)pass->Data;
 
-						int count = data->Owner->GetShaderFilePathCount();
+						int count = data->Owner->ShaderFilePath_GetCount();
 
 						for (int i = 0; i < count; i++) {
-							std::string path(m_data->Parser.GetProjectPath(data->Owner->GetShaderFilePath(i)));
+							std::string path(m_data->Parser.GetProjectPath(data->Owner->ShaderFilePath_Get(i)));
 
 							allFiles.push_back(path);
 							paths.push_back(path.substr(0, path.find_last_of("/\\") + 1));
@@ -1253,35 +1346,35 @@ namespace ed {
 	{
 		TextEditor::LanguageDefinition langDef;
 
-		int keywordCount = plugin->GetLanguageDefinitionKeywordCount(languageID);
-		const char** keywords = plugin->GetLanguageDefinitionKeywords(languageID);
+		int keywordCount = plugin->LanguageDefinition_GetKeywordCount(languageID);
+		const char** keywords = plugin->LanguageDefinition_GetKeywords(languageID);
 
 		for (int i = 0; i < keywordCount; i++)
 			langDef.mKeywords.insert(keywords[i]);
 
-		int identifierCount = plugin->GetLanguageDefinitionIdentifierCount(languageID);
+		int identifierCount = plugin->LanguageDefinition_GetIdentifierCount(languageID);
 		for (int i = 0; i < identifierCount; i++) {
-			const char* ident = plugin->GetLanguageDefinitionIdentifier(i, languageID);
-			const char* identDesc = plugin->GetLanguageDefinitionIdentifierDesc(i, languageID);
+			const char* ident = plugin->LanguageDefinition_GetIdentifier(i, languageID);
+			const char* identDesc = plugin->LanguageDefinition_GetIdentifierDesc(i, languageID);
 			langDef.mIdentifiers.insert(std::make_pair(ident, TextEditor::Identifier(identDesc)));
 		}
 		// m_GLSLDocumentation(langDef.mIdentifiers);
 
-		int tokenRegexs = plugin->GetLanguageDefinitionTokenRegexCount(languageID);
+		int tokenRegexs = plugin->LanguageDefinition_GetTokenRegexCount(languageID);
 		for (int i = 0; i < tokenRegexs; i++) {
 			plugin::TextEditorPaletteIndex palIndex;
-			const char* regStr = plugin->GetLanguageDefinitionTokenRegex(i, palIndex, languageID);
+			const char* regStr = plugin->LanguageDefinition_GetTokenRegex(i, palIndex, languageID);
 			langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, TextEditor::PaletteIndex>(regStr, (TextEditor::PaletteIndex)palIndex));
 		}
 
-		langDef.mCommentStart = plugin->GetLanguageDefinitionCommentStart(languageID);
-		langDef.mCommentEnd = plugin->GetLanguageDefinitionCommentEnd(languageID);
-		langDef.mSingleLineComment = plugin->GetLanguageDefinitionLineComment(languageID);
+		langDef.mCommentStart = plugin->LanguageDefinition_GetCommentStart(languageID);
+		langDef.mCommentEnd = plugin->LanguageDefinition_GetCommentEnd(languageID);
+		langDef.mSingleLineComment = plugin->LanguageDefinition_GetLineComment(languageID);
 
-		langDef.mCaseSensitive = plugin->IsLanguageDefinitionCaseSensitive(languageID);
-		langDef.mAutoIndentation = plugin->GetLanguageDefinitionAutoIndent(languageID);
+		langDef.mCaseSensitive = plugin->LanguageDefinition_IsCaseSensitive(languageID);
+		langDef.mAutoIndentation = plugin->LanguageDefinition_GetAutoIndent(languageID);
 
-		langDef.mName = plugin->GetLanguageDefinitionName(languageID);
+		langDef.mName = plugin->LanguageDefinition_GetName(languageID);
 
 		return langDef;
 	}
