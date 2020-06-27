@@ -847,6 +847,7 @@ namespace ed {
 			m_pluginsNotLoaded.erase(m_pluginsNotLoaded.begin() + m_pluginNotLoadedLB);
 
 			m_pluginNotLoadedLB = std::max<int>(0, m_pluginNotLoadedLB - 1);
+			m_pluginRequiresRestart = true;
 		}
 		if (ImGui::Button("<<") && m_pluginLoadedLB < m_pluginsLoaded.size()) {
 			settings->Plugins.NotLoaded.push_back(m_pluginsLoaded[m_pluginLoadedLB]);
@@ -854,6 +855,7 @@ namespace ed {
 			m_pluginsLoaded.erase(m_pluginsLoaded.begin() + m_pluginLoadedLB);
 
 			m_pluginLoadedLB = std::max<int>(0, m_pluginLoadedLB - 1);
+			m_pluginRequiresRestart = true;
 		}
 		ImGui::Unindent(ImGui::GetColumnWidth() / 2 - settings->CalculateSize(20));
 		ImGui::NextColumn();
@@ -866,6 +868,9 @@ namespace ed {
 		ImGui::NextColumn();
 
 		ImGui::Columns(1);
+
+		if (m_pluginRequiresRestart)
+			ImGui::Text("** restart SHADERed **");
 
 		ImGui::Separator();
 		ImGui::NewLine();

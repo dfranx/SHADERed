@@ -25,7 +25,8 @@ namespace ed {
 		std::string GetPluginName(IPlugin1* plugin);
 		int GetPluginVersion(const std::string& plugin);
 		int GetPluginAPIVersion(const std::string& plugin);
-		bool IsActive(const std::string& plugin);
+
+		bool IsLoaded(const std::string& plugin);
 
 		inline const std::vector<std::string>& GetPluginList() { return m_names; }
 
@@ -51,7 +52,6 @@ namespace ed {
 	private:
 		std::vector<void*> m_proc;
 		std::vector<IPlugin1*> m_plugins;
-		std::vector<bool> m_isActive;
 		std::vector<std::string> m_names;
 		std::vector<int> m_pluginVersion, m_apiVersion;
 

@@ -65,7 +65,7 @@ namespace ed {
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
 
 		typedef void (*BindDefaultStateFn)();
-		typedef void (*OpenInCodeEditorFn)(void* CodeEditorUI, void* item, const char* filename, int id);
+		typedef void (*OpenInCodeEditorFn)(void* UI, void* item, const char* filename, int id);
 
 		typedef bool (*GetOpenDirectoryDialogFn)(char* out);
 		typedef bool (*GetOpenFileDialogFn)(char* out, const char* files);
@@ -144,7 +144,7 @@ namespace ed {
 		virtual void PipelineItem_ShowProperties(const char* type, void* data) = 0;
 		virtual bool PipelineItem_IsPickable(const char* type) = 0;
 		virtual bool PipelineItem_HasShaders(const char* type) = 0; // so that they can be opened in the shader editor
-		virtual void PipelineItem_OpenInEditor(void* CodeEditor, const char* type, void* data) = 0;
+		virtual void PipelineItem_OpenInEditor(void* ui, const char* type, void* data) = 0;
 		virtual bool PipelineItem_CanHaveChild(const char* type, plugin::PipelineItemType itemType) = 0;
 		virtual int PipelineItem_GetInputLayoutSize(const char* itemName) = 0; // this must be supported if this item can have geometry as child..
 		virtual void PipelineItem_GetInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
@@ -224,9 +224,7 @@ namespace ed {
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
 		
 		// host functions
-		void *Renderer, *Messages, *Project, *CodeEditor, *UI;
-		void* ObjectManager;
-		void* PipelineManager;
+		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager;
 		pluginfn::AddObjectFn AddObject;
 		pluginfn::AddCustomPipelineItemFn AddCustomPipelineItem;
 		pluginfn::AddMessageFn AddMessage;

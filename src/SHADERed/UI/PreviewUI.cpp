@@ -125,7 +125,7 @@ namespace ed {
 				}
 			}
 		});
-		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleMouseVisibility", [=]() {
+		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleCursorVisibility", [=]() {
 			m_mouseVisible = !m_mouseVisible;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.ToggleMouseLock", [=]() {

@@ -26,6 +26,7 @@ namespace ed {
 			m_pluginNotLoadedLB = 0;
 			m_pluginLoadedLB = 0;
 			m_overwriteShortcutOpened = false;
+			m_pluginRequiresRestart = false;
 		}
 		//using UIView::UIView;
 
@@ -68,6 +69,8 @@ namespace ed {
 		std::string m_getShortcutString();
 
 		int m_msaaChoice;
+
+		bool m_pluginRequiresRestart;
 
 		char m_pluginSearch[256];
 		std::vector<std::string> m_pluginsNotLoaded, m_pluginsLoaded;

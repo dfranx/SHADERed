@@ -57,6 +57,7 @@ namespace ed {
 		pluginExt = "so";
 #endif
 		
+		std::vector<std::string> allNames;
 		std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 
 		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
@@ -99,6 +100,13 @@ namespace ed {
 					continue;
 				}
 				std::string pname = (*fnGetPluginName)();
+				allNames.push_back(pname);
+
+				// check if this plugin should be loaded
+				if (std::count(notLoaded.begin(), notLoaded.end(), pname) > 0) {
+					(*ptrFreeLibrary)(procDLL);
+					continue;
+				}
 
 				// GetPluginAPIVersion()
 				if (!fnGetPluginAPIVersion) {
@@ -115,7 +123,6 @@ namespace ed {
 						m_incompatible.push_back(pname);
 					continue;
 				}
-				m_apiVersion.push_back(apiVer);
 
 				// TODO: ImGui::DebugCheckVersionAndDataLayout()
 
@@ -127,7 +134,6 @@ namespace ed {
 				}
 
 				int pluginVer = (*fnGetPluginVersion)();
-				m_pluginVersion.push_back(pluginVer);
 
 				// CreatePlugin() function
 				if (!fnCreatePlugin) {
@@ -150,7 +156,6 @@ namespace ed {
 				plugin->Renderer = (void*)&data->Renderer;
 				plugin->Messages = (void*)&data->Messages;
 				plugin->Project = (void*)&data->Parser;
-				plugin->CodeEditor = (void*)(ui->Get(ViewID::Code));
 				plugin->UI = (void*)ui;
 
 				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
@@ -378,8 +383,8 @@ namespace ed {
 				plugin->BindDefaultState = []() {
 					DefaultState::Bind();
 				};
-				plugin->OpenInCodeEditor = [](void* codeed, void* item, const char* filename, int id) {
-					CodeEditorUI* editor = (CodeEditorUI*)codeed;
+				plugin->OpenInCodeEditor = [](void* ui, void* item, const char* filename, int id) {
+					CodeEditorUI* editor = (CodeEditorUI*)((GUIManager*)ui)->Get(ViewID::Code);
 					editor->OpenPluginCode((PipelineItem*)item, filename, id);
 				};
 				plugin->GetPipelineItemCount = [](void* pipeline) -> int {
@@ -432,19 +437,23 @@ namespace ed {
 				};
 				plugin->OnEditorContentChange = nullptr; // will be set by CodeEditorUI
 
-				pluginfn::GetOpenFileDialogFn GetIncludePathCount;
-				pluginfn::GetSaveFileDialogFn GetIncludePath;
-
 #ifdef SHADERED_DESKTOP 
-				plugin->Init(false, SHADERED_VERSION);
+				bool initResult = plugin->Init(false, SHADERED_VERSION);
 #else
-				plugin->Init(true, SHADERED_VERSION);
+				bool initResult = plugin->Init(true, SHADERED_VERSION);
 #endif
+
+				if (initResult)
+					ed::Logger::Get().Log("Plugin \"" + pname + "\" successfully initialized.");
+				else
+					ed::Logger::Get().Log("Failed to initialize plugin \"" + pname + "\".");
+
 				plugin->InitUI(ImGui::GetCurrentContext());
 				m_plugins.push_back(plugin);
 				m_proc.push_back(procDLL);
-				m_isActive.push_back(std::count(notLoaded.begin(), notLoaded.end(), pname) == 0);
 				m_names.push_back(pname);
+				m_apiVersion.push_back(apiVer);
+				m_pluginVersion.push_back(pluginVer);
 			}
 		}
 
@@ -452,8 +461,8 @@ namespace ed {
 		// check if plugins listed in not loaded even exist
 		for (int i = 0; i < notLoaded.size(); i++) {
 			bool exists = false;
-			for (int j = 0; j < m_names.size(); j++) {
-				if (notLoaded[i] == m_names[j]) {
+			for (int j = 0; j < allNames.size(); j++) {
+				if (notLoaded[i] == allNames[j]) {
 					exists = true;
 					break;
 				}
@@ -488,21 +497,18 @@ namespace ed {
 	void PluginManager::Update(float delta)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i])
-				m_plugins[i]->Update(delta);
+			m_plugins[i]->Update(delta);
 	}
 
 	void PluginManager::BeginRender()
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i])
-				m_plugins[i]->BeginRender();
+			m_plugins[i]->BeginRender();
 	}
 	void PluginManager::EndRender()
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i])
-				m_plugins[i]->EndRender();
+			m_plugins[i]->EndRender();
 	}
 
 	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin1* plugin, const char* itemName)
@@ -555,11 +561,12 @@ namespace ed {
 
 		return 0;
 	}
-	bool PluginManager::IsActive(const std::string& plugin)
+
+	bool PluginManager::IsLoaded(const std::string& plugin)
 	{
-		for (int i = 0; i < m_names.size(); i++)
-			if (m_names[i] == plugin)
-				return m_isActive[i];
+		for (const auto& pl : m_names)
+			if (pl == plugin)
+				return true;
 
 		return false;
 	}
@@ -567,14 +574,14 @@ namespace ed {
 	void PluginManager::HandleDropFile(const char* filename)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HandleDropFile(filename))
+			if (m_plugins[i]->HandleDropFile(filename))
 				break;
 	}
 
 	void PluginManager::ShowContextItems(const std::string& menu, void* owner, void* extraData)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasContextItems(menu.c_str())) {
+			if (m_plugins[i]->HasContextItems(menu.c_str())) {
 				ImGui::Separator();
 				m_plugins[i]->ShowContextItems(menu.c_str(), owner, extraData);
 			}
@@ -589,7 +596,7 @@ namespace ed {
 	void PluginManager::ShowMenuItems(const std::string& menu)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasMenuItems(menu.c_str())) {
+			if (m_plugins[i]->HasMenuItems(menu.c_str())) {
 				ImGui::Separator();
 				m_plugins[i]->ShowMenuItems(menu.c_str());
 			}
@@ -597,7 +604,7 @@ namespace ed {
 	void PluginManager::ShowCustomMenu()
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
-			if (m_isActive[i] && m_plugins[i]->HasCustomMenuItem())
+			if (m_plugins[i]->HasCustomMenuItem())
 				if (ImGui::BeginMenu(m_names[i].c_str())) {
 					m_plugins[i]->ShowMenuItems("custom");
 					ImGui::EndMenu();
@@ -609,7 +616,7 @@ namespace ed {
 		std::transform(qLower.begin(), qLower.end(), qLower.begin(), tolower);
 
 		for (int i = 0; i < m_plugins.size(); i++) {
-			if (m_isActive[i] && m_plugins[i]->Options_HasSection()) {
+			if (m_plugins[i]->Options_HasSection()) {
 				std::string pluginName = m_names[i];
 				std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), tolower);
 				if (qLower.empty() || pluginName.find(qLower) != std::string::npos) {
@@ -624,15 +631,12 @@ namespace ed {
 		bool ret = false;
 		for (int i = 0; i < m_plugins.size(); i++) {
 			int nameCount = m_plugins[i]->SystemVariables_GetNameCount((plugin::VariableType)type);
-			if (m_isActive[i] && nameCount > 0) {
-
-				for (int j = 0; j < nameCount; j++) {
-					const char* name = m_plugins[i]->SystemVariables_GetName((plugin::VariableType)type, j);
-					if (ImGui::Selectable(name)) {
-						data->Owner = m_plugins[i];
-						strcpy(data->Name, name);
-						ret = true;
-					}
+			for (int j = 0; j < nameCount; j++) {
+				const char* name = m_plugins[i]->SystemVariables_GetName((plugin::VariableType)type, j);
+				if (ImGui::Selectable(name)) {
+					data->Owner = m_plugins[i];
+					strcpy(data->Name, name);
+					ret = true;
 				}
 			}
 		}
@@ -645,14 +649,12 @@ namespace ed {
 		for (int i = 0; i < m_plugins.size(); i++) {
 			int nameCount = m_plugins[i]->VariableFunctions_GetNameCount((plugin::VariableType)type);
 			
-			if (m_isActive[i] && nameCount > 0) {
-				for (int j = 0; j < nameCount; j++) {
-					const char* name = m_plugins[i]->VariableFunctions_GetName((plugin::VariableType)type, j);
-					if (ImGui::Selectable(name)) {
-						data->Owner = m_plugins[i];
-						strcpy(data->Name, name);
-						ret = true;
-					}
+			for (int j = 0; j < nameCount; j++) {
+				const char* name = m_plugins[i]->VariableFunctions_GetName((plugin::VariableType)type, j);
+				if (ImGui::Selectable(name)) {
+					data->Owner = m_plugins[i];
+					strcpy(data->Name, name);
+					ret = true;
 				}
 			}
 		}

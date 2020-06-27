@@ -121,11 +121,10 @@ namespace ed {
 				}
 
 				break;
-			} else if (!m_plugins->IsActive(pname)) {
-
+			} else if (!m_plugins->IsLoaded(pname)) {
 				pluginTest = false;
 
-				std::string msg = "The project you are trying to open requires plugin " + pname + " which you have installed.\nEnable the plugin in the options.";
+				std::string msg = "The project you are trying to open requires plugin \"" + pname + "\".";
 
 				const SDL_MessageBoxButtonData buttons[] = {
 					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
