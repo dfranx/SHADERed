@@ -2088,6 +2088,10 @@ namespace ed {
 
 		int plLang = 0;
 		IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&plLang, path, m_plugins->Plugins());
+		if (plugin == nullptr) {
+			spvvec.clear();
+			return false;
+		}
 
 		std::string source = actualSource;
 		if (actualSource.empty())

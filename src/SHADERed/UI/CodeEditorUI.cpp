@@ -581,6 +581,8 @@ namespace ed {
 
 		// pass the data to text editor
 		tEdit->ClearAutocompleteData();
+
+		// spirv parser
 		for (const auto& pair : spv.Functions)
 			tEdit->AddAutocompleteFunction(pair.first, pair.second.LineStart, pair.second.LineEnd, pair.second.Arguments, pair.second.Locals);
 		for (const auto& pair : spv.UserTypes)
@@ -589,6 +591,24 @@ namespace ed {
 			tEdit->AddAutocompleteUniform(uni.Name);
 		for (const auto& glob : spv.Globals)
 			tEdit->AddAutocompleteGlobal(glob);
+
+		// plugins
+		plugin::ShaderStage stage = plugin::ShaderStage::Vertex;
+		for (int i = 0; i < m_editor.size(); i++)
+			if (m_editor[i] == tEdit) {
+				stage = (plugin::ShaderStage)m_shaderStage[i];
+				break;
+			}
+		const std::vector<IPlugin1*>& plugins = m_data->Plugins.Plugins();
+		for (IPlugin1* plugin : plugins) {
+			for (int i = 0; i < plugin->Autocomplete_GetCount(stage); i++) {
+				const char* displayString = plugin->Autocomplete_GetDisplayString(stage, i);
+				const char* searchString = plugin->Autocomplete_GetSearchString(stage, i);
+				const char* value = plugin->Autocomplete_GetValue(stage, i);
+
+				tEdit->AddAutocompleteEntry(searchString, displayString, value);
+			}
+		}
 
 		// colorize if needed
 		if (changed)
@@ -700,9 +720,10 @@ namespace ed {
 
 			if (sLang == ShaderLanguage::HLSL)
 				editor->SetLanguageDefinition(TextEditor::LanguageDefinition::HLSL());
-			else if (sLang == ShaderLanguage::Plugin)
-				editor->SetLanguageDefinition(m_buildLanguageDefinition(plugin, langID));
-			else
+			else if (sLang == ShaderLanguage::Plugin) {
+				if (plugin->LanguageDefinition_Exists(langID))
+					editor->SetLanguageDefinition(m_buildLanguageDefinition(plugin, langID));
+			} else
 				editor->SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());
 
 			// apply breakpoints

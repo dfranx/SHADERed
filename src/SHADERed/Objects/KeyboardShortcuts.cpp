@@ -121,6 +121,11 @@ namespace ed {
 	{
 		m_data[name].Function = func;
 	}
+	void KeyboardShortcuts::RegisterPluginShortcut(IPlugin1* plugin, const std::string& name)
+	{
+		std::string actualName = "Plugin." + name;
+		m_data[actualName].Plugin = plugin;
+	}
 	std::string KeyboardShortcuts::GetString(const std::string& name)
 	{
 		if (m_data[name].Key1 == -1 || (m_data[name].Key1 == 0 && m_data[name].Key2 == 0))
@@ -169,7 +174,7 @@ namespace ed {
 			const Shortcut& s = hotkey.second;
 			if (s.Alt == alt && s.Ctrl == ctrl && s.Shift == shift) {
 				int key2 = m_keys[1];
-				if (s.Key2 == -1 && s.Key1 == key2 && s.Function != nullptr) {
+				if (s.Key2 == -1 && s.Key1 == key2 && (s.Function != nullptr || s.Plugin != nullptr)) {
 
 					/*
 					 [ 'G', 'S' ] -> it would call the CTRL+S instead of CTRL+G+S shortcut.
@@ -185,15 +190,22 @@ namespace ed {
 
 					// call the proper function
 					if (!found) {
-						s.Function();
+						if (s.Plugin != nullptr) {
+							std::string actualName = hotkey.first.substr(hotkey.first.find_first_of('.') + 1);
+							s.Plugin->HandleShortcut(actualName.c_str());
+						} else s.Function();
+
 						resetSecond = true;
 					}
 				} else if (s.Key2 != -1) {
 					if (m_keys[0] != -1) {
 						int key1 = m_keys[0];
 
-						if (s.Key1 == key1 && s.Key2 == key2 && s.Function != nullptr) {
-							s.Function();
+						if (s.Key1 == key1 && s.Key2 == key2 && (s.Function != nullptr || s.Plugin != nullptr)) {
+							if (s.Plugin != nullptr) {
+								std::string actualName = hotkey.first.substr(hotkey.first.find_first_of('.') + 1);
+								s.Plugin->HandleShortcut(actualName.c_str());
+							} else s.Function();
 
 							resetFirst = resetSecond = true;
 						}

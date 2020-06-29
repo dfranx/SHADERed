@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <SDL2/SDL_events.h>
+#include <SHADERed/Objects/PluginAPI/Plugin.h>
 
 namespace ed {
 	class KeyboardShortcuts {
@@ -21,6 +22,7 @@ namespace ed {
 			bool Ctrl;
 			bool Shift;
 			std::function<void()> Function;
+			IPlugin1* Plugin;
 
 			Shortcut()
 					: Key1(-1)
@@ -29,6 +31,7 @@ namespace ed {
 					, Ctrl(false)
 					, Shift(false)
 					, Function(nullptr)
+					, Plugin(nullptr)
 			{
 			}
 			Shortcut(int k1, int k2, bool alt, bool ctrl, bool shift)
@@ -37,6 +40,7 @@ namespace ed {
 					, Alt(alt)
 					, Ctrl(ctrl)
 					, Shift(shift)
+					, Plugin(nullptr)
 			{
 			}
 		};
@@ -55,6 +59,7 @@ namespace ed {
 			m_data[name].Key1 = m_data[name].Key2 = -1;
 		}
 		void SetCallback(const std::string& name, std::function<void()> func);
+		void RegisterPluginShortcut(IPlugin1* plugin, const std::string& name);
 
 		std::string GetString(const std::string& name);
 		std::vector<std::string> GetNameList();

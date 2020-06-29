@@ -47,6 +47,9 @@ namespace ed {
 		void Pick(PipelineItem* item, bool add = false);
 		inline bool IsPicked(PipelineItem* item) { return std::count(m_picks.begin(), m_picks.end(), item) > 0; }
 
+		inline glm::vec2 GetUIRectSize() { return glm::vec2(m_imgSize.x, m_imgSize.y); }
+		inline glm::vec2 GetUIRectPosition() { return glm::vec2(m_imgPosition.x, m_imgPosition.y); }
+
 		inline void Reset()
 		{
 			m_zoom.Reset();
@@ -71,7 +74,7 @@ namespace ed {
 		glm::vec2 m_mousePos, m_lastButton;
 		bool m_lastButtonUpdate;
 
-		ImVec2 m_imgSize;
+		ImVec2 m_imgSize, m_imgPosition;
 
 		glm::vec3 m_tempTrans, m_tempScale, m_tempRota,
 			m_prevTrans, m_prevScale, m_prevRota;

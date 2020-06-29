@@ -76,6 +76,14 @@ namespace ed {
 		typedef const char* (*GetMessagesCurrentItemFn)(void* messages);
 	
 		typedef void (*OnEditorContentChangeFn)(void* UI, void* plugin, int langID, int editorID);
+		typedef unsigned int* (*GetPipelineItemSPIRVFn)(void* item, plugin::ShaderStage stage, int* dataLen);
+		typedef void (*RegisterShortcutFn)(void* plugin, const char* name);
+
+		typedef bool (*GetSettingsBooleanFn)(const char* name);
+		typedef int (*GetSettingsIntegerFn)(const char* name);
+		typedef const char* (*GetSettingsStringFn)(const char* name);
+		typedef float (*GetSettingsFloatFn)(const char* name);
+		typedef void (*GetPreviewUIRectFn)(void* ui, float* out);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -85,7 +93,7 @@ namespace ed {
 		
 		virtual bool Init(bool isWeb, int sedVersion) = 0;
 		virtual void InitUI(void* ctx) = 0;
-		virtual void OnEvent(void* e) = 0; // e is &SDL_Event, it is void here so that people don't have to link to SDL if they don't want to
+		virtual void OnEvent(void* e) = 0; // e is &SDL_Event
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;
 
@@ -197,6 +205,7 @@ namespace ed {
 		// code editor
 		virtual void CodeEditor_SaveItem(const char* src, int srcLen, int id) = 0;
 		virtual void CodeEditor_CloseItem(int id) = 0;
+		virtual bool LanguageDefinition_Exists(int id) = 0;
 		virtual int LanguageDefinition_GetKeywordCount(int id) = 0;
 		virtual const char** LanguageDefinition_GetKeywords(int id) = 0;
 		virtual int LanguageDefinition_GetTokenRegexCount(int id) = 0;
@@ -212,6 +221,12 @@ namespace ed {
 		virtual const char* LanguageDefinition_GetName(int id) = 0;
 		virtual const char* LanguageDefinition_GetNameAbbreviation(int id) = 0;
 
+		// autocomplete
+		virtual int Autocomplete_GetCount(plugin::ShaderStage stage) = 0;
+		virtual const char* Autocomplete_GetDisplayString(plugin::ShaderStage stage, int index) = 0;
+		virtual const char* Autocomplete_GetSearchString(plugin::ShaderStage stage, int index) = 0;
+		virtual const char* Autocomplete_GetValue(plugin::ShaderStage stage, int index) = 0;
+
 		// file change checks
 		virtual int ShaderFilePath_GetCount() = 0;
 		virtual const char* ShaderFilePath_Get(int index) = 0;
@@ -222,7 +237,8 @@ namespace ed {
 		virtual bool HandleDropFile(const char* filename) = 0;
 		virtual void HandleRecompile(const char* itemName) = 0;
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
-		
+		virtual void HandleShortcut(const char* name) = 0;
+
 		// host functions
 		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager;
 		pluginfn::AddObjectFn AddObject;
@@ -286,5 +302,12 @@ namespace ed {
 		pluginfn::GetIncludePathFn GetIncludePath;
 		pluginfn::GetMessagesCurrentItemFn GetMessagesCurrentItem;
 		pluginfn::OnEditorContentChangeFn OnEditorContentChange;
+		pluginfn::GetPipelineItemSPIRVFn GetPipelineItemSPIRV;
+		pluginfn::RegisterShortcutFn RegisterShortcut;
+		pluginfn::GetSettingsBooleanFn GetSettingsBoolean;
+		pluginfn::GetSettingsStringFn GetSettingsString;
+		pluginfn::GetSettingsIntegerFn GetSettingsInteger;
+		pluginfn::GetSettingsFloatFn GetSettingsFloat;
+		pluginfn::GetPreviewUIRectFn GetPreviewUIRect;
 	};
 }

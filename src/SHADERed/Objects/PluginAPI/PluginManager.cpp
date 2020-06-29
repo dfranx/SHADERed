@@ -436,6 +436,161 @@ namespace ed {
 					return ((ed::MessageStack*)messages)->CurrentItem.c_str();
 				};
 				plugin->OnEditorContentChange = nullptr; // will be set by CodeEditorUI
+				plugin->GetPipelineItemSPIRV = [](void* item, plugin::ShaderStage stage, int* len) -> unsigned int* {
+					PipelineItem* pItem = (PipelineItem*)item;
+					if (pItem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* data = (pipe::ShaderPass*)pItem->Data;
+
+						if (stage == plugin::ShaderStage::Pixel) {
+							*len = data->PSSPV.size();
+							return data->PSSPV.data();
+						} else if (stage == plugin::ShaderStage::Vertex) {
+							*len = data->VSSPV.size();
+							return data->VSSPV.data();
+						} else if (stage == plugin::ShaderStage::Geometry) {
+							*len = data->GSSPV.size();
+							return data->GSSPV.data();
+						}
+					} else if (pItem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* data = (pipe::ComputePass*)pItem->Data;
+
+						*len = data->SPV.size();
+						return data->SPV.data();
+					}
+					
+					*len = 0;
+					return nullptr;
+				};
+				plugin->RegisterShortcut = [](void* plugin, const char* name) {
+					KeyboardShortcuts::Instance().RegisterPluginShortcut((IPlugin1*)plugin, std::string(name));
+				};
+				plugin->GetSettingsBoolean = [](const char* name) -> bool {
+					const Settings& seti = Settings::Instance();
+
+					std::string lwr(name);
+					std::transform(lwr.begin(), lwr.end(), lwr.begin(), tolower);
+
+					/* GENERAL */
+					if (lwr == "vsync") return seti.General.VSync;
+					if (lwr == "autoopenerrorwindow") return seti.General.AutoOpenErrorWindow;
+					if (lwr == "toolbar") return seti.General.Toolbar;
+					if (lwr == "recovery") return seti.General.Recovery;
+					if (lwr == "checkupdates") return seti.General.CheckUpdates;
+					if (lwr == "recompileonfilechange") return seti.General.RecompileOnFileChange;
+					if (lwr == "autorecompile") return seti.General.RecompileOnFileChange;
+					if (lwr == "autouniforms") return seti.General.AutoUniforms;
+					if (lwr == "autouniformspin") return seti.General.AutoUniformsPin;
+					if (lwr == "autouniformsfunction") return seti.General.AutoUniformsFunction;
+					if (lwr == "autouniformsdelete") return seti.General.AutoUniformsDelete;
+					if (lwr == "reopenshaders") return seti.General.ReopenShaders;
+					if (lwr == "useexternaleditor") return seti.General.UseExternalEditor;
+					if (lwr == "openshadersondblclk") return seti.General.OpenShadersOnDblClk;
+					if (lwr == "itempropsondblclk") return seti.General.ItemPropsOnDblCLk;
+					if (lwr == "selectitemondblclk") return seti.General.SelectItemOnDblClk;
+					if (lwr == "log") return seti.General.Log;
+					if (lwr == "streamlogs") return seti.General.StreamLogs;
+					if (lwr == "pipelogstoterminal") return seti.General.PipeLogsToTerminal;
+					if (lwr == "autoscale") return seti.General.AutoScale;
+					if (lwr == "tips") return seti.General.Tips;
+
+					/* EDITOR */
+					if (lwr == "smartpredictions") return seti.Editor.SmartPredictions;
+					if (lwr == "activesmartpredictions") return seti.Editor.ActiveSmartPredictions;
+					if (lwr == "showwhitespace") return seti.Editor.ShowWhitespace;
+					if (lwr == "highlightcurrentline") return seti.Editor.HiglightCurrentLine;
+					if (lwr == "linenumbers") return seti.Editor.LineNumbers;
+					if (lwr == "statusbar") return seti.Editor.StatusBar;
+					if (lwr == "horizontalscroll") return seti.Editor.HorizontalScroll;
+					if (lwr == "autobracecompletion") return seti.Editor.AutoBraceCompletion;
+					if (lwr == "smartindent") return seti.Editor.SmartIndent;
+					if (lwr == "insertspaces") return seti.Editor.InsertSpaces;
+					if (lwr == "functiontooltips") return seti.Editor.FunctionTooltips;
+					if (lwr == "syntaxhighlighting") return seti.Editor.SyntaxHighlighting;
+
+					/* DEBUG */
+					if (lwr == "showvaluesonhover") return seti.Debug.ShowValuesOnHover;
+					if (lwr == "autofetch") return seti.Debug.AutoFetch;
+					if (lwr == "primitiveoutline") return seti.Debug.PrimitiveOutline;
+					if (lwr == "pixeloutline") return seti.Debug.PixelOutline;
+
+					/* PREVIEW */
+					if (lwr == "pausedonstartup") return seti.Preview.PausedOnStartup;
+					if (lwr == "switchleftrightclick") return seti.Preview.SwitchLeftRightClick;
+					if (lwr == "hidemenuinperformancemode") return seti.Preview.HideMenuInPerformanceMode;
+					if (lwr == "boundingbox") return seti.Preview.BoundingBox;
+					if (lwr == "gizmo") return seti.Preview.Gizmo;
+					if (lwr == "gizmorotationui") return seti.Preview.GizmoRotationUI;
+					if (lwr == "propertypick") return seti.Preview.PropertyPick;
+					if (lwr == "statusbar") return seti.Preview.StatusBar;
+					if (lwr == "applyfpslimittoapp") return seti.Preview.ApplyFPSLimitToApp;
+					if (lwr == "lostfocuslimitfps") return seti.Preview.LostFocusLimitFPS;
+					
+					/* PROJECT */
+					if (lwr == "fpcamera") return seti.Project.FPCamera;
+					if (lwr == "usealphachannel") return seti.Project.UseAlphaChannel;
+					
+					return false;
+				};
+				plugin->GetSettingsInteger = [](const char* name) -> int {
+					const Settings& seti = Settings::Instance();
+
+					std::string lwr(name);
+					std::transform(lwr.begin(), lwr.end(), lwr.begin(), tolower);
+
+					/* GENERAL */
+					if (lwr == "fontsize") return seti.General.FontSize;
+
+					/* EDITOR */
+					if (lwr == "editorfontsize") return seti.Editor.FontSize;
+					if (lwr == "tabsize") return seti.Editor.TabSize;
+
+					/* PREVIEW */
+					if (lwr == "gizmosnaptranslation") return seti.Preview.GizmoSnapTranslation;
+					if (lwr == "gizmosnapscale") return seti.Preview.GizmoSnapScale;
+					if (lwr == "gizmosnaprotation") return seti.Preview.GizmoSnapRotation;
+					if (lwr == "fpslimit") return seti.Preview.FPSLimit;
+					if (lwr == "msaa") return seti.Preview.MSAA;
+					
+					return -1;
+				};
+				plugin->GetSettingsString = [](const char* name) -> const char* {
+					const Settings& seti = Settings::Instance();
+
+					std::string lwr(name);
+					std::transform(lwr.begin(), lwr.end(), lwr.begin(), tolower);
+
+					/* GENERAL */
+					if (lwr == "startuptemplate") return seti.General.StartUpTemplate.c_str();
+					if (lwr == "font") return seti.General.Font;
+
+					/* EDITOR */
+					if (lwr == "editorfont") return seti.Editor.Font;
+
+					return nullptr;
+				};
+				plugin->GetSettingsFloat = [](const char* name) -> float {
+					const Settings& seti = Settings::Instance();
+
+					std::string lwr(name);
+					std::transform(lwr.begin(), lwr.end(), lwr.begin(), tolower);
+
+					if (lwr == "clearcolorr") return seti.Project.ClearColor.r;
+					if (lwr == "clearcolorg") return seti.Project.ClearColor.g;
+					if (lwr == "clearcolorb") return seti.Project.ClearColor.b;
+					if (lwr == "clearcolora") return seti.Project.ClearColor.a;
+					
+					return 0.0f;
+				};
+				plugin->GetPreviewUIRect = [](void* ui, float* out) {
+					PreviewUI* preview = (PreviewUI*)(((GUIManager*)ui)->Get(ViewID::Preview));
+					glm::vec2 pos = preview->GetUIRectPosition();
+					glm::vec2 size = preview->GetUIRectSize();
+
+					out[0] = pos.x;
+					out[1] = pos.y;
+					out[2] = size.x;
+					out[3] = size.y;
+				};
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);

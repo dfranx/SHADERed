@@ -322,6 +322,8 @@ namespace ed {
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
 
 		GLuint rtView = renderer->GetTexture();
+		
+		m_imgPosition = ImGui::GetCursorScreenPos();
 
 		// display the image on the imgui window
 		const glm::vec2& zPos = m_zoom.GetZoomPosition();
