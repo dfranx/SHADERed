@@ -262,13 +262,33 @@ namespace ed {
 	{
 		(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->CloseAll(item);
 
-		// check if it is opened in property viewer
 		PropertyUI* props = (reinterpret_cast<PropertyUI*>(m_ui->Get(ViewID::Properties)));
+		PreviewUI* prev = (reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)));
+		
+		// check if it is opened in property viewer/picked
 		if (props->HasItemSelected() && props->CurrentItemName() == item->Name)
 			props->Open(nullptr);
+		if (prev->IsPicked(item))
+			prev->Pick(nullptr);
 
-		if ((reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->IsPicked(item))
-			(reinterpret_cast<PreviewUI*>(m_ui->Get(ViewID::Preview)))->Pick(nullptr);
+		// or their children
+		if (item->Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+			for (const auto& child : pass->Items) {
+				if (props->HasItemSelected() && props->CurrentItemName() == child->Name)
+					props->Open(nullptr);
+				if (prev->IsPicked(child))
+					prev->Pick(nullptr);
+			}
+		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* pass = (pipe::PluginItemData*)item->Data;
+			for (const auto& child : pass->Items) {
+				if (props->HasItemSelected() && props->CurrentItemName() == child->Name)
+					props->Open(nullptr);
+				if (prev->IsPicked(child))
+					prev->Pick(nullptr);
+			}
+		}
 
 		// tell pipeline to remove this item
 		m_data->Messages.ClearGroup(item->Name);

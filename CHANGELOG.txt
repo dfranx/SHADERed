@@ -13,6 +13,7 @@
 + fix text editor's ui scaling
 + fix HLSL geometry shaders
 + fix a bug that caused SHADERed to crash when deleting render textures
++ fix a bug that sometimes caused SHADERed to crash when deleting shader pass item
 + fix a bug that caused deleted plugins to stay in the "Not loaded" list in options
 + fix a bug that allowed user to create objects without a name
 + fix cubemap saving

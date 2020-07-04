@@ -96,5 +96,14 @@ namespace ed {
 			char Name[32];
 			char Value[512];
 		};
+
+		enum class ApplicationEvent
+		{
+			PipelineItemCompiled,
+			PipelineItemAdded,
+			PipelineItemDeleted,
+			PipelineItemRenamed
+			/* ETC... */
+		};
 	}
 }

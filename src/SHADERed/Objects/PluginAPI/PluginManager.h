@@ -37,6 +37,7 @@ namespace ed {
 		void ShowOptions(const std::string& searchString = "");
 
 		void HandleDropFile(const char* filename);
+		void HandleApplicationEvent(plugin::ApplicationEvent event, void* data1, void* data2);
 
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);

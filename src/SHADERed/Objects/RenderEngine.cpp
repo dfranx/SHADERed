@@ -981,6 +981,8 @@ namespace ed {
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
 
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemCompiled, (void*)name, nullptr);
+
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
@@ -1216,6 +1218,8 @@ namespace ed {
 	{
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
+
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemCompiled, (void*)name, nullptr);
 
 		int d3dCounter = 0;
 		for (int i = 0; i < m_items.size(); i++) {

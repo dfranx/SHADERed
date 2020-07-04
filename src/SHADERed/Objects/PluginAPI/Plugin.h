@@ -35,10 +35,18 @@ namespace ed {
 		typedef bool (*ExistsPipelineItemFn)(void* pipeline, const char* name);
 		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
 		typedef int (*GetPipelineItemCountFn)(void* pipeline);
-		typedef plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* pipeline, int index);
 		typedef void* (*GetPipelineItemByIndexFn)(void* pipeline, int index);
+		typedef plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* item);
 		typedef const char* (*GetPipelineItemNameFn)(void* item);
 		typedef void* (*GetPipelineItemPluginOwnerFn)(void* item);
+		typedef int (*GetPipelineItemChildrenCountFn)(void* item);
+		typedef void* (*GetPipelineItemChildFn)(void* item, int index);
+		typedef void (*SetPipelineItemPositionFn)(void* item, float x, float y, float z);
+		typedef void (*SetPipelineItemRotationFn)(void* item, float x, float y, float z);
+		typedef void (*SetPipelineItemScaleFn)(void* item, float x, float y, float z);
+		typedef void (*GetPipelineItemPositionFn)(void* item, float* pos);
+		typedef void (*GetPipelineItemRotationFn)(void* item, float* rot);
+		typedef void (*GetPipelineItemScaleFn)(void* item, float* scale);
 
 		typedef int (*GetPipelineItemVariableCountFn)(void* item);
 		typedef const char* (*GetPipelineItemVariableNameFn)(void* item, int index);
@@ -268,6 +276,7 @@ namespace ed {
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
 		virtual void HandleShortcut(const char* name) = 0;
 		virtual void HandlePluginMessage(const char* sender, char* msg, int msgLen) = 0;
+		virtual void HandleApplicationEvent(plugin::ApplicationEvent event, void* data1, void* data2) = 0;
 
 		// host functions
 		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins;
@@ -332,6 +341,14 @@ namespace ed {
 		pluginfn::GetPipelineItemVariableValueFn GetPipelineItemVariableValue;
 		pluginfn::GetPipelineItemVariableTypeFn GetPipelineItemVariableType;
 		pluginfn::AddPipelineItemVariableFn AddPipelineItemVariable;
+		pluginfn::GetPipelineItemChildrenCountFn GetPipelineItemChildrenCount;
+		pluginfn::GetPipelineItemChildFn GetPipelineItemChild;
+		pluginfn::SetPipelineItemPositionFn SetPipelineItemPosition;
+		pluginfn::SetPipelineItemRotationFn SetPipelineItemRotation;
+		pluginfn::SetPipelineItemScaleFn SetPipelineItemScale;
+		pluginfn::GetPipelineItemPositionFn GetPipelineItemPosition;
+		pluginfn::GetPipelineItemRotationFn GetPipelineItemRotation;
+		pluginfn::GetPipelineItemScaleFn GetPipelineItemScale;
 		pluginfn::GetOpenDirectoryDialogFn GetOpenDirectoryDialog;
 		pluginfn::GetOpenFileDialogFn GetOpenFileDialog;
 		pluginfn::GetSaveFileDialogFn GetSaveFileDialog;

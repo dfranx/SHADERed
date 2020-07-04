@@ -42,7 +42,7 @@ namespace ed {
 
 	InterfaceManager::InterfaceManager(GUIManager* gui)
 			: Renderer(&Pipeline, &Objects, &Parser, &Messages, &Plugins, &Debugger)
-			, Pipeline(&Parser)
+			, Pipeline(&Parser, &Plugins)
 			, Objects(&Parser, &Renderer)
 			, Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui)
 			, Debugger(&Objects, &Renderer)

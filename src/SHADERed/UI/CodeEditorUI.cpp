@@ -673,7 +673,6 @@ namespace ed {
 		if (sLang == ShaderLanguage::Plugin)
 			plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, shaderPath, m_data->Plugins.Plugins());
 
-
 		shaderContent = m_data->Parser.LoadFile(shaderPath);
 
 		m_items.push_back(item);
@@ -777,42 +776,82 @@ namespace ed {
 
 		ShaderStage shaderStage = (ShaderStage)id;
 
-		// TODO: some of this can be moved outside of the if() {} block
+		int langID = 0;
+		IPlugin1* plugin = nullptr;
+		ShaderLanguage sLang = ShaderCompiler::GetShaderLanguageFromExtension(filepath);
+		if (sLang == ShaderLanguage::Plugin)
+			plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, filepath, m_data->Plugins.Plugins());
+
 		m_items.push_back(item);
-		m_editor.push_back(new TextEditor());
 		m_editorOpen.push_back(true);
 		m_stats.push_back(StatsPage(m_ui, m_data, "", false));
 		m_paths.push_back(filepath);
 		m_shaderStage.push_back(shaderStage);
 
+		
+		if (plugin != nullptr && plugin->ShaderEditor_Supports(langID))
+			m_editor.push_back(nullptr);
+		else
+			m_editor.push_back(new TextEditor());
+
 		TextEditor* editor = m_editor[m_editor.size() - 1];
-
-		TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, id);
-
-		editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
-		editor->SetTabSize(Settings::Instance().Editor.TabSize);
-		editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
-		editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
-		editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
-		editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
-		editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
-		editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
-		editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
-		editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
-		editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
-		editor->SetPath(filepath);
-		editor->SetUIScale(Settings::Instance().DPIScale);
-		editor->SetUIFontSize(Settings::Instance().General.FontSize);
-		editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
-		editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
-		editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
-		m_loadEditorShortcuts(editor);
-
-		editor->SetLanguageDefinition(defPlugin);
-
 		std::string shaderContent = m_data->Parser.LoadProjectFile(filepath);
-		editor->SetText(shaderContent);
-		editor->ResetTextChanged();
+
+		if (editor != nullptr) {
+			editor->OnContentUpdate = [&](TextEditor* chEditor) {
+				if (Settings::Instance().General.AutoRecompile) {
+					if (std::count(m_changedEditors.begin(), m_changedEditors.end(), chEditor) == 0)
+						m_changedEditors.push_back(chEditor);
+					m_contentChanged = true;
+				}
+			};
+
+			TextEditor::LanguageDefinition defPlugin = m_buildLanguageDefinition(shader->Owner, id);
+
+			editor->SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+			editor->SetTabSize(Settings::Instance().Editor.TabSize);
+			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
+			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
+			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
+			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
+			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
+			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
+			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+			editor->SetPath(filepath);
+			editor->SetUIScale(Settings::Instance().DPIScale);
+			editor->SetUIFontSize(Settings::Instance().General.FontSize);
+			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
+			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
+			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
+			m_loadEditorShortcuts(editor);
+
+			// apply breakpoints
+			m_applyBreakpoints(editor, filepath);
+
+			editor->SetLanguageDefinition(defPlugin);
+
+			editor->SetText(shaderContent);
+			editor->ResetTextChanged();
+		} else {
+			int idMax = -1;
+			for (int i = 0; i < m_pluginEditor.size(); i++)
+				idMax = std::max<int>(m_pluginEditor[i].ID, idMax);
+
+			PluginShaderEditor* pluginEditor = &m_pluginEditor[m_pluginEditor.size() - 1];
+			pluginEditor->LanguageID = langID;
+			pluginEditor->Plugin = plugin;
+			pluginEditor->ID = idMax + 1;
+
+			pluginEditor->Plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
+				GUIManager* gui = (GUIManager*)UI;
+				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
+				code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
+			};
+
+			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
+		}
 	}
 	TextEditor* CodeEditorUI::Get(PipelineItem* item, ShaderStage stage)
 	{

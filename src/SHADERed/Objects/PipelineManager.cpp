@@ -18,9 +18,10 @@ int strcmpcase(const char* s1, const char* s2)
 }
 
 namespace ed {
-	PipelineManager::PipelineManager(ProjectParser* project)
+	PipelineManager::PipelineManager(ProjectParser* project, PluginManager* plugins)
 	{
 		m_project = project;
+		m_plugins = plugins;
 	}
 	PipelineManager::~PipelineManager()
 	{
@@ -30,60 +31,8 @@ namespace ed {
 	{
 		Logger::Get().Log("Clearing PipelineManager contents");
 
-		for (int i = 0; i < m_items.size(); i++) {
-			if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
-				// delete pass' child items and their data
-				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
-				for (auto& passItem : pass->Items) {
-					if (passItem->Type == PipelineItem::ItemType::Geometry) {
-						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
-						glDeleteVertexArrays(1, &geo->VAO);
-						glDeleteVertexArrays(1, &geo->VBO);
-					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* pdata = (pipe::PluginItemData*)passItem->Data;
-						pdata->Owner->PipelineItem_Remove(passItem->Name, pdata->Type, pdata->PluginData);
-					} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
-						pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
-						glDeleteVertexArrays(1, &vb->VAO);
-					} 
-
-					FreeData(passItem->Data, passItem->Type);
-					delete passItem;
-				}
-				pass->Items.clear();
-
-				glDeleteFramebuffers(1, &pass->FBO);
-			} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
-				pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
-				pass->Stream.stop();
-			} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
-				pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
-				pdata->Owner->PipelineItem_Remove(m_items[i]->Name, pdata->Type, pdata->PluginData);
-
-				// TODO: add this part to m_freeShaderPass method
-				for (auto& passItem : pdata->Items) {
-					if (passItem->Type == PipelineItem::ItemType::Geometry) {
-						pipe::GeometryItem* geo = (pipe::GeometryItem*)passItem->Data;
-						glDeleteVertexArrays(1, &geo->VAO);
-						glDeleteVertexArrays(1, &geo->VBO);
-					} else if (passItem->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* pldata = (pipe::PluginItemData*)passItem->Data;
-						pdata->Owner->PipelineItem_Remove(passItem->Name, pldata->Type, pldata->PluginData);
-					} else if (passItem->Type == PipelineItem::ItemType::VertexBuffer) {
-						pipe::VertexBuffer* vb = (pipe::VertexBuffer*)passItem->Data;
-						glDeleteVertexArrays(1, &vb->VAO);
-					} 
-
-					FreeData(passItem->Data, passItem->Type);
-					delete passItem;
-				}
-			}
-
-			// delete passes and their data
-			FreeData(m_items[i]->Data, m_items[i]->Type);
-			delete m_items[i];
-		}
-		m_items.clear();
+		while (m_items.size() > 0)
+			Remove(m_items[0]->Name);
 	}
 	bool PipelineManager::AddItem(const char* owner, const char* name, PipelineItem::ItemType type, void* data)
 	{
@@ -125,6 +74,8 @@ namespace ed {
 
 				pdata->Owner->PipelineItem_AddChild(owner, name, (plugin::PipelineItemType)type, data);
 
+				m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
+
 				return true;
 			} else if (item->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
@@ -139,6 +90,8 @@ namespace ed {
 				strcpy(pass->Items.at(pass->Items.size() - 1)->Name, name);
 
 				Logger::Get().Log("Item " + std::string(name) + " added to the project");
+
+				m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
 
 				return true;
 			}
@@ -180,6 +133,8 @@ namespace ed {
 				}
 
 				Logger::Get().Log("Item " + std::string(name) + " added to the project");
+				
+				m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
 
 				return true;
 			}
@@ -192,6 +147,8 @@ namespace ed {
 			PipelineItem* pitem = new PipelineItem("\0", PipelineItem::ItemType::PluginItem, pdata);
 			m_items.push_back(pitem);
 			strcpy(pitem->Name, name);
+
+			m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
 
 			return true;
 		}
@@ -212,6 +169,8 @@ namespace ed {
 		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::ShaderPass, data));
 		strcpy(m_items.at(m_items.size() - 1)->Name, name);
 
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
+
 		return true;
 	}
 	bool PipelineManager::AddComputePass(const char* name, pipe::ComputePass* data)
@@ -227,6 +186,8 @@ namespace ed {
 
 		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::ComputePass, data));
 		strcpy(m_items.at(m_items.size() - 1)->Name, name);
+
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
 
 		return true;
 	}
@@ -244,11 +205,15 @@ namespace ed {
 		m_items.push_back(new PipelineItem("\0", PipelineItem::ItemType::AudioPass, data));
 		strcpy(m_items.at(m_items.size() - 1)->Name, name);
 
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemAdded, (void*)name, nullptr);
+
 		return true;
 	}
 	void PipelineManager::Remove(const char* name)
 	{
 		Logger::Get().Log("Deleting item " + std::string(name));
+
+		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemDeleted, (void*)name, nullptr);
 
 		for (int i = 0; i < m_items.size(); i++) {
 			if (strcmp(m_items[i]->Name, name) == 0) {
@@ -302,6 +267,7 @@ namespace ed {
 
 				FreeData(m_items[i]->Data, m_items[i]->Type);
 				m_items[i]->Data = nullptr;
+				delete m_items[i];
 				m_items.erase(m_items.begin() + i);
 				break;
 			} else {
@@ -325,6 +291,7 @@ namespace ed {
 
 							FreeData(child->Data, child->Type);
 							child->Data = nullptr;
+							delete child;
 							data->Items.erase(data->Items.begin() + j);
 							break;
 						}
@@ -351,6 +318,7 @@ namespace ed {
 
 							FreeData(child->Data, child->Type);
 							child->Data = nullptr;
+							delete child;
 							data->Items.erase(data->Items.begin() + j);
 							break;
 						}

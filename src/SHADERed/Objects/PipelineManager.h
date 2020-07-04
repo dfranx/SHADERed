@@ -1,5 +1,6 @@
 #pragma once
 #include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Objects/PluginAPI/PluginManager.h>
 #include <SHADERed/Options.h>
 #include <vector>
 
@@ -8,7 +9,7 @@ namespace ed {
 
 	class PipelineManager {
 	public:
-		PipelineManager(ProjectParser* project);
+		PipelineManager(ProjectParser* project, PluginManager* plugins);
 		~PipelineManager();
 
 		void Clear();
@@ -29,6 +30,7 @@ namespace ed {
 		void FreeData(void* data, PipelineItem::ItemType type);
 
 	private:
+		PluginManager* m_plugins;
 		ProjectParser* m_project;
 		std::vector<PipelineItem*> m_items;
 	};

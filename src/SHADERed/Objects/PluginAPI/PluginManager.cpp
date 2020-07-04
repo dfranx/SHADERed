@@ -401,9 +401,8 @@ namespace ed {
 					PipelineManager* pipe = (PipelineManager*)pipeline;
 					return pipe->GetList().size();
 				};
-				plugin->GetPipelineItemType = [](void* pipeline, int index) -> plugin::PipelineItemType {
-					PipelineManager* pipe = (PipelineManager*)pipeline;
-					return (plugin::PipelineItemType)pipe->GetList()[index]->Type;
+				plugin->GetPipelineItemType = [](void* item) -> plugin::PipelineItemType {
+					return (plugin::PipelineItemType)((PipelineItem*)item)->Type;
 				};
 				plugin->GetPipelineItemByIndex = [](void* pipeline, int index) -> void* {
 					PipelineManager* pipe = (PipelineManager*)pipeline;
@@ -736,6 +735,110 @@ namespace ed {
 
 					return false;
 				};
+				plugin->GetPipelineItemChildrenCount = [](void* item) -> int {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return pass->Items.size();
+					} else if (pitem->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pass = (pipe::PluginItemData*)pitem->Data;
+						return pass->Items.size();
+					}
+
+					return 0;
+				};
+				plugin->GetPipelineItemChild = [](void* item, int index) -> void* {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return pass->Items[index];
+					} else if (pitem->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pass = (pipe::PluginItemData*)pitem->Data;
+						return pass->Items[index];
+					}
+
+					return nullptr;
+				};
+				plugin->SetPipelineItemPosition = [](void* item, float x, float y, float z) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						item->Position = glm::vec3(x, y, z);
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						item->Position = glm::vec3(x, y, z);
+					}
+				};
+				plugin->SetPipelineItemRotation = [](void* item, float x, float y, float z) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						item->Rotation = glm::vec3(x, y, z);
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						item->Rotation = glm::vec3(x, y, z);
+					}
+				};
+				plugin->SetPipelineItemScale = [](void* item, float x, float y, float z) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						item->Scale = glm::vec3(x, y, z);
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						item->Scale = glm::vec3(x, y, z);
+					}
+				};
+				plugin->GetPipelineItemPosition = [](void* item, float* data) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						data[0] = item->Position.x;
+						data[1] = item->Position.y;
+						data[2] = item->Position.z;
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						data[0] = item->Position.x;
+						data[1] = item->Position.y;
+						data[2] = item->Position.z;
+					}
+				};
+				plugin->GetPipelineItemRotation = [](void* item, float* data) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						data[0] = item->Rotation.x;
+						data[1] = item->Rotation.y;
+						data[2] = item->Rotation.z;
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						data[0] = item->Rotation.x;
+						data[1] = item->Rotation.y;
+						data[2] = item->Rotation.z;
+					}
+				};
+				plugin->GetPipelineItemScale = [](void* item, float* data) {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::Geometry) {
+						pipe::GeometryItem* item = (pipe::GeometryItem*)pitem->Data;
+						data[0] = item->Scale.x;
+						data[1] = item->Scale.y;
+						data[2] = item->Scale.z;
+					} else if (pitem->Type == PipelineItem::ItemType::Model) {
+						pipe::Model* item = (pipe::Model*)pitem->Data;
+						data[0] = item->Scale.x;
+						data[1] = item->Scale.y;
+						data[2] = item->Scale.z;
+					}
+				};
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);
@@ -908,6 +1011,11 @@ namespace ed {
 		for (int i = 0; i < m_plugins.size(); i++)
 			if (m_plugins[i]->HandleDropFile(filename))
 				break;
+	}
+	void PluginManager::HandleApplicationEvent(plugin::ApplicationEvent event, void* data1, void* data2)
+	{
+		for (int i = 0; i < m_plugins.size(); i++)
+			m_plugins[i]->HandleApplicationEvent(event, data1, data2);
 	}
 
 	void PluginManager::ShowContextItems(const std::string& menu, void* owner, void* extraData)
