@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/UI/UIView.h>
+#include <SHADERed/Objects/SPIRVParser.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 
 namespace ed {
@@ -18,6 +19,7 @@ namespace ed {
 		void Refresh(PipelineItem* item, ShaderStage stage);
 
 	private:
+		SPIRVParser m_info;
 		TextEditor m_spirv;
 	};
 }

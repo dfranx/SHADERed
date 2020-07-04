@@ -27,6 +27,13 @@ namespace ed {
 		Uniforms.clear();
 		Globals.clear();
 
+		ArithmeticInstCount = 0;
+		BitInstCount = 0;
+		LogicalInstCount = 0;
+		TextureInstCount = 0;
+		DerivativeInstCount = 0;
+		ControlFlowInstCount = 0;
+
 		std::string curFunc = "";
 		int lastOpLine = -1;
 
@@ -57,18 +64,21 @@ namespace ed {
 			spv_word wordCount = ((opcodeData & (~spv::OpCodeMask)) >> spv::WordCountShift) - 1;
 			spv_word opcode = (opcodeData & spv::OpCodeMask);
 
-			if (opcode == spv::OpName) {
+			switch (opcode) {
+			case spv::OpName: {
 				spv_word loc = ir[++i];
 				spv_word stringLength = wordCount - 1;
 
 				names[loc] = spvReadString(ir.data(), stringLength, ++i);
-			} else if (opcode == spv::OpLine) {
+			} break;
+			case spv::OpLine: {
 				++i; // skip file
 				lastOpLine = ir[++i];
 
 				if (!curFunc.empty() && Functions[curFunc].LineStart == -1)
 					Functions[curFunc].LineStart = lastOpLine;
-			} else if (opcode == spv::OpTypeStruct) {
+			} break;
+			case spv::OpTypeStruct: {
 				spv_word loc = ir[++i];
 
 				spv_word memCount = wordCount - 1;
@@ -89,7 +99,8 @@ namespace ed {
 				}
 
 				types[loc] = std::make_pair(ValueType::Struct, loc);
-			} else if (opcode == spv::OpMemberName) {
+			} break;
+			case spv::OpMemberName: {
 				spv_word owner = ir[++i];
 				spv_word index = ir[++i]; // index
 
@@ -103,7 +114,8 @@ namespace ed {
 					typeInfo.resize(index + 1);
 					typeInfo[index].Name = spvReadString(ir.data(), stringLength, ++i);
 				}
-			} else if (opcode == spv::OpFunction) {
+			} break;
+			case spv::OpFunction: {
 				++i; // skip type
 				spv_word loc = ir[++i];
 
@@ -113,11 +125,13 @@ namespace ed {
 					curFunc = curFunc.substr(0, args);
 
 				Functions[curFunc].LineStart = -1;
-			} else if (opcode == spv::OpFunctionEnd) {
+			} break;
+			case spv::OpFunctionEnd: {
 				Functions[curFunc].LineEnd = lastOpLine;
 				lastOpLine = -1;
 				curFunc = "";
-			} else if (opcode == spv::OpVariable) {
+			} break;
+			case spv::OpVariable: {
 				spv_word type = ir[++i]; // skip type
 				spv_word loc = ir[++i];
 
@@ -136,34 +150,40 @@ namespace ed {
 								for (const auto& mem : mems)
 									Uniforms.push_back(mem);
 							}
-						} else 
+						} else
 							Uniforms.push_back(uni);
 					} else if (varName.size() > 0 && varName[0] != 0)
 						Globals.push_back(varName);
 				} else
 					Functions[curFunc].Locals.push_back(varName);
-			} else if (opcode == spv::OpFunctionParameter) {
+			} break;
+			case spv::OpFunctionParameter: {
 				++i; // skip type
 				spv_word loc = ir[++i];
 
 				std::string varName = names[loc];
 				Functions[curFunc].Arguments.push_back(varName);
-			} else if (opcode == spv::OpTypePointer) {
+			} break;
+			case spv::OpTypePointer: {
 				spv_word loc = ir[++i];
 				++i; // skip storage class
 				spv_word type = ir[++i];
 
 				pointers[loc] = type;
-			} else if (opcode == spv::OpTypeBool) {
+			} break;
+			case spv::OpTypeBool: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Bool, 0);
-			} else if (opcode == spv::OpTypeInt) {
+			} break;
+			case spv::OpTypeInt: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Int, 0);
-			} else if (opcode == spv::OpTypeFloat) {
+			} break;
+			case spv::OpTypeFloat: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Float, 0);
-			} else if (opcode == spv::OpTypeVector) {
+			} break;
+			case spv::OpTypeVector: {
 				spv_word loc = ir[++i];
 				spv_word comp = ir[++i];
 				spv_word compcount = ir[++i];
@@ -171,7 +191,8 @@ namespace ed {
 				spv_word val = (compcount & 0x00FFFFFF) | (((spv_word)types[comp].first) << 24);
 
 				types[loc] = std::make_pair(ValueType::Vector, val);
-			} else if (opcode == spv::OpTypeMatrix) {
+			} break;
+			case spv::OpTypeMatrix: {
 				spv_word loc = ir[++i];
 				spv_word comp = ir[++i];
 				spv_word compcount = ir[++i];
@@ -179,6 +200,106 @@ namespace ed {
 				spv_word val = (compcount & 0x00FFFFFF) | (types[comp].second & 0xFF000000);
 
 				types[loc] = std::make_pair(ValueType::Matrix, val);
+			} break;
+
+			case spv::OpSNegate: case spv::OpFNegate:
+			case spv::OpIAdd: case spv::OpFAdd:
+			case spv::OpISub: case spv::OpFSub:
+			case spv::OpIMul: case spv::OpFMul:
+			case spv::OpUDiv: case spv::OpSDiv:
+			case spv::OpFDiv: case spv::OpUMod:
+			case spv::OpSRem: case spv::OpSMod:
+			case spv::OpFRem: case spv::OpFMod:
+			case spv::OpVectorTimesScalar:
+			case spv::OpMatrixTimesScalar:
+			case spv::OpVectorTimesMatrix:
+			case spv::OpMatrixTimesVector:
+			case spv::OpMatrixTimesMatrix:
+			case spv::OpOuterProduct:
+			case spv::OpDot:
+			case spv::OpIAddCarry:
+			case spv::OpISubBorrow:
+			case spv::OpUMulExtended:
+			case spv::OpSMulExtended:
+				ArithmeticInstCount++;
+				break;
+
+				
+			case spv::OpShiftRightLogical:
+			case spv::OpShiftRightArithmetic:
+			case spv::OpShiftLeftLogical:
+			case spv::OpBitwiseOr:
+			case spv::OpBitwiseXor:
+			case spv::OpBitwiseAnd:
+			case spv::OpNot:
+			case spv::OpBitFieldInsert:
+			case spv::OpBitFieldSExtract:
+			case spv::OpBitFieldUExtract:
+			case spv::OpBitReverse:
+			case spv::OpBitCount:
+				BitInstCount++;
+				break;
+
+			case spv::OpAny: case spv::OpAll:
+			case spv::OpIsNan: case spv::OpIsInf:
+			case spv::OpIsFinite: case spv::OpIsNormal:
+			case spv::OpSignBitSet: case spv::OpLessOrGreater:
+			case spv::OpOrdered: case spv::OpUnordered:
+			case spv::OpLogicalEqual: case spv::OpLogicalNotEqual:
+			case spv::OpLogicalOr: case spv::OpLogicalAnd:
+			case spv::OpLogicalNot: case spv::OpSelect:
+			case spv::OpIEqual: case spv::OpINotEqual:
+			case spv::OpUGreaterThan: case spv::OpSGreaterThan:
+			case spv::OpUGreaterThanEqual: case spv::OpSGreaterThanEqual:
+			case spv::OpULessThan: case spv::OpSLessThan:
+			case spv::OpULessThanEqual: case spv::OpSLessThanEqual:
+			case spv::OpFOrdEqual: case spv::OpFUnordEqual:
+			case spv::OpFOrdNotEqual: case spv::OpFUnordNotEqual:
+			case spv::OpFOrdLessThan: case spv::OpFUnordLessThan:
+			case spv::OpFOrdGreaterThan: case spv::OpFUnordGreaterThan:
+			case spv::OpFOrdLessThanEqual: case spv::OpFUnordLessThanEqual:
+			case spv::OpFOrdGreaterThanEqual: case spv::OpFUnordGreaterThanEqual:
+				LogicalInstCount++;
+				break;
+
+			case spv::OpImageSampleImplicitLod:
+			case spv::OpImageSampleExplicitLod:
+			case spv::OpImageSampleDrefImplicitLod:
+			case spv::OpImageSampleDrefExplicitLod:
+			case spv::OpImageSampleProjImplicitLod:
+			case spv::OpImageSampleProjExplicitLod:
+			case spv::OpImageSampleProjDrefImplicitLod:
+			case spv::OpImageSampleProjDrefExplicitLod:
+			case spv::OpImageFetch: case spv::OpImageGather:
+			case spv::OpImageDrefGather: case spv::OpImageRead:
+			case spv::OpImageWrite:
+				TextureInstCount++;
+				break;
+
+			case spv::OpDPdx:
+			case spv::OpDPdy:
+			case spv::OpFwidth:
+			case spv::OpDPdxFine:
+			case spv::OpDPdyFine:
+			case spv::OpFwidthFine:
+			case spv::OpDPdxCoarse:
+			case spv::OpDPdyCoarse:
+			case spv::OpFwidthCoarse:
+				DerivativeInstCount++;
+				break;
+
+			case spv::OpPhi:
+			case spv::OpLoopMerge:
+			case spv::OpSelectionMerge:
+			case spv::OpLabel:
+			case spv::OpBranch:
+			case spv::OpBranchConditional:
+			case spv::OpSwitch:
+			case spv::OpKill:
+			case spv::OpReturn:
+			case spv::OpReturnValue:
+				ControlFlowInstCount++;
+				break;
 			}
 
 			i = iStart + wordCount + 1;

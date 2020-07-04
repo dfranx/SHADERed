@@ -7,6 +7,7 @@
 + add "Syntax highlighting" option
 + add SHADERED_WEB, SHADERED_DESKTOP & SHADERED_VERSION preprocessor definitions to shaders
 + add Preview.ToggleCursorVisibility, Preview.ToggleMouseLock & Preview.ToggleTimePause shortcuts
++ add more information to the "Stats" page
 + plugins are backward and forward compatible
 + plugins can implement their own shader language & editor
 + improve the "auto recompile" feature

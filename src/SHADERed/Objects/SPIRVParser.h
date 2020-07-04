@@ -36,5 +36,12 @@ namespace ed {
 		std::unordered_map<std::string, std::vector<Variable>> UserTypes;
 		std::vector<Variable> Uniforms;
 		std::vector<std::string> Globals;
+
+		int ArithmeticInstCount;
+		int BitInstCount;
+		int LogicalInstCount;
+		int TextureInstCount;
+		int DerivativeInstCount;
+		int ControlFlowInstCount;
 	};
 }
