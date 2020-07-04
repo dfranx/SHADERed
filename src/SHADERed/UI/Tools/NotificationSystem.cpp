@@ -5,7 +5,7 @@
 #include <imgui/imgui.h>
 
 namespace ed {
-	void NotificationSystem::Add(int id, const std::string& text, const std::string& buttonText, std::function<void(int)> fn, IPlugin1* owner)
+	void NotificationSystem::Add(int id, const std::string& text, const std::string& buttonText, std::function<void(int, IPlugin1*)> fn, IPlugin1* owner)
 	{
 		m_notifs.push_back(Entry(id, text, buttonText, fn, owner));
 	}
@@ -38,7 +38,7 @@ namespace ed {
 
 				if (m_notifs[i].Handler && m_notifs[i].ButtonText.size() > 0) {
 					if (ImGui::Button(m_notifs[i].ButtonText.c_str())) {
-						m_notifs[i].Handler(m_notifs[i].ID);
+						m_notifs[i].Handler(m_notifs[i].ID, m_notifs[i].Owner);
 						stayOpen = false;
 					}
 				}

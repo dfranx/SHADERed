@@ -9,7 +9,7 @@
 namespace ed {
 	class NotificationSystem {
 	public:
-		void Add(int id, const std::string& text, const std::string& buttonText, std::function<void(int)> fn, IPlugin1* owner = nullptr);
+		void Add(int id, const std::string& text, const std::string& buttonText, std::function<void(int, IPlugin1*)> fn, IPlugin1* owner = nullptr);
 
 		inline bool Has() { return m_notifs.size() > 0; }
 		void Render();
@@ -24,7 +24,7 @@ namespace ed {
 				Owner = nullptr;
 				Handler = nullptr;
 			}
-			Entry(int id, const std::string& text, const std::string& btn, std::function<void(int)> fn, IPlugin1* owner = nullptr)
+			Entry(int id, const std::string& text, const std::string& btn, std::function<void(int, IPlugin1*)> fn, IPlugin1* owner = nullptr)
 			{
 				ID = id;
 				Text = text;
@@ -40,7 +40,7 @@ namespace ed {
 			eng::Timer Timer;
 			IPlugin1* Owner;
 
-			std::function<void(int)> Handler;
+			std::function<void(int, IPlugin1*)> Handler;
 		};
 		std::vector<Entry> m_notifs;
 	};

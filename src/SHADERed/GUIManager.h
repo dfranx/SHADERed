@@ -75,6 +75,8 @@ namespace ed {
 		inline void SetMinimalMode(bool mode) { m_minimalMode = mode; }
 		inline bool IsMinimalMode() { return m_minimalMode; }
 
+		void AddNotification(int id, const char* text, const char* btnText, std::function<void(int, IPlugin1*)> fn, IPlugin1* plugin = nullptr);
+
 		void StopDebugging();
 
 		int AreYouSure();

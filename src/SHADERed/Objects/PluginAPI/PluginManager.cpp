@@ -839,6 +839,13 @@ namespace ed {
 						data[2] = item->Scale.z;
 					}
 				};
+				plugin->PushNotification = [](void* UI, void* plugin, int id, const char* text, const char* btn) {
+					((GUIManager*)UI)->AddNotification(
+						id, text, btn, [](int id, IPlugin1* pl) {
+							pl->HandleNotification(id);
+						},
+						(IPlugin1*)plugin);
+				};
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);

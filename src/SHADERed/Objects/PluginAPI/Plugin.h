@@ -111,6 +111,8 @@ namespace ed {
 		typedef bool (*IsFullscreenFn)(void* UI);
 		typedef void (*TogglePerformanceModeFn)(void* UI);
 		typedef bool (*IsInPerformanceModeFn)(void* UI);
+
+		typedef void (*PushNotificationFn)(void* UI, void* plugin, int id, const char* text, const char* buttonText);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -277,7 +279,8 @@ namespace ed {
 		virtual void HandleShortcut(const char* name) = 0;
 		virtual void HandlePluginMessage(const char* sender, char* msg, int msgLen) = 0;
 		virtual void HandleApplicationEvent(plugin::ApplicationEvent event, void* data1, void* data2) = 0;
-
+		virtual void HandleNotification(int id) = 0;
+		
 		// host functions
 		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins;
 		pluginfn::AddObjectFn AddObject;
@@ -372,5 +375,6 @@ namespace ed {
 		pluginfn::IsFullscreenFn IsFullscreen;
 		pluginfn::TogglePerformanceModeFn TogglePerformanceMode;
 		pluginfn::IsInPerformanceModeFn IsInPerformanceMode;
+		pluginfn::PushNotificationFn PushNotification;
 	};
 }

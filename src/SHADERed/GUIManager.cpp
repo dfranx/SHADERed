@@ -1746,7 +1746,7 @@ namespace ed {
 			// check for updates
 			if (Settings::Instance().General.CheckUpdates) {
 				m_updateCheck.CheckForUpdates([&]() {
-					m_notifs.Add(0, "A new version of SHADERed is available!", "UPDATE", [](int id) {
+					m_notifs.Add(0, "A new version of SHADERed is available!", "UPDATE", [](int id, IPlugin1* pl) {
 						UIHelper::ShellOpen("https://shadered.org/download.php");
 					});
 				});
@@ -1831,6 +1831,11 @@ namespace ed {
 		m_splashScreenFrame = 0;
 		m_splashScreenLoaded = false;
 		m_splashScreenTimer.Restart();
+	}
+
+	void GUIManager::AddNotification(int id, const char* text, const char* btnText, std::function<void(int, IPlugin1*)> fn, IPlugin1* plugin)
+	{
+		m_notifs.Add(id, text, btnText, fn, plugin);
 	}
 
 	void GUIManager::StopDebugging()
