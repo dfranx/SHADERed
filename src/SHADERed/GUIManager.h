@@ -3,6 +3,7 @@
 #include <SHADERed/Objects/UpdateChecker.h>
 #include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SPIRVParser.h>
+#include <SHADERed/UI/Tools/NotificationSystem.h>
 #include <SHADERed/Engine/Timer.h>
 
 #include <SDL2/SDL_events.h>
@@ -118,9 +119,6 @@ namespace ed {
 			m_isInfoOpened, m_isCreateImg3DOpened, m_isRecordCameraSnapshotOpened,
 			m_isIncompatPluginsOpened, m_isCreateKBTxtOpened;
 
-		bool m_isUpdateNotificationOpened;
-		eng::Timer m_updateNotifyClock;
-
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;
 
@@ -171,6 +169,8 @@ namespace ed {
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;
 		void m_loadTemplateList();
+
+		NotificationSystem m_notifs;
 
 		std::vector<UIView*> m_views, m_debugViews;
 		CreateItemUI* m_createUI;

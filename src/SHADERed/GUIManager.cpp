@@ -83,7 +83,6 @@ namespace ed {
 		m_isCreateKBTxtOpened = false;
 		m_isCreateBufferOpened = false;
 		m_isNewProjectPopupOpened = false;
-		m_isUpdateNotificationOpened = false;
 		m_isRecordCameraSnapshotOpened = false;
 		m_exportAsCPPOpened = false;
 		m_isCreateImgOpened = false;
@@ -1124,7 +1123,7 @@ namespace ed {
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("(C) 2020 dfranx");
-			ImGui::TextWrapped("Version 1.3.4");
+			ImGui::TextWrapped("Version 1.3.5");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			UIHelper::Markdown("This app is open sourced: [link](https://www.github.com/dfranx/SHADERed)");
@@ -1690,37 +1689,9 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 
-		
-
-		// update notification
-		if (m_isUpdateNotificationOpened) {
-			const float DISTANCE = 15.0f;
-			ImGuiIO& io = ImGui::GetIO();
-			ImVec2 window_pos = ImVec2(io.DisplaySize.x - DISTANCE, io.DisplaySize.y - DISTANCE);
-			ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f);
-			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-			ImGui::SetNextWindowBgAlpha(1.0f - glm::clamp(m_updateNotifyClock.GetElapsedTime() - 5.0f, 0.0f, 2.0f) / 2.0f); // Transparent background
-			ImVec4 textClr = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-			ImVec4 windowClr = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, textClr);
-			ImGui::PushStyleColor(ImGuiCol_Text, windowClr);
-			if (ImGui::Begin("##updateNotification", &m_isUpdateNotificationOpened, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
-				if (ImGui::IsWindowHovered())
-					m_updateNotifyClock.Restart();
-
-				ImGui::Text("A new version of SHADERed is available!");
-				ImGui::SameLine();
-				if (ImGui::Button("UPDATE")) {
-					UIHelper::ShellOpen("https://shadered.org/download.php");
-					m_isUpdateNotificationOpened = false;
-				}
-			}
-			ImGui::PopStyleColor(2);
-			ImGui::End();
-
-			if (m_updateNotifyClock.GetElapsedTime() > 7.0f)
-				m_isUpdateNotificationOpened = false;
-		}
+		// notifications
+		if (m_notifs.Has())
+			m_notifs.Render();
 
 		// render ImGUI
 		ImGui::Render();
@@ -1775,8 +1746,9 @@ namespace ed {
 			// check for updates
 			if (Settings::Instance().General.CheckUpdates) {
 				m_updateCheck.CheckForUpdates([&]() {
-					m_isUpdateNotificationOpened = true;
-					m_updateNotifyClock.Restart();
+					m_notifs.Add(0, "A new version of SHADERed is available!", "UPDATE", [](int id) {
+						UIHelper::ShellOpen("https://shadered.org/download.php");
+					});
 				});
 			}
 

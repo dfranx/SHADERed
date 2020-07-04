@@ -53,6 +53,7 @@ set(SOURCES
 	src/SHADERed/UI/Tools/StatsPage.cpp
 	src/SHADERed/UI/Tools/VariableValueEdit.cpp
 	src/SHADERed/UI/Tools/DebuggerOutline.cpp
+	src/SHADERed/UI/Tools/NotificationSystem.cpp
 
 # UI Debug
 	src/SHADERed/UI/Debug/BreakpointListUI.cpp
