@@ -329,7 +329,7 @@ namespace ed {
 		/* HLSL EXTENSIONS: */
 		ImGui::Text("HLSL file extensions: ");
 		ImGui::SameLine();
-		ImGui::Indent(settings->CalculateSize(150));
+		float xExtPos = ImGui::GetCursorPosX();
 		static char hlslExtEntry[64] = { 0 };
 		if (ImGui::ListBoxHeader("##optg_hlslexts", ImVec2(settings->CalculateSize(100), settings->CalculateSize(100)))) {
 			for (auto& ext : settings->General.HLSLExtensions)
@@ -337,6 +337,7 @@ namespace ed {
 					strcpy(hlslExtEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
+		ImGui::SetCursorPosX(xExtPos);
 		ImGui::PushItemWidth(settings->CalculateSize(100));
 		ImGui::InputText("##optg_hlslext_inp", hlslExtEntry, 64);
 		ImGui::PopItemWidth();
@@ -361,12 +362,11 @@ namespace ed {
 					break;
 				}
 		}
-		ImGui::Unindent(settings->CalculateSize(150));
 
 		/* VULKAN EXTENSIONS: */
 		ImGui::Text("Vulkan GLSL file extensions: ");
 		ImGui::SameLine();
-		ImGui::Indent(settings->CalculateSize(180));
+		xExtPos = ImGui::GetCursorPosX();
 		static char vkExtEntry[64] = { 0 };
 		if (ImGui::ListBoxHeader("##optg_vkexts", ImVec2(settings->CalculateSize(100), settings->CalculateSize(100)))) {
 			for (auto& ext : settings->General.VulkanGLSLExtensions)
@@ -374,6 +374,7 @@ namespace ed {
 					strcpy(vkExtEntry, ext.c_str());
 			ImGui::ListBoxFooter();
 		}
+		ImGui::SetCursorPosX(xExtPos);
 		ImGui::PushItemWidth(settings->CalculateSize(100));
 		ImGui::InputText("##optg_vkext_inp", vkExtEntry, 64);
 		ImGui::PopItemWidth();
@@ -398,7 +399,6 @@ namespace ed {
 					break;
 				}
 		}
-		ImGui::Unindent(settings->CalculateSize(180));
 
 		/* PLUGIN SHADER FILE EXTENSIONS: */
 		const auto& plugins = m_data->Plugins.Plugins();
@@ -409,7 +409,7 @@ namespace ed {
 				std::vector<std::string>& extVec = settings->General.PluginShaderExtensions[langName];
 				ImGui::Text("%s file extensions: ", langName.c_str());
 				ImGui::SameLine();
-				ImGui::Indent(settings->CalculateSize(150));
+				xExtPos = ImGui::GetCursorPosX();
 				static char plExtEntry[64] = { 0 };
 				if (ImGui::ListBoxHeader(("##optg_" + langName + "exts").c_str(), ImVec2(settings->CalculateSize(100), settings->CalculateSize(100)))) {
 					for (auto& ext : extVec)
@@ -417,6 +417,7 @@ namespace ed {
 							strcpy(plExtEntry, ext.c_str());
 					ImGui::ListBoxFooter();
 				}
+				ImGui::SetCursorPosX(xExtPos);
 				ImGui::PushItemWidth(settings->CalculateSize(100));
 				ImGui::InputText(("##optg_" + langName + "ext_inp").c_str(), plExtEntry, 64);
 				ImGui::PopItemWidth();
@@ -441,7 +442,6 @@ namespace ed {
 							break;
 						}
 				}
-				ImGui::Unindent(settings->CalculateSize(150));
 			}
 		}
 

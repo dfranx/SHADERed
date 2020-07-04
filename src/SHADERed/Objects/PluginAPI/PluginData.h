@@ -73,11 +73,21 @@ namespace ed {
 			Selection,
 			ErrorMarker,
 			Breakpoint,
+			BreakpointOutline,
+			CurrentLineIndicator,
+			CurrentLineIndicatorOutline,
 			LineNumber,
 			CurrentLineFill,
 			CurrentLineFillInactive,
 			CurrentLineEdge,
 			ErrorMessage,
+			BreakpointDisabled,
+			UserFunction,
+			UserType,
+			UniformVariable,
+			GlobalVariable,
+			LocalVariable,
+			FunctionArgument,
 			Max
 		};
 
