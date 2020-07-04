@@ -2607,7 +2607,6 @@ namespace ed {
 		KeyboardShortcuts::Instance().SetCallback("Window.Fullscreen", [=]() {
 			Uint32 wndFlags = SDL_GetWindowFlags(m_wnd);
 			bool isFullscreen = wndFlags & SDL_WINDOW_FULLSCREEN_DESKTOP;
-
 			SDL_SetWindowFullscreen(m_wnd, (!isFullscreen) * SDL_WINDOW_FULLSCREEN_DESKTOP);
 		});
 	}

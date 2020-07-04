@@ -14,6 +14,8 @@
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
+#include <vector>
+#include <fstream>
 #include <algorithm>
 #include <filesystem>
 
@@ -52,6 +54,13 @@ namespace ed {
 			return;
 		}
 
+		std::ifstream ini("data/plugin_settings.ini");
+		std::vector<std::string> iniLines;
+		std::copy(std::istream_iterator<std::string>(ini),
+			std::istream_iterator<std::string>(),
+			std::back_inserter(iniLines));
+		ini.close();
+
 		std::string pluginExt = "dll";
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 		pluginExt = "so";
@@ -79,7 +88,7 @@ namespace ed {
 				GetPluginNameFn fnGetPluginName = (GetPluginNameFn)dlsym(procDLL, "GetPluginName");
 #else
 				HINSTANCE procDLL = LoadLibraryA(std::string("./plugins/" + pdir + "/plugin.dll").c_str());
-				
+
 				if (!procDLL) {
 					DWORD test = GetLastError();
 					ed::Logger::Get().Log("LoadLibraryA(\"" + pdir + "/plugin.dll\") has failed.");
@@ -157,6 +166,7 @@ namespace ed {
 				plugin->Messages = (void*)&data->Messages;
 				plugin->Project = (void*)&data->Parser;
 				plugin->UI = (void*)ui;
+				plugin->Plugins = (void*)this;
 
 				plugin->AddObject = [](void* objectManager, const char* name, const char* type, void* data, unsigned int id, void* owner) {
 					ObjectManager* objm = (ObjectManager*)objectManager;
@@ -457,7 +467,7 @@ namespace ed {
 						*len = data->SPV.size();
 						return data->SPV.data();
 					}
-					
+
 					*len = 0;
 					return nullptr;
 				};
@@ -524,11 +534,11 @@ namespace ed {
 					if (lwr == "statusbar") return seti.Preview.StatusBar;
 					if (lwr == "applyfpslimittoapp") return seti.Preview.ApplyFPSLimitToApp;
 					if (lwr == "lostfocuslimitfps") return seti.Preview.LostFocusLimitFPS;
-					
+
 					/* PROJECT */
 					if (lwr == "fpcamera") return seti.Project.FPCamera;
 					if (lwr == "usealphachannel") return seti.Project.UseAlphaChannel;
-					
+
 					return false;
 				};
 				plugin->GetSettingsInteger = [](const char* name) -> int {
@@ -550,7 +560,7 @@ namespace ed {
 					if (lwr == "gizmosnaprotation") return seti.Preview.GizmoSnapRotation;
 					if (lwr == "fpslimit") return seti.Preview.FPSLimit;
 					if (lwr == "msaa") return seti.Preview.MSAA;
-					
+
 					return -1;
 				};
 				plugin->GetSettingsString = [](const char* name) -> const char* {
@@ -578,18 +588,153 @@ namespace ed {
 					if (lwr == "clearcolorg") return seti.Project.ClearColor.g;
 					if (lwr == "clearcolorb") return seti.Project.ClearColor.b;
 					if (lwr == "clearcolora") return seti.Project.ClearColor.a;
-					
+
 					return 0.0f;
 				};
 				plugin->GetPreviewUIRect = [](void* ui, float* out) {
 					PreviewUI* preview = (PreviewUI*)(((GUIManager*)ui)->Get(ViewID::Preview));
 					glm::vec2 pos = preview->GetUIRectPosition();
 					glm::vec2 size = preview->GetUIRectSize();
-
 					out[0] = pos.x;
 					out[1] = pos.y;
 					out[2] = size.x;
 					out[3] = size.y;
+				};
+				plugin->GetPlugin = [](void* pluginManager, const char* name) -> void* {
+					return (void*)((PluginManager*)pluginManager)->GetPlugin(name);
+				};
+				plugin->GetPluginListSize = [](void* pluginManager) -> int {
+					return ((PluginManager*)pluginManager)->Plugins().size();
+				};
+				plugin->GetPluginName = [](void* pluginManager, int index) -> const char* {
+					PluginManager* pl = (PluginManager*)pluginManager;
+					if (index >= pl->Plugins().size() || index <= 0)
+						return nullptr;
+					return pl->GetPluginName(pl->Plugins()[index]).c_str();
+				};
+				plugin->SendPluginMessage = [](void* pluginManager, void* plugin, const char* receiver, char* msg, int msgLen) {
+					PluginManager* pl = (PluginManager*)pluginManager;
+					IPlugin1* receiverPlugin = pl->GetPlugin(receiver);
+
+					if (receiverPlugin)
+						receiverPlugin->HandlePluginMessage(pl->GetPluginName((IPlugin1*)plugin).c_str(), msg, msgLen);
+				};
+				plugin->BroadcastPluginMessage = [](void* pluginManager, void* plugin, char* msg, int msgLen) {
+					PluginManager* pl = (PluginManager*)pluginManager;
+					const char* myName = pl->GetPluginName((IPlugin1*)plugin).c_str();
+					for (auto& p : pl->Plugins())
+						p->HandlePluginMessage(myName, msg, msgLen);
+				};
+				plugin->ToggleFullscreen = [](void* UI) {
+					SDL_Window* wnd = ((GUIManager*)UI)->GetSDLWindow();
+					Uint32 wndFlags = SDL_GetWindowFlags(wnd);
+					bool isFullscreen = wndFlags & SDL_WINDOW_FULLSCREEN_DESKTOP;
+					SDL_SetWindowFullscreen(wnd, (!isFullscreen) * SDL_WINDOW_FULLSCREEN_DESKTOP);
+				};
+				plugin->IsFullscreen = [](void* UI) -> bool {
+					SDL_Window* wnd = ((GUIManager*)UI)->GetSDLWindow();
+					return SDL_GetWindowFlags(wnd) & SDL_WINDOW_FULLSCREEN_DESKTOP;
+				};
+				plugin->TogglePerformanceMode = [](void* UI) {
+					((GUIManager*)UI)->SetPerformanceMode(!((GUIManager*)UI)->IsPerformanceMode());
+				};
+				plugin->IsInPerformanceMode = [](void* UI) -> bool {
+					return ((GUIManager*)UI)->IsPerformanceMode();
+				};
+				plugin->GetPipelineItemName = [](void* item) -> const char* {
+					return ((PipelineItem*)item)->Name;
+				};
+				plugin->GetPipelineItemPluginOwner = [](void* item) -> void* {
+					PipelineItem* pitem = ((PipelineItem*)item);
+					if (pitem->Type == PipelineItem::ItemType::PluginItem)
+						return ((pipe::PluginItemData*)pitem->Data)->Owner;
+					return nullptr;
+				};
+				plugin->GetPipelineItemVariableCount = [](void* item) -> int {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return pass->Variables.GetVariables().size();
+					} else if (pitem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)pitem->Data;
+						return pass->Variables.GetVariables().size();
+					} else if (pitem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* pass = (pipe::AudioPass*)pitem->Data;
+						return pass->Variables.GetVariables().size();
+					}
+
+					return 0;
+				};
+				plugin->GetPipelineItemVariableName = [](void* item, int index) -> const char* {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Name;
+					} else if (pitem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Name;
+					} else if (pitem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* pass = (pipe::AudioPass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Name;
+					}
+
+					return nullptr;
+				};
+				plugin->GetPipelineItemVariableValue = [](void* item, int index) -> char* {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Data;
+					} else if (pitem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Data;
+					} else if (pitem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* pass = (pipe::AudioPass*)pitem->Data;
+						return pass->Variables.GetVariables()[index]->Data;
+					}
+
+					return nullptr;
+				};
+				plugin->GetPipelineItemVariableType = [](void* item, int index) -> plugin::VariableType {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						return (plugin::VariableType)pass->Variables.GetVariables()[index]->GetType();
+					} else if (pitem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)pitem->Data;
+						return (plugin::VariableType)pass->Variables.GetVariables()[index]->GetType();
+					} else if (pitem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* pass = (pipe::AudioPass*)pitem->Data;
+						return (plugin::VariableType)pass->Variables.GetVariables()[index]->GetType();
+					}
+
+					return plugin::VariableType::Float1;
+				};
+				plugin->AddPipelineItemVariable = [](void* item, const char* name, plugin::VariableType type) -> bool {
+					PipelineItem* pitem = ((PipelineItem*)item);
+
+					if (pitem->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+						if (pass->Variables.ContainsVariable(name)) return false;
+						pass->Variables.AddCopy(ed::ShaderVariable((ed::ShaderVariable::ValueType)type, name));
+						return true;
+					} else if (pitem->Type == PipelineItem::ItemType::ComputePass) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)pitem->Data;
+						if (pass->Variables.ContainsVariable(name)) return false;
+						pass->Variables.AddCopy(ed::ShaderVariable((ed::ShaderVariable::ValueType)type, name));
+						return true;
+					} else if (pitem->Type == PipelineItem::ItemType::AudioPass) {
+						pipe::AudioPass* pass = (pipe::AudioPass*)pitem->Data;
+						if (pass->Variables.ContainsVariable(name)) return false;
+						pass->Variables.AddCopy(ed::ShaderVariable((ed::ShaderVariable::ValueType)type, name));
+						return true;
+					}
+
+					return false;
 				};
 
 #ifdef SHADERED_DESKTOP 
@@ -597,18 +742,36 @@ namespace ed {
 #else
 				bool initResult = plugin->Init(true, SHADERED_VERSION);
 #endif
-
+				plugin->InitUI(ImGui::GetCurrentContext());
+				
 				if (initResult)
 					ed::Logger::Get().Log("Plugin \"" + pname + "\" successfully initialized.");
 				else
 					ed::Logger::Get().Log("Failed to initialize plugin \"" + pname + "\".");
 
-				plugin->InitUI(ImGui::GetCurrentContext());
 				m_plugins.push_back(plugin);
 				m_proc.push_back(procDLL);
 				m_names.push_back(pname);
 				m_apiVersion.push_back(apiVer);
 				m_pluginVersion.push_back(pluginVer);
+
+				bool isIn = false;
+				for (const auto& line : iniLines) {
+					if (isIn) {
+						size_t sepLoc = line.find('=');
+						if (sepLoc != std::string::npos) {
+							std::string key = line.substr(0, sepLoc);
+							std::string val = line.substr(sepLoc + 1);
+
+							plugin->Options_Parse(key.c_str(), val.c_str());
+						}
+					}
+
+					if (line.find("[" + pname + "]") == 0)
+						isIn = true;
+					else if (line.size()>0 && line[0] == '[')
+						isIn = false;
+				}
 			}
 		}
 
@@ -630,7 +793,20 @@ namespace ed {
 	}
 	void PluginManager::Destroy()
 	{
+		std::ofstream ini("data/plugin_settings.ini");
+
 		for (int i = 0; i < m_plugins.size(); i++) {
+			int optc = m_plugins[i]->Options_GetCount();
+			if (optc) {
+				ini << "[" << m_names[i] << "]" << std::endl;
+				for (int j = 0; j < optc; j++) {
+					const char* key = m_plugins[i]->Options_GetKey(j);
+					const char* val = m_plugins[i]->Options_GetValue(j);
+
+					ini << key << "=" << val << std::endl;
+				}
+			}
+
 			m_plugins[i]->Destroy();
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(m_proc[i], "DestroyPlugin");
@@ -647,6 +823,7 @@ namespace ed {
 #endif
 		}
 
+		ini.close();
 		m_plugins.clear();
 	}
 	void PluginManager::Update(float delta)
@@ -692,7 +869,7 @@ namespace ed {
 
 		return nullptr;
 	}
-	std::string PluginManager::GetPluginName(IPlugin1* plugin)
+	const std::string& PluginManager::GetPluginName(IPlugin1* plugin)
 	{
 		for (int i = 0; i < m_plugins.size(); i++)
 			if (m_plugins[i] == plugin)

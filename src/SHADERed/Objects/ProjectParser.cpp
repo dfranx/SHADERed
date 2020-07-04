@@ -22,6 +22,7 @@
 #include <SHADERed/UI/PropertyUI.h>
 
 #include <filesystem>
+#include <algorithm>
 #include <fstream>
 
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
@@ -91,37 +92,15 @@ namespace ed {
 		for (pugi::xml_node pluginNode : pluginsContainerNode.children("entry")) {
 			std::string pname = pluginNode.attribute("name").as_string();
 			int pver = pluginNode.attribute("ver").as_int();
+			bool required = true;
+			
+			if (!pluginNode.attribute("required").empty())
+				required = pluginNode.attribute("required").as_bool();
 
 			m_pluginList.push_back(pname);
 
 			IPlugin1* plugin = m_plugins->GetPlugin(pname);
-			if (plugin == nullptr) {
-				pluginTest = false;
-
-				std::string msg = "The project you are trying to open requires plugin " + pname + ".\nDo you want to install the plugin?";
-
-				const SDL_MessageBoxButtonData buttons[] = {
-					{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
-					{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
-				};
-				const SDL_MessageBoxData messageboxdata = {
-					SDL_MESSAGEBOX_INFORMATION, /* .flags */
-					m_ui->GetSDLWindow(),		/* .window */
-					"SHADERed",					/* .title */
-					msg.c_str(),				/* .message */
-					SDL_arraysize(buttons),		/* .numbuttons */
-					buttons,					/* .buttons */
-					NULL						/* .colorScheme */
-				};
-				int buttonid;
-				if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
-
-				if (buttonid == 0) {
-					// TODO: redirect to .../plugin?name=pname
-				}
-
-				break;
-			} else if (!m_plugins->IsLoaded(pname)) {
+			if (plugin == nullptr && required) {
 				pluginTest = false;
 
 				std::string msg = "The project you are trying to open requires plugin \"" + pname + "\".";
@@ -146,10 +125,10 @@ namespace ed {
 				pluginTest = false;
 			} else {
 				int instPVer = m_plugins->GetPluginVersion(pname);
-				if (instPVer < pver) {
+				if (instPVer < pver && !plugin->IsVersionCompatible(instPVer)) {
 					pluginTest = false;
 
-					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + " while you have version " + std::to_string(instPVer) + " installed.\nDo you want to update your plugin?";
+					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + " while you have version " + std::to_string(instPVer) + " installed.\n";
 
 					const SDL_MessageBoxButtonData buttons[] = {
 						{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
@@ -211,7 +190,7 @@ namespace ed {
 
 		// notify plugins that we've finished with loading
 		for (const auto& pname : m_pluginList)
-			m_plugins->GetPlugin(pname)->BeginProjectLoad();
+			m_plugins->GetPlugin(pname)->Project_BeginLoad();
 
 		switch (projectVersion) {
 		case 1: m_parseV1(projectNode); break;
@@ -228,7 +207,7 @@ namespace ed {
 
 		// notify plugins that we've finished with loading
 		for (const auto& pname : m_pluginList)
-			m_plugins->GetPlugin(pname)->EndProjectLoad();
+			m_plugins->GetPlugin(pname)->Project_EndLoad();
 
 		Logger::Get().Log("Finished with parsing a project file");
 	}
@@ -315,7 +294,7 @@ namespace ed {
 			}
 
 			for (const auto& pname : m_pluginList)
-				m_plugins->GetPlugin(pname)->CopyFilesOnSave(m_projectPath.c_str());
+				m_plugins->GetPlugin(pname)->Project_CopyFilesOnSave(m_projectPath.c_str());
 		}
 
 		pugi::xml_document doc;
@@ -325,6 +304,7 @@ namespace ed {
 		pugi::xml_node objectsNode = projectNode.append_child("objects");
 		pugi::xml_node camsnapsNode = projectNode.append_child("cameras");
 		pugi::xml_node settingsNode = projectNode.append_child("settings");
+		pugi::xml_node pluginDataNode = projectNode.append_child("plugindata");
 
 		// shader passes
 		for (PipelineItem* passItem : passItems) {
@@ -859,12 +839,27 @@ namespace ed {
 			}
 		}
 
+		for (auto& pl : m_plugins->Plugins()) {
+			if (pl->Project_HasAdditionalData()) {
+				const auto& plName = m_plugins->GetPluginName(pl);
+				if (std::count(m_pluginList.begin(), m_pluginList.end(), plName) == 0)
+					m_pluginList.push_back(plName);
+
+				const char* data = pl->Project_ExportAdditionalData();
+
+				pugi::xml_node entry = pluginDataNode.append_child("entry");
+				entry.append_attribute("owner").set_value(plName.c_str());
+				entry.append_buffer(data, strlen(data));
+			}
+		}
+
 		if (m_pluginList.size() > 0) {
 			pugi::xml_node pluginsNode = projectNode.append_child("plugins");
 			for (const auto& pname : m_pluginList) {
 				pugi::xml_node pnode = pluginsNode.append_child("entry");
 				pnode.append_attribute("name").set_value(pname.c_str());
 				pnode.append_attribute("ver").set_value(m_plugins->GetPluginVersion(pname));
+				pnode.append_attribute("required").set_value(m_plugins->GetPlugin(pname)->IsRequired());
 			}
 		}
 
@@ -3201,6 +3196,24 @@ namespace ed {
 						!settingItem.attribute("cond").empty() ? settingItem.attribute("cond").as_string() : "",
 						settingItem.attribute("enabled").as_bool());
 				}
+			}
+		}
+
+		// plugin additional data
+		for (pugi::xml_node pluginDataEntry : projectNode.child("plugindata").children("entry")) {
+			std::string plName = "";
+			if (!pluginDataEntry.attribute("owner").empty())
+				plName = pluginDataEntry.attribute("owner").as_string();
+
+			IPlugin1* pl = m_plugins->GetPlugin(plName.c_str());
+			
+			if (pl) {
+				const auto& plName = m_plugins->GetPluginName(pl);
+				if (std::count(m_pluginList.begin(), m_pluginList.end(), plName) == 0)
+					m_pluginList.push_back(plName);
+
+				std::string innerXML = getInnerXML(pluginDataEntry);
+				pl->Project_ImportAdditionalData(innerXML.c_str());
 			}
 		}
 

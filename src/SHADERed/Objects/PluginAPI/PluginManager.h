@@ -22,7 +22,7 @@ namespace ed {
 		void EndRender();
 
 		IPlugin1* GetPlugin(const std::string& plugin);
-		std::string GetPluginName(IPlugin1* plugin);
+		const std::string& GetPluginName(IPlugin1* plugin);
 		int GetPluginVersion(const std::string& plugin);
 		int GetPluginAPIVersion(const std::string& plugin);
 

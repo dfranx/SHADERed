@@ -37,6 +37,14 @@ namespace ed {
 		typedef int (*GetPipelineItemCountFn)(void* pipeline);
 		typedef plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* pipeline, int index);
 		typedef void* (*GetPipelineItemByIndexFn)(void* pipeline, int index);
+		typedef const char* (*GetPipelineItemNameFn)(void* item);
+		typedef void* (*GetPipelineItemPluginOwnerFn)(void* item);
+
+		typedef int (*GetPipelineItemVariableCountFn)(void* item);
+		typedef const char* (*GetPipelineItemVariableNameFn)(void* item, int index);
+		typedef char* (*GetPipelineItemVariableValueFn)(void* item, int index);
+		typedef plugin::VariableType (*GetPipelineItemVariableTypeFn)(void* item, int index);
+		typedef bool (*AddPipelineItemVariableFn)(void* item, const char* name, plugin::VariableType type);
 
 		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
 		typedef void (*GetViewMatrixFn)(float* out);
@@ -84,6 +92,17 @@ namespace ed {
 		typedef const char* (*GetSettingsStringFn)(const char* name);
 		typedef float (*GetSettingsFloatFn)(const char* name);
 		typedef void (*GetPreviewUIRectFn)(void* ui, float* out);
+
+		typedef void* (*GetPluginFn)(void* pluginManager, const char* name);
+		typedef int (*GetPluginListSizeFn)(void* pluginManager);
+		typedef const char* (*GetPluginListNameFn)(void* pluginManager, int index);
+		typedef void (*SendPluginMessageFn)(void* pluginManager, void* plugin, const char* receiver, char* msg, int msgLen);
+		typedef void (*BroadcastPluginMessageFn)(void* pluginManager, void* plugin, char* msg, int msgLen);
+
+		typedef void (*ToggleFullscreenFn)(void* UI);
+		typedef bool (*IsFullscreenFn)(void* UI);
+		typedef void (*TogglePerformanceModeFn)(void* UI);
+		typedef bool (*IsInPerformanceModeFn)(void* UI);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -97,17 +116,23 @@ namespace ed {
 		virtual void Update(float delta) = 0;
 		virtual void Destroy() = 0;
 
+		virtual bool IsRequired() = 0;
+		virtual bool IsVersionCompatible(int version) = 0;
+
 		virtual void BeginRender() = 0;
 		virtual void EndRender() = 0;
 
-		virtual void BeginProjectLoad() = 0;
-		virtual void EndProjectLoad() = 0;
-		virtual void BeginProjectSave() = 0;
-		virtual void EndProjectSave() = 0;
-		virtual void CopyFilesOnSave(const char* dir) = 0;
-		virtual bool HasCustomMenuItem() = 0;
+		virtual void Project_BeginLoad() = 0;
+		virtual void Project_EndLoad() = 0;
+		virtual void Project_BeginSave() = 0;
+		virtual void Project_EndSave() = 0;
+		virtual bool Project_HasAdditionalData() = 0;
+		virtual const char* Project_ExportAdditionalData() = 0;
+		virtual void Project_ImportAdditionalData(const char* xml) = 0;
+		virtual void Project_CopyFilesOnSave(const char* dir) = 0;
 
 		/* list: file, newproject, project, createitem, window, custom */
+		virtual bool HasCustomMenuItem() = 0;
 		virtual bool HasMenuItems(const char* name) = 0;
 		virtual void ShowMenuItems(const char* name) = 0;
 
@@ -176,6 +201,10 @@ namespace ed {
 		// options
 		virtual bool Options_HasSection() = 0;
 		virtual void Options_RenderSection() = 0;
+		virtual void Options_Parse(const char* key, const char* val) = 0;
+		virtual int Options_GetCount() = 0;
+		virtual const char* Options_GetKey(int index) = 0;
+		virtual const char* Options_GetValue(int index) = 0;
 
 		// languages
 		virtual int CustomLanguage_GetCount() = 0;
@@ -238,9 +267,10 @@ namespace ed {
 		virtual void HandleRecompile(const char* itemName) = 0;
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
 		virtual void HandleShortcut(const char* name) = 0;
+		virtual void HandlePluginMessage(const char* sender, char* msg, int msgLen) = 0;
 
 		// host functions
-		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager;
+		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins;
 		pluginfn::AddObjectFn AddObject;
 		pluginfn::AddCustomPipelineItemFn AddCustomPipelineItem;
 		pluginfn::AddMessageFn AddMessage;
@@ -295,6 +325,13 @@ namespace ed {
 		pluginfn::GetPipelineItemCountFn GetPipelineItemCount;
 		pluginfn::GetPipelineItemTypeFn GetPipelineItemType;
 		pluginfn::GetPipelineItemByIndexFn GetPipelineItemByIndex;
+		pluginfn::GetPipelineItemNameFn GetPipelineItemName;
+		pluginfn::GetPipelineItemPluginOwnerFn GetPipelineItemPluginOwner;
+		pluginfn::GetPipelineItemVariableCountFn GetPipelineItemVariableCount;
+		pluginfn::GetPipelineItemVariableNameFn GetPipelineItemVariableName;
+		pluginfn::GetPipelineItemVariableValueFn GetPipelineItemVariableValue;
+		pluginfn::GetPipelineItemVariableTypeFn GetPipelineItemVariableType;
+		pluginfn::AddPipelineItemVariableFn AddPipelineItemVariable;
 		pluginfn::GetOpenDirectoryDialogFn GetOpenDirectoryDialog;
 		pluginfn::GetOpenFileDialogFn GetOpenFileDialog;
 		pluginfn::GetSaveFileDialogFn GetSaveFileDialog;
@@ -309,5 +346,14 @@ namespace ed {
 		pluginfn::GetSettingsIntegerFn GetSettingsInteger;
 		pluginfn::GetSettingsFloatFn GetSettingsFloat;
 		pluginfn::GetPreviewUIRectFn GetPreviewUIRect;
+		pluginfn::GetPluginFn GetPlugin;
+		pluginfn::GetPluginListSizeFn GetPluginListSize;
+		pluginfn::GetPluginListNameFn GetPluginName;
+		pluginfn::SendPluginMessageFn SendPluginMessage;
+		pluginfn::BroadcastPluginMessageFn BroadcastPluginMessage;
+		pluginfn::ToggleFullscreenFn ToggleFullscreen;
+		pluginfn::IsFullscreenFn IsFullscreen;
+		pluginfn::TogglePerformanceModeFn TogglePerformanceMode;
+		pluginfn::IsInPerformanceModeFn IsInPerformanceMode;
 	};
 }
