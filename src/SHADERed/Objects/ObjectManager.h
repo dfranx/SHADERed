@@ -201,6 +201,8 @@ namespace ed {
 		bool LoadBufferFromModel(BufferObject* buf, const std::string& str);
 		bool LoadBufferFromFile(BufferObject* buf, const std::string& str);
 
+		bool ReloadTexture(ObjectManagerItem* item, const std::string& newPath);
+
 		void Clear();
 
 		const std::vector<std::string>& GetObjects() { return m_items; }

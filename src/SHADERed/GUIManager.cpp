@@ -663,6 +663,15 @@ namespace ed {
 					if (!m_data->Debugger.IsDebugging() && m_data->Debugger.GetPixelList().size() == 0)
 						m_data->Renderer.Render();
 				}
+				if (ImGui::MenuItem("Reload textures")) {
+					const std::vector<std::string>& objs = m_data->Objects.GetObjects();
+					
+					for (const auto& obj : objs) {
+						ObjectManagerItem* item = m_data->Objects.GetObjectManagerItem(obj);
+						if (item->IsTexture && !item->IsKeyboardTexture && !item->IsCube)
+							m_data->Objects.ReloadTexture(item, obj);
+					}
+				}
 				if (ImGui::MenuItem("Options")) {
 					m_optionsOpened = true;
 					((OptionsUI*)m_options)->SetGroup(ed::OptionsUI::Page::Project);

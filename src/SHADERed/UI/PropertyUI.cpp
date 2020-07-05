@@ -1201,6 +1201,28 @@ namespace ed {
 				}
 				ImGui::PopItemWidth();
 			} else if (IsTexture()) {
+				std::string path = m_data->Objects.GetObjectManagerItemName(m_currentObj);
+
+				/* texture path */
+				ImGui::Text("Path:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::InputText("##pui_texpath", const_cast<char*>(path.c_str()), SHADERED_MAX_PATH); // not like it's going to be modified, amirite
+				ImGui::PopItemFlag();
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0))) {
+					std::string file;
+					bool success = UIHelper::GetOpenFileDialog(file);
+					if (success) {
+						file = m_data->Parser.GetRelativePath(file);
+						m_data->Objects.ReloadTexture(m_currentObj, file);
+					}
+				}
+				ImGui::NextColumn();
+				ImGui::Separator();
+
 				/* VFLIP */
 				ImGui::Text("VFlip:");
 				ImGui::NextColumn();

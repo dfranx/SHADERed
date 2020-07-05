@@ -146,11 +146,12 @@ namespace ed {
 
 		std::string path = m_parser->GetProjectPath(file);
 		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-		unsigned char* paddedData = nullptr;
-
-		if (data == nullptr)
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
+		
+		if (data == nullptr) {
+			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
 			return false;
+		}
 
 		m_parser->ModifyProject();
 
@@ -160,34 +161,6 @@ namespace ed {
 
 		item->IsTexture = true;
 
-		if (data == nullptr)
-			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
-
-		GLenum fmt = GL_RGB;
-		if (nrChannels == 4)
-			fmt = GL_RGBA;
-		else if (nrChannels == 1)
-			fmt = GL_LUMINANCE;
-
-		if (nrChannels != 4) {
-			paddedData = (unsigned char*)malloc(width * height * 4);
-			for (int x = 0; x < width; x++) {
-				for (int y = 0; y < height; y++) {
-					if (nrChannels == 3) {
-						paddedData[(y * width + x) * 4 + 0] = data[(y * width + x) * 3 + 0];
-						paddedData[(y * width + x) * 4 + 1] = data[(y * width + x) * 3 + 1];
-						paddedData[(y * width + x) * 4 + 2] = data[(y * width + x) * 3 + 2];
-					} else if (nrChannels == 1) {
-						unsigned char val = data[(y * width + x) * 1 + 0];
-						paddedData[(y * width + x) * 4 + 0] = val;
-						paddedData[(y * width + x) * 4 + 1] = val;
-						paddedData[(y * width + x) * 4 + 2] = val;
-					}
-					paddedData[(y * width + x) * 4 + 3] = 255;
-				}
-			}
-		}
-
 		// normal texture
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
@@ -195,22 +168,19 @@ namespace ed {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, paddedData == nullptr ? data : paddedData);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// flipped texture
 		unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
-		unsigned char* dataPtr = paddedData;
-		if (nrChannels == 4)
-			dataPtr = data;
-		
+
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
-				flippedData[(y * width + x) * 4 + 0] = dataPtr[((height - y - 1) * width + x) * 4 + 0];
-				flippedData[(y * width + x) * 4 + 1] = dataPtr[((height - y - 1) * width + x) * 4 + 1];
-				flippedData[(y * width + x) * 4 + 2] = dataPtr[((height - y - 1) * width + x) * 4 + 2];
-				flippedData[(y * width + x) * 4 + 3] = dataPtr[((height - y - 1) * width + x) * 4 + 3];
+				flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
+				flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
+				flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
+				flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
 			}
 		}
 
@@ -227,9 +197,6 @@ namespace ed {
 		item->ImageSize = glm::ivec2(width, height);
 
 		free(flippedData);
-		if (paddedData != nullptr)
-			free(paddedData);
-
 		stbi_image_free(data);
 
 		return true;
@@ -636,6 +603,59 @@ namespace ed {
 		bufRead.close();
 
 		return ret;
+	}
+
+	bool ObjectManager::ReloadTexture(ObjectManagerItem* item, const std::string& newPath)
+	{
+		stbi_set_flip_vertically_on_load(1);
+
+		for (int i = 0; i < m_itemData.size(); i++) {
+			if (m_itemData[i] == item) {
+				std::string path = m_parser->GetProjectPath(newPath);
+				int width, height, nrChannels;
+				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
+
+				if (data == nullptr)
+					return false;
+
+				if (m_items[i] != newPath) {
+					m_items[i] = newPath;
+					m_parser->ModifyProject();
+				}
+
+				// normal texture
+				glBindTexture(GL_TEXTURE_2D, item->Texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				// flipped texture
+				unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
+				for (int x = 0; x < width; x++) {
+					for (int y = 0; y < height; y++) {
+						flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
+						flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
+						flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
+						flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
+					}
+				}
+
+				glGenTextures(1, &item->FlippedTexture);
+				glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, 0);
+
+				item->ImageSize = glm::ivec2(width, height);
+
+				free(flippedData);
+				stbi_image_free(data);
+				
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void ObjectManager::Pause(bool pause)
