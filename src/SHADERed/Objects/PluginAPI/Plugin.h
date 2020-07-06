@@ -199,15 +199,22 @@ namespace ed {
 		virtual void* PipelineItem_CopyData(const char* type, void* data) = 0;
 		virtual void PipelineItem_Execute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void PipelineItem_Execute(const char* type, void* data, void* children, int count) = 0;
-		virtual void PipelineItem_GetWorldMatrix(const char* name, float (&pMat)[16]) = 0; //must be implemented if item is pickable
+		virtual void PipelineItem_GetWorldMatrix(void* data, float (&pMat)[16]) = 0; //must be implemented if item is pickable
 		virtual bool PipelineItem_Intersect(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
-		virtual void PipelineItem_GetBoundingBox(const char* name, float (&minPos)[3], float (&maxPos)[3]) = 0;
+		virtual void PipelineItem_GetBoundingBox(void* data, float (&minPos)[3], float (&maxPos)[3]) = 0;
 		virtual bool PipelineItem_HasContext(const char* type) = 0;
 		virtual void PipelineItem_ShowContext(const char* type, void* data) = 0;
 		virtual const char* PipelineItem_Export(const char* type, void* data) = 0;
 		virtual void* PipelineItem_Import(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
 		virtual void PipelineItem_MoveDown(void* ownerData, const char* ownerType, const char* itemName) = 0;
 		virtual void PipelineItem_MoveUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
+		virtual void PipelineItem_ApplyGizmoTransform(void* data, float* transl, float* scale, float* rota) = 0;
+		virtual void PipelineItem_GetTransform(void* data, float* transl, float* scale, float* rota) = 0;
+		virtual void PipelineItem_DebugVertexExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual void PipelineItem_DebugInstanceExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual unsigned int PipelineItem_GetVBO(void* data) = 0;
+		virtual unsigned int PipelineItem_GetVBOStride(void* data) = 0;
+		virtual bool PipelineItem_CanChangeVariables(void* data) = 0;
 
 		// options
 		virtual bool Options_HasSection() = 0;

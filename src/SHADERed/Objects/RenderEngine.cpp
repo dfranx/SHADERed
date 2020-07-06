@@ -291,7 +291,7 @@ namespace ed {
 					systemVM.SetPicked(false);
 
 					// update the value for this element and check if we picked it
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
 						if (m_pickAwaiting) m_pickItem(item, m_wasMultiPick);
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
@@ -425,7 +425,7 @@ namespace ed {
 					}
 
 					// set the old value back
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
 						for (int k = 0; k < itemVarValues.size(); k++)
 							if (itemVarValues[k].Item == item)
 								itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -650,7 +650,7 @@ namespace ed {
 			PipelineItem* item = vertexPass->Items[j];
 
 			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
 				if (item != vertexItem)
 					continue;
 				for (int k = 0; k < itemVarValues.size(); k++)
@@ -705,6 +705,15 @@ namespace ed {
 				
 					vbase += mesh.Indices.size();
 				}
+			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+				if (plData->Owner->PipelineItem_IsPickable(plData->Type))
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+				else
+					systemVM.SetPicked(false);
+
+				plData->Owner->PipelineItem_DebugVertexExecute(vertexPass, plugin::PipelineItemType::ShaderPass, plData->Type, plData->PluginData, sedVarLoc);
 			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
 				ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
@@ -756,7 +765,7 @@ namespace ed {
 			}
 
 			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
 				for (int k = 0; k < itemVarValues.size(); k++)
 					if (itemVarValues[k].Item == item)
 						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -871,7 +880,7 @@ namespace ed {
 			PipelineItem* item = vertexPass->Items[j];
 
 			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
 				if (item != vertexItem)
 					continue;
 				for (int k = 0; k < itemVarValues.size(); k++)
@@ -933,10 +942,19 @@ namespace ed {
 					glDisable(GL_CULL_FACE);
 				glCullFace(state->CullFaceType);
 				glFrontFace(state->FrontFace);
-			}
+			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* geoData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+				if (geoData->Owner->PipelineItem_IsPickable(geoData->Type))
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+				else
+					systemVM.SetPicked(false);
+
+				geoData->Owner->PipelineItem_DebugInstanceExecute(vertexPass, plugin::PipelineItemType::ShaderPass, geoData->Type, geoData->PluginData, sedVarLoc);
+			} 
 
 			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer)
+			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
 				for (int k = 0; k < itemVarValues.size(); k++)
 					if (itemVarValues[k].Item == item)
 						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
@@ -1475,7 +1493,7 @@ namespace ed {
 			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 			float plMat[16];
-			pldata->Owner->PipelineItem_GetWorldMatrix(item->Name, plMat);
+			pldata->Owner->PipelineItem_GetWorldMatrix(pldata->PluginData, plMat);
 			world = glm::make_mat4(plMat);
 		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
@@ -1630,7 +1648,7 @@ namespace ed {
 					PipelineItem* item = data->Items[j];
 
 					// update the value for this element and check if we picked it
-					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer) {
+					if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
 						if (debugID == id)
 							return std::make_pair(it, item);
 

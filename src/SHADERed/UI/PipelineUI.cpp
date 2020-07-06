@@ -460,8 +460,14 @@ namespace ed {
 					m_modalItem = items[index];
 				}
 
-			} else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model || items[index]->Type == ed::PipelineItem::ItemType::VertexBuffer) {
-				if (ImGui::MenuItem("Change Variables")) {
+			} else if (items[index]->Type == ed::PipelineItem::ItemType::Geometry || items[index]->Type == ed::PipelineItem::ItemType::Model || items[index]->Type == ed::PipelineItem::ItemType::VertexBuffer || items[index]->Type == ed::PipelineItem::ItemType::PluginItem) {
+				bool proc = true;
+				if (items[index]->Type == ed::PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* plData = (pipe::PluginItemData*)items[index]->Data;
+					proc = plData->Owner->PipelineItem_CanChangeVariables(plData->PluginData);
+				}
+
+				if (proc && ImGui::MenuItem("Change Variables")) {
 					m_isChangeVarsOpened = true;
 					m_modalItem = items[index];
 				}

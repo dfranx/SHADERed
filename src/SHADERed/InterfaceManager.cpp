@@ -282,7 +282,23 @@ namespace ed {
 			}
 
 			free(bufPtr);
-		}
+		} else if (pixel.Object->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* pdata = (pipe::PluginItemData*)pixel.Object->Data;
+			
+			GLuint vbo = pdata->Owner->PipelineItem_GetVBO(pdata->PluginData);
+			GLuint vboStride = pdata->Owner->PipelineItem_GetVBOStride(pdata->PluginData);
+
+			GLfloat bufData[3 * 18] = { 0.0f };
+
+			// TODO: don't bother GPU so much
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			for (int i = 0; i < pixel.VertexCount; i++)
+				glGetBufferSubData(GL_ARRAY_BUFFER, (pixel.VertexID + i) * vboStride * sizeof(float), vboStride * sizeof(float), &bufData[i*18]);
+			copyFloatData(pixel.Vertex[0], &bufData[0]);
+			copyFloatData(pixel.Vertex[1], &bufData[18]);
+			copyFloatData(pixel.Vertex[2], &bufData[36]);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		} 
 	}
 	void InterfaceManager::OnEvent(const SDL_Event& e)
 	{

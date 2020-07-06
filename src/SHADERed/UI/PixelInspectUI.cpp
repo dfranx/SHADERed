@@ -32,7 +32,7 @@ namespace ed {
 		int pxId = 0;
 		for (auto& pixel : pixels) {
 			/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
-			ImGui::Text("%s(%s) - %s at (%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
+			ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
 			
 			/* [PIXEL COLOR] */
 			ImGui::PushItemWidth(-1);

@@ -91,6 +91,14 @@ namespace ed {
 
 			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
 			SystemVariableManager::Instance().SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+			
+			float scale[3], pos[3], rota[3];
+			plData->Owner->PipelineItem_GetTransform(plData->PluginData, pos, scale, rota);
+
+			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
+			SystemVariableManager::Instance().SetGeometryTransform(item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
 		}
 
 		// copy variable values
