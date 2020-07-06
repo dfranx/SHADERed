@@ -87,13 +87,13 @@ int main(int argc, char* argv[])
 	}
 
 	if (linuxUseHomeDir) {
-		const char *homedir = getenv("XDG_CONFIG_HOME");
+		const char *homedir = getenv("XDG_DATA_HOME");
 		if (homedir == NULL)
-			homedir = getenv("HOME");
+			homedir = std::string(getenv("HOME")) + "/.local/share";
 
 		if (homedir != NULL) {
-			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + "/.local/share/shadered/";
-			
+			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + "/shadered/";
+
 			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory))
 				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory);
 			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data"))
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 	engine.UI().SetPerformanceMode(perfMode);
 	engine.UI().SetMinimalMode(coptsParser.MinimalMode);
 	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
-	
+
 	// timer for time delta
 	ed::eng::Timer timer;
 	SDL_Event event;
