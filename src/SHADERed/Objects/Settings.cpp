@@ -10,6 +10,7 @@ namespace ed {
 	Settings::Settings()
 	{
 		Theme = "Dark";
+		LinuxHomeDirectory = "";
 
 		General.VSync = false;
 		General.AutoOpenErrorWindow = true;
@@ -81,7 +82,11 @@ namespace ed {
 	{
 		Logger::Get().Log("Reading settings");
 
-		INIReader ini("data/settings.ini");
+		std::string settingsFileLoc = "data/settings.ini";
+		if (!LinuxHomeDirectory.empty())
+			settingsFileLoc = LinuxHomeDirectory + "data/settings.ini";
+		
+		INIReader ini(settingsFileLoc);
 
 		General.HLSLExtensions.clear();
 		General.VulkanGLSLExtensions.clear();
@@ -167,7 +172,11 @@ namespace ed {
 	{
 		Logger::Get().Log("Saving settings");
 
-		std::ofstream ini("data/settings.ini");
+		std::string settingsFileLoc = "data/settings.ini";
+		if (!LinuxHomeDirectory.empty())
+			settingsFileLoc = LinuxHomeDirectory + "data/settings.ini";
+
+		std::ofstream ini(settingsFileLoc);
 
 		ini << "[general]" << std::endl;
 		ini << "theme=" << Theme << std::endl;

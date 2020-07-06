@@ -8,7 +8,6 @@
 #define MODEL_GROUP_NAME_LENGTH 64
 
 #define SDL_GLSL_VERSION "#version 330"
-#define IMGUI_INI_FILE "data/workspace.dat"
 
 #define SHADERED_DESKTOP
 // #define SHADERED_WEB

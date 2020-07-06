@@ -1,5 +1,5 @@
 #include <SHADERed/Objects/SPIRVParser.h>
-#include <spirv/spirv.hpp>
+#include <spirv/unified1/spirv.hpp>
 #include <unordered_map>
 #include <functional>
 

@@ -37,6 +37,9 @@ bin/Release
 
 # Local application settings
 settings.ini
+bin/data/plugin_settings.ini
+bin/data/preload.dat
+bin/data/workspace.dat
 
 # Autoupdate information
 bin/current_version.txt

@@ -146,7 +146,7 @@ namespace ed {
 
 		std::string path = m_parser->GetProjectPath(file);
 		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 		
 		if (data == nullptr) {
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
@@ -613,7 +613,7 @@ namespace ed {
 			if (m_itemData[i] == item) {
 				std::string path = m_parser->GetProjectPath(newPath);
 				int width, height, nrChannels;
-				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
+				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 
 				if (data == nullptr)
 					return false;

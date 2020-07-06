@@ -1,6 +1,6 @@
 [Window][DockSpaceWnd]
 Pos=0,0
-Size=1850,1016
+Size=1848,1016
 Collapsed=0
 
 [Window][Debug##Default]
@@ -16,13 +16,13 @@ DockId=0x00000004,1
 
 [Window][Preview]
 Pos=340,25
-Size=1510,810
+Size=1508,810
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Output]
 Pos=340,837
-Size=1510,178
+Size=1508,178
 Collapsed=0
 DockId=0x00000006,0
 
@@ -81,7 +81,7 @@ DockId=0x00000007,1
 
 [Window][##toolbar]
 Pos=0,25
-Size=1850,50
+Size=1848,50
 Collapsed=0
 
 [Window][###objprev0]
@@ -146,11 +146,11 @@ DockId=0x00000006,3
 
 [Window][##splash_screen]
 Pos=0,0
-Size=1850,1016
+Size=1848,1016
 Collapsed=0
 
 [Docking][Data]
-DockSpace                 ID=0x160B189F Window=0x912BA114 Pos=0,25 Size=1850,990 Split=X
+DockSpace                 ID=0x160B189F Window=0x912BA114 Pos=0,25 Size=1848,990 Split=X
   DockNode                ID=0x00000019 Parent=0x160B189F SizeRef=1543,990 Split=X
     DockNode              ID=0x00000001 Parent=0x00000019 SizeRef=282,997 Split=Y
       DockNode            ID=0x00000003 Parent=0x00000001 SizeRef=239,445 Selected=0x848ABB8F

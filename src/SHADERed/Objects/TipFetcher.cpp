@@ -1,6 +1,7 @@
 #include <SHADERed/Objects/TipFetcher.h>
 #include <SHADERed/Objects/UpdateChecker.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/Settings.h>
 #include <SFML/Network.hpp>
 
 #include <pugixml/src/pugixml.hpp>
@@ -75,7 +76,11 @@ namespace ed {
 	}
 	void TipFetcher::Fetch(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
-		std::ifstream verReader("current_version.txt");
+		std::string currentVersionPath = "current_version.txt";
+		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
+			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+
+		std::ifstream verReader(currentVersionPath);
 		int curVer = 0;
 		if (verReader.is_open()) {
 			verReader >> curVer;

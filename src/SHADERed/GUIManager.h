@@ -168,6 +168,8 @@ namespace ed {
 		bool m_performanceMode, m_perfModeFake;
 		eng::Timer m_perfModeClock;
 
+		std::string m_uiIniFile;
+
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;
 		void m_loadTemplateList();

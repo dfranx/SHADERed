@@ -54,7 +54,11 @@ namespace ed {
 			return;
 		}
 
-		std::ifstream ini("data/plugin_settings.ini");
+		std::string settingsFileLoc = "data/plugin_settings.ini";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			settingsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/plugin_settings.ini";
+
+		std::ifstream ini(settingsFileLoc);
 		std::vector<std::string> iniLines;
 		std::copy(std::istream_iterator<std::string>(ini),
 			std::istream_iterator<std::string>(),
@@ -903,7 +907,11 @@ namespace ed {
 	}
 	void PluginManager::Destroy()
 	{
-		std::ofstream ini("data/plugin_settings.ini");
+		std::string settingsFileLoc = "data/plugin_settings.ini";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			settingsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/plugin_settings.ini";
+
+		std::ofstream ini(settingsFileLoc);
 
 		for (int i = 0; i < m_plugins.size(); i++) {
 			int optc = m_plugins[i]->Options_GetCount();

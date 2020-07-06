@@ -1,5 +1,6 @@
 #pragma once
 #include <SHADERed/Objects/PluginAPI/PluginData.h>
+#include <stddef.h>
 
 namespace ed {
 	namespace pluginfn {

@@ -121,7 +121,7 @@ namespace ed {
 			"FunctionArgument"
 		};
 
-		INIReader ini("./themes/" + filename);
+		INIReader ini(filename);
 		if (ini.ParseError() != 0) {
 			Logger::Get().Log("Failed to parse a theme from file " + filename, true);
 			return "";

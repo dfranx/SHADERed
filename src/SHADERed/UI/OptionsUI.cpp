@@ -169,10 +169,16 @@ namespace ed {
 		m_themes.push_back("Dark");
 		m_themes.push_back("Light");
 
-		if (std::filesystem::exists("./themes/")) {
-			for (const auto& entry : std::filesystem::directory_iterator("./themes/")) {
-				std::string file = entry.path().filename().string();
-				m_themes.push_back(ThemeContainer::Instance().LoadTheme(file));
+		std::vector<std::string> pathList = {
+			"./themes/",
+			ed::Settings().Instance().LinuxHomeDirectory + "themes/"
+		};
+
+		for (const auto& pathToCheck : pathList) {
+			if (std::filesystem::exists(pathToCheck)) {
+				for (const auto& entry : std::filesystem::directory_iterator(pathToCheck)) {
+					m_themes.push_back(ThemeContainer::Instance().LoadTheme(entry.path().generic_string()));
+				}
 			}
 		}
 	}

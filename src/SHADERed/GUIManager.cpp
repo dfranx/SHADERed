@@ -114,6 +114,10 @@ namespace ed {
 		m_isIncompatPluginsOpened = false;
 		m_minimalMode = false;
 
+		m_uiIniFile = "data/workspace.dat";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			m_uiIniFile = ed::Settings::Instance().LinuxHomeDirectory + m_uiIniFile;
+
 		Settings::Instance().Load();
 		m_loadTemplateList();
 
@@ -129,7 +133,7 @@ namespace ed {
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->AddFontDefault();
-		io.IniFilename = IMGUI_INI_FILE;
+		io.IniFilename = m_uiIniFile.c_str();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable /*| ImGuiConfigFlags_ViewportsEnable TODO: allow this on windows? test on linux?*/;
 		io.ConfigDockingWithShift = false;
 
@@ -194,7 +198,11 @@ namespace ed {
 	{
 		glDeleteShader(Magnifier::Shader);
 
-		std::ofstream verWriter("current_version.txt");
+		std::string currentVersionPath = "current_version.txt";
+		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
+			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+
+		std::ofstream verWriter(currentVersionPath);
 		verWriter << UpdateChecker::MyVersion;
 		verWriter.close();
 
@@ -2598,7 +2606,11 @@ namespace ed {
 	}
 	void GUIManager::m_checkChangelog()
 	{
-		std::ifstream verReader("current_version.txt");
+		std::string currentVersionPath = "current_version.txt";
+		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
+			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+
+		std::ifstream verReader(currentVersionPath);
 		int curVer = 0;
 		if (verReader.is_open()) {
 			verReader >> curVer;

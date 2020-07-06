@@ -15,6 +15,7 @@ namespace ed {
 		float DPIScale;	 // shouldn't be changed by users
 		float TempScale; // copy this value to DPIScale on "Ok" button press
 		std::string Theme;
+		std::string LinuxHomeDirectory;
 
 		struct strGeneral {
 			bool VSync;
