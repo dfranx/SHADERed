@@ -306,8 +306,10 @@ namespace ed {
 
 		bool useFpsLimit = !capWholeApp && m_fpsLimit > 0 && m_elapsedTime >= 1.0f / m_fpsLimit;
 		if (capWholeApp || m_fpsLimit <= 0 || useFpsLimit) {
-			if (!paused)
+			if (!paused) {
 				renderer->Render(imageSize.x, imageSize.y);
+				m_data->Objects.Update(delta);
+			}
 
 			float fps = m_fpsTimer.Restart();
 			if (m_fpsUpdateTime > FPS_UPDATE_RATE) {

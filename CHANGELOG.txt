@@ -1,4 +1,5 @@
 [v1.3.5]
++ plugin API v1
 + add a feature that automatically detects and adds uniforms to variable manager
 + add "Active autocomplete" option
 + add user defined functions, variables & structures to text editor's autocomplete

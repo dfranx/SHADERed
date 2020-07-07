@@ -241,18 +241,9 @@ namespace ed {
 					ProjectParser* proj = (ProjectParser*)project;
 					proj->ModifyProject();
 				};
-				plugin->OpenProject = [](void* project, void* uiData, const char* filename) {
-					ProjectParser* proj = (ProjectParser*)project;
+				plugin->OpenProject = [](void* uiData, const char* filename) {
 					GUIManager* ui = (GUIManager*)uiData;
-
-					((CodeEditorUI*)ui->Get(ViewID::Code))->CloseAll();
-					((PinnedUI*)ui->Get(ViewID::Pinned))->CloseAll();
-					((PreviewUI*)ui->Get(ViewID::Preview))->Pick(nullptr);
-					((PropertyUI*)ui->Get(ViewID::Properties))->Open(nullptr);
-					((PipelineUI*)ui->Get(ViewID::Pipeline))->Reset();
-					((ObjectPreviewUI*)ui->Get(ViewID::ObjectPreview))->CloseAll();
-
-					proj->Open(filename);
+					ui->Open(filename);
 				};
 				plugin->SaveProject = [](void* project) {
 					ProjectParser* proj = (ProjectParser*)project;

@@ -22,7 +22,7 @@ namespace ed {
 		typedef const char* (*GetProjectDirectoryFn)(void* project);
 		typedef bool (*IsProjectModifiedFn)(void* project);
 		typedef void (*ModifyProjectFn)(void* project);
-		typedef void (*OpenProjectFn)(void* project, void* ui, const char* filename);
+		typedef void (*OpenProjectFn)(void* ui, const char* filename);
 		typedef void (*SaveProjectFn)(void* project);
 		typedef void (*SaveAsProjectFn)(void* project, const char* filename, bool copyFiles);
 

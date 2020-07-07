@@ -323,7 +323,6 @@ namespace ed {
 		m_performanceMode = m_perfModeFake;
 
 		// update audio textures
-		m_data->Objects.Update(delta);
 		FunctionVariableManager::Instance().ClearVariableList();
 
 		// update editor & workspace font
@@ -800,8 +799,8 @@ namespace ed {
 					}
 			}
 
-			m_data->Plugins.Update(delta);
 			Get(ViewID::Code)->Update(delta);
+			m_data->Plugins.Update(delta);
 
 			// object preview
 			if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
