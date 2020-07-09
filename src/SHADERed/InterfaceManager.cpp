@@ -69,7 +69,7 @@ namespace ed {
 
 		// results
 		std::unordered_map<GLuint, glm::vec4> pixelColors;
-		std::unordered_map<GLuint, std::pair<ed::PipelineItem*, ed::PipelineItem*>> pipelineItems;
+		std::unordered_map<GLuint, std::pair<PipelineItem*, PipelineItem*>> pipelineItems;
 
 		// get max RT size
 		for (int i = 0; i < objs.size(); i++) {
@@ -139,10 +139,15 @@ namespace ed {
 				pipe::VertexBuffer* bufData = ((pipe::VertexBuffer*)k.second.second->Data);
 
 				objTopology = bufData->Topology;
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[bufData->Topology];
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
 			} else if (k.second.second->Type == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* objData = ((pipe::Model*)k.second.second->Data);
 				instanceBuffer = (BufferObject*)objData->InstanceBuffer;
+			} else if (k.second.second->Type == ed::PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* objData = ((pipe::PluginItemData*)k.second.second->Data);
+
+				objTopology = objData->Owner->PipelineItem_GetTopology(objData->Type, objData->PluginData);
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
 			}
 
 			int rtIndex = 0;
@@ -178,8 +183,6 @@ namespace ed {
 	}
 	void InterfaceManager::FetchPixel(PixelInformation& pixel)
 	{
-		pipe::ShaderPass* pass = (pipe::ShaderPass*)pixel.Pass->Data;
-
 		int vertexGroupID = Renderer.DebugVertexPick(pixel.Pass, pixel.Object, pixel.RelativeCoordinate, -1);
 		int vertexID = Renderer.DebugVertexPick(pixel.Pass, pixel.Object, pixel.RelativeCoordinate, vertexGroupID);
 
@@ -195,7 +198,7 @@ namespace ed {
 
 		Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
 		for (int i = 0; i < pixel.VertexCount; i++) {
-			Debugger.SetVertexShaderInput(pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+			Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
 			pixel.glPosition[i] = Debugger.ExecuteVertexShader();
 			Debugger.CopyVertexShaderOutput(pixel, i);
 		}

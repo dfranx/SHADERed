@@ -169,6 +169,7 @@ namespace ed {
 				plugin->Renderer = (void*)&data->Renderer;
 				plugin->Messages = (void*)&data->Messages;
 				plugin->Project = (void*)&data->Parser;
+				plugin->Debugger = (void*)&data->Debugger;
 				plugin->UI = (void*)ui;
 				plugin->Plugins = (void*)this;
 
@@ -840,6 +841,40 @@ namespace ed {
 							pl->HandleNotification(id);
 						},
 						(IPlugin1*)plugin);
+				};
+				plugin->DebuggerJump = [](void* Debugger, void* ed, int line) {
+					((ed::DebugInformation*)Debugger)->Jump(line);
+					int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+					((TextEditor*)ed)->SetCurrentLineIndicator(curLine);
+				};
+				plugin->DebuggerContinue = [](void* Debugger, void* ed) {
+					((ed::DebugInformation*)Debugger)->Continue();
+					int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+					((TextEditor*)ed)->SetCurrentLineIndicator(curLine);
+				};
+				plugin->DebuggerStep = [](void* Debugger, void* ed) {
+					((ed::DebugInformation*)Debugger)->Step();
+					int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+					((TextEditor*)ed)->SetCurrentLineIndicator(curLine);
+				};
+				plugin->DebuggerStepInto = [](void* Debugger, void* ed) {
+					((ed::DebugInformation*)Debugger)->StepInto();
+					int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+					((TextEditor*)ed)->SetCurrentLineIndicator(curLine);
+				};
+				plugin->DebuggerStepOut = [](void* Debugger, void* ed) {
+					((ed::DebugInformation*)Debugger)->StepOut();
+					int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+					((TextEditor*)ed)->SetCurrentLineIndicator(curLine);
+				};
+				plugin->DebuggerCheckBreakpoint = [](void* Debugger, void* ed, int line) -> bool {
+					return ((ed::DebugInformation*)Debugger)->CheckBreakpoint(line);
+				};
+				plugin->DebuggerIsDebugging = [](void* Debugger, void* ed) -> bool {
+					return ((ed::DebugInformation*)Debugger)->IsDebugging();
+				};
+				plugin->DebuggerGetCurrentLine = [](void* Debugger) -> int {
+					return ((ed::DebugInformation*)Debugger)->GetCurrentLine();
 				};
 
 #ifdef SHADERED_DESKTOP 

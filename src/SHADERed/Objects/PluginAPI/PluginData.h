@@ -109,10 +109,13 @@ namespace ed {
 
 		enum class ApplicationEvent
 		{
-			PipelineItemCompiled,
-			PipelineItemAdded,
-			PipelineItemDeleted,
-			PipelineItemRenamed
+			PipelineItemCompiled, /* char* itemName, nullptr */
+			PipelineItemAdded,	  /* char* itemName, nullptr */
+			PipelineItemDeleted,  /* char* itemName, nullptr */
+			PipelineItemRenamed,
+			DebuggerStarted,	  /* char* itemName, void* editor */
+			DebuggerStepped,	  /* int line, nullptr */
+			DebuggerStopped		  /* nullptr, nullptr */
 			/* ETC... */
 		};
 	}

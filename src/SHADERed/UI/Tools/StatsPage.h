@@ -21,5 +21,7 @@ namespace ed {
 	private:
 		SPIRVParser m_info;
 		TextEditor m_spirv;
+
+		std::vector<unsigned int> m_spv;
 	};
 }

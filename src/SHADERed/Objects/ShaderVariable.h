@@ -190,6 +190,38 @@ namespace ed {
 
 			return 0;
 		}
+		inline int GetRowCount()
+		{
+			switch (m_type) {
+			case ValueType::Float2x2: return 2;
+			case ValueType::Float3x3: return 3;
+			case ValueType::Float4x4: return 4;
+			}
+
+			return 1;
+		}
+		inline ValueType GetBaseType()
+		{
+			switch (m_type) {
+			case ValueType::Boolean1: return ValueType::Boolean1;
+			case ValueType::Boolean2: return ValueType::Boolean1;
+			case ValueType::Boolean3: return ValueType::Boolean1;
+			case ValueType::Boolean4: return ValueType::Boolean1;
+			case ValueType::Integer1: return ValueType::Integer1;
+			case ValueType::Integer2: return ValueType::Integer1;
+			case ValueType::Integer3: return ValueType::Integer1;
+			case ValueType::Integer4: return ValueType::Integer1;
+			case ValueType::Float1: return ValueType::Float1;
+			case ValueType::Float2: return ValueType::Float1;
+			case ValueType::Float3: return ValueType::Float1;
+			case ValueType::Float4: return ValueType::Float1;
+			case ValueType::Float2x2: return ValueType::Float1;
+			case ValueType::Float3x3: return ValueType::Float1;
+			case ValueType::Float4x4: return ValueType::Float1;
+			}
+
+			return ValueType::Float1;
+		}
 
 	private:
 		ValueType m_type; // the size and type of this variable - protect this value, it can only be set at the variable defintion - cant be changed

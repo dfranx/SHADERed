@@ -444,7 +444,8 @@ namespace ed {
 						glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 					}
 				}
-			} else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
+			}
+			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
 				pipe::ComputePass* data = (pipe::ComputePass*)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -498,7 +499,8 @@ namespace ed {
 				// wait until it finishes
 				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			} else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
+			}
+			else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
 				pipe::AudioPass* data = (pipe::AudioPass*)it->Data;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -531,10 +533,14 @@ namespace ed {
 				data->Variables.Bind();
 
 				data->Stream.renderAudio();
-			} else if (it->Type == PipelineItem::ItemType::PluginItem && !isDebug) {
+			}
+			else if (it->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
 
-				pldata->Owner->PipelineItem_Execute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
+				if (!isDebug)
+					pldata->Owner->PipelineItem_Execute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
+				else if (pldata->Owner->PipelineItem_IsDebuggable(pldata->Type))
+					pldata->Owner->PipelineItem_DebugExecute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size(), &debugID);
 			}
 
 			if (it == breakItem && breakItem != nullptr)
@@ -565,220 +571,228 @@ namespace ed {
 	}
 	int RenderEngine::DebugVertexPick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r, int group)
 	{
-		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
+		if (vertexData->Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 
-		int vertexPassID = 0;
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == vertexData)
-				vertexPassID = i;
+			int vertexPassID = 0;
+			for (int i = 0; i < m_items.size(); i++)
+				if (m_items[i] == vertexData)
+					vertexPassID = i;
 
-		// _sed_dbg_pixel_color
-		GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
+			// _sed_dbg_pixel_color
+			GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
 
-		// update info
-		vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
+			// update info
+			vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
 
-		// get resources
-		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
-		const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
+			// get resources
+			const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
+			const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
 
-		// item variable values
-		auto& itemVarValues = GetItemVariableValues();
+			// item variable values
+			auto& itemVarValues = GetItemVariableValues();
 
-		// bind fbo and buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
-		glDrawBuffers(vertexPass->RTCount, fboBuffers);
+			// bind fbo and buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
+			glDrawBuffers(vertexPass->RTCount, fboBuffers);
 
-		glStencilMask(0xFFFFFFFF);
-		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+			glStencilMask(0xFFFFFFFF);
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		// bind RTs
-		int rtCount = MAX_RENDER_TEXTURES;
-		glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
-		for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
-			if (vertexPass->RenderTextures[i] == 0) {
-				rtCount = i;
-				break;
-			}
-
-			GLuint rt = vertexPass->RenderTextures[i];
-
-			if (rt != m_rtColor) {
-				ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
-				rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
-			}
-
-			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
-		}
-
-		// update viewport value
-		glViewport(0, 0, rtSize.x, rtSize.y);
-
-		// bind shaders
-		glUseProgram(m_debugShaders[vertexPassID]);
-
-		// bind shader resource views
-		for (int j = 0; j < srvs.size(); j++) {
-			glActiveTexture(GL_TEXTURE0 + j);
-			if (m_objects->IsCubeMap(srvs[j]))
-				glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-			else if (m_objects->IsImage3D(srvs[j]))
-				glBindTexture(GL_TEXTURE_3D, srvs[j]);
-			else if (m_objects->IsPluginObject(srvs[j])) {
-				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-				pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
-			} else
-				glBindTexture(GL_TEXTURE_2D, srvs[j]);
-
-			if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
-				vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
-		}
-		for (int j = 0; j < ubos.size(); j++)
-			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
-
-		// bind default states for each shader pass
-		SystemVariableManager& systemVM = SystemVariableManager::Instance();
-
-		// data
-		int x = r.x * rtSize.x;
-		int y = r.y * rtSize.y;
-		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
-		
-		// render pipeline items
-		DefaultState::Bind();
-		for (int j = 0; j < vertexPass->Items.size(); j++) {
-			PipelineItem* item = vertexPass->Items[j];
-
-			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
-				if (item != vertexItem)
-					continue;
-				for (int k = 0; k < itemVarValues.size(); k++)
-					if (itemVarValues[k].Item == item)
-						itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
-			}
-
-			if (item->Type == PipelineItem::ItemType::Geometry) {
-				pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
-
-				if (geoData->Type == pipe::GeometryItem::Rectangle) {
-					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
-					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
-					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-				} else
-					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
-
-				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-
-				// bind variables
-				vertexPass->Variables.Bind(item);
-
-				int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[geoData->Topology];
-				int vertexStart = (group >= 0) * group;
-				int maxVertexCount = (group < 0 ? eng::GeometryFactory::VertexCount[geoData->Type] : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
-				int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
-				int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[geoData->Topology];
-
-				maxVertexCount = std::min<int>(maxVertexCount, eng::GeometryFactory::VertexCount[geoData->Type]);
-
-				glBindVertexArray(geoData->VAO);
-				DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, geoData->Topology, sedVarLoc, geoData->Instanced, geoData->InstanceCount);
-			} else if (item->Type == PipelineItem::ItemType::Model) {
-				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
-
-				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-				systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
-
-				// bind variables
-				vertexPass->Variables.Bind(item);
-				
-				int vbase = 0;
-				for (const auto& mesh : objData->Data->Meshes) {
-					int vertexStart = (group >= 0) * group;
-					int maxVertexCount = (group < 0 ? mesh.Indices.size() : (vertexStart + DEBUG_PRIMITIVE_GROUP * 3));
-					int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * 3;
-
-					maxVertexCount = std::min<int>(maxVertexCount, mesh.Indices.size());
-
-					glBindVertexArray(mesh.VAO);
-					DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, 0, GL_TRIANGLES, objData->Instanced, objData->InstanceCount, true, vbase);
-				
-					vbase += mesh.Indices.size();
+			// bind RTs
+			int rtCount = MAX_RENDER_TEXTURES;
+			glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
+			for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+				if (vertexPass->RenderTextures[i] == 0) {
+					rtCount = i;
+					break;
 				}
-			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
-				pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-				if (plData->Owner->PipelineItem_IsPickable(plData->Type))
-					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-				else
-					systemVM.SetPicked(false);
+				GLuint rt = vertexPass->RenderTextures[i];
 
-				plData->Owner->PipelineItem_DebugVertexExecute(vertexPass, plugin::PipelineItemType::ShaderPass, plData->Type, plData->PluginData, sedVarLoc);
-			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
-				pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
-				ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
+				if (rt != m_rtColor) {
+					ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+					rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
+				}
 
-				auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
-				int stride = 0;
-				for (const auto& f : bobjFmt)
-					stride += ShaderVariable::GetSize(f, true);
+				glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
+			}
 
-				if (stride != 0) {
-					int actualMaxVertexCount = bobj->Size / stride;
+			// update viewport value
+			glViewport(0, 0, rtSize.x, rtSize.y);
 
-					systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+			// bind shaders
+			glUseProgram(m_debugShaders[vertexPassID]);
+
+			// bind shader resource views
+			for (int j = 0; j < srvs.size(); j++) {
+				glActiveTexture(GL_TEXTURE0 + j);
+				if (m_objects->IsCubeMap(srvs[j]))
+					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+				else if (m_objects->IsImage3D(srvs[j]))
+					glBindTexture(GL_TEXTURE_3D, srvs[j]);
+				else if (m_objects->IsPluginObject(srvs[j])) {
+					PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+					pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
+				} else
+					glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+				if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+					vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
+			}
+			for (int j = 0; j < ubos.size(); j++)
+				glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
+
+			// bind default states for each shader pass
+			SystemVariableManager& systemVM = SystemVariableManager::Instance();
+
+			// data
+			int x = r.x * rtSize.x;
+			int y = r.y * rtSize.y;
+			uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
+
+			// render pipeline items
+			DefaultState::Bind();
+			for (int j = 0; j < vertexPass->Items.size(); j++) {
+				PipelineItem* item = vertexPass->Items[j];
+
+				// update the value for this element and check if we picked it
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
+					if (item != vertexItem)
+						continue;
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+				}
+
+				if (item->Type == PipelineItem::ItemType::Geometry) {
+					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+
+					if (geoData->Type == pipe::GeometryItem::Rectangle) {
+						glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
+						glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
+						systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+					} else
+						systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+
 					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 
 					// bind variables
 					vertexPass->Variables.Bind(item);
 
-					int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[vbData->Topology];
+					int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[geoData->Topology];
 					int vertexStart = (group >= 0) * group;
-					int maxVertexCount = (group < 0 ? actualMaxVertexCount : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
+					int maxVertexCount = (group < 0 ? eng::GeometryFactory::VertexCount[geoData->Type] : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
 					int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
-					int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[vbData->Topology];
+					int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[geoData->Topology];
 
-					maxVertexCount = std::min<int>(maxVertexCount, actualMaxVertexCount);
+					maxVertexCount = std::min<int>(maxVertexCount, eng::GeometryFactory::VertexCount[geoData->Type]);
 
-					glBindVertexArray(vbData->VAO);
-					DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, vbData->Topology, sedVarLoc, false, 0);
+					glBindVertexArray(geoData->VAO);
+					DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, geoData->Topology, sedVarLoc, geoData->Instanced, geoData->InstanceCount);
+				} else if (item->Type == PipelineItem::ItemType::Model) {
+					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+
+					// bind variables
+					vertexPass->Variables.Bind(item);
+
+					int vbase = 0;
+					for (const auto& mesh : objData->Data->Meshes) {
+						int vertexStart = (group >= 0) * group;
+						int maxVertexCount = (group < 0 ? mesh.Indices.size() : (vertexStart + DEBUG_PRIMITIVE_GROUP * 3));
+						int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * 3;
+
+						maxVertexCount = std::min<int>(maxVertexCount, mesh.Indices.size());
+
+						glBindVertexArray(mesh.VAO);
+						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, 0, GL_TRIANGLES, objData->Instanced, objData->InstanceCount, true, vbase);
+
+						vbase += mesh.Indices.size();
+					}
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+					if (plData->Owner->PipelineItem_IsPickable(plData->Type))
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					else
+						systemVM.SetPicked(false);
+
+					plData->Owner->PipelineItem_DebugVertexExecute(vertexPass, plugin::PipelineItemType::ShaderPass, plData->Type, plData->PluginData, sedVarLoc);
+				} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+					pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+					ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
+
+					auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
+					int stride = 0;
+					for (const auto& f : bobjFmt)
+						stride += ShaderVariable::GetSize(f, true);
+
+					if (stride != 0) {
+						int actualMaxVertexCount = bobj->Size / stride;
+
+						systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+						// bind variables
+						vertexPass->Variables.Bind(item);
+
+						int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[vbData->Topology];
+						int vertexStart = (group >= 0) * group;
+						int maxVertexCount = (group < 0 ? actualMaxVertexCount : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
+						int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
+						int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[vbData->Topology];
+
+						maxVertexCount = std::min<int>(maxVertexCount, actualMaxVertexCount);
+
+						glBindVertexArray(vbData->VAO);
+						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, vbData->Topology, sedVarLoc, false, 0);
+					}
+				} else if (item->Type == PipelineItem::ItemType::RenderState) {
+					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
+
+					// depth clamp
+					if (state->DepthClamp)
+						glEnable(GL_DEPTH_CLAMP);
+					else
+						glDisable(GL_DEPTH_CLAMP);
+
+					// fill mode
+					glPolygonMode(GL_FRONT_AND_BACK, state->PolygonMode);
+
+					// culling and front face
+					if (state->CullFace)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+					glCullFace(state->CullFaceType);
+					glFrontFace(state->FrontFace);
 				}
-			} else if (item->Type == PipelineItem::ItemType::RenderState) {
-				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
-				// depth clamp
-				if (state->DepthClamp)
-					glEnable(GL_DEPTH_CLAMP);
-				else
-					glDisable(GL_DEPTH_CLAMP);
-
-				// fill mode
-				glPolygonMode(GL_FRONT_AND_BACK, state->PolygonMode);
-
-				// culling and front face
-				if (state->CullFace)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
-				glCullFace(state->CullFaceType);
-				glFrontFace(state->FrontFace);
+				// set the old value back
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
 			}
 
-			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
-				for (int k = 0; k < itemVarValues.size(); k++)
-					if (itemVarValues[k].Item == item)
-						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+			// window pixel color
+			int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+
+			// return old info
+			vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
+			delete[] mainPixelData;
+
+			return vertexGroup;
 		}
-
-		// window pixel color
-		int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+		else if (vertexData->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)vertexData->Data;
+			return plData->Owner->PipelineItem_DebugVertexExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
+		}
 		
-		// return old info
-		vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
-		delete[] mainPixelData;
-
-		return vertexGroup;
+		return 0;
 	}
 	int RenderEngine::DebugInstancePick(PipelineItem* vertexData, PipelineItem* vertexItem, glm::vec2 r, int group)
 	{
@@ -793,181 +807,187 @@ namespace ed {
 		} else
 			return 0;
 
-		// TODO: groups
+		if (vertexData->Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
 
-		pipe::ShaderPass* vertexPass = (pipe::ShaderPass*)vertexData->Data;
+			int vertexPassID = 0;
+			for (int i = 0; i < m_items.size(); i++)
+				if (m_items[i] == vertexData)
+					vertexPassID = i;
 
-		int vertexPassID = 0;
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == vertexData)
-				vertexPassID = i;
+			// _sed_dbg_pixel_color
+			GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
 
-		// _sed_dbg_pixel_color
-		GLuint sedVarLoc = glGetUniformLocation(m_debugShaders[vertexPassID], "_sed_dbg_pixel_color");
+			// update info
+			vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
 
-		// update info
-		vertexPass->Variables.UpdateUniformInfo(m_debugShaders[vertexPassID]);
+			// get resources
+			const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
+			const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
 
-		// get resources
-		const std::vector<GLuint>& srvs = m_objects->GetBindList(vertexData);
-		const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(vertexData);
+			// item variable values
+			auto& itemVarValues = GetItemVariableValues();
 
-		// item variable values
-		auto& itemVarValues = GetItemVariableValues();
+			// bind fbo and buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
+			glDrawBuffers(vertexPass->RTCount, fboBuffers);
 
-		// bind fbo and buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, vertexPass->FBO);
-		glDrawBuffers(vertexPass->RTCount, fboBuffers);
+			glStencilMask(0xFFFFFFFF);
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		glStencilMask(0xFFFFFFFF);
-		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-
-		// bind RTs
-		int rtCount = MAX_RENDER_TEXTURES;
-		glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
-		for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
-			if (vertexPass->RenderTextures[i] == 0) {
-				rtCount = i;
-				break;
-			}
-
-			GLuint rt = vertexPass->RenderTextures[i];
-
-			if (rt != m_rtColor) {
-				ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
-				rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
-			}
-
-			glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
-		}
-
-		// update viewport value
-		glViewport(0, 0, rtSize.x, rtSize.y);
-
-		// bind shaders
-		glUseProgram(m_debugShaders[vertexPassID]);
-
-		// bind shader resource views
-		for (int j = 0; j < srvs.size(); j++) {
-			glActiveTexture(GL_TEXTURE0 + j);
-			if (m_objects->IsCubeMap(srvs[j]))
-				glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-			else if (m_objects->IsImage3D(srvs[j]))
-				glBindTexture(GL_TEXTURE_3D, srvs[j]);
-			else if (m_objects->IsPluginObject(srvs[j])) {
-				PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
-				pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
-			} else
-				glBindTexture(GL_TEXTURE_2D, srvs[j]);
-
-			if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
-				vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
-		}
-		for (int j = 0; j < ubos.size(); j++)
-			glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
-
-		// bind default states for each shader pass
-		SystemVariableManager& systemVM = SystemVariableManager::Instance();
-
-		// data
-		int x = r.x * rtSize.x;
-		int y = r.y * rtSize.y;
-		uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
-
-		// render pipeline items
-		DefaultState::Bind();
-		for (int j = 0; j < vertexPass->Items.size(); j++) {
-			PipelineItem* item = vertexPass->Items[j];
-
-			// update the value for this element and check if we picked it
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
-				if (item != vertexItem)
-					continue;
-				for (int k = 0; k < itemVarValues.size(); k++)
-					if (itemVarValues[k].Item == item)
-						itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
-			}
-
-			if (item->Type == PipelineItem::ItemType::Geometry) {
-				pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
-
-				if (geoData->Type == pipe::GeometryItem::Rectangle) {
-					glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
-					glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
-					systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-				} else
-					systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
-
-				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-
-				// bind variables
-				vertexPass->Variables.Bind(item);
-
-				int vertexCount = eng::GeometryFactory::VertexCount[geoData->Type];
-				int iStart = (group >= 0) * group;
-				int iCount = group < 0 ? geoData->InstanceCount : (geoData->InstanceCount + DEBUG_INSTANCE_GROUP);
-				int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
-				
-				iCount = std::min<int>(iCount, geoData->InstanceCount);
-
-				glBindVertexArray(geoData->VAO);
-				DebugDrawInstanced(iStart, iStep, iCount, vertexCount, geoData->Topology, sedVarLoc);
-			} else if (item->Type == PipelineItem::ItemType::Model) {
-				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
-
-				systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-				systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
-
-				// bind variables
-				vertexPass->Variables.Bind(item);
-
-				for (const auto& mesh : objData->Data->Meshes) {
-					int vertexCount = mesh.Indices.size();
-					int iStart = (group >= 0) * group;
-					int iCount = group < 0 ? objData->InstanceCount : (objData->InstanceCount + DEBUG_INSTANCE_GROUP);
-					int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
-				
-					iCount = std::min<int>(iCount, objData->InstanceCount);
-
-					glBindVertexArray(mesh.VAO);
-					DebugDrawInstanced(iStart, iStep, iCount, vertexCount, GL_TRIANGLES, sedVarLoc);
+			// bind RTs
+			int rtCount = MAX_RENDER_TEXTURES;
+			glm::vec2 rtSize(m_lastSize.x, m_lastSize.y);
+			for (int i = 0; i < MAX_RENDER_TEXTURES; i++) {
+				if (vertexPass->RenderTextures[i] == 0) {
+					rtCount = i;
+					break;
 				}
-			} else if (item->Type == PipelineItem::ItemType::RenderState) {
-				pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
 
-				// culling and front face (only thing we care about when picking a vertex, i think)
-				if (state->CullFace)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
-				glCullFace(state->CullFaceType);
-				glFrontFace(state->FrontFace);
-			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
-				pipe::PluginItemData* geoData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+				GLuint rt = vertexPass->RenderTextures[i];
 
-				if (geoData->Owner->PipelineItem_IsPickable(geoData->Type))
+				if (rt != m_rtColor) {
+					ed::RenderTextureObject* rtObject = m_objects->GetRenderTexture(rt);
+					rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
+				}
+
+				glClearBufferfv(GL_COLOR, i, glm::value_ptr(glm::vec4(0.0f)));
+			}
+
+			// update viewport value
+			glViewport(0, 0, rtSize.x, rtSize.y);
+
+			// bind shaders
+			glUseProgram(m_debugShaders[vertexPassID]);
+
+			// bind shader resource views
+			for (int j = 0; j < srvs.size(); j++) {
+				glActiveTexture(GL_TEXTURE0 + j);
+				if (m_objects->IsCubeMap(srvs[j]))
+					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
+				else if (m_objects->IsImage3D(srvs[j]))
+					glBindTexture(GL_TEXTURE_3D, srvs[j]);
+				else if (m_objects->IsPluginObject(srvs[j])) {
+					PluginObject* pobj = m_objects->GetPluginObject(srvs[j]);
+					pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
+				} else
+					glBindTexture(GL_TEXTURE_2D, srvs[j]);
+
+				if (ShaderCompiler::GetShaderLanguageFromExtension(vertexPass->PSPath) == ShaderLanguage::GLSL) // TODO: or should this be for vulkan glsl too?
+					vertexPass->Variables.UpdateTexture(m_debugShaders[vertexPassID], j);
+			}
+			for (int j = 0; j < ubos.size(); j++)
+				glBindBufferBase(GL_UNIFORM_BUFFER, j, ubos[j]);
+
+			// bind default states for each shader pass
+			SystemVariableManager& systemVM = SystemVariableManager::Instance();
+
+			// data
+			int x = r.x * rtSize.x;
+			int y = r.y * rtSize.y;
+			uint8_t* mainPixelData = new uint8_t[(int)(rtSize.x * rtSize.y) * 4];
+
+			// render pipeline items
+			DefaultState::Bind();
+			for (int j = 0; j < vertexPass->Items.size(); j++) {
+				PipelineItem* item = vertexPass->Items[j];
+
+				// update the value for this element and check if we picked it
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem) {
+					if (item != vertexItem)
+						continue;
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].NewValue->Data;
+				}
+
+				if (item->Type == PipelineItem::ItemType::Geometry) {
+					pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+
+					if (geoData->Type == pipe::GeometryItem::Rectangle) {
+						glm::vec3 scaleRect(geoData->Scale.x * rtSize.x, geoData->Scale.y * rtSize.y, 1.0f);
+						glm::vec3 posRect((geoData->Position.x + 0.5f) * rtSize.x, (geoData->Position.y + 0.5f) * rtSize.y, -1000.0f);
+						systemVM.SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+					} else
+						systemVM.SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+
 					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
-				else
-					systemVM.SetPicked(false);
 
-				geoData->Owner->PipelineItem_DebugInstanceExecute(vertexPass, plugin::PipelineItemType::ShaderPass, geoData->Type, geoData->PluginData, sedVarLoc);
-			} 
+					// bind variables
+					vertexPass->Variables.Bind(item);
 
-			// set the old value back
-			if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
-				for (int k = 0; k < itemVarValues.size(); k++)
-					if (itemVarValues[k].Item == item)
-						itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+					int vertexCount = eng::GeometryFactory::VertexCount[geoData->Type];
+					int iStart = (group >= 0) * group;
+					int iCount = group < 0 ? geoData->InstanceCount : (geoData->InstanceCount + DEBUG_INSTANCE_GROUP);
+					int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
+
+					iCount = std::min<int>(iCount, geoData->InstanceCount);
+
+					glBindVertexArray(geoData->VAO);
+					DebugDrawInstanced(iStart, iStep, iCount, vertexCount, geoData->Topology, sedVarLoc);
+				} else if (item->Type == PipelineItem::ItemType::Model) {
+					pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+
+					systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					systemVM.SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+
+					// bind variables
+					vertexPass->Variables.Bind(item);
+
+					for (const auto& mesh : objData->Data->Meshes) {
+						int vertexCount = mesh.Indices.size();
+						int iStart = (group >= 0) * group;
+						int iCount = group < 0 ? objData->InstanceCount : (objData->InstanceCount + DEBUG_INSTANCE_GROUP);
+						int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
+
+						iCount = std::min<int>(iCount, objData->InstanceCount);
+
+						glBindVertexArray(mesh.VAO);
+						DebugDrawInstanced(iStart, iStep, iCount, vertexCount, GL_TRIANGLES, sedVarLoc);
+					}
+				} else if (item->Type == PipelineItem::ItemType::RenderState) {
+					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
+
+					// culling and front face (only thing we care about when picking a vertex, i think)
+					if (state->CullFace)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+					glCullFace(state->CullFaceType);
+					glFrontFace(state->FrontFace);
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* geoData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+
+					if (geoData->Owner->PipelineItem_IsPickable(geoData->Type))
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+					else
+						systemVM.SetPicked(false);
+
+					geoData->Owner->PipelineItem_DebugInstanceExecute(vertexPass, plugin::PipelineItemType::ShaderPass, geoData->Type, geoData->PluginData, sedVarLoc);
+				}
+
+				// set the old value back
+				if (item->Type == PipelineItem::ItemType::Geometry || item->Type == PipelineItem::ItemType::Model || item->Type == PipelineItem::ItemType::VertexBuffer || item->Type == PipelineItem::ItemType::PluginItem)
+					for (int k = 0; k < itemVarValues.size(); k++)
+						if (itemVarValues[k].Item == item)
+							itemVarValues[k].Variable->Data = itemVarValues[k].OldValue;
+			}
+
+			// window pixel color
+			int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+
+			// return old info
+			vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
+			delete[] mainPixelData;
+
+			return vertexGroup;
+		}
+		else if (vertexData->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)vertexData->Data;
+			return plData->Owner->PipelineItem_DebugInstanceExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
 		}
 
-		// window pixel color
-		int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
-
-		// return old info
-		vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
-		delete[] mainPixelData;
-
-		return vertexGroup;
+		return 0;
 	}
 	void RenderEngine::Pause(bool pause)
 	{
@@ -1655,6 +1675,15 @@ namespace ed {
 						debugID++;
 					}
 				}
+			} else if (it->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* data = (pipe::PluginItemData*)it->Data;
+				PipelineItem* item = nullptr;
+				if (data->Owner->PipelineItem_IsDebuggable(data->Type))
+					for (int j = 0; j < data->Items.size(); j++) {
+						if (debugID == id)
+							return std::make_pair(it, data->Items[j]);
+						debugID++;
+					}
 			}
 		}
 
@@ -1949,6 +1978,7 @@ namespace ed {
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
+					m_debugShaders.insert(m_debugShaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 				}
 			}

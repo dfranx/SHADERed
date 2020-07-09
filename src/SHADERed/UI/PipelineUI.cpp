@@ -1743,7 +1743,7 @@ namespace ed {
 						m_ui->SaveAsProject(true);
 					else {
 						CodeEditorUI* editor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-						data->Owner->PipelineItem_OpenInEditor((void*)editor, data->Type, data->PluginData);
+						data->Owner->PipelineItem_OpenInEditor(data->Type, data->PluginData);
 					}
 				}
 

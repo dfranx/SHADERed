@@ -114,6 +114,15 @@ namespace ed {
 		typedef bool (*IsInPerformanceModeFn)(void* UI);
 
 		typedef void (*PushNotificationFn)(void* UI, void* plugin, int id, const char* text, const char* buttonText);
+
+		typedef void (*DebuggerJumpFn)(void* Debugger, void* TextEditor, int line);
+		typedef void (*DebuggerContinueFn)(void* Debugger, void* TextEditor);
+		typedef void (*DebuggerStepFn)(void* Debugger, void* TextEditor);
+		typedef void (*DebuggerStepIntoFn)(void* Debugger, void* TextEditor);
+		typedef void (*DebuggerStepOutFn)(void* Debugger, void* TextEditor);
+		typedef bool (*DebuggerCheckBreakpointFn)(void* Debugger, void* TextEditor, int line);
+		typedef bool (*DebuggerIsDebuggingFn)(void* Debugger, void* TextEditor);
+		typedef int (*DebuggerGetCurrentLineFn)(void* Debugger);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -188,7 +197,7 @@ namespace ed {
 		virtual void PipelineItem_ShowProperties(const char* type, void* data) = 0;
 		virtual bool PipelineItem_IsPickable(const char* type) = 0;
 		virtual bool PipelineItem_HasShaders(const char* type) = 0; // so that they can be opened in the shader editor
-		virtual void PipelineItem_OpenInEditor(void* ui, const char* type, void* data) = 0;
+		virtual void PipelineItem_OpenInEditor(const char* type, void* data) = 0;
 		virtual bool PipelineItem_CanHaveChild(const char* type, plugin::PipelineItemType itemType) = 0;
 		virtual int PipelineItem_GetInputLayoutSize(const char* itemName) = 0; // this must be supported if this item can have geometry as child..
 		virtual void PipelineItem_GetInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
@@ -211,10 +220,24 @@ namespace ed {
 		virtual void PipelineItem_ApplyGizmoTransform(void* data, float* transl, float* scale, float* rota) = 0;
 		virtual void PipelineItem_GetTransform(void* data, float* transl, float* scale, float* rota) = 0;
 		virtual void PipelineItem_DebugVertexExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual int PipelineItem_DebugVertexExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
 		virtual void PipelineItem_DebugInstanceExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual int PipelineItem_DebugInstanceExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
 		virtual unsigned int PipelineItem_GetVBO(void* data) = 0;
 		virtual unsigned int PipelineItem_GetVBOStride(void* data) = 0;
 		virtual bool PipelineItem_CanChangeVariables(void* data) = 0;
+		virtual bool PipelineItem_IsDebuggable(const char* type) = 0;
+		virtual void PipelineItem_DebugExecute(const char* type, void* data, void* children, int count, int* debugID) = 0;
+		virtual unsigned int PipelineItem_GetTopology(const char* type, void* data) = 0;
+		virtual unsigned int PipelineItem_GetVariableCount(const char* type, void* data) = 0;
+		virtual const char* PipelineItem_GetVariableName(const char* type, void* data, unsigned int variable) = 0;
+		virtual ed::plugin::VariableType PipelineItem_GetVariableType(const char* type, void* data, unsigned int variable) = 0;
+		virtual float PipelineItem_GetVariableValueFloat(const char* type, void* data, unsigned int variable, int col, int row) = 0;
+		virtual int PipelineItem_GetVariableValueInteger(const char* type, void* data, unsigned int variable, int col) = 0;
+		virtual bool PipelineItem_GetVariableValueBoolean(const char* type, void* data, unsigned int variable, int col) = 0;
+		virtual unsigned int PipelineItem_GetSPIRVSize(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
+		virtual unsigned int* PipelineItem_GetSPIRV(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
+		virtual void PipelineItem_DebugPrepareVariables(const char* type, void* data, const char* name) = 0;
 
 		// options
 		virtual bool Options_HasSection() = 0;
@@ -290,7 +313,7 @@ namespace ed {
 		virtual void HandleNotification(int id) = 0;
 		
 		// host functions
-		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins;
+		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins, *Debugger;
 		pluginfn::AddObjectFn AddObject;
 		pluginfn::AddCustomPipelineItemFn AddCustomPipelineItem;
 		pluginfn::AddMessageFn AddMessage;
@@ -384,5 +407,13 @@ namespace ed {
 		pluginfn::TogglePerformanceModeFn TogglePerformanceMode;
 		pluginfn::IsInPerformanceModeFn IsInPerformanceMode;
 		pluginfn::PushNotificationFn PushNotification;
+		pluginfn::DebuggerJumpFn DebuggerJump;
+		pluginfn::DebuggerContinueFn DebuggerContinue;
+		pluginfn::DebuggerStepFn DebuggerStep;
+		pluginfn::DebuggerStepIntoFn DebuggerStepInto;
+		pluginfn::DebuggerStepOutFn DebuggerStepOut;
+		pluginfn::DebuggerCheckBreakpointFn DebuggerCheckBreakpoint;
+		pluginfn::DebuggerIsDebuggingFn DebuggerIsDebugging;
+		pluginfn::DebuggerGetCurrentLineFn DebuggerGetCurrentLine;
 	};
 }

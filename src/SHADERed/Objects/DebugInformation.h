@@ -31,7 +31,7 @@ namespace ed {
 		void GetVariableValueAsString(std::stringstream& outString, spvm_result_t type, spvm_member_t mems, spvm_word mem_count, const std::string& prefix);
 
 		void PrepareVertexShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
-		void SetVertexShaderInput(pipe::ShaderPass* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer = nullptr);
+		void SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer = nullptr);
 		glm::vec4 ExecuteVertexShader();
 		void CopyVertexShaderOutput(PixelInformation& px, int vertexIndex);
 
@@ -75,6 +75,7 @@ namespace ed {
 
 		inline void SetDebugging(bool debug) { m_isDebugging = debug; }
 		inline bool IsDebugging() { return m_isDebugging; }
+		inline ShaderStage GetStage() { return m_stage; }
 
 	private:
 		ObjectManager* m_objs;
@@ -92,6 +93,8 @@ namespace ed {
 		void m_interpolateValues(spvm_state_t state, glm::vec3 weights);
 
 		std::vector<spvm_image_t> m_images; // TODO: clear these + smart cache
+
+		std::vector<unsigned int> m_tempSPV;
 
 		void m_copyUniforms(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
 		void m_setupVM(std::vector<unsigned int>& spv);

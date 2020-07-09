@@ -59,8 +59,53 @@ namespace ed {
 	}
 	void DebugInformation::m_copyUniforms(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
-		pipe::ShaderPass* pass = (pipe::ShaderPass*)owner->Data;
-		const std::vector<ed::ShaderVariable*>& vars = pass->Variables.GetVariables();
+		bool requiresVarCleanup = false;
+		std::vector<ed::ShaderVariable*> vars;
+		if (owner->Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* pass = (pipe::ShaderPass*)owner->Data;
+			vars = pass->Variables.GetVariables();
+		} else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
+
+			plData->Owner->PipelineItem_DebugPrepareVariables(plData->Type, plData->PluginData, item->Name);
+
+			int varCount = plData->Owner->PipelineItem_GetVariableCount(plData->Type, plData->PluginData);
+			vars.resize(varCount);
+
+			for (int i = 0; i < varCount; i++) {
+				const char* varName = plData->Owner->PipelineItem_GetVariableName(plData->Type, plData->PluginData, i);
+				ShaderVariable::ValueType type = (ShaderVariable::ValueType)plData->Owner->PipelineItem_GetVariableType(plData->Type, plData->PluginData, i);
+
+				ed::ShaderVariable* var = new ed::ShaderVariable(type, varName);
+				vars[i] = var;
+				int cm = var->GetColumnCount();
+				int rm = var->GetRowCount();
+
+				ShaderVariable::ValueType baseType = var->GetBaseType();
+
+				for (int c = 0; c < cm; c++) {
+					for (int r = 0; r < rm; r++) {
+						switch (baseType) {
+						case ShaderVariable::ValueType::Float1: {
+							float valFloat = plData->Owner->PipelineItem_GetVariableValueFloat(plData->Type, plData->PluginData, i, c, r);
+							var->SetFloat(valFloat, c, r);
+						} break;
+						case ShaderVariable::ValueType::Integer1: {
+							int valInteger = plData->Owner->PipelineItem_GetVariableValueInteger(plData->Type, plData->PluginData, i, c);
+							var->SetIntegerValue(valInteger, c);
+						} break;
+						case ShaderVariable::ValueType::Boolean1: {
+							bool valBoolean = plData->Owner->PipelineItem_GetVariableValueBoolean(plData->Type, plData->PluginData, i, c);
+							var->SetBooleanValue(valBoolean, c);
+						} break;
+						}
+					}
+				}
+			}
+
+			requiresVarCleanup = true;
+		}
+
 		const auto& itemVars = m_renderer->GetItemVariableValues();
 		const std::vector<GLuint>& srvs = m_objs->GetBindList(owner);
 		const std::vector<GLuint>& ubos = m_objs->GetUniformBindList(owner);
@@ -501,6 +546,12 @@ namespace ed {
 				}
 			}
 		}
+
+		if (requiresVarCleanup) {
+			for (int i = 0; i < vars.size(); i++)
+				delete vars[i];
+			vars.clear();
+		}
 	}
 	
 	spvm_member_t DebugInformation::GetVariable(const std::string& vname, size_t& outCount, spvm_result_t& outType)
@@ -613,14 +664,26 @@ namespace ed {
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
 		m_resetVM();
-		m_setupVM(((pipe::ShaderPass*)owner->Data)->VSSPV);
+		if (owner->Type == PipelineItem::ItemType::ShaderPass)
+			m_setupVM(((pipe::ShaderPass*)owner->Data)->VSSPV);
+		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
+			
+			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::Vertex);
+			m_tempSPV.clear();
+			if (spvSize != 0) {
+				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::Vertex);
+				m_tempSPV = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+			}
+			m_setupVM(m_tempSPV);
+ 		}
 
 		// uniforms
 		m_copyUniforms(owner, item, px);
 		
 		m_stage = ShaderStage::Vertex;
 	}
-	void DebugInformation::SetVertexShaderInput(pipe::ShaderPass* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
+	void DebugInformation::SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
 	{
 		// input variables
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
@@ -650,43 +713,54 @@ namespace ed {
 
 					InputLayoutValue inputType = InputLayoutValue::MaxCount;
 
-					if (location < pass->InputLayout.size())
-						inputType = pass->InputLayout[location].Value;
-					else if (instanceBuffer != nullptr) {
-						int bufferLocation = location - pass->InputLayout.size();
+					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* passData = (pipe::ShaderPass*)pass->Data;
+						if (location < passData->InputLayout.size())
+							inputType = passData->InputLayout[location].Value;
+						else if (instanceBuffer != nullptr) {
+							int bufferLocation = location - passData->InputLayout.size();
 
-						std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
+							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
 
-						int stride = 0;
-						for (const auto& dataEl : tData)
-							stride += ShaderVariable::GetSize(dataEl, true);
+							int stride = 0;
+							for (const auto& dataEl : tData)
+								stride += ShaderVariable::GetSize(dataEl, true);
 
-						GLfloat* bufPtr = (GLfloat*)malloc(stride);
+							GLfloat* bufPtr = (GLfloat*)malloc(stride);
 
-						glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer->ID);
-						glGetBufferSubData(GL_ARRAY_BUFFER, instanceID * stride, stride, &bufPtr[0]);
-						glBindBuffer(GL_ARRAY_BUFFER, 0);
+							glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer->ID);
+							glGetBufferSubData(GL_ARRAY_BUFFER, instanceID * stride, stride, &bufPtr[0]);
+							glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-						int iOffset = 0;
-						for (int j = 0; j < tData.size(); j++) {
-							int elCount = ShaderVariable::GetSize(tData[j]) / 4;
+							int iOffset = 0;
+							for (int j = 0; j < tData.size(); j++) {
+								int elCount = ShaderVariable::GetSize(tData[j]) / 4;
 
-							if (j == bufferLocation) {
-								if (elCount == 4)
-									value = glm::make_vec4(bufPtr + iOffset);
-								else if (elCount == 3)
-									value = glm::vec4(glm::make_vec3(bufPtr + iOffset), 0.0f);
-								else if (elCount == 2)
-									value = glm::vec4(glm::make_vec2(bufPtr + iOffset), 0.0f, 0.0f);
-								else
-									value = glm::vec4(*(bufPtr + iOffset), 0.0f, 0.0f, 0.0f);
-								break;
+								if (j == bufferLocation) {
+									if (elCount == 4)
+										value = glm::make_vec4(bufPtr + iOffset);
+									else if (elCount == 3)
+										value = glm::vec4(glm::make_vec3(bufPtr + iOffset), 0.0f);
+									else if (elCount == 2)
+										value = glm::vec4(glm::make_vec2(bufPtr + iOffset), 0.0f, 0.0f);
+									else
+										value = glm::vec4(*(bufPtr + iOffset), 0.0f, 0.0f, 0.0f);
+									break;
+								}
+
+								iOffset += elCount;
 							}
 
-							iOffset += elCount;
+							free(bufPtr);
 						}
+					} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* plData = (pipe::PluginItemData*)pass->Data;
+						if (location < plData->Owner->PipelineItem_GetInputLayoutSize(pass->Name)) {
+							plugin::InputLayoutItem inputItem;
+							plData->Owner->PipelineItem_GetInputLayoutItem(pass->Name, location, inputItem);
 
-						free(bufPtr);
+							inputType = (InputLayoutValue)inputItem.Value;
+						}
 					}
 
 					switch (inputType) {
@@ -792,7 +866,20 @@ namespace ed {
 	void DebugInformation::PreparePixelShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
 		m_resetVM();
-		m_setupVM(((pipe::ShaderPass*)owner->Data)->PSSPV);
+		if (owner->Type == PipelineItem::ItemType::ShaderPass)
+			m_setupVM(((pipe::ShaderPass*)owner->Data)->VSSPV);
+		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
+
+			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::Pixel);
+			m_tempSPV.clear();
+			if (spvSize != 0) {
+				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::Pixel);
+				m_tempSPV = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+			}
+			m_setupVM(m_tempSPV);
+		}
+
 
 		// uniforms
 		m_copyUniforms(owner, item, px);

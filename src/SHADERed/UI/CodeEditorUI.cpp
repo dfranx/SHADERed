@@ -787,7 +787,7 @@ namespace ed {
 		m_stats.push_back(StatsPage(m_ui, m_data, "", false));
 		m_paths.push_back(filepath);
 		m_shaderStage.push_back(shaderStage);
-
+		m_pluginEditor.push_back(PluginShaderEditor());
 		
 		if (plugin != nullptr && plugin->ShaderEditor_Supports(langID))
 			m_editor.push_back(nullptr);

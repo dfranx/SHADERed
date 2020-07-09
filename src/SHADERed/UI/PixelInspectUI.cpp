@@ -63,7 +63,12 @@ namespace ed {
 
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 					codeUI->StopDebugging();
-					codeUI->Open(pixel.Pass, ShaderStage::Pixel);
+					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
+						codeUI->Open(pixel.Pass, ShaderStage::Pixel);
+					else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
+						plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+					}
 					editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
 
 					m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
@@ -86,15 +91,18 @@ namespace ed {
 				for (int i = 0; i < pixel.VertexCount; i++) {
 					if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex" + std::to_string(i) + "_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
 						&& m_data->Messages.CanRenderPreview()) {
-						pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
-
 						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						codeUI->StopDebugging();
-						codeUI->Open(pixel.Pass, ShaderStage::Vertex);
+						if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
+							codeUI->Open(pixel.Pass, ShaderStage::Vertex);
+						else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+							pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
+							plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+						}
 						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
 
 						m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
-						m_data->Debugger.SetVertexShaderInput(pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+						m_data->Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
 						
 						initIndex = i;
 						requestCompile = true;
@@ -103,7 +111,7 @@ namespace ed {
 					ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
 				}
 
-				/* [TODO:GEOMETRY SHADER]*/
+				/* [TODO:GEOMETRY SHADER] */
 
 
 				/* ACTUAL ACTION HERE */
@@ -116,6 +124,8 @@ namespace ed {
 				
 					// skip initialization
 					editor->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
+
+					m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStarted, pixel.Pass->Name, (void*)editor);
 
 					// reset function stack
 					((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
@@ -152,6 +162,8 @@ namespace ed {
 						if (act == TextEditor::DebugAction::Stop || !state) {
 							m_data->Debugger.SetDebugging(false);
 							ed->SetCurrentLineIndicator(-1);
+
+							m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStopped, nullptr, nullptr);
 						} else {
 							((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 							((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
@@ -160,6 +172,8 @@ namespace ed {
 							if (!m_data->Debugger.IsVMRunning())
 								curLine++;
 							ed->SetCurrentLineIndicator(curLine);
+
+							m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
 						}
 					};
 					editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
