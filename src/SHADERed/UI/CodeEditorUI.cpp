@@ -827,6 +827,16 @@ namespace ed {
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			m_loadEditorShortcuts(editor);
 
+			unsigned int spvSize = shader->Owner->PipelineItem_GetSPIRVSize(shader->Type, shader->PluginData, (plugin::ShaderStage)shaderStage);
+			if (spvSize > 0) {
+				unsigned int* spv = shader->Owner->PipelineItem_GetSPIRV(shader->Type, shader->PluginData, (plugin::ShaderStage)shaderStage);
+				std::vector<unsigned int> spvVec(spv, spv + spvSize);
+
+				SPIRVParser spvData;
+				spvData.Parse(spvVec);
+				FillAutocomplete(editor, spvData, false);
+			}
+
 			// apply breakpoints
 			m_applyBreakpoints(editor, filepath);
 

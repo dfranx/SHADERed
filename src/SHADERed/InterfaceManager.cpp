@@ -1,6 +1,7 @@
 #include <SHADERed/GUIManager.h>
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/Names.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -57,6 +58,9 @@ namespace ed {
 	void InterfaceManager::DebugClick(glm::vec2 r)
 	{
 		Debugger.ClearPixelList();
+
+		if (!m_canDebug())
+			return;
 
 		// info
 		const std::vector<ObjectManagerItem*>& objs = Objects.GetItemDataList();
@@ -336,5 +340,35 @@ namespace ed {
 	}
 	void InterfaceManager::Update(float delta)
 	{
+	}
+	bool InterfaceManager::m_canDebug()
+	{
+		bool ret = true;
+		
+		for (const auto& i : Pipeline.GetList()) {
+			if (i->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)i->Data;
+				int langID = -1;
+
+				IPlugin1* plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->VSPath, Plugins.Plugins());
+				ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
+
+				plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->PSPath, Plugins.Plugins());
+				ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
+
+				if (pass->GSUsed) {
+					plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->GSPath, Plugins.Plugins());
+					ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
+				}
+			} else if (i->Type == PipelineItem::ItemType::ComputePass) {
+				pipe::ComputePass* pass = (pipe::ComputePass*)i->Data;
+				int langID = -1;
+
+				IPlugin1* plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->Path, Plugins.Plugins());
+				ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
+			}
+		}
+
+		return ret;
 	}
 }

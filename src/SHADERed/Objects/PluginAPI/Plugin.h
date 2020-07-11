@@ -64,6 +64,7 @@ namespace ed {
 		typedef void (*GetMousePositionFn)(float& x, float& y);
 		typedef int (*GetFrameIndexFn)();
 		typedef float (*GetTimeFn)();
+		typedef void (*SetTimeFn)(float time);
 		typedef void (*SetGeometryTransformFn)(void* item, float scale[3], float rota[3], float pos[3]);
 		typedef void (*SetMousePositionFn)(float x, float y);
 		typedef void (*SetKeysWASDFn)(bool w, bool a, bool s, bool d);
@@ -127,6 +128,8 @@ namespace ed {
 		typedef bool (*DebuggerCheckBreakpointFn)(void* Debugger, void* TextEditor, int line);
 		typedef bool (*DebuggerIsDebuggingFn)(void* Debugger, void* TextEditor);
 		typedef int (*DebuggerGetCurrentLineFn)(void* Debugger);
+
+		typedef float (*ScaleSizeFn)(float size);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -359,6 +362,7 @@ namespace ed {
 		pluginfn::GetMousePositionFn GetMousePosition;
 		pluginfn::GetFrameIndexFn GetFrameIndex;
 		pluginfn::GetTimeFn GetTime;
+		pluginfn::SetTimeFn SetTime;
 		pluginfn::SetGeometryTransformFn SetGeometryTransform;
 		pluginfn::SetMousePositionFn SetMousePosition;
 		pluginfn::SetKeysWASDFn SetKeysWASD;
@@ -428,5 +432,6 @@ namespace ed {
 		pluginfn::IsRenderTextureFn IsRenderTexture;
 		pluginfn::GetRenderTextureSizeFn GetRenderTextureSize;
 		pluginfn::GetDepthTextureFn GetDepthTexture;
+		pluginfn::ScaleSizeFn ScaleSize;
 	};
 }

@@ -440,7 +440,7 @@ namespace ed {
 						extVec.push_back(hlslExtEntryStr);
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("REMOVE##optg_btnremext")) {
+				if (ImGui::Button(("REMOVE##optg_btnrem" + langName + "ext").c_str())) {
 					std::string extEntryStr(plExtEntry);
 					for (int i = 0; i < extVec.size(); i++)
 						if (extVec[i] == extEntryStr) {

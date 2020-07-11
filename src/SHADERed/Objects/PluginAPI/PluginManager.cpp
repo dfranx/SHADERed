@@ -323,6 +323,10 @@ namespace ed {
 				plugin->GetTime = []() -> float {
 					return SystemVariableManager::Instance().GetTime();
 				};
+				plugin->SetTime = [](float time) {
+					float curTime = SystemVariableManager::Instance().GetTime();
+					SystemVariableManager::Instance().AdvanceTimer(time - curTime);
+				};
 				plugin->SetGeometryTransform = [](void* item, float scale[3], float rota[3], float pos[3]) {
 					SystemVariableManager::Instance().SetGeometryTransform((PipelineItem*)item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
 				};
@@ -415,7 +419,7 @@ namespace ed {
 				};
 				plugin->GetOpenFileDialog = [](char* out, const char* files) -> bool {
 					std::string outpath;
-					bool ret = UIHelper::GetOpenFileDialog(outpath, files);
+					bool ret = UIHelper::GetOpenFileDialog(outpath, files ? files : std::string(""));
 
 					if (out != nullptr)
 						strcpy(out, outpath.c_str());
@@ -424,7 +428,7 @@ namespace ed {
 				};
 				plugin->GetSaveFileDialog = [](char* out, const char* files) -> bool {
 					std::string outpath;
-					bool ret = UIHelper::GetSaveFileDialog(outpath, files);
+					bool ret = UIHelper::GetSaveFileDialog(outpath, files ? files : std::string(""));
 
 					if (out != nullptr)
 						strcpy(out, outpath.c_str());
@@ -900,6 +904,9 @@ namespace ed {
 					ObjectManager* obj = (ObjectManager*)objects;
 					return obj->GetRenderTexture(name)->DepthStencilBuffer;
 				};
+				plugin->ScaleSize = [](float size) -> float {
+					return Settings::Instance().CalculateSize(size);
+				};
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);
@@ -935,6 +942,38 @@ namespace ed {
 						isIn = true;
 					else if (line.size()>0 && line[0] == '[')
 						isIn = false;
+				}
+
+				int customLangCount = plugin->CustomLanguage_GetCount();
+				for (int i = 0; i < customLangCount; i++) {
+					std::string langExt(plugin->CustomLanguage_GetDefaultExtension(i));
+					bool isUsedSomewhere = false;
+
+					for (const std::string& ext : Settings::Instance().General.HLSLExtensions) {
+						if (ext == langExt) {
+							isUsedSomewhere = true;
+							break;
+						}
+					}
+					for (const std::string& ext : Settings::Instance().General.VulkanGLSLExtensions) {
+						if (ext == langExt) {
+							isUsedSomewhere = true;
+							break;
+						}
+					}
+					for (const auto& pair : Settings::Instance().General.PluginShaderExtensions) {
+						for (const std::string& ext : pair.second) {
+							if (ext == langExt) {
+								isUsedSomewhere = true;
+								break;
+							}
+						}
+					}
+
+					if (!isUsedSomewhere) {
+						std::vector<std::string>& myExts = Settings::Instance().General.PluginShaderExtensions[plugin->CustomLanguage_GetName(i)];
+						if (myExts.size() == 0) myExts.push_back(langExt);
+					}
 				}
 			}
 		}

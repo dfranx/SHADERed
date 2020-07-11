@@ -455,10 +455,13 @@ namespace ed {
 						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
 						std::vector<std::string> allUniforms;
 						
+						bool deleteUnusedVariables = true;
 
 						if (pass->PSSPV.size() > 0) {
 							int langID = -1;
 							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->PSPath, m_data->Plugins.Plugins());
+
+							deleteUnusedVariables &= (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)));
 
 							spvParser.Parse(pass->PSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Pixel);
@@ -467,34 +470,64 @@ namespace ed {
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->VSSPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->VSPath, m_data->Plugins.Plugins());
+
+							deleteUnusedVariables &= (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)));
+
 							spvParser.Parse(pass->VSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Vertex);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms)
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 						if (pass->GSSPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->GSPath, m_data->Plugins.Plugins());
+
+							deleteUnusedVariables &= (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)));
+
 							spvParser.Parse(pass->GSSPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Geometry);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms)
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 
-						if (settings.General.AutoUniforms && settings.General.AutoUniformsDelete && pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed))
+						if (settings.General.AutoUniforms && deleteUnusedVariables && settings.General.AutoUniformsDelete && pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed))
 							m_deleteUnusedUniforms(pass->Variables, allUniforms);
 					} else if (spvItem->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass* pass = (pipe::ComputePass*)spvItem->Data;
 						std::vector<std::string> allUniforms;
 
 						if (pass->SPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->Path, m_data->Plugins.Plugins());
+
 							spvParser.Parse(pass->SPV);
 							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::Compute);
 							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
-							if (settings.General.AutoUniforms) {
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)))) {
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 								if (settings.General.AutoUniformsDelete)
 									m_deleteUnusedUniforms(pass->Variables, allUniforms);
+							}
+						}
+					} else if (spvItem->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* pass = (pipe::PluginItemData*)spvItem->Data;
+						std::vector<std::string> allUniforms;
+
+						for (int k = 0; k < (int)ShaderStage::Count; k++) {
+							TextEditor* tEdit = codeEditor->Get(spvItem, (ed::ShaderStage)k);
+							if (tEdit == nullptr) continue;
+
+							unsigned int spvSize = pass->Owner->PipelineItem_GetSPIRVSize(pass->Type, pass->PluginData, (plugin::ShaderStage)k);
+							if (spvSize > 0) {
+								unsigned int* spv = pass->Owner->PipelineItem_GetSPIRV(pass->Type, pass->PluginData, (plugin::ShaderStage)k);
+								std::vector<unsigned int> spvVec(spv, spv + spvSize);
+
+								spvParser.Parse(spvVec);
+								codeEditor->FillAutocomplete(tEdit, spvParser);
 							}
 						}
 					}
@@ -784,6 +817,8 @@ namespace ed {
 		ImGui::End();
 
 		if (!m_performanceMode && !m_minimalMode) {
+			m_data->Plugins.Update(delta);
+
 			for (auto& view : m_views)
 				if (view->Visible) {
 					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
@@ -800,7 +835,6 @@ namespace ed {
 			}
 
 			Get(ViewID::Code)->Update(delta);
-			m_data->Plugins.Update(delta);
 
 			// object preview
 			if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())

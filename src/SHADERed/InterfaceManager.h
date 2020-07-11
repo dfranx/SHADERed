@@ -34,5 +34,6 @@ namespace ed {
 		GUIManager* m_ui;
 
 		void m_fetchVertices(PixelInformation& pixel);
+		bool m_canDebug();
 	};
 }
