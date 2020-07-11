@@ -59,6 +59,7 @@ namespace ed {
 	}
 	void DebugInformation::m_copyUniforms(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
+		bool pluginUsesCustomTextures = false;
 		bool requiresVarCleanup = false;
 		std::vector<ed::ShaderVariable*> vars;
 		if (owner->Type == PipelineItem::ItemType::ShaderPass) {
@@ -67,8 +68,10 @@ namespace ed {
 		} else if (owner->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
-			plData->Owner->PipelineItem_DebugPrepareVariables(plData->Type, plData->PluginData, item->Name);
+			pluginUsesCustomTextures = plData->Owner->PipelineItem_DebugUsesCustomTextures(plData->Type, plData->PluginData);
 
+			plData->Owner->PipelineItem_DebugPrepareVariables(plData->Type, plData->PluginData, item->Name);
+			
 			int varCount = plData->Owner->PipelineItem_GetVariableCount(plData->Type, plData->PluginData);
 			vars.resize(varCount);
 
@@ -140,7 +143,7 @@ namespace ed {
 			pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 			
 			float scale[3], pos[3], rota[3];
-			plData->Owner->PipelineItem_GetTransform(plData->PluginData, pos, scale, rota);
+			plData->Owner->PipelineItem_GetTransform(plData->Type, plData->PluginData, pos, scale, rota);
 
 			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
 			SystemVariableManager::Instance().SetGeometryTransform(item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
@@ -377,7 +380,7 @@ namespace ed {
 							}
 						}
 
-						if (sampler2Dloc >= srvs.size()) {
+						if (sampler2Dloc >= srvs.size() && !pluginUsesCustomTextures) {
 							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
 
 							// get texture size
@@ -394,91 +397,145 @@ namespace ed {
 							m_images.push_back(img);
 
 							sampler2Dloc++;
-						} else {
+						} 
+						else {
 							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
 							
 							if (type_info->image_info == NULL)
 								type_info = &m_vm->results[type_info->pointer];
 							
-							// cubemaps
-							if (type_info->image_info->dim == SpvDimCube) {
-								std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
-								ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+							glm::ivec3 imgSize(1, 1, 1);
+							float* imgData = nullptr;
+							GLuint pluginCustomTexture = 0;
+							if (pluginUsesCustomTextures) {
+								// cubemaps
+								if (type_info->image_info->dim == SpvDimCube) {
+									pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
-								// get texture size
-								glm::ivec2 size(1, 1);
-								if (itemData != nullptr) {
-									if (itemData->RT != nullptr)
-										size = m_objs->GetRenderTextureSize(itemName);
-									else if (itemData->Image != nullptr)
-										size = itemData->Image->Size;
-									else if (itemData->Sound != nullptr)
-										size = glm::ivec2(512, 2);
-									else
-										size = itemData->ImageSize;
+									pluginCustomTexture = plData->Owner->PipelineItem_DebugGetTexture(plData->Type, plData->PluginData, sampler2Dloc, slot->name);
+									plData->Owner->PipelineItem_DebugGetTextureSize(plData->Type, plData->PluginData, sampler2Dloc, slot->name, imgSize.x, imgSize.y, imgSize.z);
+									imgSize.z = 6;
+
+									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * 6 * 4); // 6 faces
+
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_CUBE_MAP, pluginCustomTexture);
+									for (int i = 0; i < 6; i++)
+										glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, GL_FLOAT, imgData + imgSize.x * imgSize.y * 4 * i);
+									glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 								}
+								// 3d textures
+								else if (type_info->image_info->dim == SpvDim3D) {
+									pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
-								float* imgData = (float*)malloc(sizeof(float) * size.x * size.y * 6 * 4); // 6 faces
+									pluginCustomTexture = plData->Owner->PipelineItem_DebugGetTexture(plData->Type, plData->PluginData, sampler2Dloc, slot->name);
+									plData->Owner->PipelineItem_DebugGetTextureSize(plData->Type, plData->PluginData, sampler2Dloc, slot->name, imgSize.x, imgSize.y, imgSize.z);
+									
+									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * imgSize.z * 4);
 
-								// get the data from the GPU
-								glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[sampler2Dloc]);
-								for (int i = 0; i < 6; i++)
-									glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, GL_FLOAT, imgData + size.x * size.y * 4 * i);
-								glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_3D, pluginCustomTexture);
+									glGetTexImage(GL_TEXTURE_3D, 0, GL_RGBA, GL_FLOAT, imgData);
+									glBindTexture(GL_TEXTURE_3D, 0);
+								}
+								// 2d textures
+								else {
+									pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
-								// set and cache
-								spvm_image_create(img, imgData, size.x, size.y, 6);
+									pluginCustomTexture = plData->Owner->PipelineItem_DebugGetTexture(plData->Type, plData->PluginData, sampler2Dloc, slot->name);
+									plData->Owner->PipelineItem_DebugGetTextureSize(plData->Type, plData->PluginData, sampler2Dloc, slot->name, imgSize.x, imgSize.y, imgSize.z);
+									imgSize.z = 1;
+
+									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * 4);
+
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_2D, pluginCustomTexture);
+									glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, imgData);
+									glBindTexture(GL_TEXTURE_2D, 0);
+								}
+							} else {
+								// cubemaps
+								if (type_info->image_info->dim == SpvDimCube) {
+									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+
+									// get texture size
+									glm::ivec2 size(1, 1);
+									if (itemData != nullptr) {
+										if (itemData->RT != nullptr)
+											size = m_objs->GetRenderTextureSize(itemName);
+										else if (itemData->Image != nullptr)
+											size = itemData->Image->Size;
+										else if (itemData->Sound != nullptr)
+											size = glm::ivec2(512, 2);
+										else
+											size = itemData->ImageSize;
+									}
+									imgSize.x = size.x;
+									imgSize.y = size.y;
+									imgSize.z = 6;
+
+									imgData = (float*)malloc(sizeof(float) * size.x * size.y * 6 * 4); // 6 faces
+
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[sampler2Dloc]);
+									for (int i = 0; i < 6; i++)
+										glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, GL_FLOAT, imgData + size.x * size.y * 4 * i);
+									glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+								}
+								// 3d textures
+								else if (type_info->image_info->dim == SpvDim3D) {
+									// get texture size
+									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+									
+									if (itemData != nullptr && itemData->Image3D != nullptr)
+										imgSize = itemData->Image3D->Size;
+
+									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * imgSize.z * 4);
+
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_3D, srvs[sampler2Dloc]);
+									glGetTexImage(GL_TEXTURE_3D, 0, GL_RGBA, GL_FLOAT, imgData);
+									glBindTexture(GL_TEXTURE_3D, 0);
+								}
+								// 2d textures
+								else {
+									// get texture size
+									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+									glm::ivec2 size(1, 1);
+									if (itemData != nullptr) {
+										if (itemData->RT != nullptr)
+											size = m_objs->GetRenderTextureSize(itemName);
+										else if (itemData->Image != nullptr)
+											size = itemData->Image->Size;
+										else if (itemData->Sound != nullptr)
+											size = glm::ivec2(512, 2);
+										else
+											size = itemData->ImageSize;
+									}
+									imgSize.x = size.x;
+									imgSize.y = size.y;
+
+									imgData = (float*)malloc(sizeof(float) * size.x * size.y * 4);
+
+									// get the data from the GPU
+									glBindTexture(GL_TEXTURE_2D, srvs[sampler2Dloc]);
+									glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, imgData);
+									glBindTexture(GL_TEXTURE_2D, 0);
+								}
+							}
+
+							if (imgData != nullptr) {
+								spvm_image_create(img, imgData, imgSize.x, imgSize.y, imgSize.z);
 								free(imgData);
 							}
-							// 3d textures
-							else if (type_info->image_info->dim == SpvDim3D) {
-								// get texture size
-								std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
-								ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
-								glm::ivec3 size(1, 1, 1);
-								if (itemData != nullptr && itemData->Image3D != nullptr) {
-									size = itemData->Image3D->Size;
-								}
 
-								float* imgData = (float*)malloc(sizeof(float) * size.x * size.y * size.z * 4);
-
-								// get the data from the GPU
-								glBindTexture(GL_TEXTURE_3D, srvs[sampler2Dloc]);
-								glGetTexImage(GL_TEXTURE_3D, 0, GL_RGBA, GL_FLOAT, imgData);
-								glBindTexture(GL_TEXTURE_3D, 0);
-
-								spvm_image_create(img, imgData, size.x, size.y, size.z);
-								free(imgData);
-							}
-							// 2d textures
-							else {
-								// get texture size
-								std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
-								ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
-								glm::ivec2 size(1, 1);
-								if (itemData != nullptr) {
-									if (itemData->RT != nullptr)
-										size = m_objs->GetRenderTextureSize(itemName);
-									else if (itemData->Image != nullptr)
-										size = itemData->Image->Size;
-									else if (itemData->Sound != nullptr)
-										size = glm::ivec2(512, 2);
-									else
-										size = itemData->ImageSize;
-								}
-
-								float* imgData = (float*)malloc(sizeof(float) * size.x * size.y * 4);
-
-								// get the data from the GPU
-								glBindTexture(GL_TEXTURE_2D, srvs[sampler2Dloc]);
-								glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, imgData);
-								glBindTexture(GL_TEXTURE_2D, 0);
-
-								spvm_image_create(img, imgData, size.x, size.y, 1);
-								free(imgData);
-							}
-
-							img->user_data = (void*)srvs[sampler2Dloc];
+							if (pluginUsesCustomTextures)
+								img->user_data = (void*)pluginCustomTexture;
+							else
+								img->user_data = (void*)srvs[sampler2Dloc];
 
 							slot->members[0].image_data = img;
 							m_images.push_back(img);
@@ -755,9 +812,9 @@ namespace ed {
 						}
 					} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* plData = (pipe::PluginItemData*)pass->Data;
-						if (location < plData->Owner->PipelineItem_GetInputLayoutSize(pass->Name)) {
+						if (location < plData->Owner->PipelineItem_GetInputLayoutSize(plData->Type, plData->PluginData)) {
 							plugin::InputLayoutItem inputItem;
-							plData->Owner->PipelineItem_GetInputLayoutItem(pass->Name, location, inputItem);
+							plData->Owner->PipelineItem_GetInputLayoutItem(plData->Type, plData->PluginData, location, inputItem);
 
 							inputType = (InputLayoutValue)inputItem.Value;
 						}
@@ -867,7 +924,7 @@ namespace ed {
 	{
 		m_resetVM();
 		if (owner->Type == PipelineItem::ItemType::ShaderPass)
-			m_setupVM(((pipe::ShaderPass*)owner->Data)->VSSPV);
+			m_setupVM(((pipe::ShaderPass*)owner->Data)->PSSPV);
 		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
@@ -880,11 +937,10 @@ namespace ed {
 			m_setupVM(m_tempSPV);
 		}
 
-
 		// uniforms
 		m_copyUniforms(owner, item, px);
 
-		// copy uniforms values
+		// dfdx/y
 		if (m_vm->derivative_used) {
 			for (spvm_word i = 0; i < m_vm->owner->bound; i++) {
 				spvm_result_t slot = &m_vm->results[i];

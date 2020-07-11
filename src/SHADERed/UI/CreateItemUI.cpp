@@ -785,8 +785,10 @@ namespace ed {
 				PipelineItem* ownerItem = m_data->Pipeline.Get(m_owner);
 				if (ownerItem->Type == PipelineItem::ItemType::ShaderPass)
 					inpLayout = ((pipe::ShaderPass*)(ownerItem->Data))->InputLayout;
-				else if (ownerItem->Type == PipelineItem::ItemType::PluginItem)
-					inpLayout = m_data->Plugins.BuildInputLayout(((pipe::PluginItemData*)ownerItem->Data)->Owner, m_owner);
+				else if (ownerItem->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* pdata = ((pipe::PluginItemData*)ownerItem->Data);
+					inpLayout = m_data->Plugins.BuildInputLayout(pdata->Owner, pdata->Type, pdata->PluginData);
+				}
 
 				data->Position = glm::vec3(0, 0, 0);
 				data->Rotation = glm::vec3(0, 0, 0);

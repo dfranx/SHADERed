@@ -55,8 +55,18 @@ namespace ed {
 				bool requestCompile = false;
 				int initIndex = 0;
 
+				bool vertexShaderEnabled = true, pixelShaderEnabled = true;
+				if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
+					vertexShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Vertex);
+					pixelShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Pixel);
+				}
 
 				/* [PIXEL] */
+				if (!pixelShaderEnabled) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
 				if (ImGui::Button(((UI_ICON_PLAY "##debug_pixel_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
 					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
@@ -70,6 +80,10 @@ namespace ed {
 						plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
 					}
 					editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
+
+					// for plugins that store vertex and pixel shader in the same file
+					if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
+						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
 
 					m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
 					m_data->Debugger.SetPixelShaderInput(pixel);
@@ -85,9 +99,17 @@ namespace ed {
 					ImGui::PopItemFlag();
 					ImGui::PopItemWidth();
 				}
+				if (!pixelShaderEnabled) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
 
 
 				/* [VERTEX] */
+				if (!vertexShaderEnabled) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
 				for (int i = 0; i < pixel.VertexCount; i++) {
 					if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex" + std::to_string(i) + "_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
 						&& m_data->Messages.CanRenderPreview()) {
@@ -110,12 +132,17 @@ namespace ed {
 					ImGui::SameLine();
 					ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
 				}
+				if (!vertexShaderEnabled) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
+
 
 				/* [TODO:GEOMETRY SHADER] */
 
 
 				/* ACTUAL ACTION HERE */
-				if (requestCompile) {
+				if (requestCompile && editor != nullptr) {
 					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 
 					m_data->Debugger.SetCurrentFile(editor->GetPath());
@@ -230,7 +257,7 @@ namespace ed {
 								isTex = true;
 								ImGui::Text("texture");
 
-								if (resType && resType->image_info->dim == SpvDimCube)
+								if (resType && resType->image_info && resType->image_info->dim == SpvDimCube)
 									isCube = true;
 							}
 

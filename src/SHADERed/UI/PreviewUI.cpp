@@ -425,7 +425,7 @@ namespace ed {
 						orot = &obj->Rotation;
 					} else if (m_picks[i]->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* obj = (pipe::PluginItemData*)m_picks[i]->Data;
-						obj->Owner->PipelineItem_ApplyGizmoTransform(obj->PluginData, glm::value_ptr(t), glm::value_ptr(s), glm::value_ptr(r));
+						obj->Owner->PipelineItem_ApplyGizmoTransform(obj->Type, obj->PluginData, glm::value_ptr(t), glm::value_ptr(s), glm::value_ptr(r));
 					}
 
 					if (ot != nullptr)
@@ -482,7 +482,7 @@ namespace ed {
 					pipe::PluginItemData* obj = (pipe::PluginItemData*)m_picks[0]->Data;
 					
 					float objPositionPtr[3], objRotationPtr[3], objScalePtr[3];
-					obj->Owner->PipelineItem_GetTransform(obj->PluginData, objPositionPtr, objRotationPtr, objScalePtr);
+					obj->Owner->PipelineItem_GetTransform(obj->Type, obj->PluginData, objPositionPtr, objRotationPtr, objScalePtr);
 
 					glm::vec3 objPosition = glm::make_vec3(objPositionPtr),
 							  objRotation = glm::make_vec3(objRotationPtr),
@@ -989,7 +989,7 @@ namespace ed {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 				float minPos[3], maxPos[3];
-				pldata->Owner->PipelineItem_GetBoundingBox(pldata->PluginData, minPos, maxPos);
+				pldata->Owner->PipelineItem_GetBoundingBox(pldata->Type, pldata->PluginData, minPos, maxPos);
 
 				minPosItem = glm::make_vec3(minPos);
 				maxPosItem = glm::make_vec3(maxPos);

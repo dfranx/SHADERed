@@ -413,10 +413,10 @@ namespace ed {
 					} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-						if (m_pickAwaiting && pldata->Owner->PipelineItem_IsPickable(pldata->Type))
+						if (m_pickAwaiting && pldata->Owner->PipelineItem_IsPickable(pldata->Type, pldata->PluginData))
 							m_pickItem(item, m_wasMultiPick);
 
-						if (pldata->Owner->PipelineItem_IsPickable(pldata->Type))
+						if (pldata->Owner->PipelineItem_IsPickable(pldata->Type, pldata->PluginData))
 							systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 						else
 							systemVM.SetPicked(false);
@@ -539,7 +539,7 @@ namespace ed {
 
 				if (!isDebug)
 					pldata->Owner->PipelineItem_Execute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size());
-				else if (pldata->Owner->PipelineItem_IsDebuggable(pldata->Type))
+				else if (pldata->Owner->PipelineItem_IsDebuggable(pldata->Type, pldata->PluginData))
 					pldata->Owner->PipelineItem_DebugExecute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size(), &debugID);
 			}
 
@@ -715,7 +715,7 @@ namespace ed {
 				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-					if (plData->Owner->PipelineItem_IsPickable(plData->Type))
+					if (plData->Owner->PipelineItem_IsPickable(plData->Type, plData->PluginData))
 						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 					else
 						systemVM.SetPicked(false);
@@ -789,7 +789,10 @@ namespace ed {
 		}
 		else if (vertexData->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)vertexData->Data;
-			return plData->Owner->PipelineItem_DebugVertexExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
+			plData->Owner->BeginRender();
+			int ret = plData->Owner->PipelineItem_DebugVertexExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
+			plData->Owner->EndRender();
+			return ret;
 		}
 		
 		return 0;
@@ -956,14 +959,14 @@ namespace ed {
 					glCullFace(state->CullFaceType);
 					glFrontFace(state->FrontFace);
 				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
-					pipe::PluginItemData* geoData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
+					pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-					if (geoData->Owner->PipelineItem_IsPickable(geoData->Type))
+					if (plData->Owner->PipelineItem_IsPickable(plData->Type, plData->PluginData))
 						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
 					else
 						systemVM.SetPicked(false);
 
-					geoData->Owner->PipelineItem_DebugInstanceExecute(vertexPass, plugin::PipelineItemType::ShaderPass, geoData->Type, geoData->PluginData, sedVarLoc);
+					plData->Owner->PipelineItem_DebugInstanceExecute(vertexPass, plugin::PipelineItemType::ShaderPass, plData->Type, plData->PluginData, sedVarLoc);
 				}
 
 				// set the old value back
@@ -984,7 +987,10 @@ namespace ed {
 		}
 		else if (vertexData->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)vertexData->Data;
-			return plData->Owner->PipelineItem_DebugInstanceExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
+			plData->Owner->BeginRender();
+			int ret = plData->Owner->PipelineItem_DebugInstanceExecute(plData->Type, plData->PluginData, vertexItem->Name, r.x, r.y, group);
+			plData->Owner->EndRender();
+			return ret;
 		}
 
 		return 0;
@@ -1513,7 +1519,7 @@ namespace ed {
 			pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
 			float plMat[16];
-			pldata->Owner->PipelineItem_GetWorldMatrix(pldata->PluginData, plMat);
+			pldata->Owner->PipelineItem_GetWorldMatrix(pldata->Type, pldata->PluginData, plMat);
 			world = glm::make_mat4(plMat);
 		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* obj = (pipe::VertexBuffer*)item->Data;
@@ -1678,7 +1684,7 @@ namespace ed {
 			} else if (it->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* data = (pipe::PluginItemData*)it->Data;
 				PipelineItem* item = nullptr;
-				if (data->Owner->PipelineItem_IsDebuggable(data->Type))
+				if (data->Owner->PipelineItem_IsDebuggable(data->Type, data->PluginData))
 					for (int j = 0; j < data->Items.size(); j++) {
 						if (debugID == id)
 							return std::make_pair(it, data->Items[j]);

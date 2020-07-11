@@ -42,7 +42,7 @@ namespace ed {
 		bool ShowSystemVariables(PluginSystemVariableData* data, ShaderVariable::ValueType type);
 		bool ShowVariableFunctions(PluginFunctionData* data, ShaderVariable::ValueType type);
 
-		std::vector<InputLayoutItem> BuildInputLayout(IPlugin1* plugin, const char* itemName);
+		std::vector<InputLayoutItem> BuildInputLayout(IPlugin1* plugin, const char* type, void* pldata);
 
 		void OnEvent(const SDL_Event& e);
 

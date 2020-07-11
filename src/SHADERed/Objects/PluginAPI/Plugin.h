@@ -81,6 +81,10 @@ namespace ed {
 		typedef unsigned int (*GetFlippedTextureFn)(void* objects, const char* name);
 		typedef void (*GetTextureSizeFn)(void* objects, const char* name, int& w, int& h);
 
+		typedef bool (*IsRenderTextureFn)(void* objects, const char* name);
+		typedef void (*GetRenderTextureSizeFn)(void* objects, const char* name, int& w, int& h);
+		typedef unsigned int (*GetDepthTextureFn)(void* objects, const char* name);
+
 		typedef void (*BindDefaultStateFn)();
 		typedef void (*OpenInCodeEditorFn)(void* UI, void* item, const char* filename, int id);
 
@@ -193,40 +197,41 @@ namespace ed {
 		virtual void Object_ShowContext(const char* type, void* data) = 0;
 
 		// pipeline item stuff
-		virtual bool PipelineItem_HasProperties(const char* type) = 0;
+		virtual bool PipelineItem_HasProperties(const char* type, void* data) = 0;
 		virtual void PipelineItem_ShowProperties(const char* type, void* data) = 0;
-		virtual bool PipelineItem_IsPickable(const char* type) = 0;
-		virtual bool PipelineItem_HasShaders(const char* type) = 0; // so that they can be opened in the shader editor
+		virtual bool PipelineItem_IsPickable(const char* type, void* data) = 0;
+		virtual bool PipelineItem_HasShaders(const char* type, void* data) = 0; // so that they can be opened in the shader editor
 		virtual void PipelineItem_OpenInEditor(const char* type, void* data) = 0;
-		virtual bool PipelineItem_CanHaveChild(const char* type, plugin::PipelineItemType itemType) = 0;
-		virtual int PipelineItem_GetInputLayoutSize(const char* itemName) = 0; // this must be supported if this item can have geometry as child..
-		virtual void PipelineItem_GetInputLayoutItem(const char* itemName, int index, plugin::InputLayoutItem& out) = 0;
+		virtual bool PipelineItem_CanHaveChild(const char* type, void* data, plugin::PipelineItemType itemType) = 0;
+		virtual int PipelineItem_GetInputLayoutSize(const char* type, void* data) = 0; // this must be supported if this item can have geometry as child..
+		virtual void PipelineItem_GetInputLayoutItem(const char* type, void* data, int index, plugin::InputLayoutItem& out) = 0;
 		virtual void PipelineItem_Remove(const char* itemName, const char* type, void* data) = 0;
 		virtual void PipelineItem_Rename(const char* oldName, const char* newName) = 0;
 		virtual void PipelineItem_AddChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
-		virtual bool PipelineItem_CanHaveChildren(const char* type) = 0;
+		virtual bool PipelineItem_CanHaveChildren(const char* type, void* data) = 0;
 		virtual void* PipelineItem_CopyData(const char* type, void* data) = 0;
 		virtual void PipelineItem_Execute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void PipelineItem_Execute(const char* type, void* data, void* children, int count) = 0;
-		virtual void PipelineItem_GetWorldMatrix(void* data, float (&pMat)[16]) = 0; //must be implemented if item is pickable
+		virtual void PipelineItem_GetWorldMatrix(const char* type, void* data, float (&pMat)[16]) = 0; //must be implemented if item is pickable
 		virtual bool PipelineItem_Intersect(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
-		virtual void PipelineItem_GetBoundingBox(void* data, float (&minPos)[3], float (&maxPos)[3]) = 0;
-		virtual bool PipelineItem_HasContext(const char* type) = 0;
+		virtual void PipelineItem_GetBoundingBox(const char* type, void* data, float (&minPos)[3], float (&maxPos)[3]) = 0;
+		virtual bool PipelineItem_HasContext(const char* type, void* data) = 0;
 		virtual void PipelineItem_ShowContext(const char* type, void* data) = 0;
 		virtual const char* PipelineItem_Export(const char* type, void* data) = 0;
 		virtual void* PipelineItem_Import(const char* ownerName, const char* name, const char* type, const char* argsString) = 0;
 		virtual void PipelineItem_MoveDown(void* ownerData, const char* ownerType, const char* itemName) = 0;
 		virtual void PipelineItem_MoveUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
-		virtual void PipelineItem_ApplyGizmoTransform(void* data, float* transl, float* scale, float* rota) = 0;
-		virtual void PipelineItem_GetTransform(void* data, float* transl, float* scale, float* rota) = 0;
+		virtual void PipelineItem_ApplyGizmoTransform(const char* type, void* data, float* transl, float* scale, float* rota) = 0;
+		virtual void PipelineItem_GetTransform(const char* type, void* data, float* transl, float* scale, float* rota) = 0;
 		virtual void PipelineItem_DebugVertexExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
 		virtual int PipelineItem_DebugVertexExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
 		virtual void PipelineItem_DebugInstanceExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
 		virtual int PipelineItem_DebugInstanceExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
-		virtual unsigned int PipelineItem_GetVBO(void* data) = 0;
-		virtual unsigned int PipelineItem_GetVBOStride(void* data) = 0;
-		virtual bool PipelineItem_CanChangeVariables(void* data) = 0;
-		virtual bool PipelineItem_IsDebuggable(const char* type) = 0;
+		virtual unsigned int PipelineItem_GetVBO(const char* type, void* data) = 0;
+		virtual unsigned int PipelineItem_GetVBOStride(const char* type, void* data) = 0;
+		virtual bool PipelineItem_CanChangeVariables(const char* type, void* data) = 0;
+		virtual bool PipelineItem_IsDebuggable(const char* type, void* data) = 0;
+		virtual bool PipelineItem_IsStageDebuggable(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
 		virtual void PipelineItem_DebugExecute(const char* type, void* data, void* children, int count, int* debugID) = 0;
 		virtual unsigned int PipelineItem_GetTopology(const char* type, void* data) = 0;
 		virtual unsigned int PipelineItem_GetVariableCount(const char* type, void* data) = 0;
@@ -238,6 +243,9 @@ namespace ed {
 		virtual unsigned int PipelineItem_GetSPIRVSize(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
 		virtual unsigned int* PipelineItem_GetSPIRV(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
 		virtual void PipelineItem_DebugPrepareVariables(const char* type, void* data, const char* name) = 0;
+		virtual bool PipelineItem_DebugUsesCustomTextures(const char* type, void* data) = 0;
+		virtual unsigned int PipelineItem_DebugGetTexture(const char* type, void* data, int loc, const char* variableName) = 0;
+		virtual void PipelineItem_DebugGetTextureSize(const char* type, void* data, int loc, const char* variableName, int& x, int& y, int& z) = 0;
 
 		// options
 		virtual bool Options_HasSection() = 0;
@@ -253,6 +261,8 @@ namespace ed {
 		virtual const unsigned int* CustomLanguage_CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
 		virtual const char* CustomLanguage_ProcessGeneratedGLSL(int langID, const char* src) = 0;
 		virtual bool CustomLanguage_SupportsAutoUniforms(int langID) = 0;
+		virtual bool CustomLanguage_IsDebuggable(int langID) = 0;
+		virtual const char* CustomLanguage_GetDefaultExtension(int langID) = 0;
 
 		// language text editor
 		virtual bool ShaderEditor_Supports(int langID) = 0;
@@ -415,5 +425,8 @@ namespace ed {
 		pluginfn::DebuggerCheckBreakpointFn DebuggerCheckBreakpoint;
 		pluginfn::DebuggerIsDebuggingFn DebuggerIsDebugging;
 		pluginfn::DebuggerGetCurrentLineFn DebuggerGetCurrentLine;
+		pluginfn::IsRenderTextureFn IsRenderTexture;
+		pluginfn::GetRenderTextureSizeFn GetRenderTextureSize;
+		pluginfn::GetDepthTextureFn GetDepthTexture;
 	};
 }

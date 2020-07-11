@@ -97,9 +97,11 @@ namespace ed {
 			if (!pluginNode.attribute("required").empty())
 				required = pluginNode.attribute("required").as_bool();
 
-			m_pluginList.push_back(pname);
-
 			IPlugin1* plugin = m_plugins->GetPlugin(pname);
+			
+			if (plugin)
+				m_pluginList.push_back(pname);
+
 			if (plugin == nullptr && required) {
 				pluginTest = false;
 
@@ -124,33 +126,35 @@ namespace ed {
 
 				pluginTest = false;
 			} else {
-				int instPVer = m_plugins->GetPluginVersion(pname);
-				if (instPVer < pver && !plugin->IsVersionCompatible(instPVer)) {
-					pluginTest = false;
+				if (plugin) {
+					int instPVer = m_plugins->GetPluginVersion(pname);
+					if (instPVer < pver && !plugin->IsVersionCompatible(instPVer)) {
+						pluginTest = false;
 
-					std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + " while you have version " + std::to_string(instPVer) + " installed.\n";
+						std::string msg = "The project you are trying to open requires plugin " + pname + " version " + std::to_string(pver) + " while you have version " + std::to_string(instPVer) + " installed.\n";
 
-					const SDL_MessageBoxButtonData buttons[] = {
-						{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
-						{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
-					};
-					const SDL_MessageBoxData messageboxdata = {
-						SDL_MESSAGEBOX_INFORMATION, /* .flags */
-						m_ui->GetSDLWindow(),		/* .window */
-						"SHADERed",					/* .title */
-						msg.c_str(),				/* .message */
-						SDL_arraysize(buttons),		/* .numbuttons */
-						buttons,					/* .buttons */
-						NULL						/* .colorScheme */
-					};
-					int buttonid;
-					if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) { }
+						const SDL_MessageBoxButtonData buttons[] = {
+							{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
+							{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+						};
+						const SDL_MessageBoxData messageboxdata = {
+							SDL_MESSAGEBOX_INFORMATION, /* .flags */
+							m_ui->GetSDLWindow(),		/* .window */
+							"SHADERed",					/* .title */
+							msg.c_str(),				/* .message */
+							SDL_arraysize(buttons),		/* .numbuttons */
+							buttons,					/* .buttons */
+							NULL						/* .colorScheme */
+						};
+						int buttonid;
+						if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {}
 
-					if (buttonid == 0) {
-						// TODO: redirect to .../plugin?name=pname
+						if (buttonid == 0) {
+							// TODO: redirect to .../plugin?name=pname
+						}
+
+						break;
 					}
-
-					break;
 				}
 			}
 		}
@@ -1524,17 +1528,21 @@ namespace ed {
 					}
 				}
 			} else if (strcmp(itemNode.attribute("type").as_string(), "plugin") == 0) {
+				IPlugin1* plugin = m_plugins->GetPlugin(itemNode.attribute("plugin").as_string());
+
 				itemType = PipelineItem::ItemType::PluginItem;
 				itemData = new pipe::PluginItemData;
-				pipe::PluginItemData* tData = (pipe::PluginItemData*)itemData;
 
-				IPlugin1* plugin = m_plugins->GetPlugin(itemNode.attribute("plugin").as_string());
-				std::string otype(itemNode.attribute("itemtype").as_string());
+				if (plugin) {
+					pipe::PluginItemData* tData = (pipe::PluginItemData*)itemData;
 
-				tData->Items.clear();
-				tData->Owner = plugin;
-				strcpy(tData->Type, otype.c_str());
-				tData->PluginData = plugin->PipelineItem_Import(name, itemName, otype.c_str(), getInnerXML(itemNode.child("data")).c_str());
+					std::string otype(itemNode.attribute("itemtype").as_string());
+
+					tData->Items.clear();
+					tData->Owner = plugin;
+					strcpy(tData->Type, otype.c_str());
+					tData->PluginData = plugin->PipelineItem_Import(name, itemName, otype.c_str(), getInnerXML(itemNode.child("data")).c_str());
+				}
 			}
 
 			// create and modify if needed
@@ -2612,7 +2620,7 @@ namespace ed {
 				// add the item
 				m_pipe->AddPluginItem(nullptr, name, otype.c_str(), pluginData, plugin);
 
-				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, name), geoUBOs, modelUBOs, vbUBOs);
+				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, otype.c_str(), pluginData), geoUBOs, modelUBOs, vbUBOs);
 			}
 		}
 

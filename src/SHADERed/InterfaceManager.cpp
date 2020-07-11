@@ -151,12 +151,14 @@ namespace ed {
 			}
 
 			int rtIndex = 0;
-			pipe::ShaderPass* pass = (pipe::ShaderPass*)k.second.first->Data;
-			for (int i = 0; i < pass->RTCount; i++)
-				if (pass->RenderTextures[i] == k.first) {
-					rtIndex = i;
-					break;
-				}
+			if (k.second.first->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)k.second.first->Data;
+				for (int i = 0; i < pass->RTCount; i++)
+					if (pass->RenderTextures[i] == k.first) {
+						rtIndex = i;
+						break;
+					}
+			}
 
 			PixelInformation pxInfo;
 			pxInfo.Color = pixelColors[k.first];
@@ -237,7 +239,8 @@ namespace ed {
 				copyFloatData(pixel.Vertex[2], &bufData[36]);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		} else if (pixel.Object->Type == PipelineItem::ItemType::Model) {
+		} 
+		else if (pixel.Object->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* mdl = ((pipe::Model*)pixel.Object->Data);
 
 			int curOffset = 0;
@@ -251,7 +254,8 @@ namespace ed {
 				pixel.Vertex[1] = mesh.Vertices[mesh.Indices[pixel.VertexID + 1]];
 				pixel.Vertex[2] = mesh.Vertices[mesh.Indices[pixel.VertexID + 2]];
 			}
-		} else if (pixel.Object->Type == PipelineItem::ItemType::VertexBuffer) {
+		} 
+		else if (pixel.Object->Type == PipelineItem::ItemType::VertexBuffer) {
 			pipe::VertexBuffer* vBuffer = ((pipe::VertexBuffer*)pixel.Object->Data);
 			ed::BufferObject* bufData = (ed::BufferObject*)vBuffer->Buffer;
 
@@ -285,21 +289,44 @@ namespace ed {
 			}
 
 			free(bufPtr);
-		} else if (pixel.Object->Type == PipelineItem::ItemType::PluginItem) {
+		} 
+		else if (pixel.Object->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* pdata = (pipe::PluginItemData*)pixel.Object->Data;
 			
-			GLuint vbo = pdata->Owner->PipelineItem_GetVBO(pdata->PluginData);
-			GLuint vboStride = pdata->Owner->PipelineItem_GetVBOStride(pdata->PluginData);
-
-			GLfloat bufData[3 * 18] = { 0.0f };
-
+			GLuint vbo = pdata->Owner->PipelineItem_GetVBO(pdata->Type, pdata->PluginData);
+			GLuint vboStride = pdata->Owner->PipelineItem_GetVBOStride(pdata->Type, pdata->PluginData);
+			int inpLayoutSize = pdata->Owner->PipelineItem_GetInputLayoutSize(pdata->Type, pdata->PluginData);
+			
 			// TODO: don't bother GPU so much
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			for (int i = 0; i < pixel.VertexCount; i++)
-				glGetBufferSubData(GL_ARRAY_BUFFER, (pixel.VertexID + i) * vboStride * sizeof(float), vboStride * sizeof(float), &bufData[i*18]);
-			copyFloatData(pixel.Vertex[0], &bufData[0]);
-			copyFloatData(pixel.Vertex[1], &bufData[18]);
-			copyFloatData(pixel.Vertex[2], &bufData[36]);
+			for (int i = 0; i < pixel.VertexCount; i++) {
+				GLfloat bufData[18] = { 0.0f };
+				glGetBufferSubData(GL_ARRAY_BUFFER, (pixel.VertexID + i) * vboStride * sizeof(float), vboStride * sizeof(float), &bufData[0]);
+
+				int bufIndex = 0;
+				for (int j = 0; j < inpLayoutSize; j++) {
+					plugin::InputLayoutItem layItem;
+					pdata->Owner->PipelineItem_GetInputLayoutItem(pdata->Type, pdata->PluginData, j, layItem);
+					int valSize = InputLayoutItem::GetValueSize((InputLayoutValue)layItem.Value);
+
+					for (int k = 0; k < valSize; k++) {
+						if (layItem.Value == plugin::InputLayoutValue::Position)
+							pixel.Vertex[i].Position[k] = bufData[bufIndex + k];
+						else if (layItem.Value == plugin::InputLayoutValue::Texcoord)
+							pixel.Vertex[i].TexCoords[k] = bufData[bufIndex + k];
+						else if (layItem.Value == plugin::InputLayoutValue::Color)
+							pixel.Vertex[i].Color[k] = bufData[bufIndex + k];
+						else if (layItem.Value == plugin::InputLayoutValue::Binormal)
+							pixel.Vertex[i].Binormal[k] = bufData[bufIndex + k];
+						else if (layItem.Value == plugin::InputLayoutValue::Normal)
+							pixel.Vertex[i].Normal[k] = bufData[bufIndex + k];
+						else if (layItem.Value == plugin::InputLayoutValue::Tangent)
+							pixel.Vertex[i].Tangent[k] = bufData[bufIndex + k];
+					}
+
+					bufIndex += valSize;
+				}
+			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		} 
 	}

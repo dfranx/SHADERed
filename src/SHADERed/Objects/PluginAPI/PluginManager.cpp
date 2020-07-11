@@ -876,6 +876,30 @@ namespace ed {
 				plugin->DebuggerGetCurrentLine = [](void* Debugger) -> int {
 					return ((ed::DebugInformation*)Debugger)->GetCurrentLine();
 				};
+				plugin->IsRenderTexture = [](void* objects, const char* name) -> bool {
+					ObjectManager* obj = (ObjectManager*)objects;
+					const auto& itemList = obj->GetItemDataList();
+					const auto& itemNames = obj->GetObjects();
+					int nameIndex = 0;
+
+					for (const auto& item : itemList) {
+						if (itemNames[nameIndex] == name)
+							return item->RT != nullptr;
+						nameIndex++;
+					}
+
+					return false;
+				};
+				plugin->GetRenderTextureSize = [](void* objects, const char* name, int& w, int& h) {
+					ObjectManager* obj = (ObjectManager*)objects;
+					glm::ivec2 tsize = obj->GetRenderTextureSize(name);
+					w = tsize.x;
+					h = tsize.y;
+				};
+				plugin->GetDepthTexture = [](void* objects, const char* name) -> unsigned int {
+					ObjectManager* obj = (ObjectManager*)objects;
+					return obj->GetRenderTexture(name)->DepthStencilBuffer;
+				};
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);
@@ -987,13 +1011,13 @@ namespace ed {
 			m_plugins[i]->EndRender();
 	}
 
-	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin1* plugin, const char* itemName)
+	std::vector<InputLayoutItem> PluginManager::BuildInputLayout(IPlugin1* plugin, const char* type, void* pldata)
 	{
-		int size = plugin->PipelineItem_GetInputLayoutSize(itemName);
+		int size = plugin->PipelineItem_GetInputLayoutSize(type, pldata);
 		std::vector<InputLayoutItem> inpLayout;
 		for (int j = 0; j < size; j++) {
 			plugin::InputLayoutItem inpOut;
-			plugin->PipelineItem_GetInputLayoutItem(itemName, j, inpOut);
+			plugin->PipelineItem_GetInputLayoutItem(type, pldata, j, inpOut);
 
 			InputLayoutItem inp;
 			inp.Value = (InputLayoutValue)inpOut.Value;

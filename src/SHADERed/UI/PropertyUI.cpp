@@ -1336,7 +1336,7 @@ namespace ed {
 		if (item != nullptr) {
 			if (item->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
-				if (!pldata->Owner->PipelineItem_HasProperties(pldata->Type))
+				if (!pldata->Owner->PipelineItem_HasProperties(pldata->Type, pldata->PluginData))
 					return; // doesnt support properties
 			}
 
