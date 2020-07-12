@@ -126,8 +126,6 @@ namespace ed {
 			"FunctionArgument"
 		};
 
-		printf("test1\n");
-
 		INIReader ini(filename);
 		if (ini.ParseError() != 0) {
 			Logger::Get().Log("Failed to parse a theme from file " + filename, true);
@@ -138,14 +136,10 @@ namespace ed {
 		std::string editorTheme = ini.Get("general", "editor", "Dark");
 		int version = ini.GetInteger("general", "version", 1);
 
-		printf("test2\n");
-
 		CustomColors& custom = m_custom[name];
 		ImGuiStyle& style = m_ui[name];
 		ImGuiStyle& defaultStyle = ImGui::GetStyle();
 		TextEditor::Palette& palette = m_editor[name];
-
-		printf("test3\n");
 
 		for (int i = 0; i < ImGuiCol_COUNT; i++) {
 			std::string clr = ini.Get("colors", ColorNames[i], "0");
@@ -154,9 +148,6 @@ namespace ed {
 				style.Colors[(ImGuiCol_)i] = defaultStyle.Colors[(ImGuiCol_)i];
 			else
 				style.Colors[(ImGuiCol_)i] = m_parseColor(clr);
-
-			printf("%d %s\n", i, ColorNames[i].c_str());
-
 		}
 		custom.ComputePass = m_loadColor(ini, "ComputePass");
 		custom.ErrorMessage = m_loadColor(ini, "OutputError");
