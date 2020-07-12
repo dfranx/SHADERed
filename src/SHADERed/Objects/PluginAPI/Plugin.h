@@ -286,8 +286,8 @@ namespace ed {
 		virtual bool ShaderEditor_HasStats(int langID, int editorID) = 0;
 
 		// code editor
-		virtual void CodeEditor_SaveItem(const char* src, int srcLen, int id) = 0;
-		virtual void CodeEditor_CloseItem(int id) = 0;
+		virtual void CodeEditor_SaveItem(const char* src, int srcLen, const char* path) = 0;
+		virtual void CodeEditor_CloseItem(const char* path) = 0;
 		virtual bool LanguageDefinition_Exists(int id) = 0;
 		virtual int LanguageDefinition_GetKeywordCount(int id) = 0;
 		virtual const char** LanguageDefinition_GetKeywords(int id) = 0;

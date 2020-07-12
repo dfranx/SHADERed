@@ -142,7 +142,7 @@ namespace ed {
 		if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
 			std::string edsrc = m_editor[id]->GetText();
-			shader->Owner->CodeEditor_SaveItem(edsrc.c_str(), edsrc.size(), (int)m_shaderStage[id]); // TODO: custom stages
+			shader->Owner->CodeEditor_SaveItem(edsrc.c_str(), edsrc.size(), m_paths[id].c_str()); // TODO: custom stages
 		} else
 			m_data->Parser.SaveProjectFile(path, text);
 	}
@@ -360,7 +360,7 @@ namespace ed {
 				if (!m_editorOpen[i]) {
 					if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 						pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-						shader->Owner->CodeEditor_CloseItem((int)m_shaderStage[i]);
+						shader->Owner->CodeEditor_CloseItem(m_paths[i].c_str());
 					}
 
 					IPlugin1* plugin = m_pluginEditor[i].Plugin;
@@ -877,7 +877,7 @@ namespace ed {
 			if (m_items[i] == item || item == nullptr) {
 				if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[i]->Data);
-					shader->Owner->CodeEditor_CloseItem((int)m_shaderStage[i]);
+					shader->Owner->CodeEditor_CloseItem(m_paths[i].c_str());
 				}
 
 				delete m_editor[i];
