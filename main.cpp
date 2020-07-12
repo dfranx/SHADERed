@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <string>
 
 #include <stb/stb_image.h>
 #include <stb/stb_image_write.h>
@@ -88,11 +89,14 @@ int main(int argc, char* argv[])
 
 	if (linuxUseHomeDir) {
 		const char *homedir = getenv("XDG_DATA_HOME");
-		if (homedir == NULL)
-			homedir = std::string(getenv("HOME")) + "/.local/share";
-
+		std::string homedirSuffix = "";
+		if (homedir == NULL) {
+			homedir = getenv("HOME");
+			homedirSuffix = "/.local/share";
+		}
+		
 		if (homedir != NULL) {
-			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + "/shadered/";
+			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + homedirSuffix + "/shadered/";
 
 			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory))
 				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory);
