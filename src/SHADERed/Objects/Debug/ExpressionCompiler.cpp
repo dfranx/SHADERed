@@ -30,8 +30,6 @@ namespace ed {
 	}
 	ExpressionCompiler::~ExpressionCompiler()
 	{
-		// crashes: [TODO: memory leak here]
-		// delete m_module;
 	}
 	int ExpressionCompiler::Compile(const std::string& expr, std::vector<unsigned int>& spv)
 	{
@@ -42,8 +40,6 @@ namespace ed {
 
 		BinaryVectorReader reader(spv);
 		spvgentwo::Grammar m_grammar(&alloc);
-
-		if (m_module) delete m_module;
 
 		m_module = new spvgentwo::Module(&alloc, spvgentwo::spv::Version);
 
@@ -98,7 +94,11 @@ namespace ed {
 		m_module->write(&writer);
 
 		// return result's ID
-		return (int)inst->getResultId();
+		int resultID = (int)inst->getResultId();
+
+		delete m_module;
+
+		return resultID;
 	}
 	std::vector<std::string> ExpressionCompiler::GetVariableList()
 	{
