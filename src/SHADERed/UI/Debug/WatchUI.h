@@ -8,6 +8,7 @@ namespace ed {
 				: UIView(ui, objects, name, visible)
 		{
 			m_newExpr[0] = 0;
+			m_tempExpr[0] = 0;
 		}
 
 		void Refresh();
@@ -16,6 +17,7 @@ namespace ed {
 		virtual void Update(float delta);
 
 	private:
+		char m_tempExpr[512];
 		char m_newExpr[512];
 	};
 }

@@ -16,7 +16,6 @@ set(SOURCES
 	src/SHADERed/InterfaceManager.cpp
 
 # objects:
-	src/SHADERed/Objects/PluginAPI/PluginManager.cpp
 	src/SHADERed/Objects/Export/ExportCPP.cpp
 	src/SHADERed/Objects/ArcBallCamera.cpp
 	src/SHADERed/Objects/AudioAnalyzer.cpp
@@ -46,6 +45,8 @@ set(SOURCES
 	src/SHADERed/Objects/ThemeContainer.cpp
 	src/SHADERed/Objects/TipFetcher.cpp
 	src/SHADERed/Objects/UpdateChecker.cpp
+	src/SHADERed/Objects/PluginManager.cpp
+	src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
 
 # UI Tools
 	src/SHADERed/UI/Tools/CubemapPreview.cpp
@@ -98,6 +99,8 @@ set(SOURCES
 	libs/SPIRVCross/spirv_parser.cpp
 	libs/tinyfiledialogs/tinyfiledialogs.c
 	libs/pugixml/src/pugixml.cpp
+	libs/ShaderExpressionParser/Parser.cpp
+	libs/ShaderExpressionParser/Tokenizer.cpp
 )
 
 
@@ -136,6 +139,9 @@ find_package(GLM REQUIRED)
 
 # sfml audio
 find_package(SFML COMPONENTS system audio network)
+
+# SpvGenTwo
+add_subdirectory(libs/SpvGenTwo)
 
 # assimp
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Static lib" FORCE)
@@ -190,7 +196,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM SpvGenTwoLib SpvGenTwoCommon assimp::assimp)
 
 # link sfml
 if(${USE_FINDSFML})

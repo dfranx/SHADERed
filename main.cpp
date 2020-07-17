@@ -306,7 +306,6 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		engine.Render();
-
 		SDL_GL_SwapWindow(wnd);
 
 		if (minimized && delta * 1000 < 33)

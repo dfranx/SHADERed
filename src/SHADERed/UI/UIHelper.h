@@ -11,7 +11,13 @@
 #include <GL/gl.h>
 #endif
 
+struct spvm_member;
+struct spvm_result;
+struct spvm_state;
+
 namespace ed {
+	class InterfaceManager;
+
 	class UIHelper {
 	public:
 		static bool GetOpenDirectoryDialog(std::string& outPath);

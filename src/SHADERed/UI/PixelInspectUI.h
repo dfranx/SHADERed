@@ -15,6 +15,12 @@ namespace ed {
 		virtual void Update(float delta);
 
 	private:
+		std::string m_cacheExpression;
+		std::string m_cacheValue;
+		bool m_cacheHasColor;
+		bool m_cacheExists;
+		glm::vec4 m_cacheColor;
+
 		CubemapPreview m_cubePrev;
 	};
 }

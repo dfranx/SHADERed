@@ -21,12 +21,12 @@ namespace ed {
 				if ((slot->type == spvm_result_type_variable || slot->type == spvm_result_type_function_parameter) && slot->name != nullptr) {
 					if (slot->owner == nullptr) {
 						spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
-						m_data->Debugger.GetVariableValueAsString(ss, vtype, slot->members, slot->member_count, "");
+						m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
 						m_cachedGlobals[slot->name] = ss.str();
 						ss.str(std::string());
 					} else if (slot->owner == vm->current_function) {
 						spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
-						m_data->Debugger.GetVariableValueAsString(ss, vtype, slot->members, slot->member_count, "");
+						m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
 						m_cachedLocals[slot->name] = ss.str();
 						ss.str(std::string());
 					}

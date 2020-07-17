@@ -8,7 +8,7 @@
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/PipelineItem.h>
 #include <SHADERed/Objects/PipelineManager.h>
-#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/ShaderCompiler.h>

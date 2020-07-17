@@ -1,3 +1,10 @@
+[v1.3.6]
++ [DEBUGGER] add immediate window
++ [DEBUGGER] add watches
++ [DEBUGGER] add conditional breakpoints
++ [DEBUGGER] add color preview for vec3 and vec4 variables
++ [DEBUGGER] add a feature that executes expressions on hover
+
 [v1.3.5]
 + plugin API v1
 + add a feature that automatically detects and adds uniforms to variable manager

@@ -1,6 +1,6 @@
 #pragma once
 #include <SHADERed/Objects/PipelineItem.h>
-#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Options.h>
 #include <vector>
 

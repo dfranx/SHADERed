@@ -1,6 +1,6 @@
+#include <SHADERed/UI/UIHelper.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Names.h>
-#include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
 #include <imgui_markdown/imgui_markdown.h>
@@ -273,7 +273,7 @@ namespace ed {
 
 		return ret;
 	}
-	
+
 	void MarkdownLinkCallback(ImGui::MarkdownLinkCallbackData data_)
 	{
 		std::string url(data_.link, data_.linkLength);

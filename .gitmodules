@@ -30,3 +30,9 @@
 	path = libs/spirv-headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers
 	ignore = dirty
+[submodule "libs/ShaderExpressionParser"]
+	path = libs/ShaderExpressionParser
+	url = https://github.com/dfranx/ShaderExpressionParser
+[submodule "libs/SpvGenTwo"]
+	path = libs/SpvGenTwo
+	url = https://github.com/rAzoR8/SpvGenTwo/

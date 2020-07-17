@@ -167,6 +167,8 @@ namespace ed {
 						if (!m_data->Debugger.IsDebugging())
 							return;
 
+						m_cacheExpression.clear();
+
 						bool state = m_data->Debugger.IsVMRunning();
 						switch (act) {
 						case TextEditor::DebugAction::Continue:
@@ -206,6 +208,8 @@ namespace ed {
 					editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
 						if (!m_data->Debugger.IsDebugging())
 							return;
+
+						m_cacheExpression.clear();
 
 						while (m_data->Debugger.IsVMRunning() && m_data->Debugger.GetCurrentLine() != line)
 							spvm_state_step_into(m_data->Debugger.GetVM());
@@ -273,11 +277,74 @@ namespace ed {
 								} else
 									ImGui::Image((ImTextureID)tex->user_data, ImVec2(128.0f, 128.0f * (tex->height / (float)tex->width)), ImVec2(0, 1), ImVec2(1, 0));
 							} else {
+								// color preview
+								if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVM()->results[resType->pointer].value_type == spvm_value_type_float) {
+									if (resType->member_count == 3) {
+										float colorVal[3] = { res[0].value.f, res[1].value.f, res[2].value.f };
+										ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+										ImGui::ColorEdit3("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
+										ImGui::PopItemFlag();
+										ImGui::SameLine();
+									} else if (resType->member_count == 4) {
+										float colorVal[4] = { res[0].value.f, res[1].value.f, res[2].value.f, res[3].value.f };
+										ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+										ImGui::ColorEdit4("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
+										ImGui::PopItemFlag();
+										ImGui::SameLine();
+									}
+								}
+
+								// text value
 								std::stringstream ss;
-								m_data->Debugger.GetVariableValueAsString(ss, resType, res, vcount, "");
+								m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), resType, res, vcount, "");
 								ImGui::Text(ss.str().c_str());
 							}
 						}
+					};
+					editor->HasExpressionHover = [&](TextEditor* ed, const std::string& id) -> bool {
+						if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)
+							return false;
+
+						if (id == m_cacheExpression)
+							return m_cacheExists;
+
+						m_cacheExpression = id;
+
+						spvm_result_t resType = nullptr;
+						spvm_result_t exprVal = m_data->Debugger.Immediate(id, resType);
+
+						m_cacheExists = exprVal != nullptr && resType != nullptr;
+
+						if (m_cacheExists) {
+							std::stringstream ss;
+							m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVMImmediate(), resType, exprVal->members, exprVal->member_count, "");
+							
+							m_cacheValue = ss.str();
+							m_cacheHasColor = false;
+							m_cacheColor = glm::vec4(0.0f);
+
+							if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVMImmediate()->results[resType->pointer].value_type == spvm_value_type_float) {
+								if (resType->member_count == 3)
+									m_cacheHasColor = true;
+								else if (resType->member_count == 4)
+									m_cacheHasColor = true;
+								for (int i = 0; i < resType->member_count; i++)
+									m_cacheColor[i] = exprVal->members[i].value.f;
+							}
+						}
+
+						return m_cacheExists;
+					};
+					editor->OnExpressionHover = [&](TextEditor* ed, const std::string& id) {
+						ImGui::Text(id.c_str());
+						ImGui::Separator();
+						if (m_cacheHasColor) {
+							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+							ImGui::ColorEdit4("##value_preview", const_cast<float*>(glm::value_ptr(m_cacheColor)), ImGuiColorEditFlags_NoInputs);
+							ImGui::PopItemFlag();
+							ImGui::SameLine();
+						}
+						ImGui::Text(m_cacheValue.c_str());
 					};
 				}
 

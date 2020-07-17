@@ -3,7 +3,7 @@
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/MessageStack.h>
 #include <SHADERed/Objects/PipelineManager.h>
-#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 
 #include <functional>

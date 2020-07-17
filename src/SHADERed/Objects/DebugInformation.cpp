@@ -1,4 +1,5 @@
 #include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <iomanip>
@@ -11,7 +12,7 @@
 #define GET_VALUE2_WITH_CHECK_INT(val, c, r) (val == nullptr ? 0 : val->members[c].members[r].value.s)
 
 namespace ed {
-	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer)
+	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer, MessageStack* msgs)
 	{
 		m_objs = objs;
 		m_renderer = renderer;
@@ -19,6 +20,9 @@ namespace ed {
 		m_vm = nullptr;
 		m_shader = nullptr;
 		m_pixel = nullptr;
+		m_vmImmediate = nullptr;
+		m_shaderImmediate = nullptr;
+		m_msgs = msgs;
 
 		m_vmContext = spvm_context_initialize();
 		m_vmGLSL = spvm_build_glsl450_ext();
@@ -50,9 +54,11 @@ namespace ed {
 	}
 	void DebugInformation::m_setupVM(std::vector<unsigned int>& spv)
 	{
+		m_spv = spv;
+		
 		// create program & state
-		m_shader = spvm_program_create(m_vmContext, (spvm_source)spv.data(), spv.size());
-		m_vm = spvm_state_create(m_shader);
+		m_shader = spvm_program_create(m_vmContext, (spvm_source)m_spv.data(), m_spv.size());
+		m_vm = _spvm_state_create_base(m_shader, m_stage == ShaderStage::Pixel, 0);
 
 		// link GLSL.std.450
 		spvm_state_set_extension(m_vm, "GLSL.std.450", m_vmGLSL);
@@ -613,26 +619,34 @@ namespace ed {
 	
 	spvm_member_t DebugInformation::GetVariable(const std::string& vname, size_t& outCount, spvm_result_t& outType)
 	{
+		return GetVariableFromState(m_vm, vname, outCount, outType);
+	}
+	spvm_member_t DebugInformation::GetVariable(const std::string& str, size_t& count)
+	{
+		return GetVariableFromState(m_vm, str, count);
+	}
+	spvm_member_t DebugInformation::GetVariableFromState(spvm_state_t state, const std::string& vname, size_t& outCount, spvm_result_t& outType)
+	{
 		spvm_word mem_index = 0, mem_count = 0;
-		spvm_result_t val = spvm_state_get_local_result(m_vm, m_vm->current_function, (spvm_string)vname.c_str());
+		spvm_result_t val = spvm_state_get_local_result(state, state->current_function, (spvm_string)vname.c_str());
 		if (val == nullptr)
-			val = spvm_state_get_result_with_value(m_vm, (spvm_string)vname.c_str());
+			val = spvm_state_get_result_with_value(state, (spvm_string)vname.c_str());
 
 		if (val == nullptr) { // anon buffer object uniforms
-			val = spvm_state_get_result(m_vm, "");
+			val = spvm_state_get_result(state, "");
 
 			bool foundBufferVariable = false;
 			for (spvm_word i = 0; i < m_shader->bound; i++) {
-				if (m_vm->results[i].name) {
-					if (strcmp(m_vm->results[i].name, "") == 0 && m_vm->results[i].type == spvm_result_type_variable) {
-						val = &m_vm->results[i];
-						spvm_result_t buffer_info = spvm_state_get_type_info(m_vm->results, &m_vm->results[val->pointer]);
+				if (state->results[i].name) {
+					if (strcmp(state->results[i].name, "") == 0 && state->results[i].type == spvm_result_type_variable) {
+						val = &state->results[i];
+						spvm_result_t buffer_info = spvm_state_get_type_info(state->results, &state->results[val->pointer]);
 						for (spvm_word i = 0; i < buffer_info->member_name_count; i++) {
 							if (strcmp(vname.c_str(), buffer_info->member_name[i]) == 0) {
 								mem_index = i;
 								mem_count = 1;
 
-								outType = spvm_state_get_type_info(m_vm->results, &m_vm->results[val->members[mem_index].type]);
+								outType = spvm_state_get_type_info(state->results, &state->results[val->members[mem_index].type]);
 
 								foundBufferVariable = true;
 								break;
@@ -650,24 +664,24 @@ namespace ed {
 
 		if (val && val->members != nullptr && mem_count != 0) {
 			if (mem_count == 1 && val->members[mem_index].member_count != 0) {
-				outType = spvm_state_get_type_info(m_vm->results, &m_vm->results[val->members[mem_index].type]);
+				outType = spvm_state_get_type_info(state->results, &state->results[val->members[mem_index].type]);
 				outCount = val->members[mem_index].member_count;
 				return &val->members[mem_index].members[0];
 			}
 
-			outType = spvm_state_get_type_info(m_vm->results, &m_vm->results[val->pointer]);
+			outType = spvm_state_get_type_info(state->results, &state->results[val->pointer]);
 			outCount = mem_count;
 			return &val->members[mem_index];
 		}
 
 		return nullptr;
 	}
-	spvm_member_t DebugInformation::GetVariable(const std::string& str, size_t& count)
+	spvm_member_t DebugInformation::GetVariableFromState(spvm_state_t state, const std::string& str, size_t& count)
 	{
 		spvm_result_t type;
-		return GetVariable(str, count, type);
+		return GetVariableFromState(state, str, count, type);
 	}
-	void DebugInformation::GetVariableValueAsString(std::stringstream& outString, spvm_result_t type, spvm_member_t mems, spvm_word mem_count, const std::string& prefix)
+	void DebugInformation::GetVariableValueAsString(std::stringstream& outString, spvm_state_t state, spvm_result_t type, spvm_member_t mems, spvm_word mem_count, const std::string& prefix)
 	{
 		/*
 			TODO: use BFS - might have more control over output + faster
@@ -682,9 +696,9 @@ namespace ed {
 
 			spvm_result_t vtype = type;
 			if (mems[i].type != 0)
-				vtype = spvm_state_get_type_info(m_vm->results, &m_vm->results[mems[i].type]);
+				vtype = spvm_state_get_type_info(state->results, &state->results[mems[i].type]);
 			if (vtype->member_count > 1 && vtype->pointer != 0 && vtype->value_type != spvm_value_type_matrix && vtype->value_type != spvm_value_type_array)
-				vtype = spvm_state_get_type_info(m_vm->results, &m_vm->results[vtype->pointer]);
+				vtype = spvm_state_get_type_info(state->results, &state->results[vtype->pointer]);
 
 			if (mems[i].member_count == 0) {
 				if (!outPrefix && !prefix.empty()) {
@@ -712,14 +726,89 @@ namespace ed {
 				if (type->value_type == spvm_value_type_runtime_array && mem_count > 6 && i == mem_count - 3)
 					outString << "...\n";
 
-				GetVariableValueAsString(outString, vtype, mems[i].members, mems[i].member_count, newPrefix);
+				GetVariableValueAsString(outString, state, vtype, mems[i].members, mems[i].member_count, newPrefix);
 			}
 		}
 		if (!allRec) outString << "\n";
 	}
 
+	spvm_result_t DebugInformation::Immediate(const std::string& entry, spvm_result_t& outType)
+	{
+		m_spvImmediate = m_spv;
+
+		// compile the expression
+		ed::ExpressionCompiler compiler;
+		int resultID = compiler.Compile(entry, m_spvImmediate);
+
+		// error occured
+		if (resultID <= 0)
+			return nullptr;
+
+		// delete old program & state
+		if (m_vmImmediate) {
+			spvm_state_delete(m_vmImmediate);
+			m_vmImmediate = nullptr;
+		}
+		if (m_shaderImmediate) {
+			spvm_program_delete(m_shaderImmediate);
+			m_shaderImmediate = nullptr;
+		}
+
+		// create program & state
+		m_shaderImmediate = spvm_program_create(m_vmContext, (spvm_source)m_spvImmediate.data(), m_spvImmediate.size());
+		m_vmImmediate = _spvm_state_create_base(m_shaderImmediate, 1, 0);
+		
+		// can't use set_extenstion() function because for some reason two GLSL.std.450 instructions are generated with spvgentwo
+		for (int i = 0; i < m_shaderImmediate->bound; i++)
+			if (m_vmImmediate->results[i].name)
+				if (strcmp(m_vmImmediate->results[i].name, "GLSL.std.450") == 0)
+					m_vmImmediate->results[i].extension = m_vmGLSL;
+
+		// copy variable values
+		spvm_state_group_sync(m_vm);
+		std::vector<std::string> varList = compiler.GetVariableList();
+		for (int i = 0; i < varList.size(); i++) {
+			size_t varValueCount = 0;
+			spvm_member_t varValue = GetVariable(varList[i], varValueCount);
+
+			if (varValue == nullptr)
+				return nullptr;
+
+			for (int j = 0; j < m_shaderImmediate->bound; j++) {
+				if (m_vmImmediate->results[j].name == nullptr)
+					continue;
+				
+				spvm_result_t res = &m_vmImmediate->results[j];
+
+				// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
+
+				if (res->member_count == varValueCount && strcmp(varList[i].c_str(), res->name) == 0) {
+					spvm_member_memcpy(res->members, varValue, varValueCount);
+
+					if (m_vmImmediate->derivative_used) {
+						if (m_vmImmediate->derivative_group_x) spvm_member_memcpy(m_vmImmediate->derivative_group_x->results[j].members, GetVariableFromState(m_vm->derivative_group_x, varList[i], varValueCount), varValueCount);
+						if (m_vmImmediate->derivative_group_y) spvm_member_memcpy(m_vmImmediate->derivative_group_y->results[j].members, GetVariableFromState(m_vm->derivative_group_y, varList[i], varValueCount), varValueCount);
+						if (m_vmImmediate->derivative_group_d) spvm_member_memcpy(m_vmImmediate->derivative_group_d->results[j].members, GetVariableFromState(m_vm->derivative_group_d, varList[i], varValueCount), varValueCount);
+					}
+				}
+			}
+		}
+
+		// execute $$_shadered_immediate
+		spvm_word fnImmediate = spvm_state_get_result_location(m_vmImmediate, "$$_shadered_immediate");
+		spvm_state_prepare(m_vmImmediate, fnImmediate);
+		spvm_state_call_function(m_vmImmediate);
+
+		// get type and return value
+		spvm_result_t val = &m_vmImmediate->results[resultID];
+		outType = spvm_state_get_type_info(m_vmImmediate->results, &m_vmImmediate->results[val->pointer]);
+		return val;
+	}
+
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
+		m_stage = ShaderStage::Vertex;
+
 		m_resetVM();
 		if (owner->Type == PipelineItem::ItemType::ShaderPass)
 			m_setupVM(((pipe::ShaderPass*)owner->Data)->VSSPV);
@@ -727,18 +816,16 @@ namespace ed {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 			
 			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::Vertex);
-			m_tempSPV.clear();
+			std::vector<unsigned int> spv;
 			if (spvSize != 0) {
 				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::Vertex);
-				m_tempSPV = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+				spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
 			}
-			m_setupVM(m_tempSPV);
+			m_setupVM(spv);
  		}
 
 		// uniforms
 		m_copyUniforms(owner, item, px);
-		
-		m_stage = ShaderStage::Vertex;
 	}
 	void DebugInformation::SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
 	{
@@ -847,8 +934,8 @@ namespace ed {
 		if (m_vm == nullptr)
 			return glm::vec4(0.0f);
 
-		spvm_result_t fnMain = spvm_state_get_result(m_vm, "main");
-		if (fnMain == nullptr)
+		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
+		if (fnMain == 0)
 			return glm::vec4(0.0f);
 
 		spvm_state_prepare(m_vm, fnMain);
@@ -922,6 +1009,8 @@ namespace ed {
 	}
 	void DebugInformation::PreparePixelShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
+		m_stage = ShaderStage::Pixel;
+
 		m_resetVM();
 		if (owner->Type == PipelineItem::ItemType::ShaderPass)
 			m_setupVM(((pipe::ShaderPass*)owner->Data)->PSSPV);
@@ -929,12 +1018,12 @@ namespace ed {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
 			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::Pixel);
-			m_tempSPV.clear();
+			std::vector<unsigned int> spv;
 			if (spvSize != 0) {
 				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::Pixel);
-				m_tempSPV = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+				spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
 			}
-			m_setupVM(m_tempSPV);
+			m_setupVM(spv);
 		}
 
 		// uniforms
@@ -961,8 +1050,6 @@ namespace ed {
 				}
 			}
 		}
-
-		m_stage = ShaderStage::Pixel;
 	}
 	void DebugInformation::SetPixelShaderInput(PixelInformation& pixel)
 	{
@@ -1097,8 +1184,8 @@ namespace ed {
 		if (m_vm == nullptr)
 			return glm::vec4(0.0f);
 
-		spvm_result_t fnMain = spvm_state_get_result(m_vm, "main");
-		if (fnMain == nullptr)
+		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
+		if (fnMain == 0)
 			return glm::vec4(0.0f);
 
 		spvm_state_prepare(m_vm, fnMain);
@@ -1143,8 +1230,8 @@ namespace ed {
 
 	void DebugInformation::PrepareDebugger()
 	{
-		spvm_result_t fnMain = spvm_state_get_result(m_vm, "main");
-		if (fnMain == nullptr)
+		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
+		if (fnMain == 0)
 			return;
 
 		m_funcStackLines.clear();
@@ -1169,15 +1256,42 @@ namespace ed {
 
 	void DebugInformation::ClearWatchList()
 	{
+		for (auto& expr : m_watchExprs)
+			free(expr);
+
+		m_watchExprs.clear();
+		m_watchValues.clear();
 	}
 	void DebugInformation::RemoveWatch(size_t index)
 	{
+		free(m_watchExprs[index]);
+		m_watchExprs.erase(m_watchExprs.begin() + index);
+		m_watchValues.erase(m_watchValues.begin() + index);
 	}
 	void DebugInformation::AddWatch(const std::string& expr, bool execute)
 	{
+		char* data = (char*)calloc(512, sizeof(char));
+		strcpy(data, expr.c_str());
+
+		m_watchExprs.push_back(data);
+		m_watchValues.push_back("");
+
+		if (execute)
+			UpdateWatchValue(m_watchExprs.size() - 1);
 	}
 	void DebugInformation::UpdateWatchValue(size_t index)
 	{
+		char* expr = m_watchExprs[index];
+
+		spvm_result_t resType = nullptr;
+		spvm_result_t exprVal = Immediate(std::string(expr), resType);
+		
+		if (exprVal != nullptr && resType != nullptr) {
+			std::stringstream ss;
+			GetVariableValueAsString(ss, m_vmImmediate, resType, exprVal->members, exprVal->member_count, "");
+			m_watchValues[index] = ss.str();
+		} else
+			m_watchValues[index] = "ERROR";
 	}
 
 	void DebugInformation::Jump(int line)
@@ -1233,13 +1347,23 @@ namespace ed {
 		dbg::Breakpoint* brk = GetBreakpoint(m_file, line, enabled);
 
 		if (brk != nullptr && enabled) {
-			// TODO: conditional breakpoints
+			if (brk->IsConditional && !brk->Condition.empty()) {
+				spvm_result_t resType = nullptr;
+				spvm_result_t brkResult = Immediate(brk->Condition, resType);
+
+				if (brkResult != nullptr && resType != nullptr && (resType->value_type == spvm_value_type_bool || resType->value_type == spvm_value_type_int) && brkResult->member_count == 1)
+					return brkResult->members[0].value.b;
+				else {
+					m_msgs->Add(MessageStack::Type::Warning, "", "Invalid breakpoint condition on line " + std::to_string(line));
+					return false;
+				}
+			}
+			
 			return true;
 		}
 
 		return false;
 	}
-
 
 	void DebugInformation::ClearPixelList()
 	{

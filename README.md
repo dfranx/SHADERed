@@ -219,14 +219,21 @@ Send your own screenshots [here](https://github.com/dfranx/SHADERed/issues/8)!
 
 ## Dependencies
 This project uses:
- - [ocornut/imgui](https://github.com/ocornut/imgui/tree/docking) (docking branch)
+ - [assimp/assimp](https://github.com/assimp/assimp)
+ - [KhronosGroup/glslang](https://github.com/KhronosGroup/glslang)
+ - [ocornut/imgui](https://github.com/ocornut/imgui/tree/docking) (docking + tables branch)
+ - [juliettef/imgui_markdown](https://github.com/juliettef/imgui_markdown)
  - [BalazsJako/ImGuiColorTextEdit](https://github.com/BalazsJako/ImGuiColorTextEdit)
- - [zeux/pugixml](https://github.com/zeux/pugixml)
  - [benhoyt/inih](https://github.com/benhoyt/inih)
- - [KhronosGroup/glslangValidator](https://github.com/KhronosGroup/glslang)
+ - [zeux/pugixml](https://github.com/zeux/pugixml)
+ - [dfranx/ShaderExpressionParser](https://github.com/dfranx/ShaderExpressionParser)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
+ - [KhronosGroup/SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers)
+ - [KhronosGroup/SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools)
+ - [dfranx/SPIRV-VM](https://github.com/dfranx/SPIRV-VM)
+ - [rAzoR8/SpvGenTwo](https://github.com/rAzoR8/SpvGenTwo)
  - [nothings/stb](https://github.com/nothings/stb)
- - [mlabbe/nativefiledialog](https://github.com/mlabbe/nativefiledialog)
+ - [native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
 Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
 

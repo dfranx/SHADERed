@@ -2,7 +2,7 @@
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/Objects/Logger.h>
-#include <SHADERed/Objects/PluginAPI/PluginManager.h>
+#include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/UI/CodeEditorUI.h>
