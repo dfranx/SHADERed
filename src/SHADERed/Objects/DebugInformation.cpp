@@ -756,7 +756,7 @@ namespace ed {
 
 		// create program & state
 		m_shaderImmediate = spvm_program_create(m_vmContext, (spvm_source)m_spvImmediate.data(), m_spvImmediate.size());
-		m_vmImmediate = _spvm_state_create_base(m_shaderImmediate, 1, 0);
+		m_vmImmediate = _spvm_state_create_base(m_shaderImmediate, m_stage == ShaderStage::Pixel, 0);
 		
 		// can't use set_extenstion() function because for some reason two GLSL.std.450 instructions are generated with spvgentwo
 		for (int i = 0; i < m_shaderImmediate->bound; i++)
