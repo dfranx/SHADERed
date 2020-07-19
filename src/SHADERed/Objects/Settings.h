@@ -62,6 +62,7 @@ namespace ed {
 			bool InsertSpaces;
 			bool FunctionTooltips;
 			bool SyntaxHighlighting;
+			bool ScrollbarMarkers;
 			int TabSize;
 		} Editor;
 

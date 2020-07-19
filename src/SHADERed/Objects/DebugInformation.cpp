@@ -782,7 +782,7 @@ namespace ed {
 
 				// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
 
-				if (res->member_count == varValueCount && strcmp(varList[i].c_str(), res->name) == 0) {
+				if (res->member_count == varValueCount && res->members != nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
 					spvm_member_memcpy(res->members, varValue, varValueCount);
 
 					if (m_vmImmediate->derivative_used) {

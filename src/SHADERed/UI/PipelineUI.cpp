@@ -913,7 +913,7 @@ namespace ed {
 		ImGui::PopStyleColor();
 
 		// render value edit window if needed
-		ImGui::SetNextWindowSize(ImVec2(450, 175), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(450), Settings::Instance().CalculateSize(200)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Value Edit##pui_shader_value_edit")) {
 			m_valueEdit.Update();
 

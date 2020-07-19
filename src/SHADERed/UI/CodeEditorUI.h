@@ -33,6 +33,7 @@ namespace ed {
 		void Open(PipelineItem* item, ed::ShaderStage stage);
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
+		TextEditor* Get(const std::string& path);
 
 		void SetTheme(const TextEditor::Palette& colors);
 		void SetFont(const std::string& filename, int size = 15);

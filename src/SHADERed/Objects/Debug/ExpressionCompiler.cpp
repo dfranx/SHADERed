@@ -65,7 +65,7 @@ namespace ed {
 
 		// I know this is super hacky but meh, it works
 		m_module->iterateInstructions([&](spvgentwo::Instruction& inst) {
-			const char* iName = m_module->getName(&inst, 0);
+			const char* iName = inst.getName();
 			if (m_vars.count(iName))
 				m_vars[iName] = &inst;
 		});
@@ -343,11 +343,11 @@ namespace ed {
 			}
 
 			for (auto& func : m_module->getFunctions()) {
-				std::string userFName(m_module->getName(func.getFunction(), 0));
+				std::string userFName(func.getName());
 				userFName = userFName.substr(0, userFName.find_first_of('('));
 
-				if (userFName == fname && args.size() > 0)
-					return bb->call(&func, args[0]); // TODO
+				if (userFName == fname)
+					return bb->call(&func, args); // TODO
 			}
 
 			if (args.size() == 0) {
@@ -478,6 +478,18 @@ namespace ed {
 				return bb.ext<spvgentwo::ext::GLSL>()->opFma(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]), m_simpleConvert(expr::TokenType_Float, args[2]));
 			else if (fname == "cross" && args.size() == 2)
 				return bb.ext<spvgentwo::ext::GLSL>()->opCross(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]));
+			else if (fname == "faceforward" && args.size() == 3)
+				return bb.ext<spvgentwo::ext::GLSL>()->opFaceForward(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]), m_simpleConvert(expr::TokenType_Float, args[2]));
+			else if (fname == "reflect" && args.size() == 2)
+				return bb.ext<spvgentwo::ext::GLSL>()->opReflect(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]));
+			else if (fname == "refract" && args.size() == 3)
+				return bb.ext<spvgentwo::ext::GLSL>()->opRefract(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]), m_simpleConvert(expr::TokenType_Float, args[2]));
+			else if (fname == "normalize")
+				return bb.ext<spvgentwo::ext::GLSL>()->opNormalize(m_simpleConvert(expr::TokenType_Float, args[0]));
+			else if (fname == "distance" && args.size() == 2)
+				return bb.ext<spvgentwo::ext::GLSL>()->opDistance(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]));
+			else if (fname == "length")
+				return bb.ext<spvgentwo::ext::GLSL>()->opLength(m_simpleConvert(expr::TokenType_Float, args[0]));
 			else if (fname == "dot" && args.size() == 2)
 				return bb->opDot(m_simpleConvert(expr::TokenType_Float, args[0]), m_simpleConvert(expr::TokenType_Float, args[1]));
 			else if (fname == "any")

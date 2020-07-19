@@ -170,9 +170,10 @@ namespace ed {
 		m_themes.push_back("Light");
 
 		std::vector<std::string> pathList = {
-			"./themes/",
-			ed::Settings().Instance().LinuxHomeDirectory + "themes/"
+			"./themes/"
 		};
+		if (!Settings().Instance().LinuxHomeDirectory.empty())
+			pathList.push_back(Settings().Instance().LinuxHomeDirectory + "themes/");
 
 		for (const auto& pathToCheck : pathList) {
 			if (std::filesystem::exists(pathToCheck)) {
@@ -564,6 +565,11 @@ namespace ed {
 		ImGui::Text("Show whitespace: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_show_whitespace", &settings->Editor.ShowWhitespace);
+
+		/* SCROLLBAR MARKERS: */
+		ImGui::Text("Scrollbar markers: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_scrollbar_markers", &settings->Editor.ScrollbarMarkers);
 
 		/* FONT: */
 		ImGui::Text("Font: ");

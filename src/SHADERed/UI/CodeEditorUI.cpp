@@ -496,6 +496,7 @@ namespace ed {
 			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
+			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
 			m_loadEditorShortcuts(editor);
 		}
 
@@ -715,6 +716,7 @@ namespace ed {
 			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
+			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
 			m_loadEditorShortcuts(editor);
 
 			if (sLang == ShaderLanguage::HLSL)
@@ -825,6 +827,7 @@ namespace ed {
 			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
+			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
 			m_loadEditorShortcuts(editor);
 
 			unsigned int spvSize = shader->Owner->PipelineItem_GetSPIRVSize(shader->Type, shader->PluginData, (plugin::ShaderStage)shaderStage);
@@ -867,6 +870,13 @@ namespace ed {
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i] == item && m_shaderStage[i] == stage)
+				return m_editor[i];
+		return nullptr;
+	}
+	TextEditor* CodeEditorUI::Get(const std::string& path)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_paths[i] == path)
 				return m_editor[i];
 		return nullptr;
 	}

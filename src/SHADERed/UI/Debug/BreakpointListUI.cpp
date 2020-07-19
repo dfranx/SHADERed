@@ -1,4 +1,6 @@
 #include <SHADERed/UI/Debug/BreakpointListUI.h>
+#include <ImGuiColorTextEdit/TextEditor.h>
+#include <SHADERed/UI/CodeEditorUI.h>
 #include <imgui/imgui.h>
 #include <filesystem>
 
@@ -34,8 +36,12 @@ namespace ed {
 
 				const dbg::Breakpoint& b = bkpt.second[i];
 				isEnabled = bkptStates[bkpt.first][i];
-				if (ImGui::Checkbox(("##bkpt_state" + std::to_string(i)).c_str(), &isEnabled))
+				if (ImGui::Checkbox(("##bkpt_state" + std::to_string(i)).c_str(), &isEnabled)) {
 					m_data->Debugger.SetBreakpointEnabled(bkpt.first, b.Line, isEnabled);
+					TextEditor* textEd = ((CodeEditorUI*)m_ui->Get(ViewID::Code))->Get(bkpt.first);
+					if (textEd != nullptr)
+						textEd->SetBreakpointEnabled(b.Line, isEnabled);
+				}
 				ImGui::NextColumn();
 
 				ImGui::Text(b.Condition.c_str());

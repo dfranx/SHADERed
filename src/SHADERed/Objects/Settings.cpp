@@ -55,6 +55,7 @@ namespace ed {
 		Editor.TabSize = 4;
 		Editor.FunctionTooltips = true;
 		Editor.SyntaxHighlighting = true;
+		Editor.ScrollbarMarkers = true;
 
 		Debug.ShowValuesOnHover = true;
 		Debug.AutoFetch = false;
@@ -137,6 +138,7 @@ namespace ed {
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
 		Editor.SyntaxHighlighting = ini.GetBoolean("editor", "syntaxhighlighting", true);
+		Editor.ScrollbarMarkers = ini.GetBoolean("editor", "scrollbarmarkers", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", false);
@@ -267,6 +269,7 @@ namespace ed {
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 		ini << "functooltips=" << Editor.FunctionTooltips << std::endl;
 		ini << "syntaxhighlighting=" << Editor.SyntaxHighlighting << std::endl;
+		ini << "scrollbarmarkers=" << Editor.ScrollbarMarkers << std::endl;
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;
