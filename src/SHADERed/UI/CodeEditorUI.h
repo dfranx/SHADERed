@@ -53,6 +53,7 @@ namespace ed {
 			else
 				m_font = ImGui::GetIO().Fonts->Fonts[0];
 		}
+		inline ImFont* GetImFont() { return m_font; }
 
 		inline bool TrackedFilesNeedUpdate() { return m_trackUpdatesNeeded > 0; }
 		inline void EmptyTrackedFiles() { m_trackUpdatesNeeded = 0; }

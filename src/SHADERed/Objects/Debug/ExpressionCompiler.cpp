@@ -2,6 +2,7 @@
 #include <common/BinaryFileReader.h>
 #include <common/BinaryVectorWriter.h>
 #include <spvgentwo/GLSL450Instruction.h>
+#include <common/HeapList.h>
 
 namespace ed {
 	template <typename U32Vector>
@@ -66,8 +67,10 @@ namespace ed {
 		// I know this is super hacky but meh, it works
 		m_module->iterateInstructions([&](spvgentwo::Instruction& inst) {
 			const char* iName = inst.getName();
-			if (m_vars.count(iName))
-				m_vars[iName] = &inst;
+			if (iName[0] != 0) {
+				if (m_vars.count(iName))
+					m_vars[iName] = &inst;
+			}
 		});
 
 		// check if a non existing variable is being used
@@ -334,6 +337,7 @@ namespace ed {
 			std::string fname(fcall->Name);
 			std::vector<spvgentwo::Instruction*> args(fcall->Arguments.size(), nullptr);
 
+			// arguments
 			for (int i = 0; i < args.size(); i++) {
 				args[i] = m_visit(fcall->Arguments[i]);
 				if (args[i] == nullptr) {
@@ -342,12 +346,51 @@ namespace ed {
 				}
 			}
 
+			// find a match with user defined function
+			int matchCount = 0, actualCount = 0;
+			spvgentwo::Function* matchFunction = nullptr;
 			for (auto& func : m_module->getFunctions()) {
 				std::string userFName(func.getName());
 				userFName = userFName.substr(0, userFName.find_first_of('('));
 
-				if (userFName == fname)
-					return bb->call(&func, args); // TODO
+				if (userFName == fname && args.size() == func.getParameters().size()) {
+					int myMatchCount = 0, myActualCount = 0;
+					for (int i = 0; i < args.size(); i++) {
+						const spvgentwo::Type& defType = func.getParameter(i)->getType()->front();
+						const spvgentwo::Type& myType = *(args[i]->getType());
+
+						if (defType == myType || (defType.isNumericalScalarOrVector() && myType.isNumericalScalarOrVector() && defType.getVectorComponentCount() == myType.getVectorComponentCount())) {
+							if (defType == myType)
+								myMatchCount++;
+							myActualCount++;
+							break;
+						}
+					}
+
+					if (myMatchCount > matchCount || myActualCount > actualCount || args.size() == 0) {
+						matchFunction = &func;
+						matchCount = myMatchCount;
+						actualCount = myActualCount;
+					}
+				}
+			}
+
+			// call the function if we found a match
+			if (matchFunction != nullptr) {
+				spvgentwo::HeapList<spvgentwo::Instruction*> list;
+				// convert arguments
+				for (int i = 0; i < args.size(); i++) {
+					const auto& baseType = matchFunction->getParameter(i)->getType()->getBaseType();
+					if (baseType.isFloat())
+						list.emplace_back(m_simpleConvert(expr::TokenType_Float, args[i]));
+					else if (baseType.isSInt())
+						list.emplace_back(m_simpleConvert(expr::TokenType_Int, args[i]));
+					else if (baseType.isUInt())
+						list.emplace_back(m_simpleConvert(expr::TokenType_Uint, args[i]));
+				}
+
+				// call function
+				return bb->callDynamic(matchFunction, list); // TODO
 			}
 
 			if (args.size() == 0) {
@@ -355,6 +398,7 @@ namespace ed {
 				return nullptr;
 			}
 
+			// builtin functions
 			if (tok == expr::TokenType_Int) {
 				if (args[0]->getType()->getBaseType().isFloat())
 					return bb->opConvertFToS(args[0]);
@@ -530,6 +574,14 @@ namespace ed {
 			}
 			if (obj->getType()->isVector())
 				return m_swizzle(obj, maccess->Field);
+			else if (obj->getType()->isStruct()) {
+				const char* member = nullptr;
+				int memberIndex = 0;
+				while ((member = obj->getName(memberIndex++))[0] != 0) {
+					if (strcmp(maccess->Field, member) == 0)
+						return bb->opCompositeExtract(obj, memberIndex - 1);
+				}
+			}
 		} break;
 		case expr::NodeType::MethodCall: {
 			expr::MethodCallNode* mcall = (expr::MethodCallNode*)node;
@@ -554,6 +606,7 @@ namespace ed {
 		} break;
 		}
 
+		m_error = true;
 		return nullptr;
 	}
 	void ExpressionCompiler::m_convert(int op, spvgentwo::Instruction* a, spvgentwo::Instruction* b, spvgentwo::Instruction*& outA, spvgentwo::Instruction*& outB)
@@ -746,18 +799,23 @@ namespace ed {
 
 		if (strlen(field) == 1) {
 			for (int i = 0; i < combo.size(); i++)
-				for (int j = 0; j < 4; j++)
+				for (int j = 0; j < 4; j++) {
 					if (combo[i][j] == field[0])
 						return bb->opCompositeExtract(vec, j);
+					else
+						return nullptr;
+				}
 		} else {
 			std::vector<spvgentwo::Instruction*> comps;
 			for (int i = 0; i < strlen(field); i++)
 				for (int j = 0; j < combo.size(); j++)
-					for (int k = 0; k < 4; k++)
+					for (int k = 0; k < 4; k++) {
 						if (combo[j][k] == field[i]) {
 							comps.push_back(bb->opCompositeExtract(vec, k));
 							break;
-						}
+						} else
+							return nullptr;
+					}
 
 			int baseType = expr::TokenType_Float;
 			if (vec->getType()->getBaseType().isSInt())

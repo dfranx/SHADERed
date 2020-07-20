@@ -3,7 +3,7 @@
 //  row 1: keypress event
 //  row 2: toggle
 // example:
-//  texelFetch(kbTexture, ivec2(KEY_UP, 0))  -> GLSL
+//  texelFetch(kbTexture, ivec2(KEY_UP, 0), 0)  -> GLSL
 //  kbTexture.Load(int3(KEY_UP, 0, 0))       -> HLSL
 
 // KEYCODES //

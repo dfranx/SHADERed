@@ -4,6 +4,7 @@
 #include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/UI/Tools/NotificationSystem.h>
+#include <ImGuiColorTextEdit/TextEditor.h>
 #include <SHADERed/Engine/Timer.h>
 
 #include <SDL2/SDL_events.h>
@@ -180,6 +181,8 @@ namespace ed {
 		CreateItemUI* m_createUI;
 
 		UpdateChecker m_updateCheck;
+
+		TextEditor m_kbInfo;
 
 		InterfaceManager* m_data;
 		SDL_Window* m_wnd;
