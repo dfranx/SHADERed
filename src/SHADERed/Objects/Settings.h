@@ -59,6 +59,7 @@ namespace ed {
 			bool HorizontalScroll;
 			bool AutoBraceCompletion;
 			bool SmartIndent;
+			bool AutoIndentOnPaste;
 			bool InsertSpaces;
 			bool FunctionTooltips;
 			bool SyntaxHighlighting;

@@ -5,9 +5,11 @@
 + [DEBUGGER] add color preview for vec3 and vec4 variables
 + [DEBUGGER] add a feature that executes expressions on hover
 + add markers to text editor's scrollbar
++ add "Auto indent on paste" option
 + add KeyboardTexture description in Help -> Information
 + fix a bug that would add some themes two times to the theme list in options
 + fix a bug that wouldn't sync breakpoint's state when toggling it through the "Breakpoints" window
++ rename "Active autocomplete" option to "Continuous autocomplete"
 
 [v1.3.5]
 + plugin API v1

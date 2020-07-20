@@ -51,6 +51,7 @@ namespace ed {
 		Editor.StatusBar = false;
 		Editor.AutoBraceCompletion = true;
 		Editor.SmartIndent = true;
+		Editor.AutoIndentOnPaste = false;
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
 		Editor.FunctionTooltips = true;
@@ -134,6 +135,7 @@ namespace ed {
 		Editor.StatusBar = ini.GetBoolean("editor", "statusbar", false);
 		Editor.AutoBraceCompletion = ini.GetBoolean("editor", "autobrace", true);
 		Editor.SmartIndent = ini.GetBoolean("editor", "smartindent", true);
+		Editor.AutoIndentOnPaste = ini.GetBoolean("editor", "autoindentonpaste", false);
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
@@ -265,6 +267,7 @@ namespace ed {
 		ini << "statusbar=" << Editor.StatusBar << std::endl;
 		ini << "autobrace=" << Editor.AutoBraceCompletion << std::endl;
 		ini << "smartindent=" << Editor.SmartIndent << std::endl;
+		ini << "autoindentonpaste=" << Editor.AutoIndentOnPaste << std::endl;
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 		ini << "functooltips=" << Editor.FunctionTooltips << std::endl;

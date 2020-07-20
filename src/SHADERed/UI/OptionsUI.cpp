@@ -553,7 +553,7 @@ namespace ed {
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
-		ImGui::Text("Active autocomplete: ");
+		ImGui::Text("Continuous autocomplete: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_active_smart_pred", &settings->Editor.ActiveSmartPredictions);
 		if (!settings->Editor.SmartPredictions) {
@@ -634,6 +634,11 @@ namespace ed {
 		ImGui::Text("Smart indenting: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_smartindent", &settings->Editor.SmartIndent);
+
+		/* AUTO INDENT ON PASTE: */
+		ImGui::Text("Auto indent on paste: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_paste_indnet", &settings->Editor.AutoIndentOnPaste);
 
 		/* INSERT SPACES: */
 		ImGui::Text("Insert spaces on tab press: ");

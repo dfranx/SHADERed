@@ -485,6 +485,7 @@ namespace ed {
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
 			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
 			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetAutoIndentOnPaste(Settings::Instance().Editor.AutoIndentOnPaste);
 			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
 			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
@@ -703,6 +704,7 @@ namespace ed {
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
 			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
 			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetAutoIndentOnPaste(Settings::Instance().Editor.AutoIndentOnPaste);
 			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
 			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
@@ -814,6 +816,7 @@ namespace ed {
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
 			editor->SetInsertSpaces(Settings::Instance().Editor.InsertSpaces);
 			editor->SetSmartIndent(Settings::Instance().Editor.SmartIndent);
+			editor->SetAutoIndentOnPaste(Settings::Instance().Editor.AutoIndentOnPaste);
 			editor->SetShowWhitespaces(Settings::Instance().Editor.ShowWhitespace);
 			editor->SetHighlightLine(Settings::Instance().Editor.HiglightCurrentLine);
 			editor->SetShowLineNumbers(Settings::Instance().Editor.LineNumbers);
