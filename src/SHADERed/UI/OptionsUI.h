@@ -2,6 +2,7 @@
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/UI/UIView.h>
+#include <ImGuiColorTextEdit/TextEditor.h>
 
 namespace ed {
 	class OptionsUI : public UIView {
@@ -9,6 +10,7 @@ namespace ed {
 		enum class Page {
 			General,
 			Editor,
+			CodeSnippets,
 			Debug,
 			Shortcuts,
 			Preview,
@@ -23,10 +25,15 @@ namespace ed {
 		{
 			memset(m_shortcutSearch, 0, 256);
 			memset(m_pluginSearch, 0, 256);
+			memset(m_snippetDisplay, 0, 32);
+			memset(m_snippetSearch, 0, 32);
+			memset(m_snippetLanguage, 0, 32);
 			m_pluginNotLoadedLB = 0;
 			m_pluginLoadedLB = 0;
 			m_overwriteShortcutOpened = false;
 			m_pluginRequiresRestart = false;
+
+			m_initSnippetEditor();
 		}
 		//using UIView::UIView;
 
@@ -48,9 +55,10 @@ namespace ed {
 				case 8: m_msaaChoice = 3; break;
 				default: m_msaaChoice = 0; break;
 				}
-			} else if (m_page == Page::Plugins) {
+			} else if (m_page == Page::Plugins)
 				m_loadPluginList();
-			}
+			else if (m_page == Page::CodeSnippets)
+				m_initSnippetEditor();
 		}
 		Page GetGroup() { return m_page; }
 
@@ -72,11 +80,18 @@ namespace ed {
 
 		bool m_pluginRequiresRestart;
 
+		char m_snippetLanguage[32];
+		char m_snippetDisplay[32];
+		char m_snippetSearch[32];
+		TextEditor m_snippetCode;
+
 		char m_pluginSearch[256];
 		std::vector<std::string> m_pluginsNotLoaded, m_pluginsLoaded;
 		int m_pluginNotLoadedLB,
 			m_pluginLoadedLB;
 		void m_loadPluginList();
+
+		void m_initSnippetEditor();
 
 		std::vector<std::string> m_themes;
 		void m_loadThemeList();
@@ -88,5 +103,6 @@ namespace ed {
 		void m_renderDebug();
 		void m_renderPlugins();
 		void m_renderProject();
+		void m_renderCodeSnippets();
 	};
 }

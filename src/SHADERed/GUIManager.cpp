@@ -201,6 +201,8 @@ namespace ed {
 		m_kbInfo.SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());
 		m_kbInfo.SetReadOnly(true);
 
+		((CodeEditorUI*)Get(ViewID::Code))->LoadSnippets();
+
 		m_splashScreenLoad();
 	}
 	GUIManager::~GUIManager()
@@ -1900,8 +1902,11 @@ namespace ed {
 	}
 	void GUIManager::Destroy()
 	{
-		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(false);
-		((CodeEditorUI*)Get(ViewID::Code))->StopThreads();
+		CodeEditorUI* codeUI = ((CodeEditorUI*)Get(ViewID::Code));
+
+		codeUI->SaveSnippets();
+		codeUI->SetTrackFileChanges(false);
+		codeUI->StopThreads();
 	}
 
 	int GUIManager::AreYouSure()
@@ -2097,10 +2102,11 @@ namespace ed {
 	void GUIManager::m_renderOptions()
 	{
 		OptionsUI* options = (OptionsUI*)m_options;
-		static const char* optGroups[7] = {
+		static const char* optGroups[8] = {
 			"General",
 			"Editor",
-			"Debug",
+			"Code snippets",
+			"Debugger",
 			"Shortcuts",
 			"Preview",
 			"Plugins",

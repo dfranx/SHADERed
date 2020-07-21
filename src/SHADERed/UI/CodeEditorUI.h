@@ -15,6 +15,13 @@
 #include <shared_mutex>
 
 namespace ed {
+	struct CodeSnippet {
+		std::string Language;
+		std::string Display;
+		std::string Search;
+		std::string Code;
+	};
+
 	class CodeEditorUI : public UIView {
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false);
@@ -22,6 +29,12 @@ namespace ed {
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
+
+		void LoadSnippets();
+		void SaveSnippets();
+		void AddSnippet(const std::string& lang, const std::string& display, const std::string& search, const std::string& code);
+		void RemoveSnippet(const std::string& lang, const std::string& display);
+		inline const std::vector<CodeSnippet>& GetSnippets() { return m_snippets; }
 
 		void UpdateAutoRecompileItems();
 
@@ -73,6 +86,8 @@ namespace ed {
 
 		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin1* plugin, int languageID);
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
+
+		std::vector<CodeSnippet> m_snippets;
 
 		struct PluginShaderEditor {
 			PluginShaderEditor()

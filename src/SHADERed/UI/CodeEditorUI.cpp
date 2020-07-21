@@ -381,6 +381,70 @@ namespace ed {
 		}
 	}
 
+	void CodeEditorUI::LoadSnippets()
+	{
+		std::string snippetsFileLoc = "data/snippets.xml";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			snippetsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/snippets.xml";
+
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_file(snippetsFileLoc.c_str());
+		if (!result)
+			return;
+
+		m_snippets.clear();
+
+		pugi::xml_node snippetsList = doc.child("snippets");
+		for (pugi::xml_node snippetNode : snippetsList.children("snippet")) {
+			CodeSnippet snippet;
+
+			snippet.Language = snippetNode.child("language").text().as_string();
+			snippet.Display = snippetNode.child("display").text().as_string();
+			snippet.Search = snippetNode.child("search").text().as_string();
+			snippet.Code = snippetNode.child("code").text().as_string();
+
+			m_snippets.push_back(snippet);
+		}
+	}
+	void CodeEditorUI::SaveSnippets()
+	{
+		pugi::xml_document doc;
+		pugi::xml_node snippetsList = doc.append_child("snippets");
+
+		for (const auto& snippet : m_snippets) {
+			pugi::xml_node snippetNode = snippetsList.append_child("snippet");
+
+			snippetNode.append_child("language").text().set(snippet.Language.c_str());
+			snippetNode.append_child("display").text().set(snippet.Display.c_str());
+			snippetNode.append_child("search").text().set(snippet.Search.c_str());
+			snippetNode.append_child("code").text().set(snippet.Code.c_str());
+		}
+
+		std::string snippetsFileLoc = "data/snippets.xml";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			snippetsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/snippets.xml";
+		doc.save_file(snippetsFileLoc.c_str());
+	}
+	void CodeEditorUI::AddSnippet(const std::string& lang, const std::string& display, const std::string& search, const std::string& code)
+	{
+		RemoveSnippet(lang, display);
+
+		CodeSnippet snip;
+		snip.Language = lang;
+		snip.Display = display;
+		snip.Search = search;
+		snip.Code = code;
+		m_snippets.push_back(snip);
+	}
+	void CodeEditorUI::RemoveSnippet(const std::string& lang, const std::string& display)
+	{
+		for (int i = 0; i < m_snippets.size(); i++)
+			if (m_snippets[i].Language == lang && m_snippets[i].Display == display) {
+				m_snippets.erase(m_snippets.begin() + i);
+				i--;
+			}
+	}
+
 	void CodeEditorUI::ChangePluginShaderEditor(IPlugin1* plugin, int langID, int editorID)
 	{
 		PluginShaderEditor* plEditor = nullptr;
@@ -479,7 +543,9 @@ namespace ed {
 	}
 	void CodeEditorUI::ApplySettings()
 	{
-		for (TextEditor* editor : m_editor) {
+		const std::vector<IPlugin1*>& plugins = m_data->Plugins.Plugins();
+		for (int i = 0; i < m_editor.size(); i++) {
+			TextEditor* editor = m_editor[i];
 			if (editor == nullptr)
 				continue; 
 			editor->SetTabSize(Settings::Instance().Editor.TabSize);
@@ -498,6 +564,23 @@ namespace ed {
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
+			
+			editor->ClearAutocompleteEntries();
+
+			plugin::ShaderStage stage = (plugin::ShaderStage)m_shaderStage[i];
+			for (IPlugin1* plugin : plugins) {
+				for (int i = 0; i < plugin->Autocomplete_GetCount(stage); i++) {
+					const char* displayString = plugin->Autocomplete_GetDisplayString(stage, i);
+					const char* searchString = plugin->Autocomplete_GetSearchString(stage, i);
+					const char* value = plugin->Autocomplete_GetValue(stage, i);
+
+					editor->AddAutocompleteEntry(searchString, displayString, value);
+				}
+			}
+			for (const auto& snippet : m_snippets)
+				if (editor->GetLanguageDefinition().mName == snippet.Language)
+					editor->AddAutocompleteEntry(snippet.Search, snippet.Display, snippet.Code);
+
 			m_loadEditorShortcuts(editor);
 		}
 
@@ -583,6 +666,7 @@ namespace ed {
 
 		// pass the data to text editor
 		tEdit->ClearAutocompleteData();
+		tEdit->ClearAutocompleteEntries();
 
 		// spirv parser
 		for (const auto& pair : spv.Functions)
@@ -611,6 +695,11 @@ namespace ed {
 				tEdit->AddAutocompleteEntry(searchString, displayString, value);
 			}
 		}
+
+		// snippets
+		for (const auto& snippet : m_snippets)
+			if (tEdit->GetLanguageDefinition().mName == snippet.Language)
+				tEdit->AddAutocompleteEntry(snippet.Search, snippet.Display, snippet.Code);
 
 		// colorize if needed
 		if (changed)

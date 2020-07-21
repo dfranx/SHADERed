@@ -72,6 +72,8 @@ namespace ed {
 			m_renderPlugins();
 		else if (m_page == Page::Project)
 			m_renderProject();
+		else if (m_page == Page::CodeSnippets)
+			m_renderCodeSnippets();
 
 		ImGui::EndChild();
 
@@ -160,6 +162,26 @@ namespace ed {
 				}
 			}
 		}
+	}
+	void OptionsUI::m_initSnippetEditor()
+	{
+		m_snippetCode.SetSidebarVisible(false);
+		m_snippetCode.SetSearchEnabled(false);
+		m_snippetCode.SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
+		m_snippetCode.SetTabSize(4);
+		m_snippetCode.SetInsertSpaces(false);
+		m_snippetCode.SetSmartIndent(true);
+		m_snippetCode.SetAutoIndentOnPaste(false);
+		m_snippetCode.SetShowWhitespaces(true);
+		m_snippetCode.SetHighlightLine(false);
+		m_snippetCode.SetShowLineNumbers(false);
+		m_snippetCode.SetCompleteBraces(false);
+		m_snippetCode.SetHorizontalScroll(true);
+		m_snippetCode.SetSmartPredictions(false);
+		m_snippetCode.SetActiveAutocomplete(false);
+		m_snippetCode.SetColorizerEnable(true);
+		m_snippetCode.SetScrollbarMarkers(false);
+		m_snippetCode.SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());		
 	}
 	void OptionsUI::m_loadThemeList()
 	{
@@ -988,5 +1010,85 @@ namespace ed {
 				}
 		}
 		ImGui::Unindent(settings->CalculateSize(250));
+	}
+	void OptionsUI::m_renderCodeSnippets()
+	{
+		CodeEditorUI* codeUI = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
+		const auto& snippets = codeUI->GetSnippets();
+
+		ImGui::BeginChild("##optcs_table_container", ImVec2(0, Settings::Instance().CalculateSize(-180)));
+		if (ImGui::BeginTable("##optcs_table", 4, ImGuiTableFlags_BordersInner | ImGuiTableFlags_Resizable)) {
+			ImGui::TableSetupColumn("Language", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Display", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Search", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Snippet", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableAutoHeaders();
+
+			int rowIndex = 0;
+			for (const auto& snippet : snippets) {
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text(snippet.Language.c_str());
+				ImGui::TableSetColumnIndex(1);
+				if (ImGui::Selectable((snippet.Display + "##csrow" + std::to_string(rowIndex)).c_str())) {
+					strcpy(m_snippetLanguage, snippet.Language.c_str());
+					strcpy(m_snippetDisplay, snippet.Display.c_str());
+					strcpy(m_snippetSearch, snippet.Search.c_str());
+					m_snippetCode.SetText(snippet.Code);
+				}
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(snippet.Search.c_str());
+				ImGui::TableSetColumnIndex(3);
+				ImGui::Text(snippet.Code.c_str());
+				rowIndex++;
+			}
+			ImGui::EndTable();
+		}
+		ImGui::EndChild();
+
+
+		if (ImGui::BeginTable("##optcs_user", 5, ImGuiTableFlags_BordersInner)) {
+			ImGui::TableSetupColumn("Language", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Display", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Search", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Snippet", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableAutoHeaders();
+
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				ImGui::PushItemWidth(Settings::Instance().CalculateSize(100));
+				if (ImGui::BeginCombo("##optcs_lang", m_snippetLanguage)) {
+					if (ImGui::Selectable("HLSL", strcmp(m_snippetLanguage, "HLSL") == 0))
+						strcpy(m_snippetLanguage, "HLSL");
+					if (ImGui::Selectable("GLSL", strcmp(m_snippetLanguage, "GLSL") == 0))
+						strcpy(m_snippetLanguage, "GLSL");
+					if (ImGui::Selectable("*", strcmp(m_snippetLanguage, "*") == 0))
+						strcpy(m_snippetLanguage, "*");
+
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+				ImGui::TableSetColumnIndex(1);
+				ImGui::PushItemWidth(Settings::Instance().CalculateSize(100));
+				ImGui::InputText("##optcs_display", m_snippetDisplay, 32);
+				ImGui::PopItemWidth();
+				ImGui::TableSetColumnIndex(2);
+				ImGui::PushItemWidth(Settings::Instance().CalculateSize(100));
+				ImGui::InputText("##optcs_search", m_snippetSearch, 32);
+				ImGui::PopItemWidth();
+				ImGui::TableSetColumnIndex(3);
+				ImGui::PushFont(codeUI->GetImFont());
+				m_snippetCode.Render("##optcs_code");
+				ImGui::PopFont();
+				ImGui::TableSetColumnIndex(4);
+				if (ImGui::Button("ADD / UPDATE"))
+					codeUI->AddSnippet(m_snippetLanguage, m_snippetDisplay, m_snippetSearch, m_snippetCode.GetText());
+				if (ImGui::Button("REMOVE"))
+					codeUI->RemoveSnippet(m_snippetLanguage, m_snippetDisplay);
+
+			ImGui::EndTable();
+		}
 	}
 }
