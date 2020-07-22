@@ -10,37 +10,37 @@ Collapsed=0
 
 [Window][Pinned]
 Pos=0,471
-Size=338,544
+Size=282,544
 Collapsed=0
 DockId=0x00000004,1
 
 [Window][Preview]
-Pos=340,25
-Size=1508,810
+Pos=284,25
+Size=1257,810
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Output]
-Pos=340,837
-Size=1508,178
+Pos=284,837
+Size=1257,178
 Collapsed=0
 DockId=0x00000006,0
 
 [Window][Objects]
 Pos=0,25
-Size=338,444
+Size=282,444
 Collapsed=0
 DockId=0x00000003,1
 
 [Window][Pipeline]
 Pos=0,25
-Size=338,444
+Size=282,444
 Collapsed=0
 DockId=0x00000003,0
 
 [Window][Properties]
 Pos=0,471
-Size=338,544
+Size=282,544
 Collapsed=0
 DockId=0x00000004,0
 
@@ -56,8 +56,8 @@ Collapsed=0
 DockId=0x00000009,0
 
 [Window][###code_viewPS0]
-Pos=340,294
-Size=723,721
+Pos=284,25
+Size=602,990
 Collapsed=0
 DockId=0x0000000A,0
 
@@ -109,7 +109,7 @@ Collapsed=0
 DockId=0x00000007,0
 
 [Window][Pixel Inspect]
-Pos=1545,25
+Pos=1543,25
 Size=305,990
 Collapsed=0
 DockId=0x0000001D,0
@@ -121,26 +121,26 @@ Collapsed=0
 DockId=0x0000001C,0
 
 [Window][Variables]
-Pos=1545,345
-Size=305,346
+Pos=1543,500
+Size=305,515
 Collapsed=0
 DockId=0x0000001E,0
 
 [Window][Function stack]
-Pos=889,837
-Size=654,178
+Pos=888,837
+Size=653,178
 Collapsed=0
 DockId=0x00000006,1
 
 [Window][Breakpoints]
-Pos=889,837
-Size=654,178
+Pos=888,837
+Size=653,178
 Collapsed=0
 DockId=0x00000006,2
 
 [Window][Immediate]
-Pos=889,837
-Size=654,178
+Pos=888,837
+Size=653,178
 Collapsed=0
 DockId=0x00000006,3
 
@@ -148,6 +148,22 @@ DockId=0x00000006,3
 Pos=0,0
 Size=1848,1016
 Collapsed=0
+
+[Window][Changelog##main_upd_changelog]
+Pos=728,286
+Size=391,444
+Collapsed=0
+
+[Window][About##main_about]
+Pos=781,392
+Size=285,232
+Collapsed=0
+
+[Window][Watches]
+Pos=1543,500
+Size=305,515
+Collapsed=0
+DockId=0x0000001E,1
 
 [Docking][Data]
 DockSpace                 ID=0x160B189F Window=0x912BA114 Pos=0,25 Size=1848,990 Split=X

@@ -34,12 +34,14 @@ bin/SHADERed.exe
 bin/plugins/*
 bin/Debug
 bin/Release
+lib
 
 # Local application settings
 settings.ini
 bin/data/plugin_settings.ini
 bin/data/preload.dat
 bin/data/workspace.dat
+bin/data/snippets.xml
 
 # Autoupdate information
 bin/current_version.txt

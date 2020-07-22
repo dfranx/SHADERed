@@ -1,5 +1,5 @@
 #include <SHADERed/Objects/DebugInformation.h>
-// #include <SHADERed/Objects/Debug/ExpressionCompiler.h>
+#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <iomanip>
