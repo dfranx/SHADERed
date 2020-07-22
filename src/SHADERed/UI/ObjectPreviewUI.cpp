@@ -319,6 +319,17 @@ namespace ed {
 							}
 						}
 
+						if (ImGui::BeginPopupContextItem("##context")) {
+							if (ImGui::Selectable("Save")) {
+								std::string file;
+								bool success = UIHelper::GetSaveFileDialog(file, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
+
+								if (success)
+									m_data->Objects.SaveToFile(item->Name, m_data->Objects.GetObjectManagerItem(item->Name), file);
+							}
+							ImGui::EndPopup();
+						}
+
 						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
 							m_zoom[i].Reset();
 						

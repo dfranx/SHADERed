@@ -193,6 +193,8 @@ namespace ed {
 		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
 
+		void SaveToFile(const std::string& itemName, ObjectManagerItem* item, const std::string& filepath);
+
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);
 		void ResizeImage(const std::string& name, glm::ivec2 size);
 		void ResizeImage3D(const std::string& name, glm::ivec3 size);

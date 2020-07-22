@@ -1694,7 +1694,7 @@ namespace ed {
 
 			// export || cancel
 			if (ImGui::Button("Export")) {
-				m_expcppError = ExportCPP::Export(m_data, m_expcppSavePath, !m_expcppMemoryShaders, m_expcppCmakeFiles, m_expcppProjectName, m_expcppCmakeModules, m_expcppImage, m_expcppCopyImages);
+				m_expcppError = !ExportCPP::Export(m_data, m_expcppSavePath, !m_expcppMemoryShaders, m_expcppCmakeFiles, m_expcppProjectName, m_expcppCmakeModules, m_expcppImage, m_expcppCopyImages);
 				if (!m_expcppError)
 					ImGui::CloseCurrentPopup();
 			}

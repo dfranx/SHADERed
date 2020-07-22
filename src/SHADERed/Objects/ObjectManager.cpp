@@ -13,6 +13,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 
 namespace ed {
 	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd)
@@ -1151,6 +1152,37 @@ namespace ed {
 			if (i->Texture == id)
 				return i->IsCube;
 		return false;
+	}
+	void ObjectManager::SaveToFile(const std::string& itemName, ObjectManagerItem* item, const std::string& filepath)
+	{
+		glm::vec2 imgSize = item->ImageSize;
+		if (item->RT != nullptr)
+			imgSize = GetRenderTextureSize(itemName);
+		else if (item->Image != nullptr)
+			imgSize = item->Image->Size;
+
+		unsigned char* pixels = (unsigned char*)malloc(imgSize.x * imgSize.y * 4);
+
+		GLuint outTex = item->Texture;
+		if (item->Image != nullptr)
+			outTex = item->Image->Texture; // TODO: why doesn't image use item->Texture ??
+
+		glBindTexture(GL_TEXTURE_2D, outTex);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		std::string ext = filepath.substr(filepath.find_last_of('.') + 1);
+
+		if (ext == "jpg" || ext == "jpeg")
+			stbi_write_jpg(filepath.c_str(), imgSize.x, imgSize.y, 4, pixels, 100);
+		else if (ext == "bmp")
+			stbi_write_bmp(filepath.c_str(), imgSize.x, imgSize.y, 4, pixels);
+		else if (ext == "tga")
+			stbi_write_tga(filepath.c_str(), imgSize.x, imgSize.y, 4, pixels);
+		else
+			stbi_write_png(filepath.c_str(), imgSize.x, imgSize.y, 4, pixels, imgSize.x * 4);
+
+		free(pixels);
 	}
 	bool ObjectManager::IsImage(GLuint id)
 	{

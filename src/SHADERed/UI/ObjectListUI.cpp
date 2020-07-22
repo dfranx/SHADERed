@@ -5,6 +5,7 @@
 #include <SHADERed/UI/ObjectListUI.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
+#include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/glm.hpp>
@@ -20,8 +21,8 @@ namespace ed {
 	{
 		ImVec2 containerSize = ImVec2(ImGui::GetWindowContentRegionWidth(), abs(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y));
 		bool itemMenuOpened = false;
-		std::vector<std::string> items = m_data->Objects.GetObjects();
-		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
+		const std::vector<std::string>& items = m_data->Objects.GetObjects();
+		const std::vector<PipelineItem*>& passes = m_data->Pipeline.GetList();
 
 		ImGui::BeginChild("##object_scroll_container", containerSize);
 
@@ -163,6 +164,16 @@ namespace ed {
 				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture) || isImg3D || (isPluginOwner && pobj->Owner->Object_HasProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
 						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(items[i], m_data->Objects.GetObjectManagerItem(items[i]));
+				}
+
+				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture)) {
+					if (ImGui::Selectable("Save")) {
+						std::string file;
+						bool success = UIHelper::GetSaveFileDialog(file, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
+
+						if (success)
+							m_data->Objects.SaveToFile(items[i], oItem, file);
+					}
 				}
 
 				if (oItem->Sound != nullptr) {
