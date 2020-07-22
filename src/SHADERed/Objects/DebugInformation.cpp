@@ -1,5 +1,5 @@
 #include <SHADERed/Objects/DebugInformation.h>
-#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
+// #include <SHADERed/Objects/Debug/ExpressionCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <iomanip>
@@ -734,6 +734,9 @@ namespace ed {
 
 	spvm_result_t DebugInformation::Immediate(const std::string& entry, spvm_result_t& outType)
 	{
+		return nullptr;
+
+		/*
 		m_spvImmediate = m_spv;
 
 		std::string curFunction = "";
@@ -807,6 +810,7 @@ namespace ed {
 		spvm_result_t val = &m_vmImmediate->results[resultID];
 		outType = spvm_state_get_type_info(m_vmImmediate->results, &m_vmImmediate->results[val->pointer]);
 		return val;
+		*/
 	}
 
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
