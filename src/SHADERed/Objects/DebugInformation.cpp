@@ -736,9 +736,13 @@ namespace ed {
 	{
 		m_spvImmediate = m_spv;
 
+		std::string curFunction = "";
+		if (m_vm != nullptr && m_vm->current_function != nullptr)
+			curFunction = m_vm->current_function->name;
+
 		// compile the expression
 		ed::ExpressionCompiler compiler;
-		int resultID = compiler.Compile(entry, m_spvImmediate);
+		int resultID = compiler.Compile(entry, curFunction, m_spvImmediate);
 
 		// error occured
 		if (resultID <= 0)

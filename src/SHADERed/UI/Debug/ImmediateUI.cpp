@@ -47,13 +47,14 @@ namespace ed {
 	{
 		int old_size = m_buffer.size();
 		m_buffer.append((str + "\n").c_str());
-		m_isUserInput.push_back(isUserInput);
-		m_hasColorPreview.push_back(hasColorPreview);
-		m_colorPreview.push_back(color);
 
 		for (int new_size = m_buffer.size(); old_size < new_size; old_size++)
-			if (m_buffer[old_size] == '\n')
+			if (m_buffer[old_size] == '\n') {
 				m_lineOffsets.push_back(old_size + 1);
+				m_isUserInput.push_back(isUserInput);
+				m_hasColorPreview.push_back(hasColorPreview);
+				m_colorPreview.push_back(color);
+			}
 	}
 	void DebugImmediateUI::OnEvent(const SDL_Event& e)
 	{

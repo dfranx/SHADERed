@@ -32,8 +32,10 @@ namespace ed {
 	ExpressionCompiler::~ExpressionCompiler()
 	{
 	}
-	int ExpressionCompiler::Compile(const std::string& expr, std::vector<unsigned int>& spv)
+	int ExpressionCompiler::Compile(const std::string& expr, const std::string& curFunction, std::vector<unsigned int>& spv)
 	{
+		// TODO: pass current line number too? -> when curFunction is overloaded
+
 		if (expr.empty())
 			return -1;
 
@@ -63,14 +65,35 @@ namespace ed {
 			if (n->GetNodeType() == expr::NodeType::Identifier)
 				m_vars[((expr::IdentifierNode*)n)->Name] = nullptr;
 		
+		// search for local variables in the entrypoints
+		for (auto& entryPoint : m_module->getEntryPoints()) {
+			if (curFunction == std::string(entryPoint.getName())) {
+				spvgentwo::BasicBlock& bb = entryPoint.front();
+				for (auto& inst : bb) {
+					const char* iName = inst.getName();
+					if (m_vars.count(iName) && m_vars[iName] == nullptr)
+						m_vars[iName] = &inst;
+				}
+			}
+		}
+
+		// search for local variables first
+		for (auto& func : m_module->getFunctions()) {
+			spvgentwo::BasicBlock& bb = *func;
+			if (curFunction == std::string(func.getName())) {
+				for (auto& inst : bb) {
+					const char* iName = inst.getName();
+					if (m_vars.count(iName) && m_vars[iName] == nullptr)
+						m_vars[iName] = &inst;
+				}
+			}
+		}
 
 		// I know this is super hacky but meh, it works
 		m_module->iterateInstructions([&](spvgentwo::Instruction& inst) {
 			const char* iName = inst.getName();
-			if (iName[0] != 0) {
-				if (m_vars.count(iName))
-					m_vars[iName] = &inst;
-			}
+			if (m_vars.count(iName) && m_vars[iName] == nullptr)
+				m_vars[iName] = &inst;
 		});
 
 		// check if a non existing variable is being used
@@ -575,9 +598,10 @@ namespace ed {
 			if (obj->getType()->isVector())
 				return m_swizzle(obj, maccess->Field);
 			else if (obj->getType()->isStruct()) {
+				spvgentwo::Instruction* objType = obj->getTypeInstr();
 				const char* member = nullptr;
 				int memberIndex = 0;
-				while ((member = obj->getName(memberIndex++))[0] != 0) {
+				while ((member = objType->getName(memberIndex++))[0] != 0) {
 					if (strcmp(maccess->Field, member) == 0)
 						return bb->opCompositeExtract(obj, memberIndex - 1);
 				}

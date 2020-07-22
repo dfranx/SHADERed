@@ -578,7 +578,7 @@ namespace ed {
 				}
 			}
 			for (const auto& snippet : m_snippets)
-				if (editor->GetLanguageDefinition().mName == snippet.Language)
+				if (editor->GetLanguageDefinition().mName == snippet.Language || snippet.Language == "*")
 					editor->AddAutocompleteEntry(snippet.Search, snippet.Display, snippet.Code);
 
 			m_loadEditorShortcuts(editor);

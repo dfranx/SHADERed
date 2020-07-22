@@ -12,7 +12,7 @@ namespace ed {
 		ExpressionCompiler();
 		~ExpressionCompiler();
 
-		int Compile(const std::string& expr, std::vector<unsigned int>& spv);
+		int Compile(const std::string& expr, const std::string& curFunction, std::vector<unsigned int>& spv);
 
 		std::vector<std::string> GetVariableList();
 
