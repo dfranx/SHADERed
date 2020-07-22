@@ -104,6 +104,8 @@ int main(int argc, char* argv[])
 				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data");
 			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "themes"))
 				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "themes");
+			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "plugins"))
+				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "plugins");
 		}
 	}
 #endif

@@ -49,7 +49,11 @@ namespace ed {
 	}
 	void PluginManager::Init(InterfaceManager* data, GUIManager* ui)
 	{
-		if (!std::filesystem::exists("./plugins/")) {
+		std::string pluginsDirLoc = "./plugins/";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			pluginsDirLoc = ed::Settings::Instance().LinuxHomeDirectory + "plugins/";
+
+		if (!std::filesystem::exists(pluginsDirLoc)) {
 			ed::Logger::Get().Log("Directory for plugins doesn't exist");
 			return;
 		}
@@ -73,12 +77,12 @@ namespace ed {
 		std::vector<std::string> allNames;
 		std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
 
-		for (const auto& entry : std::filesystem::directory_iterator("./plugins/")) {
+		for (const auto& entry : std::filesystem::directory_iterator(pluginsDirLoc)) {
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().string();
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-				void* procDLL = dlopen(("./plugins/" + pdir + "/plugin.so").c_str(), RTLD_NOW);
+				void* procDLL = dlopen((pluginsDirLoc + pdir + "/plugin.so").c_str(), RTLD_NOW);
 
 				if (!procDLL) {
 					ed::Logger::Get().Log("dlopen(\"" + pdir + "/plugin.so\") has failed.");

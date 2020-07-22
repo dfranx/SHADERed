@@ -1048,6 +1048,9 @@ namespace ed {
 		if (vars.size() > 0) {
 			pugi::xml_node varsNodes = node.append_child("variables");
 			for (const auto& var : vars) {
+				if (var->GetType() == ShaderVariable::ValueType::Count)
+					continue;
+					
 				pugi::xml_node varNode = varsNodes.append_child("variable");
 				varNode.append_attribute("type").set_value(VARIABLE_TYPE_NAMES[(int)var->GetType()]);
 				varNode.append_attribute("name").set_value(var->Name);

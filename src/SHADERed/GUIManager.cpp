@@ -139,6 +139,11 @@ namespace ed {
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_DockingEnable /*| ImGuiConfigFlags_ViewportsEnable TODO: allow this on windows? test on linux?*/;
 		io.ConfigDockingWithShift = false;
 
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty()) {
+			if (!std::filesystem::exists(m_uiIniFile) && std::filesystem::exists("data/workspace.dat"))
+				ImGui::LoadIniSettingsFromDisk("data/workspace.dat");
+		}
+
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowMenuButtonPosition = ImGuiDir_Right;
 
@@ -2322,10 +2327,12 @@ namespace ed {
 										valType = formMatrixType(getTypeFromSPV(type.BaseType), type.TypeComponentCount);
 								}
 
-								ShaderVariable newVariable = ShaderVariable(valType, name.c_str(), SystemShaderVariable::None);
-								ShaderVariable* ptr = varManager.AddCopy(newVariable);
-								if (Settings::Instance().General.AutoUniformsPin)
-									pinUI->Add(ptr);
+								if (valType != ShaderVariable::ValueType::Count) {
+									ShaderVariable newVariable = ShaderVariable(valType, name.c_str(), SystemShaderVariable::None);
+									ShaderVariable* ptr = varManager.AddCopy(newVariable);
+									if (Settings::Instance().General.AutoUniformsPin)
+										pinUI->Add(ptr);
+								}
 							}
 						} else {
 							// branch
@@ -2346,10 +2353,12 @@ namespace ed {
 						usage = SystemVariableManager::GetTypeFromName(unif.Name);
 
 					// add and pin
-					ShaderVariable newVariable = ShaderVariable(valType, unif.Name.c_str(), usage);
-					ShaderVariable* ptr = varManager.AddCopy(newVariable);
-					if (Settings::Instance().General.AutoUniformsPin && usage == SystemShaderVariable::None)
-						pinUI->Add(ptr);
+					if (valType != ShaderVariable::ValueType::Count) {
+						ShaderVariable newVariable = ShaderVariable(valType, unif.Name.c_str(), usage);
+						ShaderVariable* ptr = varManager.AddCopy(newVariable);
+						if (Settings::Instance().General.AutoUniformsPin && usage == SystemShaderVariable::None)
+							pinUI->Add(ptr);
+					}
 				}
 			}
 		}
