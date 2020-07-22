@@ -46,7 +46,6 @@ set(SOURCES
 	src/SHADERed/Objects/TipFetcher.cpp
 	src/SHADERed/Objects/UpdateChecker.cpp
 	src/SHADERed/Objects/PluginManager.cpp
-	src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
 
 # UI Tools
 	src/SHADERed/UI/Tools/CubemapPreview.cpp
@@ -141,7 +140,13 @@ find_package(GLM REQUIRED)
 find_package(SFML COMPONENTS system audio network)
 
 # SpvGenTwo
-add_subdirectory(libs/SpvGenTwo)
+if(NOT APPLE)
+	set(SOURCES
+		"${SOURCES}"
+		src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
+	)
+	add_subdirectory(libs/SpvGenTwo)
+endif()
 
 # assimp
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Static lib" FORCE)
@@ -196,7 +201,12 @@ if (NOT WIN32)
 endif()
 
 # link libraries 
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SpvGenTwoLib SpvGenTwoCommon SPIRV SPIRVVM assimp::assimp)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
+
+# link SpvGenTwo
+if (NOT APPLE)
+	target_link_libraries(SHADERed SpvGenTwoLib SpvGenTwoCommon)
+endif()
 
 # link sfml
 if(${USE_FINDSFML})

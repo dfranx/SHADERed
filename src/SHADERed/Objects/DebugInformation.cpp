@@ -1,5 +1,7 @@
 #include <SHADERed/Objects/DebugInformation.h>
-#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
+#ifndef __APPLE__ // TODO
+	#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
+#endif
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <iomanip>
@@ -734,6 +736,7 @@ namespace ed {
 
 	spvm_result_t DebugInformation::Immediate(const std::string& entry, spvm_result_t& outType)
 	{
+#ifndef __APPLE__ // TODO
 		m_spvImmediate = m_spv;
 
 		std::string curFunction = "";
@@ -807,6 +810,9 @@ namespace ed {
 		spvm_result_t val = &m_vmImmediate->results[resultID];
 		outType = spvm_state_get_type_info(m_vmImmediate->results, &m_vmImmediate->results[val->pointer]);
 		return val;
+#else
+		return nullptr; // TODO: enable DebugInformation::Immediate() for macOS devices
+#endif
 	}
 
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
