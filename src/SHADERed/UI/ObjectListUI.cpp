@@ -211,7 +211,7 @@ namespace ed {
 					if (isBuf) {
 						auto& passes = m_data->Pipeline.GetList();
 						for (int j = 0; j < passes.size(); j++) {
-							if (passes[i]->Type != PipelineItem::ItemType::ShaderPass)
+							if (passes[j]->Type != PipelineItem::ItemType::ShaderPass)
 								continue;
 
 							pipe::ShaderPass* pdata = (pipe::ShaderPass*)passes[j]->Data;
