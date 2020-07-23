@@ -7,6 +7,7 @@
 + add code snippets (located in Options)
 + add a feature that allows exporting images, textures & render textures to an image file
 + add ability to disable compute pass
++ add ability to update image's content from a loaded texture
 + add markers to text editor's scrollbar
 + add "Auto indent on paste" option
 + add IsSavingToFile system variable

@@ -354,6 +354,7 @@ namespace ed {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+		memset(iObj->DataPath, 0, sizeof(char) * SHADERED_MAX_PATH);
 		iObj->Size = size;
 		iObj->Format = GL_RGBA32F;
 
@@ -1152,6 +1153,45 @@ namespace ed {
 			if (i->Texture == id)
 				return i->IsCube;
 		return false;
+	}
+	void ObjectManager::UploadDataToImage(ImageObject* img, GLuint tex, glm::ivec2 texSize)
+	{
+		if (tex != 0 && texSize.x != 0 && texSize.y != 0) {
+			int width = std::min<int>(img->Size.x, texSize.x);
+			int height = std::min<int>(img->Size.y, texSize.y);
+
+			bool needsResize = width != texSize.x;
+
+			unsigned char* pixels = (unsigned char*)malloc(texSize.x * texSize.y * 4);
+			unsigned char* resPixels = pixels;
+
+			// read pixels
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+			if (needsResize) {
+				resPixels = (unsigned char*)malloc(width * height * 4);
+				for (int y = 0; y < height; y++)
+					memcpy(&resPixels[(height - y - 1) * width * 4], &pixels[(texSize.y - y - 1) * texSize.x * 4], width * 4);
+			}
+
+			glBindTexture(GL_TEXTURE_2D, img->Texture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, resPixels);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			if (needsResize)
+				free(resPixels);
+
+			free(pixels);
+		} else {
+			unsigned char* pixels = (unsigned char*)calloc(img->Size.x * img->Size.y, 4);
+
+			glBindTexture(GL_TEXTURE_2D, img->Texture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, img->Size.x, img->Size.y, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			free(pixels);
+		}
 	}
 	void ObjectManager::SaveToFile(const std::string& itemName, ObjectManagerItem* item, const std::string& filepath)
 	{

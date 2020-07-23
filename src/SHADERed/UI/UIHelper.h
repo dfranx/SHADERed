@@ -23,6 +23,8 @@ namespace ed {
 		static bool GetOpenDirectoryDialog(std::string& outPath);
 		static bool GetOpenFileDialog(std::string& outPath, const std::string& files = "");
 		static bool GetSaveFileDialog(std::string& outPath, const std::string& files = "");
+		
+		static int MessageBox_YesNoCancel(void* window, const std::string& msg);
 
 		static void ShellOpen(const std::string& path);
 

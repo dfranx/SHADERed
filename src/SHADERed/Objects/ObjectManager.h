@@ -56,6 +56,7 @@ namespace ed {
 		glm::ivec2 Size;
 		GLuint Format;
 		GLuint Texture;
+		char DataPath[SHADERED_MAX_PATH];
 	};
 
 	struct Image3DObject {
@@ -193,6 +194,7 @@ namespace ed {
 		bool IsImage(GLuint id);
 		bool IsCubeMap(GLuint id);
 
+		void UploadDataToImage(ImageObject* img, GLuint tex, glm::ivec2 texSize);
 		void SaveToFile(const std::string& itemName, ObjectManagerItem* item, const std::string& filepath);
 
 		void ResizeRenderTexture(const std::string& name, glm::ivec2 size);

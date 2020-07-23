@@ -596,6 +596,9 @@ namespace ed {
 				if (isImage) {
 					ImageObject* iobj = m_objects->GetImage(texs[i]);
 
+					if (iobj->DataPath[0] != 0)
+						textureNode.append_attribute("data").set_value(iobj->DataPath);
+
 					textureNode.append_attribute("width").set_value(iobj->Size.x);
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
@@ -2841,6 +2844,10 @@ namespace ed {
 
 				m_objects->CreateImage(objName);
 				ImageObject* iobj = m_objects->GetImage(objName);
+
+				// data path
+				if (!objectNode.attribute("data").empty())
+					strcpy(iobj->DataPath, objectNode.attribute("data").as_string());
 
 				// load format
 				if (!objectNode.attribute("format").empty()) {

@@ -1919,29 +1919,9 @@ namespace ed {
 
 	int GUIManager::AreYouSure()
 	{
-		const SDL_MessageBoxButtonData buttons[] = {
-			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
-			{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
-			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
-		};
-		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_INFORMATION,						/* .flags */
-			m_wnd,											/* .window */
-			"SHADERed",										/* .title */
-			"Save changes to the project before quitting?", /* .message */
-			SDL_arraysize(buttons),							/* .numbuttons */
-			buttons,										/* .buttons */
-			NULL											/* .colorScheme */
-		};
-		int buttonid;
-		if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
-			Logger::Get().Log("Failed to open message box.", true);
-			return -1;
-		}
-
+		int buttonid = UIHelper::MessageBox_YesNoCancel(m_wnd, "Save changes to the project before quitting?");
 		if (buttonid == 0) // save
 			Save();
-
 		return buttonid;
 	}
 	void GUIManager::m_tooltip(const std::string& text)

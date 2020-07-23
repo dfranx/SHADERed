@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <imgui_markdown/imgui_markdown.h>
 #include <tinyfiledialogs/tinyfiledialogs.h>
+#include <SDL2/SDL_messagebox.h>
 #include <clocale>
 #include <iomanip>
 #include <sstream>
@@ -56,6 +57,30 @@ namespace ed {
 #elif defined(_WIN32)
 		ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
 #endif
+	}
+	int UIHelper::MessageBox_YesNoCancel(void* window, const std::string& msg)
+	{
+		const SDL_MessageBoxButtonData buttons[] = {
+			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "CANCEL" },
+			{ /* .flags, .buttonid, .text */ 0, 1, "NO" },
+			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "YES" },
+		};
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_INFORMATION, /* .flags */
+			(SDL_Window*)window,		/* .window */
+			"SHADERed",					/* .title */
+			msg.c_str(),				/* .message */
+			SDL_arraysize(buttons),		/* .numbuttons */
+			buttons,					/* .buttons */
+			NULL						/* .colorScheme */
+		};
+		int buttonID;
+		if (SDL_ShowMessageBox(&messageboxdata, &buttonID) < 0) {
+			Logger::Get().Log("Failed to open message box.", true);
+			return -1;
+		}
+
+		return buttonID;
 	}
 	bool UIHelper::CreateBlendOperatorCombo(const char* name, GLenum& opValue)
 	{

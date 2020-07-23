@@ -14,6 +14,7 @@
 #include <glm/gtx/common.hpp>
 
 #define BUTTON_SPACE_LEFT Settings::Instance().CalculateSize(-40)
+#define REFRESH_BUTTON_SPACE_LEFT Settings::Instance().CalculateSize(-70)
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
 namespace ed {
@@ -1200,6 +1201,43 @@ namespace ed {
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* DATA */
+				ImGui::Text("Data:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(REFRESH_BUTTON_SPACE_LEFT);
+				if (ImGui::BeginCombo("##pui_texture_combo", m_currentImg->DataPath[0] == 0 ? "CLEAR" : m_currentImg->DataPath)) {
+					if (ImGui::Selectable("CLEAR", m_currentImg->DataPath[0] == 0))
+						m_currentImg->DataPath[0] = 0;
+
+					
+					const std::vector<std::string>& texNames = m_data->Objects.GetObjects();
+					const std::vector<ObjectManagerItem*>& texData = m_data->Objects.GetItemDataList();
+
+					for (int i = 0; i < texNames.size(); i++)
+						if (texData[i]->IsTexture && !texData[i]->IsKeyboardTexture && ImGui::Selectable(texNames[i].c_str(), texNames[i] == m_currentImg->DataPath))
+							strcpy(m_currentImg->DataPath, texNames[i].c_str());
+
+					ImGui::EndCombo();
+				}
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button("REFRESH##prop_img_refresh")) {
+					int buttonid = UIHelper::MessageBox_YesNoCancel(m_ui->GetSDLWindow(), "Are you sure that you want to update image's content?");
+					
+					if (buttonid == 0) {
+						GLuint tex = 0;
+						glm::ivec2 texSize(0);
+						if (m_currentImg->DataPath[0] != 0) {
+							tex = m_data->Objects.GetTexture(m_currentImg->DataPath);
+							texSize = m_data->Objects.GetTextureSize(m_currentImg->DataPath);
+						}
+
+						m_data->Objects.UploadDataToImage(m_currentImg, tex, texSize);
+					}
+				}
 			} else if (IsTexture()) {
 				std::string path = m_data->Objects.GetObjectManagerItemName(m_currentObj);
 

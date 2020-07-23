@@ -319,7 +319,7 @@ namespace ed {
 							}
 						}
 
-						if (ImGui::BeginPopupContextItem("##context")) {
+						if (!ImGui::GetIO().KeyAlt && ImGui::BeginPopupContextItem("##context")) {
 							if (ImGui::Selectable("Save")) {
 								std::string file;
 								bool success = UIHelper::GetSaveFileDialog(file, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
