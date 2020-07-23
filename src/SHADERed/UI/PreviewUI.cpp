@@ -320,7 +320,7 @@ namespace ed {
 			m_elapsedTime -= (1 / m_fpsLimit) * useFpsLimit + (delta * !useFpsLimit);
 		}
 
-		if (capWholeApp && 1000 / delta > m_fpsLimit)
+		if (capWholeApp && m_fpsLimit > 0 && 1000 / delta > m_fpsLimit)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
 
 		GLuint rtView = renderer->GetTexture();

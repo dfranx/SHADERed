@@ -516,6 +516,7 @@ namespace ed {
 					if (lwr == "horizontalscroll") return seti.Editor.HorizontalScroll;
 					if (lwr == "autobracecompletion") return seti.Editor.AutoBraceCompletion;
 					if (lwr == "smartindent") return seti.Editor.SmartIndent;
+					if (lwr == "autoindentonpaste") return seti.Editor.AutoIndentOnPaste;
 					if (lwr == "insertspaces") return seti.Editor.InsertSpaces;
 					if (lwr == "functiontooltips") return seti.Editor.FunctionTooltips;
 					if (lwr == "syntaxhighlighting") return seti.Editor.SyntaxHighlighting;
