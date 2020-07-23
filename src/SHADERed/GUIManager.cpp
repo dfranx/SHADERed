@@ -35,6 +35,7 @@
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/imgui.h>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <filesystem>
 #include <fstream>
@@ -2406,6 +2407,10 @@ namespace ed {
 	{
 		std::string file;
 		bool success = UIHelper::GetSaveFileDialog(file, "*.sprj");
+
+		if (!boost::algorithm::ends_with(file, ".sprj")) {
+			file += ".sprj";
+		}
 
 		if (success) {
 			m_data->Parser.SaveAs(file, true);
