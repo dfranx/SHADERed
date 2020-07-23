@@ -12,6 +12,7 @@
 + add "Auto indent on paste" option
 + add IsSavingToFile system variable
 + add KeyboardTexture description in Help -> Information
++ fix text editor's "Find and replace" feature
 + fix a bug that would crash SHADERed when using multiple compute shaders
 + fix a bug that would crash SHADERed when deleting a buffer
 + fix a bug that would crash SHADERed when setting FPS limit to 0 while the FPS limit is applied to whole application
