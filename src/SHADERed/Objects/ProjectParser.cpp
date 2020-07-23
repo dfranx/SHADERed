@@ -430,6 +430,7 @@ namespace ed {
 				pipe::ComputePass* passData = (pipe::ComputePass*)passItem->Data;
 
 				passNode.append_attribute("type").set_value("compute");
+				passNode.append_attribute("active").set_value(passData->Active);
 
 				// compute shader
 				pugi::xml_node csNode = passNode.append_child("shader");
@@ -2423,6 +2424,10 @@ namespace ed {
 				}
 			} else if (type == PipelineItem::ItemType::ComputePass) {
 				ed::pipe::ComputePass* data = new ed::pipe::ComputePass();
+
+				data->Active = true;
+				if (!passNode.attribute("active").empty())
+					data->Active = passNode.attribute("active").as_bool();
 
 				// get shader properties (NOTE: a shader must have TYPE, PATH and ENTRY)
 				for (pugi::xml_node shaderNode : passNode.children("shader")) {

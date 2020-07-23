@@ -30,6 +30,7 @@ namespace ed {
 		ViewOrthographic,  // mat4 - View*Orthographic
 		GeometryTransform, // mat4 - apply Scale, Rotation and Position to geometry
 		IsPicked,		   // bool - check if current item is selected
+		IsSavingToFile,    // bool - are we currently rendering to a preview window or to an image file?
 		CameraPosition,	   // vec4 - current camera position
 		CameraPosition3,   // vec3 - current camera position
 		CameraDirection3,  // vec3 - camera view direction

@@ -6,8 +6,10 @@
 + [DEBUGGER] add a feature that executes expressions on hover
 + add code snippets (located in Options)
 + add a feature that allows exporting images, textures & render textures to an image file
++ add ability to disable compute pass
 + add markers to text editor's scrollbar
 + add "Auto indent on paste" option
++ add IsSavingToFile system variable
 + add KeyboardTexture description in Help -> Information
 + fix a bug that would crash SHADERed when using multiple compute shaders
 + fix a bug that would crash SHADERed when deleting a buffer

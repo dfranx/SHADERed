@@ -448,6 +448,9 @@ namespace ed {
 			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
 				pipe::ComputePass* data = (pipe::ComputePass*)it->Data;
 
+				if (!data->Active)
+					continue;
+
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
 				const std::vector<GLuint>& ubos = m_objects->GetUniformBindList(m_items[i]);
 

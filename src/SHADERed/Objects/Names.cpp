@@ -47,6 +47,7 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"ViewOrthographic",
 	"GeometryTransform",
 	"IsPicked",
+	"IsSavingToFile",
 	"CameraPosition",
 	"CameraPosition3",
 	"CameraDirection3",

@@ -1425,6 +1425,8 @@ namespace ed {
 				int actualSizeX = m_previewSaveSize.x * sizeMulti;
 				int actualSizeY = m_previewSaveSize.y * sizeMulti;
 
+				SystemVariableManager::Instance().SetSavingToFile(true);
+
 				// normal render
 				if (!m_savePreviewSeq) {
 					if (actualSizeX > 0 && actualSizeY > 0) {
@@ -1476,7 +1478,6 @@ namespace ed {
 					if (sizeMulti != 1) free(outPixels);
 					free(pixels);
 				} else { // sequence render
-
 					float seqDelta = 1.0f / m_savePreviewSeqFPS;
 
 					if (actualSizeX > 0 && actualSizeY > 0) {
@@ -1625,6 +1626,8 @@ namespace ed {
 						rerenderPreview = true;
 					}
 				}
+
+				SystemVariableManager::Instance().SetSavingToFile(false);
 
 				m_data->Renderer.Pause(m_wasPausedPrior);
 				ImGui::CloseCurrentPopup();

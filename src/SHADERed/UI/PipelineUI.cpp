@@ -48,7 +48,6 @@ namespace ed {
 					continue;
 				}
 
-				bool isShaderPassActive = ((pipe::ShaderPass*)items[i]->Data)->Active;
 				ed::pipe::ShaderPass* data = (ed::pipe::ShaderPass*)items[i]->Data;
 
 				bool showItems = true;
@@ -62,10 +61,10 @@ namespace ed {
 					for (int j = 0; j < data->Items.size(); j++) {
 						m_renderItemUpDown(nullptr, data->Items, j);
 
-						if (!isShaderPassActive)
+						if (!data->Active)
 							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 						m_addItem(data->Items[j]);
-						if (!isShaderPassActive)
+						if (!data->Active)
 							ImGui::PopStyleVar();
 
 						if (m_renderItemContext(data->Items, j)) {
@@ -522,7 +521,7 @@ namespace ed {
 		ShaderVariable::ValueType type = var->GetType();
 
 		bool canInvert = type >= ShaderVariable::ValueType::Float2x2 && type <= ShaderVariable::ValueType::Float4x4;
-		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::IsPicked && var->System != ed::SystemShaderVariable::ViewportSize;
+		bool canLastFrame = var->System != ed::SystemShaderVariable::Time && var->System != ed::SystemShaderVariable::IsPicked && var->System != ed::SystemShaderVariable::IsSavingToFile && var->System != ed::SystemShaderVariable::ViewportSize;
 
 		if (var->System == ed::SystemShaderVariable::PluginVariable)
 			canLastFrame = canLastFrame || var->PluginSystemVarData.Owner->SystemVariables_HasLastFrame(var->PluginSystemVarData.Name, (plugin::VariableType)var->GetType());
@@ -1673,11 +1672,22 @@ namespace ed {
 	{
 		ed::pipe::ComputePass* data = (ed::pipe::ComputePass*)item->Data;
 
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		if (ImGui::Button(std::string(std::string(data->Active ? UI_ICON_EYE : UI_ICON_EYE_BLOCKED) + "##hide" + std::string(item->Name)).c_str(), BUTTON_ICON_SIZE)) {
+			data->Active = !data->Active;
+			m_data->Parser.ModifyProject();
+		}
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+
 		int ewCount = m_data->Messages.GetGroupErrorAndWarningMsgCount(item->Name);
 		if (ewCount > 0)
 			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme)[(int)TextEditor::PaletteIndex::ErrorMessage]);
 		else
 			ImGui::PushStyleColor(ImGuiCol_Text, ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ComputePass);
+		if (!data->Active)
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+
 
 		ImGui::Indent(PIPELINE_SHADER_PASS_INDENT);
 		if (ImGui::Selectable(item->Name, false, ImGuiSelectableFlags_AllowDoubleClick))
@@ -1698,6 +1708,10 @@ namespace ed {
 				}
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
+
+
+		if (!data->Active)
+			ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
 	}
 	void PipelineUI::m_addAudioPass(ed::PipelineItem* item)

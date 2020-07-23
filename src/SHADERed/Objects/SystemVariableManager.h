@@ -29,6 +29,7 @@ namespace ed {
 			m_curState.Viewport = glm::vec2(0, 1);
 			m_curState.MousePosition = glm::vec2(0, 0);
 			m_curState.DeltaTime = 0.0f;
+			m_curState.IsSavingToFile = false;
 			m_curGeoTransform.clear();
 			m_prevGeoTransform.clear();
 		}
@@ -50,6 +51,7 @@ namespace ed {
 			case ed::SystemShaderVariable::ViewOrthographic: return ed::ShaderVariable::ValueType::Float4x4;
 			case ed::SystemShaderVariable::GeometryTransform: return ed::ShaderVariable::ValueType::Float4x4;
 			case ed::SystemShaderVariable::IsPicked: return ed::ShaderVariable::ValueType::Boolean1;
+			case ed::SystemShaderVariable::IsSavingToFile: return ed::ShaderVariable::ValueType::Boolean1;
 			case ed::SystemShaderVariable::CameraPosition: return ed::ShaderVariable::ValueType::Float4;
 			case ed::SystemShaderVariable::CameraPosition3: return ed::ShaderVariable::ValueType::Float3;
 			case ed::SystemShaderVariable::CameraDirection3: return ed::ShaderVariable::ValueType::Float3;
@@ -96,6 +98,7 @@ namespace ed {
 		inline void SetPicked(bool picked) { m_curState.IsPicked = picked; }
 		inline void SetKeysWASD(int w, int a, int s, int d) { m_curState.WASD = glm::ivec4(w, a, s, d); }
 		inline void SetFrameIndex(unsigned int ind) { m_curState.FrameIndex = ind; }
+		inline void SetSavingToFile(bool isSaving) { m_curState.IsSavingToFile = isSaving; }
 
 		inline void AdvanceTimer(float t) { m_advTimer += t; }
 
@@ -103,12 +106,14 @@ namespace ed {
 		eng::Timer m_timer;
 		float m_advTimer;
 
+
 		struct ValueGroup {
 			float DeltaTime;
 			ArcBallCamera ArcCam;
 			FirstPersonCamera FPCam;
 			glm::vec2 Viewport, MousePosition;
 			bool IsPicked;
+			bool IsSavingToFile;
 			unsigned int FrameIndex;
 			glm::ivec4 WASD;
 			glm::vec4 Mouse, MouseButton;

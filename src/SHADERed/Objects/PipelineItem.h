@@ -66,11 +66,14 @@ namespace ed {
 				memset(Entry, 0, sizeof(char) * 32);
 
 				WorkX = WorkY = WorkZ = 1;
+				Active = true;
 			}
 
 			char Path[SHADERED_MAX_PATH];
 			char Entry[32];
 			std::vector<unsigned int> SPV; // SPIR-V
+
+			bool Active;
 
 			GLuint WorkX, WorkY, WorkZ;
 			ShaderVariableContainer Variables;
