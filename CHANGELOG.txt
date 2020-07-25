@@ -2,8 +2,8 @@
 + [DEBUGGER] add immediate window
 + [DEBUGGER] add watches
 + [DEBUGGER] add conditional breakpoints
-+ [DEBUGGER] add color preview for vec3 and vec4 variables
 + [DEBUGGER] add a feature that executes expressions on hover
++ [DEBUGGER] add color preview for vec3 and vec4 variables
 + add code snippets (located in Options)
 + add a feature that allows exporting images, textures & render textures to an image file
 + add ability to disable compute pass

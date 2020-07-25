@@ -1002,6 +1002,9 @@ namespace ed {
 		}
 		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveProjectDlg")) {
 			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				if (m_saveAsPreHandle)
+					m_saveAsPreHandle();
+
 				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
 				m_data->Parser.SaveAs(file, true);
 
@@ -1029,12 +1032,6 @@ namespace ed {
 					editor->SetOpenedFilesData(filesData);
 					editor->SaveAll();
 				}
-			} else if (m_saveAsReset) {
-				if (m_saveAsOldFile != "") {
-					ResetWorkspace();
-					m_data->Parser.Open(m_saveAsOldFile);
-				} else
-					m_data->Parser.OpenTemplate();
 			}
 
 			if (m_saveAsHandle != nullptr)
@@ -1326,28 +1323,34 @@ namespace ed {
 			if (ImGui::Button("Yes")) {
 				m_saveAsOldFile = m_data->Parser.GetOpenedFile();
 
-				if (m_selectedTemplate == "?empty") {
-					Settings::Instance().Project.FPCamera = false;
-					Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
+				SaveAsProject(false, [&](bool state) {
+					if (!state) {
+						if (m_saveAsOldFile != "") {
+							ResetWorkspace();
+							m_data->Parser.Open(m_saveAsOldFile);
+						} else
+							m_data->Parser.OpenTemplate();
+					}
+				}, [&]() {
+					if (m_selectedTemplate == "?empty") {
+						Settings::Instance().Project.FPCamera = false;
+						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
 
-					ResetWorkspace();
-					m_data->Pipeline.New(false);
+						ResetWorkspace();
+						m_data->Pipeline.New(false);
 
-					SDL_SetWindowTitle(m_wnd, "SHADERed");
-				} else {
-					m_data->Parser.SetTemplate(m_selectedTemplate);
+						SDL_SetWindowTitle(m_wnd, "SHADERed");
+					} else {
+						m_data->Parser.SetTemplate(m_selectedTemplate);
 
-					ResetWorkspace();
-					m_data->Pipeline.New();
+						ResetWorkspace();
+						m_data->Pipeline.New();
 
-					m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
+						m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
 
-					SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());
-				}
-
-				
-				SaveAsProject();
-				m_saveAsReset = true;
+						SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());
+					}
+				});
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -2463,11 +2466,11 @@ namespace ed {
 
 		return true;
 	}
-	void GUIManager::SaveAsProject(bool restoreCached, std::function<void(bool)> handle)
+	void GUIManager::SaveAsProject(bool restoreCached, std::function<void(bool)> handle, std::function<void()> preHandle)
 	{
 		m_saveAsRestoreCache = restoreCached;
-		m_saveAsReset = false;
 		m_saveAsHandle = handle;
+		m_saveAsPreHandle = preHandle;
 		igfd::ImGuiFileDialog::Instance()->OpenModal("SaveProjectDlg", "Save project", "SHADERed project (*.sprj){.sprj},.*", ".");
 	}
 	void GUIManager::Open(const std::string& file)

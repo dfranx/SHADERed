@@ -83,7 +83,7 @@ namespace ed {
 		int AreYouSure();
 
 		bool Save();
-		void SaveAsProject(bool restoreCached = false, std::function<void(bool)> handle = nullptr);
+		void SaveAsProject(bool restoreCached = false, std::function<void(bool)> handle = nullptr, std::function<void()> preHandle = nullptr);
 		void Open(const std::string& file);
 
 	private:
@@ -144,6 +144,7 @@ namespace ed {
 		bool m_saveAsReset;
 		bool m_saveAsRestoreCache;
 		std::function<void(bool)> m_saveAsHandle;
+		std::function<void()> m_saveAsPreHandle;
 
 		bool m_expcppError;
 		int m_expcppBackend;
