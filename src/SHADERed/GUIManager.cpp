@@ -35,6 +35,7 @@
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/imgui.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 #include <filesystem>
 #include <fstream>
@@ -55,7 +56,6 @@
 #include <windows.h>
 #endif
 #include <queue>
-#include <ImGuiFileDialog\ImGuiFileDialog.h>
 
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 #define TOOLBAR_HEIGHT 48

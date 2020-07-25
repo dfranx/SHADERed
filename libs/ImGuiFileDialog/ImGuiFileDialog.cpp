@@ -33,7 +33,7 @@ SOFTWARE.
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef WIN32
+#if defined(WIN32)
 #define stat _stat
 #define stricmp _stricmp
 #include <cctype>
@@ -42,7 +42,7 @@ SOFTWARE.
 #ifndef PATH_MAX
 #define PATH_MAX 260
 #endif
-#elif defined(LINUX) or defined(APPLE)
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 #define stricmp strcasecmp
 #include <sys/types.h>
 #include <dirent.h>
@@ -178,9 +178,9 @@ namespace igfd
 			{
 				res = true;
 
-#ifdef WIN32
+#if defined(WIN32)
 				CreateDirectoryA(name.c_str(), nullptr);
-#elif defined(LINUX) or defined(APPLE)
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				char buffer[PATH_MAX] = {};
 				snprintf(buffer, PATH_MAX, "mkdir -p %s", name.c_str());
 				const int dir_err = std::system(buffer);
@@ -953,7 +953,7 @@ namespace igfd
 			}
 			else
 			{
-#ifdef LINUX
+#if defined(__linux__) || defined(__unix__)
 				if (s_fs_root == m_CurrentPath)
 				{
 					newPath = m_CurrentPath + vInfos.fileName;
@@ -962,7 +962,7 @@ namespace igfd
 				{
 #endif
 					newPath = m_CurrentPath + PATH_SEP + vInfos.fileName;
-#ifdef LINUX
+#if defined(__linux__) || defined(__unix__)
 				}
 #endif
 			}
@@ -1359,9 +1359,9 @@ namespace igfd
 
 		if (nullptr != dir)
 		{
-#ifdef WIN32
+#if defined(WIN32)
 			size_t numchar = GetFullPathNameA(path.c_str(), PATH_MAX - 1, real_path, nullptr);
-#elif defined(LINUX) or defined(APPLE)
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 			char *numchar = realpath(path.c_str(), real_path);
 #endif
 			if (numchar != 0)
@@ -1372,7 +1372,7 @@ namespace igfd
 					m_CurrentPath = m_CurrentPath.substr(0, m_CurrentPath.size() - 1);
 				}
 				m_CurrentPath_Decomposition = splitStringToVector(m_CurrentPath, PATH_SEP, false);
-#if defined(UNIX) // UNIX is LINUX or APPLE
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				m_CurrentPath_Decomposition.insert(m_CurrentPath_Decomposition.begin(), std::string(1u, PATH_SEP));
 #endif
 				if (!m_CurrentPath_Decomposition.empty())
@@ -1408,9 +1408,9 @@ namespace igfd
 		{
 			if (!m_CurrentPath.empty())
 			{
-#ifdef WIN32
+#if defined(WIN32)
 				m_CurrentPath = *vIter + PATH_SEP + m_CurrentPath;
-#elif defined(LINUX) or defined(APPLE)
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				if (*vIter == s_fs_root)
 					m_CurrentPath = *vIter + m_CurrentPath;
 				else
@@ -1422,7 +1422,7 @@ namespace igfd
 
 			if (vIter == m_CurrentPath_Decomposition.begin())
 			{
-#if defined(UNIX) // UNIX is LINUX or APPLE
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				if (m_CurrentPath[0] != PATH_SEP)
 					m_CurrentPath = PATH_SEP + m_CurrentPath;
 #endif

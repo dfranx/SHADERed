@@ -170,6 +170,11 @@ Pos=540,389
 Size=772,238
 Collapsed=0
 
+[Window][###OpenProjectDlg]
+Pos=624,308
+Size=600,400
+Collapsed=0
+
 [Docking][Data]
 DockSpace                 ID=0x160B189F Window=0x912BA114 Pos=0,25 Size=1848,990 Split=X
   DockNode                ID=0x00000019 Parent=0x160B189F SizeRef=1543,990 Split=X
