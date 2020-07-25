@@ -171,6 +171,16 @@ Size=772,238
 Collapsed=0
 
 [Window][###OpenProjectDlg]
+Pos=629,308
+Size=600,400
+Collapsed=0
+
+[Window][Delete##pui_item_delete]
+Pos=60,60
+Size=423,127
+Collapsed=0
+
+[Window][###SaveProjectDlg]
 Pos=624,308
 Size=600,400
 Collapsed=0

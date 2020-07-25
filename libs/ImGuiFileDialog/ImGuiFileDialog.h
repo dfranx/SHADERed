@@ -160,6 +160,9 @@ namespace igfd
 		bool dlg_modal = false;
 		
 	private:
+		bool m_IsPathInputMode;
+		char m_PathInput[MAX_FILE_DIALOG_NAME_BUFFER];
+
 		std::string m_HeaderFileName;
 		std::string m_HeaderFileSize;
 		std::string m_HeaderFileDate;

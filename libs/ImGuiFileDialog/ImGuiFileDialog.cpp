@@ -316,6 +316,8 @@ namespace igfd
 
 		dlg_defaultExt = "";
 
+		m_IsPathInputMode = false;
+
 		SetPath(m_CurrentPath);
 
 		m_ShowDialog = true;
@@ -354,6 +356,8 @@ namespace igfd
 		dlg_countSelectionMax = vCountSelectionMax;
 		dlg_modal = false;
 
+		m_IsPathInputMode = false;
+
 		SetSelectedFilterWithExt(dlg_defaultExt);
 		SetPath(m_CurrentPath);
 
@@ -391,6 +395,8 @@ namespace igfd
 		dlg_countSelectionMax = vCountSelectionMax;
 		dlg_modal = false;
 
+		m_IsPathInputMode = false;
+
 		SetSelectedFilterWithExt(dlg_defaultExt);
 		SetPath(m_CurrentPath);
 
@@ -416,6 +422,8 @@ namespace igfd
 		dlg_modal = false;
 
 		dlg_defaultExt = "";
+
+		m_IsPathInputMode = false;
 
 		SetPath(m_CurrentPath);
 
@@ -544,7 +552,7 @@ namespace igfd
 					ResetBuffer(DirectoryNameBuffer);
 				}
 				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip("Create directory");
+					ImGui::SetTooltip("Create a directory");
 				if (ImGui::BeginPopup("create_dir_popup")) {
 					ImGui::Text("Name:");
 					ImGui::SameLine();
@@ -574,30 +582,59 @@ namespace igfd
 
 				// show current path
 				bool pathClick = false;
-				if (!m_CurrentPath_Decomposition.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-					int pathElementIndex = 0;
-					for (auto itPathDecomp = m_CurrentPath_Decomposition.begin();
-						itPathDecomp != m_CurrentPath_Decomposition.end(); ++itPathDecomp)
-					{
-						if (itPathDecomp != m_CurrentPath_Decomposition.begin())
-							ImGui::SameLine();
-						if (ImGui::Button((*itPathDecomp + "##pelem" + std::to_string(pathElementIndex)).c_str()))
-						{
-							ComposeNewPath(itPathDecomp);
-							pathClick = true;
-							break;
-						}
-						ImGui::SameLine();
-						ImGui::Text("/");
-
-						pathElementIndex++;
+				if (m_IsPathInputMode) {
+					ImGui::PushItemWidth(-1);
+					if (ImGui::InputText("##DirectoryPathTB", m_PathInput, MAX_FILE_DIALOG_NAME_BUFFER, ImGuiInputTextFlags_EnterReturnsTrue)) {
+						if (IsDirectoryExist(m_PathInput))
+							SetPath(m_PathInput);
+						m_IsPathInputMode = false;
 					}
-					ImGui::PopStyleVar();
-					ImGui::PopStyleColor();
-				} else 
-					ImGui::Text("Drives");
+					if (ImGui::IsMouseClicked(0) && !ImGui::IsItemClicked())
+						m_IsPathInputMode = false;
+					ImGui::PopItemWidth();
+				} else {
+					if (!m_CurrentPath_Decomposition.empty()) {
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+						ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+						int pathElementIndex = 0;
+						for (auto itPathDecomp = m_CurrentPath_Decomposition.begin();
+							itPathDecomp != m_CurrentPath_Decomposition.end(); ++itPathDecomp)
+						{
+							if (itPathDecomp != m_CurrentPath_Decomposition.begin())
+								ImGui::SameLine();
+							if (ImGui::Button((*itPathDecomp + "##pelem" + std::to_string(pathElementIndex)).c_str()))
+							{
+								ComposeNewPath(itPathDecomp);
+								pathClick = true;
+								break;
+							}
+
+							if (pathElementIndex == m_CurrentPath_Decomposition.size() - 1 && *itPathDecomp != "/") {
+								ImGui::SameLine();
+								if (ImGui::Button("/##DirectoryInputState")) {
+									strcpy(m_PathInput, m_CurrentPath.c_str());
+									m_IsPathInputMode = true;
+								}
+							} else {
+	#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+								if (*itPathDecomp != "/") {
+									ImGui::SameLine();
+									ImGui::Text("/");
+								}
+	#else
+								ImGui::SameLine();
+								ImGui::Text("/");
+	#endif
+							}
+
+							pathElementIndex++;
+						}
+						ImGui::PopStyleVar();
+						ImGui::PopStyleColor();
+					}
+					else 
+						ImGui::Text("Drives");
+				}
 
 
 				// BOOKMARKS
