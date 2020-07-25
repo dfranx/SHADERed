@@ -1646,9 +1646,13 @@ namespace igfd
 			}
 		}
 		static size_t selectedBookmarkForEdition = -1;
-		if (selectedBookmarkForEdition >= 0 &&
-			selectedBookmarkForEdition < m_Bookmarks.size())
-		{
+		bool disableControls = !(selectedBookmarkForEdition >= 0 && selectedBookmarkForEdition < m_Bookmarks.size());
+
+		if (disableControls) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 			ImGui::SameLine();
 			if (ImGui::Button("-##ImGuiFileDialogAddBookmark"))
 			{
@@ -1665,7 +1669,12 @@ namespace igfd
 				}
 				ImGui::PopItemWidth();
 			}
+
+		if (disableControls) {
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
 		}
+
 		ImGui::Separator();
 		size_t countRows = m_Bookmarks.size();
 		ImGuiListClipper clipper(countRows, ImGui::GetTextLineHeightWithSpacing());

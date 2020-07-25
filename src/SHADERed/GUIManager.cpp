@@ -1323,15 +1323,7 @@ namespace ed {
 			if (ImGui::Button("Yes")) {
 				m_saveAsOldFile = m_data->Parser.GetOpenedFile();
 
-				SaveAsProject(false, [&](bool state) {
-					if (!state) {
-						if (m_saveAsOldFile != "") {
-							ResetWorkspace();
-							m_data->Parser.Open(m_saveAsOldFile);
-						} else
-							m_data->Parser.OpenTemplate();
-					}
-				}, [&]() {
+				SaveAsProject(false, nullptr, [&]() {
 					if (m_selectedTemplate == "?empty") {
 						Settings::Instance().Project.FPCamera = false;
 						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
