@@ -76,6 +76,8 @@ namespace ed {
 		KeyboardShortcuts::Shortcut m_newShortcut;
 		std::string m_getShortcutString();
 
+		char* m_dialogPath;
+
 		int m_msaaChoice;
 
 		bool m_pluginRequiresRestart;

@@ -33,6 +33,9 @@ namespace ed {
 		PipelineItem* m_current;
 		ObjectManagerItem* m_currentObj;
 
+		char* m_dialogPath;
+		std::string m_dialogShaderType;
+
 		glm::ivec3 m_cachedGroupSize;
 	};
 }

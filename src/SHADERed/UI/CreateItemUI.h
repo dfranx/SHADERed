@@ -29,6 +29,10 @@ namespace ed {
 		char m_owner[PIPELINE_ITEM_NAME_LENGTH];
 		PipelineItem m_item;
 
+		char* m_dialogPath;
+		bool* m_dialogShaderAuto;
+		std::string m_dialogShaderType;
+
 		bool m_isShaderFileAuto[3];
 	};
 }

@@ -83,7 +83,7 @@ namespace ed {
 		int AreYouSure();
 
 		bool Save();
-		bool SaveAsProject(bool restoreCached = false);
+		void SaveAsProject(bool restoreCached = false, std::function<void(bool)> handle = nullptr);
 		void Open(const std::string& file);
 
 	private:
@@ -140,6 +140,11 @@ namespace ed {
 		std::string m_changelogText;
 		void m_checkChangelog();
 
+		std::string m_saveAsOldFile;
+		bool m_saveAsReset;
+		bool m_saveAsRestoreCache;
+		std::function<void(bool)> m_saveAsHandle;
+
 		bool m_expcppError;
 		int m_expcppBackend;
 		bool m_expcppCmakeFiles;
@@ -170,6 +175,8 @@ namespace ed {
 		eng::Timer m_perfModeClock;
 
 		std::string m_uiIniFile;
+
+		std::string* m_cubemapPathPtr;
 
 		std::string m_selectedTemplate;
 		std::vector<std::string> m_templates;

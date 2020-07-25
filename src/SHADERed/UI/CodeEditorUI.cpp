@@ -89,62 +89,67 @@ namespace ed {
 			Settings::Instance().Editor.StatusBar = !Settings::Instance().Editor.StatusBar;
 		});
 	}
-	void CodeEditorUI::m_save(int id)
+	void CodeEditorUI::m_save(int editor_id)
 	{
-		if (id >= m_editor.size())
+		if (editor_id >= m_editor.size())
 			return;
 
-		bool canSave = true;
+		m_editorSaveRequestID = editor_id;
+
+		std::function<void(bool)> saveFunc = [&](bool success) {
+			if (success) {
+				PluginShaderEditor* pluginEd = &m_pluginEditor[m_editorSaveRequestID];
+				TextEditor* ed = m_editor[m_editorSaveRequestID];
+				std::string text = "";
+				if (ed == nullptr) {
+					size_t textLength = 0;
+
+					const char* tempText = pluginEd->Plugin->ShaderEditor_GetContent(pluginEd->LanguageID, pluginEd->ID, &textLength);
+					text = std::string(tempText, textLength);
+				} else
+					text = ed->GetText();
+
+				std::string path = "";
+
+				if (m_items[m_editorSaveRequestID]->Type == PipelineItem::ItemType::ShaderPass) {
+					ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[m_editorSaveRequestID]->Data);
+
+					if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::Vertex)
+						path = shader->VSPath;
+					else if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::Pixel)
+						path = shader->PSPath;
+					else if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::Geometry)
+						path = shader->GSPath;
+				} else if (m_items[m_editorSaveRequestID]->Type == PipelineItem::ItemType::ComputePass) {
+					ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[m_editorSaveRequestID]->Data);
+					path = shader->Path;
+				} else if (m_items[m_editorSaveRequestID]->Type == PipelineItem::ItemType::AudioPass) {
+					ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[m_editorSaveRequestID]->Data);
+					path = shader->Path;
+				}
+
+				if (ed)
+					ed->ResetTextChanged();
+				else
+					pluginEd->Plugin->ShaderEditor_ResetChangeState(pluginEd->LanguageID, pluginEd->ID);
+
+				if (m_items[m_editorSaveRequestID]->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[m_editorSaveRequestID]->Data);
+					std::string edsrc = m_editor[m_editorSaveRequestID]->GetText();
+					shader->Owner->CodeEditor_SaveItem(edsrc.c_str(), edsrc.size(), m_paths[m_editorSaveRequestID].c_str()); // TODO: custom stages
+				} else
+					m_data->Parser.SaveProjectFile(path, text);
+			} else {
+				// do nothing
+			}
+		};
 
 		// prompt user to choose a project location first
 		if (m_data->Parser.GetOpenedFile() == "") {
-			canSave = m_ui->SaveAsProject(true);
 			RequestedProjectSave = true;
-		}
-		if (!canSave)
-			return;
-
-		PluginShaderEditor* pluginEd = &m_pluginEditor[id];
-		TextEditor* ed = m_editor[id];
-		std::string text = "";
-		if (ed == nullptr) {
-			size_t textLength = 0;
-			
-			const char* tempText = pluginEd->Plugin->ShaderEditor_GetContent(pluginEd->LanguageID, pluginEd->ID, &textLength);
-			text = std::string(tempText, textLength);
-		} else 
-			text = ed->GetText();
-
-		std::string path = "";
-
-		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
-
-			if (m_shaderStage[id] == ShaderStage::Vertex)
-				path = shader->VSPath;
-			else if (m_shaderStage[id] == ShaderStage::Pixel)
-				path = shader->PSPath;
-			else if (m_shaderStage[id] == ShaderStage::Geometry)
-				path = shader->GSPath;
-		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
-			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
-			path = shader->Path;
-		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
-			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
-			path = shader->Path;
-		}
-
-		if (ed)
-			ed->ResetTextChanged();
-		else
-			pluginEd->Plugin->ShaderEditor_ResetChangeState(pluginEd->LanguageID, pluginEd->ID);
-
-		if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* shader = reinterpret_cast<pipe::PluginItemData*>(m_items[id]->Data);
-			std::string edsrc = m_editor[id]->GetText();
-			shader->Owner->CodeEditor_SaveItem(edsrc.c_str(), edsrc.size(), m_paths[id].c_str()); // TODO: custom stages
+			m_ui->SaveAsProject(true, saveFunc);
 		} else
-			m_data->Parser.SaveProjectFile(path, text);
+			saveFunc(true);
 	}
 	void CodeEditorUI::m_compile(int id)
 	{

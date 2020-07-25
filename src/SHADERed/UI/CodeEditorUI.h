@@ -122,6 +122,8 @@ namespace ed {
 		std::vector<PluginShaderEditor> m_pluginEditor;
 		std::deque<bool> m_editorOpen;
 
+		int m_editorSaveRequestID;
+
 		bool m_fontNeedsUpdate;
 		std::string m_fontFilename;
 		int m_fontSize;

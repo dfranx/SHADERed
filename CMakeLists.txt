@@ -96,10 +96,10 @@ set(SOURCES
 	libs/SPIRVCross/spirv_cross_parsed_ir.cpp
 	libs/SPIRVCross/spirv_glsl.cpp
 	libs/SPIRVCross/spirv_parser.cpp
-	libs/tinyfiledialogs/tinyfiledialogs.c
 	libs/pugixml/src/pugixml.cpp
 	libs/ShaderExpressionParser/Parser.cpp
 	libs/ShaderExpressionParser/Tokenizer.cpp
+	libs/ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 
 

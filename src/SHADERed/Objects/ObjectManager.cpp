@@ -30,6 +30,8 @@ namespace ed {
 
 	void loadCubemapFace(GLuint face, const std::string& path, int& w, int& h)
 	{
+		stbi_set_flip_vertically_on_load(0);
+
 		int nrChannels = 0;
 		unsigned char* data = stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
 		unsigned char* paddedData = nullptr;

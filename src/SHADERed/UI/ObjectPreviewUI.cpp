@@ -5,6 +5,8 @@
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 namespace ed {
 	void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
 	{
@@ -196,30 +198,38 @@ namespace ed {
 							buf->PreviewPaused = !buf->PreviewPaused;
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD BYTE DATA FROM TEXTURE")) {
-							std::string textureFile;
-							bool isOpen = UIHelper::GetOpenFileDialog(textureFile);
-							if (isOpen)
-								m_data->Objects.LoadBufferFromTexture(buf, textureFile);
+							m_dialogActionType = 0;
+							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD FLOAT DATA FROM TEXTURE")) {
-							std::string textureFile;
-							bool isOpen = UIHelper::GetOpenFileDialog(textureFile);
-							if (isOpen)
-								m_data->Objects.LoadBufferFromTexture(buf, textureFile, true);
+							m_dialogActionType = 1;
+							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
 						}
 						if (ImGui::Button("LOAD DATA FROM 3D MODEL")) {
-							std::string modelFile;
-							bool isOpen = UIHelper::GetOpenFileDialog(modelFile);
-							if (isOpen)
-								m_data->Objects.LoadBufferFromModel(buf, modelFile);
+							m_dialogActionType = 2;
+							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "3D model", ".*", ".");
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD RAW DATA")) {
-							std::string filePath;
-							bool isOpen = UIHelper::GetOpenFileDialog(filePath);
-							if (isOpen)
-								m_data->Objects.LoadBufferFromFile(buf, filePath);
+							m_dialogActionType = 3;
+							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Open", ".*", ".");
+						}
+
+						if (igfd::ImGuiFileDialog::Instance()->FileDialog("LoadObjectDlg")) {
+							if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+								std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+
+								if (m_dialogActionType == 0)
+									m_data->Objects.LoadBufferFromTexture(buf, file);
+								else if (m_dialogActionType == 1)
+									m_data->Objects.LoadBufferFromTexture(buf, file, true);
+								else if (m_dialogActionType == 2)
+									m_data->Objects.LoadBufferFromModel(buf, file);
+								else if (m_dialogActionType == 3)
+									m_data->Objects.LoadBufferFromFile(buf, file);
+							}
+							igfd::ImGuiFileDialog::Instance()->CloseDialog("LoadObjectDlg");
 						}
 
 						ImGui::Separator();
@@ -321,11 +331,8 @@ namespace ed {
 
 						if (!ImGui::GetIO().KeyAlt && ImGui::BeginPopupContextItem("##context")) {
 							if (ImGui::Selectable("Save")) {
-								std::string file;
-								bool success = UIHelper::GetSaveFileDialog(file, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
-
-								if (success)
-									m_data->Objects.SaveToFile(item->Name, m_data->Objects.GetObjectManagerItem(item->Name), file);
+								igfd::ImGuiFileDialog::Instance()->OpenModal("SavePreviewTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+								m_saveObject = item->Name;
 							}
 							ImGui::EndPopup();
 						}
@@ -398,6 +405,15 @@ namespace ed {
 				m_lastRTSize.erase(m_lastRTSize.begin() + i);
 				i--;
 			}
+		}
+
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SavePreviewTextureDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				ObjectManagerItem* oItem = m_data->Objects.GetObjectManagerItem(m_saveObject);
+				m_data->Objects.SaveToFile(m_saveObject, oItem, filePath);
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("SavePreviewTextureDlg");
 		}
 	}
 	bool ObjectPreviewUI::m_drawBufferElement(int row, int col, void* data, ShaderVariable::ValueType type)

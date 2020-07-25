@@ -16,6 +16,7 @@ namespace ed {
 		virtual void Update(float delta);
 
 	private:
+		std::string m_saveObject;
 		CubemapPreview m_cubePrev;
 	};
 }

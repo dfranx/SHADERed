@@ -413,31 +413,13 @@ namespace ed {
 					return (void*)pipe->GetList()[index];
 				};
 				plugin->GetOpenDirectoryDialog = [](char* out) -> bool {
-					std::string outpath;
-					bool ret = UIHelper::GetOpenDirectoryDialog(outpath);
-
-					if (out != nullptr)
-						strcpy(out, outpath.c_str());
-
-					return ret;
+					return false;
 				};
 				plugin->GetOpenFileDialog = [](char* out, const char* files) -> bool {
-					std::string outpath;
-					bool ret = UIHelper::GetOpenFileDialog(outpath, files ? files : std::string(""));
-
-					if (out != nullptr)
-						strcpy(out, outpath.c_str());
-
-					return ret;
+					return false;
 				};
 				plugin->GetSaveFileDialog = [](char* out, const char* files) -> bool {
-					std::string outpath;
-					bool ret = UIHelper::GetSaveFileDialog(outpath, files ? files : std::string(""));
-
-					if (out != nullptr)
-						strcpy(out, outpath.c_str());
-
-					return ret;
+					return false;
 				};
 				plugin->GetIncludePathCount = []() -> int {
 					return Settings::Instance().Project.IncludePaths.size();

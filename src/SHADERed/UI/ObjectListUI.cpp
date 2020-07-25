@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 #define IMAGE_CONTEXT_WIDTH Settings::Instance().CalculateSize(150)
 
 namespace ed {
@@ -168,11 +170,8 @@ namespace ed {
 
 				if (oItem->RT != nullptr || oItem->Image != nullptr || (oItem->IsTexture && !oItem->IsKeyboardTexture)) {
 					if (ImGui::Selectable("Save")) {
-						std::string file;
-						bool success = UIHelper::GetSaveFileDialog(file, "*.png;*.jpg;*.jpeg;*.bmp;*.tga");
-
-						if (success)
-							m_data->Objects.SaveToFile(items[i], oItem, file);
+						igfd::ImGuiFileDialog::Instance()->OpenModal("SaveTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+						m_saveObject = items[i];
 					}
 				}
 
@@ -268,6 +267,15 @@ namespace ed {
 		}
 
 		ImGui::EndChild();
+
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveTextureDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				ObjectManagerItem* oItem = m_data->Objects.GetObjectManagerItem(m_saveObject);
+				m_data->Objects.SaveToFile(m_saveObject, oItem, filePath);
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveTextureDlg");
+		}
 
 		if (!itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_objects")) {
 			if (ImGui::Selectable("Create Texture")) { m_ui->CreateNewTexture(); }

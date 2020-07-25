@@ -4,7 +4,6 @@
 
 #include <imgui/imgui.h>
 #include <imgui_markdown/imgui_markdown.h>
-#include <tinyfiledialogs/tinyfiledialogs.h>
 #include <SDL2/SDL_messagebox.h>
 #include <clocale>
 #include <iomanip>
@@ -13,41 +12,6 @@
 #define HARRAYSIZE(a) (sizeof(a) / sizeof(*a))
 
 namespace ed {
-	bool UIHelper::GetOpenDirectoryDialog(std::string& outPath)
-	{
-		const char* selectionLoc = tinyfd_selectFolderDialog("Select folder", NULL);
-
-		if (selectionLoc == nullptr)
-			return false;
-
-		outPath = selectionLoc;
-
-		return true;
-	}
-	bool UIHelper::GetOpenFileDialog(std::string& outPath, const std::string& files)
-	{
-		const char* filters = files.c_str();
-		const char* openLoc = tinyfd_openFileDialog("Open", NULL, files.empty() ? 0 : 1, files.empty() ? NULL : &filters, NULL, 0);
-
-		if (openLoc == nullptr)
-			return false;
-
-		outPath = openLoc;
-
-		return true;
-	}
-	bool UIHelper::GetSaveFileDialog(std::string& outPath, const std::string& files)
-	{
-		const char* filters = files.c_str();
-		const char* saveLoc = tinyfd_saveFileDialog("Save", NULL, files.empty() ? 0 : 1, files.empty() ? NULL : &filters, NULL);
-
-		if (saveLoc == nullptr)
-			return false;
-
-		outPath = saveLoc;
-		
-		return true;
-	}
 	void UIHelper::ShellOpen(const std::string& path)
 	{
 #if defined(__APPLE__)

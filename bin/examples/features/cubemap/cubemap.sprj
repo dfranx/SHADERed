@@ -28,19 +28,20 @@
 		</pass>
 	</pipeline>
 	<objects>
-		<object type="texture" name="cubemap" cube="true" left="../../Common/cubemap/negx.jpg" top="../../Common/cubemap/posy.jpg" front="../../Common/cubemap/posz.jpg" bottom="../../Common/cubemap/negy.jpg" right="../../Common/cubemap/posx.jpg" back="../../Common/cubemap/negz.jpg">
+		<object type="texture" name="cubemap" cube="true" left="..\..\Common\cubemap\negx.jpg" top="..\..\Common\cubemap\posy.jpg" front="..\..\Common\cubemap\negz.jpg" bottom="..\..\Common\cubemap\negy.jpg" right="..\..\Common\cubemap\posx.jpg" back="..\..\Common\cubemap\posz.jpg">
 			<bind slot="0" name="Cubemap" />
 		</object>
 	</objects>
 	<cameras />
 	<settings>
 		<entry type="camera" fp="false">
-			<distance>6</distance>
-			<pitch>17</pitch>
-			<yaw>143</yaw>
+			<distance>4</distance>
+			<pitch>7</pitch>
+			<yaw>201</yaw>
 			<roll>360</roll>
 		</entry>
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
 		<entry type="usealpha" val="false" />
 	</settings>
+	<plugindata />
 </project>

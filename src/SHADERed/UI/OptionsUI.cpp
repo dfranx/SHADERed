@@ -7,6 +7,8 @@
 #include <SHADERed/UI/OptionsUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <algorithm>
@@ -76,6 +78,33 @@ namespace ed {
 			m_renderCodeSnippets();
 
 		ImGui::EndChild();
+
+		
+		
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("OptionsFontDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				file = std::filesystem::relative(file).generic_string();
+				strcpy(m_dialogPath, file.c_str());
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("OptionsFontDlg");
+		}
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("AddIncludeDirDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string ipath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				bool exists = false;
+				for (int i = 0; i < Settings::Instance().Project.IncludePaths.size(); i++)
+					if (Settings::Instance().Project.IncludePaths[i] == ipath) {
+						exists = true;
+						break;
+					}
+				if (!exists) {
+					m_data->Parser.ModifyProject();
+					Settings::Instance().Project.IncludePaths.push_back(m_data->Parser.GetRelativePath(ipath));
+				}
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("AddIncludeDirDlg");
+		}
 
 		if (m_overwriteShortcutOpened) {
 			ImGui::OpenPopup("Are you sure?##opts_popup_shrtct");
@@ -489,12 +518,8 @@ namespace ed {
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
-			std::string file;
-			bool success = UIHelper::GetOpenFileDialog(file, "*.ttf;*.otf");
-			if (success) {
-				file = std::filesystem::relative(file).generic_string();
-				strcpy(settings->General.Font, file.c_str());
-			}
+			m_dialogPath = settings->General.Font;
+			igfd::ImGuiFileDialog::Instance()->OpenModal("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*", ".");
 		}
 
 		/* FONT SIZE: */
@@ -603,10 +628,8 @@ namespace ed {
 		ImGui::PopItemFlag();
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
-			std::string file;
-			bool success = UIHelper::GetOpenFileDialog(file, "*.ttf;*.otf");
-			if (success)
-				strcpy(settings->Editor.Font, file.c_str());
+			m_dialogPath = settings->Editor.Font;
+			igfd::ImGuiFileDialog::Instance()->OpenModal("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*", ".");
 		}
 
 		/* FONT SIZE: */
@@ -988,24 +1011,15 @@ namespace ed {
 		ImGui::PopItemFlag();
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
-		if (ImGui::Button("ADD##optpr_btnaddext")) {
-			bool exists = false;
-			std::string newIPath = "";
-			bool isAdded = UIHelper::GetOpenDirectoryDialog(newIPath);
-			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
-				if (settings->Project.IncludePaths[i] == newIPath) {
-					exists = true;
-					break;
-				}
-			if (!exists && isAdded)
-				settings->Project.IncludePaths.push_back(m_data->Parser.GetRelativePath(newIPath));
-		}
+		if (ImGui::Button("ADD##optpr_btnaddext"))
+			igfd::ImGuiFileDialog::Instance()->OpenModal("AddIncludeDirDlg", "Select a directory", nullptr, ".");
 		ImGui::SameLine();
 		if (ImGui::Button("REMOVE##optpr_btnremext")) {
 			std::string glslExtEntryStr(ipathEntry);
 			for (int i = 0; i < settings->Project.IncludePaths.size(); i++)
 				if (settings->Project.IncludePaths[i] == glslExtEntryStr) {
 					settings->Project.IncludePaths.erase(settings->Project.IncludePaths.begin() + i);
+					m_data->Parser.ModifyProject();
 					break;
 				}
 		}

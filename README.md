@@ -165,6 +165,7 @@ Run:
 ```
 
 ### macOS
+**NOTE: macOS is not officially supported by me + some features are not supported on macOS**
 
 Install all the libraries that are needed:
 
@@ -233,7 +234,7 @@ This project uses:
  - [dfranx/SPIRV-VM](https://github.com/dfranx/SPIRV-VM)
  - [rAzoR8/SpvGenTwo](https://github.com/rAzoR8/SpvGenTwo)
  - [nothings/stb](https://github.com/nothings/stb)
- - [native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
+ - [aiekick/ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
 
 Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
 
