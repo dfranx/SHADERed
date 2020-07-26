@@ -213,10 +213,19 @@ namespace ed {
 		for (auto& func : m_module->getFunctions()) {
 			spvgentwo::BasicBlock& bb = *func;
 			if (curFunction == std::string(func.getName())) {
+				const spvgentwo::List<spvgentwo::Instruction>& params = func.getParameters();
+				// first local variables
 				for (auto& inst : bb) {
 					const char* iName = inst.getName();
 					if (iName != nullptr && m_vars.count(iName) && m_vars[iName] == nullptr)
 						m_vars[iName] = &inst;
+				}
+
+				// then parameters
+				for (auto& param : params) {
+					const char* iName = param.getName();
+					if (iName != nullptr && m_vars.count(iName) && m_vars[iName] == nullptr)
+						m_vars[iName] = &param;
 				}
 			}
 		}
