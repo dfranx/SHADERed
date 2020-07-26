@@ -1040,14 +1040,16 @@ namespace ed {
 			for (const auto& snippet : snippets) {
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(snippet.Language.c_str());
-				ImGui::TableSetColumnIndex(1);
-				if (ImGui::Selectable((snippet.Display + "##csrow" + std::to_string(rowIndex)).c_str())) {
+				ImGui::PushID(rowIndex);
+				if (ImGui::Selectable(snippet.Language.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
 					strcpy(m_snippetLanguage, snippet.Language.c_str());
 					strcpy(m_snippetDisplay, snippet.Display.c_str());
 					strcpy(m_snippetSearch, snippet.Search.c_str());
 					m_snippetCode.SetText(snippet.Code);
 				}
+				ImGui::PopID();
+				ImGui::TableSetColumnIndex(1); 
+				ImGui::Text(snippet.Display.c_str());
 				ImGui::TableSetColumnIndex(2);
 				ImGui::Text(snippet.Search.c_str());
 				ImGui::TableSetColumnIndex(3);

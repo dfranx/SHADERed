@@ -129,6 +129,8 @@ namespace igfd
 		FilterInfosStruct m_SelectedFilter;
 		std::vector<BookmarkStruct> m_Bookmarks;
 		bool m_BookmarkPaneShown = false;
+		int m_SelectedFileItem;
+		std::string m_SelectedFileItemPath;
 
 	private: // flash when select by char
 		size_t m_FlashedItem = 0;

@@ -25,6 +25,9 @@ SOFTWARE.
 #include "ImGuiFileDialog.h"
 #include <imgui/imgui.h>
 
+#include <filesystem>
+#include <fstream>
+
 #include <string.h> // stricmp / strcasecmp
 #include <sstream>
 #include <iomanip>
@@ -317,6 +320,7 @@ namespace igfd
 		dlg_defaultExt = "";
 
 		m_IsPathInputMode = false;
+		m_SelectedFileItem = -1;
 
 		SetPath(m_CurrentPath);
 
@@ -357,6 +361,7 @@ namespace igfd
 		dlg_modal = false;
 
 		m_IsPathInputMode = false;
+		m_SelectedFileItem = -1;
 
 		SetSelectedFilterWithExt(dlg_defaultExt);
 		SetPath(m_CurrentPath);
@@ -396,6 +401,7 @@ namespace igfd
 		dlg_modal = false;
 
 		m_IsPathInputMode = false;
+		m_SelectedFileItem = -1;
 
 		SetSelectedFilterWithExt(dlg_defaultExt);
 		SetPath(m_CurrentPath);
@@ -424,6 +430,7 @@ namespace igfd
 		dlg_defaultExt = "";
 
 		m_IsPathInputMode = false;
+		m_SelectedFileItem = -1;
 
 		SetPath(m_CurrentPath);
 
@@ -672,6 +679,9 @@ namespace igfd
 
 				ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2((float)dlg_optionsPaneWidth, lastBarHeight);
 
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+					m_SelectedFileItem = -1;
+
 				static ImGuiTableFlags flags = ImGuiTableFlags_SizingPolicyFixedX | 
 					ImGuiTableFlags_Hideable | ImGuiTableFlags_ScrollY | 
 					ImGuiTableFlags_NoHostExtendY | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Sortable;
@@ -726,9 +736,7 @@ namespace igfd
 						if (ImGui::TableSetColumnIndex(0)) // first column
 						{
 							ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns;
-							bool _selectablePressed = ImGui::Selectable(str.c_str(), selected, selectableFlags);
-
-							if (_selectablePressed)
+							if (ImGui::Selectable(str.c_str(), selected, selectableFlags))
 							{
 								if (infos.type == 'd')
 								{
@@ -749,6 +757,10 @@ namespace igfd
 									}
 								}
 							}
+							if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+								m_SelectedFileItem = i;
+								m_SelectedFileItemPath = m_FilteredFileList[i].filePath + PATH_SEP + m_FilteredFileList[i].fileName;
+							}
 						}
 						if (ImGui::TableSetColumnIndex(1)) // second column
 						{
@@ -764,6 +776,59 @@ namespace igfd
 					}
 					clipper.End();
 					ImGui::EndTable();
+				}
+
+				// table file dialog
+				bool openAreYouSureDlg = false, openNewFileDlg = false;
+				if (ImGui::BeginPopupContextItem("##ContextFileDialog")) {
+					if (ImGui::Selectable("New file")) {
+						openNewFileDlg = true;
+						ResetBuffer(DirectoryNameBuffer); // was too lazy to add new variable
+					}
+					if (m_SelectedFileItem != -1 && ImGui::Selectable("Delete"))
+						openAreYouSureDlg = true;
+					ImGui::EndPopup();
+				}
+				if (openAreYouSureDlg)
+					ImGui::OpenPopup("Are you sure?##delete");
+				if (openNewFileDlg)
+					ImGui::OpenPopup("Enter filename##newfile");
+				if (ImGui::BeginPopupModal("Are you sure?##delete")) {
+					ImGui::Text("Do you actually want to delete %s?", m_SelectedFileItemPath.c_str());
+					if (ImGui::Button("Yes")) {
+						std::error_code ec;
+						std::filesystem::remove_all(std::filesystem::path(m_SelectedFileItemPath), ec);
+
+						SetPath(m_CurrentPath);
+
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("No")) {
+						m_SelectedFileItemPath = "dummy.txt";
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
+				}
+				if (ImGui::BeginPopupModal("Enter filename##newfile")) {
+					ImGui::PushItemWidth(250.0f);
+					ImGui::InputText("##NewFileName", DirectoryNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
+					ImGui::PopItemWidth();
+
+					if (ImGui::Button("OK")) {
+						std::string newFile = std::string(GetCurrentPath() + PATH_SEP + DirectoryNameBuffer);
+						std::ofstream out(newFile);
+						out << "";
+						out.close();
+
+						SetPath(m_CurrentPath);
+
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Cancel"))
+						ImGui::CloseCurrentPopup();
+					ImGui::EndPopup();
 				}
 
 				// changement de repertoire
