@@ -13,6 +13,8 @@
 #define GET_VALUE_WITH_CHECK_INT(val, c) (val == nullptr ? 0 : val->members[c].value.s)
 #define GET_VALUE2_WITH_CHECK_INT(val, c, r) (val == nullptr ? 0 : val->members[c].members[r].value.s)
 
+
+
 namespace ed {
 	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer, MessageStack* msgs)
 	{
@@ -665,11 +667,11 @@ namespace ed {
 		}
 
 		if (val && val->members != nullptr && mem_count != 0) {
-			if (mem_count == 1 && val->members[mem_index].member_count != 0) {
+			/*if (mem_count == 1 && val->members[mem_index].member_count != 0) {
 				outType = spvm_state_get_type_info(state->results, &state->results[val->members[mem_index].type]);
 				outCount = val->members[mem_index].member_count;
 				return &val->members[mem_index].members[0];
-			}
+			}*/
 
 			outType = spvm_state_get_type_info(state->results, &state->results[val->pointer]);
 			outCount = mem_count;
@@ -776,26 +778,63 @@ namespace ed {
 		std::vector<std::string> varList = compiler.GetVariableList();
 		for (int i = 0; i < varList.size(); i++) {
 			size_t varValueCount = 0;
-			spvm_member_t varValue = GetVariable(varList[i], varValueCount);
+			spvm_result_t varType = nullptr;
+			spvm_member_t varValue = GetVariable(varList[i], varValueCount, varType);
 
 			if (varValue == nullptr)
-				return nullptr;
+				continue;
+
+			spvm_result_t pointerToVariable[4] = { nullptr };
 
 			for (int j = 0; j < m_shaderImmediate->bound; j++) {
 				if (m_vmImmediate->results[j].name == nullptr)
 					continue;
 				
 				spvm_result_t res = &m_vmImmediate->results[j];
+				spvm_result_t resType = spvm_state_get_type_info(m_vmImmediate->results, &m_vmImmediate->results[res->pointer]);
 
 				// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
-
-				if (res->member_count == varValueCount && res->members != nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
+				
+				if (res->member_count == varValueCount && resType->value_type == varType->value_type && res->members != nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
 					spvm_member_memcpy(res->members, varValue, varValueCount);
 
+					pointerToVariable[0] = res;
+
 					if (m_vmImmediate->derivative_used) {
-						if (m_vmImmediate->derivative_group_x) spvm_member_memcpy(m_vmImmediate->derivative_group_x->results[j].members, GetVariableFromState(m_vm->derivative_group_x, varList[i], varValueCount), varValueCount);
-						if (m_vmImmediate->derivative_group_y) spvm_member_memcpy(m_vmImmediate->derivative_group_y->results[j].members, GetVariableFromState(m_vm->derivative_group_y, varList[i], varValueCount), varValueCount);
-						if (m_vmImmediate->derivative_group_d) spvm_member_memcpy(m_vmImmediate->derivative_group_d->results[j].members, GetVariableFromState(m_vm->derivative_group_d, varList[i], varValueCount), varValueCount);
+						if (m_vmImmediate->derivative_group_x) {
+							spvm_member_memcpy(m_vmImmediate->derivative_group_x->results[j].members, GetVariableFromState(m_vm->derivative_group_x, varList[i], varValueCount), varValueCount);
+							pointerToVariable[1] = &m_vmImmediate->derivative_group_x->results[j];
+						}
+						if (m_vmImmediate->derivative_group_y) {
+							spvm_member_memcpy(m_vmImmediate->derivative_group_y->results[j].members, GetVariableFromState(m_vm->derivative_group_y, varList[i], varValueCount), varValueCount);
+							pointerToVariable[2] = &m_vmImmediate->derivative_group_y->results[j];
+						}
+						if (m_vmImmediate->derivative_group_d) {
+							spvm_member_memcpy(m_vmImmediate->derivative_group_d->results[j].members, GetVariableFromState(m_vm->derivative_group_d, varList[i], varValueCount), varValueCount);
+							pointerToVariable[3] = &m_vmImmediate->derivative_group_d->results[j];
+						}
+					}
+				}
+			}
+			
+			// function parameters (which are pointers)
+			if (pointerToVariable[0] != nullptr) {
+				for (int j = 0; j < m_shaderImmediate->bound; j++) {
+					if (m_vmImmediate->results[j].name == nullptr)
+						continue;
+
+					spvm_result_t res = &m_vmImmediate->results[j];
+
+					// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
+
+					if (res->member_count == varValueCount && res->members == nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
+						res->members = pointerToVariable[0]->members;
+
+						if (m_vmImmediate->derivative_used) {
+							if (m_vmImmediate->derivative_group_x) m_vmImmediate->derivative_group_x->results[j].members = pointerToVariable[1]->members;
+							if (m_vmImmediate->derivative_group_y) m_vmImmediate->derivative_group_y->results[j].members = pointerToVariable[2]->members;
+							if (m_vmImmediate->derivative_group_d) m_vmImmediate->derivative_group_d->results[j].members = pointerToVariable[3]->members;
+						}
 					}
 				}
 			}
@@ -1349,7 +1388,8 @@ namespace ed {
 				break;
 		}
 
-		m_vm->current_line = m_funcStackLines[m_vm->function_stack_current];
+		if (m_vm->function_stack_current != -1)
+			m_vm->current_line = m_funcStackLines[m_vm->function_stack_current];
 	}
 	bool DebugInformation::CheckBreakpoint(int line)
 	{

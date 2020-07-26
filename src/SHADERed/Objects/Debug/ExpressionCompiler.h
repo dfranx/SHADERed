@@ -22,8 +22,12 @@ namespace ed {
 		spvgentwo::Instruction* m_simpleConvert(int type, spvgentwo::Instruction* inst);
 		int m_getBaseType(int type);
 		int m_getCompCount(int type);
+		int m_getRowCount(int type);
+		int m_getColumnCount(int type);
 		bool m_isVector(int type);
+		bool m_isMatrix(int type);
 		spvgentwo::Instruction* m_constructVector(int baseType, int compCount, std::vector<spvgentwo::Instruction*>& comps);
+		spvgentwo::Instruction* m_constructMatrix(int rows, int cols, std::vector<spvgentwo::Instruction*>& comps);
 		spvgentwo::Instruction* m_swizzle(spvgentwo::Instruction* vec, const char* field);
 
 	private:

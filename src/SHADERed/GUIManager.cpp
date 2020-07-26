@@ -1337,7 +1337,6 @@ namespace ed {
 
 						ResetWorkspace();
 						m_data->Pipeline.New();
-
 						m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
 
 						SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());

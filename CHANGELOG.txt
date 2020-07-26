@@ -19,6 +19,7 @@
 + fix a bug that would crash SHADERed when deleting a buffer
 + fix a bug that would crash SHADERed when setting FPS limit to 0 while the FPS limit is applied to whole application
 + fix a bug that would add textures to Shader Pass' variables when using "auto variables" feature
++ fix a bug that caused SHADERed not to apply 'system value' if a variable previously used a function
 + fix cubemaps
 + fix cubemap example
 + fix a bug that would incorrectly report an error when exporting project to a C++ file

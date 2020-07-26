@@ -28,7 +28,7 @@ namespace ed {
 	}
 	void FunctionVariableManager::Update(ed::ShaderVariable* var)
 	{
-		if (var->Function == FunctionShaderVariable::None)
+		if (var->Function == FunctionShaderVariable::None || var->System != SystemShaderVariable::None)
 			return;
 
 		if (var->Function == FunctionShaderVariable::Pointer) {

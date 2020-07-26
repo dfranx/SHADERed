@@ -5,6 +5,137 @@
 #include <common/HeapList.h>
 #include <string.h>
 
+
+
+
+void dis_spv(spvgentwo::Grammar& gram, spvgentwo::HeapAllocator& alloc, spvgentwo::Module* module)
+{
+	auto printOperand = [&gram, &alloc](const spvgentwo::Instruction& instr, const spvgentwo::Operand& op, const spvgentwo::Grammar::Operand* info) {
+		if (op.isId() && info->kind != spvgentwo::Grammar::OperandKind::IdResult) // skip result id
+		{
+			printf(" \x1B[33m%%%u\033[0m", op.id);
+		} else if (op.isLiteral()) {
+			if (instr.getOperation() == spvgentwo::spv::Op::OpExtInst) {
+				bool printedName = false;
+				if (auto set = instr.getFirstActualOperand(); set != nullptr && set->isInstruction() && set->instruction->getOperation() == spvgentwo::spv::Op::OpExtInstImport) // extension set
+				{
+					spvgentwo::String extName(&alloc);
+					getLiteralString(extName, set->instruction->getFirstActualOperand(), set->instruction->end());
+
+					spvgentwo::Grammar::Extension ext = spvgentwo::Grammar::Extension::Core;
+					if (extName == "GLSL.std.450") {
+						ext = spvgentwo::Grammar::Extension::Glsl;
+					} else if (extName == "OpenCL.std") {
+						ext = spvgentwo::Grammar::Extension::OpenCl;
+					}
+
+					if (ext != spvgentwo::Grammar::Extension::Core) {
+						if (auto* extInfo = gram.getInfo(static_cast<unsigned int>(op.literal.value), ext); extInfo != nullptr) {
+							printf(" \x1B[35m%s\033[0m", extInfo->name);
+							printedName = true;
+						}
+					}
+				}
+
+				if (printedName == false) {
+					printf(" \x1B[31m%u\033[0m", op.literal.value);
+				}
+			} else if (info->category == spvgentwo::Grammar::OperandCategory::BitEnum || info->category == spvgentwo::Grammar::OperandCategory::ValueEnum) {
+				const char* name = gram.getOperandName(info->kind, op.literal.value);
+				printf(" %s", name == nullptr ? "UNKNOWN" : name);
+			} else if (info->kind == spvgentwo::Grammar::OperandKind::LiteralSpecConstantOpInteger) {
+				if (auto* instrInfo = gram.getInfo(op.literal.value); instrInfo != nullptr) {
+					printf(" %s", instrInfo->name);
+				} else {
+					printf(" \x1B[31m%u\033[0m", op.literal.value);
+				}
+			} else {
+				printf(" \x1B[31m%u\033[0m", op.literal.value);
+			} // TODO: check for OpConstant args like floats
+		} else if (op.isInstruction()) {
+			if (op.instruction == nullptr) {
+				printf(" \x1B[33m%%INVALIDINSTRPTR\033[0m");
+				return;
+			}
+
+			if (const char* name = op.instruction->getName(); name != nullptr && strlen(name) > 1) {
+				printf(" \x1B[33m%%%s\033[0m", name);
+			} else {
+				printf(" \x1B[33m%%%u\033[0m", op.instruction->getResultId());
+			}
+		} else if (op.isBranchTarget()) {
+			if (op.branchTarget == nullptr) {
+				printf(" \x1B[33m%%INVALIDBASICBLOCKPTR\033[0m");
+				return;
+			}
+
+			if (const char* name = op.branchTarget->getName(); name != nullptr && strlen(name) > 1) {
+				printf(" \x1B[33m%%%s\033[0m", name);
+			} else {
+				printf(" %%%u", op.branchTarget->front().getResultId());
+			}
+		}
+	};
+
+	bool success = true;
+	auto print = [&](const spvgentwo::Instruction& instr) -> bool {
+		auto* info = gram.getInfo(static_cast<unsigned int>(instr.getOperation()));
+
+		if (const char* name = instr.getName(); name != nullptr && strlen(name) > 1) {
+			printf("\x1B[34m%%%s\033[0m =", name);
+		} else {
+			if (auto id = instr.getResultId(); id != spvgentwo::InvalidId) {
+				printf("\x1B[34m%%%u\033[0m =", id);
+			}
+		}
+
+		printf("\t%s", info->name);
+
+		auto infoIt = info->operands.begin();
+		auto infoEnd = info->operands.end();
+
+		for (auto it = instr.begin(), end = instr.end(); it != end;) {
+			if (infoIt == infoEnd) {
+				printf("\nINVALID INSTRUCTION\n");
+				success = false;
+				return true; // stop iteration
+			}
+
+			if (infoIt->kind == spvgentwo::Grammar::OperandKind::LiteralString) {
+				spvgentwo::String litString(&alloc);
+				it = getLiteralString(litString, it, end);
+
+				printf(" \"\x1B[32m%s\033[0m\"", litString.c_str());
+
+				++infoIt;
+				continue;
+			}
+
+			printOperand(instr, *it, infoIt);
+
+			if (infoIt->kind != spvgentwo::Grammar::OperandKind::ImageOperands && infoIt->kind != spvgentwo::Grammar::OperandKind::LiteralSpecConstantOpInteger && infoIt->kind != spvgentwo::Grammar::OperandKind::Decoration && infoIt->kind != spvgentwo::Grammar::OperandKind::ExecutionMode && infoIt->kind != spvgentwo::Grammar::OperandKind::LiteralString && infoIt->quantifier != spvgentwo::Grammar::Quantifier::ZeroOrAny) {
+				++infoIt;
+			}
+
+			++it;
+		}
+
+		printf("\n");
+		return false;
+	};
+
+
+	printf("# SPIR-V Version %u.%u\n", module->getMajorVersion(), module->getMinorVersion());
+	printf("# Generator 0x%X\n", module->getSpvGenerator());
+	printf("# Bound %u\n", module->getSpvBound());
+	printf("# Schema %u\n\n", module->getSpvSchema());
+
+	// print text
+	module->iterateInstructions(print);
+}
+
+
+
 namespace ed {
 	template <typename U32Vector>
 	class BinaryVectorReader : public spvgentwo::IReader {
@@ -52,7 +183,7 @@ namespace ed {
 		m_module->reconstructTypeAndConstantInfo();
 		m_module->reconstructNames();
 
-		m_func = &m_module->addFunction<void>("$$_shadered_immediate", spvgentwo::spv::FunctionControlMask::Const);
+		m_func = &m_module->addFunction("$$_shadered_immediate", spvgentwo::spv::FunctionControlMask::Const);
 
 		// parse expression
 		expr::Parser parser(expr.c_str(), expr.size());
@@ -92,9 +223,23 @@ namespace ed {
 
 		// I know this is super hacky but meh, it works
 		m_module->iterateInstructions([&](spvgentwo::Instruction& inst) {
-			const char* iName = inst.getName();
-			if (iName != nullptr && m_vars.count(iName) && m_vars[iName] == nullptr)
-				m_vars[iName] = &inst;
+			if (inst.getOperation() == spvgentwo::spv::Op::OpVariable) {
+				const char* iName = inst.getName();
+				if (iName != nullptr) {
+					spvgentwo::spv::StorageClass sc = inst.getStorageClass();
+					if (sc == spvgentwo::spv::StorageClass::Private ||
+						sc == spvgentwo::spv::StorageClass::UniformConstant ||
+						sc == spvgentwo::spv::StorageClass::Uniform ||
+						sc == spvgentwo::spv::StorageClass::Input ||
+						sc == spvgentwo::spv::StorageClass::Output) // global variable
+					{
+						if (m_vars.count(iName) == 0)
+							m_vars[iName] = &inst; // copy global variable
+					}
+					if (m_vars.count(iName) && m_vars[iName] == nullptr)
+						m_vars[iName] = &inst;
+				}
+			}
 		});
 
 		// check if a non existing variable is being used
@@ -119,6 +264,8 @@ namespace ed {
 		spv.clear();
 		spvgentwo::BinaryVectorWriter writer(spv);
 		m_module->write(&writer);
+
+		dis_spv(m_grammar, alloc, m_module);
 
 		// return result's ID
 		int resultID = (int)inst->getResultId();
@@ -160,25 +307,28 @@ namespace ed {
 
 			m_convert(bexpr->Operator, leftInstr, rightInstr, leftInstr, rightInstr);
 
-			if (leftInstr->getType()->isVector() && rightInstr->getType()->isVector())
-				if (leftInstr->getType()->getVectorComponentCount() != rightInstr->getType()->getVectorComponentCount()) {
+			const spvgentwo::Type* leftType = leftInstr->getType();
+			const spvgentwo::Type* rightType = rightInstr->getType();
+
+			if (leftType->isVector() && rightType->isVector())
+				if (leftType->getVectorComponentCount() != rightType->getVectorComponentCount()) {
 					m_error = true;
 					return nullptr;
 				}
 
-			if (leftInstr->getType()->getBaseType().isFloat()) {
+			if (leftType->getBaseType().isFloat()) {
 				if (bexpr->Operator == '+')
 					return bb->opFAdd(leftInstr, rightInstr);
 				else if (bexpr->Operator == '*') {
-					if (leftInstr->getType()->isVector() && rightInstr->getType()->isScalar())
+					if (leftType->isVector() && rightType->isScalar())
 						return bb->opVectorTimesScalar(leftInstr, rightInstr);
-					else if (rightInstr->getType()->isVector() && leftInstr->getType()->isScalar())
+					else if (leftType->isScalar() && rightType->isVector())
 						return bb->opVectorTimesScalar(rightInstr, leftInstr);
-					else if (leftInstr->getType()->isVector() && rightInstr->getType()->isMatrix())
+					else if (leftType->isVector() && rightType->isMatrix())
 						return bb->opVectorTimesMatrix(leftInstr, rightInstr);
-					else if (rightInstr->getType()->isVector() && leftInstr->getType()->isMatrix())
-						return bb->opMatrixTimesVector(rightInstr, leftInstr);
-					else if (rightInstr->getType()->isMatrix() && leftInstr->getType()->isMatrix())
+					else if (leftType->isMatrix() && rightType->isVector())
+						return bb->opMatrixTimesVector(leftInstr, rightInstr);
+					else if (leftType->isMatrix() && rightType->isMatrix())
 						return bb->opMatrixTimesMatrix(rightInstr, leftInstr);
 					return bb->opFMul(leftInstr, rightInstr);
 				} else if (bexpr->Operator == '-')
@@ -223,7 +373,7 @@ namespace ed {
 				else if (bexpr->Operator == expr::TokenType_BitshiftLeft) {
 					return bb->opShiftLeftLogical(leftInstr, rightInstr);
 				} else if (bexpr->Operator == expr::TokenType_BitshiftRight) {
-					if (leftInstr->getType()->isSigned())
+					if (leftType->isSigned())
 						return bb->opShiftRightArithmetic(leftInstr, rightInstr);
 					else
 						return bb->opShiftRightLogical(leftInstr, rightInstr);
@@ -257,13 +407,10 @@ namespace ed {
 		} break;
 		case expr::NodeType::IntegerLiteral:
 			return m_module->constant(((expr::IntegerLiteralNode*)node)->Value);
-			break;
 		case expr::NodeType::FloatLiteral:
 			return m_module->constant(((expr::FloatLiteralNode*)node)->Value);
-			break;
 		case expr::NodeType::BooleanLiteral:
 			return m_module->constant(((expr::BooleanLiteralNode*)node)->Value);
-			break;
 		case expr::NodeType::Identifier: {
 			const char* name = ((expr::IdentifierNode*)node)->Name;
 			if (m_opLoads.count(name) == 0)
@@ -439,6 +586,8 @@ namespace ed {
 				return args[0];
 			} else if (m_isVector(tok))
 				return m_constructVector(m_getBaseType(tok), m_getCompCount(tok), args);
+			else if (m_isMatrix(tok))
+				return m_constructMatrix(m_getRowCount(tok), m_getColumnCount(tok), args);
 			else if (fname == "round")
 				return bb.ext<spvgentwo::ext::GLSL>()->opRound(m_simpleConvert(expr::TokenType_Float, args[0]));
 			else if (fname == "roundEven")
@@ -582,7 +731,7 @@ namespace ed {
 				return bb->opDPdyCoarse(m_simpleConvert(expr::TokenType_Float, args[0]));
 			else if (fname == "fwidthCoarse")
 				return bb->opFwidthCoarse(m_simpleConvert(expr::TokenType_Float, args[0]));
-			else if (fname == "texture")
+			else if (fname == "texture" && args.size() == 2)
 				return bb->opImageSampleImplictLod(args[0], m_simpleConvert(expr::TokenType_Float, args[1]));
 			else {
 				m_error = true;
@@ -602,9 +751,38 @@ namespace ed {
 				spvgentwo::Instruction* objType = obj->getTypeInstr();
 				const char* member = nullptr;
 				int memberIndex = 0;
-				while ((member = objType->getName(memberIndex++))[0] != 0) {
+				while ((member = objType->getName(memberIndex++)) != 0) {
 					if (strcmp(maccess->Field, member) == 0)
 						return bb->opCompositeExtract(obj, memberIndex - 1);
+				}
+			}
+		} break;
+		case expr::NodeType::ArrayAccess: {
+			expr::ArrayAccessNode* a_access = (expr::ArrayAccessNode*)node;
+			spvgentwo::Instruction* obj = m_visit(a_access->Object);
+			if (obj == nullptr) {
+				m_error = true;
+				return nullptr;
+			}
+			if (obj->getType()->isVector())
+				return bb->opVectorExtractDynamic(obj, m_visit(a_access->Indices[0]));
+			else if (obj->getType()->isMatrix()) {
+				int compCount = obj->getType()->getMatrixRowCount();
+				
+				spvgentwo::Instruction* resType = nullptr;
+				if (compCount == 2)
+					resType = m_module->type<spvgentwo::vector_t<float, 2>*>();
+				else if (compCount == 3)
+					resType = m_module->type<spvgentwo::vector_t<float, 3>*>();
+				else if (compCount == 4)
+					resType = m_module->type<spvgentwo::vector_t<float, 4>*>();
+				
+				if (resType != nullptr) {
+					spvgentwo::Instruction* tempVar = bb->opVariable(obj->getTypeInstr(), spvgentwo::spv::StorageClass::Function);
+					bb->opStore(tempVar, obj);
+					spvgentwo::Instruction* vecPtr = bb->opAccessChain(resType, tempVar, m_visit(a_access->Indices[0]));
+					
+					return bb->opLoad(vecPtr);
 				}
 			}
 		} break;
@@ -623,10 +801,72 @@ namespace ed {
 				}
 			}
 
+			if (obj == nullptr) {
+				m_error = true;
+				return nullptr;
+			}
+
+			const spvgentwo::Type* objType = obj->getType();
+
+			// user defined method
+			if (objType->isStruct()) {
+				const char* objName = obj->getTypeInstr()->getName();
+				std::string mname = std::string(objName) + "::" + fname;
+
+				// find a match with user defined function
+				int matchCount = 0, actualCount = 0;
+				spvgentwo::Function* matchFunction = nullptr;
+				for (auto& func : m_module->getFunctions()) {
+					std::string userFName(func.getName());
+					userFName = userFName.substr(0, userFName.find_first_of('('));
+
+					if (userFName == mname && args.size() == func.getParameters().size()-1) {
+						int myMatchCount = 0, myActualCount = 0;
+						for (int i = 0; i < args.size(); i++) {
+							const spvgentwo::Type& defType = func.getParameter(i+1)->getType()->front();
+							const spvgentwo::Type& myType = *(args[i]->getType());
+
+							if (defType == myType || (defType.isNumericalScalarOrVector() && myType.isNumericalScalarOrVector() && defType.getVectorComponentCount() == myType.getVectorComponentCount())) {
+								if (defType == myType)
+									myMatchCount++;
+								myActualCount++;
+								break;
+							}
+						}
+
+						if (myMatchCount > matchCount || myActualCount > actualCount || args.size() == 0) {
+							matchFunction = &func;
+							matchCount = myMatchCount;
+							actualCount = myActualCount;
+						}
+					}
+				}
+
+				// call the function if we found a match
+				if (matchFunction != nullptr) {
+					spvgentwo::HeapList<spvgentwo::Instruction*> list;
+					list.emplace_back(obj);
+					// convert arguments
+					for (int i = 0; i < args.size(); i++) {
+						const auto& baseType = matchFunction->getParameter(i+1)->getType()->getBaseType();
+						if (baseType.isFloat())
+							list.emplace_back(m_simpleConvert(expr::TokenType_Float, args[i]));
+						else if (baseType.isSInt())
+							list.emplace_back(m_simpleConvert(expr::TokenType_Int, args[i]));
+						else if (baseType.isUInt())
+							list.emplace_back(m_simpleConvert(expr::TokenType_Uint, args[i]));
+					}
+
+					// call function
+					return bb->callDynamic(matchFunction, list); // TODO
+				}
+			}
+
 			// HLSL stuff:
-			if (obj->getType()->isSampledImage()) {
+			if (objType->isImage()) {
 				if (fname == "Sample" && args.size() > 1)
 					return bb->opImageSampleImplictLod(obj, m_simpleConvert(expr::TokenType_Float, args[1]));
+			
 			}
 		} break;
 		}
@@ -732,6 +972,32 @@ namespace ed {
 
 		return 4;
 	}
+	int ExpressionCompiler::m_getRowCount(int type)
+	{
+		switch (type) {
+		case expr::TokenType_Float4x4:
+			return 4;
+		case expr::TokenType_Float3x3:
+			return 3;
+		case expr::TokenType_Float2x2:
+			return 2;
+		}
+
+		return 0;
+	}
+	int ExpressionCompiler::m_getColumnCount(int type)
+	{
+		switch (type) {
+		case expr::TokenType_Float4x4:
+			return 4;
+		case expr::TokenType_Float3x3:
+			return 3;
+		case expr::TokenType_Float2x2:
+			return 2;
+		}
+
+		return 0;
+	}
 	bool ExpressionCompiler::m_isVector(int type)
 	{
 		switch (type) {
@@ -752,8 +1018,22 @@ namespace ed {
 
 		return false;
 	}
+	bool ExpressionCompiler::m_isMatrix(int type)
+	{
+		switch (type) {
+		case expr::TokenType_Float4x4:
+		case expr::TokenType_Float3x3:
+		case expr::TokenType_Float2x2:
+			return true;
+		}
+
+		return false;
+	}
 	spvgentwo::Instruction* ExpressionCompiler::m_constructVector(int baseType, int compCount, std::vector<spvgentwo::Instruction*>& comps)
 	{
+		if (compCount > 4)
+			return nullptr;
+
 		spvgentwo::Instruction* baseTypeInstr = nullptr;
 
 		if (compCount == 2) {
@@ -813,6 +1093,87 @@ namespace ed {
 
 		return nullptr;
 	}
+	spvgentwo::Instruction* ExpressionCompiler::m_constructMatrix(int rows, int cols, std::vector<spvgentwo::Instruction*>& comps)
+	{
+		spvgentwo::Instruction* baseTypeInstr = nullptr, *colTypeInstr = nullptr;
+
+		// TODO: mat3x4, etc...
+		if (rows == 2) {
+			baseTypeInstr = m_module->type<spvgentwo::matrix_t<float, 2, 2>>();
+			colTypeInstr = m_module->type<spvgentwo::vector_t<float, 2>>();
+		} else if (rows == 3) {
+			baseTypeInstr = m_module->type<spvgentwo::matrix_t<float, 3, 3>>();
+			colTypeInstr = m_module->type<spvgentwo::vector_t<float, 3>>();
+		} else if (rows == 4) {
+			baseTypeInstr = m_module->type<spvgentwo::matrix_t<float, 4, 4>>();
+			colTypeInstr = m_module->type<spvgentwo::vector_t<float, 4>>();
+		}
+
+		spvgentwo::BasicBlock& bb = *(*m_func);
+
+		spvgentwo::HeapList<spvgentwo::Instruction*> params;
+		std::vector<spvgentwo::Instruction*> convComps(comps.size());
+
+		for (int i = 0; i < comps.size(); i++)
+			convComps[i] = m_simpleConvert(expr::TokenType_Float, comps[i]);
+
+		if (convComps.size() == 1) {
+			if (convComps[0]->getType()->isScalar()) {
+				std::vector<spvgentwo::Instruction*> vecComps(rows);
+				for (int c = 0; c < cols; c++) {
+					for (int r = 0; r < rows; r++) {
+						if (r == c)
+							vecComps[r] = convComps[0];
+						else
+							vecComps[r] = m_module->constant<float>(0.0f);
+					}
+					params.emplace_back(m_constructVector(expr::TokenType_Float, rows, vecComps));
+				}
+			} else if (convComps[0]->getType()->isMatrix())
+				return convComps[0];
+		} else if (convComps.size() == cols) {
+			for (int c = 0; c < cols; c++) {
+				if (!convComps[c]->getType()->isVectorOf(spvgentwo::spv::Op::OpTypeFloat, rows)) 
+					return nullptr;
+			}
+
+			for (int c = 0; c < cols; c++)
+				params.emplace_back(convComps[c]);
+		} else {
+			std::vector<spvgentwo::Instruction*> scalars;
+			for (int i = 0; i < convComps.size(); i++) {
+				const spvgentwo::Type* type = convComps[i]->getType();
+				if (type->isScalar())
+					scalars.push_back(convComps[i]);
+				else if (type->isVector()) {
+					for (int j = 0; j < type->getVectorComponentCount(); j++)
+						scalars.push_back(bb->opCompositeExtract(convComps[i], j));
+				}
+			}
+
+			if (scalars.size() != rows * cols)
+				return nullptr;
+
+			for (int c = 0; c < cols; c++) {
+				std::vector<spvgentwo::Instruction*> vecComps(rows);
+				for (int r = 0; r < rows; r++)
+					vecComps[r] = scalars[c * rows + r];
+				params.emplace_back(m_constructVector(expr::TokenType::TokenType_Float, rows, vecComps));
+			}
+		}
+
+		bool hasNull = false;
+		for (int i = 0; i < params.size(); i++)
+			if (*(params.begin() + i) == nullptr) {
+				hasNull = true;
+				break;
+			}
+
+		if (hasNull || params.size() != cols)
+			return nullptr;
+
+		return bb->opCompositeConstructDynamic(baseTypeInstr, params);
+	}
 	spvgentwo::Instruction* ExpressionCompiler::m_swizzle(spvgentwo::Instruction* vec, const char* field)
 	{
 		spvgentwo::BasicBlock& bb = *(*m_func);
@@ -827,10 +1188,8 @@ namespace ed {
 				for (int j = 0; j < 4; j++) {
 					if (combo[i][j] == field[0])
 						return bb->opCompositeExtract(vec, j);
-					else
-						return nullptr;
 				}
-		} else {
+		} else { // TODO: maybe use OpVectorShuffle here?
 			std::vector<spvgentwo::Instruction*> comps;
 			for (int i = 0; i < strlen(field); i++)
 				for (int j = 0; j < combo.size(); j++)
@@ -838,8 +1197,7 @@ namespace ed {
 						if (combo[j][k] == field[i]) {
 							comps.push_back(bb->opCompositeExtract(vec, k));
 							break;
-						} else
-							return nullptr;
+						}
 					}
 
 			int baseType = expr::TokenType_Float;
