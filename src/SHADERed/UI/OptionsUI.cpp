@@ -55,7 +55,6 @@ namespace ed {
 			}
 		}
 	}
-
 	void OptionsUI::Update(float delta)
 	{
 		ImGui::BeginChild("##opt_container", ImVec2(0, Settings::Instance().CalculateSize(-30)));
@@ -131,7 +130,6 @@ namespace ed {
 			ImGui::EndPopup();
 		}
 	}
-
 	void OptionsUI::ApplyTheme()
 	{
 		Logger::Get().Log("Applying UI theme to SHADERed...");

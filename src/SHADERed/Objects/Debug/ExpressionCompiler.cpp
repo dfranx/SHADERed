@@ -35,8 +35,6 @@ namespace ed {
 	}
 	int ExpressionCompiler::Compile(const std::string& expr, const std::string& curFunction, std::vector<unsigned int>& spv)
 	{
-		// TODO: pass current line number too? -> when curFunction is overloaded
-
 		if (expr.empty())
 			return -1;
 

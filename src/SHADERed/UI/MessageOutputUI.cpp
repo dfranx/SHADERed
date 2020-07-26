@@ -2,6 +2,7 @@
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Options.h>
 #include <SHADERed/UI/MessageOutputUI.h>
+#include <SHADERed/UI/CodeEditorUI.h>
 #include <imgui/imgui.h>
 
 namespace ed {
@@ -12,49 +13,67 @@ namespace ed {
 	{
 		const std::vector<MessageStack::Message>& msgs = m_data->Messages.GetMessages();
 
-		ImGui::Columns(4);
+		if (ImGui::BeginTable("##msg_table", 4, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY)) {
+			ImGui::TableSetupColumn("Shader Pass", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+			ImGui::TableSetupColumn("Source", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+			ImGui::TableSetupColumn("Line", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+			ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableAutoHeaders();
 
-		ImGui::SetColumnWidth(0, 150.0f);
-		ImGui::SetColumnWidth(1, 60.0f);
-		ImGui::SetColumnWidth(2, 60.0f);
+			int rowIndex = 0;
+			ed::CustomColors clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
 
-		ImGui::Text("Shader Pass");
-		ImGui::NextColumn();
-		ImGui::Text("Source");
-		ImGui::NextColumn();
-		ImGui::Text("Line");
-		ImGui::NextColumn();
-		ImGui::Text("Message");
-		ImGui::NextColumn();
-		ImGui::Separator();
+			for (int i = 0; i < msgs.size(); i++) {
+				ImGui::TableNextRow();
 
-		ed::CustomColors clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
+				const MessageStack::Message* m = &msgs[i];
 
-		for (int i = 0; i < msgs.size(); i++) {
-			const MessageStack::Message* m = &msgs[i];
+				ImVec4 color = clrs.InfoMessage;
+				if (m->MType == MessageStack::Type::Error)
+					color = clrs.ErrorMessage;
+				else if (m->MType == MessageStack::Type::Warning)
+					color = clrs.WarningMessage;
 
-			ImVec4 color = clrs.InfoMessage;
-			if (m->MType == MessageStack::Type::Error)
-				color = clrs.ErrorMessage;
-			else if (m->MType == MessageStack::Type::Warning)
-				color = clrs.WarningMessage;
+				ImGui::TableSetColumnIndex(0);
+				ImGui::PushID(i);
+				if (ImGui::Selectable(m->Group.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+					if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+						ed::PipelineItem* pass = m_data->Pipeline.Get(m->Group.c_str());
 
-			ImGui::Text(m->Group.c_str());
-			ImGui::NextColumn();
+						if (pass != nullptr) {
+							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+							if (pass->Type == PipelineItem::ItemType::ShaderPass && m->Shader != ShaderStage::Count)
+								codeUI->Open(pass, m->Shader);
+							else if (pass->Type == PipelineItem::ItemType::ComputePass && m->Shader != ShaderStage::Count)
+								codeUI->Open(pass, m->Shader);
+							else if (pass->Type == PipelineItem::ItemType::AudioPass && m->Shader != ShaderStage::Count)
+								codeUI->Open(pass, m->Shader);
+							else if (pass->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* plData = ((pipe::PluginItemData*)pass->Data);
+								plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+							}
 
-			if (m->Shader != ShaderStage::Count) // TODO: array? duh
-				ImGui::Text(m->Shader == ShaderStage::Vertex ? "VS" : (m->Shader == ShaderStage::Pixel ? "PS" : (m->Shader == ShaderStage::Geometry ? "GS" : "CS")));
-			ImGui::NextColumn();
+							TextEditor* editor = codeUI->Get(pass, m->Shader);
+							if (editor != nullptr && m->Line != -1)
+								editor->SetCursorPosition(TextEditor::Coordinates(std::max<int>(0, m->Line - 1), 0));
+						}
+					}
+				}
+				ImGui::PopID();
 
-			if (m->Line != -1)
-				ImGui::Text(std::to_string(m->Line).c_str());
-			ImGui::NextColumn();
+				ImGui::TableSetColumnIndex(1);
+				if (m->Shader != ShaderStage::Count) // TODO: array? duh
+					ImGui::Text(m->Shader == ShaderStage::Vertex ? "VS" : (m->Shader == ShaderStage::Pixel ? "PS" : (m->Shader == ShaderStage::Geometry ? "GS" : "CS")));
 
-			ImGui::TextColored(color, m->Text.c_str());
+				ImGui::TableSetColumnIndex(2);
+				if (m->Line != -1)
+					ImGui::Text(std::to_string(m->Line).c_str());
 
-			if (i != msgs.size() - 1)
-				ImGui::NextColumn();
+				ImGui::TableSetColumnIndex(3);
+				ImGui::TextColored(color, m->Text.c_str());
+			}
+
+			ImGui::EndTable();
 		}
-		ImGui::Columns(1);
 	}
 }
