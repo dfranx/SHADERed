@@ -703,7 +703,7 @@ namespace ed {
 
 		// snippets
 		for (const auto& snippet : m_snippets)
-			if (tEdit->GetLanguageDefinition().mName == snippet.Language)
+			if (tEdit->GetLanguageDefinition().mName == snippet.Language || snippet.Language == "*")
 				tEdit->AddAutocompleteEntry(snippet.Search, snippet.Display, snippet.Code);
 
 		// colorize if needed
