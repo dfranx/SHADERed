@@ -1254,7 +1254,7 @@ namespace ed {
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("(C) 2020 dfranx");
-			ImGui::TextWrapped("Version 1.3.5");
+			ImGui::TextWrapped("Version 1.3.6");
 			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
 			ImGui::NewLine();
 			UIHelper::Markdown("This app is open sourced: [link](https://www.github.com/dfranx/SHADERed)");
