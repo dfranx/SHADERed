@@ -13,6 +13,8 @@
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 #include <imgui/imgui.h>
 #include <vector>
 #include <fstream>
@@ -412,13 +414,13 @@ namespace ed {
 					PipelineManager* pipe = (PipelineManager*)pipeline;
 					return (void*)pipe->GetList()[index];
 				};
-				plugin->GetOpenDirectoryDialog = [](char* out) -> bool {
+				plugin->DEPRECATED_GetOpenDirectoryDialog = [](char* out) -> bool {
 					return false;
 				};
-				plugin->GetOpenFileDialog = [](char* out, const char* files) -> bool {
+				plugin->DEPRECATED_GetOpenFileDialog = [](char* out, const char* files) -> bool {
 					return false;
 				};
-				plugin->GetSaveFileDialog = [](char* out, const char* files) -> bool {
+				plugin->DEPRECATED_GetSaveFileDialog = [](char* out, const char* files) -> bool {
 					return false;
 				};
 				plugin->GetIncludePathCount = []() -> int {
@@ -894,6 +896,45 @@ namespace ed {
 				plugin->ScaleSize = [](float size) -> float {
 					return Settings::Instance().CalculateSize(size);
 				};
+
+				if (plugin->GetVersion() >= 2) {
+					ed::IPlugin2* plugin2 = (ed::IPlugin2*)plugin;
+					plugin2->GetHostIPluginMaxVersion = []() -> int {
+						return 2;
+					};
+					plugin2->ImGuiFileDialogOpen = [](const char* key, const char* title, const char* filter) {
+						igfd::ImGuiFileDialog::Instance()->OpenModal(key, title, filter, ".");
+					};
+					plugin2->ImGuiDirectoryDialogOpen = [](const char* key, const char* title) {
+						igfd::ImGuiFileDialog::Instance()->OpenModal(key, title, nullptr, ".");
+					};
+					plugin2->ImGuiFileDialogIsDone = [](const char* key) -> bool {
+						return igfd::ImGuiFileDialog::Instance()->FileDialog(key);
+					};
+					plugin2->ImGuiFileDialogClose = [](const char* key) {
+						igfd::ImGuiFileDialog::Instance()->CloseDialog(key);
+					};
+					plugin2->ImGuiFileDialogGetResult = []() -> bool {
+						return igfd::ImGuiFileDialog::Instance()->IsOk;
+					};
+					plugin2->ImGuiFileDialogGetPath = [](char* outPath) {
+						strcpy(outPath, igfd::ImGuiFileDialog::Instance()->GetFilepathName().c_str());
+					};
+					plugin2->DebuggerImmediate = [](void* Debugger, const char* expr) -> const char* {
+						static std::string buffer;
+						spvm_result_t resType = nullptr;
+						spvm_result_t res = ((ed::DebugInformation*)Debugger)->Immediate(expr, resType);
+
+						if (res != nullptr) {
+							std::stringstream ss;
+							((ed::DebugInformation*)Debugger)->GetVariableValueAsString(ss, ((ed::DebugInformation*)Debugger)->GetVMImmediate(), resType, res->members, res->member_count, "");
+							buffer = ss.str();
+						} else
+							buffer = "ERROR";
+
+						return buffer.c_str();
+					};
+				}
 
 #ifdef SHADERED_DESKTOP 
 				bool initResult = plugin->Init(false, SHADERED_VERSION);

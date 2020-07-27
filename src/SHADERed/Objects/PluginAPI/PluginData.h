@@ -51,7 +51,7 @@ namespace ed {
 
 		class InputLayoutItem {
 		public:
-			InputLayoutValue Value;
+			ed::plugin::InputLayoutValue Value;
 			char Semantic[64];
 		};
 

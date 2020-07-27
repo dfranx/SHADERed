@@ -4,10 +4,11 @@
 
 namespace ed {
 	namespace pluginfn {
+		/********** IPlugin1 **********/
 		typedef void (*AddObjectFn)(void* objects, const char* name, const char* type, void* data, unsigned int id, void* owner);
 		typedef bool (*AddCustomPipelineItemFn)(void* pipeline, void* parent, const char* name, const char* type, void* data, void* owner);
 
-		typedef void (*AddMessageFn)(void* messages, plugin::MessageType mtype, const char* group, const char* txt, int ln);
+		typedef void (*AddMessageFn)(void* messages, ed::plugin::MessageType mtype, const char* group, const char* txt, int ln);
 
 		typedef bool (*CreateRenderTextureFn)(void* objects, const char* name);
 		typedef bool (*CreateImageFn)(void* objects, const char* name, int width, int height);
@@ -37,7 +38,7 @@ namespace ed {
 		typedef void* (*GetPipelineItemFn)(void* pipeline, const char* name);
 		typedef int (*GetPipelineItemCountFn)(void* pipeline);
 		typedef void* (*GetPipelineItemByIndexFn)(void* pipeline, int index);
-		typedef plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* item);
+		typedef ed::plugin::PipelineItemType (*GetPipelineItemTypeFn)(void* item);
 		typedef const char* (*GetPipelineItemNameFn)(void* item);
 		typedef void* (*GetPipelineItemPluginOwnerFn)(void* item);
 		typedef int (*GetPipelineItemChildrenCountFn)(void* item);
@@ -52,8 +53,8 @@ namespace ed {
 		typedef int (*GetPipelineItemVariableCountFn)(void* item);
 		typedef const char* (*GetPipelineItemVariableNameFn)(void* item, int index);
 		typedef char* (*GetPipelineItemVariableValueFn)(void* item, int index);
-		typedef plugin::VariableType (*GetPipelineItemVariableTypeFn)(void* item, int index);
-		typedef bool (*AddPipelineItemVariableFn)(void* item, const char* name, plugin::VariableType type);
+		typedef ed::plugin::VariableType (*GetPipelineItemVariableTypeFn)(void* item, int index);
+		typedef bool (*AddPipelineItemVariableFn)(void* item, const char* name, ed::plugin::VariableType type);
 
 		typedef void (*BindShaderPassVariablesFn)(void* shaderpass, void* item);
 		typedef void (*GetViewMatrixFn)(float* out);
@@ -89,16 +90,16 @@ namespace ed {
 		typedef void (*BindDefaultStateFn)();
 		typedef void (*OpenInCodeEditorFn)(void* UI, void* item, const char* filename, int id);
 
-		typedef bool (*GetOpenDirectoryDialogFn)(char* out);
-		typedef bool (*GetOpenFileDialogFn)(char* out, const char* files);
-		typedef bool (*GetSaveFileDialogFn)(char* out, const char* files);
+		typedef bool (*Deprecated_GetOpenDirectoryDialogFn)(char* out);
+		typedef bool (*Deprecated_GetOpenFileDialogFn)(char* out, const char* files);
+		typedef bool (*Deprecated_GetSaveFileDialogFn)(char* out, const char* files);
 
 		typedef int (*GetIncludePathCountFn)();
 		typedef const char* (*GetIncludePathFn)(void* project, int index);
 		typedef const char* (*GetMessagesCurrentItemFn)(void* messages);
 	
 		typedef void (*OnEditorContentChangeFn)(void* UI, void* plugin, int langID, int editorID);
-		typedef unsigned int* (*GetPipelineItemSPIRVFn)(void* item, plugin::ShaderStage stage, int* dataLen);
+		typedef unsigned int* (*GetPipelineItemSPIRVFn)(void* item, ed::plugin::ShaderStage stage, int* dataLen);
 		typedef void (*RegisterShortcutFn)(void* plugin, const char* name);
 
 		typedef bool (*GetSettingsBooleanFn)(const char* name);
@@ -130,6 +131,17 @@ namespace ed {
 		typedef int (*DebuggerGetCurrentLineFn)(void* Debugger);
 
 		typedef float (*ScaleSizeFn)(float size);
+
+		
+		/********** IPlugin2 **********/
+		typedef int (*GetHostIPluginMaxVersionFn)();
+		typedef void (*ImGuiFileDialogOpenFn)(const char* key, const char* title, const char* filter);
+		typedef void (*ImGuiDirectoryDialogOpenFn)(const char* key, const char* title);
+		typedef bool (*ImGuiFileDialogIsDoneFn)(const char* key);
+		typedef void (*ImGuiFileDialogCloseFn)(const char* key);
+		typedef bool (*ImGuiFileDialogGetResultFn)();
+		typedef void (*ImGuiFileDialogGetPathFn)(char* outPath);
+		typedef const char* (*DebuggerImmediateFn)(void* Debugger, const char* expr);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -168,20 +180,20 @@ namespace ed {
 		virtual void ShowContextItems(const char* name, void* owner = nullptr, void* extraData = nullptr) = 0;
 
 		// system variable methods
-		virtual int SystemVariables_GetNameCount(plugin::VariableType varType) = 0;
-		virtual const char* SystemVariables_GetName(plugin::VariableType varType, int index) = 0;
-		virtual bool SystemVariables_HasLastFrame(char* name, plugin::VariableType varType) = 0;
-		virtual void SystemVariables_UpdateValue(char* data, char* name, plugin::VariableType varType, bool isLastFrame) = 0;
+		virtual int SystemVariables_GetNameCount(ed::plugin::VariableType varType) = 0;
+		virtual const char* SystemVariables_GetName(ed::plugin::VariableType varType, int index) = 0;
+		virtual bool SystemVariables_HasLastFrame(char* name, ed::plugin::VariableType varType) = 0;
+		virtual void SystemVariables_UpdateValue(char* data, char* name, ed::plugin::VariableType varType, bool isLastFrame) = 0;
 
 		// function variables
-		virtual int VariableFunctions_GetNameCount(plugin::VariableType vtype) = 0;
-		virtual const char* VariableFunctions_GetName(plugin::VariableType varType, int index) = 0;
-		virtual bool VariableFunctions_ShowArgumentEdit(char* fname, char* args, plugin::VariableType vtype) = 0;
-		virtual void VariableFunctions_UpdateValue(char* data, char* args, char* fname, plugin::VariableType varType) = 0;
-		virtual int VariableFunctions_GetArgsSize(char* fname, plugin::VariableType varType) = 0;
-		virtual void VariableFunctions_InitArguments(char* args, char* fname, plugin::VariableType vtype) = 0;
-		virtual const char* VariableFunctions_ExportArguments(char* fname, plugin::VariableType vtype, char* args) = 0;
-		virtual void VariableFunctions_ImportArguments(char* fname, plugin::VariableType vtype, char* args, const char* argsString) = 0;
+		virtual int VariableFunctions_GetNameCount(ed::plugin::VariableType vtype) = 0;
+		virtual const char* VariableFunctions_GetName(ed::plugin::VariableType varType, int index) = 0;
+		virtual bool VariableFunctions_ShowArgumentEdit(char* fname, char* args, ed::plugin::VariableType vtype) = 0;
+		virtual void VariableFunctions_UpdateValue(char* data, char* args, char* fname, ed::plugin::VariableType varType) = 0;
+		virtual int VariableFunctions_GetArgsSize(char* fname, ed::plugin::VariableType varType) = 0;
+		virtual void VariableFunctions_InitArguments(char* args, char* fname, ed::plugin::VariableType vtype) = 0;
+		virtual const char* VariableFunctions_ExportArguments(char* fname, ed::plugin::VariableType vtype, char* args) = 0;
+		virtual void VariableFunctions_ImportArguments(char* fname, ed::plugin::VariableType vtype, char* args, const char* argsString) = 0;
 
 		// object manager stuff
 		virtual bool Object_HasPreview(const char* type) = 0;
@@ -205,15 +217,15 @@ namespace ed {
 		virtual bool PipelineItem_IsPickable(const char* type, void* data) = 0;
 		virtual bool PipelineItem_HasShaders(const char* type, void* data) = 0; // so that they can be opened in the shader editor
 		virtual void PipelineItem_OpenInEditor(const char* type, void* data) = 0;
-		virtual bool PipelineItem_CanHaveChild(const char* type, void* data, plugin::PipelineItemType itemType) = 0;
+		virtual bool PipelineItem_CanHaveChild(const char* type, void* data, ed::plugin::PipelineItemType itemType) = 0;
 		virtual int PipelineItem_GetInputLayoutSize(const char* type, void* data) = 0; // this must be supported if this item can have geometry as child..
-		virtual void PipelineItem_GetInputLayoutItem(const char* type, void* data, int index, plugin::InputLayoutItem& out) = 0;
+		virtual void PipelineItem_GetInputLayoutItem(const char* type, void* data, int index, ed::plugin::InputLayoutItem& out) = 0;
 		virtual void PipelineItem_Remove(const char* itemName, const char* type, void* data) = 0;
 		virtual void PipelineItem_Rename(const char* oldName, const char* newName) = 0;
-		virtual void PipelineItem_AddChild(const char* owner, const char* name, plugin::PipelineItemType type, void* data) = 0;
+		virtual void PipelineItem_AddChild(const char* owner, const char* name, ed::plugin::PipelineItemType type, void* data) = 0;
 		virtual bool PipelineItem_CanHaveChildren(const char* type, void* data) = 0;
 		virtual void* PipelineItem_CopyData(const char* type, void* data) = 0;
-		virtual void PipelineItem_Execute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
+		virtual void PipelineItem_Execute(void* Owner, ed::plugin::PipelineItemType OwnerType, const char* type, void* data) = 0;
 		virtual void PipelineItem_Execute(const char* type, void* data, void* children, int count) = 0;
 		virtual void PipelineItem_GetWorldMatrix(const char* type, void* data, float (&pMat)[16]) = 0; //must be implemented if item is pickable
 		virtual bool PipelineItem_Intersect(const char* type, void* data, const float* rayOrigin, const float* rayDir, float& hitDist) = 0;
@@ -226,9 +238,9 @@ namespace ed {
 		virtual void PipelineItem_MoveUp(void* ownerData, const char* ownerType, const char* itemName) = 0;
 		virtual void PipelineItem_ApplyGizmoTransform(const char* type, void* data, float* transl, float* scale, float* rota) = 0;
 		virtual void PipelineItem_GetTransform(const char* type, void* data, float* transl, float* scale, float* rota) = 0;
-		virtual void PipelineItem_DebugVertexExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual void PipelineItem_DebugVertexExecute(void* Owner, ed::plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
 		virtual int PipelineItem_DebugVertexExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
-		virtual void PipelineItem_DebugInstanceExecute(void* Owner, plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
+		virtual void PipelineItem_DebugInstanceExecute(void* Owner, ed::plugin::PipelineItemType OwnerType, const char* type, void* data, unsigned int colorVarLoc) = 0;
 		virtual int PipelineItem_DebugInstanceExecute(const char* type, void* data, const char* childName, float rx, float ry, int vertexGroup) = 0;
 		virtual unsigned int PipelineItem_GetVBO(const char* type, void* data) = 0;
 		virtual unsigned int PipelineItem_GetVBOStride(const char* type, void* data) = 0;
@@ -261,7 +273,7 @@ namespace ed {
 		// languages
 		virtual int CustomLanguage_GetCount() = 0;
 		virtual const char* CustomLanguage_GetName(int langID) = 0;
-		virtual const unsigned int* CustomLanguage_CompileToSPIRV(int langID, const char* src, size_t src_len, plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
+		virtual const unsigned int* CustomLanguage_CompileToSPIRV(int langID, const char* src, size_t src_len, ed::plugin::ShaderStage stage, const char* entry, plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
 		virtual const char* CustomLanguage_ProcessGeneratedGLSL(int langID, const char* src) = 0;
 		virtual bool CustomLanguage_SupportsAutoUniforms(int langID) = 0;
 		virtual bool CustomLanguage_IsDebuggable(int langID) = 0;
@@ -292,7 +304,7 @@ namespace ed {
 		virtual int LanguageDefinition_GetKeywordCount(int id) = 0;
 		virtual const char** LanguageDefinition_GetKeywords(int id) = 0;
 		virtual int LanguageDefinition_GetTokenRegexCount(int id) = 0;
-		virtual const char* LanguageDefinition_GetTokenRegex(int index, plugin::TextEditorPaletteIndex& palIndex, int id) = 0;
+		virtual const char* LanguageDefinition_GetTokenRegex(int index, ed::plugin::TextEditorPaletteIndex& palIndex, int id) = 0;
 		virtual int LanguageDefinition_GetIdentifierCount(int id) = 0;
 		virtual const char* LanguageDefinition_GetIdentifier(int index, int id) = 0;
 		virtual const char* LanguageDefinition_GetIdentifierDesc(int index, int id) = 0;
@@ -305,10 +317,10 @@ namespace ed {
 		virtual const char* LanguageDefinition_GetNameAbbreviation(int id) = 0;
 
 		// autocomplete
-		virtual int Autocomplete_GetCount(plugin::ShaderStage stage) = 0;
-		virtual const char* Autocomplete_GetDisplayString(plugin::ShaderStage stage, int index) = 0;
-		virtual const char* Autocomplete_GetSearchString(plugin::ShaderStage stage, int index) = 0;
-		virtual const char* Autocomplete_GetValue(plugin::ShaderStage stage, int index) = 0;
+		virtual int Autocomplete_GetCount(ed::plugin::ShaderStage stage) = 0;
+		virtual const char* Autocomplete_GetDisplayString(ed::plugin::ShaderStage stage, int index) = 0;
+		virtual const char* Autocomplete_GetSearchString(ed::plugin::ShaderStage stage, int index) = 0;
+		virtual const char* Autocomplete_GetValue(ed::plugin::ShaderStage stage, int index) = 0;
 
 		// file change checks
 		virtual int ShaderFilePath_GetCount() = 0;
@@ -322,7 +334,7 @@ namespace ed {
 		virtual void HandleRecompileFromSource(const char* itemName, int sid, const char* shaderCode, int shaderSize) = 0;
 		virtual void HandleShortcut(const char* name) = 0;
 		virtual void HandlePluginMessage(const char* sender, char* msg, int msgLen) = 0;
-		virtual void HandleApplicationEvent(plugin::ApplicationEvent event, void* data1, void* data2) = 0;
+		virtual void HandleApplicationEvent(ed::plugin::ApplicationEvent event, void* data1, void* data2) = 0;
 		virtual void HandleNotification(int id) = 0;
 		
 		// host functions
@@ -397,9 +409,9 @@ namespace ed {
 		pluginfn::GetPipelineItemPositionFn GetPipelineItemPosition;
 		pluginfn::GetPipelineItemRotationFn GetPipelineItemRotation;
 		pluginfn::GetPipelineItemScaleFn GetPipelineItemScale;
-		pluginfn::GetOpenDirectoryDialogFn GetOpenDirectoryDialog;
-		pluginfn::GetOpenFileDialogFn GetOpenFileDialog;
-		pluginfn::GetSaveFileDialogFn GetSaveFileDialog;
+		pluginfn::Deprecated_GetOpenDirectoryDialogFn DEPRECATED_GetOpenDirectoryDialog;
+		pluginfn::Deprecated_GetOpenFileDialogFn DEPRECATED_GetOpenFileDialog;
+		pluginfn::Deprecated_GetSaveFileDialogFn DEPRECATED_GetSaveFileDialog;
 		pluginfn::GetIncludePathCountFn GetIncludePathCount;
 		pluginfn::GetIncludePathFn GetIncludePath;
 		pluginfn::GetMessagesCurrentItemFn GetMessagesCurrentItem;
@@ -433,5 +445,29 @@ namespace ed {
 		pluginfn::GetRenderTextureSizeFn GetRenderTextureSize;
 		pluginfn::GetDepthTextureFn GetDepthTexture;
 		pluginfn::ScaleSizeFn ScaleSize;
+	};
+
+	class IPlugin2 : public IPlugin1 {
+	public:
+		virtual int GetVersion() { return 2; }
+
+		virtual bool PipelineItem_SupportsImmediateMode(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
+		virtual bool PipelineItem_HasCustomImmediateModeCompiler(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
+		virtual bool PipelineItem_ImmediateModeCompile(const char* type, void* data, ed::plugin::ShaderStage stage, const char* expression) = 0;
+		
+		virtual unsigned int ImmediateMode_GetSPIRVSize() = 0;
+		virtual unsigned int* ImmediateMode_GetSPIRV() = 0;
+		virtual unsigned int ImmediateMode_GetVariableCount() = 0;
+		virtual const char* ImmediateMode_GetVariableName(unsigned int index) = 0;
+		virtual int ImmediateMode_GetResultID();
+
+		pluginfn::GetHostIPluginMaxVersionFn GetHostIPluginMaxVersion;
+		pluginfn::ImGuiFileDialogOpenFn ImGuiFileDialogOpen;
+		pluginfn::ImGuiDirectoryDialogOpenFn ImGuiDirectoryDialogOpen;
+		pluginfn::ImGuiFileDialogIsDoneFn ImGuiFileDialogIsDone;
+		pluginfn::ImGuiFileDialogCloseFn ImGuiFileDialogClose;
+		pluginfn::ImGuiFileDialogGetResultFn ImGuiFileDialogGetResult;
+		pluginfn::ImGuiFileDialogGetPathFn ImGuiFileDialogGetPath;
+		pluginfn::DebuggerImmediateFn DebuggerImmediate;
 	};
 }

@@ -738,16 +738,57 @@ namespace ed {
 
 	spvm_result_t DebugInformation::Immediate(const std::string& entry, spvm_result_t& outType)
 	{
+		if (m_vm == nullptr)
+			return nullptr;
+
+		bool usePlugin = false;
+		ed::IPlugin2* plugin2 = nullptr;
+		if (m_pixel->Pass->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)m_pixel->Pass->Data;
+			if (plData->Owner->GetVersion() >= 2) {
+				plugin2 = ((ed::IPlugin2*)plData->Owner);
+				
+				if (!plugin2->PipelineItem_SupportsImmediateMode(plData->Type, plData->PluginData, (ed::plugin::ShaderStage)m_stage))
+					return nullptr;
+
+				if (plugin2->PipelineItem_HasCustomImmediateModeCompiler(plData->Type, plData->PluginData, (ed::plugin::ShaderStage)m_stage)) {
+					if (!plugin2->PipelineItem_ImmediateModeCompile(plData->Type, plData->PluginData, (ed::plugin::ShaderStage)m_stage, entry.c_str()))
+						return nullptr;
+					else
+						usePlugin = true;
+				}
+			}
+		}
+
+
 #ifndef __APPLE__ // TODO
 		m_spvImmediate = m_spv;
 
-		std::string curFunction = "";
-		if (m_vm != nullptr && m_vm->current_function != nullptr)
-			curFunction = m_vm->current_function->name;
+		int resultID = 0;
 
-		// compile the expression
-		ed::ExpressionCompiler compiler;
-		int resultID = compiler.Compile(entry, curFunction, m_spvImmediate);
+		std::vector<std::string> varList;
+		if (!usePlugin) {
+			std::string curFunction = "";
+			if (m_vm != nullptr && m_vm->current_function != nullptr)
+				curFunction = m_vm->current_function->name;
+
+			// compile the expression
+			ed::ExpressionCompiler compiler;
+			resultID = compiler.Compile(entry, curFunction, m_spvImmediate);
+
+			varList = compiler.GetVariableList();
+		} else if (plugin2) {
+			unsigned int spvSize = plugin2->ImmediateMode_GetSPIRVSize();
+			std::vector<unsigned int> spv;
+			if (spvSize != 0) {
+				unsigned int* spvPtr = plugin2->ImmediateMode_GetSPIRV();
+				m_spvImmediate = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+			}
+			resultID = plugin2->ImmediateMode_GetResultID();
+
+			for (unsigned int i = 0u; i < plugin2->ImmediateMode_GetVariableCount(); i++)
+				varList.push_back(plugin2->ImmediateMode_GetVariableName(i));
+		}
 
 		// error occured
 		if (resultID <= 0)
@@ -775,7 +816,6 @@ namespace ed {
 
 		// copy variable values
 		spvm_state_group_sync(m_vm);
-		std::vector<std::string> varList = compiler.GetVariableList();
 		for (int i = 0; i < varList.size(); i++) {
 			size_t varValueCount = 0;
 			spvm_result_t varType = nullptr;

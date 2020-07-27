@@ -14,6 +14,7 @@
 + add custom file dialogs
 + add ability to add multiple textures to project at once
 + add KeyboardTexture description in Help -> Information
++ implement IPlugin2
 + redesign "Output" window
 + fix text editor's "Find and replace" feature
 + fix a bug that would crash SHADERed when using multiple compute shaders
