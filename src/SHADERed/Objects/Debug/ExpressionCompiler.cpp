@@ -1037,7 +1037,7 @@ namespace ed {
 		}
 
 		bool hasNull = false;
-		for (int i = 0; i < params.size(); i++)
+		for (unsigned int i = 0; i < params.size(); i++)
 			if (*(params.begin() + i) == nullptr) {
 				hasNull = true;
 				break;
