@@ -1,5 +1,5 @@
 #pragma once
-#include <SHADERed/Objects/PluginAPI/PluginData.h>
+#include "PluginData.h"
 #include <stddef.h>
 
 namespace ed {
@@ -459,7 +459,7 @@ namespace ed {
 		virtual unsigned int* ImmediateMode_GetSPIRV() = 0;
 		virtual unsigned int ImmediateMode_GetVariableCount() = 0;
 		virtual const char* ImmediateMode_GetVariableName(unsigned int index) = 0;
-		virtual int ImmediateMode_GetResultID();
+		virtual int ImmediateMode_GetResultID() = 0;
 
 		pluginfn::GetHostIPluginMaxVersionFn GetHostIPluginMaxVersion;
 		pluginfn::ImGuiFileDialogOpenFn ImGuiFileDialogOpen;
