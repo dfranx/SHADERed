@@ -12,7 +12,9 @@ namespace ed {
 		ExpressionCompiler();
 		~ExpressionCompiler();
 
-		int Compile(const std::string& expr, const std::string& curFunction, std::vector<unsigned int>& spv);
+		void SetSPIRV(const std::vector<unsigned int>& spv);
+		int Compile(const std::string& expr, const std::string& curFunction);
+		void GetSPIRV(std::vector<unsigned int>& outSPV);
 
 		std::vector<std::string> GetVariableList();
 
@@ -31,8 +33,11 @@ namespace ed {
 		spvgentwo::Instruction* m_swizzle(spvgentwo::Instruction* vec, const char* field);
 
 	private:
-		spvgentwo::Function* m_func;
+		spvgentwo::HeapAllocator* m_allocator;
+		spvgentwo::Grammar* m_grammar;
 		spvgentwo::Module* m_module;
+
+		spvgentwo::Function* m_func;
 
 		std::unordered_map<std::string, spvgentwo::Instruction*> m_vars;
 		std::unordered_map<std::string, spvgentwo::Instruction*> m_opLoads;

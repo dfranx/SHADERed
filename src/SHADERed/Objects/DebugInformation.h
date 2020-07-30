@@ -4,6 +4,9 @@
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/ShaderLanguage.h>
+#ifndef __APPLE__ // TODO
+	#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
+#endif
 
 #include <sstream>
 
@@ -86,6 +89,10 @@ namespace ed {
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;
 		MessageStack* m_msgs;
+
+#ifndef __APPLE__ // TODO
+		ExpressionCompiler m_compiler;
+#endif
 
 		bool m_isDebugging;
 

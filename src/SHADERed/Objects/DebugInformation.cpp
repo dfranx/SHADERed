@@ -1,7 +1,4 @@
 #include <SHADERed/Objects/DebugInformation.h>
-#ifndef __APPLE__ // TODO
-	#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
-#endif
 #include <SHADERed/Objects/SystemVariableManager.h>
 
 #include <iomanip>
@@ -760,10 +757,7 @@ namespace ed {
 			}
 		}
 
-
 #ifndef __APPLE__ // TODO
-		m_spvImmediate = m_spv;
-
 		int resultID = 0;
 
 		std::vector<std::string> varList;
@@ -773,10 +767,10 @@ namespace ed {
 				curFunction = m_vm->current_function->name;
 
 			// compile the expression
-			ed::ExpressionCompiler compiler;
-			resultID = compiler.Compile(entry, curFunction, m_spvImmediate);
+			resultID = m_compiler.Compile(entry, curFunction);
+			m_compiler.GetSPIRV(m_spvImmediate);
 
-			varList = compiler.GetVariableList();
+			varList = m_compiler.GetVariableList();
 		} else if (plugin2) {
 			unsigned int spvSize = plugin2->ImmediateMode_GetSPIRVSize();
 			std::vector<unsigned int> spv;
@@ -1331,7 +1325,6 @@ namespace ed {
 		if (m_stage == ShaderStage::Pixel && m_pixel != nullptr)
 			spvm_state_set_frag_coord(m_vm, m_pixel->Coordinate.x + 0.5f, m_pixel->Coordinate.y + 0.5f, 1.0f, 1.0f); // TODO: z and w components
 
-
 		// move to cursor to first line in the function
 		spvm_state_step_into(m_vm);
 		if (m_vm->owner->language == SpvSourceLanguageHLSL) {
@@ -1341,6 +1334,11 @@ namespace ed {
 		}
 
 		m_funcStackLines[0] = m_vm->current_line;
+
+#ifndef __APPLE__ // TODO
+		// prepare immediate mode compiler
+		m_compiler.SetSPIRV(m_spv);
+#endif
 	}
 
 	void DebugInformation::ClearWatchList()

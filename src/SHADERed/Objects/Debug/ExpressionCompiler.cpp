@@ -29,28 +29,40 @@ namespace ed {
 	{
 		m_error = false;
 		m_module = nullptr;
+
+		m_allocator = new spvgentwo::HeapAllocator();
+		m_grammar = new spvgentwo::Grammar(m_allocator);
+		m_module = new spvgentwo::Module(m_allocator, spvgentwo::spv::Version);
 	}
 	ExpressionCompiler::~ExpressionCompiler()
 	{
+		delete m_module;
+		delete m_grammar;
+		delete m_allocator;
 	}
-	int ExpressionCompiler::Compile(const std::string& expr, const std::string& curFunction, std::vector<unsigned int>& spv)
+	void ExpressionCompiler::SetSPIRV(const std::vector<unsigned int>& spv)
 	{
-		if (expr.empty())
-			return -1;
-
-		spvgentwo::HeapAllocator alloc;
-
 		BinaryVectorReader reader(spv);
-		spvgentwo::Grammar m_grammar(&alloc);
 
-		m_module = new spvgentwo::Module(&alloc, spvgentwo::spv::Version);
-
-		m_module->read(&reader, m_grammar);
+		m_module->reset();
+		m_module->read(&reader, *m_grammar);
 		m_module->resolveIDs();
 		m_module->reconstructTypeAndConstantInfo();
 		m_module->reconstructNames();
 
 		m_func = &m_module->addFunction("$$_shadered_immediate", spvgentwo::spv::FunctionControlMask::Const);
+	}
+	int ExpressionCompiler::Compile(const std::string& expr, const std::string& curFunction)
+	{
+		if (expr.empty())
+			return -1;
+
+		spvgentwo::BasicBlock& myBB = *(*m_func);
+		myBB.clear();
+
+		m_vars.clear();
+		m_opLoads.clear();
+		m_error = false;
 
 		// parse expression
 		expr::Parser parser(expr.c_str(), expr.size());
@@ -129,24 +141,23 @@ namespace ed {
 			return -1;
 
 		// add op return
-		spvgentwo::BasicBlock& bb = *(*m_func);
-		bb->opReturn();
+		myBB->opReturn();
 
 		// assign IDs and clear memory
 		m_module->assignIDs();
 		parser.Clear();
 
-		// output spirv
-		spv.clear();
-		spvgentwo::BinaryVectorWriter writer(spv);
-		m_module->write(&writer);
-
 		// return result's ID
 		int resultID = (int)inst->getResultId();
 
-		delete m_module;
-
 		return resultID;
+	}
+	void ExpressionCompiler::GetSPIRV(std::vector<unsigned int>& outSPV)
+	{
+		// output spirv
+		outSPV.clear();
+		spvgentwo::BinaryVectorWriter writer(outSPV);
+		m_module->write(&writer);
 	}
 	std::vector<std::string> ExpressionCompiler::GetVariableList()
 	{
@@ -624,7 +635,7 @@ namespace ed {
 			else if (obj->getType()->isStruct()) {
 				spvgentwo::Instruction* objType = obj->getTypeInstr();
 				const char* member = nullptr;
-				int memberIndex = 0;
+				unsigned int memberIndex = 0;
 				while ((member = objType->getName(memberIndex++)) != 0) {
 					if (strcmp(maccess->Field, member) == 0)
 						return bb->opCompositeExtract(obj, memberIndex - 1);
@@ -948,7 +959,7 @@ namespace ed {
 				args[curArg] = m_simpleConvert(baseType, comps[i]);
 				curArg++;
 			} else if (comps[i]->getType()->isVector()) {
-				for (int j = 0; j < comps[i]->getType()->getVectorComponentCount(); j++) {
+				for (unsigned int j = 0; j < comps[i]->getType()->getVectorComponentCount(); j++) {
 					args[curArg] = m_simpleConvert(baseType, bb->opCompositeExtract(comps[i], j));
 					curArg++;
 				}
@@ -1020,7 +1031,7 @@ namespace ed {
 				if (type->isScalar())
 					scalars.push_back(convComps[i]);
 				else if (type->isVector()) {
-					for (int j = 0; j < type->getVectorComponentCount(); j++)
+					for (unsigned int j = 0; j < type->getVectorComponentCount(); j++)
 						scalars.push_back(bb->opCompositeExtract(convComps[i], j));
 				}
 			}
@@ -1059,7 +1070,7 @@ namespace ed {
 
 		if (strlen(field) == 1) {
 			for (int i = 0; i < combo.size(); i++)
-				for (int j = 0; j < 4; j++) {
+				for (unsigned int j = 0; j < 4; j++) {
 					if (combo[i][j] == field[0])
 						return bb->opCompositeExtract(vec, j);
 				}
@@ -1067,7 +1078,7 @@ namespace ed {
 			std::vector<spvgentwo::Instruction*> comps;
 			for (int i = 0; i < strlen(field); i++)
 				for (int j = 0; j < combo.size(); j++)
-					for (int k = 0; k < 4; k++) {
+					for (unsigned int k = 0; k < 4; k++) {
 						if (combo[j][k] == field[i]) {
 							comps.push_back(bb->opCompositeExtract(vec, k));
 							break;
