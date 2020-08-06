@@ -749,8 +749,26 @@ namespace ed {
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
 
-					for (auto& dview : m_debugViews)
+					for (auto& dview : m_debugViews) {
+#ifndef BUILD_IMMEDIATE_MODE
+						bool isTempDisabled = (dview->Name == "Immediate" || dview->Name == "Watches"); // remove this later
+
+						if (isTempDisabled) {
+							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+							dview->Visible = false;
+						}
+#endif
+
 						ImGui::MenuItem(dview->Name.c_str(), 0, &dview->Visible);
+
+#ifndef BUILD_IMMEDIATE_MODE
+						if (isTempDisabled) {
+							ImGui::PopStyleVar();
+							ImGui::PopItemFlag();
+						}
+#endif
+					}
 
 					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PopStyleVar();
@@ -825,12 +843,21 @@ namespace ed {
 					ImGui::End();
 				}
 			if (m_data->Debugger.IsDebugging()) {
-				for (auto& dview : m_debugViews)
+				for (auto& dview : m_debugViews) {
+#ifdef BUILD_IMMEDIATE_MODE
 					if (dview->Visible) {
 						ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
 						if (ImGui::Begin(dview->Name.c_str(), &dview->Visible)) dview->Update(delta);
 						ImGui::End();
 					}
+#else
+					if (dview->Visible && (dview->Name != "Immediate" && dview->Name != "Watches")) {
+						ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
+						if (ImGui::Begin(dview->Name.c_str(), &dview->Visible)) dview->Update(delta);
+						ImGui::End();
+					}
+#endif
+				}
 			}
 
 			Get(ViewID::Code)->Update(delta);
