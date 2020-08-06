@@ -5,6 +5,8 @@ project(SHADERed)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
+option(BUILD_IMMEDIATE_MODE "Build the immediate mode related features" OFF)
+
 # source code
 set(SOURCES
 	main.cpp
@@ -140,7 +142,7 @@ find_package(GLM REQUIRED)
 find_package(SFML COMPONENTS system audio network)
 
 # SpvGenTwo
-if(NOT APPLE)
+if(BUILD_IMMEDIATE_MODE)
 	set(SOURCES
 		"${SOURCES}"
 		src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
@@ -193,6 +195,11 @@ set_target_properties(SHADERed PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
+# preprocessor
+if (BUILD_IMMEDIATE_MODE)
+	target_compile_definitions(SHADERed PRIVATE BUILD_IMMEDIATE_MODE)
+endif()
+
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
 target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc)
@@ -204,7 +211,7 @@ endif()
 target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
 
 # link SpvGenTwo
-if (NOT APPLE)
+if (BUILD_IMMEDIATE_MODE)
 	target_link_libraries(SHADERed SpvGenTwoLib SpvGenTwoCommon)
 endif()
 
@@ -221,7 +228,7 @@ if(WIN32)
 
 elseif(UNIX AND NOT APPLE)
 	# link linux libraries
-	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS} stdc++fs)
 elseif(APPLE)
 	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()

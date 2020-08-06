@@ -757,7 +757,7 @@ namespace ed {
 			}
 		}
 
-#ifndef __APPLE__ // TODO
+#ifdef BUILD_IMMEDIATE_MODE // TODO
 		int resultID = 0;
 
 		std::vector<std::string> varList;
@@ -1335,7 +1335,7 @@ namespace ed {
 
 		m_funcStackLines[0] = m_vm->current_line;
 
-#ifndef __APPLE__ // TODO
+#ifdef BUILD_IMMEDIATE_MODE
 		// prepare immediate mode compiler
 		m_compiler.SetSPIRV(m_spv);
 #endif

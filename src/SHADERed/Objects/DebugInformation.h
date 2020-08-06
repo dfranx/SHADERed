@@ -4,7 +4,7 @@
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/ShaderLanguage.h>
-#ifndef __APPLE__ // TODO
+#ifdef BUILD_IMMEDIATE_MODE
 	#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
 #endif
 
@@ -90,7 +90,7 @@ namespace ed {
 		RenderEngine* m_renderer;
 		MessageStack* m_msgs;
 
-#ifndef __APPLE__ // TODO
+#ifdef BUILD_IMMEDIATE_MODE
 		ExpressionCompiler m_compiler;
 #endif
 
