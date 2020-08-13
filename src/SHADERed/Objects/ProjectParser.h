@@ -81,7 +81,7 @@ namespace ed {
 		void m_importItems(const char* owner, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
 			std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
 			std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs,
-			std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>>& vbUBOs); // TODO: why not just use PipelineItem
+			std::map<pipe::VertexBuffer*, std::tuple<std::string, std::string, pipe::ShaderPass*>>& vbUBOs); // TODO: why not just use PipelineItem
 
 		bool m_modified;
 
