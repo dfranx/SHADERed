@@ -1260,8 +1260,11 @@ namespace ed {
 
 				pipe::VertexBuffer* tData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
 
-				itemNode.append_child("buffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->Buffer)->ID).c_str());
-				itemNode.append_child("indexbuffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->IndexBuffer)->ID).c_str());
+				if(tData->Buffer)
+					itemNode.append_child("buffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->Buffer)->ID).c_str());
+				if(tData->IndexBuffer)
+					itemNode.append_child("indexbuffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->IndexBuffer)->ID).c_str());
+				
 				if (tData->Scale.x != 1.0f)
 					itemNode.append_child("scaleX").text().set(tData->Scale.x);
 				if (tData->Scale.y != 1.0f)
