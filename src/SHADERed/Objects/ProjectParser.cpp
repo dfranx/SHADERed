@@ -1181,45 +1181,36 @@ namespace ed {
 				if (s->FrontFace != GL_CCW)
 					itemNode.append_child("ccw").text().set(false);
 
-				if (s->Blend) {
-					itemNode.append_child("blend").text().set(true);
+				itemNode.append_child("blend").text().set(s->Blend);
+				itemNode.append_child("alpha2coverage").text().set(s->AlphaToCoverage);
+				itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
+				itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
+				itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
+				itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
+				itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
+				itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
+				itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
+				itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
+				itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
+				itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
 
-					if (s->AlphaToCoverage)
-						itemNode.append_child("alpha2coverage").text().set(true);
+				itemNode.append_child("depthtest").text().set(s->DepthTest);
+				itemNode.append_child("depthclamp").text().set(s->DepthClamp);
+				itemNode.append_child("depthmask").text().set(s->DepthMask);
+				itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
+				itemNode.append_child("depthbias").text().set(s->DepthBias);
 
-					itemNode.append_child("colorsrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorRGB));
-					itemNode.append_child("colordstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorRGB));
-					itemNode.append_child("colorfunc").text().set(gl::String::BlendFunction(s->BlendFunctionColor));
-					itemNode.append_child("alphasrcfactor").text().set(gl::String::BlendFactor(s->BlendSourceFactorAlpha));
-					itemNode.append_child("alphadstfactor").text().set(gl::String::BlendFactor(s->BlendDestinationFactorAlpha));
-					itemNode.append_child("alphafunc").text().set(gl::String::BlendFunction(s->BlendFunctionAlpha));
-					itemNode.append_child("blendfactor_r").text().set(s->BlendFactor.r);
-					itemNode.append_child("blendfactor_g").text().set(s->BlendFactor.g);
-					itemNode.append_child("blendfactor_b").text().set(s->BlendFactor.b);
-					itemNode.append_child("blendfactor_a").text().set(s->BlendFactor.a);
-				}
-
-				if (s->DepthTest) {
-					itemNode.append_child("depthtest").text().set(true);
-					itemNode.append_child("depthclamp").text().set(s->DepthClamp);
-					itemNode.append_child("depthmask").text().set(s->DepthMask);
-					itemNode.append_child("depthfunc").text().set(gl::String::ComparisonFunction(s->DepthFunction));
-					itemNode.append_child("depthbias").text().set(s->DepthBias);
-				}
-
-				if (s->StencilTest) {
-					itemNode.append_child("stenciltest").text().set(true);
-					itemNode.append_child("stencilmask").text().set(s->StencilMask);
-					itemNode.append_child("stencilref").text().set(s->StencilReference);
-					itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
-					itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
-					itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
-					itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
-					itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
-					itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
-					itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
-					itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
-				}
+				itemNode.append_child("stenciltest").text().set(s->StencilTest);
+				itemNode.append_child("stencilmask").text().set(s->StencilMask);
+				itemNode.append_child("stencilref").text().set(s->StencilReference);
+				itemNode.append_child("stencilfrontfunc").text().set(gl::String::ComparisonFunction(s->StencilFrontFaceFunction));
+				itemNode.append_child("stencilbackfunc").text().set(gl::String::ComparisonFunction(s->StencilBackFaceFunction));
+				itemNode.append_child("stencilfrontpass").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpPass));
+				itemNode.append_child("stencilbackpass").text().set(gl::String::StencilOperation(s->StencilBackFaceOpPass));
+				itemNode.append_child("stencilfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpStencilFail));
+				itemNode.append_child("stencilbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpStencilFail));
+				itemNode.append_child("depthfrontfail").text().set(gl::String::StencilOperation(s->StencilFrontFaceOpDepthFail));
+				itemNode.append_child("depthbackfail").text().set(gl::String::StencilOperation(s->StencilBackFaceOpDepthFail));
 			} else if (item->Type == PipelineItem::ItemType::Model) {
 				itemNode.append_attribute("type").set_value("model");
 
