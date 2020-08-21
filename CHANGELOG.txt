@@ -1,3 +1,6 @@
+[v1.4]
++ fix render state saving
+
 [v1.3.6]
 + [DEBUGGER] add immediate window
 + [DEBUGGER] add watches
