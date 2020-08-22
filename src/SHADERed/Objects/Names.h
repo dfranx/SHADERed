@@ -35,6 +35,8 @@ extern const unsigned int TOPOLOGY_ITEM_VALUES[10];
 extern const unsigned char TOPOLOGY_SINGLE_VERTEX_COUNT[10];
 extern const unsigned char TOPOLOGY_IS_STRIP[10];
 
+extern const char* KEYBOARD_KEYCODES_TEXT;
+
 namespace ed {
 	namespace gl {
 		class String {
