@@ -46,6 +46,7 @@ bin/data/bookmarks.dat
 
 # Autoupdate information
 bin/current_version.txt
+bin/info.dat
 
 # Logs
 bin/log.txt

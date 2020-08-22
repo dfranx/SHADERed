@@ -219,17 +219,38 @@ namespace ed {
 
 		// setup splash screen
 		m_splashScreenLoad();
+
+		// load recents
+		std::string currentInfoPath = "info.dat";
+		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
+			currentInfoPath = ed::Settings().Instance().LinuxHomeDirectory + currentInfoPath;
+
+		int recentsSize = 0;
+		std::ifstream infoReader(currentInfoPath);
+		infoReader.ignore(128, '\n');
+		infoReader >> recentsSize;
+		infoReader.ignore(128, '\n');
+		m_recentProjects = std::vector<std::string>(recentsSize);
+		for (int i = 0; i < recentsSize; i++) {
+			std::getline(infoReader, m_recentProjects[i]);
+			if (infoReader.eof())
+				break;
+		}
+		infoReader.close();
 	}
 	GUIManager::~GUIManager()
 	{
 		glDeleteShader(Magnifier::Shader);
 
-		std::string currentVersionPath = "current_version.txt";
+		std::string currentInfoPath = "info.dat";
 		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
-			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
-
-		std::ofstream verWriter(currentVersionPath);
-		verWriter << UpdateChecker::MyVersion;
+			currentInfoPath = ed::Settings().Instance().LinuxHomeDirectory + currentInfoPath;
+		
+		std::ofstream verWriter(currentInfoPath);
+		verWriter << UpdateChecker::MyVersion << std::endl;
+		verWriter << m_recentProjects.size() << std::endl;
+		for (int i = 0; i < m_recentProjects.size(); i++)
+			verWriter << m_recentProjects[i] << std::endl;
 		verWriter.close();
 
 		Logger::Get().Log("Shutting down UI");
@@ -611,6 +632,32 @@ namespace ed {
 
 					if (cont)
 						igfd::ImGuiFileDialog::Instance()->OpenModal("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*", ".");
+				}
+				if (ImGui::BeginMenu("Open Recent")) {
+					int recentCount = 0;
+					for (int i = 0; i < m_recentProjects.size(); i++) {
+						std::filesystem::path path(m_recentProjects[i]);
+						if (!std::filesystem::exists(path))
+							continue;
+
+						recentCount++;
+						if (ImGui::MenuItem(path.filename().string().c_str())) {
+							bool cont = true;
+							if (m_data->Parser.IsProjectModified()) {
+								int btnID = this->AreYouSure();
+								if (btnID == 2)
+									cont = false;
+							}
+
+							if (cont)
+								this->Open(m_recentProjects[i]);
+						}
+					}
+
+					if (recentCount == 0)
+						ImGui::Text("No projects opened recently");
+
+					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str()))
 					Save();
@@ -2500,6 +2547,20 @@ namespace ed {
 
 		m_data->Parser.Open(file);
 
+
+		// add to recents
+		std::string fileToBeOpened = file;
+		for (int i = 0; i < m_recentProjects.size(); i++) {
+			if (m_recentProjects[i] == fileToBeOpened) {
+				m_recentProjects.erase(m_recentProjects.begin() + i);
+				break;
+			}
+		}
+		m_recentProjects.insert(m_recentProjects.begin(), fileToBeOpened);
+		if (m_recentProjects.size() > 9)
+			m_recentProjects.pop_back();
+
+
 		std::string projName = m_data->Parser.GetOpenedFile();
 		projName = projName.substr(projName.find_last_of("/\\") + 1);
 
@@ -2687,7 +2748,7 @@ namespace ed {
 	}
 	void GUIManager::m_checkChangelog()
 	{
-		std::string currentVersionPath = "current_version.txt";
+		std::string currentVersionPath = "info.dat";
 		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
 			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
 

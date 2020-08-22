@@ -21,7 +21,7 @@ namespace ed {
 			ImGui::TableAutoHeaders();
 
 			int rowIndex = 0;
-			ed::CustomColors clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
+			const ed::CustomColors& clrs = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme);
 
 			for (int i = 0; i < msgs.size(); i++) {
 				ImGui::TableNextRow();

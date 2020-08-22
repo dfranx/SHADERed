@@ -76,7 +76,7 @@ namespace ed {
 	}
 	void TipFetcher::Fetch(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
-		std::string currentVersionPath = "current_version.txt";
+		std::string currentVersionPath = "info.dat";
 		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
 			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
 

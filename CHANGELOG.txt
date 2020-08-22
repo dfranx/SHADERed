@@ -1,4 +1,5 @@
 [v1.4]
++ add File -> Open Recent
 + fix render state saving
 + fix Gray theme's comments
 

@@ -1,3 +1,4 @@
+#include <SHADERed/UI/CreateItemUI.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <SHADERed/Engine/Model.h>
@@ -7,7 +8,7 @@
 #include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
-#include <SHADERed/UI/CreateItemUI.h>
+#include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -743,6 +744,15 @@ namespace ed {
 			data->InputLayout = gl::CreateDefaultInputLayout();
 
 			m_errorOccured = !m_data->Pipeline.AddShaderPass(m_item.Name, data);
+
+			if (!m_errorOccured) {
+				PipelineItem* actualItem = m_data->Pipeline.Get(m_item.Name);
+
+				CodeEditorUI* code = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
+				code->Open(actualItem, ed::ShaderStage::Vertex);
+				code->Open(actualItem, ed::ShaderStage::Pixel);
+			}
+
 			return !m_errorOccured;
 		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
 			pipe::ComputePass* data = new pipe::ComputePass();

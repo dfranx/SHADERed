@@ -98,6 +98,8 @@ namespace ed {
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;
 
+		std::vector<std::string> m_recentProjects;
+
 		int m_width, m_height;
 
 		void m_renderOptions();

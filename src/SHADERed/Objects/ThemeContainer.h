@@ -17,11 +17,11 @@ namespace ed {
 		ThemeContainer();
 
 		std::string LoadTheme(const std::string& filename);
-		inline ImGuiStyle GetUIStyle(const std::string& name)
+		inline const ImGuiStyle& GetUIStyle(const std::string& name)
 		{
 			return m_ui[name];
 		}
-		inline CustomColors GetCustomStyle(const std::string& name)
+		inline const CustomColors& GetCustomStyle(const std::string& name)
 		{
 			return m_custom[name];
 		}
