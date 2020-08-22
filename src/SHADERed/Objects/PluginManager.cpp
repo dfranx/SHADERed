@@ -474,7 +474,7 @@ namespace ed {
 					if (lwr == "recovery") return seti.General.Recovery;
 					if (lwr == "checkupdates") return seti.General.CheckUpdates;
 					if (lwr == "recompileonfilechange") return seti.General.RecompileOnFileChange;
-					if (lwr == "autorecompile") return seti.General.RecompileOnFileChange;
+					if (lwr == "autorecompile") return seti.General.AutoRecompile;
 					if (lwr == "autouniforms") return seti.General.AutoUniforms;
 					if (lwr == "autouniformspin") return seti.General.AutoUniformsPin;
 					if (lwr == "autouniformsfunction") return seti.General.AutoUniformsFunction;
