@@ -15,7 +15,7 @@
 
 namespace ed {
 	namespace eng {
-		Model::Mesh::Mesh(const std::string& name, std::vector<Model::Mesh::Vertex> vertices, std::vector<unsigned int> indices, std::vector<Model::Mesh::Texture> textures)
+		Model::Mesh::Mesh(const std::string& name, const std::vector<Model::Mesh::Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Model::Mesh::Texture>& textures)
 		{
 			Name = name;
 			Vertices = vertices;

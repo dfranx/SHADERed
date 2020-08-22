@@ -31,7 +31,7 @@ namespace ed {
 				std::vector<unsigned int> Indices;
 				std::vector<Texture> Textures;
 
-				Mesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+				Mesh(const std::string& name, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Texture>& textures);
 
 				void Draw(bool instanced = false, int iCount = 0);
 

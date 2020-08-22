@@ -1356,14 +1356,14 @@ namespace ed {
 			}
 		}
 
-		Logger::Get().Log("Openning a pipeline item in the PropertyUI");
+		Logger::Get().Log("Opening a pipeline item in the PropertyUI");
 
 		m_current = item;
 		m_currentObj = nullptr;
 	}
 	void PropertyUI::Open(const std::string& name, ObjectManagerItem* obj)
 	{
-		Logger::Get().Log("Openning an ObjectManager item in the PropertyUI");
+		Logger::Get().Log("Opening an ObjectManager item in the PropertyUI");
 
 		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
 		memcpy(m_itemName, name.c_str(), name.size());

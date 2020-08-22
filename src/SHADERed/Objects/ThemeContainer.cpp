@@ -197,11 +197,10 @@ namespace ed {
 		style.CurveTessellationTol = ini.GetReal("style", "CurveTessellationTol", defaultStyle.CurveTessellationTol);
 
 		if (editorTheme == "Custom") {
-			TextEditor::Palette defaultPalette = TextEditor::GetDarkPalette();
+			palette = TextEditor::GetDarkPalette();
 			for (int i = 0; i < (int)TextEditor::PaletteIndex::Max; i++) {
 				std::string clr = ini.Get("editor", EditorNames[i], "0");
-				if (clr == "0")
-					palette[i] = defaultPalette[i];
+				if (clr == "0") { }
 				else {
 					ImVec4 c = m_parseColor(clr);
 					uint32_t r = c.x * 255;

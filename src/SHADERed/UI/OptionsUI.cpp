@@ -339,7 +339,7 @@ namespace ed {
 		}
 
 		/* REOPEN: */
-		ImGui::Text("Reopen shaders after openning a project: ");
+		ImGui::Text("Reopen shaders after opening a project: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_reopen", &settings->General.ReopenShaders);
 

@@ -956,7 +956,7 @@ namespace ed {
 			m_isCreateKBTxtOpened = false;
 		}
 
-		// open popup for openning new project
+		// open popup for opening new project
 		if (m_isNewProjectPopupOpened) {
 			ImGui::OpenPopup("Are you sure?##main_new_proj");
 			m_isNewProjectPopupOpened = false;

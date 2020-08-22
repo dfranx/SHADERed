@@ -14,9 +14,6 @@
 #include <algorithm>
 #include <glm/gtx/intersect.hpp>
 
-#include <spirv-tools/libspirv.h>
-#include <spirv-tools/optimizer.hpp>
-
 static const GLenum fboBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10, GL_COLOR_ATTACHMENT11, GL_COLOR_ATTACHMENT12, GL_COLOR_ATTACHMENT13, GL_COLOR_ATTACHMENT14, GL_COLOR_ATTACHMENT15 };
 static const char* GeneralDebugShaderCode = R"(
 #version 330
@@ -2053,20 +2050,6 @@ namespace ed {
 				}
 			}
 		}
-	}
-	bool RenderEngine::m_isGSUsedSet(GLuint rt)
-	{
-		bool ret = false;
-		for (int i = 0; i < m_items.size(); i++) {
-			if (m_items[i]->Type == PipelineItem::ItemType::ShaderPass) {
-				pipe::ShaderPass* pass = (pipe::ShaderPass*)m_items[i]->Data;
-				for (int j = 0; j < pass->RTCount; j++)
-					if (pass->RenderTextures[j] == rt)
-						ret = pass->GSUsed;
-			}
-		}
-
-		return ret;
 	}
 	void RenderEngine::m_applyMacros(std::string& src, pipe::ShaderPass* pass)
 	{

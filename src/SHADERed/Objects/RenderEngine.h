@@ -124,9 +124,6 @@ namespace ed {
 		bool m_pluginCompileToSpirv(std::vector<GLuint>& spv, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSrc = "");
 		const char* m_pluginProcessGLSL(const char* path, const char* src);
 
-		// does a shader pass with GSUsed set also use this texture
-		bool m_isGSUsedSet(GLuint rt);
-
 		/* picking */
 		bool m_pickAwaiting;
 		float m_pickDist;

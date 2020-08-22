@@ -1,5 +1,6 @@
 [v1.4]
 + fix render state saving
++ fix Gray theme's comments
 
 [v1.3.6]
 + [DEBUGGER] add immediate window

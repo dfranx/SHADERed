@@ -76,7 +76,7 @@ namespace ed {
 	}
 	void ProjectParser::Open(const std::string& file)
 	{
-		Logger::Get().Log("Openning a project file " + file);
+		Logger::Get().Log("Opening a project file " + file);
 
 		pugi::xml_document doc;
 		pugi::xml_parse_result result = doc.load_file(file.c_str());

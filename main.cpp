@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 
 	// open an item if given in arguments
 	if (!coptsParser.ProjectFile.empty()) {
-		ed::Logger::Get().Log("Openning a file provided through argument " + coptsParser.ProjectFile);
+		ed::Logger::Get().Log("Opening a file provided through argument " + coptsParser.ProjectFile);
 		engine.UI().Open(coptsParser.ProjectFile);
 	}
 
