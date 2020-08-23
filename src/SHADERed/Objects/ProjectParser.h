@@ -58,6 +58,7 @@ namespace ed {
 		inline void SetProjectDirectory(const std::string& path) { m_projectPath = path; }
 		inline const std::string& GetProjectDirectory() { return m_projectPath; }
 
+		inline void SetOpenedFile(const std::string& file) { m_file = file; }
 		inline const std::string& GetOpenedFile() { return m_file; }
 		inline const std::string& GetTemplate() { return m_template; }
 

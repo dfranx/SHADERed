@@ -1187,6 +1187,9 @@ namespace ed {
 
 							ImGui::PushID(i);
 							if (ImGui::Button("OPEN")) {
+								CodeEditorUI* codeUI = ((CodeEditorUI*)Get(ViewID::Code));
+								codeUI->SetTrackFileChanges(false);
+
 								bool ret = m_data->API.DownloadShaderProject(shaderInfo.ID);
 								if (ret) {
 									std::string outputPath = "temp/";
@@ -1194,8 +1197,11 @@ namespace ed {
 										outputPath = ed::Settings::Instance().LinuxHomeDirectory + "temp/";
 
 									Open(outputPath + "project.sprj");
+									m_data->Parser.SetOpenedFile("");
 									ImGui::CloseCurrentPopup();
 								}
+
+								codeUI->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 							}
 							ImGui::PopID();
 						}
