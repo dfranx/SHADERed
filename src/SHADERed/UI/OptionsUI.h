@@ -64,7 +64,8 @@ namespace ed {
 
 		void ApplyTheme();
 
-		inline std::vector<std::string> GetThemeList() { return m_themes; }
+		inline const std::vector<std::string>& GetThemeList() { return m_themes; }
+		inline void RefreshThemeList() { m_loadThemeList(); }
 
 	private:
 		Page m_page;

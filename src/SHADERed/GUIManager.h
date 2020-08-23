@@ -102,13 +102,19 @@ namespace ed {
 
 		std::vector<ed::WebAPI::ShaderResult> m_onlineShaders;
 		std::vector<GLuint> m_onlineShaderThumbnail;
-		int m_onlinePage;
+		std::vector<ed::WebAPI::PluginResult> m_onlinePlugins;
+		std::vector<GLuint> m_onlinePluginThumbnail;
+		std::vector<ed::WebAPI::ThemeResult> m_onlineThemes;
+		std::vector<GLuint> m_onlineThemeThumbnail;
+		std::vector<std::string> m_onlineInstalledPlugins;
+		int m_onlinePage, m_onlineShaderPage, m_onlinePluginPage, m_onlineThemePage;
+		bool m_onlineIsShader, m_onlineIsPlugin;
 		char m_onlineQuery[256];
 		char m_onlineUsername[64];
-		bool m_onlineRefreshThumbnails;
 		bool m_onlineExcludeGodot;
-		void m_onlineRefresh();
 		void m_onlineSearchShaders();
+		void m_onlineSearchPlugins();
+		void m_onlineSearchThemes();
 
 		int m_width, m_height;
 

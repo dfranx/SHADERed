@@ -115,10 +115,14 @@ namespace ed {
 		m_cubemapPathPtr = nullptr;
 
 		m_isBrowseOnlineOpened = false;
-		m_onlineRefreshThumbnails = false;
 		memset(&m_onlineQuery, 0, sizeof(m_onlineQuery));
 		memset(&m_onlineUsername, 0, sizeof(m_onlineUsername));
 		m_onlinePage = 0;
+		m_onlineShaderPage = 0;
+		m_onlinePluginPage = 0;
+		m_onlineThemePage = 0;
+		m_onlineIsShader = true;
+		m_onlineIsPlugin = false;
 		m_onlineExcludeGodot = false;
 
 		m_uiIniFile = "data/workspace.dat";
@@ -246,6 +250,14 @@ namespace ed {
 	GUIManager::~GUIManager()
 	{
 		glDeleteShader(Magnifier::Shader);
+
+		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
+		m_onlineShaderThumbnail.clear();
+
+		for (int i = 0; i < m_onlinePluginThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlinePluginThumbnail[i]);
+		m_onlinePluginThumbnail.clear();
 
 		std::string currentInfoPath = "info.dat";
 		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
@@ -1052,8 +1064,15 @@ namespace ed {
 		if (m_isBrowseOnlineOpened) {
 			ImGui::OpenPopup("Browse online##browse_online");
 
+			memset(&m_onlineQuery, 0, sizeof(m_onlineQuery));
+			memset(&m_onlineUsername, 0, sizeof(m_onlineUsername));
+
 			if (m_onlineShaders.size() == 0)
 				m_onlineSearchShaders();
+			if (m_onlinePlugins.size() == 0)
+				m_onlineSearchPlugins();
+			if (m_onlineThemes.size() == 0)
+				m_onlineSearchThemes();
 
 			m_isBrowseOnlineOpened = false;
 		}
@@ -1133,11 +1152,6 @@ namespace ed {
 		// Create RT popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(830), Settings::Instance().CalculateSize(550)), ImGuiCond_FirstUseEver);
 		if (ImGui::BeginPopupModal("Browse online##browse_online")) {
-			if (m_onlineRefreshThumbnails) {
-				m_onlineRefresh();
-				m_onlineRefreshThumbnails = false;
-			}
-
 			int startY = ImGui::GetCursorPosY();
 			ImGui::Text("Query:");
 			ImGui::SameLine();
@@ -1157,15 +1171,26 @@ namespace ed {
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90), startY));
 			if (ImGui::Button("SEARCH", ImVec2(Settings::Instance().CalculateSize(70), endY-startY))) {
-				m_onlinePage = 0;
+				if (m_onlineIsShader)
+					m_onlineShaderPage = 0;
+				else if (m_onlineIsPlugin)
+					m_onlinePluginPage = 0;
+				else
+					m_onlineThemePage = 0;
 				m_onlineSearchShaders();
 			}
 
+			bool hasNext = true;
+
 			if (ImGui::BeginTabBar("BrowseOnlineTabBar")) {
 				if (ImGui::BeginTabItem("Shaders")) {
-					ImGui::BeginChild("##online_container", ImVec2(0, Settings::Instance().CalculateSize(-60)));
+					m_onlineIsShader = true;
+					m_onlineIsPlugin = false;
+					m_onlinePage = m_onlineShaderPage;
+					hasNext = m_onlineShaders.size() > 12;
 
-					
+					ImGui::BeginChild("##online_shader_container", ImVec2(0, Settings::Instance().CalculateSize(-60)));
+
 					if (ImGui::BeginTable("##shaders_table", 2, ImGuiTableFlags_None)) {
 						ImGui::TableSetupColumn("Thumbnail", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
 						ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthStretch);
@@ -1210,17 +1235,104 @@ namespace ed {
 					}
 
 					ImGui::EndChild();
-
-
-					
 					ImGui::EndTabItem();
 				}
 				if (ImGui::BeginTabItem("Plugins")) {
-					ImGui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
+					m_onlineIsShader = false;
+					m_onlineIsPlugin = true;
+					m_onlinePage = m_onlinePluginPage;
+					hasNext = m_onlinePlugins.size() > 12;
+
+					ImGui::BeginChild("##online_plugin_container", ImVec2(0, Settings::Instance().CalculateSize(-60)));
+
+					if (ImGui::BeginTable("##plugins_table", 2, ImGuiTableFlags_None)) {
+						ImGui::TableSetupColumn("Thumbnail", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+						ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableAutoHeaders();
+
+						for (int i = 0; i < std::min<int>(12, m_onlinePlugins.size()); i++) {
+							const ed::WebAPI::PluginResult& pluginInfo = m_onlinePlugins[i];
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Image((ImTextureID)m_onlinePluginThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+
+							ImGui::TableSetColumnIndex(1);
+							ImGui::Text("%s", pluginInfo.Title.c_str()); // just in case someone has a %s or sth in the title, so that the app doesn't crash :'D
+							ImGui::TextWrapped("%s", pluginInfo.Description.c_str());
+							ImGui::Text("%d download(s)", pluginInfo.Downloads);
+							ImGui::Text("by: %s", pluginInfo.Owner.c_str());
+
+							if (m_data->Plugins.GetPlugin(pluginInfo.ID) == nullptr && std::count(m_onlineInstalledPlugins.begin(), m_onlineInstalledPlugins.end(), pluginInfo.ID) == 0) {
+								ImGui::PushID(i);
+								if (ImGui::Button("DOWNLOAD")) {
+									m_onlineInstalledPlugins.push_back(pluginInfo.ID); // since PluginManager's GetPlugin won't register it immediately
+									m_data->API.DownloadPlugin(pluginInfo.ID);
+								}
+								ImGui::PopID();
+							} else {
+								ImGui::Text("Plugin already installed!");
+							}
+						}
+
+						ImGui::EndTable();
+					}
+
+					ImGui::EndChild();
 					ImGui::EndTabItem();
 				}
 				if (ImGui::BeginTabItem("Themes")) {
-					ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+					m_onlineIsShader = false;
+					m_onlineIsPlugin = false;
+					m_onlinePage = m_onlineThemePage;
+
+					hasNext = m_onlineThemes.size() > 12;
+
+					ImGui::BeginChild("##online_theme_container", ImVec2(0, Settings::Instance().CalculateSize(-60)));
+
+					if (ImGui::BeginTable("##themes_table", 2, ImGuiTableFlags_None)) {
+						ImGui::TableSetupColumn("Thumbnail", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+						ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableAutoHeaders();
+
+						for (int i = 0; i < std::min<int>(12, m_onlineThemes.size()); i++) {
+							const ed::WebAPI::ThemeResult& themeInfo = m_onlineThemes[i];
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Image((ImTextureID)m_onlineThemeThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+
+							ImGui::TableSetColumnIndex(1);
+							ImGui::Text("%s", themeInfo.Title.c_str()); // just in case someone has a %s or sth in the title, so that the app doesn't crash :'D
+							ImGui::TextWrapped("%s", themeInfo.Description.c_str());
+							ImGui::Text("%d download(s)", themeInfo.Downloads);
+							ImGui::Text("by: %s", themeInfo.Owner.c_str());
+
+							const auto& tList = ((ed::OptionsUI*)m_options)->GetThemeList();
+
+							if (std::count(tList.begin(), tList.end(), themeInfo.Title) == 0) {
+								ImGui::PushID(i);
+								if (ImGui::Button("DOWNLOAD")) {
+									m_data->API.DownloadTheme(themeInfo.ID);
+									((ed::OptionsUI*)m_options)->RefreshThemeList();
+								}
+								ImGui::PopID();
+							} else {
+								ImGui::PushID(i);
+								if (ImGui::Button("APPLY")) {
+									ed::Settings::Instance().Theme = themeInfo.Title;
+									((ed::OptionsUI*)m_options)->ApplyTheme();
+								}
+								ImGui::PopID();
+							}
+						}
+
+						ImGui::EndTable();
+					}
+
+					ImGui::EndChild();
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
@@ -1229,20 +1341,30 @@ namespace ed {
 			
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(180));
 			if (ImGui::Button("<<", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
-				m_onlinePage = std::max<int>(0, m_onlinePage-1);
+				m_onlinePage = std::max<int>(0, m_onlinePage - 1);
+
+				if (m_onlineIsShader) m_onlineShaderPage = m_onlinePage;
+				else if (m_onlineIsPlugin) m_onlinePluginPage = m_onlinePage;
+				else m_onlineThemePage = m_onlinePage;
+
 				m_onlineSearchShaders();
 			}
 			ImGui::SameLine();
 			ImGui::Text("%d", m_onlinePage + 1);
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90));
-			bool hasNext = m_onlineShaders.size() > 12;
+			
 			if (!hasNext) {
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 			}
 			if (ImGui::Button(">>", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
 				m_onlinePage++;
+				
+				if (m_onlineIsShader) m_onlineShaderPage = m_onlinePage;
+				else if (m_onlineIsPlugin) m_onlinePluginPage = m_onlinePage;
+				else m_onlineThemePage = m_onlinePage;
+
 				m_onlineSearchShaders();
 			}
 			if (!hasNext) {
@@ -2378,8 +2500,17 @@ namespace ed {
 
 		ImGui::End();
 	}
-	void GUIManager::m_onlineRefresh()
+	void GUIManager::m_onlineSearchShaders()
 	{
+		m_onlineShaders.clear();
+		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
+		m_onlineShaderThumbnail.clear();
+
+		m_onlineShaders = m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot);
+
+
+
 		int minSize = std::min<int>(12, m_onlineShaders.size());
 
 		m_onlineShaderThumbnail.resize(minSize);
@@ -2411,21 +2542,97 @@ namespace ed {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
+			free(data);
+		}
+	}
+	void GUIManager::m_onlineSearchPlugins()
+	{
+		m_onlinePlugins.clear();
+		for (int i = 0; i < m_onlinePluginThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlinePluginThumbnail[i]);
+		m_onlinePluginThumbnail.clear();
+
+		m_onlinePlugins = m_data->API.SearchPlugins(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername);
+		
+		
+		int minSize = std::min<int>(12, m_onlinePlugins.size());
+
+		m_onlinePluginThumbnail.resize(minSize);
+
+		size_t dataLen = 0;
+		for (int i = 0; i < minSize; i++) {
+			char* data = m_data->API.DecodeThumbnail(m_onlinePlugins[i].Thumbnail, dataLen);
+			if (data == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
+				continue;
+			}
+			m_onlinePlugins[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
+
+			int width, height, nrChannels;
+			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
+
+			if (pixelData == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
+				free(data);
+				continue;
+			}
+
+			// normal texture
+			glGenTextures(1, &m_onlinePluginThumbnail[i]);
+			glBindTexture(GL_TEXTURE_2D, m_onlinePluginThumbnail[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+			glBindTexture(GL_TEXTURE_2D, 0);
 
 			free(data);
 		}
 	}
-	void GUIManager::m_onlineSearchShaders()
+	void GUIManager::m_onlineSearchThemes()
 	{
-		m_onlineShaders.clear();
-		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
-			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
-		m_onlineShaderThumbnail.clear();
+		m_onlineThemes.clear();
+		for (int i = 0; i < m_onlineThemeThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlineThemeThumbnail[i]);
+		m_onlineThemeThumbnail.clear();
 
-		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot, [&](std::vector<ed::WebAPI::ShaderResult> res) {
-			m_onlineShaders = res;
-			m_onlineRefreshThumbnails = true;
-		});
+		m_onlineThemes = m_data->API.SearchThemes(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername);
+
+		int minSize = std::min<int>(12, m_onlineThemes.size());
+
+		m_onlineThemeThumbnail.resize(minSize);
+
+		size_t dataLen = 0;
+		for (int i = 0; i < minSize; i++) {
+			char* data = m_data->API.DecodeThumbnail(m_onlineThemes[i].Thumbnail, dataLen);
+			if (data == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
+				continue;
+			}
+			m_onlineThemes[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
+
+			int width, height, nrChannels;
+			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
+
+			if (pixelData == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
+				free(data);
+				continue;
+			}
+
+			// normal texture
+			glGenTextures(1, &m_onlineThemeThumbnail[i]);
+			glBindTexture(GL_TEXTURE_2D, m_onlineThemeThumbnail[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			free(data);
+		}
 	}
 	void GUIManager::m_renderOptions()
 	{

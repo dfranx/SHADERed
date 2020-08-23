@@ -106,56 +106,91 @@ namespace ed {
 			}
 		}
 	}
-	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(std::vector<WebAPI::ShaderResult>)> onFetch)
-	{
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders); 
-		if (!owner.empty())
-			requestBody += "&owner=" + owner;
-
-		sf::Http http(WebAPI::URL, 16001);
-		sf::Http::Request request;
-		request.setUri("/api/search");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			std::vector<WebAPI::ShaderResult> results;
-
-			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
-			if (!result) {
-				Logger::Get().Log("Failed to parse web search results", true);
-				return;
-			}
-
-			auto resultsNode = doc.child("results");
-
-			for (auto shaderNode : resultsNode.children("shader")) {
-				WebAPI::ShaderResult result;
-
-				result.ID = shaderNode.child("id").text().as_string();
-				result.Title = shaderNode.child("title").text().as_string();
-				result.Description = shaderNode.child("description").text().as_string();
-				result.Owner = shaderNode.child("owner").text().as_string();
-				result.Views = shaderNode.child("views").text().as_int();
-				result.Language = shaderNode.child("language").text().as_string();
-				
-				results.push_back(result);
-			}
-
-			onFetch(results);
-		}
-	}
 	
+	/* base64 stuff for plugin & theme thumbnails */
+	/* 
+	   base64.cpp and base64.h
+
+	   Copyright (C) 2004-2008 René Nyffenegger
+
+	   This source code is provided 'as-is', without any express or implied
+	   warranty. In no event will the author be held liable for any damages
+	   arising from the use of this software.
+
+	   Permission is granted to anyone to use this software for any purpose,
+	   including commercial applications, and to alter it and redistribute it
+	   freely, subject to the following restrictions:
+
+	   1. The origin of this source code must not be misrepresented; you must not
+		  claim that you wrote the original source code. If you use this source code
+		  in a product, an acknowledgment in the product documentation would be
+		  appreciated but is not required.
+
+	   2. Altered source versions must be plainly marked as such, and must not be
+		  misrepresented as being the original source code.
+
+	   3. This notice may not be removed or altered from any source distribution.
+
+	   René Nyffenegger rene.nyffenegger@adp-gmbh.ch
+
+	*/
+	static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+											"abcdefghijklmnopqrstuvwxyz"
+											"0123456789+/";
+	static inline bool is_base64(unsigned char c)
+	{
+		return (isalnum(c) || (c == '+') || (c == '/'));
+	}
+	std::string base64_decode(std::string const& encoded_string)
+	{
+		int in_len = encoded_string.size();
+		int i = 0;
+		int j = 0;
+		int in_ = 0;
+		unsigned char char_array_4[4], char_array_3[3];
+		std::string ret;
+
+		while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
+			char_array_4[i++] = encoded_string[in_];
+			in_++;
+			if (i == 4) {
+				for (i = 0; i < 4; i++)
+					char_array_4[i] = base64_chars.find(char_array_4[i]);
+
+				char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+				char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+				char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+				for (i = 0; (i < 3); i++)
+					ret += char_array_3[i];
+				i = 0;
+			}
+		}
+
+		if (i) {
+			for (j = i; j < 4; j++)
+				char_array_4[j] = 0;
+
+			for (j = 0; j < 4; j++)
+				char_array_4[j] = base64_chars.find(char_array_4[j]);
+
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+			for (j = 0; (j < i - 1); j++)
+				ret += char_array_3[j];
+		}
+
+		return ret;
+	}
+
+
 	WebAPI::WebAPI()
 	{
 		m_tipsThread = nullptr;
 		m_changelogThread = nullptr;
 		m_updateThread = nullptr;
-		m_searchThread = nullptr;
 	}
 	WebAPI::~WebAPI()
 	{
@@ -170,10 +205,6 @@ namespace ed {
 		if (m_updateThread != nullptr && m_updateThread->joinable())
 			m_updateThread->join();
 		delete m_updateThread;
-
-		if (m_searchThread != nullptr && m_searchThread->joinable())
-			m_searchThread->join();
-		delete m_searchThread;
 	}
 	void WebAPI::FetchTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
@@ -210,12 +241,50 @@ namespace ed {
 		delete m_updateThread;
 		m_updateThread = new std::thread(checkUpdates, onUpdate);
 	}
-	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(std::vector<ShaderResult>)> onFetch)
+	std::vector<WebAPI::ShaderResult> WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders)
 	{
-		if (m_searchThread != nullptr && m_searchThread->joinable())
-			m_searchThread->join();
-		delete m_searchThread;
-		m_searchThread = new std::thread(searchShaders, query, page, sort, language, owner, excludeGodotShaders, onFetch);
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders);
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/search");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			std::vector<WebAPI::ShaderResult> results;
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (!result) {
+				Logger::Get().Log("Failed to parse web search results", true);
+				return std::vector<WebAPI::ShaderResult>();
+			}
+
+			auto resultsNode = doc.child("results");
+
+			for (auto shaderNode : resultsNode.children("shader")) {
+				WebAPI::ShaderResult result;
+
+				result.ID = shaderNode.child("id").text().as_string();
+				result.Title = shaderNode.child("title").text().as_string();
+				result.Description = shaderNode.child("description").text().as_string();
+				result.Owner = shaderNode.child("owner").text().as_string();
+				result.Views = shaderNode.child("views").text().as_int();
+				result.Language = shaderNode.child("language").text().as_string();
+
+				results.push_back(result);
+			}
+
+			return results;
+		}
+
+		return std::vector<WebAPI::ShaderResult>();
 	}
 	char* WebAPI::AllocateThumbnail(const std::string& id, size_t& length)
 	{
@@ -263,7 +332,7 @@ namespace ed {
 				miniz_cpp::zip_info fileInfo = zipFile.getinfo(files[i]);
 
 				if (fileInfo.flag_bits == 0 && fileInfo.file_size == 0)
-					std::filesystem::create_directory(std::filesystem::path(outputPath) / fileInfo.filename);
+					std::filesystem::create_directories(std::filesystem::path(outputPath) / fileInfo.filename);
 			}
 			zipFile.extractall(outputPath);
 
@@ -271,5 +340,167 @@ namespace ed {
 		}
 
 		return false;
+	}
+	std::vector<WebAPI::PluginResult> WebAPI::SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner)
+	{
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/search_plugin");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			std::vector<WebAPI::PluginResult> results;
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (!result) {
+				Logger::Get().Log("Failed to parse web search results", true);
+				return std::vector<WebAPI::PluginResult>();
+			}
+
+			auto resultsNode = doc.child("results");
+
+			for (auto pluginNode : resultsNode.children("plugin")) {
+				WebAPI::PluginResult result;
+
+				result.ID = pluginNode.child("id").text().as_string();
+				result.Title = pluginNode.child("title").text().as_string();
+				result.Description = pluginNode.child("description").text().as_string();
+				result.Owner = pluginNode.child("owner").text().as_string();
+				result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
+				result.Downloads = pluginNode.child("downloads").text().as_int();
+
+				result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
+				
+				results.push_back(result);
+			}
+
+			return results;
+		}
+
+		return std::vector<WebAPI::PluginResult>();
+	}
+	char* WebAPI::DecodeThumbnail(const std::string& base64, size_t& length)
+	{
+		std::string decoded = base64_decode(base64);
+
+		const char* bytedata = decoded.c_str();
+		length = decoded.size();
+
+		char* allocated = (char*)malloc(length);
+		memcpy(allocated, bytedata, length);
+
+		return allocated;
+	}
+	void WebAPI::DownloadPlugin(const std::string& id)
+	{
+		std::string body = "/download?type=plugin&id=" + id + "&os=";
+#if defined(_WIN64)
+		body += "w64";
+#elif defined(_WIN32)
+		body += "w32";
+#elif defined(__linux__) || defined(__unix__)
+		body += "lin";
+#endif
+		
+		
+		std::string outputDir = ".";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			outputDir = ed::Settings::Instance().LinuxHomeDirectory;
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri(body);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
+			std::vector<std::string> files = zipFile.namelist();
+			for (int i = 0; i < files.size(); i++) {
+				miniz_cpp::zip_info fileInfo = zipFile.getinfo(files[i]);
+
+				if (fileInfo.flag_bits == 0 && fileInfo.file_size == 0)
+					std::filesystem::create_directories(std::filesystem::path(outputDir) / fileInfo.filename);
+			}
+			zipFile.extractall(outputDir);
+		}
+	}
+	std::vector<WebAPI::ThemeResult> WebAPI::SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner)
+	{
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/search_theme");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			std::vector<WebAPI::ThemeResult> results;
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (!result) {
+				Logger::Get().Log("Failed to parse web search results", true);
+				return std::vector<WebAPI::ThemeResult>();
+			}
+
+			auto resultsNode = doc.child("results");
+
+			for (auto pluginNode : resultsNode.children("theme")) {
+				WebAPI::ThemeResult result;
+
+				result.ID = pluginNode.child("id").text().as_string();
+				result.Title = pluginNode.child("title").text().as_string();
+				result.Description = pluginNode.child("description").text().as_string();
+				result.Owner = pluginNode.child("owner").text().as_string();
+				result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
+				result.Downloads = pluginNode.child("downloads").text().as_int();
+
+				result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
+
+				results.push_back(result);
+			}
+
+			return results;
+		}
+
+		return std::vector<WebAPI::ThemeResult>();
+	}
+	void WebAPI::DownloadTheme(const std::string& id)
+	{
+		std::string body = "/download?type=theme&id=" + id;
+
+		std::string outputPath = "./themes/";
+		if (!Settings().Instance().LinuxHomeDirectory.empty())
+			outputPath = Settings().Instance().LinuxHomeDirectory + "themes/";
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri(body);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			std::ofstream outFile(outputPath + id + ".ini");
+			outFile << src;
+			outFile.close();
+		}
 	}
 }
