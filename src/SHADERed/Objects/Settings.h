@@ -23,6 +23,7 @@ namespace ed {
 			bool Toolbar;
 			bool Recovery; // [TODO] Not implemented
 			bool CheckUpdates;
+			bool CheckPluginUpdates;
 			bool RecompileOnFileChange;
 			bool AutoRecompile;
 			bool AutoUniforms;

@@ -73,6 +73,9 @@ namespace ed {
 		/* download theme */
 		void DownloadTheme(const std::string& id);
 
+		/* get plugin version */
+		int GetPluginVersion(const std::string& id);
+
 	private:
 		// TODO: maybe have one thread + some kind of job queue system... lazy rn to fix this, just copy pasting old code
 		std::thread* m_tipsThread;

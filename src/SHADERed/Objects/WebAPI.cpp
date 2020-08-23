@@ -484,15 +484,13 @@ namespace ed {
 	}
 	void WebAPI::DownloadTheme(const std::string& id)
 	{
-		std::string body = "/download?type=theme&id=" + id;
-
 		std::string outputPath = "./themes/";
 		if (!Settings().Instance().LinuxHomeDirectory.empty())
 			outputPath = Settings().Instance().LinuxHomeDirectory + "themes/";
 
 		sf::Http http(WebAPI::URL, 16001);
 		sf::Http::Request request;
-		request.setUri(body);
+		request.setUri("/download?type=theme&id=" + id);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
@@ -502,5 +500,19 @@ namespace ed {
 			outFile << src;
 			outFile.close();
 		}
+	}
+	int WebAPI::GetPluginVersion(const std::string& id)
+	{
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/get_plugin_version?id=" + id);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+			return std::stoi(src);
+		}
+
+		return 0;
 	}
 }

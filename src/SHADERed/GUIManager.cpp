@@ -2238,6 +2238,20 @@ namespace ed {
 				});
 			}
 
+			// check for plugin updates
+			if (Settings::Instance().General.CheckPluginUpdates) {
+				const auto& pluginList = m_data->Plugins.GetPluginList();
+				for (const auto& plugin : pluginList) {
+					int version = m_data->API.GetPluginVersion(plugin);
+
+					if (version > m_data->Plugins.GetPluginVersion(plugin)) {
+						m_notifs.Add(1, "A new version of " + plugin + " plugin is available!", "UPDATE", [&](int id, IPlugin1* pl) {
+							UIHelper::ShellOpen("https://shadered.org/plugin?id=" + plugin);
+						});
+					}
+				}
+			}
+
 			// check for tips
 			if (Settings::Instance().General.Tips) {
 				m_data->API.FetchTips([&](int n, int i, const std::string& title, const std::string& text) {

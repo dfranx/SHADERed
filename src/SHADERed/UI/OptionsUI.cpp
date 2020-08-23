@@ -296,6 +296,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_checkupdates", &settings->General.CheckUpdates);
 
+		/* CHECK FOR PLUGIN UPDATES: */
+		ImGui::Text("Check for plugin updates on startup: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_checkpluginupdates", &settings->General.CheckPluginUpdates);
+
 		/* TRACK FILE CHANGES: */
 		ImGui::Text("Recompile shader on file change: ");
 		ImGui::SameLine();

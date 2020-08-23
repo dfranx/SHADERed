@@ -17,6 +17,7 @@ namespace ed {
 		General.Toolbar = false;
 		General.Recovery = false;
 		General.CheckUpdates = true;
+		General.CheckPluginUpdates = true;
 		General.RecompileOnFileChange = false;
 		General.AutoRecompile = false;
 		General.AutoUniforms = true;
@@ -100,6 +101,7 @@ namespace ed {
 		General.Toolbar = ini.GetBoolean("general", "toolbar", false);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
 		General.CheckUpdates = ini.GetBoolean("general", "checkupdates", true);
+		General.CheckPluginUpdates = ini.GetBoolean("general", "checkpluginupdates", true);
 		General.Log = ini.GetBoolean("general", "log", false);
 		General.StreamLogs = ini.GetBoolean("general", "streamlogs", false);
 		General.PipeLogsToTerminal = ini.GetBoolean("general", "pipelogsterminal", false);
@@ -189,6 +191,7 @@ namespace ed {
 		ini << "toolbar=" << General.Toolbar << std::endl;
 		ini << "recovery=" << General.Recovery << std::endl;
 		ini << "checkupdates=" << General.CheckUpdates << std::endl;
+		ini << "checkpluginupdates=" << General.CheckPluginUpdates << std::endl;
 		ini << "log=" << General.Log << std::endl;
 		ini << "streamlogs=" << General.StreamLogs << std::endl;
 		ini << "pipelogsterminal=" << General.PipeLogsToTerminal << std::endl;

@@ -1,4 +1,7 @@
 [v1.4]
++ web version of shadered: https://shadered.org
++ add 'Browse online' window -> install plugins, themes & shaders through the application
++ add "Check for plugin updates on startup" option
 + add File -> Open Recent
 + fix render state saving
 + fix Gray theme's comments
