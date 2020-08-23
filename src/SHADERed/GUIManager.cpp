@@ -113,6 +113,8 @@ namespace ed {
 		m_isIncompatPluginsOpened = false;
 		m_minimalMode = false;
 		m_cubemapPathPtr = nullptr;
+		m_isBrowseOnlineOpened = false;
+		m_onlineRefreshThumbnails = false;
 
 		m_uiIniFile = "data/workspace.dat";
 		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
@@ -657,6 +659,9 @@ namespace ed {
 
 					ImGui::EndMenu();
 				}
+				if (ImGui::MenuItem("Browse online")) {
+					m_isBrowseOnlineOpened = true;
+				}
 				if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("Project.Save").c_str()))
 					Save();
 				if (ImGui::MenuItem("Save As", KeyboardShortcuts::Instance().GetString("Project.SaveAs").c_str()))
@@ -1038,6 +1043,16 @@ namespace ed {
 			m_tipOpened = false;
 		}
 
+		// open browse online window
+		if (m_isBrowseOnlineOpened) {
+			ImGui::OpenPopup("Browse online##browse_online");
+
+			if (m_onlineShaders.size() == 0)
+				m_onlineSearchShaders();
+
+			m_isBrowseOnlineOpened = false;
+		}
+
 		// File dialogs (open project, create texture, create audio, pick cubemap face texture)
 		if (igfd::ImGuiFileDialog::Instance()->FileDialog("OpenProjectDlg")) {
 			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
@@ -1108,6 +1123,32 @@ namespace ed {
 				m_saveAsHandle(igfd::ImGuiFileDialog::Instance()->IsOk);
 
 			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveProjectDlg");
+		}
+
+		// Create RT popup
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(830), Settings::Instance().CalculateSize(550)), ImGuiCond_FirstUseEver);
+		if (ImGui::BeginPopupModal("Browse online##browse_online")) {
+			if (m_onlineRefreshThumbnails) {
+				m_onlineRefresh();
+				m_onlineRefreshThumbnails = false;
+			}
+
+			ImGui::Text("Outside");
+
+			ImGui::BeginChild("##online_container", ImVec2(0, Settings::Instance().CalculateSize(-30)));
+
+			for (int i = 0; i < m_onlineShaderThumbnail.size(); i++) {
+				ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+			}
+
+			ImGui::EndChild();
+
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90));
+			if (ImGui::Button("Close", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		// Create Item popup
@@ -2225,6 +2266,53 @@ namespace ed {
 		ImGui::Columns(1);
 
 		ImGui::End();
+	}
+	void GUIManager::m_onlineRefresh()
+	{
+		int minSize = std::min<int>(12, m_onlineShaders.size());
+
+		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
+
+		m_onlineShaderThumbnail.resize(minSize);
+
+		size_t dataLen = 0;
+		for (int i = 0; i < minSize; i++) {
+			char* data = m_data->API.AllocateThumbnail(m_onlineShaders[i].ID, dataLen);
+			if (data == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineShaders[i].ID, true);
+				continue;
+			}
+
+			int width, height, nrChannels;
+			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
+
+			if (pixelData == nullptr) {
+				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineShaders[i].ID, true);
+				free(data);
+				continue;
+			}
+
+			// normal texture
+			glGenTextures(1, &m_onlineShaderThumbnail[i]);
+			glBindTexture(GL_TEXTURE_2D, m_onlineShaderThumbnail[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+
+			free(data);
+		}
+	}
+	void GUIManager::m_onlineSearchShaders()
+	{
+		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "new", "", m_onlineUsername, [&](std::vector<ed::WebAPI::ShaderResult> res) {
+			m_onlineShaders = res;
+			m_onlineRefreshThumbnails = true;
+		});
 	}
 	void GUIManager::m_renderOptions()
 	{

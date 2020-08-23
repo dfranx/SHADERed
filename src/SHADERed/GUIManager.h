@@ -2,6 +2,7 @@
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SPIRVParser.h>
+#include <SHADERed/Objects/WebAPI.h>
 #include <SHADERed/UI/Tools/NotificationSystem.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <SHADERed/Engine/Timer.h>
@@ -99,6 +100,15 @@ namespace ed {
 
 		std::vector<std::string> m_recentProjects;
 
+		std::vector<ed::WebAPI::ShaderResult> m_onlineShaders;
+		std::vector<GLuint> m_onlineShaderThumbnail;
+		int m_onlinePage;
+		char m_onlineQuery[256];
+		char m_onlineUsername[128];
+		bool m_onlineRefreshThumbnails;
+		void m_onlineRefresh();
+		void m_onlineSearchShaders();
+
 		int m_width, m_height;
 
 		void m_renderOptions();
@@ -121,7 +131,7 @@ namespace ed {
 			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
 			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
 			m_isInfoOpened, m_isCreateImg3DOpened, m_isRecordCameraSnapshotOpened,
-			m_isIncompatPluginsOpened, m_isCreateKBTxtOpened;
+			m_isIncompatPluginsOpened, m_isCreateKBTxtOpened, m_isBrowseOnlineOpened;
 
 		Settings* m_settingsBkp;
 		std::map<std::string, KeyboardShortcuts::Shortcut> m_shortcutsBkp;

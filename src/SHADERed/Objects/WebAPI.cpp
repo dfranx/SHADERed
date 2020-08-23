@@ -103,12 +103,55 @@ namespace ed {
 			}
 		}
 	}
+	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, std::function<void(std::vector<WebAPI::ShaderResult>)> onFetch)
+	{
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language;
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
 
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/search");
+		request.setBody(requestBody);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(2.0f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			std::vector<WebAPI::ShaderResult> results;
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (!result) {
+				Logger::Get().Log("Failed to parse web search results", true);
+				return;
+			}
+
+			auto resultsNode = doc.child("results");
+
+			for (auto shaderNode : resultsNode.children("shader")) {
+				WebAPI::ShaderResult result;
+
+				result.ID = shaderNode.child("id").text().as_string();
+				result.Title = shaderNode.child("title").text().as_string();
+				result.Description = shaderNode.child("description").text().as_string();
+				result.Owner = shaderNode.child("owner").text().as_string();
+				result.Views = shaderNode.child("views").text().as_int();
+				result.Language = shaderNode.child("language").text().as_string();
+				
+				results.push_back(result);
+			}
+
+			onFetch(results);
+		}
+	}
+	
 	WebAPI::WebAPI()
 	{
 		m_tipsThread = nullptr;
 		m_changelogThread = nullptr;
 		m_updateThread = nullptr;
+		m_searchThread = nullptr;
 	}
 	WebAPI::~WebAPI()
 	{
@@ -123,6 +166,10 @@ namespace ed {
 		if (m_updateThread != nullptr && m_updateThread->joinable())
 			m_updateThread->join();
 		delete m_updateThread;
+
+		if (m_searchThread != nullptr && m_searchThread->joinable())
+			m_searchThread->join();
+		delete m_searchThread;
 	}
 	void WebAPI::FetchTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
@@ -158,5 +205,33 @@ namespace ed {
 			m_updateThread->join();
 		delete m_updateThread;
 		m_updateThread = new std::thread(checkUpdates, onUpdate);
+	}
+	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, std::function<void(std::vector<ShaderResult>)> onFetch)
+	{
+		if (m_searchThread != nullptr && m_searchThread->joinable())
+			m_searchThread->join();
+		delete m_searchThread;
+		m_searchThread = new std::thread(searchShaders, query, page, sort, language, owner, onFetch);
+	}
+	char* WebAPI::AllocateThumbnail(const std::string& id, size_t& length)
+	{
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/thumbnails/" + id + "/0.png");
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(1.0f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			const char* bytedata = src.c_str();
+			length = src.size();
+
+			char* allocated = (char*)malloc(length);
+			memcpy(allocated, bytedata, length);
+
+			return allocated;
+		}
+
+		return nullptr;
 	}
 }
