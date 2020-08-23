@@ -7,6 +7,7 @@
 #include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
 #include <SHADERed/Objects/RenderEngine.h>
+#include <SHADERed/Objects/WebAPI.h>
 
 namespace ed {
 	class GUIManager;
@@ -29,6 +30,7 @@ namespace ed {
 		ProjectParser Parser;
 		MessageStack Messages;
 		DebugInformation Debugger;
+		WebAPI API;
 
 	private:
 		GUIManager* m_ui;

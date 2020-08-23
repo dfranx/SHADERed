@@ -3,8 +3,6 @@
 #include <SHADERed/InterfaceManager.h>
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/Export/ExportCPP.h>
-#include <SHADERed/Objects/ChangelogFetcher.h>
-#include <SHADERed/Objects/TipFetcher.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
@@ -247,7 +245,7 @@ namespace ed {
 			currentInfoPath = ed::Settings().Instance().LinuxHomeDirectory + currentInfoPath;
 		
 		std::ofstream verWriter(currentInfoPath);
-		verWriter << UpdateChecker::MyVersion << std::endl;
+		verWriter << WebAPI::InternalVersion << std::endl;
 		verWriter << m_recentProjects.size() << std::endl;
 		for (int i = 0; i < m_recentProjects.size(); i++)
 			verWriter << m_recentProjects[i] << std::endl;
@@ -1327,7 +1325,7 @@ namespace ed {
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("(C) 2020 dfranx");
 			ImGui::TextWrapped("Version 1.3.6");
-			ImGui::TextWrapped("Internal version: %d", UpdateChecker::MyVersion);
+			ImGui::TextWrapped("Internal version: %d", WebAPI::InternalVersion);
 			ImGui::NewLine();
 			UIHelper::Markdown("This app is open sourced: [link](https://www.github.com/dfranx/SHADERed)");
 			ImGui::NewLine();
@@ -1961,7 +1959,7 @@ namespace ed {
 		else if (!m_splashScreenLoaded) {
 			// check for updates
 			if (Settings::Instance().General.CheckUpdates) {
-				m_updateCheck.CheckForUpdates([&]() {
+				m_data->API.CheckForApplicationUpdates([&]() {
 					m_notifs.Add(0, "A new version of SHADERed is available!", "UPDATE", [](int id, IPlugin1* pl) {
 						UIHelper::ShellOpen("https://shadered.org/download.php");
 					});
@@ -1970,8 +1968,7 @@ namespace ed {
 
 			// check for tips
 			if (Settings::Instance().General.Tips) {
-				ed::TipFetcher tips;
-				tips.Fetch([&](int n, int i, const std::string& title, const std::string& text) {
+				m_data->API.FetchTips([&](int n, int i, const std::string& title, const std::string& text) {
 					m_tipCount = n;
 					m_tipIndex = i;
 					m_tipTitle = title + " (tip " + std::to_string(m_tipIndex + 1) + "/" + std::to_string(m_tipCount) + ")";
@@ -2759,9 +2756,8 @@ namespace ed {
 			verReader.close();
 		}
 
-		if (curVer < UpdateChecker::MyVersion) {
-			ed::ChangelogFetcher fetcher;
-			fetcher.Fetch([&](const std::string& str) -> void {
+		if (curVer < WebAPI::InternalVersion) {
+			m_data->API.FetchChangelog([&](const std::string& str) -> void {
 				m_isChangelogOpened = true;
 				m_changelogText = str;
 			});

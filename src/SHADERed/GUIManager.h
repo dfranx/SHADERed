@@ -1,6 +1,5 @@
 #pragma once
 #include <SHADERed/Objects/KeyboardShortcuts.h>
-#include <SHADERed/Objects/UpdateChecker.h>
 #include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/UI/Tools/NotificationSystem.h>
@@ -189,8 +188,6 @@ namespace ed {
 
 		std::vector<UIView*> m_views, m_debugViews;
 		CreateItemUI* m_createUI;
-
-		UpdateChecker m_updateCheck;
 
 		TextEditor m_kbInfo;
 

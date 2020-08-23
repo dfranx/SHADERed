@@ -1,0 +1,162 @@
+#include <SHADERed/Objects/WebAPI.h>
+#include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/Settings.h>
+
+#include <SFML/Network.hpp>
+#include <pugixml/src/pugixml.hpp>
+#include <fstream>
+#include <random>
+
+#if defined(_MSC_VER) // Visual studio
+#define thread_local __declspec(thread)
+#elif defined(__GCC__) // GCC
+#define thread_local __thread
+#endif
+
+
+namespace ed {
+	const std::string WebAPI::URL = "localhost"; // TODO: change URL & ports
+
+	int threadSafeRandom(int vmin, int vmax)
+	{
+		static thread_local std::mt19937* generator = nullptr;
+		if (!generator) generator = new std::mt19937(clock() + std::hash<std::thread::id>()(std::this_thread::get_id()));
+		std::uniform_int_distribution<int> distribution(vmin, vmax);
+		return distribution(*generator);
+	}
+
+	/* actual functions */
+	void getTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
+	{
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/tips.xml");
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.75f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (!result) {
+				Logger::Get().Log("Failed to parse tips.xml", true);
+				return;
+			}
+
+			auto tips = doc.child("tips");
+			int tipCount = std::distance(tips.children("tip").begin(), tips.children("tip").end());
+
+			int index = threadSafeRandom(0, tipCount - 1);
+
+			pugi::xml_node tip;
+			int curInd = 0;
+
+			for (auto cTip : tips.children("tip")) {
+				if (curInd == index) {
+					tip = cTip;
+					break;
+				}
+
+				curInd++;
+			}
+
+			std::string tipTitle(tip.child("title").text().as_string());
+			std::string tipText(tip.child("text").text().as_string());
+			onFetch(tipCount, index, tipTitle, tipText);
+		}
+	}
+	void getChangelog(std::function<void(const std::string&)> onFetch)
+	{
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/changelog");
+		request.setBody("version=" + std::to_string(WebAPI::InternalVersion));
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+			onFetch(src);
+		}
+	}
+	void checkUpdates(std::function<void()> onUpdate)
+	{
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/api/version");
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(5.0f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			bool isAllDigits = true;
+			for (int i = 0; i < src.size(); i++)
+				if (!isdigit(src[i])) {
+					isAllDigits = false;
+					break;
+				}
+
+			if (isAllDigits && src.size() > 0 && src.size() < 6) {
+				int ver = std::stoi(src);
+				if (ver > WebAPI::InternalVersion && onUpdate != nullptr)
+					onUpdate();
+			}
+		}
+	}
+
+	WebAPI::WebAPI()
+	{
+		m_tipsThread = nullptr;
+		m_changelogThread = nullptr;
+		m_updateThread = nullptr;
+	}
+	WebAPI::~WebAPI()
+	{
+		if (m_tipsThread != nullptr && m_tipsThread->joinable())
+			m_tipsThread->join();
+		delete m_tipsThread;
+
+		if (m_changelogThread != nullptr && m_changelogThread->joinable())
+			m_changelogThread->join();
+		delete m_changelogThread;
+
+		if (m_updateThread != nullptr && m_updateThread->joinable())
+			m_updateThread->join();
+		delete m_updateThread;
+	}
+	void WebAPI::FetchTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
+	{
+		std::string currentVersionPath = "info.dat";
+		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
+			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+
+		std::ifstream verReader(currentVersionPath);
+		int curVer = 0;
+		if (verReader.is_open()) {
+			verReader >> curVer;
+			verReader.close();
+		}
+
+		if (curVer < WebAPI::InternalVersion)
+			return;
+
+		if (m_tipsThread != nullptr && m_tipsThread->joinable())
+			m_tipsThread->join();
+		delete m_tipsThread;
+		m_tipsThread = new std::thread(getTips, onFetch);
+	}
+	void WebAPI::FetchChangelog(std::function<void(const std::string&)> onFetch)
+	{
+		if (m_changelogThread != nullptr && m_changelogThread->joinable())
+			m_changelogThread->join();
+		delete m_changelogThread;
+		m_changelogThread = new std::thread(getChangelog, onFetch);
+	}
+	void WebAPI::CheckForApplicationUpdates(std::function<void()> onUpdate)
+	{
+		if (m_updateThread != nullptr && m_updateThread->joinable())
+			m_updateThread->join();
+		delete m_updateThread;
+		m_updateThread = new std::thread(checkUpdates, onUpdate);
+	}
+}
