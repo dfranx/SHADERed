@@ -104,8 +104,9 @@ namespace ed {
 		std::vector<GLuint> m_onlineShaderThumbnail;
 		int m_onlinePage;
 		char m_onlineQuery[256];
-		char m_onlineUsername[128];
+		char m_onlineUsername[64];
 		bool m_onlineRefreshThumbnails;
+		bool m_onlineExcludeGodot;
 		void m_onlineRefresh();
 		void m_onlineSearchShaders();
 

@@ -113,8 +113,13 @@ namespace ed {
 		m_isIncompatPluginsOpened = false;
 		m_minimalMode = false;
 		m_cubemapPathPtr = nullptr;
+
 		m_isBrowseOnlineOpened = false;
 		m_onlineRefreshThumbnails = false;
+		memset(&m_onlineQuery, 0, sizeof(m_onlineQuery));
+		memset(&m_onlineUsername, 0, sizeof(m_onlineUsername));
+		m_onlinePage = 0;
+		m_onlineExcludeGodot = false;
 
 		m_uiIniFile = "data/workspace.dat";
 		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
@@ -1133,20 +1138,118 @@ namespace ed {
 				m_onlineRefreshThumbnails = false;
 			}
 
-			ImGui::Text("Outside");
+			int startY = ImGui::GetCursorPosY();
+			ImGui::Text("Query:");
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(Settings::Instance().CalculateSize(75));
+			ImGui::PushItemWidth(-Settings::Instance().CalculateSize(110));
+			ImGui::InputText("##online_query", m_onlineQuery, sizeof(m_onlineQuery));
+			ImGui::PopItemWidth();
+			int startX = ImGui::GetCursorPosX();
 
-			ImGui::BeginChild("##online_container", ImVec2(0, Settings::Instance().CalculateSize(-30)));
+			ImGui::Text("By:");
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(Settings::Instance().CalculateSize(75));
+			ImGui::PushItemWidth(-Settings::Instance().CalculateSize(110));
+			ImGui::InputText("##online_username", m_onlineUsername, sizeof(m_onlineUsername));
+			ImGui::PopItemWidth();
+			int endY = ImGui::GetCursorPosY();
 
-			for (int i = 0; i < m_onlineShaderThumbnail.size(); i++) {
-				ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90), startY));
+			if (ImGui::Button("SEARCH", ImVec2(Settings::Instance().CalculateSize(70), endY-startY))) {
+				m_onlinePage = 0;
+				m_onlineSearchShaders();
 			}
 
-			ImGui::EndChild();
+			if (ImGui::BeginTabBar("BrowseOnlineTabBar")) {
+				if (ImGui::BeginTabItem("Shaders")) {
+					ImGui::BeginChild("##online_container", ImVec2(0, Settings::Instance().CalculateSize(-60)));
+
+					
+					if (ImGui::BeginTable("##shaders_table", 2, ImGuiTableFlags_None)) {
+						ImGui::TableSetupColumn("Thumbnail", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+						ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableAutoHeaders();
+
+						for (int i = 0; i < std::min<int>(12, m_onlineShaders.size()); i++) {
+							const ed::WebAPI::ShaderResult& shaderInfo = m_onlineShaders[i];
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+
+							ImGui::TableSetColumnIndex(1);
+							ImGui::Text("%s", shaderInfo.Title.c_str()); // just in case someone has a %s or sth in the title, so that the app doesn't crash :'D
+							ImGui::Text("Language: %s", shaderInfo.Language.c_str());
+							ImGui::Text("%d view(s)", shaderInfo.Views);
+							ImGui::Text("by: %s", shaderInfo.Owner.c_str());
+
+							ImGui::PushID(i);
+							if (ImGui::Button("OPEN")) {
+								bool ret = m_data->API.DownloadShaderProject(shaderInfo.ID);
+								if (ret) {
+									std::string outputPath = "temp/";
+									if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+										outputPath = ed::Settings::Instance().LinuxHomeDirectory + "temp/";
+
+									Open(outputPath + "project.sprj");
+									ImGui::CloseCurrentPopup();
+								}
+							}
+							ImGui::PopID();
+						}
+
+						ImGui::EndTable();
+					}
+
+					ImGui::EndChild();
+
+
+					
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Plugins")) {
+					ImGui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Themes")) {
+					ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
+
+			
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(180));
+			if (ImGui::Button("<<", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
+				m_onlinePage = std::max<int>(0, m_onlinePage-1);
+				m_onlineSearchShaders();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%d", m_onlinePage + 1);
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90));
+			bool hasNext = m_onlineShaders.size() > 12;
+			if (!hasNext) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+			if (ImGui::Button(">>", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
+				m_onlinePage++;
+				m_onlineSearchShaders();
+			}
+			if (!hasNext) {
+				ImGui::PopStyleVar();
+				ImGui::PopItemFlag();
+			}
+
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(90));
 			if (ImGui::Button("Close", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
 				ImGui::CloseCurrentPopup();
 			}
+
 
 			ImGui::EndPopup();
 		}
@@ -2024,6 +2127,8 @@ namespace ed {
 			// load plugins
 			m_data->Plugins.Init(m_data, this);
 
+			m_onlineExcludeGodot = m_data->Plugins.GetPlugin("GodotShaders") == nullptr;
+
 			m_splashScreenLoaded = true;
 			m_isIncompatPluginsOpened = !m_data->Plugins.GetIncompatiblePlugins().empty();
 
@@ -2271,9 +2376,6 @@ namespace ed {
 	{
 		int minSize = std::min<int>(12, m_onlineShaders.size());
 
-		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
-			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
-
 		m_onlineShaderThumbnail.resize(minSize);
 
 		size_t dataLen = 0;
@@ -2309,7 +2411,12 @@ namespace ed {
 	}
 	void GUIManager::m_onlineSearchShaders()
 	{
-		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "new", "", m_onlineUsername, [&](std::vector<ed::WebAPI::ShaderResult> res) {
+		m_onlineShaders.clear();
+		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
+			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
+		m_onlineShaderThumbnail.clear();
+
+		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot, [&](std::vector<ed::WebAPI::ShaderResult> res) {
 			m_onlineShaders = res;
 			m_onlineRefreshThumbnails = true;
 		});

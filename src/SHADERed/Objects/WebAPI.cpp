@@ -4,6 +4,9 @@
 
 #include <SFML/Network.hpp>
 #include <pugixml/src/pugixml.hpp>
+#include <miniz/zip_file.hpp>
+
+#include <filesystem>
 #include <fstream>
 #include <random>
 
@@ -24,7 +27,7 @@ namespace ed {
 		std::uniform_int_distribution<int> distribution(vmin, vmax);
 		return distribution(*generator);
 	}
-
+	
 	/* actual functions */
 	void getTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
@@ -103,9 +106,9 @@ namespace ed {
 			}
 		}
 	}
-	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, std::function<void(std::vector<WebAPI::ShaderResult>)> onFetch)
+	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(std::vector<WebAPI::ShaderResult>)> onFetch)
 	{
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language;
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders); 
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
@@ -113,7 +116,8 @@ namespace ed {
 		sf::Http::Request request;
 		request.setUri("/api/search");
 		request.setBody(requestBody);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(2.0f));
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();
@@ -206,19 +210,19 @@ namespace ed {
 		delete m_updateThread;
 		m_updateThread = new std::thread(checkUpdates, onUpdate);
 	}
-	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, std::function<void(std::vector<ShaderResult>)> onFetch)
+	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(std::vector<ShaderResult>)> onFetch)
 	{
 		if (m_searchThread != nullptr && m_searchThread->joinable())
 			m_searchThread->join();
 		delete m_searchThread;
-		m_searchThread = new std::thread(searchShaders, query, page, sort, language, owner, onFetch);
+		m_searchThread = new std::thread(searchShaders, query, page, sort, language, owner, excludeGodotShaders, onFetch);
 	}
 	char* WebAPI::AllocateThumbnail(const std::string& id, size_t& length)
 	{
 		sf::Http http(WebAPI::URL, 16001);
 		sf::Http::Request request;
 		request.setUri("/thumbnails/" + id + "/0.png");
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(1.0f));
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();
@@ -233,5 +237,39 @@ namespace ed {
 		}
 
 		return nullptr;
+	}
+	bool WebAPI::DownloadShaderProject(const std::string& id)
+	{
+		std::string outputPath = "temp/";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
+			outputPath = ed::Settings::Instance().LinuxHomeDirectory + "temp/";
+
+		// first clear the old data and create new directory
+		std::error_code ec;
+		std::filesystem::remove_all(outputPath, ec);
+		std::filesystem::create_directory(outputPath);
+
+		sf::Http http(WebAPI::URL, 16001);
+		sf::Http::Request request;
+		request.setUri("/download?type=shader&id=" + id);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
+			std::vector<std::string> files = zipFile.namelist();
+			for (int i = 0; i < files.size(); i++) {
+				miniz_cpp::zip_info fileInfo = zipFile.getinfo(files[i]);
+
+				if (fileInfo.flag_bits == 0 && fileInfo.file_size == 0)
+					std::filesystem::create_directory(std::filesystem::path(outputPath) / fileInfo.filename);
+			}
+			zipFile.extractall(outputPath);
+
+			return true;
+		}
+
+		return false;
 	}
 }

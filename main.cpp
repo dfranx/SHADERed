@@ -113,6 +113,14 @@ int main(int argc, char* argv[])
 	// create data directory on startup
 	if (!std::filesystem::exists("./data/"))
 		std::filesystem::create_directory("./data/");
+	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data/"))
+		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data/");
+
+	// create temp directory
+	if (!std::filesystem::exists("./temp/"))
+		std::filesystem::create_directory("./temp/");
+	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "temp/"))
+		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "temp/");
 
 	// delete log.txt on startup
 	if (std::filesystem::exists("./log.txt")) {

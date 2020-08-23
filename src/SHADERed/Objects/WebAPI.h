@@ -33,10 +33,13 @@ namespace ed {
 		void CheckForApplicationUpdates(std::function<void()> onUpdate);
 
 		/* list of shaders */
-		void SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, std::function<void(std::vector<ShaderResult>)> onFetch);
+		void SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(std::vector<ShaderResult>)> onFetch);
 
 		/* bytes, bytecount <- download thumbnail */
 		char* AllocateThumbnail(const std::string& id, size_t& length);
+
+		/* download project in temp directory */
+		bool DownloadShaderProject(const std::string& id);
 
 	private:
 		// TODO: maybe have one thread + some kind of job queue system... lazy rn to fix this, just copy pasting old code
