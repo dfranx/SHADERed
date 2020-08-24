@@ -32,6 +32,7 @@
 #include <string>
 #include <time.h>
 #include <vector>
+#include <cstring>
 
 /* miniz.c v1.15 - public domain deflate/inflate, zlib-subset, ZIP reading/writing/appending, PNG writing
    See "unlicense" statement at the end of this file.
@@ -5594,7 +5595,7 @@ private:
                 
                 sed_mz_zip_reader_end(archive_.get());
                 
-                archive_->m_pWrite = &detail::write_callback;
+                archive_->m_pWrite = (sed_mz_file_write_func)&detail::write_callback;
                 archive_->m_pIO_opaque = &buffer_;
                 buffer_ = std::vector<char>();
                 
@@ -5622,7 +5623,7 @@ private:
                 break;
         }
 
-        archive_->m_pWrite = &detail::write_callback;
+        archive_->m_pWrite = (sed_mz_file_write_func)&detail::write_callback;
         archive_->m_pIO_opaque = &buffer_;
 
         if(!sed_mz_zip_writer_init(archive_.get(), 0))
