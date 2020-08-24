@@ -3,6 +3,7 @@
 + add 'Browse online' window -> install plugins, themes & shaders through the application
 + add "Check for plugin updates on startup" option
 + add File -> Open Recent
++ hardware mouse cursors
 + fix render state saving
 + fix Gray theme's comments
 
