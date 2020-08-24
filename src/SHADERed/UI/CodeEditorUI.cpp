@@ -213,7 +213,7 @@ namespace ed {
 				if ((isTextEditorChanged || isPluginEditorChanged) && !m_data->Parser.IsProjectModified())
 					m_data->Parser.ModifyProject();
 
-				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(300, 300));
+				ImGui::SetNextWindowSizeConstraints(ImVec2(300, 300), ImVec2(10000, 10000));
 				ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 				if (ImGui::Begin((std::string(windowName) + "###code_view" + shaderType + std::to_string(wid[isPluginItem ? 4 : (int)m_shaderStage[i]])).c_str(), &m_editorOpen[i], (ImGuiWindowFlags_UnsavedDocument * (isTextEditorChanged || isPluginEditorChanged)) | ImGuiWindowFlags_MenuBar)) {
 					if (ImGui::BeginMenuBar()) {
