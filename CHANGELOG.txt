@@ -6,6 +6,7 @@
 + hardware mouse cursors
 + fix render state saving
 + fix text editor windows not being resizable
++ fix file dialog search
 + fix Gray theme's comments
 
 [v1.3.6]

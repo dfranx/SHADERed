@@ -327,6 +327,8 @@ namespace igfd
 		m_ShowDialog = true;
 		ResetBuffer(FileNameBuffer);
 		ResetBuffer(SearchBuffer);
+		searchTag = SearchBuffer;
+		ApplyFilteringOnFileList();
 	}
 	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
 		const std::string& vFilePathName,
@@ -370,6 +372,8 @@ namespace igfd
 		m_ShowDialog = true;
 		ResetBuffer(FileNameBuffer);
 		ResetBuffer(SearchBuffer);
+		searchTag = SearchBuffer;
+		ApplyFilteringOnFileList();
 	}
 	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
 		const std::string& vFilePathName, const int& vCountSelectionMax, UserData vUserDatas)
@@ -411,6 +415,8 @@ namespace igfd
 		m_ShowDialog = true;
 		ResetBuffer(FileNameBuffer);
 		ResetBuffer(SearchBuffer);
+		searchTag = SearchBuffer;
+		ApplyFilteringOnFileList();
 	}
 	void ImGuiFileDialog::OpenDialog(const std::string& vKey, const char* vName, const char* vFilters,
 		const std::string& vPath, const std::string& vDefaultFileName, const int& vCountSelectionMax, UserData vUserDatas)
@@ -440,6 +446,8 @@ namespace igfd
 		m_ShowDialog = true;
 		ResetBuffer(FileNameBuffer);
 		ResetBuffer(SearchBuffer);
+		searchTag = SearchBuffer;
+		ApplyFilteringOnFileList();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

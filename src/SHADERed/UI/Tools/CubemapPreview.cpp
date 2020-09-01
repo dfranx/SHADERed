@@ -82,6 +82,7 @@ namespace ed {
 
 		m_cubeShader = ed::gl::CreateShader(&CUBEMAP_VS_CODE, &CUBEMAP_PS_CODE, "cubemap projection");
 
+		glUseProgram(m_cubeShader);
 		m_uMatWVPLoc = glGetUniformLocation(m_cubeShader, "uMatWVP");
 		glUniform1i(glGetUniformLocation(m_cubeShader, "cubemap"), 0);
 

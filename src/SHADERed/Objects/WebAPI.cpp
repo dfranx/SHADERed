@@ -31,7 +31,7 @@ namespace ed {
 	/* actual functions */
 	void getTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/tips.xml");
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.75f));
@@ -70,7 +70,7 @@ namespace ed {
 	}
 	void getChangelog(std::function<void(const std::string&)> onFetch)
 	{
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/changelog");
 		request.setBody("version=" + std::to_string(WebAPI::InternalVersion));
@@ -84,7 +84,7 @@ namespace ed {
 	}
 	void checkUpdates(std::function<void()> onUpdate)
 	{
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/version");
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(5.0f));
@@ -247,7 +247,7 @@ namespace ed {
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/search");
 		request.setBody(requestBody);
@@ -288,7 +288,7 @@ namespace ed {
 	}
 	char* WebAPI::AllocateThumbnail(const std::string& id, size_t& length)
 	{
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/thumbnails/" + id + "/0.png");
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -318,7 +318,7 @@ namespace ed {
 		std::filesystem::remove_all(outputPath, ec);
 		std::filesystem::create_directory(outputPath);
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/download?type=shader&id=" + id);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -347,7 +347,7 @@ namespace ed {
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/search_plugin");
 		request.setBody(requestBody);
@@ -416,7 +416,7 @@ namespace ed {
 		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
 			outputDir = ed::Settings::Instance().LinuxHomeDirectory;
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri(body);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -441,7 +441,7 @@ namespace ed {
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/search_theme");
 		request.setBody(requestBody);
@@ -488,7 +488,7 @@ namespace ed {
 		if (!Settings().Instance().LinuxHomeDirectory.empty())
 			outputPath = Settings().Instance().LinuxHomeDirectory + "themes/";
 
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/download?type=theme&id=" + id);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -503,7 +503,7 @@ namespace ed {
 	}
 	int WebAPI::GetPluginVersion(const std::string& id)
 	{
-		sf::Http http(WebAPI::URL, 16001);
+		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
 		request.setUri("/api/get_plugin_version?id=" + id);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
