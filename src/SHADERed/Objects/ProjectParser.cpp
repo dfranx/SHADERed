@@ -544,10 +544,14 @@ namespace ed {
 				bool isPluginOwner = item->Plugin != nullptr;
 				bool isTexture = item->IsTexture;
 				bool isKeyboardTexture = item->IsKeyboardTexture;
+				
+				std::string texOutPath = texs[i];
+				if ((isTexture && !isKeyboardTexture) || isAudio)
+					texOutPath = GetRelativePath(oldProjectPath + "/" + texs[i]);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
-				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isAudio) ? "path" : "name").set_value(texs[i].c_str());
+				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isAudio) ? "path" : "name").set_value(texOutPath.c_str());
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
@@ -2705,55 +2709,56 @@ namespace ed {
 				// texture properties
 				if (!isCube) {
 					ObjectManagerItem* itemData = m_objects->GetObjectManagerItem(name);
+					if (itemData != nullptr) {
+						// vflip
+						bool vflip = false;
+						if (!objectNode.attribute("vflip").empty())
+							vflip = objectNode.attribute("vflip").as_bool();
+						if (vflip)
+							m_objects->FlipTexture(name);
 
-					// vflip
-					bool vflip = false;
-					if (!objectNode.attribute("vflip").empty())
-						vflip = objectNode.attribute("vflip").as_bool();
-					if (vflip)
-						m_objects->FlipTexture(name);
+						// min filter
+						if (!objectNode.attribute("min_filter").empty()) {
+							auto filterName = objectNode.attribute("min_filter").as_string();
+							for (int i = 0; i < HARRAYSIZE(TEXTURE_MIN_FILTER_VALUES); i++)
+								if (strcmp(filterName, TEXTURE_MIN_FILTER_NAMES[i]) == 0) {
+									itemData->Texture_MinFilter = TEXTURE_MIN_FILTER_VALUES[i];
+									break;
+								}
+						}
 
-					// min filter
-					if (!objectNode.attribute("min_filter").empty()) {
-						auto filterName = objectNode.attribute("min_filter").as_string();
-						for (int i = 0; i < HARRAYSIZE(TEXTURE_MIN_FILTER_VALUES); i++)
-							if (strcmp(filterName, TEXTURE_MIN_FILTER_NAMES[i]) == 0) {
-								itemData->Texture_MinFilter = TEXTURE_MIN_FILTER_VALUES[i];
-								break;
-							}
+						// mag filter
+						if (!objectNode.attribute("mag_filter").empty()) {
+							auto filterName = objectNode.attribute("mag_filter").as_string();
+							for (int i = 0; i < HARRAYSIZE(TEXTURE_MAG_FILTER_VALUES); i++)
+								if (strcmp(filterName, TEXTURE_MAG_FILTER_NAMES[i]) == 0) {
+									itemData->Texture_MagFilter = TEXTURE_MAG_FILTER_VALUES[i];
+									break;
+								}
+						}
+
+						// wrap x
+						if (!objectNode.attribute("wrap_s").empty()) {
+							auto filterName = objectNode.attribute("wrap_s").as_string();
+							for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+								if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
+									itemData->Texture_WrapS = TEXTURE_WRAP_VALUES[i];
+									break;
+								}
+						}
+
+						// wrap y
+						if (!objectNode.attribute("wrap_t").empty()) {
+							auto filterName = objectNode.attribute("wrap_t").as_string();
+							for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+								if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
+									itemData->Texture_WrapT = TEXTURE_WRAP_VALUES[i];
+									break;
+								}
+						}
+
+						m_objects->UpdateTextureParameters(name);
 					}
-
-					// mag filter
-					if (!objectNode.attribute("mag_filter").empty()) {
-						auto filterName = objectNode.attribute("mag_filter").as_string();
-						for (int i = 0; i < HARRAYSIZE(TEXTURE_MAG_FILTER_VALUES); i++)
-							if (strcmp(filterName, TEXTURE_MAG_FILTER_NAMES[i]) == 0) {
-								itemData->Texture_MagFilter = TEXTURE_MAG_FILTER_VALUES[i];
-								break;
-							}
-					}
-
-					// wrap x
-					if (!objectNode.attribute("wrap_s").empty()) {
-						auto filterName = objectNode.attribute("wrap_s").as_string();
-						for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
-							if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
-								itemData->Texture_WrapS = TEXTURE_WRAP_VALUES[i];
-								break;
-							}
-					}
-
-					// wrap y
-					if (!objectNode.attribute("wrap_t").empty()) {
-						auto filterName = objectNode.attribute("wrap_t").as_string();
-						for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
-							if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
-								itemData->Texture_WrapT = TEXTURE_WRAP_VALUES[i];
-								break;
-							}
-					}
-
-					m_objects->UpdateTextureParameters(name);
 				}
 			} else if (strcmp(objType, "rendertexture") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();

@@ -4,6 +4,7 @@
 + add "Check for plugin updates on startup" option
 + add File -> Open Recent
 + hardware mouse cursors
++ fix "Save As" for projects that use textures
 + fix render state saving
 + fix text editor windows not being resizable
 + fix file dialog search
