@@ -12,7 +12,7 @@ namespace ed {
 		Theme = "Dark";
 		LinuxHomeDirectory = "";
 
-		General.VSync = false;
+		General.VSync = true;
 		General.AutoOpenErrorWindow = true;
 		General.Toolbar = false;
 		General.Recovery = false;
@@ -96,7 +96,7 @@ namespace ed {
 
 		Theme = ini.Get("general", "theme", "Gray");
 
-		General.VSync = ini.GetBoolean("general", "vsync", false);
+		General.VSync = ini.GetBoolean("general", "vsync", true);
 		General.AutoOpenErrorWindow = ini.GetBoolean("general", "autoerror", true);
 		General.Toolbar = ini.GetBoolean("general", "toolbar", false);
 		General.Recovery = ini.GetBoolean("general", "recovery", false);
