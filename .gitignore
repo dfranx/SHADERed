@@ -44,6 +44,9 @@ bin/data/workspace.dat
 bin/data/snippets.xml
 bin/data/bookmarks.dat
 
+# Temprorary folder for downloading online shaders
+bin/temp
+
 # Autoupdate information
 bin/current_version.txt
 bin/info.dat
