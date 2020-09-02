@@ -18,7 +18,7 @@
 
 
 namespace ed {
-	const std::string WebAPI::URL = "localhost"; // TODO: change URL & ports
+	const std::string WebAPI::URL = "api.shadered.org"; // TODO: change URL & ports
 
 	int threadSafeRandom(int vmin, int vmax)
 	{
@@ -33,7 +33,7 @@ namespace ed {
 	{
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/tips.xml");
+		request.setUri("/tips.xml");
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.75f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
@@ -72,7 +72,7 @@ namespace ed {
 	{
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/changelog");
+		request.setUri("/changelog.php");
 		request.setBody("version=" + std::to_string(WebAPI::InternalVersion));
 		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -86,7 +86,7 @@ namespace ed {
 	{
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/version");
+		request.setUri("/version.php");
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(5.0f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
@@ -249,7 +249,7 @@ namespace ed {
 
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/search");
+		request.setUri("/search.php");
 		request.setBody(requestBody);
 		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -290,7 +290,9 @@ namespace ed {
 	{
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/thumbnails/" + id + "/0.png");
+		request.setUri("/get_shader_thumbnail");
+		request.setBody("shader=" + id);
+		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
@@ -349,7 +351,7 @@ namespace ed {
 
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/search_plugin");
+		request.setUri("/search_plugin.php");
 		request.setBody(requestBody);
 		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -443,7 +445,7 @@ namespace ed {
 
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/search_theme");
+		request.setUri("/search_theme.php");
 		request.setBody(requestBody);
 		request.setMethod(sf::Http::Request::Method::Post);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
@@ -505,7 +507,7 @@ namespace ed {
 	{
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
-		request.setUri("/api/get_plugin_version?id=" + id);
+		request.setUri("/get_plugin_version.php?id=" + id);
 		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
