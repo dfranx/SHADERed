@@ -2211,8 +2211,11 @@ namespace ed {
 			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, (m_height - 324) / 6));
 			ImGui::Image((ImTextureID)m_splashScreenIcon, ImVec2(350, 324));
 
-			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, m_height - 326));
-			ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(350, 324));
+			ImGui::SetCursorPos(ImVec2((m_width - 199) / 2, m_height - 202 - 48));
+			ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(199, 46));
+
+			ImGui::SetCursorPos(ImVec2((m_width - 200) / 2, m_height - 202));
+			ImGui::Image((ImTextureID)m_sponsorDigitalOcean, ImVec2(200, 200));
 		}
 		ImGui::End();
 
@@ -2320,6 +2323,22 @@ namespace ed {
 		}
 		glGenTextures(1, &m_splashScreenText);
 		glBindTexture(GL_TEXTURE_2D, m_splashScreenText);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		stbi_image_free(data);
+		data = NULL;
+
+		// text
+		data = stbi_load(white ? "./data/sponsors/DigitalOcean-white.png" : "./data/sponsors/DigitalOcean-black.png", &width, &height, &orig_format, req_format);
+		if (data == NULL) {
+			ed::Logger::Get().Log("Failed to load DigitalOcean logo", true);
+			return;
+		}
+		glGenTextures(1, &m_sponsorDigitalOcean);
+		glBindTexture(GL_TEXTURE_2D, m_sponsorDigitalOcean);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -2494,7 +2513,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE))
 			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
-		m_tooltip("Pause preview");
+		m_tooltip(m_data->Renderer.IsPaused() ? "Play preview" : "Pause preview");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
 		m_tooltip("Performance mode");
