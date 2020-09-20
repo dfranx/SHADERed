@@ -1,3 +1,6 @@
+[v1.4.1]
++ add "Vector watch" window
+
 [v1.4]
 + web version of SHADERed: https://shadered.org
 + add 'Browse online' window -> install plugins, themes & shaders through the application

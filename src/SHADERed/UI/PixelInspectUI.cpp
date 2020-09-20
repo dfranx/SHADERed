@@ -4,6 +4,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
+#include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/UI/UIHelper.h>
@@ -162,6 +163,11 @@ namespace ed {
 					for (size_t i = 0; i < watchList.size(); i++)
 						m_data->Debugger.UpdateWatchValue(i);
 
+					// update vector watch values
+					const std::vector<char*>& vectorWatchList = m_data->Debugger.GetVectorWatchList();
+					for (size_t i = 0; i < vectorWatchList.size(); i++)
+						m_data->Debugger.UpdateVectorWatchValue(i);
+
 					// editor functions
 					editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
 						if (!m_data->Debugger.IsDebugging())
@@ -195,6 +201,7 @@ namespace ed {
 							m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStopped, nullptr, nullptr);
 						} else {
 							((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
+							((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 							((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
 													
 							int curLine = m_data->Debugger.GetCurrentLine();

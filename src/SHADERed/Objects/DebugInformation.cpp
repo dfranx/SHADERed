@@ -1381,6 +1381,76 @@ namespace ed {
 			m_watchValues[index] = "ERROR";
 	}
 
+	void DebugInformation::ClearVectorWatchList()
+	{
+		for (auto& expr : m_vectorWatchExprs)
+			free(expr);
+
+		m_vectorWatchExprs.clear();
+		m_vectorWatchValues.clear();
+		m_vectorWatchPositions.clear();
+		m_vectorWatchColor.clear();
+	}
+	void DebugInformation::RemoveVectorWatch(size_t index)
+	{
+		free(m_vectorWatchExprs[index]);
+		m_vectorWatchExprs.erase(m_vectorWatchExprs.begin() + index);
+		m_vectorWatchValues.erase(m_vectorWatchValues.begin() + index);
+		m_vectorWatchPositions.erase(m_vectorWatchPositions.begin() + index);
+		m_vectorWatchColor.erase(m_vectorWatchColor.begin() + index);
+	}
+	void DebugInformation::AddVectorWatch(const std::string& expr, glm::vec4 color, bool execute)
+	{
+		char* data = (char*)calloc(512, sizeof(char));
+		strcpy(data, expr.c_str());
+
+		m_vectorWatchExprs.push_back(data);
+		m_vectorWatchColor.push_back(color);
+		m_vectorWatchValues.push_back("");
+		m_vectorWatchPositions.push_back(glm::vec4(0.0f));
+
+		if (execute)
+			UpdateVectorWatchValue(m_vectorWatchExprs.size() - 1);
+	}
+	void DebugInformation::UpdateVectorWatchValue(size_t index)
+	{
+		char* expr = m_vectorWatchExprs[index];
+
+		spvm_result_t resType = nullptr;
+		spvm_result_t exprVal = Immediate(std::string(expr), resType);
+
+		if (exprVal != nullptr && resType != nullptr) {
+			glm::vec4 actualValue = glm::vec4(0, 0, 0, 1);
+
+			if (resType->value_type == spvm_value_type_int || resType->value_type == spvm_value_type_float ||
+				resType->value_type == spvm_value_type_vector) {
+
+				if (resType->value_type == spvm_value_type_vector) {
+					if (m_vmImmediate->results[resType->pointer].value_type == spvm_value_type_float) {
+						for (int i = 0; i < exprVal->member_count; i++)
+							actualValue[i] = exprVal->members[i].value.f;
+					} else {
+						for (int i = 0; i < exprVal->member_count; i++)
+							actualValue[i] = exprVal->members[i].value.s;
+					}
+					if (exprVal->member_count == 3)
+						actualValue.w = 0.0f;
+				} else if (resType->value_type == spvm_value_type_float) {
+					for (int i = 0; i < exprVal->member_count; i++)
+						actualValue[i] = exprVal->members[i].value.f;
+				} else {
+					for (int i = 0; i < exprVal->member_count; i++)
+						actualValue[i] = exprVal->members[i].value.s;
+				} 
+			}
+			std::stringstream ss;
+			GetVariableValueAsString(ss, m_vmImmediate, resType, exprVal->members, exprVal->member_count, "");
+			m_vectorWatchValues[index] = ss.str();
+			m_vectorWatchPositions[index] = actualValue;
+		} else
+			m_vectorWatchValues[index] = "ERROR";
+	}
+
 	void DebugInformation::Jump(int line)
 	{
 		while (m_vm->code_current != nullptr && m_vm->current_line != line) {

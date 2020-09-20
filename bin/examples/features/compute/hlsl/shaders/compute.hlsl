@@ -1,6 +1,8 @@
 RWTexture2D<float4> img_output : register(u0);
 
-uniform float roll;
+cbuffer buf : register(b0) {
+	float roll;
+}
 
 [numthreads(16, 16, 1)]
 void main( uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupThreadID : SV_GroupThreadID, uint3 groupID : SV_GroupID )

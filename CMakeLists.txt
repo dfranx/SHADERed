@@ -61,6 +61,7 @@ set(SOURCES
 	src/SHADERed/UI/Debug/ImmediateUI.cpp
 	src/SHADERed/UI/Debug/ValuesUI.cpp
 	src/SHADERed/UI/Debug/WatchUI.cpp
+	src/SHADERed/UI/Debug/VectorWatchUI.cpp
 
 # UI
 	src/SHADERed/UI/CodeEditorUI.cpp

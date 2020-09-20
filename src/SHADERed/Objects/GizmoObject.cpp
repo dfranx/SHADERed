@@ -159,7 +159,7 @@ namespace ed {
 		ed::Logger::Get().Log("Loading shaders...");
 
 		m_gizmoShader = gl::CreateShader(&GIZMO_VS_CODE, &GIZMO_PS_CODE, "gizmo");
-		m_uiShader = gl::CreateShader(&GUI_VS_CODE, &GUI_PS_CODE, "gizmo");
+		m_uiShader = gl::CreateShader(&GUI_VS_CODE, &GUI_PS_CODE, "GUI");
 
 		// cache uniform locations
 		m_uMatWorldLoc = glGetUniformLocation(m_gizmoShader, "uMatWorld");
@@ -170,7 +170,6 @@ namespace ed {
 		// gizmo and ui
 		m_uiVAO = CreateDegreeInfo(m_uiVBO, 45, 90);
 
-		ed::Logger::Get().Log("Loading gizmo 3D model...");
 		bool gizmo3DLoaded = m_model.LoadFromFile("data/gizmo.obj");
 
 		if (gizmo3DLoaded)

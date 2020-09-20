@@ -19,6 +19,7 @@
 #include <SHADERed/UI/Debug/ImmediateUI.h>
 #include <SHADERed/UI/Debug/ValuesUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
+#include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/MessageOutputUI.h>
 #include <SHADERed/UI/ObjectListUI.h>
@@ -176,6 +177,7 @@ namespace ed {
 		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
 		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
 		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
+		m_debugViews.push_back(new DebugVectorWatchUI(this, objects, "Vector watch"));
 		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
 
 		KeyboardShortcuts::Instance().Load();

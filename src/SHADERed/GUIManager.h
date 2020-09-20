@@ -35,6 +35,7 @@ namespace ed {
 		DebugValues,
 		DebugFunctionStack,
 		DebugBreakpointList,
+		DebugVectorWatch,
 		DebugImmediate,
 		Options,
 		ObjectPreview

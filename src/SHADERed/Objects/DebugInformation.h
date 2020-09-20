@@ -67,6 +67,15 @@ namespace ed {
 		void AddWatch(const std::string& expr, bool execute = true);
 		void UpdateWatchValue(size_t index);
 
+		inline const std::string& GetVectorWatchValue(size_t index) { return m_vectorWatchValues[index]; }
+		inline std::vector<char*>& GetVectorWatchList() { return m_vectorWatchExprs; }
+		inline std::vector<glm::vec4>& GetVectorWatchColors() { return m_vectorWatchColor; }
+		inline std::vector<glm::vec4>& GetVectorWatchPositions() { return m_vectorWatchPositions; }
+		void ClearVectorWatchList();
+		void RemoveVectorWatch(size_t index);
+		void AddVectorWatch(const std::string& expr, glm::vec4 color, bool execute = true);
+		void UpdateVectorWatchValue(size_t index);
+
 		void AddBreakpoint(const std::string& file, int line, const std::string& condition, bool enabled = true);
 		void RemoveBreakpoint(const std::string& file, int line);
 		void SetBreakpointEnabled(const std::string& file, int line, bool enable);
@@ -132,6 +141,11 @@ namespace ed {
 
 		std::vector<char*> m_watchExprs;
 		std::vector<std::string> m_watchValues;
+
+		std::vector<char*> m_vectorWatchExprs;
+		std::vector<std::string> m_vectorWatchValues;
+		std::vector<glm::vec4> m_vectorWatchColor;
+		std::vector<glm::vec4> m_vectorWatchPositions;
 
 		std::unordered_map<std::string, std::vector<dbg::Breakpoint>> m_breakpoints;
 		std::unordered_map<std::string, std::vector<bool>> m_breakpointStates;

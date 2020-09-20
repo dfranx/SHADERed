@@ -172,6 +172,7 @@ namespace ed {
 		m_msgs->Clear();
 		m_debug->ClearPixelList();
 		m_debug->ClearWatchList();
+		m_debug->ClearVectorWatchList();
 		m_debug->ClearBreakpointList();
 
 		for (auto& mdl : m_models) {
@@ -833,6 +834,18 @@ namespace ed {
 				pugi::xml_node watchNode = settingsNode.append_child("entry");
 				watchNode.append_attribute("type").set_value("watch_expr");
 				watchNode.append_attribute("expr").set_value(watch);
+			}
+
+			// vector watches
+			const std::vector<char*>& vec_watches = m_debug->GetVectorWatchList();
+			const std::vector<glm::vec4>& vec_watches_color = m_debug->GetVectorWatchColors();
+			for (int i = 0; i < vec_watches.size(); i++) {
+				pugi::xml_node watchNode = settingsNode.append_child("entry");
+				watchNode.append_attribute("type").set_value("vecwatch_expr");
+				watchNode.append_attribute("expr").set_value(vec_watches[i]);
+				watchNode.append_attribute("color_r").set_value(vec_watches_color[i].r);
+				watchNode.append_attribute("color_g").set_value(vec_watches_color[i].g);
+				watchNode.append_attribute("color_b").set_value(vec_watches_color[i].b);
 			}
 
 			// breakpoints
@@ -3209,6 +3222,13 @@ namespace ed {
 				} else if (type == "watch_expr") {
 					if (!settingItem.attribute("expr").empty())
 						m_debug->AddWatch(settingItem.attribute("expr").as_string(), false);
+				} else if (type == "vecwatch_expr") {
+					if (!settingItem.attribute("expr").empty()) {
+						float cr = settingItem.attribute("color_r").as_float();
+						float cg = settingItem.attribute("color_g").as_float();
+						float cb = settingItem.attribute("color_b").as_float();
+						m_debug->AddVectorWatch(settingItem.attribute("expr").as_string(), glm::vec4(cr, cg, cb, 1.0f), false);
+					}
 				} else if (type == "bkpt") {
 					m_debug->AddBreakpoint(settingItem.attribute("file").as_string(),
 						settingItem.attribute("line").as_int(),
