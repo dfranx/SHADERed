@@ -137,7 +137,7 @@ up Flatpak, you can install it by entering the following commands in a terminal:
 
 ```text
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install org.shadered.SHADERed
+flatpak install --user flathub org.shadered.SHADERed -y
 ```
 
 Note that the Flatpak version runs in a sandbox and some features may not work
