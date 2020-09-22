@@ -740,7 +740,7 @@ namespace ed {
 
 		bool usePlugin = false;
 		ed::IPlugin2* plugin2 = nullptr;
-		if (m_pixel->Pass->Type == PipelineItem::ItemType::PluginItem) {
+		if (m_pixel != nullptr && m_pixel->Pass->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)m_pixel->Pass->Data;
 			if (plData->Owner->GetVersion() >= 2) {
 				plugin2 = ((ed::IPlugin2*)plData->Owner);
@@ -912,6 +912,8 @@ namespace ed {
 	}
 	void DebugInformation::SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
 	{
+		m_pixel = nullptr; // TODO?
+
 		// input variables
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
 			spvm_result_t slot = &m_vm->results[i];

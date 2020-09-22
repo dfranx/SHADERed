@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/UI/UIView.h>
 #include <SHADERed/Objects/ArcBallCamera.h>
+#include <SHADERed/Engine/Model.h>
 
 namespace ed {
 	class DebugVectorWatchUI : public UIView {
@@ -22,6 +23,11 @@ namespace ed {
 	private:
 		char m_tempExpr[512];
 		char m_newExpr[512];
+
+		eng::Model m_vectorHandle, m_vectorPoint;
+		float m_vectorPointSize;
+
+		float m_lastFBOWidth, m_lastFBOHeight;
 
 		ed::ArcBallCamera m_camera;
 		unsigned int m_unitSphereVAO, m_unitSphereVBO;

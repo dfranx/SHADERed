@@ -1,5 +1,6 @@
 [v1.4.1]
 + add "Vector watch" window
++ fix a bug that would cause SHADERed to crash when using immediate mode while debugging vertex shaders
 
 [v1.4]
 + web version of SHADERed: https://shadered.org

@@ -4,8 +4,10 @@
 #include <SHADERed/Objects/DefaultState.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <imgui/imgui.h>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 const char* SIMPLE_VECTOR_VS_CODE = R"(
 #version 330
@@ -58,6 +60,26 @@ namespace ed {
 
 		return vao;
 	}
+	glm::mat3 rotateAlign(glm::vec3 u1, glm::vec3 u2)
+	{
+		glm::vec3 axis = glm::cross(u1, u2);
+
+		const float cosA = glm::dot(u1, u2);
+		const float k = 1.0f / (1.0f + cosA);
+
+		glm::mat3 result((axis.x * axis.x * k) + cosA,
+			(axis.y * axis.x * k) - axis.z,
+			(axis.z * axis.x * k) + axis.y,
+			(axis.x * axis.y * k) + axis.z,
+			(axis.y * axis.y * k) + cosA,
+			(axis.z * axis.y * k) - axis.x,
+			(axis.x * axis.z * k) - axis.y,
+			(axis.y * axis.z * k) + axis.x,
+			(axis.z * axis.z * k) + cosA);
+
+		return result;
+	}
+
 	DebugVectorWatchUI::~DebugVectorWatchUI()
 	{
 		glDeleteBuffers(1, &m_unitSphereVBO);
@@ -79,6 +101,7 @@ namespace ed {
 	{
 		m_simpleShader = gl::CreateShader(&SIMPLE_VECTOR_VS_CODE, &SIMPLE_VECTOR_PS_CODE, "vector watch");
 
+		m_lastFBOWidth = m_lastFBOHeight = 512.0f;
 		m_fbo = gl::CreateSimpleFramebuffer(512, 512, m_fboColor, m_fboDepth, GL_RGB);
 
 		std::vector<InputLayoutItem> layout;
@@ -152,11 +175,17 @@ namespace ed {
 		// z line
 		gridData[0] = 0.0f;
 		gridData[1] = 0.0f;
-		gridData[2] = -40.0f;
+		gridData[2] = 40.0f;
 		gridData[3] = 0.0f;
 		gridData[4] = 0.0f;
-		gridData[5] = 40.0f;
+		gridData[5] = -40.0f;
 		m_zVAO = createLines(m_zVBO, gridData);
+
+		// arrow
+		m_vectorHandle.LoadFromFile("data/vector_handle.obj");
+		m_vectorPoint.LoadFromFile("data/vector_point.obj");
+
+		m_vectorPointSize = m_vectorPoint.GetMaxBound().z - m_vectorPoint.GetMinBound().z;
 	}
 	void DebugVectorWatchUI::m_render()
 	{
@@ -165,12 +194,12 @@ namespace ed {
 		glDrawBuffers(1, fboBuffers);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)));
-		glViewport(0, 0, 512, 512);
+		glViewport(0, 0, m_lastFBOWidth, m_lastFBOHeight);
 
 		glUseProgram(m_simpleShader);
 
 		glm::mat4 matWorld = glm::mat4(1.0f);
-		glm::mat4 matVP = glm::perspective(glm::radians(45.0f), 512.0f / 512.0f, 0.1f, 1000.0f) * m_camera.GetMatrix();
+		glm::mat4 matVP = glm::perspective(glm::radians(45.0f), m_lastFBOWidth / m_lastFBOHeight, 0.1f, 1000.0f) * m_camera.GetMatrix();
 
 		glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
 		glUniformMatrix4fv(m_uMatVP, 1, GL_FALSE, glm::value_ptr(matVP));
@@ -189,35 +218,55 @@ namespace ed {
 		glBindVertexArray(m_xVAO);
 		glDrawArrays(GL_LINES, 0, 2);
 
-		// draw z
-		glUniform4fv(m_uColor, 1, glm::value_ptr(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)));
-		glBindVertexArray(m_zVAO);
-		glDrawArrays(GL_LINES, 0, 2);
-
 		// draw y
 		glUniform4fv(m_uColor, 1, glm::value_ptr(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)));
 		glBindVertexArray(m_yVAO);
 		glDrawArrays(GL_LINES, 0, 2);
 
+		// draw z
+		glUniform4fv(m_uColor, 1, glm::value_ptr(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)));
+		glBindVertexArray(m_zVAO);
+		glDrawArrays(GL_LINES, 0, 2);
+
 		// draw points/vectors
+		// TODO: instancing
 		const std::vector<glm::vec4>& exprPositions = m_data->Debugger.GetVectorWatchPositions();
 		const std::vector<glm::vec4>& exprColors = m_data->Debugger.GetVectorWatchColors();
 		for (int i = 0; i < exprPositions.size(); i++) {
-			if (exprPositions[i].w == 0.0f) {
+			const glm::vec4& pos = exprPositions[i];
+
+			glUniform4fv(m_uColor, 1, glm::value_ptr(exprColors[i]));
+
+			if (pos.w == 0.0f) {
 				// vectors
+				float length = glm::length(pos);
+				glm::mat4 ypr = glm::mat4(1.0f);
+				
+				if (pos.x == 0.0f && pos.z == 0.0f)
+					ypr = glm::rotate(glm::mat4(1.0f), -glm::sign(pos.y) * glm::pi<float>()/2.0f, glm::vec3(1, 0, 0));
+				else
+					ypr = glm::inverse(glm::lookAt(glm::vec3(0, 0, 0), -glm::vec3(pos), glm::vec3(0, 1, 0)));
+
+				matWorld = ypr * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, glm::max(0.0f, length - m_vectorPointSize)));
+				glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
+				m_vectorHandle.Draw();
+
+				matWorld = ypr * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, length - 1 - m_vectorPointSize));
+				glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
+				m_vectorPoint.Draw();
 			} else {
 				// points
-				matWorld = glm::translate(glm::mat4(1), glm::vec3(exprPositions[i])) * glm::scale(glm::mat4(1.0f), glm::vec3(0.075f));
+				matWorld = glm::translate(glm::mat4(1), glm::vec3(pos)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.075f));
 				glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
-				glUniform4fv(m_uColor, 1, glm::value_ptr(exprColors[i]));
 				glBindVertexArray(m_unitSphereVAO);
 				glDrawArrays(GL_TRIANGLES, 0, eng::GeometryFactory::VertexCount[ed::pipe::GeometryItem::GeometryType::Sphere]);
 			}
 		}
 
-		// draw unit sphere
 		matWorld = glm::mat4(1.0f);
 		glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
+
+		// draw unit sphere
 		glUniform4fv(m_uColor, 1, glm::value_ptr(glm::vec4(1.0f, 1.0f, 1.0f, 0.25f)));
 		glBindVertexArray(m_unitSphereVAO);
 		glDrawArrays(GL_TRIANGLES, 0, eng::GeometryFactory::VertexCount[ed::pipe::GeometryItem::GeometryType::Sphere]);
@@ -234,16 +283,37 @@ namespace ed {
 	}
 	void DebugVectorWatchUI::OnEvent(const SDL_Event& e)
 	{
+		if (e.type == SDL_MOUSEBUTTONDOWN)
+			m_mouseContact = ImVec2(e.button.x, e.button.y);
 	}
 	void DebugVectorWatchUI::Update(float delta)
 	{
-		m_render();
-
 		std::vector<char*>& exprs = m_data->Debugger.GetVectorWatchList();
 		std::vector<glm::vec4>& clrs = m_data->Debugger.GetVectorWatchColors();
 
+		float wWidth = ImGui::GetWindowContentRegionWidth();
+		float wHeight = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
+		float exprHeight = std::max(250.0f, wHeight - 512 - ImGui::GetStyle().WindowPadding.y);
+		float imgHeight = std::min(512.0f, wHeight - exprHeight - ImGui::GetStyle().WindowPadding.y);
+		float imgWidth = wWidth;
+
+		float imgX = (wWidth - imgWidth) / 2.0f + ImGui::GetStyle().WindowPadding.x;
+
+		if (imgWidth != m_lastFBOWidth || imgHeight != m_lastFBOHeight) {
+			glBindTexture(GL_TEXTURE_2D, m_fboColor);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glBindTexture(GL_TEXTURE_2D, m_fboDepth);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, imgWidth, imgHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			m_lastFBOWidth = imgWidth;
+			m_lastFBOHeight = imgHeight;
+		}
+
+		m_render();
+
 		// Main window
-		ImGui::BeginChild("##vectorwatch_viewarea", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+		ImGui::BeginChild("##vectorwatch_viewarea", ImVec2(0, exprHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
 
 		ImGui::Separator();
 		ImGui::Columns(3);
@@ -312,11 +382,13 @@ namespace ed {
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 			ImGui::SetScrollHereY(1.0f);
 
-		ImGui::Image((ImTextureID)m_fboColor, ImVec2(512, 512), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::EndChild();
+
+		ImGui::SetCursorPosX(imgX);
+		ImGui::Image((ImTextureID)m_fboColor, ImVec2(imgWidth, imgHeight), ImVec2(0, 1), ImVec2(1, 0));
 		if (ImGui::IsItemHovered()) {
 			m_camera.Move(-ImGui::GetIO().MouseWheel);
 
-			
 			// handle right mouse dragging - camera
 			if (ImGui::IsMouseDown(0) || ImGui::IsMouseDown(1)) {
 				int ptX, ptY;
@@ -334,7 +406,5 @@ namespace ed {
 				m_camera.Pitch(dY);
 			}
 		}
-
-		ImGui::EndChild();
 	}
 }
