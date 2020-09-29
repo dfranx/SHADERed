@@ -11,6 +11,84 @@
 #define GET_VALUE2_WITH_CHECK_INT(val, c, r) (val == nullptr ? 0 : val->members[c].members[r].value.s)
 
 
+void allocateWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_word type_id)
+{
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+	ed::DebugInformation::SharedMemoryEntry memEntry;
+
+	memEntry.Destination = &state->results[result_id];
+	memcpy(&memEntry.Data, memEntry.Destination, sizeof(spvm_result));
+	spvm_result_allocate_typed_value(&memEntry.Data, state->results, type_id);
+	memEntry.Slot = result_id;
+
+	dbgr->SharedMemory.push_back(memEntry);
+}
+void writeWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_word val_id)
+{
+	spvm_result_t ptr = &state->results[result_id];
+	if (ptr->source_location != nullptr) {
+		spvm_word word_count = ptr->source_word_count;
+		spvm_source code = ptr->source_location;
+
+		spvm_word var_type = SPVM_READ_WORD(code);
+		spvm_word id = SPVM_READ_WORD(code);
+		spvm_word memory_id = SPVM_READ_WORD(code);
+
+		spvm_result_t sharedData = nullptr;
+
+		ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+
+		for (int i = 0; i < dbgr->SharedMemory.size(); i++) {
+			if (dbgr->SharedMemory[i].Slot == memory_id) {
+				sharedData = &dbgr->SharedMemory[i].Data;
+				break;
+			}
+		}
+
+		if (sharedData == nullptr)
+			return;
+
+		spvm_word index_count = word_count - 4;
+
+		spvm_word index_id = SPVM_READ_WORD(code);
+		spvm_word index = state->results[index_id].members[0].value.s;
+
+		spvm_member_t result = sharedData->members + MIN(index, sharedData->member_count - 1);
+
+		while (index_count) {
+			index_id = SPVM_READ_WORD(code);
+			index = state->results[index_id].members[0].value.s;
+
+			result = result->members + MIN(index, result->member_count - 1);
+
+			index_count--;
+		}
+
+		spvm_member* members = nullptr;
+		spvm_word member_count = 0;
+		if (result->member_count != 0) {
+			member_count = result->member_count;
+			members = result->members;
+		} else {
+			member_count = 1;
+			members = result;
+		}
+		spvm_member_memcpy(members, state->results[val_id].members, member_count);
+	}
+}
+void controlBarrier(spvm_state* state, spvm_word exec, spvm_word mem, spvm_word sem)
+{
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+	dbgr->SyncWorkgroup();
+
+	// copy memory
+	for (int i = 0; i < dbgr->SharedMemory.size(); i++) {
+		const ed::DebugInformation::SharedMemoryEntry& entry = dbgr->SharedMemory[i];
+
+		spvm_member_memcpy(entry.Destination->members, entry.Data.members, entry.Destination->member_count);
+	}
+}
+
 
 namespace ed {
 	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer, MessageStack* msgs)
@@ -24,6 +102,7 @@ namespace ed {
 		m_vmImmediate = nullptr;
 		m_shaderImmediate = nullptr;
 		m_msgs = msgs;
+		m_workgroup = nullptr;
 
 		m_vmContext = spvm_context_initialize();
 		m_vmGLSL = spvm_build_glsl450_ext();
@@ -44,6 +123,30 @@ namespace ed {
 		}
 		m_images.clear();
 
+		// clear shared memory
+		for (SharedMemoryEntry& entry : SharedMemory)
+			spvm_member_free(entry.Data.members, entry.Data.member_count);
+		SharedMemory.clear();
+
+		// clear workgroup
+		if (m_workgroup) {
+			for (int j = 0; j < m_originalValues.size(); j++)
+			{
+				const OriginalValue& originalData = m_originalValues[j];
+				originalData.State->results[originalData.Slot].members = originalData.Members;
+				originalData.State->results[originalData.Slot].member_count = originalData.MemberCount;
+			}
+			m_originalValues.clear();
+			for (int i = 0; i < m_shader->local_size_x * m_shader->local_size_y * m_shader->local_size_z; i++) {
+				if (m_workgroup[i] == nullptr)
+					continue;
+
+				spvm_state_delete(m_workgroup[i]);
+			}
+			free(m_workgroup);
+			m_workgroup = nullptr;
+		}
+
 		if (m_vm) {
 			spvm_state_delete(m_vm);
 			m_vm = nullptr;
@@ -52,6 +155,7 @@ namespace ed {
 			spvm_program_delete(m_shader);
 			m_shader = nullptr;
 		}
+
 	}
 	void DebugInformation::m_setupVM(std::vector<unsigned int>& spv)
 	{
@@ -59,10 +163,178 @@ namespace ed {
 		
 		// create program & state
 		m_shader = spvm_program_create(m_vmContext, (spvm_source)m_spv.data(), m_spv.size());
+		m_shader->user_data = this;
+		m_shader->allocate_workgroup_memory = allocateWorkgroupMemory;
+		m_shader->write_workgroup_memory = writeWorkgroupMemory;
+
 		m_vm = _spvm_state_create_base(m_shader, m_stage == ShaderStage::Pixel, 0);
+		m_vm->control_barrier = controlBarrier;
+		m_shader->allocate_workgroup_memory = nullptr; // "sub-programs" shouldn't handle this anymore
 
 		// link GLSL.std.450
 		spvm_state_set_extension(m_vm, "GLSL.std.450", m_vmGLSL);
+	}
+	void DebugInformation::m_setupWorkgroup()
+	{
+		int startX = (m_threadX / m_shader->local_size_x) * m_shader->local_size_x;
+		int startY = (m_threadY / m_shader->local_size_y) * m_shader->local_size_y;
+		int startZ = (m_threadZ / m_shader->local_size_z) * m_shader->local_size_z;
+
+		int groupSize = m_shader->local_size_x * m_shader->local_size_y * m_shader->local_size_z;
+
+		m_workgroup = (spvm_state_t*)calloc(groupSize, sizeof(spvm_state_t));
+
+		for (int id_x = 0; id_x < m_shader->local_size_x; id_x++) {
+			for (int id_y = 0; id_y < m_shader->local_size_y; id_y++) {
+				for (int id_z = 0; id_z < m_shader->local_size_y; id_z++) {
+					int id = id_z * m_shader->local_size_x * m_shader->local_size_y + id_y * m_shader->local_size_x + id_x;
+
+					if (id == m_localThreadIndex)
+						continue;
+
+					m_workgroup[id] = spvm_state_create(m_shader);
+
+					spvm_state_t worker = m_workgroup[id];
+					spvm_result_t glsl_std_450 = spvm_state_get_result(worker, "GLSL.std.450");
+					if (glsl_std_450)
+						glsl_std_450->extension = m_vmGLSL;
+
+					m_setThreadID(worker, startX + id_x, startY + id_y, startZ + id_z, m_numGroupsX, m_numGroupsY, m_numGroupsZ);
+
+					spvm_word fnMain = spvm_state_get_result_location(worker, "main");
+					spvm_state_prepare(worker, fnMain);
+				}
+			}
+		}
+
+		for (int i = 0; i < m_shader->bound; i++) {
+			spvm_result_t slot = &m_vm->results[i];
+			
+			if (slot->pointer) {
+				spvm_result_t pointerInfo = &m_vm->results[slot->pointer];
+
+				if (pointerInfo->member_count > 0 && pointerInfo->members && pointerInfo->storage_class == SpvStorageClassUniform) {
+					for (int j = 0; j < groupSize; j++)
+						if (m_workgroup[j])
+							spvm_member_memcpy(m_workgroup[j]->results[i].members, slot->members, slot->member_count);
+				} else {
+
+					if (pointerInfo && pointerInfo->value_type == spvm_value_type_pointer) {
+						spvm_result_t type_info = spvm_state_get_type_info(m_vm->results, pointerInfo);
+						bool isBufferBlock = false;
+
+						for (int i = 0; i < type_info->decoration_count; i++)
+							if (type_info->decorations[i].type == SpvDecorationBufferBlock) {
+								isBufferBlock = true;
+								break;
+							}
+
+						if (pointerInfo->storage_class == SpvStorageClassUniformConstant && !isBufferBlock) {
+							// textures
+							if (type_info->value_type == spvm_value_type_sampled_image || type_info->value_type == spvm_value_type_image) {
+
+								for (int j = 0; j < groupSize; j++)
+									if (m_workgroup[j]) {
+										m_originalValues.push_back(OriginalValue(m_workgroup[j], i, m_workgroup[j]->results[i].member_count, m_workgroup[j]->results[i].members));
+										m_workgroup[j]->results[i].member_count = slot->member_count;
+										m_workgroup[j]->results[i].members = slot->members;
+									}
+							}
+						} else if (pointerInfo->storage_class == SpvStorageClassStorageBuffer || isBufferBlock) {
+
+							for (int j = 0; j < groupSize; j++)
+								if (m_workgroup[j]) {
+									m_originalValues.push_back(OriginalValue(m_workgroup[j], i, m_workgroup[j]->results[i].member_count, m_workgroup[j]->results[i].members));
+									m_workgroup[j]->results[i].member_count = slot->member_count;
+									m_workgroup[j]->results[i].members = slot->members;
+								}
+						}
+					}
+				}
+			}
+		}
+	}
+	void DebugInformation::m_setThreadID(spvm_state_t worker, int x, int y, int z, int numGroupsX, int numGroupsY, int numGroupsZ)
+	{
+		if (worker == m_vm) {
+			m_threadX = x;
+			m_threadY = y;
+			m_threadZ = z;
+		}
+
+		// input variables
+		for (spvm_word i = 0; i < worker->owner->bound; i++) {
+			spvm_result_t slot = &worker->results[i];
+			spvm_result_t pointer = nullptr;
+
+			if (slot->pointer)
+				pointer = &worker->results[worker->results[i].pointer];
+
+			// input variable
+			if (pointer) {
+				if (pointer->storage_class == SpvStorageClassInput) {
+					spvm_word builtinType = 0;
+					bool isBuiltin = false;
+					for (spvm_word j = 0; j < slot->decoration_count; j++) {
+						if (slot->decorations[j].type == SpvDecorationBuiltIn) {
+							builtinType = slot->decorations[j].literal1;
+							isBuiltin = true;
+						}
+					}
+
+					if (isBuiltin) {
+						if (builtinType == SpvBuiltInGlobalInvocationId) {
+							if (slot->member_count >= 3) {
+								slot->members[0].value.u = x;
+								slot->members[1].value.u = y;
+								slot->members[2].value.u = z;
+							}
+						} else if (builtinType == SpvBuiltInWorkgroupId) {
+							if (slot->member_count >= 3) {
+								slot->members[0].value.u = x / worker->owner->local_size_x;
+								slot->members[1].value.u = y / worker->owner->local_size_y;
+								slot->members[2].value.u = z / worker->owner->local_size_z;
+							}
+						} else if (builtinType == SpvBuiltInLocalInvocationId) {
+							if (slot->member_count >= 3) {
+								slot->members[0].value.u = x % worker->owner->local_size_x;
+								slot->members[1].value.u = y % worker->owner->local_size_y;
+								slot->members[2].value.u = z % worker->owner->local_size_z;
+							}
+						} else if (builtinType == SpvBuiltInLocalInvocationIndex) {
+							if (slot->member_count >= 1) {
+								slot->members[0].value.u = z * worker->owner->local_size_y * worker->owner->local_size_x + 
+														   y * worker->owner->local_size_x +
+														   x;
+
+								if (worker == m_vm)
+									m_localThreadIndex = slot->members[0].value.u;
+							}
+						} else if (builtinType == SpvBuiltInWorkgroupSize) {
+							if (slot->member_count >= 3) {
+								slot->members[0].value.u = worker->owner->local_size_x;
+								slot->members[1].value.u = worker->owner->local_size_y;
+								slot->members[2].value.u = worker->owner->local_size_z;
+							}
+						} else if (builtinType == SpvBuiltInNumWorkgroups) {
+							if (slot->member_count >= 3) {
+								slot->members[0].value.u = numGroupsX;
+								slot->members[1].value.u = numGroupsY;
+								slot->members[2].value.u = numGroupsZ;
+							}
+						}
+					}
+				}
+			}
+
+			if (slot->name && strcmp(slot->name, "") == 0 && slot->member_count > 0) {
+				slot->members[0].members[0].value.s = 10000;
+				slot->members[0].members[1].value.s = 79;
+				slot->members[1].members[0].value.f = 0.1f;
+				slot->members[1].members[1].value.f = 1.0f;
+			}
+		}
+
 	}
 	void DebugInformation::m_copyUniforms(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
@@ -72,12 +344,18 @@ namespace ed {
 		if (owner->Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* pass = (pipe::ShaderPass*)owner->Data;
 			vars = pass->Variables.GetVariables();
-		} else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+		} 
+		else if (owner->Type == PipelineItem::ItemType::ComputePass) {
+			pipe::ComputePass* pass = (pipe::ComputePass*)owner->Data;
+			vars = pass->Variables.GetVariables();
+		}
+		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
 
 			pluginUsesCustomTextures = plData->Owner->PipelineItem_DebugUsesCustomTextures(plData->Type, plData->PluginData);
 
-			plData->Owner->PipelineItem_DebugPrepareVariables(plData->Type, plData->PluginData, item->Name);
+			if (item != nullptr)
+				plData->Owner->PipelineItem_DebugPrepareVariables(plData->Type, plData->PluginData, item->Name);
 			
 			int varCount = plData->Owner->PipelineItem_GetVariableCount(plData->Type, plData->PluginData);
 			vars.resize(varCount);
@@ -125,35 +403,37 @@ namespace ed {
 
 		// update variables
 		// update system variables
-		if (item->Type == PipelineItem::ItemType::Geometry) {
-			pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
+		if (item) {
+			if (item->Type == PipelineItem::ItemType::Geometry) {
+				pipe::GeometryItem* geoData = reinterpret_cast<pipe::GeometryItem*>(item->Data);
 
-			if (geoData->Type == pipe::GeometryItem::Rectangle) {
-				glm::vec3 scaleRect(geoData->Scale.x * SystemVariableManager::Instance().GetViewportSize().x, geoData->Scale.y * SystemVariableManager::Instance().GetViewportSize().y, 1.0f);
-				glm::vec3 posRect((geoData->Position.x + 0.5f) * m_renderer->GetLastRenderSize().x, (geoData->Position.y + 0.5f) * m_renderer->GetLastRenderSize().y, -1000.0f);
-				SystemVariableManager::Instance().SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
-			} else
-				SystemVariableManager::Instance().SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
+				if (geoData->Type == pipe::GeometryItem::Rectangle) {
+					glm::vec3 scaleRect(geoData->Scale.x * SystemVariableManager::Instance().GetViewportSize().x, geoData->Scale.y * SystemVariableManager::Instance().GetViewportSize().y, 1.0f);
+					glm::vec3 posRect((geoData->Position.x + 0.5f) * m_renderer->GetLastRenderSize().x, (geoData->Position.y + 0.5f) * m_renderer->GetLastRenderSize().y, -1000.0f);
+					SystemVariableManager::Instance().SetGeometryTransform(item, scaleRect, geoData->Rotation, posRect);
+				} else
+					SystemVariableManager::Instance().SetGeometryTransform(item, geoData->Scale, geoData->Rotation, geoData->Position);
 
-			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
-		} else if (item->Type == PipelineItem::ItemType::Model) {
-			pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
+				SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
+			} else if (item->Type == PipelineItem::ItemType::Model) {
+				pipe::Model* objData = reinterpret_cast<pipe::Model*>(item->Data);
 
-			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
-			SystemVariableManager::Instance().SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
-		} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
-			pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+				SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
+				SystemVariableManager::Instance().SetGeometryTransform(item, objData->Scale, objData->Rotation, objData->Position);
+			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+				pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
 
-			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
-			SystemVariableManager::Instance().SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
-		} else if (item->Type == PipelineItem::ItemType::PluginItem) {
-			pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
-			
-			float scale[3], pos[3], rota[3];
-			plData->Owner->PipelineItem_GetTransform(plData->Type, plData->PluginData, pos, scale, rota);
+				SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
+				SystemVariableManager::Instance().SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+			} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+				pipe::PluginItemData* plData = reinterpret_cast<pipe::PluginItemData*>(item->Data);
 
-			SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
-			SystemVariableManager::Instance().SetGeometryTransform(item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
+				float scale[3], pos[3], rota[3];
+				plData->Owner->PipelineItem_GetTransform(plData->Type, plData->PluginData, pos, scale, rota);
+
+				SystemVariableManager::Instance().SetPicked(m_renderer->IsPicked(item));
+				SystemVariableManager::Instance().SetGeometryTransform(item, glm::make_vec3(scale), glm::make_vec3(rota), glm::make_vec3(pos));
+			}
 		}
 
 		// copy variable values
@@ -330,36 +610,38 @@ namespace ed {
 				break;
 			}
 
-			// update system variable value
-			SystemVariableManager::Instance().Update(var, item);
+			if (item) {
+				// update system variable value
+				SystemVariableManager::Instance().Update(var, item);
 
-			// item variable value
-			ShaderVariable* actualVar = var;
-			for (const auto& iVar : itemVars) {
-				if (iVar.Item == item && iVar.Variable == var) {
-					actualVar = iVar.NewValue;
-					break;
+				// item variable value
+				ShaderVariable* actualVar = var;
+				for (const auto& iVar : itemVars) {
+					if (iVar.Item == item && iVar.Variable == var) {
+						actualVar = iVar.NewValue;
+						break;
+					}
 				}
-			}
 
-			// copy the value now that we have a pointer to actual memory part
-			int cCount = std::min<int>(actualVar->GetColumnCount(), pointerMCount);
-			for (int c = 0; c < cCount; c++) {
-				if (pointer[c].member_count == 0) {
-					if (useFloat)
-						pointer[c].value.f = actualVar->AsFloat(c);
-					else if (useInt)
-						pointer[c].value.s = actualVar->AsInteger(c);
-					else if (useBool)
-						pointer[c].value.b = actualVar->AsBoolean(c);
-				} else {
-					for (int r = 0; r < pointer[c].member_count; r++)
-						pointer[c].members[r].value.f = actualVar->AsFloat(r, c);
+				// copy the value now that we have a pointer to actual memory part
+				int cCount = std::min<int>(actualVar->GetColumnCount(), pointerMCount);
+				for (int c = 0; c < cCount; c++) {
+					if (pointer[c].member_count == 0) {
+						if (useFloat)
+							pointer[c].value.f = actualVar->AsFloat(c);
+						else if (useInt)
+							pointer[c].value.s = actualVar->AsInteger(c);
+						else if (useBool)
+							pointer[c].value.b = actualVar->AsBoolean(c);
+					} else {
+						for (int r = 0; r < pointer[c].member_count; r++)
+							pointer[c].members[r].value.f = actualVar->AsFloat(r, c);
+					}
 				}
 			}
 		}
 
-		// textures, buffers [TODO], etc...
+		// textures, buffers, etc...
 		int sampler2Dloc = 0;
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
 			spvm_result_t slot = &m_vm->results[i];
@@ -715,7 +997,7 @@ namespace ed {
 					outString << mems[i].value.s << " ";
 				allRec = false;
 			} else {
-				if (type->value_type == spvm_value_type_runtime_array && i > 2 && i < mem_count - 3)
+				if ((type->value_type == spvm_value_type_runtime_array || type->value_type == spvm_value_type_array) && i > 2 && i < mem_count - 3)
 					continue;
 
 				std::string newPrefix = prefix;
@@ -724,7 +1006,7 @@ namespace ed {
 				if (type->value_type == spvm_value_type_matrix || type->value_type == spvm_value_type_array || type->value_type == spvm_value_type_runtime_array)
 					newPrefix += "[" + std::to_string(i) + "]";
 
-				if (type->value_type == spvm_value_type_runtime_array && mem_count > 6 && i == mem_count - 3)
+				if ((type->value_type == spvm_value_type_runtime_array || type->value_type == spvm_value_type_array) && mem_count > 6 && i == mem_count - 3)
 					outString << "...\n";
 
 				GetVariableValueAsString(outString, state, vtype, mems[i].members, mems[i].member_count, newPrefix);
@@ -1313,6 +1595,31 @@ namespace ed {
 		return glm::clamp(ret, 0.0f, 1.0f);
 	}
 
+	void DebugInformation::PrepareComputeShader(PipelineItem* pass, int x, int y, int z)
+	{
+		m_stage = ShaderStage::Compute;
+		pipe::ComputePass* data = (pipe::ComputePass*)pass->Data;
+
+		// TODO: plugins
+
+		m_resetVM();
+		m_setupVM(data->SPV);
+		m_copyUniforms(pass, nullptr);
+		m_setThreadID(m_vm, x, y, z, data->WorkX, data->WorkY, data->WorkZ);
+
+		m_numGroupsX = data->WorkX;
+		m_numGroupsY = data->WorkY;
+		m_numGroupsZ = data->WorkZ;
+
+		if (data->SPV.size() > 0) {
+			SPIRVParser parser;
+			parser.Parse(data->SPV);
+			if (parser.BarrierUsed) {
+				m_setupWorkgroup();
+			}
+		}
+	}
+
 	void DebugInformation::PrepareDebugger()
 	{
 		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
@@ -1598,5 +1905,12 @@ namespace ed {
 			}
 		enabled = false;
 		return nullptr;
+	}
+	void DebugInformation::SyncWorkgroup()
+	{
+		if (m_workgroup)
+			for (int i = 0; i < m_shader->local_size_x * m_shader->local_size_y * m_shader->local_size_z; i++)
+				if (m_workgroup[i])
+					spvm_state_jump_to_instruction(m_workgroup[i], m_vm->instruction_count);
 	}
 }

@@ -34,6 +34,11 @@ namespace ed {
 		DerivativeInstCount = 0;
 		ControlFlowInstCount = 0;
 
+		BarrierUsed = false;
+		LocalSizeX = 1;
+		LocalSizeY = 1;
+		LocalSizeZ = 1;
+
 		std::string curFunc = "";
 		int lastOpLine = -1;
 
@@ -200,6 +205,22 @@ namespace ed {
 				spv_word val = (compcount & 0x00FFFFFF) | (types[comp].second & 0xFF000000);
 
 				types[loc] = std::make_pair(ValueType::Matrix, val);
+			} break;
+			case spv::OpExecutionMode: {
+				++i; // skip
+				spv_word execMode = ir[++i];
+
+				if (execMode == spv::ExecutionMode::ExecutionModeLocalSize) {
+					LocalSizeX = ir[++i];
+					LocalSizeY = ir[++i];
+					LocalSizeZ = ir[++i];
+				}
+			} break;
+
+			case spv::OpControlBarrier:
+			case spv::OpMemoryBarrier:
+			case spv::OpNamedBarrierInitialize: {
+				BarrierUsed = true;
 			} break;
 
 			case spv::OpSNegate: case spv::OpFNegate:

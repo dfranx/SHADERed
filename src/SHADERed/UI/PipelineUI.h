@@ -19,6 +19,7 @@ namespace ed {
 			m_isMacroManagerOpened = false;
 			m_isInpLayoutManagerOpened = false;
 			m_isResourceManagerOpened = false;
+			m_isComputeDebugOpen = false;
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -34,6 +35,7 @@ namespace ed {
 	private:
 		// for popups
 		bool m_isMacroManagerOpened;
+		bool m_isComputeDebugOpen;
 		bool m_isVarManagerOpened;
 		bool m_isInpLayoutManagerOpened;
 		bool m_isResourceManagerOpened;
@@ -41,6 +43,11 @@ namespace ed {
 		bool m_isCreateViewOpened;
 		bool m_isConfirmDeleteOpened;
 		bool m_itemMenuOpened;
+
+		int m_localSizeX, m_localSizeY, m_localSizeZ; // local size defined in compute shader
+		int m_groupsX, m_groupsY, m_groupsZ; // numbers sent to glDispatch
+		unsigned int m_thread[3]; // user's selection
+		ShaderLanguage m_computeLang;
 
 		std::vector<pipe::ShaderPass*> m_expandList; // list of shader pass items that are collapsed
 

@@ -45,6 +45,8 @@ namespace ed {
 		void SetPixelShaderInput(PixelInformation& pixel);
 		glm::vec4 ExecutePixelShader(int x, int y, int loc = 0);
 
+		void PrepareComputeShader(PipelineItem* pass, int x, int y, int z);
+
 		spvm_result_t Immediate(const std::string& entry, spvm_result_t& outType);
 
 		void PrepareDebugger();
@@ -94,6 +96,15 @@ namespace ed {
 		inline bool IsDebugging() { return m_isDebugging; }
 		inline ShaderStage GetStage() { return m_stage; }
 
+		// compute shared stuff
+		void SyncWorkgroup();
+		struct SharedMemoryEntry {
+			spvm_result Data;
+			spvm_result_t Destination;
+			spvm_word Slot;
+		};
+		std::vector<SharedMemoryEntry> SharedMemory;
+
 	private:
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;
@@ -120,6 +131,28 @@ namespace ed {
 		spvm_context_t m_vmContext;
 		spvm_ext_opcode_func* m_vmGLSL;
 
+		// keep track of replace results
+		struct OriginalValue {
+			OriginalValue(spvm_state_t state, int slot, spvm_word member_count, spvm_member_t members)
+			{
+				State = state;
+				Slot = slot;
+				MemberCount = member_count;
+				Members = members;
+			}
+			spvm_state_t State;
+			int Slot;
+			spvm_word MemberCount;
+			spvm_member_t Members;
+		};
+
+		spvm_state_t* m_workgroup;
+		int m_localThreadIndex;
+		int m_threadX, m_threadY, m_threadZ, m_numGroupsX, m_numGroupsY, m_numGroupsZ;
+		void m_setupWorkgroup();
+		std::vector<OriginalValue> m_originalValues;
+		void m_setThreadID(spvm_state_t state, int x, int y, int z, int numGroupsX, int numGroupsY, int numGroupsZ);
+		
 		void m_copyUniforms(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
 		void m_setupVM(std::vector<unsigned int>& spv);
 		void m_resetVM();

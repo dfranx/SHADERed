@@ -37,6 +37,9 @@ namespace ed {
 		std::vector<Variable> Uniforms;
 		std::vector<std::string> Globals;
 
+		bool BarrierUsed;
+		int LocalSizeX, LocalSizeY, LocalSizeZ;
+
 		int ArithmeticInstCount;
 		int BitInstCount;
 		int LogicalInstCount;

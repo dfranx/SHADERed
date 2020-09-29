@@ -6,6 +6,7 @@
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/Options.h>
+#include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/PinnedUI.h>
@@ -117,6 +118,10 @@ namespace ed {
 		m_itemMenuOpened = false;
 
 		// various popups
+		if (m_isComputeDebugOpen) {
+			ImGui::OpenPopup("Debug compute shader");
+			m_isComputeDebugOpen = false;
+		}
 		if (m_isVarManagerOpened) {
 			ImGui::OpenPopup("Variable Manager##pui_shader_variables");
 			m_isVarManagerOpened = false;
@@ -144,6 +149,53 @@ namespace ed {
 		if (m_isConfirmDeleteOpened) {
 			ImGui::OpenPopup("Delete##pui_item_delete");
 			m_isConfirmDeleteOpened = false;
+		}
+
+		// Compute shader debugger
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(195)), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Debug compute shader")) {
+			ImGui::Text("Global thread ID:");
+			ImGui::SameLine();
+			if (ImGui::InputScalarN("##dbg_thread_id", ImGuiDataType_U32, (void*)m_thread, 3, 0, (const void*)1)) {
+				m_thread[0] = std::min<int>(m_thread[0], m_localSizeX * m_groupsX - 1);
+				m_thread[1] = std::min<int>(m_thread[1], m_localSizeY * m_groupsY - 1);
+				m_thread[2] = std::min<int>(m_thread[2], m_localSizeZ * m_groupsZ - 1);
+			}
+			
+			int localInvocationIndex = (m_thread[2] % m_localSizeZ) * m_localSizeX * m_localSizeZ +
+										(m_thread[1] % m_localSizeY) * m_localSizeX +
+										(m_thread[0] % m_localSizeX);
+
+			if (m_computeLang == ed::ShaderLanguage::HLSL) {
+				ImGui::Text("SV_GroupID -> uint3(%d, %d, %d)", m_thread[0] / m_localSizeX, m_thread[1] / m_localSizeY, m_thread[2] / m_localSizeZ);
+				ImGui::Text("SV_GroupThreadID -> uint3(%d, %d, %d)", m_thread[0] % m_localSizeX, m_thread[1] % m_localSizeY, m_thread[2] % m_localSizeZ);
+				ImGui::Text("SV_DispatchThreadID -> uint3(%d, %d, %d)", m_thread[0], m_thread[1], m_thread[2]);
+				ImGui::Text("SV_GroupIndex -> %d", localInvocationIndex);
+			} else {
+				ImGui::Text("gl_NumWorkGroups -> uvec3(%d, %d, %d)", m_groupsX, m_groupsY, m_groupsZ);
+				ImGui::Text("gl_WorkGroupID -> uvec3(%d, %d, %d)", m_thread[0] / m_localSizeX, m_thread[1] / m_localSizeY, m_thread[2] / m_localSizeZ);
+				ImGui::Text("gl_LocalInvocationID -> uvec3(%d, %d, %d)", m_thread[0] % m_localSizeX, m_thread[1] % m_localSizeY, m_thread[2] % m_localSizeZ);
+				ImGui::Text("gl_GlobalInvocationID -> uvec3(%d, %d, %d)", m_thread[0], m_thread[1], m_thread[2]);
+				ImGui::Text("gl_LocalInvocationIndex -> %d", localInvocationIndex);
+			}
+
+			if (ImGui::Button("Cancel")) m_closePopup();
+			ImGui::SameLine();
+			if (ImGui::Button("Start")) {
+				pipe::ComputePass* pass = ((pipe::ComputePass*)m_modalItem->Data);
+				// TODO: plugins?
+
+				CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+				codeUI->StopDebugging();
+				codeUI->Open(m_modalItem, ShaderStage::Compute);
+				TextEditor* editor = codeUI->Get(m_modalItem, ShaderStage::Compute);
+
+				m_data->Debugger.PrepareComputeShader(m_modalItem, m_thread[0], m_thread[1], m_thread[2]);
+				((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
+
+				m_closePopup();
+			}
+			ImGui::EndPopup();
 		}
 
 		// Shader Variable manager
@@ -437,6 +489,38 @@ namespace ed {
 					}
 
 					ImGui::EndMenu();
+				}
+
+
+				if (!m_data->Renderer.IsPaused()) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+				if (items[index]->Type == PipelineItem::ItemType::ComputePass && ImGui::MenuItem("Debug")) {
+					pipe::ComputePass* pass = (pipe::ComputePass*)items[index]->Data;
+
+					m_isComputeDebugOpen = true;
+					m_modalItem = items[index];
+
+					m_localSizeX = m_localSizeY = m_localSizeZ = 1;
+					m_groupsX = pass->WorkX;
+					m_groupsY = pass->WorkY;
+					m_groupsZ = pass->WorkZ;
+					m_thread[0] = m_thread[1] = m_thread[2] = 0;
+					m_computeLang = ed::ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
+
+					if (pass->SPV.size() > 0) {
+						SPIRVParser parser;
+						parser.Parse(pass->SPV);
+
+						m_localSizeX = parser.LocalSizeX;
+						m_localSizeY = parser.LocalSizeY;
+						m_localSizeZ = parser.LocalSizeZ;
+					}
+				}
+				if (!m_data->Renderer.IsPaused()) {
+					ImGui::PopItemFlag();
+					ImGui::PopStyleVar();
 				}
 
 				if (!isPlugin && ImGui::MenuItem("Variables")) {
