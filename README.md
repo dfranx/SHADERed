@@ -14,8 +14,8 @@ HLSL shaders work on all three platforms) and frequently updated with new featur
 [Binaries](#binaries)<br/>
 [Building](#building)<br/>
 [Screenshots](#screenshots)<br/>
-[Dependencies][#dependencies]<br/>
-[License][#license]<br/>
+[Dependencies](#dependencies)<br/>
+[License](#license)<br/>
 
 ## Features
 
