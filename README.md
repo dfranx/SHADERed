@@ -6,6 +6,17 @@ HLSL shaders work on all three platforms) and frequently updated with new featur
 
 <img src="https://shadered.org/assets/img/header.png"/>
 
+##### Table of Contents
+[Features](#features)<br/>
+[Sponsors](#sponsors)<br/>
+[Supporters](#supporters)<br/>
+[Support](#support)<br/>
+[Binaries](#binaries)<br/>
+[Building](#building)<br/>
+[Screenshots](#screenshots)<br/>
+[Dependencies][#dependencies]<br/>
+[License][#license]<br/>
+
 ## Features
 
 ### Shader debugger
