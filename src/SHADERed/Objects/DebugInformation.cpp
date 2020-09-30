@@ -79,13 +79,205 @@ void writeWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_wo
 void controlBarrier(spvm_state* state, spvm_word exec, spvm_word mem, spvm_word sem)
 {
 	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+
+	// copy memory
+	for (int i = 0; i < dbgr->SharedMemory.size(); i++) {
+		const ed::DebugInformation::SharedMemoryEntry& entry = dbgr->SharedMemory[i];
+		spvm_member_memcpy(entry.Data.members, entry.Destination->members, entry.Data.member_count);
+	}
+
+	// synchronize threads
 	dbgr->SyncWorkgroup();
 
 	// copy memory
 	for (int i = 0; i < dbgr->SharedMemory.size(); i++) {
 		const ed::DebugInformation::SharedMemoryEntry& entry = dbgr->SharedMemory[i];
-
 		spvm_member_memcpy(entry.Destination->members, entry.Data.members, entry.Destination->member_count);
+	}
+}
+void atomicOperation(spvm_word inst, spvm_word word_count, spvm_state* state)
+{
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+
+
+	switch (inst) {
+	case SpvOpAtomicLoad:
+	case SpvOpAtomicExchange:
+	case SpvOpAtomicIIncrement:
+	case SpvOpAtomicIDecrement:
+	case SpvOpAtomicIAdd:
+	case SpvOpAtomicISub:
+	case SpvOpAtomicSMin:
+	case SpvOpAtomicUMin:
+	case SpvOpAtomicSMax:
+	case SpvOpAtomicUMax:
+	case SpvOpAtomicAnd:
+	case SpvOpAtomicOr:
+	case SpvOpAtomicXor: {
+		spvm_word result_type_id = SPVM_READ_WORD(state->code_current);
+		spvm_word result_id = SPVM_READ_WORD(state->code_current);
+		spvm_word pointer_id = SPVM_READ_WORD(state->code_current);
+		spvm_word memory_id = SPVM_READ_WORD(state->code_current);
+		spvm_word semantics_id = SPVM_READ_WORD(state->code_current);
+
+		spvm_result_t result = &state->results[result_id];
+		spvm_result_t pointer = &state->results[pointer_id];
+
+		// copy old value
+		spvm_member_memcpy(result->members, pointer->members, result->member_count);
+
+		// find shared memory pointer
+		spvm_result_t shared = nullptr;
+		for (ed::DebugInformation::SharedMemoryEntry& entry : dbgr->SharedMemory) {
+			if (pointer_id == entry.Slot) {
+				shared = &entry.Data;
+				break;
+			}
+		}
+		spvm_result_t data = (shared == nullptr) ? pointer : shared;
+
+		if (inst == SpvOpAtomicExchange) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			spvm_member_memcpy(data->members, value->members, data->member_count);
+		} else if (inst == SpvOpAtomicIIncrement) {
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u++;
+		} else if (inst == SpvOpAtomicIDecrement) {
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u--;
+		} else if (inst == SpvOpAtomicIAdd) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u += value->members[i].value.u;
+		} else if (inst == SpvOpAtomicISub) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u -= value->members[i].value.u;
+		} else if (inst == SpvOpAtomicSMin) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.s = MIN(value->members[i].value.s, data->members[i].value.s);
+		} else if (inst == SpvOpAtomicUMin) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u = MIN(value->members[i].value.u, data->members[i].value.u);
+		} else if (inst == SpvOpAtomicSMax) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.s = MAX(value->members[i].value.s, data->members[i].value.s);
+		} else if (inst == SpvOpAtomicUMax) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u = MAX(value->members[i].value.u, data->members[i].value.u);
+		} else if (inst == SpvOpAtomicAnd) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u &= value->members[i].value.u;
+		} else if (inst == SpvOpAtomicOr) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u |= value->members[i].value.u;
+		} else if (inst == SpvOpAtomicXor) {
+			spvm_word value_id = SPVM_READ_WORD(state->code_current);
+			spvm_result_t value = &state->results[value_id];
+
+			for (int i = 0; i < data->member_count; i++)
+				data->members[i].value.u ^= value->members[i].value.u;
+		}
+
+		if (shared)
+			spvm_member_memcpy(pointer->members, shared->members, pointer->member_count);
+	} break;
+	case SpvOpAtomicCompareExchange: {
+		spvm_word result_type_id = SPVM_READ_WORD(state->code_current);
+		spvm_word result_id = SPVM_READ_WORD(state->code_current);
+		spvm_word pointer_id = SPVM_READ_WORD(state->code_current);
+		spvm_word memory_id = SPVM_READ_WORD(state->code_current);
+		SPVM_SKIP_WORD(state->code_current);
+		SPVM_SKIP_WORD(state->code_current);
+		spvm_word value_id = SPVM_READ_WORD(state->code_current);
+		spvm_word comparator_id = SPVM_READ_WORD(state->code_current);
+
+		spvm_result_t result = &state->results[result_id];
+		spvm_result_t pointer = &state->results[pointer_id];
+		spvm_result_t value = &state->results[value_id];
+		spvm_result_t comparator = &state->results[comparator_id];
+
+		// copy old value
+		spvm_member_memcpy(result->members, pointer->members, result->member_count);
+
+		bool equals = true;
+		for (int i = 0; i < pointer->member_count; i++) {
+			if (pointer->members[i].value.u != comparator->members[i].value.u) {
+				equals = false;
+				break;
+			}
+		}
+
+		if (equals) {
+			// find shared memory pointer
+			spvm_result_t shared = nullptr;
+			for (ed::DebugInformation::SharedMemoryEntry& entry : dbgr->SharedMemory) {
+				if (pointer_id == entry.Slot) {
+					shared = &entry.Data;
+					break;
+				}
+			}
+			spvm_result_t data = (shared == nullptr) ? pointer : shared;
+
+			// copy data
+			for (int i = 0; i < pointer->member_count; i++)
+				data->members[i].value.u = value->members[i].value.u;
+
+			if (shared)
+				spvm_member_memcpy(pointer->members, shared->members, pointer->member_count);
+		}
+	} break;
+	case SpvOpAtomicStore: {
+		spvm_word pointer_id = SPVM_READ_WORD(state->code_current);
+		SPVM_SKIP_WORD(state->code_current);
+		SPVM_SKIP_WORD(state->code_current);
+		spvm_word value_id = SPVM_READ_WORD(state->code_current);
+
+		
+		spvm_result_t pointer = &state->results[pointer_id];
+		spvm_result_t value = &state->results[value_id];
+
+		// find shared memory pointer
+		spvm_result_t shared = nullptr;
+		for (ed::DebugInformation::SharedMemoryEntry& entry : dbgr->SharedMemory) {
+			if (pointer_id == entry.Slot) {
+				shared = &entry.Data;
+				break;
+			}
+		}
+		spvm_result_t data = (shared == nullptr) ? pointer : shared;
+
+		// copy data
+		for (int i = 0; i < pointer->member_count; i++)
+			data->members[i].value.u = value->members[i].value.u;
+
+		if (shared)
+			spvm_member_memcpy(pointer->members, shared->members, pointer->member_count);
+	} break;
 	}
 }
 
@@ -166,6 +358,7 @@ namespace ed {
 		m_shader->user_data = this;
 		m_shader->allocate_workgroup_memory = allocateWorkgroupMemory;
 		m_shader->write_workgroup_memory = writeWorkgroupMemory;
+		m_shader->atomic_operation = atomicOperation;
 
 		m_vm = _spvm_state_create_base(m_shader, m_stage == ShaderStage::Pixel, 0);
 		m_vm->control_barrier = controlBarrier;
@@ -186,7 +379,7 @@ namespace ed {
 
 		for (int id_x = 0; id_x < m_shader->local_size_x; id_x++) {
 			for (int id_y = 0; id_y < m_shader->local_size_y; id_y++) {
-				for (int id_z = 0; id_z < m_shader->local_size_y; id_z++) {
+				for (int id_z = 0; id_z < m_shader->local_size_z; id_z++) {
 					int id = id_z * m_shader->local_size_x * m_shader->local_size_y + id_y * m_shader->local_size_x + id_x;
 
 					if (id == m_localThreadIndex)
@@ -262,6 +455,11 @@ namespace ed {
 			m_threadZ = z;
 		}
 
+		int localIndex = z * worker->owner->local_size_y * worker->owner->local_size_x + y * worker->owner->local_size_x + x;
+
+		if (worker == m_vm)
+			m_localThreadIndex = localIndex;
+
 		// input variables
 		for (spvm_word i = 0; i < worker->owner->bound; i++) {
 			spvm_result_t slot = &worker->results[i];
@@ -302,14 +500,8 @@ namespace ed {
 								slot->members[2].value.u = z % worker->owner->local_size_z;
 							}
 						} else if (builtinType == SpvBuiltInLocalInvocationIndex) {
-							if (slot->member_count >= 1) {
-								slot->members[0].value.u = z * worker->owner->local_size_y * worker->owner->local_size_x + 
-														   y * worker->owner->local_size_x +
-														   x;
-
-								if (worker == m_vm)
-									m_localThreadIndex = slot->members[0].value.u;
-							}
+							if (slot->member_count >= 1)
+								slot->members[0].value.u = localIndex;
 						} else if (builtinType == SpvBuiltInWorkgroupSize) {
 							if (slot->member_count >= 3) {
 								slot->members[0].value.u = worker->owner->local_size_x;

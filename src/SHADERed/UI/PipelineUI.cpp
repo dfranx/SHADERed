@@ -152,7 +152,7 @@ namespace ed {
 		}
 
 		// Compute shader debugger
-		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(195)), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(430), Settings::Instance().CalculateSize(210)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Debug compute shader")) {
 			ImGui::Text("Global thread ID:");
 			ImGui::SameLine();
