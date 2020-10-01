@@ -319,13 +319,33 @@ namespace ed {
 							m_curHoveredItem = i;
 						
 							// handle pixel selection
-							if (m_data->Renderer.IsPaused() && item->RT != nullptr && ((ImGui::IsMouseClicked(0) && !Settings::Instance().Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && Settings::Instance().Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
-								m_ui->StopDebugging();
+							if (m_data->Renderer.IsPaused() && ((ImGui::IsMouseClicked(0) && !Settings::Instance().Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && Settings::Instance().Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
+								// render texture
+								if (item->RT != nullptr) { 
+									m_ui->StopDebugging();
 
-								// screen space position
-								glm::vec2 s(zPos.x + zSize.x * mousePos.x, zPos.y + zSize.y * mousePos.y);
+									// screen space position
+									glm::vec2 s(zPos.x + zSize.x * mousePos.x, zPos.y + zSize.y * mousePos.y);
 
-								m_data->DebugClick(s);
+									m_data->DebugClick(s);
+								}
+								// image
+								ImageObject* image = m_data->Objects.GetImage(name);
+								if (image != nullptr) {
+									glm::vec2 s(zPos.x + zSize.x * mousePos.x, zPos.y + zSize.y * mousePos.y);
+
+									for (auto& item : m_data->Pipeline.GetList()) {
+										if (m_data->Objects.IsUniformBound(name, item) != -1) {
+											if (item->Type == PipelineItem::ItemType::ComputePass) {
+												DebuggerSuggestion suggestion;
+												suggestion.Type = DebuggerSuggestion::SuggestionType::ComputeShader;
+												suggestion.Item = item;
+												suggestion.Thread = glm::ivec3(s.x * image->Size.x, s.y * image->Size.y, 0);
+												m_data->Debugger.AddSuggestion(suggestion);
+											}
+										}
+									}
+								}
 							}
 						}
 

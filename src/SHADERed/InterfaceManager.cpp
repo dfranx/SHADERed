@@ -215,6 +215,57 @@ namespace ed {
 		pixel.Discarded = Debugger.GetVM()->discarded;
 
 		pixel.Fetched = true;
+
+		// compute shader suggestion for instanced objects
+		if (pixel.InstanceBuffer) {
+			BufferObject* buf = (BufferObject*)pixel.InstanceBuffer;
+			std::string name = Objects.GetBufferNameByID(buf->ID);
+			
+			for (auto& item : Pipeline.GetList()) {
+				if (Objects.IsUniformBound(name, item) != -1) {
+					if (item->Type == PipelineItem::ItemType::ComputePass) {
+						DebuggerSuggestion suggestion;
+						suggestion.Type = DebuggerSuggestion::SuggestionType::ComputeShader;
+						suggestion.Item = item;
+						suggestion.Thread = glm::ivec3(pixel.InstanceID, 0, 0);
+						Debugger.AddSuggestion(suggestion);
+					}
+				}
+			}
+		}
+
+		// compute shader suggestion for VertexBuffer objects
+		if (pixel.Object->Type == PipelineItem::ItemType::VertexBuffer) {
+			pipe::VertexBuffer* vertBufferItem = (pipe::VertexBuffer*)pixel.Object->Data;
+
+			BufferObject* buf = (BufferObject*)vertBufferItem->Buffer;
+
+			if (buf) {
+				std::string name = Objects.GetBufferNameByID(buf->ID);
+
+				for (auto& item : Pipeline.GetList()) {
+					if (Objects.IsUniformBound(name, item) != -1) {
+						if (item->Type == PipelineItem::ItemType::ComputePass) {
+							DebuggerSuggestion suggestion;
+							suggestion.Type = DebuggerSuggestion::SuggestionType::ComputeShader;
+							suggestion.Item = item;
+
+							// vertex #1
+							suggestion.Thread = glm::ivec3(pixel.VertexID + 0, 0, 0);
+							Debugger.AddSuggestion(suggestion);
+
+							// vertex #2
+							suggestion.Thread = glm::ivec3(pixel.VertexID + 1, 0, 0);
+							Debugger.AddSuggestion(suggestion);
+
+							// vertex #3
+							suggestion.Thread = glm::ivec3(pixel.VertexID + 2, 0, 0);
+							Debugger.AddSuggestion(suggestion);
+						}
+					}
+				}
+			}
+		}
 	}
 	void InterfaceManager::m_fetchVertices(PixelInformation& pixel)
 	{

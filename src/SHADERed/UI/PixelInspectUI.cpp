@@ -23,13 +23,16 @@ namespace ed {
 	void PixelInspectUI::Update(float delta)
 	{
 		std::vector<PixelInformation>& pixels = m_data->Debugger.GetPixelList();
+		std::vector<DebuggerSuggestion>& suggestions = m_data->Debugger.GetSuggestionList();
 
 		if (ImGui::Button("Clear##pixel_clear", ImVec2(-1, 0)))
-			pixels.clear();
+			m_data->Debugger.ClearPixelList();
 
 		ImGui::NewLine();
 
 		ImGui::BeginChild("##pixel_scroll_container", ImVec2(-1, -1));
+		
+		// pixel/vertex
 		int pxId = 0;
 		for (auto& pixel : pixels) {
 			/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
@@ -153,6 +156,68 @@ namespace ed {
 			ImGui::NewLine();
 
 			pxId++;
+		}
+
+
+		if (suggestions.size()) {
+			ImGui::Text("Suggestions:");
+			ImGui::Separator();
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+			// suggestions
+			int sugId = 0;
+			for (auto& suggestion : suggestions) {
+				if (suggestion.Type == DebuggerSuggestion::SuggestionType::ComputeShader) {
+					pipe::ComputePass* pass = (pipe::ComputePass*)suggestion.Item->Data;
+					glm::ivec3 thread = suggestion.Thread;
+					ed::ShaderLanguage lang = ed::ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
+
+					if (suggestion.WorkgroupSize.x == 0) {
+						SPIRVParser parser;
+						parser.Parse(pass->SPV);
+
+						suggestion.WorkgroupSize = glm::ivec3(parser.LocalSizeX, parser.LocalSizeY, parser.LocalSizeZ);
+					}
+
+					if (ImGui::Button(((UI_ICON_PLAY "##debug_compute_") + std::to_string(sugId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+
+						pipe::ComputePass* pass = ((pipe::ComputePass*)suggestion.Item->Data);
+						// TODO: plugins?
+
+						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+						codeUI->StopDebugging();
+						codeUI->Open(suggestion.Item, ShaderStage::Compute);
+						TextEditor* editor = codeUI->Get(suggestion.Item, ShaderStage::Compute);
+
+						m_data->Debugger.PrepareComputeShader(suggestion.Item, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
+						((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
+					}
+					ImGui::SameLine();
+
+					/* [PASS NAME, THREAD ID] */
+					ImGui::Text("%s @ (%d,%d,%d)", suggestion.Item->Name, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
+
+					/* THREAD INFO */
+					int localInvocationIndex = (thread.z % suggestion.WorkgroupSize.z) * suggestion.WorkgroupSize.x * suggestion.WorkgroupSize.z + (thread.y % suggestion.WorkgroupSize.y) * suggestion.WorkgroupSize.x + (thread.x % suggestion.WorkgroupSize.x);
+
+					if (lang == ed::ShaderLanguage::HLSL) {
+						ImGui::Text("SV_GroupID -> uint3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
+						ImGui::Text("SV_GroupThreadID -> uint3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
+						ImGui::Text("SV_DispatchThreadID -> uint3(%d, %d, %d)", thread.x, thread.y, thread.z);
+						ImGui::Text("SV_GroupIndex -> %d", localInvocationIndex);
+					} else {
+						ImGui::Text("gl_NumWorkGroups -> uvec3(%d, %d, %d)", pass->WorkX, pass->WorkY, pass->WorkZ);
+						ImGui::Text("gl_WorkGroupID -> uvec3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
+						ImGui::Text("gl_LocalInvocationID -> uvec3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
+						ImGui::Text("gl_GlobalInvocationID -> uvec3(%d, %d, %d)", thread.x, thread.y, thread.z);
+						ImGui::Text("gl_LocalInvocationIndex -> %d", localInvocationIndex);
+					}
+				}
+				ImGui::Separator();
+				sugId++;
+			}
+		
+			ImGui::PopStyleColor();
 		}
 
 		ImGui::EndChild();

@@ -518,13 +518,6 @@ namespace ed {
 					}
 				}
 			}
-
-			if (slot->name && strcmp(slot->name, "") == 0 && slot->member_count > 0) {
-				slot->members[0].members[0].value.s = 10000;
-				slot->members[0].members[1].value.s = 79;
-				slot->members[1].members[0].value.f = 0.1f;
-				slot->members[1].members[1].value.f = 1.0f;
-			}
 		}
 
 	}
@@ -1214,7 +1207,7 @@ namespace ed {
 
 		bool usePlugin = false;
 		ed::IPlugin2* plugin2 = nullptr;
-		if (m_pixel != nullptr && m_pixel->Pass->Type == PipelineItem::ItemType::PluginItem) {
+		if (m_pixel != nullptr && m_pixel->Pass == nullptr && m_pixel->Pass->Type == PipelineItem::ItemType::PluginItem) {
 			pipe::PluginItemData* plData = (pipe::PluginItemData*)m_pixel->Pass->Data;
 			if (plData->Owner->GetVersion() >= 2) {
 				plugin2 = ((ed::IPlugin2*)plData->Owner);
@@ -2034,6 +2027,7 @@ namespace ed {
 						free(outputs[j].name);
 			}
 		}
+		m_suggestions.clear();
 		m_pixels.clear();
 	}
 		

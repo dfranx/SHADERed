@@ -1,5 +1,6 @@
 #pragma once
 #include <SHADERed/Objects/Debug/PixelInformation.h>
+#include <SHADERed/Objects/Debug/DebuggerSuggestion.h>
 #include <SHADERed/Objects/Debug/Breakpoint.h>
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
@@ -61,6 +62,9 @@ namespace ed {
 		void ClearPixelList();
 		inline void AddPixel(const PixelInformation& px) { m_pixels.push_back(px); }
 		inline std::vector<PixelInformation>& GetPixelList() { return m_pixels; }
+
+		inline void AddSuggestion(const DebuggerSuggestion& px) { m_suggestions.push_back(px); }
+		inline std::vector<DebuggerSuggestion>& GetSuggestionList() { return m_suggestions; }
 
 		inline const std::string& GetWatchValue(size_t index) { return m_watchValues[index]; }
 		inline std::vector<char*>& GetWatchList() { return m_watchExprs; }
@@ -170,6 +174,7 @@ namespace ed {
 
 		std::vector<int> m_funcStackLines;
 
+		std::vector<DebuggerSuggestion> m_suggestions;
 		std::vector<PixelInformation> m_pixels;
 
 		std::vector<char*> m_watchExprs;

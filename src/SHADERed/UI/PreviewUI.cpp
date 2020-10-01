@@ -336,7 +336,7 @@ namespace ed {
 
 		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() &&!m_data->Debugger.IsDebugging()) {
 			renderer->Render(imageSize.x, imageSize.y);
-			pixelList.clear();
+			m_data->Debugger.ClearPixelList();
 		}
 
 		// render the gizmo/bounding box/zoom area if necessary
