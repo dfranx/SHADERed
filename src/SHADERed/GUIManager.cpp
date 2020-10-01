@@ -1125,8 +1125,10 @@ namespace ed {
 				std::vector<std::string> filesData = editor->GetOpenedFilesData();
 
 				// close all
+				this->StopDebugging();
 				this->ResetWorkspace();
 
+				m_addProjectToRecents(file);
 				m_data->Parser.Open(file);
 
 				std::string projName = m_data->Parser.GetOpenedFile();
@@ -2947,6 +2949,19 @@ namespace ed {
 			}
 		}
 	}
+	void GUIManager::m_addProjectToRecents(const std::string& file)
+	{
+		std::string fileToBeOpened = file;
+		for (int i = 0; i < m_recentProjects.size(); i++) {
+			if (m_recentProjects[i] == fileToBeOpened) {
+				m_recentProjects.erase(m_recentProjects.begin() + i);
+				break;
+			}
+		}
+		m_recentProjects.insert(m_recentProjects.begin(), fileToBeOpened);
+		if (m_recentProjects.size() > 9)
+			m_recentProjects.pop_back();
+	}
 	bool GUIManager::Save()
 	{
 		if (m_data->Parser.GetOpenedFile() == "") {
@@ -2987,19 +3002,8 @@ namespace ed {
 
 		m_data->Parser.Open(file);
 
-
 		// add to recents
-		std::string fileToBeOpened = file;
-		for (int i = 0; i < m_recentProjects.size(); i++) {
-			if (m_recentProjects[i] == fileToBeOpened) {
-				m_recentProjects.erase(m_recentProjects.begin() + i);
-				break;
-			}
-		}
-		m_recentProjects.insert(m_recentProjects.begin(), fileToBeOpened);
-		if (m_recentProjects.size() > 9)
-			m_recentProjects.pop_back();
-
+		m_addProjectToRecents(file);
 
 		std::string projName = m_data->Parser.GetOpenedFile();
 		projName = projName.substr(projName.find_last_of("/\\") + 1);

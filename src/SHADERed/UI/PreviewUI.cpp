@@ -591,9 +591,11 @@ namespace ed {
 
 			// WASD key press - first person camera
 			if (fp) {
+				float mult = ImGui::GetIO().KeyShift ? 100.0f : 1.0f;
+
 				ed::FirstPersonCamera* cam = ((ed::FirstPersonCamera*)SystemVariableManager::Instance().GetCamera());
-				cam->MoveUpDown((ImGui::IsKeyDown(SDL_SCANCODE_S) - ImGui::IsKeyDown(SDL_SCANCODE_W)) / 70.0f);
-				cam->MoveLeftRight((ImGui::IsKeyDown(SDL_SCANCODE_D) - ImGui::IsKeyDown(SDL_SCANCODE_A)) / 70.0f);
+				cam->MoveUpDown(((ImGui::IsKeyDown(SDL_SCANCODE_S) - ImGui::IsKeyDown(SDL_SCANCODE_W)) / 70.0f) * mult);
+				cam->MoveLeftRight(((ImGui::IsKeyDown(SDL_SCANCODE_D) - ImGui::IsKeyDown(SDL_SCANCODE_A)) / 70.0f) * mult);
 			}
 		}
 		// else if paused - pixel inspection

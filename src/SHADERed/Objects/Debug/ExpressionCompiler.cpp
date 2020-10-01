@@ -131,7 +131,7 @@ namespace ed {
 		});
 
 		// check if a non existing variable is being used
-		for (const auto& var : m_vars)
+		for (auto& var : m_vars)
 			if (var.second == nullptr)
 				return -1;
 
@@ -669,6 +669,9 @@ namespace ed {
 					
 					return bb->opLoad(vecPtr);
 				}
+			} else if (obj->getType()->isArray() || obj->getType()->isStruct()) {
+
+				return nullptr;
 			}
 		} break;
 		case expr::NodeType::MethodCall: {

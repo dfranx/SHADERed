@@ -435,7 +435,7 @@ namespace ed {
 			ImGui::Text(m_cacheValue.c_str());
 		};
 
-		// copy camera to vertex watch
+		// copy preview camera info to vertex watch camera
 		if (!Settings::Instance().Project.FPCamera) {
 			ArcBallCamera* previewCamera = (ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
 			DebugVectorWatchUI* vectorWatchUI = (DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch);

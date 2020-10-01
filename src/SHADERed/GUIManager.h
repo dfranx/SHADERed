@@ -95,6 +95,8 @@ namespace ed {
 		void m_autoUniforms(ShaderVariableContainer& vars, SPIRVParser& spv, std::vector<std::string>& uniformList);
 		void m_deleteUnusedUniforms(ShaderVariableContainer& vars, const std::vector<std::string>& spv);
 
+		void m_addProjectToRecents(const std::string& file);
+
 		void m_tooltip(const std::string& str);
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;

@@ -39,8 +39,6 @@
 	<cameras />
 	<settings>
 		<entry type="property" name="Compute" item="pipe" />
-		<entry type="file" name="Simple" shader="vs" />
-		<entry type="file" name="Simple" shader="ps" />
 		<entry type="file" name="Compute" shader="cs" />
 		<entry type="camera" fp="false">
 			<distance>4</distance>

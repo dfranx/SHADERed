@@ -1,7 +1,10 @@
 [v1.4.1]
 + add compute shader debugger
 + add "Vector watch" window
++ add the ability to speed up the first person camera's movement by holding SHIFT key
 + fix a bug that would cause SHADERed to crash when using immediate mode while debugging vertex shaders
++ fix a bug that would keep the debugger running after "Save As"
++ fix a bug that wouldn't add a project to recents after "Save As"
 
 [v1.4]
 + web version of SHADERed: https://shadered.org
