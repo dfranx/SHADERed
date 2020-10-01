@@ -20,6 +20,8 @@ namespace ed {
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
+		inline ArcBallCamera* GetCamera() { return &m_camera; }
+
 	private:
 		char m_tempExpr[512];
 		char m_newExpr[512];

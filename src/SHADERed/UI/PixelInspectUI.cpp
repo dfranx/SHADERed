@@ -1,6 +1,8 @@
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
+#include <SHADERed/Objects/ArcBallCamera.h>
+#include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
@@ -432,5 +434,19 @@ namespace ed {
 			}
 			ImGui::Text(m_cacheValue.c_str());
 		};
+
+		// copy camera to vertex watch
+		if (!Settings::Instance().Project.FPCamera) {
+			ArcBallCamera* previewCamera = (ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
+			DebugVectorWatchUI* vectorWatchUI = (DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch);
+			ArcBallCamera* vectorCamera = vectorWatchUI->GetCamera();
+
+			glm::vec3 rota = previewCamera->GetRotation();
+
+			vectorCamera->SetDistance(previewCamera->GetDistance());
+			vectorCamera->SetPitch(rota.x);
+			vectorCamera->SetYaw(rota.y);
+			vectorCamera->SetRoll(rota.z);
+		}
 	}
 }
