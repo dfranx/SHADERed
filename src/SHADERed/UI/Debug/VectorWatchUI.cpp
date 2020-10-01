@@ -2,6 +2,7 @@
 #include <SHADERed/UI/UIHelper.h>
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/DefaultState.h>
+#include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <imgui/imgui.h>
 
@@ -315,52 +316,49 @@ namespace ed {
 		// Main window
 		ImGui::BeginChild("##vectorwatch_viewarea", ImVec2(0, exprHeight), true, ImGuiWindowFlags_HorizontalScrollbar);
 
-		ImGui::Separator();
-		ImGui::Columns(3);
+		
+		if (ImGui::BeginTable("##vector_watch_tbl", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY, ImVec2(0, Settings::Instance().CalculateSize(-ImGui::GetFontSize() - 10.0f)))) {
+			ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+			ImGui::TableSetupColumn("Expression");
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableAutoHeaders();
 
-		ImGui::Text("Color");
-		ImGui::NextColumn();
-		ImGui::Text("Expression");
-		ImGui::NextColumn();
-		ImGui::Text("Value");
-		ImGui::NextColumn();
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
 
-		ImGui::Separator();
+			for (size_t i = 0; i < exprs.size(); i++) {
+				ImGui::TableNextRow();
 
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+				ImGui::PushID(i);
 
-		for (size_t i = 0; i < exprs.size(); i++) {
-			ImGui::PushID(i);
+				ImGui::TableSetColumnIndex(0);
+				ImGui::ColorEdit4("##vectorwatch_color", const_cast<float*>(glm::value_ptr(clrs[i])), ImGuiColorEditFlags_NoInputs);
 
-			ImGui::ColorEdit4("##vectorwatch_color", const_cast<float*>(glm::value_ptr(clrs[i])), ImGuiColorEditFlags_NoInputs);
-			ImGui::NextColumn();
-
-			ImGui::PushItemWidth(-1);
-			if (ImGui::InputText("##vectorwatch_expr", exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				if (strlen(exprs[i]) == 0) {
-					m_data->Debugger.RemoveVectorWatch(i);
-					m_data->Parser.ModifyProject();
-					i--;
-					ImGui::PopID();
-					continue;
-				} else {
-					m_data->Debugger.UpdateVectorWatchValue(i);
-					m_data->Parser.ModifyProject();
+				ImGui::TableSetColumnIndex(1);
+				ImGui::PushItemWidth(-1);
+				if (ImGui::InputText("##vectorwatch_expr", exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
+					if (strlen(exprs[i]) == 0) {
+						m_data->Debugger.RemoveVectorWatch(i);
+						m_data->Parser.ModifyProject();
+						i--;
+						ImGui::PopID();
+						continue;
+					} else {
+						m_data->Debugger.UpdateVectorWatchValue(i);
+						m_data->Parser.ModifyProject();
+					}
 				}
+				ImGui::PopItemWidth();
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text(m_data->Debugger.GetVectorWatchValue(i).c_str());
+
+				ImGui::PopID();
 			}
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
 
-			ImGui::Text(m_data->Debugger.GetVectorWatchValue(i).c_str());
-			ImGui::NextColumn();
+			ImGui::PopStyleColor();
 
-			ImGui::Separator();
-
-			ImGui::PopID();
+			ImGui::EndTable();
 		}
-		ImGui::PopStyleColor();
-
-		ImGui::Columns();
 
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputText("##vectorwatch_new_expr", m_newExpr, 512, ImGuiInputTextFlags_EnterReturnsTrue)) {

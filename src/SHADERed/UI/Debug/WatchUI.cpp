@@ -1,5 +1,6 @@
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/UIHelper.h>
+#include <SHADERed/Objects/Settings.h>
 #include <imgui/imgui.h>
 
 namespace ed {
@@ -19,40 +20,40 @@ namespace ed {
 		// Main window
 		ImGui::BeginChild("##watch_viewarea", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-		ImGui::Separator();
-		ImGui::Columns(2);
+		if (ImGui::BeginTable("##watches_tbl", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_ScrollY, ImVec2(0, Settings::Instance().CalculateSize(-ImGui::GetFontSize() - 10.0f)))) {
+			ImGui::TableSetupColumn("Expression");
+			ImGui::TableSetupColumn("Value");
+			ImGui::TableAutoHeaders();
 
-		ImGui::Text("Expression");
-		ImGui::NextColumn();
-		ImGui::Text("Value");
-		ImGui::NextColumn();
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+			for (size_t i = 0; i < exprs.size(); i++) {
+				ImGui::TableNextRow();
 
-		ImGui::Separator();
-
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
-
-		for (size_t i = 0; i < exprs.size(); i++) {
-			ImGui::PushItemWidth(-1);
-			if (ImGui::InputText(("##watch_expr_" + std::to_string(i)).c_str(), exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				if (strlen(exprs[i]) == 0) {
-					m_data->Debugger.RemoveWatch(i);
-					m_data->Parser.ModifyProject();
-					i--;
-					continue;
-				} else {
-					m_data->Debugger.UpdateWatchValue(i);
-					m_data->Parser.ModifyProject();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::PushItemWidth(-1);
+				if (ImGui::InputText(("##watch_expr_" + std::to_string(i)).c_str(), exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
+					if (strlen(exprs[i]) == 0) {
+						m_data->Debugger.RemoveWatch(i);
+						m_data->Parser.ModifyProject();
+						i--;
+						continue;
+					} else {
+						m_data->Debugger.UpdateWatchValue(i);
+						m_data->Parser.ModifyProject();
+					}
 				}
-			}
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-			ImGui::Text(m_data->Debugger.GetWatchValue(i).c_str());
-			ImGui::NextColumn();
-			ImGui::Separator();
-		}
-		ImGui::PopStyleColor();
+				ImGui::PopItemWidth();
 
-		ImGui::Columns();
+				
+				ImGui::TableSetColumnIndex(1);
+				ImGui::Text(m_data->Debugger.GetWatchValue(i).c_str());
+			}
+			ImGui::PopStyleColor();
+
+
+
+			ImGui::EndTable();
+		}
 
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputText("##watch_new_expr", m_newExpr, 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
