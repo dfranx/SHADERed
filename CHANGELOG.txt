@@ -5,6 +5,7 @@
 + add the ability to paste full file path in the file dialog
 + switch from Dear ImGui's 'Columns API' to 'Tables API' in "Watches" & "Breakpoints" window
 + fix a bug that would cause SHADERed to crash when using immediate mode while debugging vertex shaders
++ fix a bug that would cause SHADERed to crash if shader has a function with a texture as an argument
 + fix a bug that would keep the debugger running after "Save As"
 + fix a bug that wouldn't add a project to recents after "Save As"
 

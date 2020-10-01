@@ -879,6 +879,9 @@ namespace ed {
 							sampler2Dloc++;
 						} 
 						else {
+							if (slot->members == nullptr) // if slot->members == nullptr it means that it's a pointer/function argument
+								continue;
+
 							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
 							
 							if (type_info->image_info == NULL)
