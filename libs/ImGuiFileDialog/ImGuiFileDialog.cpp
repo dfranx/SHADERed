@@ -906,6 +906,24 @@ namespace igfd
 					if (ImGui::Button("OK##DialogConfirm")) {
 						if (FileNameBuffer[0] != '\0' || dlg_filters == nullptr)
 						{
+							bool shouldCheck = false;
+							for (int i = 0; i < strlen(FileNameBuffer); i++) {
+								if (FileNameBuffer[i] == '/' || FileNameBuffer[i] == '\\') {
+									shouldCheck = true;
+									break;
+								}
+							}
+
+							if (shouldCheck) {
+								std::filesystem::path filePath(FileNameBuffer);
+								if (filePath.is_absolute())
+									m_CurrentPath = filePath.parent_path().string();
+								else
+									m_CurrentPath = (std::filesystem::path(m_CurrentPath) / filePath).string();
+
+								strcpy(FileNameBuffer, filePath.filename().string().c_str());
+							}
+
 							IsOk = true;
 							res = true;
 						}
