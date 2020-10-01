@@ -6,16 +6,16 @@ HLSL shaders work on all three platforms) and frequently updated with new featur
 
 <img src="https://shadered.org/assets/img/header.png"/>
 
-##### Table of Contents
-[Features](#features)<br/>
-[Sponsors](#sponsors)<br/>
-[Supporters](#supporters)<br/>
-[Support](#support)<br/>
-[Binaries](#binaries)<br/>
-[Building](#building)<br/>
-[Screenshots](#screenshots)<br/>
-[Dependencies](#dependencies)<br/>
-[License](#license)<br/>
+#### Table of Contents
+* [Features](#features)
+* [Sponsors](#sponsors)
+* [Supporters](#supporters)
+* [Support](#support)
+* [Binaries](#binaries)
+* [Building](#building)
+* [Screenshots](#screenshots)
+* [Dependencies](#dependencies)
+* [License](#license)
 
 ## Features
 
@@ -119,6 +119,7 @@ You can also check this list too: [link](https://shadered.org/features.php).
   * Senthil Kumaran Rajasekaran
   * [Vladimir Alyamkin](https://alyamkin.com/)
   * [Wogos Media](http://theWogos.com/)
+  * [Snow Developments](https://snow.llc)
 
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
