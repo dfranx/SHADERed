@@ -406,43 +406,46 @@ namespace ed {
 			if (slot->pointer) {
 				spvm_result_t pointerInfo = &m_vm->results[slot->pointer];
 
-				if (pointerInfo->member_count > 0 && pointerInfo->members && pointerInfo->storage_class == SpvStorageClassUniform) {
-					for (int j = 0; j < groupSize; j++)
-						if (m_workgroup[j])
-							spvm_member_memcpy(m_workgroup[j]->results[i].members, slot->members, slot->member_count);
-				} else {
+				bool wasCopied = false;
+				
+				if (pointerInfo->value_type == spvm_value_type_pointer) {
+					spvm_result_t type_info = spvm_state_get_type_info(m_vm->results, pointerInfo);
+					bool isBufferBlock = false;
 
-					if (pointerInfo && pointerInfo->value_type == spvm_value_type_pointer) {
-						spvm_result_t type_info = spvm_state_get_type_info(m_vm->results, pointerInfo);
-						bool isBufferBlock = false;
+					for (int i = 0; i < type_info->decoration_count; i++)
+						if (type_info->decorations[i].type == SpvDecorationBufferBlock) {
+							isBufferBlock = true;
+							break;
+						}
 
-						for (int i = 0; i < type_info->decoration_count; i++)
-							if (type_info->decorations[i].type == SpvDecorationBufferBlock) {
-								isBufferBlock = true;
-								break;
-							}
-
-						if (pointerInfo->storage_class == SpvStorageClassUniformConstant && !isBufferBlock) {
-							// textures
-							if (type_info->value_type == spvm_value_type_sampled_image || type_info->value_type == spvm_value_type_image) {
-
-								for (int j = 0; j < groupSize; j++)
-									if (m_workgroup[j]) {
-										m_originalValues.push_back(OriginalValue(m_workgroup[j], i, m_workgroup[j]->results[i].member_count, m_workgroup[j]->results[i].members));
-										m_workgroup[j]->results[i].member_count = slot->member_count;
-										m_workgroup[j]->results[i].members = slot->members;
-									}
-							}
-						} else if (pointerInfo->storage_class == SpvStorageClassStorageBuffer || isBufferBlock) {
+					if (pointerInfo->storage_class == SpvStorageClassUniformConstant && !isBufferBlock) {
+						// textures
+						if (type_info->value_type == spvm_value_type_sampled_image || type_info->value_type == spvm_value_type_image) {
 
 							for (int j = 0; j < groupSize; j++)
 								if (m_workgroup[j]) {
 									m_originalValues.push_back(OriginalValue(m_workgroup[j], i, m_workgroup[j]->results[i].member_count, m_workgroup[j]->results[i].members));
 									m_workgroup[j]->results[i].member_count = slot->member_count;
 									m_workgroup[j]->results[i].members = slot->members;
+									wasCopied = true;
 								}
 						}
+					} else if (pointerInfo->storage_class == SpvStorageClassStorageBuffer || isBufferBlock) {
+						// buffers
+						for (int j = 0; j < groupSize; j++)
+							if (m_workgroup[j]) {
+								m_originalValues.push_back(OriginalValue(m_workgroup[j], i, m_workgroup[j]->results[i].member_count, m_workgroup[j]->results[i].members));
+								m_workgroup[j]->results[i].member_count = slot->member_count;
+								m_workgroup[j]->results[i].members = slot->members;
+								wasCopied = true;
+							}
 					}
+				}
+				
+				if (!wasCopied && (pointerInfo->storage_class == SpvStorageClassUniformConstant || pointerInfo->storage_class == SpvStorageClassUniform)) {
+					for (int j = 0; j < groupSize; j++)
+						if (m_workgroup[j])
+							spvm_member_memcpy(m_workgroup[j]->results[i].members, slot->members, slot->member_count);
 				}
 			}
 		}
@@ -455,7 +458,9 @@ namespace ed {
 			m_threadZ = z;
 		}
 
-		int localIndex = z * worker->owner->local_size_y * worker->owner->local_size_x + y * worker->owner->local_size_x + x;
+		int localIndex = (z % worker->owner->local_size_z) * worker->owner->local_size_x * worker->owner->local_size_z + 
+			(y % worker->owner->local_size_y) * worker->owner->local_size_x + 
+			(x % worker->owner->local_size_x);
 
 		if (worker == m_vm)
 			m_localThreadIndex = localIndex;
@@ -795,33 +800,34 @@ namespace ed {
 				break;
 			}
 
+			ShaderVariable* actualVar = var;
+
 			if (item) {
 				// update system variable value
 				SystemVariableManager::Instance().Update(var, item);
 
 				// item variable value
-				ShaderVariable* actualVar = var;
 				for (const auto& iVar : itemVars) {
 					if (iVar.Item == item && iVar.Variable == var) {
 						actualVar = iVar.NewValue;
 						break;
 					}
 				}
+			}
 
-				// copy the value now that we have a pointer to actual memory part
-				int cCount = std::min<int>(actualVar->GetColumnCount(), pointerMCount);
-				for (int c = 0; c < cCount; c++) {
-					if (pointer[c].member_count == 0) {
-						if (useFloat)
-							pointer[c].value.f = actualVar->AsFloat(c);
-						else if (useInt)
-							pointer[c].value.s = actualVar->AsInteger(c);
-						else if (useBool)
-							pointer[c].value.b = actualVar->AsBoolean(c);
-					} else {
-						for (int r = 0; r < pointer[c].member_count; r++)
-							pointer[c].members[r].value.f = actualVar->AsFloat(r, c);
-					}
+			// copy the value now that we have a pointer to actual memory part
+			int cCount = std::min<int>(actualVar->GetColumnCount(), pointerMCount);
+			for (int c = 0; c < cCount; c++) {
+				if (pointer[c].member_count == 0) {
+					if (useFloat)
+						pointer[c].value.f = actualVar->AsFloat(c);
+					else if (useInt)
+						pointer[c].value.s = actualVar->AsInteger(c);
+					else if (useBool)
+						pointer[c].value.b = actualVar->AsBoolean(c);
+				} else {
+					for (int r = 0; r < pointer[c].member_count; r++)
+						pointer[c].members[r].value.f = actualVar->AsFloat(r, c);
 				}
 			}
 		}
@@ -1799,9 +1805,8 @@ namespace ed {
 		if (data->SPV.size() > 0) {
 			SPIRVParser parser;
 			parser.Parse(data->SPV);
-			if (parser.BarrierUsed) {
+			if (parser.BarrierUsed)
 				m_setupWorkgroup();
-			}
 		}
 	}
 
