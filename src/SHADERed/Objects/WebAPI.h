@@ -7,7 +7,7 @@ namespace ed {
 	class WebAPI {
 	public:
 		static const std::string URL;
-		static const int InternalVersion = 16;
+		static const int InternalVersion = 17;
 
 		// info that /api/search will return
 		struct ShaderResult 
