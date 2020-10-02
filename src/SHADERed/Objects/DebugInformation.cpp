@@ -860,7 +860,36 @@ namespace ed {
 							}
 						}
 
-						if (sampler2Dloc >= srvs.size() && !pluginUsesCustomTextures) {
+						GLuint textureID = 0;
+						bool wrongBind = false;
+
+						bool isSampled = false;
+						if (type_info->value_type == spvm_value_type_sampled_image || (slot->image_info != nullptr && slot->image_info->sampled == 1))
+							isSampled = true;
+
+						if (isSampled) { // srvs
+							if (sampler2Dloc < srvs.size())
+								textureID = srvs[sampler2Dloc];
+							else
+								wrongBind = true;
+						} else { // ubos
+							if (sampler2Dloc < ubos.size())
+								textureID = ubos[sampler2Dloc];
+							else
+								wrongBind = true;
+						}
+
+						if (!wrongBind && textureID != 0) {
+							std::string textureName = m_objs->GetItemNameByTextureID(textureID);
+
+							bool isActuallyImage = m_objs->IsTexture(textureName) || m_objs->IsImage(textureName) || m_objs->IsImage3D(textureName);
+							if (!isActuallyImage) {
+								wrongBind = true;
+								textureID = 0;
+							}
+						}
+
+						if ((wrongBind || textureID == 0) && !pluginUsesCustomTextures) {
 							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
 
 							// get texture size
@@ -939,7 +968,7 @@ namespace ed {
 							} else {
 								// cubemaps
 								if (type_info->image_info->dim == SpvDimCube) {
-									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
 									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
 
 									// get texture size
@@ -961,7 +990,7 @@ namespace ed {
 									imgData = (float*)malloc(sizeof(float) * size.x * size.y * 6 * 4); // 6 faces
 
 									// get the data from the GPU
-									glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[sampler2Dloc]);
+									glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 									for (int i = 0; i < 6; i++)
 										glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, GL_FLOAT, imgData + size.x * size.y * 4 * i);
 									glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -969,7 +998,7 @@ namespace ed {
 								// 3d textures
 								else if (type_info->image_info->dim == SpvDim3D) {
 									// get texture size
-									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
 									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
 									
 									if (itemData != nullptr && itemData->Image3D != nullptr)
@@ -978,14 +1007,14 @@ namespace ed {
 									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * imgSize.z * 4);
 
 									// get the data from the GPU
-									glBindTexture(GL_TEXTURE_3D, srvs[sampler2Dloc]);
+									glBindTexture(GL_TEXTURE_3D, textureID);
 									glGetTexImage(GL_TEXTURE_3D, 0, GL_RGBA, GL_FLOAT, imgData);
 									glBindTexture(GL_TEXTURE_3D, 0);
 								}
 								// 2d textures
 								else {
 									// get texture size
-									std::string itemName = m_objs->GetItemNameByTextureID(srvs[sampler2Dloc]);
+									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
 									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
 									glm::ivec2 size(1, 1);
 									if (itemData != nullptr) {
@@ -1004,7 +1033,7 @@ namespace ed {
 									imgData = (float*)malloc(sizeof(float) * size.x * size.y * 4);
 
 									// get the data from the GPU
-									glBindTexture(GL_TEXTURE_2D, srvs[sampler2Dloc]);
+									glBindTexture(GL_TEXTURE_2D, textureID);
 									glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, imgData);
 									glBindTexture(GL_TEXTURE_2D, 0);
 								}
@@ -1018,7 +1047,7 @@ namespace ed {
 							if (pluginUsesCustomTextures)
 								img->user_data = (void*)pluginCustomTexture;
 							else
-								img->user_data = (void*)srvs[sampler2Dloc];
+								img->user_data = (void*)textureID;
 
 							slot->members[0].image_data = img;
 							m_images.push_back(img);
