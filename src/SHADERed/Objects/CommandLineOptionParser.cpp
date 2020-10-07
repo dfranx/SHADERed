@@ -1,4 +1,5 @@
 #include <SHADERed/Objects/CommandLineOptionParser.h>
+#include <SHADERed/Objects/WebAPI.h>
 #include <string.h>
 #include <filesystem>
 #include <vector>
@@ -51,10 +52,18 @@ namespace ed {
 			else if (strcmp(argv[i], "--performance") == 0 || strcmp(argv[i], "-p") == 0) {
 				PerformanceMode = true;
 			}
+			// --version, -v
+			else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+				printf("Version %s\n", WebAPI::Version);
+				printf("Internal version: %d\n", WebAPI::InternalVersion);
+
+				LaunchUI = false;
+			}
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 				static const std::vector<std::pair<std::string, std::string>> opts = {
 					{ "--help | -h", "print this message" },
+					{ "--version | -v", "print SHADERed version" },
 					{ "--minimal | -m", "launch SHADERed with no UI" },
 					{ "--wwidth | -ww [width]", "set window width" },
 					{ "--wheight | -wh [height]", "set window height" },

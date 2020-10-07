@@ -8,6 +8,7 @@ namespace ed {
 	public:
 		static const std::string URL;
 		static const int InternalVersion = 17;
+		static const char* Version;
 
 		// info that /api/search will return
 		struct ShaderResult 

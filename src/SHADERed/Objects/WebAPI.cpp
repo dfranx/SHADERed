@@ -19,6 +19,7 @@
 
 namespace ed {
 	const std::string WebAPI::URL = "api.shadered.org"; // TODO: change URL & ports
+	const char* WebAPI::Version = "1.4.1";
 
 	int threadSafeRandom(int vmin, int vmax)
 	{
