@@ -6,6 +6,7 @@
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -151,6 +152,13 @@ namespace ed {
 		} else
 			saveFunc(true);
 	}
+	void CodeEditorUI::m_saveAsSPV(int id)
+	{
+		if (id < m_items.size()) {
+			m_editorSaveRequestID = id;
+			igfd::ImGuiFileDialog::Instance()->OpenModal("SaveSPVBinaryDlg", "Save SPIR-V binary", "SPIR-V binary (*.spv){.spv},.*", ".");
+		}
+	}
 	void CodeEditorUI::m_compile(int id)
 	{
 		if (id >= m_editor.size())
@@ -219,6 +227,7 @@ namespace ed {
 					if (ImGui::BeginMenuBar()) {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
+							if (ImGui::MenuItem("Save SPIR-V binary")) m_saveAsSPV(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
@@ -357,6 +366,44 @@ namespace ed {
 			}
 
 			ImGui::EndPopup();
+		}
+
+		// save spir-v binary dialog
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveSPVBinaryDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+
+				std::vector<unsigned int> spv;
+
+				PipelineItem* item = m_items[m_editorSaveRequestID];
+				ShaderStage stage = m_shaderStage[m_editorSaveRequestID];
+
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->PSSPV;
+					else if (stage == ShaderStage::Vertex)
+						spv = pass->VSSPV;
+					else if (stage == ShaderStage::Geometry)
+						spv = pass->GSSPV;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->SPV;
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)item->Data;
+					unsigned int spvSize = data->Owner->PipelineItem_GetSPIRVSize(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+					unsigned int* spvPtr = data->Owner->PipelineItem_GetSPIRV(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+
+					if (spvPtr != nullptr && spvSize != 0)
+						spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+				}
+
+				std::ofstream spvOut(filePathName, std::ios::out | std::ios::binary);
+				spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
+				spvOut.close();
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveSPVBinaryDlg");
 		}
 
 		// delete closed editors
