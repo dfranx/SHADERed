@@ -120,6 +120,7 @@ You can also check this list too: [link](https://shadered.org/features.php).
   * [Vladimir Alyamkin](https://alyamkin.com/)
   * [Wogos Media](http://theWogos.com/)
   * [Snow Developments](https://snow.llc)
+  * [Adad Morales](https://www.moralesfx.com/)
 
 ## Support
 Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
