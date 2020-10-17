@@ -1,6 +1,7 @@
 [v1.4.2]
 + add --version | -v command line argument
 + add "Save SPIR-V binary" option
++ fix pipeline item drag and drop
 
 [v1.4.1]
 + add compute shader debugger

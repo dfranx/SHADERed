@@ -43,12 +43,13 @@ void SetDpiAware();
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
-
+	
+	std::error_code fsError;
 	std::filesystem::path cmdDir = std::filesystem::current_path();
 
 	if (argc > 0) {
 		if (std::filesystem::exists(std::filesystem::path(argv[0]).parent_path())) {
-			std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
+			std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path(), fsError);
 
 			ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 		}
@@ -78,9 +79,9 @@ int main(int argc, char* argv[])
 		};
 
 		for (const auto& wrkpath : toCheck) {
-			if (std::filesystem::exists(exePath + wrkpath)) {
+			if (std::filesystem::exists(exePath + wrkpath, fsError)) {
 				linuxUseHomeDir = true;
-				std::filesystem::current_path(exePath + wrkpath);
+				std::filesystem::current_path(exePath + wrkpath, fsError);
 				ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
 				break;
 			}
@@ -98,36 +99,33 @@ int main(int argc, char* argv[])
 		if (homedir != NULL) {
 			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + homedirSuffix + "/shadered/";
 
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory);
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data"))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data");
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "themes"))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "themes");
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "plugins"))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "plugins");
+			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory, fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory, fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data", fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data", fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "themes", fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "themes", fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "plugins", fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "plugins", fsError);
 		}
 	}
 #endif
 
 	// create data directory on startup
-	if (!std::filesystem::exists("./data/"))
-		std::filesystem::create_directory("./data/");
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data/"))
-		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data/");
+	if (!std::filesystem::exists("./data/", fsError))
+		std::filesystem::create_directory("./data/", fsError);
+	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data/", fsError))
+		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data/", fsError);
 
 	// create temp directory
-	std::error_code ec;
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "temp/"))
-		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "temp/");
-	else if (!std::filesystem::exists("./temp/", ec))
-		std::filesystem::create_directory("./temp/");
+	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "temp/", fsError))
+		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "temp/", fsError);
+	else if (!std::filesystem::exists("./temp/", fsError))
+		std::filesystem::create_directory("./temp/", fsError);
 
 	// delete log.txt on startup
-	if (std::filesystem::exists("./log.txt")) {
-		std::error_code errCode;
-		std::filesystem::remove("./log.txt", errCode);
-	}
+	if (std::filesystem::exists("./log.txt", fsError))
+		std::filesystem::remove("./log.txt", fsError);
 
 	// set stb_image flags
 	stbi_flip_vertically_on_write(1);
@@ -152,7 +150,7 @@ int main(int argc, char* argv[])
 
 	// load window size
 	std::string preloadDatPath = "data/preload.dat";
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + preloadDatPath))
+	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + preloadDatPath, fsError))
 		preloadDatPath = ed::Settings::Instance().LinuxHomeDirectory + preloadDatPath;
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
 	bool fullscreen = false, maximized = false, perfMode = false;
@@ -181,8 +179,7 @@ int main(int argc, char* argv[])
 		ed::Logger::Get().Log("File data/preload.dat doesnt exist", true);
 		ed::Logger::Get().Log("Deleting data/workspace.dat", true);
 
-		std::error_code errCode;
-		std::filesystem::remove("./data/workspace.dat", errCode);
+		std::filesystem::remove("./data/workspace.dat", fsError);
 	}
 
 	// apply parsed CL options

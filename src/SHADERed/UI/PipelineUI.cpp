@@ -1628,6 +1628,7 @@ namespace ed {
 
 				// get item owner
 				void* itemData = nullptr;
+				PipelineItem::ItemType itemType = dropItem->Type;
 
 				// once we found a name, duplicate the properties:
 				// duplicate geometry object:
@@ -1739,7 +1740,7 @@ namespace ed {
 					m_data->Pipeline.Remove(dropItem->Name);
 				}
 
-				m_data->Pipeline.AddItem(item->Name, name.c_str(), dropItem->Type, itemData);
+				m_data->Pipeline.AddItem(item->Name, name.c_str(), itemType, itemData);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -2041,6 +2042,9 @@ namespace ed {
 			}
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
 			ImGui::SetDragDropPayload("PipelineItemPayload", &item, sizeof(ed::PipelineItem**));
+
+			ImGui::Text("%s", item->Name);
+
 			ImGui::EndDragDropSource();
 		}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);

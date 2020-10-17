@@ -377,14 +377,17 @@ namespace ed {
 		if (preambleStr.size() > 0)
 			shader.setPreamble(preambleStr.c_str());
 		
+		glslang::EShClient gClient = glslang::EShClientOpenGL;
+		// if (inLang == ShaderLanguage::VulkanGLSL)
+		//	gClient = glslang::EShClientVulkan;
 
 		// set up
 		int sVersion = (sType == ShaderStage::Compute) ? 430 : 330;
 		glslang::EShTargetClientVersion targetClientVersion = glslang::EShTargetOpenGL_450;
 		glslang::EShTargetLanguageVersion targetLanguageVersion = glslang::EShTargetSpv_1_5;
 
-		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, glslang::EShClientOpenGL, sVersion);
-		shader.setEnvClient(glslang::EShClientOpenGL, targetClientVersion);
+		shader.setEnvInput(inLang == ShaderLanguage::HLSL ? glslang::EShSourceHlsl : glslang::EShSourceGlsl, shaderType, gClient, sVersion);
+		shader.setEnvClient(gClient, targetClientVersion);
 		shader.setEnvTarget(glslang::EShTargetSpv, targetLanguageVersion);
 
 		TBuiltInResource res = DefaultTBuiltInResource;
