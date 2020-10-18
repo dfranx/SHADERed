@@ -76,5 +76,9 @@ namespace ed {
 		void m_addAudioPass(ed::PipelineItem* data);
 		void m_addPluginItem(ed::PipelineItem* data);
 		void m_addItem(ed::PipelineItem* name);
+
+		// handle object drop
+		void m_handleObjectDrop(ed::PipelineItem* item, ed::ObjectManagerItem* object);
+
 	};
 }

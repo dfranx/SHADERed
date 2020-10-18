@@ -87,6 +87,22 @@ namespace ed {
 					((ObjectPreviewUI*)m_ui->Get(ViewID::ObjectPreview))->Open(items[i], imgSize.x, imgSize.y, tex, m_data->Objects.IsCubeMap(items[i]), m_data->Objects.IsRenderTexture(items[i]) ? m_data->Objects.GetRenderTexture(tex) : nullptr, m_data->Objects.IsAudio(items[i]) ? m_data->Objects.GetSoundBuffer(items[i]) : nullptr, isBuf ? m_data->Objects.GetBuffer(items[i]) : nullptr, isPluginOwner ? pobj : nullptr);
 			}
 
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+				ImGui::SetDragDropPayload("ObjectPayload", &oItem, sizeof(ed::ObjectManagerItem**));
+
+				ImGui::Text("%s", itemText.c_str());
+				bool hasPluginPreview = isPluginOwner && pobj->Owner->Object_HasPreview(pobj->Type);
+				if (oItem->IsCube) {
+					m_cubePrev.Draw(tex);
+					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
+				} else if (!isBuf && !isImg3D && !isPluginOwner)
+					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
+				else if (hasPluginPreview)
+					pobj->Owner->Object_ShowPreview(pobj->Type, pobj->Data, pobj->ID);
+
+				ImGui::EndDragDropSource();
+			}
+
 			if (ImGui::BeginPopupContextItem(std::string("##context" + items[i]).c_str())) {
 				itemMenuOpened = true;
 

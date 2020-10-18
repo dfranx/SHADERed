@@ -1595,6 +1595,7 @@ namespace ed {
 			}
 
 		if (ImGui::BeginDragDropTarget()) {
+			// pipeline item
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PipelineItemPayload")) {
 				// TODO: m_data->Pipeline.DuplicateItem() ?
 				ed::PipelineItem* dropItem = *(reinterpret_cast<ed::PipelineItem**>(payload->Data));
@@ -1742,6 +1743,13 @@ namespace ed {
 
 				m_data->Pipeline.AddItem(item->Name, name.c_str(), itemType, itemData);
 			}
+			
+			// object
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ObjectPayload")) {
+				ed::ObjectManagerItem* dropItem = *(reinterpret_cast<ed::ObjectManagerItem**>(payload->Data));
+				m_handleObjectDrop(item, dropItem);
+			}
+			
 			ImGui::EndDragDropTarget();
 		}
 
@@ -1794,6 +1802,15 @@ namespace ed {
 			}
 		ImGui::Unindent(PIPELINE_SHADER_PASS_INDENT);
 
+		if (ImGui::BeginDragDropTarget()) {
+			// object
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ObjectPayload")) {
+				ed::ObjectManagerItem* dropItem = *(reinterpret_cast<ed::ObjectManagerItem**>(payload->Data));
+				m_handleObjectDrop(item, dropItem);
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 
 		if (!data->Active)
 			ImGui::PopStyleVar();
@@ -2048,5 +2065,43 @@ namespace ed {
 			ImGui::EndDragDropSource();
 		}
 		ImGui::Unindent(PIPELINE_ITEM_INDENT);
+	}
+	void PipelineUI::m_handleObjectDrop(ed::PipelineItem* pass, ed::ObjectManagerItem* object)
+	{
+		bool isPluginOwner = object->Plugin != nullptr;
+		PluginObject* pobj = object->Plugin;
+		std::string objectName = m_data->Objects.GetObjectManagerItemName(object);
+
+		bool bindAsUAV = false;
+		bool bindAsSRV = false;
+
+		if (object->Image != nullptr || object->Image3D != nullptr) {
+			// bind image and image3D as UAV to compute passes
+			if (pass->Type == PipelineItem::ItemType::ComputePass)
+				bindAsUAV = true;
+			// but as SRV to shader passes
+			else if (pass->Type == PipelineItem::ItemType::ShaderPass)
+				bindAsSRV = true;
+		} else {
+			bool isPluginObjBindable = isPluginOwner && (pobj->Owner->Object_IsBindable(pobj->Type) || pobj->Owner->Object_IsBindableUAV(pobj->Type));
+			if (isPluginObjBindable || !isPluginOwner) {
+				bool isPluginObjUAV = isPluginOwner && pobj->Owner->Object_IsBindableUAV(pobj->Type);
+
+				if (object->Buffer != nullptr || isPluginObjUAV)
+					bindAsUAV = true;
+				else
+					bindAsSRV = true;
+			}
+		}
+
+		if (bindAsUAV) {
+			int boundID = m_data->Objects.IsUniformBound(objectName, pass);
+			if (boundID == -1)
+				m_data->Objects.BindUniform(objectName, pass);
+		} else if (bindAsSRV) {
+			int boundID = m_data->Objects.IsBound(objectName, pass);
+			if (boundID == -1)
+				m_data->Objects.Bind(objectName, pass);
+		}
 	}
 }
