@@ -12,6 +12,9 @@ namespace ed {
 		void Load();
 		void Save();
 
+		// if on linux, check for home directory
+		std::string ConvertPath(const std::string& path);
+
 		float DPIScale;	 // shouldn't be changed by users
 		float TempScale; // copy this value to DPIScale on "Ok" button press
 		std::string Theme;

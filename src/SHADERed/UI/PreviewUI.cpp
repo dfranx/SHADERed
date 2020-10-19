@@ -928,7 +928,7 @@ namespace ed {
 
 	void PreviewUI::m_setupBoundingBox()
 	{
-		Logger::Get().Log("Setting up bounding box...");
+		Logger::Get().Log("Setting up the bounding box");
 
 		// create a shader program for gizmo
 		m_boxShader = gl::CreateShader(&BOX_VS_CODE, &BOX_PS_CODE, "bounding box");

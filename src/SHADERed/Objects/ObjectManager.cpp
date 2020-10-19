@@ -515,6 +515,8 @@ namespace ed {
 
 	bool ObjectManager::LoadBufferFromTexture(BufferObject* buf, const std::string& str, bool convertToFloat)
 	{
+		ed::Logger::Get().Log("Loading buffer data from a texture");
+
 		std::string path = m_parser->GetProjectPath(str);
 		int width, height, nrChannels;
 		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
@@ -553,6 +555,8 @@ namespace ed {
 	}
 	bool ObjectManager::LoadBufferFromModel(BufferObject* buf, const std::string& str)
 	{
+		ed::Logger::Get().Log("Loading buffer data from a 3D model");
+
 		ed::eng::Model mdl;
 		bool ret = mdl.LoadFromFile(str);
 
@@ -585,6 +589,8 @@ namespace ed {
 	}
 	bool ObjectManager::LoadBufferFromFile(BufferObject* buf, const std::string& str)
 	{
+		ed::Logger::Get().Log("Loading buffer data from a file");
+
 		std::string bPath = m_parser->GetProjectPath(str);
 		std::ifstream bufRead(bPath, std::ios::binary | std::ios::ate);
 		size_t bufSize = bufRead.tellg();

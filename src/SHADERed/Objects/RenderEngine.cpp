@@ -29,7 +29,6 @@ void main()
 
 
 namespace ed {
-
 	void DebugDrawPrimitives(int& vertexStart, int vertexCount, int maxVertexCount, int vertexStrip, GLuint topology, GLuint varLoc, bool instanced, int instanceCount, bool useIndices = false, int vbase = 0)
 	{
 		int actualVertexCount = vertexCount;
@@ -2124,6 +2123,8 @@ namespace ed {
 	
 	const char* RenderEngine::m_pluginProcessGLSL(const char* path, const char* src)
 	{
+		Logger::Get().Log("Plugin is processing GLSL");
+
 		bool ret = false;
 
 		int plLang = 0;
@@ -2133,6 +2134,8 @@ namespace ed {
 	}
 	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSource)
 	{
+		Logger::Get().Log("Plugin is compiling the shader to SPIR-V");
+
 		bool ret = false;
 
 		int plLang = 0;

@@ -226,6 +226,8 @@ namespace ed {
 	}
 	void PixelInspectUI::StartDebugging(TextEditor* editor, PixelInformation* pixel)
 	{
+		Logger::Get().Log("Starting up the debugger");
+
 		m_data->Debugger.SetCurrentFile(editor->GetPath());
 		m_data->Debugger.SetDebugging(true);
 		m_data->Debugger.PrepareDebugger();

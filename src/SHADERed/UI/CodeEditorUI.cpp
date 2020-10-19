@@ -435,9 +435,9 @@ namespace ed {
 
 	void CodeEditorUI::LoadSnippets()
 	{
-		std::string snippetsFileLoc = "data/snippets.xml";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			snippetsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/snippets.xml";
+		Logger::Get().Log("Loading code snippets");
+
+		std::string snippetsFileLoc = Settings::Instance().ConvertPath("data/snippets.xml");
 
 		pugi::xml_document doc;
 		pugi::xml_parse_result result = doc.load_file(snippetsFileLoc.c_str());
@@ -472,9 +472,7 @@ namespace ed {
 			snippetNode.append_child("code").text().set(snippet.Code.c_str());
 		}
 
-		std::string snippetsFileLoc = "data/snippets.xml";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			snippetsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/snippets.xml";
+		std::string snippetsFileLoc = Settings::Instance().ConvertPath("data/snippets.xml");
 		doc.save_file(snippetsFileLoc.c_str());
 	}
 	void CodeEditorUI::AddSnippet(const std::string& lang, const std::string& display, const std::string& search, const std::string& code)

@@ -85,9 +85,13 @@ namespace ed {
 		glUseProgram(m_cubeShader);
 		m_uMatWVPLoc = glGetUniformLocation(m_cubeShader, "uMatWVP");
 		glUniform1i(glGetUniformLocation(m_cubeShader, "cubemap"), 0);
+		glUseProgram(0);
 
 		m_fsVAO = ed::eng::GeometryFactory::CreatePlane(m_fsVBO, w, h, gl::CreateDefaultInputLayout());
 		m_cubeFBO = gl::CreateSimpleFramebuffer(w, h, m_cubeTex, m_cubeDepth);
+
+		if (m_cubeFBO == 0)
+			ed::Logger::Get().Log("Failed to create cubemap preview texture", true);
 	}
 	void CubemapPreview::Draw(GLuint tex)
 	{

@@ -46,7 +46,7 @@ namespace ed {
 			std::cout << data.str() << std::endl;
 
 		if (Settings::Instance().General.StreamLogs) {
-			std::ofstream log("log.txt", std::ios_base::app | std::ios_base::out);
+			std::ofstream log(ed::Settings::Instance().ConvertPath("log.txt"), std::ios_base::app | std::ios_base::out);
 			log << data.str() << std::endl;
 			log.close();
 		} else
@@ -60,7 +60,7 @@ namespace ed {
 		time_t now = time(0);
 		tm* ltm = localtime(&now);
 
-		std::ofstream file("log.txt");
+		std::ofstream file(ed::Settings::Instance().ConvertPath("log.txt"));
 		file << "Log -> " << ltm->tm_mday << "." << ltm->tm_mon + 1 << "." << 1900 + ltm->tm_year << "\n";
 
 		for (auto& line : m_msgs)

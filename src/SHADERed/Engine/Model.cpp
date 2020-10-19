@@ -74,7 +74,7 @@ namespace ed {
 
 		bool Model::LoadFromFile(const std::string& path)
 		{
-			ed::Logger::Get().Log("Loading a 3D model " + path);
+			ed::Logger::Get().Log("Loading a 3D model from file \"" + path + "\"");
 
 			// read file via ASSIMP
 			Assimp::Importer importer;

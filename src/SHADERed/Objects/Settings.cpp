@@ -85,10 +85,8 @@ namespace ed {
 	{
 		Logger::Get().Log("Reading settings");
 
-		std::string settingsFileLoc = "data/settings.ini";
-		if (!LinuxHomeDirectory.empty())
-			settingsFileLoc = LinuxHomeDirectory + "data/settings.ini";
-		
+		std::string settingsFileLoc = Settings::Instance().ConvertPath("data/settings.ini");
+
 		INIReader ini(settingsFileLoc);
 
 		General.HLSLExtensions.clear();
@@ -178,9 +176,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Saving settings");
 
-		std::string settingsFileLoc = "data/settings.ini";
-		if (!LinuxHomeDirectory.empty())
-			settingsFileLoc = LinuxHomeDirectory + "data/settings.ini";
+		std::string settingsFileLoc = Settings::Instance().ConvertPath("data/settings.ini");
 
 		std::ofstream ini(settingsFileLoc);
 
@@ -291,6 +287,13 @@ namespace ed {
 				ini << " ";
 		}
 		ini << std::endl;
+	}
+
+	std::string Settings::ConvertPath(const std::string& path)
+	{
+		if (!this->LinuxHomeDirectory.empty())
+			return ed::Settings::Instance().LinuxHomeDirectory + path;
+		return path;
 	}
 
 	void Settings::m_parsePluginExt(const std::string& str, std::unordered_map<std::string, std::vector<std::string>>& extcontainer)

@@ -51,18 +51,14 @@ namespace ed {
 	}
 	void PluginManager::Init(InterfaceManager* data, GUIManager* ui)
 	{
-		std::string pluginsDirLoc = "./plugins/";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			pluginsDirLoc = ed::Settings::Instance().LinuxHomeDirectory + "plugins/";
+		std::string pluginsDirLoc = Settings::Instance().ConvertPath("plugins/");
 
 		if (!std::filesystem::exists(pluginsDirLoc)) {
 			ed::Logger::Get().Log("Directory for plugins doesn't exist");
 			return;
 		}
 
-		std::string settingsFileLoc = "data/plugin_settings.ini";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			settingsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/plugin_settings.ini";
+		std::string settingsFileLoc = ed::Settings::Instance().ConvertPath("data/plugin_settings.ini");
 
 		std::ifstream ini(settingsFileLoc);
 		std::vector<std::string> iniLines;
@@ -82,6 +78,8 @@ namespace ed {
 		for (const auto& entry : std::filesystem::directory_iterator(pluginsDirLoc)) {
 			if (entry.is_directory()) {
 				std::string pdir = entry.path().filename().string();
+
+				Logger::Get().Log("Loading \"" + pdir + "\" plugin.");
 
 #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
 				void* procDLL = dlopen((pluginsDirLoc + pdir + "/plugin.so").c_str(), RTLD_NOW);
@@ -1024,13 +1022,13 @@ namespace ed {
 	}
 	void PluginManager::Destroy()
 	{
-		std::string settingsFileLoc = "data/plugin_settings.ini";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			settingsFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/plugin_settings.ini";
+		std::string settingsFileLoc = ed::Settings::Instance().ConvertPath("data/plugin_settings.ini");
 
 		std::ofstream ini(settingsFileLoc);
 
 		for (int i = 0; i < m_plugins.size(); i++) {
+			Logger::Get().Log("Destroying \"" + m_names[i] + "\" plugin.");
+
 			int optc = m_plugins[i]->Options_GetCount();
 			if (optc) {
 				ini << "[" << m_names[i] << "]" << std::endl;

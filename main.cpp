@@ -101,31 +101,27 @@ int main(int argc, char* argv[])
 
 			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory, fsError))
 				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory, fsError);
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data", fsError))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data", fsError);
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "themes", fsError))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "themes", fsError);
-			if (!std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "plugins", fsError))
-				std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "plugins", fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().ConvertPath("data"), fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().ConvertPath("data"), fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().ConvertPath("themes"), fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().ConvertPath("themes"), fsError);
+			if (!std::filesystem::exists(ed::Settings::Instance().ConvertPath("plugins"), fsError))
+				std::filesystem::create_directory(ed::Settings::Instance().ConvertPath("plugins"), fsError);
 		}
 	}
 #endif
 
 	// create data directory on startup
-	if (!std::filesystem::exists("./data/", fsError))
-		std::filesystem::create_directory("./data/", fsError);
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "data/", fsError))
-		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "data/", fsError);
+	if (!std::filesystem::exists(ed::Settings::Instance().ConvertPath("data/"), fsError))
+		std::filesystem::create_directory(ed::Settings::Instance().ConvertPath("data/"), fsError);
 
 	// create temp directory
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && !std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + "temp/", fsError))
-		std::filesystem::create_directory(ed::Settings::Instance().LinuxHomeDirectory + "temp/", fsError);
-	else if (!std::filesystem::exists("./temp/", fsError))
-		std::filesystem::create_directory("./temp/", fsError);
+	if (!std::filesystem::exists(ed::Settings::Instance().ConvertPath("temp/"), fsError))
+		std::filesystem::create_directory(ed::Settings::Instance().ConvertPath("temp/"), fsError);
 
 	// delete log.txt on startup
-	if (std::filesystem::exists("./log.txt", fsError))
-		std::filesystem::remove("./log.txt", fsError);
+	if (std::filesystem::exists(ed::Settings::Instance().ConvertPath("log.txt"), fsError))
+		std::filesystem::remove(ed::Settings::Instance().ConvertPath("log.txt"), fsError);
 
 	// set stb_image flags
 	stbi_flip_vertically_on_write(1);
@@ -151,7 +147,7 @@ int main(int argc, char* argv[])
 	// load window size
 	std::string preloadDatPath = "data/preload.dat";
 	if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && std::filesystem::exists(ed::Settings::Instance().LinuxHomeDirectory + preloadDatPath, fsError))
-		preloadDatPath = ed::Settings::Instance().LinuxHomeDirectory + preloadDatPath;
+		preloadDatPath = ed::Settings::Instance().ConvertPath(preloadDatPath);
 	short wndWidth = 800, wndHeight = 600, wndPosX = -1, wndPosY = -1;
 	bool fullscreen = false, maximized = false, perfMode = false;
 	std::ifstream preload(preloadDatPath);
@@ -242,6 +238,15 @@ int main(int argc, char* argv[])
 	engine.UI().SetMinimalMode(coptsParser.MinimalMode);
 	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
 
+	// check for filesystem errors
+	if (fsError)
+		ed::Logger::Get().Log("A filesystem error has occured: " + fsError.message(), true);
+
+	// loop through all OpenGL errors
+	GLenum oglError;
+	while ((oglError = glGetError()) != GL_NO_ERROR)
+		ed::Logger::Get().Log("GL error: " + std::to_string(oglError), true);
+
 	// timer for time delta
 	ed::eng::Timer timer;
 	SDL_Event event;
@@ -331,8 +336,7 @@ int main(int argc, char* argv[])
 	} converter;
 
 	// save window size
-	if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-		preloadDatPath = ed::Settings::Instance().LinuxHomeDirectory + "data/preload.dat";
+	preloadDatPath = ed::Settings::Instance().ConvertPath("data/preload.dat");
 	std::ofstream save(preloadDatPath);
 
 	ed::Logger::Get().Log("Saving window information");

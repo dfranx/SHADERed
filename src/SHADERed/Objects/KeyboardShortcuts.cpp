@@ -1,23 +1,33 @@
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/Logger.h>
+#include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/Names.h>
 
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <SDL2/SDL_keyboard.h>
 
 namespace ed {
+	std::string getShortcutsFilePath()
+	{
+		std::string path = "data/shortcuts.kb";
+		if (!ed::Settings::Instance().LinuxHomeDirectory.empty() && std::filesystem::exists(ed::Settings::Instance().ConvertPath(path)))
+			path = ed::Settings::Instance().ConvertPath(path);
+		return path;
+	}
+
 	KeyboardShortcuts::KeyboardShortcuts()
 	{
 		m_keys[0] = m_keys[1] = -1;
 	}
 	void KeyboardShortcuts::Load()
 	{
-		ed::Logger::Get().Log("Loading shortcut information");
+		ed::Logger::Get().Log("Loading keyboard shortcuts");
 
-		std::ifstream file("data/shortcuts.kb");
+		std::ifstream file(getShortcutsFilePath());
 		std::string str;
 
 		// pre setup Editor shortcuts (TODO: improve this... TextEditor::GetDefaultShortcuts())
@@ -59,7 +69,9 @@ namespace ed {
 	}
 	void KeyboardShortcuts::Save()
 	{
-		std::ofstream file("data/shortcuts.kb");
+		ed::Logger::Get().Log("Saving keyboard shortcuts");
+
+		std::ofstream file(ed::Settings::Instance().ConvertPath("data/shortcuts.kb"));
 		std::string str;
 
 		for (auto& s : m_data) {

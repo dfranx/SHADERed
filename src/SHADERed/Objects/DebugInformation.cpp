@@ -1,5 +1,6 @@
 #include <SHADERed/Objects/DebugInformation.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/Objects/Logger.h>
 
 #include <iomanip>
 
@@ -309,6 +310,8 @@ namespace ed {
 	
 	void DebugInformation::m_resetVM()
 	{
+		ed::Logger::Get().Log("Resetting the debugger");
+
 		for (spvm_image_t img : m_images) {
 			free(img->data);
 			free(img);
@@ -351,6 +354,8 @@ namespace ed {
 	}
 	void DebugInformation::m_setupVM(std::vector<unsigned int>& spv)
 	{
+		ed::Logger::Get().Log("Parsing the SPIR-V and setting up the debugger");
+
 		m_spv = spv;
 		
 		// create program & state
@@ -369,6 +374,8 @@ namespace ed {
 	}
 	void DebugInformation::m_setupWorkgroup()
 	{
+		ed::Logger::Get().Log("Setting up the shader workgroup in the debugger");
+
 		int startX = (m_threadX / m_shader->local_size_x) * m_shader->local_size_x;
 		int startY = (m_threadY / m_shader->local_size_y) * m_shader->local_size_y;
 		int startZ = (m_threadZ / m_shader->local_size_z) * m_shader->local_size_z;

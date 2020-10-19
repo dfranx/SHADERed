@@ -126,21 +126,18 @@ namespace ed {
 		m_onlineIsPlugin = false;
 		m_onlineExcludeGodot = false;
 
-		m_uiIniFile = "data/workspace.dat";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			m_uiIniFile = ed::Settings::Instance().LinuxHomeDirectory + m_uiIniFile;
+		m_uiIniFile = Settings::Instance().ConvertPath("data/workspace.dat");
 
 		Settings::Instance().Load();
 		m_loadTemplateList();
 
 		SDL_GetWindowSize(m_wnd, &m_width, &m_height);
 
-		Logger::Get().Log("Initializing Dear ImGUI");
-
 		// set vsync on startup
 		SDL_GL_SetSwapInterval(Settings::Instance().General.VSync);
 
 		// Initialize imgui
+		Logger::Get().Log("Initializing Dear ImGUI");
 		ImGui::CreateContext();
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -232,9 +229,7 @@ namespace ed {
 		m_splashScreenLoad();
 
 		// load recents
-		std::string currentInfoPath = "info.dat";
-		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
-			currentInfoPath = ed::Settings().Instance().LinuxHomeDirectory + currentInfoPath;
+		std::string currentInfoPath = Settings::Instance().ConvertPath("info.dat");
 
 		int recentsSize = 0;
 		std::ifstream infoReader(currentInfoPath);
@@ -261,10 +256,8 @@ namespace ed {
 			glDeleteTextures(1, &m_onlinePluginThumbnail[i]);
 		m_onlinePluginThumbnail.clear();
 
-		std::string currentInfoPath = "info.dat";
-		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
-			currentInfoPath = ed::Settings().Instance().LinuxHomeDirectory + currentInfoPath;
-		
+		std::string currentInfoPath = Settings::Instance().ConvertPath("info.dat");
+
 		std::ofstream verWriter(currentInfoPath);
 		verWriter << WebAPI::InternalVersion << std::endl;
 		verWriter << m_recentProjects.size() << std::endl;
@@ -1223,9 +1216,7 @@ namespace ed {
 
 								bool ret = m_data->API.DownloadShaderProject(shaderInfo.ID);
 								if (ret) {
-									std::string outputPath = "temp/";
-									if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-										outputPath = ed::Settings::Instance().LinuxHomeDirectory + "temp/";
+									std::string outputPath = Settings::Instance().ConvertPath("temp/");
 
 									Open(outputPath + "project.sprj");
 									m_data->Parser.SetOpenedFile("");
@@ -2295,6 +2286,8 @@ namespace ed {
 	}
 	void GUIManager::m_splashScreenLoad()
 	{
+		Logger::Get().Log("Setting up the splash screen");
+
 		stbi_set_flip_vertically_on_load(0);
 
 		// logo 
@@ -2372,9 +2365,7 @@ namespace ed {
 	}
 	void GUIManager::Destroy()
 	{
-		std::string bookmarksFileLoc = "data/bookmarks.dat";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			bookmarksFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/bookmarks.dat";
+		std::string bookmarksFileLoc = Settings::Instance().ConvertPath("data/bookmarks.dat");
 		std::ofstream bookmarksFile(bookmarksFileLoc);
 		bookmarksFile << igfd::ImGuiFileDialog::Instance()->SerializeBookmarks();
 		bookmarksFile.close();
@@ -3194,9 +3185,7 @@ namespace ed {
 	}
 	void GUIManager::m_checkChangelog()
 	{
-		std::string currentVersionPath = "info.dat";
-		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
-			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+		std::string currentVersionPath = Settings::Instance().ConvertPath("info.dat");
 
 		std::ifstream verReader(currentVersionPath);
 		int curVer = 0;

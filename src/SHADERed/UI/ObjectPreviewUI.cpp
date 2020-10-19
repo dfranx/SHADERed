@@ -1,5 +1,6 @@
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/Objects/Logger.h>
 #include <SHADERed/UI/Tools/DebuggerOutline.h>
 #include <SHADERed/UI/ObjectPreviewUI.h>
 #include <SHADERed/UI/UIHelper.h>
@@ -10,6 +11,8 @@
 namespace ed {
 	void ObjectPreviewUI::Open(const std::string& name, float w, float h, unsigned int item, bool isCube, void* rt, void* audio, void* buffer, void* plugin)
 	{
+		ed::Logger::Get().Log("Opening preview for \"" + name + "\"");
+
 		for (int i = 0; i < m_items.size(); i++) {
 			mItem* item = &m_items[i];
 			if (item->IsOpen && item->Name == name)

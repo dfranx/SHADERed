@@ -2068,6 +2068,8 @@ namespace ed {
 	}
 	void PipelineUI::m_handleObjectDrop(ed::PipelineItem* pass, ed::ObjectManagerItem* object)
 	{
+		Logger::Get().Log("Handling an object drop on pipeline item");
+
 		bool isPluginOwner = object->Plugin != nullptr;
 		PluginObject* pobj = object->Plugin;
 		std::string objectName = m_data->Objects.GetObjectManagerItemName(object);

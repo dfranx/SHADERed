@@ -21,6 +21,13 @@ namespace ed {
 	const std::string WebAPI::URL = "api.shadered.org"; // TODO: change URL & ports
 	const char* WebAPI::Version = "1.4.1";
 
+	bool isDigitsOnly(const std::string& str)
+	{
+		for (int i = 0; i < str.size(); i++)
+			if (!isdigit(str[i]))
+				return false;
+		return true;
+	}
 	int threadSafeRandom(int vmin, int vmax)
 	{
 		static thread_local std::mt19937* generator = nullptr;
@@ -93,14 +100,7 @@ namespace ed {
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();
 
-			bool isAllDigits = true;
-			for (int i = 0; i < src.size(); i++)
-				if (!isdigit(src[i])) {
-					isAllDigits = false;
-					break;
-				}
-
-			if (isAllDigits && src.size() > 0 && src.size() < 6) {
+			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src)) {
 				int ver = std::stoi(src);
 				if (ver > WebAPI::InternalVersion && onUpdate != nullptr)
 					onUpdate();
@@ -209,9 +209,9 @@ namespace ed {
 	}
 	void WebAPI::FetchTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
-		std::string currentVersionPath = "info.dat";
-		if (!ed::Settings().Instance().LinuxHomeDirectory.empty())
-			currentVersionPath = ed::Settings().Instance().LinuxHomeDirectory + currentVersionPath;
+		Logger::Get().Log("Fetching tips with WebAPI");
+
+		std::string currentVersionPath = Settings::Instance().ConvertPath("info.dat");
 
 		std::ifstream verReader(currentVersionPath);
 		int curVer = 0;
@@ -230,6 +230,8 @@ namespace ed {
 	}
 	void WebAPI::FetchChangelog(std::function<void(const std::string&)> onFetch)
 	{
+		Logger::Get().Log("Fetching changelog with WebAPI");
+
 		if (m_changelogThread != nullptr && m_changelogThread->joinable())
 			m_changelogThread->join();
 		delete m_changelogThread;
@@ -237,6 +239,8 @@ namespace ed {
 	}
 	void WebAPI::CheckForApplicationUpdates(std::function<void()> onUpdate)
 	{
+		Logger::Get().Log("Checking for updates with WebAPI");
+
 		if (m_updateThread != nullptr && m_updateThread->joinable())
 			m_updateThread->join();
 		delete m_updateThread;
@@ -244,6 +248,8 @@ namespace ed {
 	}
 	std::vector<WebAPI::ShaderResult> WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders)
 	{
+		Logger::Get().Log("Searching for shaders with WebAPI");
+
 		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders);
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
@@ -312,9 +318,9 @@ namespace ed {
 	}
 	bool WebAPI::DownloadShaderProject(const std::string& id)
 	{
-		std::string outputPath = "temp/";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			outputPath = ed::Settings::Instance().LinuxHomeDirectory + "temp/";
+		Logger::Get().Log("Downloading shader project with WebAPI");
+
+		std::string outputPath = Settings::Instance().ConvertPath("temp/");
 
 		// first clear the old data and create new directory
 		std::error_code ec;
@@ -346,6 +352,8 @@ namespace ed {
 	}
 	std::vector<WebAPI::PluginResult> WebAPI::SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner)
 	{
+		Logger::Get().Log("Searching for plugins with WebAPI");
+
 		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
@@ -405,6 +413,8 @@ namespace ed {
 	}
 	void WebAPI::DownloadPlugin(const std::string& id)
 	{
+		Logger::Get().Log("Downloading a plugin with WebAPI");
+
 		std::string body = "/download?type=plugin&id=" + id + "&os=";
 #if defined(_WIN64)
 		body += "w64";
@@ -415,9 +425,7 @@ namespace ed {
 #endif
 		
 		
-		std::string outputDir = ".";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			outputDir = ed::Settings::Instance().LinuxHomeDirectory;
+		std::string outputDir = Settings::Instance().ConvertPath(".");
 
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
@@ -440,6 +448,8 @@ namespace ed {
 	}
 	std::vector<WebAPI::ThemeResult> WebAPI::SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner)
 	{
+		Logger::Get().Log("Searching for themes with WebAPI");
+
 		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
@@ -487,9 +497,9 @@ namespace ed {
 	}
 	void WebAPI::DownloadTheme(const std::string& id)
 	{
-		std::string outputPath = "./themes/";
-		if (!Settings().Instance().LinuxHomeDirectory.empty())
-			outputPath = Settings().Instance().LinuxHomeDirectory + "themes/";
+		Logger::Get().Log("Downloading a theme with WebAPI");
+
+		std::string outputPath = Settings::Instance().ConvertPath("themes/");
 
 		sf::Http http(WebAPI::URL);
 		sf::Http::Request request;
@@ -513,7 +523,9 @@ namespace ed {
 
 		if (response.getStatus() == sf::Http::Response::Ok) {
 			std::string src = response.getBody();
-			return std::stoi(src);
+
+			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src))
+				return std::stoi(src);
 		}
 
 		return 0;

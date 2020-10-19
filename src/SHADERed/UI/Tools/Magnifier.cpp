@@ -44,6 +44,7 @@ namespace ed {
 		m_size = glm::vec2(1.0f, 1.0f);
 		m_posStart = glm::vec2(0.0f, 0.0f);
 		m_zoomDrag = glm::vec2(0.0f, 0.0f);
+		m_zoomVAO = m_zoomVBO = 0;
 		m_w = 10;
 		m_h = 10;
 		m_selecting = false;

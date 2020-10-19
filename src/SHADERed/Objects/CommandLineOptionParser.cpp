@@ -84,6 +84,9 @@ namespace ed {
 			// file path
 			else if (std::filesystem::exists(cmdDir / argv[i]))
 				ProjectFile = (cmdDir / argv[i]).generic_string();
+			// invalid command
+			else
+				printf("Invalid option '%s'\n", argv[i]);
 		}
 	}
 }

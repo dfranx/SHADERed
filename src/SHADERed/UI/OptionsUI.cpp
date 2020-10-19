@@ -132,7 +132,7 @@ namespace ed {
 	}
 	void OptionsUI::ApplyTheme()
 	{
-		Logger::Get().Log("Applying UI theme to SHADERed...");
+		Logger::Get().Log("Applying UI theme to SHADERed");
 
 		std::string theme = Settings::Instance().Theme;
 		CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
@@ -212,7 +212,7 @@ namespace ed {
 	}
 	void OptionsUI::m_loadThemeList()
 	{
-		Logger::Get().Log("Loading a theme list...");
+		Logger::Get().Log("Loading theme list");
 
 		m_themes.clear();
 		m_themes.push_back("Dark");

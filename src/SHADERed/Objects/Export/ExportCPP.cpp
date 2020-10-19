@@ -3,6 +3,7 @@
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
+#include <SHADERed/Objects/Logger.h>
 
 #include <filesystem>
 #include <fstream>
@@ -324,6 +325,8 @@ namespace ed {
 
 	bool ExportCPP::Export(InterfaceManager* data, const std::string& outPath, bool externalShaders, bool exportCmakeFiles, const std::string& cmakeProject, bool copyCMakeModules, bool copySTBImage, bool copyImages)
 	{
+		ed::Logger::Get().Log("Exporting SHADERed project as C++ project");
+
 		bool usesGeometry[pipe::GeometryItem::GeometryType::Count] = { false };
 		bool usesTextures = false;
 

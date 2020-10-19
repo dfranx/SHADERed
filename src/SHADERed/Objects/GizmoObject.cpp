@@ -155,8 +155,7 @@ namespace ed {
 		GLint success = false;
 		char infoLog[512];
 
-		ed::Logger::Get().Log("Initializing gizmo...", false, __FILE__, __LINE__);
-		ed::Logger::Get().Log("Loading shaders...");
+		ed::Logger::Get().Log("Initializing gizmo...");
 
 		m_gizmoShader = gl::CreateShader(&GIZMO_VS_CODE, &GIZMO_PS_CODE, "gizmo");
 		m_uiShader = gl::CreateShader(&GUI_VS_CODE, &GUI_PS_CODE, "GUI");
