@@ -275,11 +275,14 @@ namespace ed {
 							float cursorY = ImGui::GetCursorPosY();
 
 							for (int i = rowNo; i < rowMax; i++) {
+								ImGui::PushID(i);
+
 								ImGui::SetCursorPosY(cursorY + i * yAdvance);
 								ImGui::Text("%d", i+1);
 								ImGui::NextColumn();
 								int curColOffset = 0;
 								for (int j = 0; j < item->CachedFormat.size(); j++) {
+									ImGui::PushID(j);
 									ImGui::SetCursorPosY(cursorY + i * yAdvance);
 
 									int dOffset = i * perRow + curColOffset;
@@ -290,9 +293,13 @@ namespace ed {
 
 										m_data->Parser.ModifyProject();
 									}
+
 									curColOffset += ShaderVariable::GetSize(item->CachedFormat[j], true);
 									ImGui::NextColumn();
+									ImGui::PopID();
 								}
+
+								ImGui::PopID();
 							}
 
 							ImGui::Columns(1);
@@ -445,8 +452,6 @@ namespace ed {
 
 		ImGui::PushItemWidth(-1);
 
-		std::string id = std::to_string(row) + std::to_string(col);
-
 		switch (type) {
 		case ed::ShaderVariable::ValueType::Float4x4:
 		case ed::ShaderVariable::ValueType::Float3x3:
@@ -458,49 +463,53 @@ namespace ed {
 				cols = 4;
 
 			for (int y = 0; y < cols; y++) {
+				ImGui::PushID(y);
+
 				if (type == ShaderVariable::ValueType::Float2x2)
-					ret |= ImGui::DragFloat2(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat2("##valuedit", (float*)data, 0.01f);
 				else if (type == ShaderVariable::ValueType::Float3x3)
-					ret |= ImGui::DragFloat3(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat3("##valuedit", (float*)data, 0.01f);
 				else
-					ret |= ImGui::DragFloat4(("##valuedit" + id + std::to_string(y)).c_str(), (float*)data, 0.01f);
+					ret |= ImGui::DragFloat4("##valuedit", (float*)data, 0.01f);
+
+				ImGui::PopID();
 			}
 		} break;
 		case ed::ShaderVariable::ValueType::Float1:
-			ret |= ImGui::DragFloat(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat("##valuedit", (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float2:
-			ret |= ImGui::DragFloat2(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat2("##valuedit", (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float3:
-			ret |= ImGui::DragFloat3(("##valuedit" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat3("##valuedit", (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Float4:
-			ret |= ImGui::DragFloat4(("##valuedit_" + id).c_str(), (float*)data, 0.01f);
+			ret |= ImGui::DragFloat4("##valuedit", (float*)data, 0.01f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer1:
-			ret |= ImGui::DragInt(("##valuedit" + id).c_str(), (int*)data, 1.0f);
+			ret |= ImGui::DragInt("##valuedit", (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer2:
-			ret |= ImGui::DragInt2(("##valuedit" + id).c_str(), (int*)data, 1.0f);
+			ret |= ImGui::DragInt2("##valuedit", (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer3:
-			ret |= ImGui::DragInt3(("##valuedit" + id).c_str(), (int*)data, 1.0f);
+			ret |= ImGui::DragInt3("##valuedit", (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Integer4:
-			ret |= ImGui::DragInt4(("##valuedit" + id).c_str(), (int*)data, 1.0f);
+			ret |= ImGui::DragInt4("##valuedit", (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean1:
-			ret |= ImGui::DragScalar(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 1.0f);
+			ret |= ImGui::DragScalar("##valuedit", ImGuiDataType_U8, (int*)data, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean2:
-			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 2, 1.0f);
+			ret |= ImGui::DragScalarN("##valuedit", ImGuiDataType_U8, (int*)data, 2, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean3:
-			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 3, 1.0f);
+			ret |= ImGui::DragScalarN("##valuedit", ImGuiDataType_U8, (int*)data, 3, 1.0f);
 			break;
 		case ed::ShaderVariable::ValueType::Boolean4:
-			ret |= ImGui::DragScalarN(("##valuedit" + id).c_str(), ImGuiDataType_U8, (int*)data, 4, 1.0f);
+			ret |= ImGui::DragScalarN("##valuedit", ImGuiDataType_U8, (int*)data, 4, 1.0f);
 			break;
 		}
 

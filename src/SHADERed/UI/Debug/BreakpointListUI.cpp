@@ -25,6 +25,9 @@ namespace ed {
 				std::string fileNameStr = std::filesystem::path(bkpt.first).filename().string();
 				const char* fileName = fileNameStr.c_str();
 				for (int i = 0; i < bkpt.second.size(); i++) {
+					ImGui::PushID(i);
+
+
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
@@ -33,7 +36,7 @@ namespace ed {
 					ImGui::TableSetColumnIndex(1);
 					const dbg::Breakpoint& b = bkpt.second[i];
 					isEnabled = bkptStates[bkpt.first][i];
-					if (ImGui::Checkbox(("##bkpt_state" + std::to_string(i)).c_str(), &isEnabled)) {
+					if (ImGui::Checkbox("##bkpt_state", &isEnabled)) {
 						m_data->Debugger.SetBreakpointEnabled(bkpt.first, b.Line, isEnabled);
 						TextEditor* textEd = ((CodeEditorUI*)m_ui->Get(ViewID::Code))->Get(bkpt.first);
 						if (textEd != nullptr)
@@ -45,6 +48,9 @@ namespace ed {
 
 					ImGui::TableSetColumnIndex(3);
 					ImGui::Text("%d", b.Line);
+
+
+					ImGui::PopID();
 				}
 			}
 

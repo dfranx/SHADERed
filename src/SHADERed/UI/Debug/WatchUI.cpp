@@ -31,7 +31,8 @@ namespace ed {
 
 				ImGui::TableSetColumnIndex(0);
 				ImGui::PushItemWidth(-1);
-				if (ImGui::InputText(("##watch_expr_" + std::to_string(i)).c_str(), exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				ImGui::PushID(i);
+				if (ImGui::InputText("##watch_expr", exprs[i], 512, ImGuiInputTextFlags_EnterReturnsTrue)) {
 					if (strlen(exprs[i]) == 0) {
 						m_data->Debugger.RemoveWatch(i);
 						m_data->Parser.ModifyProject();
@@ -42,6 +43,7 @@ namespace ed {
 						m_data->Parser.ModifyProject();
 					}
 				}
+				ImGui::PopID();
 				ImGui::PopItemWidth();
 
 				

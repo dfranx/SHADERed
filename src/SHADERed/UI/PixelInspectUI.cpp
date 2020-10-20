@@ -37,6 +37,8 @@ namespace ed {
 		// pixel/vertex
 		int pxId = 0;
 		for (auto& pixel : pixels) {
+			ImGui::PushID(pxId);
+
 			/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
 			ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
 			
@@ -50,7 +52,7 @@ namespace ed {
 			m_ui->Get(ViewID::PixelInspect);
 
 			if (!pixel.Fetched) {
-				if (ImGui::Button(("Fetch##pixel_fetch_" + std::to_string(pxId)).c_str(), ImVec2(-1, 0))
+				if (ImGui::Button("Fetch##pixel_fetch", ImVec2(-1, 0))
 					&& m_data->Messages.CanRenderPreview()) {
 					m_data->FetchPixel(pixel);
 				}
@@ -73,7 +75,7 @@ namespace ed {
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 				}
-				if (ImGui::Button(((UI_ICON_PLAY "##debug_pixel_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+				if (ImGui::Button(UI_ICON_PLAY "##debug_pixel", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
 					&& m_data->Messages.CanRenderPreview()) {
 					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
 
@@ -117,7 +119,8 @@ namespace ed {
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 				}
 				for (int i = 0; i < pixel.VertexCount; i++) {
-					if (ImGui::Button(((UI_ICON_PLAY "##debug_vertex" + std::to_string(i) + "_") + std::to_string(pxId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+					ImGui::PushID(i);
+					if (ImGui::Button(UI_ICON_PLAY "##debug_vertex", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
 						&& m_data->Messages.CanRenderPreview()) {
 						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						codeUI->StopDebugging();
@@ -135,6 +138,7 @@ namespace ed {
 						initIndex = i;
 						requestCompile = true;
 					}
+					ImGui::PopID();
 					ImGui::SameLine();
 					ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
 				}
@@ -157,6 +161,7 @@ namespace ed {
 			ImGui::Separator();
 			ImGui::NewLine();
 
+			ImGui::PopID();
 			pxId++;
 		}
 
@@ -169,6 +174,8 @@ namespace ed {
 			// suggestions
 			int sugId = 0;
 			for (auto& suggestion : suggestions) {
+				ImGui::PushID(sugId);
+
 				if (suggestion.Type == DebuggerSuggestion::SuggestionType::ComputeShader) {
 					pipe::ComputePass* pass = (pipe::ComputePass*)suggestion.Item->Data;
 					glm::ivec3 thread = suggestion.Thread;
@@ -181,7 +188,7 @@ namespace ed {
 						suggestion.WorkgroupSize = glm::ivec3(parser.LocalSizeX, parser.LocalSizeY, parser.LocalSizeZ);
 					}
 
-					if (ImGui::Button(((UI_ICON_PLAY "##debug_compute_") + std::to_string(sugId)).c_str(), ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+					if (ImGui::Button(UI_ICON_PLAY "##debug_compute", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
 
 						pipe::ComputePass* pass = ((pipe::ComputePass*)suggestion.Item->Data);
 						// TODO: plugins?
@@ -216,6 +223,8 @@ namespace ed {
 					}
 				}
 				ImGui::Separator();
+
+				ImGui::PopID();
 				sugId++;
 			}
 		

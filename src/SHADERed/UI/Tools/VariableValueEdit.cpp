@@ -16,56 +16,59 @@ namespace ed {
 	}
 	bool VariableValueEditUI::Update()
 	{
-		if (m_var != nullptr) {
-			FunctionShaderVariable state = m_var->Function;
-			bool modified = false;
+		if (m_var == nullptr)
+			return false;
 
-			ImGui::Text("%s ", m_var->Name);
+		ImGui::PushID(m_var->Name);
 
-			if (state != FunctionShaderVariable::None)
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		FunctionShaderVariable state = m_var->Function;
+		bool modified = false;
 
-			ImGui::SameLine();
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - (71 + ImGui::GetStyle().WindowPadding.x * 2));
-			if (ImGui::Button((UI_ICON_EDIT "##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0))) {
-				m_var->Function = FunctionShaderVariable::None;
-				modified = true;
-			}
+		ImGui::Text("%s ", m_var->Name);
 
-			if (state != FunctionShaderVariable::None)
-				ImGui::PopStyleColor();
-			else
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		if (state != FunctionShaderVariable::None)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-			ImGui::SameLine();
-			if (ImGui::Button((UI_ICON_FX "##" + std::string(m_var->Name)).c_str(), ImVec2(25, 0))) {
-				// find first function that is compatible with this value type
-				for (int i = 0; i < (int)FunctionShaderVariable::Count; i++) {
-					if (m_var->Function == FunctionShaderVariable::PluginFunction)
-						break;
-
-					if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)i)) {
-						FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)i);
-						break;
-					}
-				}
-			}
-
-			if (state == FunctionShaderVariable::None)
-				ImGui::PopStyleColor();
-
-			if (m_var->Function == FunctionShaderVariable::None) {
-				bool mres = m_drawRegular();
-				modified = mres || modified;
-			} else {
-				bool mfunc = m_drawFunction();
-				modified = mfunc || modified;
-			}
-
-			return modified;
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - (71 + ImGui::GetStyle().WindowPadding.x * 2));
+		if (ImGui::Button(UI_ICON_EDIT, ImVec2(25, 0))) {
+			m_var->Function = FunctionShaderVariable::None;
+			modified = true;
 		}
 
-		return false;
+		if (state != FunctionShaderVariable::None)
+			ImGui::PopStyleColor();
+		else
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FX, ImVec2(25, 0))) {
+			// find first function that is compatible with this value type
+			for (int i = 0; i < (int)FunctionShaderVariable::Count; i++) {
+				if (m_var->Function == FunctionShaderVariable::PluginFunction)
+					break;
+
+				if (FunctionVariableManager::HasValidReturnType(m_var->GetType(), (FunctionShaderVariable)i)) {
+					FunctionVariableManager::AllocateArgumentSpace(m_var, (FunctionShaderVariable)i);
+					break;
+				}
+			}
+		}
+
+		if (state == FunctionShaderVariable::None)
+			ImGui::PopStyleColor();
+
+		if (m_var->Function == FunctionShaderVariable::None) {
+			bool mres = m_drawRegular();
+			modified = mres || modified;
+		} else {
+			bool mfunc = m_drawFunction();
+			modified = mfunc || modified;
+		}
+
+		ImGui::PopID();
+
+		return modified;
 	}
 	bool VariableValueEditUI::m_drawRegular()
 	{

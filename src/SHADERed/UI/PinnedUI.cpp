@@ -10,13 +10,16 @@ namespace ed {
 	}
 	void PinnedUI::Update(float delta)
 	{
-		for (auto& var : m_pinnedVars) {
+		for (int i = 0; i < m_pinnedVars.size(); i++) { 
+			ShaderVariable* var = m_pinnedVars[i];
+			ImGui::PushID(i);
+
 			m_editor.Open(var);
 			if (m_editor.Update())
 				m_data->Parser.ModifyProject();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2 - Settings::Instance().CalculateSize(25));
-			if (ImGui::Button(("CLOSE##pin_cls_" + std::string(var->Name)).c_str(), ImVec2(Settings::Instance().CalculateSize(50), 0))) {
+			if (ImGui::Button("CLOSE", ImVec2(Settings::Instance().CalculateSize(50), 0))) {
 				Remove(var->Name);
 				m_data->Parser.ModifyProject();
 			}
@@ -24,6 +27,8 @@ namespace ed {
 			ImGui::NewLine();
 			ImGui::Separator();
 			ImGui::NewLine();
+
+			ImGui::PopID();
 		}
 
 		if (m_pinnedVars.size() == 0)

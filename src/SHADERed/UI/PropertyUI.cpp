@@ -39,10 +39,10 @@ namespace ed {
 				ImGui::Text(PIPELINE_ITEM_NAMES[(int)m_current->Type]);
 				if (m_current->Type == PipelineItem::ItemType::Geometry) {
 					ImGui::SameLine();
-					ImGui::Text(("(" + std::string(GEOMETRY_NAMES[(int)((pipe::GeometryItem*)m_current->Data)->Type]) + ")").c_str());
+					ImGui::Text("(%s)", GEOMETRY_NAMES[(int)((pipe::GeometryItem*)m_current->Data)->Type]);
 				} else if (m_current->Type == PipelineItem::ItemType::PluginItem) {
 					ImGui::SameLine();
-					ImGui::Text(("(" + std::string(((pipe::PluginItemData*)m_current->Data)->Type) + ")").c_str());
+					ImGui::Text("(%s)", ((pipe::PluginItemData*)m_current->Data)->Type);
 				}
 			} else if (m_currentObj != nullptr) {
 				ImGui::Text(m_data->Objects.GetObjectManagerItemName(m_currentObj).c_str());
@@ -128,7 +128,8 @@ namespace ed {
 						GLuint rtID = item->RenderTextures[i];
 						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetRenderTexture(rtID)->Name);
 
-						if (ImGui::BeginCombo(("##pui_rt_combo" + std::to_string(i)).c_str(), name.c_str())) {
+						ImGui::PushID(i);
+						if (ImGui::BeginCombo("##pui_rt_combo", name.c_str())) {
 							std::vector<std::string> rts = m_data->Objects.GetObjects();
 							bool windowAlreadyBound = false;
 							for (int k = 0; k < MAX_RENDER_TEXTURES; k++) {
@@ -194,6 +195,7 @@ namespace ed {
 
 							ImGui::EndCombo();
 						}
+						ImGui::PopID();
 
 						if (item->RenderTextures[i] == 0)
 							break;
