@@ -307,8 +307,6 @@ namespace ed {
 			}
 		}
 
-		ed::Logger::Get().Log("Finished transcompiling the shader");
-
 		return source;
 	}
 	bool ShaderCompiler::CompileToSPIRV(std::vector<unsigned int>& spvOut, ShaderLanguage inLang, const std::string& filename, ShaderStage sType, const std::string& entry, std::vector<ShaderMacro>& macros, MessageStack* msgs, ProjectParser* project)

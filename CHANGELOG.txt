@@ -4,6 +4,7 @@
 + add --version | -v command line argument
 + improve logging
 + fix pipeline item drag and drop
++ fix undo bug that happens after autocomplete
 
 [v1.4.1]
 + add compute shader debugger
