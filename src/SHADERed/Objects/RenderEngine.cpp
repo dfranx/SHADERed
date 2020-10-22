@@ -1328,9 +1328,9 @@ namespace ed {
 						}
 
 
-
+						GLchar vsMsg[512] = { 0 };
 						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-						vsCompiled &= gl::CheckShaderCompilationStatus(vs);
+						vsCompiled &= gl::CheckShaderCompilationStatus(vs, vsMsg);
 
 						glDeleteShader(m_shaderSources[i].VS);
 						m_shaderSources[i].VS = vs;

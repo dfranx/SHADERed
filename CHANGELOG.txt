@@ -8,6 +8,7 @@
 + fix undo bug that happens after autocomplete
 + fix SPIR-V syntax highlighting on stats page
 + fix text editor scrolling
++ fix GLSL include directive
 
 [v1.4.1]
 + add compute shader debugger

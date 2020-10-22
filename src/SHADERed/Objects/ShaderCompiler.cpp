@@ -395,6 +395,7 @@ namespace ed {
 
 		// includer
 		ed::HLSLFileIncluder includer;
+		includer.ProjectHandle = project;
 		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
 		if (project != nullptr)
 			for (auto& str : Settings::Instance().Project.IncludePaths)
