@@ -621,12 +621,21 @@ namespace igfd
 						{
 							if (itPathDecomp != m_CurrentPath_Decomposition.begin())
 								ImGui::SameLine();
+
+							bool shouldBreak = false;
 							if (ImGui::Button((*itPathDecomp + "##pelem" + std::to_string(pathElementIndex)).c_str()))
 							{
 								ComposeNewPath(itPathDecomp);
 								pathClick = true;
-								break;
+								shouldBreak = true;
 							}
+							if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+								strcpy(m_PathInput, m_CurrentPath.c_str());
+								m_IsPathInputMode = true;
+								shouldBreak = true;
+							}
+							if (shouldBreak) break;
+
 
 							if (pathElementIndex == m_CurrentPath_Decomposition.size() - 1 && *itPathDecomp != "/") {
 								ImGui::SameLine();
@@ -1223,6 +1232,9 @@ namespace igfd
 
 	void ImGuiFileDialog::SetPath(const std::string& vPath)
 	{
+		SearchBuffer[0] = 0;
+		searchTag = SearchBuffer; // reset search
+
 		m_ShowDrives = false;
 		m_CurrentPath = vPath;
 		m_FileList.clear();
