@@ -913,6 +913,7 @@ namespace ed {
 				}
 
 				ImGui::PopStyleColor();
+				ImGui::PopID();
 				continue;
 			}
 			ImGui::SameLine(0, 0);
@@ -969,6 +970,7 @@ namespace ed {
 			const char* systemComboPreview = el->System == SystemShaderVariable::PluginVariable ? (el->PluginSystemVarData.Name) : (SYSTEM_VARIABLE_NAMES[(int)el->System]);
 
 			if (ImGui::BeginCombo("##system", systemComboPreview)) {
+				bool removeFromPins = false;
 				for (int n = 0; n < HARRAYSIZE(SYSTEM_VARIABLE_NAMES); n++) {
 					bool is_selected = (n == (int)el->System);
 					if (n != (int)SystemShaderVariable::PluginVariable) {
@@ -976,16 +978,24 @@ namespace ed {
 							&& ImGui::Selectable(SYSTEM_VARIABLE_NAMES[n], is_selected)) {
 							el->System = (ed::SystemShaderVariable)n;
 							m_data->Parser.ModifyProject();
+							removeFromPins = true;
 						}
 					} else {
 						bool modified = m_data->Plugins.ShowSystemVariables(&el->PluginSystemVarData, el->GetType());
 						if (modified) {
 							m_data->Parser.ModifyProject();
 							el->System = SystemShaderVariable::PluginVariable;
+							removeFromPins = true;
 						}
 					}
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
+					if (removeFromPins && n != 0) {
+						PinnedUI* pinState = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
+						if (pinState->Contains(el->Name))
+							pinState->Remove(el->Name);
+						removeFromPins = false;
+					}
 				}
 				ImGui::EndCombo();
 			}
@@ -1101,8 +1111,8 @@ namespace ed {
 
 		//ImGui::PopItemWidth();
 
-		ImGui::EndChild();
 		ImGui::Columns(1);
+		ImGui::EndChild();
 	}
 	void PipelineUI::m_renderChangeVariablesUI()
 	{
