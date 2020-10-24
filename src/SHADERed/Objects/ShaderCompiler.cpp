@@ -135,14 +135,33 @@ namespace ed {
 
 		// Set options
 		spirv_cross::CompilerGLSL::Options options;
-
 		int ver = 330;
 		if (GLEW_ARB_shader_storage_buffer_object)
 			ver = 430;
-
 		options.version = (sType == ShaderStage::Compute) ? 430 : ver;
-
 		glsl.set_common_options(options);
+
+		// Set entry
+		auto entry_points = glsl.get_entry_points_and_stages();
+		spv::ExecutionModel model = spv::ExecutionModelMax;
+		std::string entry_point = "";
+		if (sType == ShaderStage::Vertex)
+			model = spv::ExecutionModelVertex;
+		else if (sType == ShaderStage::Pixel)
+			model = spv::ExecutionModelFragment;
+		else if (sType == ShaderStage::Geometry)
+			model = spv::ExecutionModelGeometry;
+		else if (sType == ShaderStage::Compute)
+			model = spv::ExecutionModelGLCompute;
+		for (auto& e : entry_points) {
+			if (e.execution_model == model) {
+				entry_point = e.name;
+				break;
+			}
+		}
+		if (!entry_point.empty() && model != spv::ExecutionModeMax)
+			glsl.set_entry_point(entry_point, model);
+
 
 		auto active = glsl.get_active_interface_variables();
 

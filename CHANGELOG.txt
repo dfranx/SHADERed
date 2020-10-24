@@ -11,6 +11,7 @@
 + fix SPIR-V syntax highlighting on stats page
 + fix text editor scrolling
 + fix GLSL include directive
++ fix converting from SPIR-V to GLSL when multiple stages are in the same file
 
 [v1.4.1]
 + add compute shader debugger
