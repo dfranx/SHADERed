@@ -7,6 +7,7 @@
 + right clicking on the path button in file dialog will open path textbox
 + text editor's "Find" feature should now be case insensitive
 + fix pipeline item drag and drop
++ fix "Check for plugin updates on startup" option
 + fix undo bug that happens after autocomplete
 + fix SPIR-V syntax highlighting on stats page
 + fix text editor scrolling

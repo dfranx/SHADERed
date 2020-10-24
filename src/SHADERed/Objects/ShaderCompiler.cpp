@@ -162,7 +162,6 @@ namespace ed {
 		if (!entry_point.empty() && model != spv::ExecutionModeMax)
 			glsl.set_entry_point(entry_point, model);
 
-
 		auto active = glsl.get_active_interface_variables();
 
 		// rename outputs
