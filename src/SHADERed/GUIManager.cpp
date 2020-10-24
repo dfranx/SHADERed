@@ -114,6 +114,7 @@ namespace ed {
 		m_isIncompatPluginsOpened = false;
 		m_minimalMode = false;
 		m_cubemapPathPtr = nullptr;
+		m_cmdArguments = nullptr;
 
 		m_isBrowseOnlineOpened = false;
 		memset(&m_onlineQuery, 0, sizeof(m_onlineQuery));
@@ -2272,6 +2273,12 @@ namespace ed {
 			// check if godot shaders should be excluded from the "Browse online" window
 			m_onlineExcludeGodot = m_data->Plugins.GetPlugin("GodotShaders") == nullptr;
 
+			// load a startup project (if given through arguments)
+			if (m_cmdArguments && !m_cmdArguments->ProjectFile.empty()) {
+				ed::Logger::Get().Log("Opening a file provided through argument " + m_cmdArguments->ProjectFile);
+				this->Open(m_cmdArguments->ProjectFile);
+			}
+
 			m_splashScreenLoaded = true;
 			m_isIncompatPluginsOpened = !m_data->Plugins.GetIncompatiblePlugins().empty();
 
@@ -3007,6 +3014,12 @@ namespace ed {
 			m_data->Renderer.Render(curSize.x, curSize.y);
 
 		SDL_SetWindowTitle(m_wnd, ("SHADERed (" + projName + ")").c_str());
+	}
+
+	void GUIManager::SetCommandLineOptions(CommandLineOptionParser& options)
+	{
+		m_cmdArguments = &options;
+		SetMinimalMode(options.MinimalMode);
 	}
 
 	void GUIManager::CreateNewShaderPass()

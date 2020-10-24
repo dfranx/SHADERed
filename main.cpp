@@ -228,14 +228,8 @@ int main(int argc, char* argv[])
 	// set window icon:
 	SetIcon(wnd);
 
-	// open an item if given in arguments
-	if (!coptsParser.ProjectFile.empty()) {
-		ed::Logger::Get().Log("Opening a file provided through argument " + coptsParser.ProjectFile);
-		engine.UI().Open(coptsParser.ProjectFile);
-	}
-
+	engine.UI().SetCommandLineOptions(coptsParser);
 	engine.UI().SetPerformanceMode(perfMode);
-	engine.UI().SetMinimalMode(coptsParser.MinimalMode);
 	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
 
 	// check for filesystem errors

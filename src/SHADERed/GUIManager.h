@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/Objects/KeyboardShortcuts.h>
 #include <SHADERed/Objects/ShaderVariableContainer.h>
+#include <SHADERed/Objects/CommandLineOptionParser.h>
 #include <SHADERed/Objects/SPIRVParser.h>
 #include <SHADERed/Objects/WebAPI.h>
 #include <SHADERed/UI/Tools/NotificationSystem.h>
@@ -87,6 +88,8 @@ namespace ed {
 		void SaveAsProject(bool restoreCached = false, std::function<void(bool)> handle = nullptr, std::function<void()> preHandle = nullptr);
 		void Open(const std::string& file);
 
+		void SetCommandLineOptions(CommandLineOptionParser& options);
+
 	private:
 		void m_setupShortcuts();
 
@@ -100,6 +103,8 @@ namespace ed {
 		void m_tooltip(const std::string& str);
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;
+
+		CommandLineOptionParser* m_cmdArguments;
 
 		std::vector<std::string> m_recentProjects;
 

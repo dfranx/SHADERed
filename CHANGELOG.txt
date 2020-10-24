@@ -13,6 +13,7 @@
 + fix text editor scrolling
 + fix GLSL include directive
 + fix converting from SPIR-V to GLSL when multiple stages are in the same file
++ fix a bug that wouldnt let user open a project that used plugins through terminal
 
 [v1.4.1]
 + add compute shader debugger
