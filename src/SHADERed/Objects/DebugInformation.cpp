@@ -871,7 +871,7 @@ namespace ed {
 						bool wrongBind = false;
 
 						bool isSampled = false;
-						if (type_info->value_type == spvm_value_type_sampled_image || (slot->image_info != nullptr && slot->image_info->sampled == 1))
+						if (m_stage != ShaderStage::Compute || type_info->value_type == spvm_value_type_sampled_image || (slot->image_info != nullptr && slot->image_info->sampled == 1))
 							isSampled = true;
 
 						if (isSampled) { // srvs
@@ -889,7 +889,7 @@ namespace ed {
 						if (!wrongBind && textureID != 0) {
 							std::string textureName = m_objs->GetItemNameByTextureID(textureID);
 
-							bool isActuallyImage = m_objs->IsTexture(textureName) || m_objs->IsImage(textureName) || m_objs->IsImage3D(textureName);
+							bool isActuallyImage = m_objs->IsRenderTexture(textureName) || m_objs->IsTexture(textureName) || m_objs->IsImage(textureName) || m_objs->IsImage3D(textureName);
 							if (!isActuallyImage) {
 								wrongBind = true;
 								textureID = 0;

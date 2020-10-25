@@ -108,6 +108,7 @@ namespace ed {
 		}
 	}
 	
+	
 	/* base64 stuff for plugin & theme thumbnails */
 	/* 
 	   base64.cpp and base64.h

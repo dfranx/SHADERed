@@ -1181,6 +1181,7 @@ namespace ed {
 			}
 
 			bool hasNext = true;
+			bool hasPrevious = m_onlinePage > 0;
 
 			if (ImGui::BeginTabBar("BrowseOnlineTabBar")) {
 				if (ImGui::BeginTabItem("Shaders")) {
@@ -1338,6 +1339,10 @@ namespace ed {
 
 			
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(180));
+			if (!hasPrevious) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
 			if (ImGui::Button("<<", ImVec2(Settings::Instance().CalculateSize(70), 0))) {
 				m_onlinePage = std::max<int>(0, m_onlinePage - 1);
 
@@ -1346,6 +1351,10 @@ namespace ed {
 				else m_onlineThemePage = m_onlinePage;
 
 				m_onlineSearchShaders();
+			}
+			if (!hasPrevious) {
+				ImGui::PopStyleVar();
+				ImGui::PopItemFlag();
 			}
 			ImGui::SameLine();
 			ImGui::Text("%d", m_onlinePage + 1);

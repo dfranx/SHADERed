@@ -8,6 +8,7 @@
 + right clicking on the path button in file dialog will open path textbox
 + text editor's "Find" feature is now case insensitive
 + unpin the variable after applying system value to it
++ fix textures in the debugger
 + fix pipeline item drag and drop
 + fix "Check for plugin updates on startup" option
 + fix undo bug that happens after autocomplete
