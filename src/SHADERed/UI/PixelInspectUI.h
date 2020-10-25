@@ -24,5 +24,8 @@ namespace ed {
 		glm::vec4 m_cacheColor;
 
 		CubemapPreview m_cubePrev;
+
+		std::vector<float> m_pixelHeights;
+		std::vector<float> m_suggestionHeights;
 	};
 }

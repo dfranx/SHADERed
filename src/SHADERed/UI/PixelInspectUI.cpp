@@ -12,6 +12,7 @@
 #include <SHADERed/UI/UIHelper.h>
 
 #include <imgui/imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -30,145 +31,154 @@ namespace ed {
 		if (ImGui::Button("Clear##pixel_clear", ImVec2(-1, 0)))
 			m_data->Debugger.ClearPixelList();
 
+		if (pixels.size() != m_pixelHeights.size())
+			m_pixelHeights.resize(pixels.size());
+
 		ImGui::NewLine();
 
 		ImGui::BeginChild("##pixel_scroll_container", ImVec2(-1, -1));
-		
+
+		ImVec4 childBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+
 		// pixel/vertex
 		int pxId = 0;
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, childBg * ImVec4(0.9f, 0.9f, 0.9f, 0.9f));
 		for (auto& pixel : pixels) {
 			ImGui::PushID(pxId);
 
-			/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
-			ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
-			
-			/* [PIXEL COLOR] */
-			ImGui::PushItemWidth(-1);
-			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::ColorEdit4("##pixel_edit", const_cast<float*>(glm::value_ptr(pixel.Color)));
-			ImGui::PopItemFlag();
-			ImGui::PopItemWidth();
+			if (ImGui::BeginChild("##pixel_container", ImVec2(0, m_pixelHeights[pxId]), true)) {
+				float pxCursorStart = ImGui::GetCursorPosY();
 
-			m_ui->Get(ViewID::PixelInspect);
+				/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
+				ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
 
-			if (!pixel.Fetched) {
-				if (ImGui::Button("Fetch##pixel_fetch", ImVec2(-1, 0))
-					&& m_data->Messages.CanRenderPreview()) {
-					m_data->FetchPixel(pixel);
-				}
-			} else {
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				/* [PIXEL COLOR] */
+				ImGui::PushItemWidth(-1);
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::ColorEdit4("##pixel_edit", const_cast<float*>(glm::value_ptr(pixel.Color)));
+				ImGui::PopItemFlag();
+				ImGui::PopItemWidth();
 
-				TextEditor* editor = nullptr;
-				bool requestCompile = false;
-				int initIndex = 0;
+				m_ui->Get(ViewID::PixelInspect);
 
-				bool vertexShaderEnabled = true, pixelShaderEnabled = true;
-				if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
-					pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
-					vertexShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Vertex);
-					pixelShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Pixel);
-				}
-
-				/* [PIXEL] */
-				if (!pixelShaderEnabled) {
-					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				}
-				if (ImGui::Button(UI_ICON_PLAY "##debug_pixel", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-					&& m_data->Messages.CanRenderPreview()) {
-					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
-
-					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-					codeUI->StopDebugging();
-					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
-						codeUI->Open(pixel.Pass, ShaderStage::Pixel);
-					else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
-						plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
-					}
-					editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
-
-					// for plugins that store vertex and pixel shader in the same file
-					if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
-						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
-
-					m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
-					m_data->Debugger.SetPixelShaderInput(pixel);
-					requestCompile = true;
-				}
-				ImGui::SameLine();
-				if (pixel.Discarded)
-					ImGui::Text("discarded");
-				else {
-					ImGui::PushItemWidth(-1);
-					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
-					ImGui::PopItemFlag();
-					ImGui::PopItemWidth();
-				}
-				if (!pixelShaderEnabled) {
-					ImGui::PopStyleVar();
-					ImGui::PopItemFlag();
-				}
-
-
-				/* [VERTEX] */
-				if (!vertexShaderEnabled) {
-					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				}
-				for (int i = 0; i < pixel.VertexCount; i++) {
-					ImGui::PushID(i);
-					if (ImGui::Button(UI_ICON_PLAY "##debug_vertex", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+				if (!pixel.Fetched) {
+					if (ImGui::Button("Fetch##pixel_fetch", ImVec2(-1, 0))
 						&& m_data->Messages.CanRenderPreview()) {
+						m_data->FetchPixel(pixel);
+					}
+				} else {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+					TextEditor* editor = nullptr;
+					bool requestCompile = false;
+					int initIndex = 0;
+
+					bool vertexShaderEnabled = true, pixelShaderEnabled = true;
+					if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
+						vertexShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Vertex);
+						pixelShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Pixel);
+					}
+
+					/* [PIXEL] */
+					if (!pixelShaderEnabled) {
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+					if (ImGui::Button(UI_ICON_PLAY "##debug_pixel", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+						&& m_data->Messages.CanRenderPreview()) {
+						pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
+
 						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 						codeUI->StopDebugging();
 						if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
-							codeUI->Open(pixel.Pass, ShaderStage::Vertex);
+							codeUI->Open(pixel.Pass, ShaderStage::Pixel);
 						else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
 							pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
 							plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
 						}
-						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+						editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
 
-						m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
-						m_data->Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
-						
-						initIndex = i;
+						// for plugins that store vertex and pixel shader in the same file
+						if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
+							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+
+						m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
+						m_data->Debugger.SetPixelShaderInput(pixel);
 						requestCompile = true;
 					}
-					ImGui::PopID();
 					ImGui::SameLine();
-					ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
+					if (pixel.Discarded)
+						ImGui::Text("discarded");
+					else {
+						ImGui::PushItemWidth(-1);
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
+						ImGui::PopItemFlag();
+						ImGui::PopItemWidth();
+					}
+					if (!pixelShaderEnabled) {
+						ImGui::PopStyleVar();
+						ImGui::PopItemFlag();
+					}
+
+					/* [VERTEX] */
+					if (!vertexShaderEnabled) {
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+					for (int i = 0; i < pixel.VertexCount; i++) {
+						ImGui::PushID(i);
+						if (ImGui::Button(UI_ICON_PLAY "##debug_vertex", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+							&& m_data->Messages.CanRenderPreview()) {
+							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+							codeUI->StopDebugging();
+							if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
+								codeUI->Open(pixel.Pass, ShaderStage::Vertex);
+							else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+								pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
+								plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+							}
+							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+
+							m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
+							m_data->Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+
+							initIndex = i;
+							requestCompile = true;
+						}
+						ImGui::PopID();
+						ImGui::SameLine();
+						ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
+					}
+					if (!vertexShaderEnabled) {
+						ImGui::PopStyleVar();
+						ImGui::PopItemFlag();
+					}
+
+					/* [TODO:GEOMETRY SHADER] */
+
+					/* ACTUAL ACTION HERE */
+					if (requestCompile && editor != nullptr)
+						StartDebugging(editor, &pixel);
+
+					ImGui::PopStyleColor();
 				}
-				if (!vertexShaderEnabled) {
-					ImGui::PopStyleVar();
-					ImGui::PopItemFlag();
-				}
 
-
-				/* [TODO:GEOMETRY SHADER] */
-
-
-				/* ACTUAL ACTION HERE */
-				if (requestCompile && editor != nullptr)
-					StartDebugging(editor, &pixel);
-
-				ImGui::PopStyleColor();
+				m_pixelHeights[pxId] = (ImGui::GetCursorPosY() - pxCursorStart) + 2 * ImGui::GetStyle().WindowPadding.y;
 			}
-
-			ImGui::Separator();
+			ImGui::EndChild();
 			ImGui::NewLine();
 
 			ImGui::PopID();
 			pxId++;
 		}
 
-
 		if (suggestions.size()) {
+			if (suggestions.size() != m_suggestionHeights.size())
+				m_suggestionHeights.resize(suggestions.size());
+
 			ImGui::Text("Suggestions:");
-			ImGui::Separator();
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
 			// suggestions
@@ -176,53 +186,58 @@ namespace ed {
 			for (auto& suggestion : suggestions) {
 				ImGui::PushID(sugId);
 
-				if (suggestion.Type == DebuggerSuggestion::SuggestionType::ComputeShader) {
-					pipe::ComputePass* pass = (pipe::ComputePass*)suggestion.Item->Data;
-					glm::ivec3 thread = suggestion.Thread;
-					ed::ShaderLanguage lang = ed::ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
+				if (ImGui::BeginChild("##suggestion_container", ImVec2(0, m_suggestionHeights[sugId]), true)) {
+					float pxCursorStart = ImGui::GetCursorPosY();
+					if (suggestion.Type == DebuggerSuggestion::SuggestionType::ComputeShader) {
+						pipe::ComputePass* pass = (pipe::ComputePass*)suggestion.Item->Data;
+						glm::ivec3 thread = suggestion.Thread;
+						ed::ShaderLanguage lang = ed::ShaderCompiler::GetShaderLanguageFromExtension(pass->Path);
 
-					if (suggestion.WorkgroupSize.x == 0) {
-						SPIRVParser parser;
-						parser.Parse(pass->SPV);
+						if (suggestion.WorkgroupSize.x == 0) {
+							SPIRVParser parser;
+							parser.Parse(pass->SPV);
 
-						suggestion.WorkgroupSize = glm::ivec3(parser.LocalSizeX, parser.LocalSizeY, parser.LocalSizeZ);
+							suggestion.WorkgroupSize = glm::ivec3(parser.LocalSizeX, parser.LocalSizeY, parser.LocalSizeZ);
+						}
+
+						if (ImGui::Button(UI_ICON_PLAY "##debug_compute", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+
+							pipe::ComputePass* pass = ((pipe::ComputePass*)suggestion.Item->Data);
+							// TODO: plugins?
+
+							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+							codeUI->StopDebugging();
+							codeUI->Open(suggestion.Item, ShaderStage::Compute);
+							TextEditor* editor = codeUI->Get(suggestion.Item, ShaderStage::Compute);
+
+							m_data->Debugger.PrepareComputeShader(suggestion.Item, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
+							((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
+						}
+						ImGui::SameLine();
+
+						/* [PASS NAME, THREAD ID] */
+						ImGui::Text("%s @ (%d,%d,%d)", suggestion.Item->Name, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
+
+						/* THREAD INFO */
+						int localInvocationIndex = (thread.z % suggestion.WorkgroupSize.z) * suggestion.WorkgroupSize.x * suggestion.WorkgroupSize.z + (thread.y % suggestion.WorkgroupSize.y) * suggestion.WorkgroupSize.x + (thread.x % suggestion.WorkgroupSize.x);
+
+						if (lang == ed::ShaderLanguage::HLSL) {
+							ImGui::Text("SV_GroupID -> uint3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
+							ImGui::Text("SV_GroupThreadID -> uint3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
+							ImGui::Text("SV_DispatchThreadID -> uint3(%d, %d, %d)", thread.x, thread.y, thread.z);
+							ImGui::Text("SV_GroupIndex -> %d", localInvocationIndex);
+						} else {
+							ImGui::Text("gl_NumWorkGroups -> uvec3(%d, %d, %d)", pass->WorkX, pass->WorkY, pass->WorkZ);
+							ImGui::Text("gl_WorkGroupID -> uvec3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
+							ImGui::Text("gl_LocalInvocationID -> uvec3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
+							ImGui::Text("gl_GlobalInvocationID -> uvec3(%d, %d, %d)", thread.x, thread.y, thread.z);
+							ImGui::Text("gl_LocalInvocationIndex -> %d", localInvocationIndex);
+						}
 					}
-
-					if (ImGui::Button(UI_ICON_PLAY "##debug_compute", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
-
-						pipe::ComputePass* pass = ((pipe::ComputePass*)suggestion.Item->Data);
-						// TODO: plugins?
-
-						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-						codeUI->StopDebugging();
-						codeUI->Open(suggestion.Item, ShaderStage::Compute);
-						TextEditor* editor = codeUI->Get(suggestion.Item, ShaderStage::Compute);
-
-						m_data->Debugger.PrepareComputeShader(suggestion.Item, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
-						((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
-					}
-					ImGui::SameLine();
-
-					/* [PASS NAME, THREAD ID] */
-					ImGui::Text("%s @ (%d,%d,%d)", suggestion.Item->Name, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
-
-					/* THREAD INFO */
-					int localInvocationIndex = (thread.z % suggestion.WorkgroupSize.z) * suggestion.WorkgroupSize.x * suggestion.WorkgroupSize.z + (thread.y % suggestion.WorkgroupSize.y) * suggestion.WorkgroupSize.x + (thread.x % suggestion.WorkgroupSize.x);
-
-					if (lang == ed::ShaderLanguage::HLSL) {
-						ImGui::Text("SV_GroupID -> uint3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
-						ImGui::Text("SV_GroupThreadID -> uint3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
-						ImGui::Text("SV_DispatchThreadID -> uint3(%d, %d, %d)", thread.x, thread.y, thread.z);
-						ImGui::Text("SV_GroupIndex -> %d", localInvocationIndex);
-					} else {
-						ImGui::Text("gl_NumWorkGroups -> uvec3(%d, %d, %d)", pass->WorkX, pass->WorkY, pass->WorkZ);
-						ImGui::Text("gl_WorkGroupID -> uvec3(%d, %d, %d)", thread.x / suggestion.WorkgroupSize.x, thread.y / suggestion.WorkgroupSize.y, thread.z / suggestion.WorkgroupSize.z);
-						ImGui::Text("gl_LocalInvocationID -> uvec3(%d, %d, %d)", thread.x % suggestion.WorkgroupSize.x, thread.y % suggestion.WorkgroupSize.y, thread.z % suggestion.WorkgroupSize.z);
-						ImGui::Text("gl_GlobalInvocationID -> uvec3(%d, %d, %d)", thread.x, thread.y, thread.z);
-						ImGui::Text("gl_LocalInvocationIndex -> %d", localInvocationIndex);
-					}
+					m_suggestionHeights[sugId] = (ImGui::GetCursorPosY() - pxCursorStart) + 2 * ImGui::GetStyle().WindowPadding.y;
 				}
-				ImGui::Separator();
+				ImGui::EndChild();
+				ImGui::NewLine();
 
 				ImGui::PopID();
 				sugId++;
@@ -230,6 +245,7 @@ namespace ed {
 		
 			ImGui::PopStyleColor();
 		}
+		ImGui::PopStyleColor();
 
 		ImGui::EndChild();
 	}
