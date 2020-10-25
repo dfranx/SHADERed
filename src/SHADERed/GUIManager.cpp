@@ -126,6 +126,14 @@ namespace ed {
 		m_onlineIsShader = true;
 		m_onlineIsPlugin = false;
 		m_onlineExcludeGodot = false;
+		m_refreshPluginThumbnails = false;
+		m_refreshShaderThumbnails = false;
+		m_refreshThemeThumbnails = false;
+		m_queueThumbnailPixelData = nullptr;
+		m_queueThumbnailWidth = m_queueThumbnailHeight = 0;
+		m_queueThumbnailNext = false;
+		m_queueThumbnailProcess = false;
+		m_queueThumbnailID = 0;
 
 		m_uiIniFile = Settings::Instance().ConvertPath("data/workspace.dat");
 
@@ -1071,7 +1079,7 @@ namespace ed {
 				m_onlineSearchPlugins();
 			if (m_onlineThemes.size() == 0)
 				m_onlineSearchThemes();
-
+				
 			m_isBrowseOnlineOpened = false;
 		}
 
@@ -1152,6 +1160,46 @@ namespace ed {
 		// Create RT popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(830), Settings::Instance().CalculateSize(550)), ImGuiCond_FirstUseEver);
 		if (ImGui::BeginPopupModal("Browse online##browse_online")) {
+			// load thumbnails 1 by 1 in a seperate thread
+			if (m_refreshShaderThumbnails) {
+				if (m_queueThumbnailProcess) {
+					GLuint thumbnailTex = 0;
+
+					if (m_queueThumbnailPixelData) {
+
+						glGenTextures(1, &thumbnailTex);
+						glBindTexture(GL_TEXTURE_2D, thumbnailTex);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_queueThumbnailWidth, m_queueThumbnailHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_queueThumbnailPixelData);
+						glBindTexture(GL_TEXTURE_2D, 0);
+
+						free(m_queueThumbnailPixelData);
+					}
+
+					m_onlineShaderThumbnail.push_back(thumbnailTex);
+
+					if (m_onlineShaderThumbnail.size() < std::min<int>(12, m_onlineShaders.size()))
+						m_queueThumbnailNext = true;
+					else 
+						m_refreshShaderThumbnails = false;
+					m_queueThumbnailID = std::min<int>(12, m_queueThumbnailID + 1);
+					m_queueThumbnailProcess = false;
+				}
+
+				if (m_queueThumbnailNext) {
+					m_data->API.AllocateShaderThumbnail(m_onlineShaders[m_queueThumbnailID].ID, [&](unsigned char* data, int width, int height) {
+						m_queueThumbnailHeight = height;
+						m_queueThumbnailWidth = width;
+						m_queueThumbnailPixelData = data;
+						m_queueThumbnailProcess = true;
+					});
+					m_queueThumbnailNext = false;
+				}
+			}
+
 			int startY = ImGui::GetCursorPosY();
 			ImGui::Text("Query:");
 			ImGui::SameLine();
@@ -1203,7 +1251,14 @@ namespace ed {
 							ImGui::TableNextRow();
 
 							ImGui::TableSetColumnIndex(0);
-							ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+							if (i < m_onlineShaderThumbnail.size())
+								ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+							else {
+								ImVec2 spinnerPos = ImGui::GetCursorPos();
+								ImGui::Dummy(ImVec2(256, 144));
+								ImGui::SetCursorPos(ImVec2(spinnerPos.x + 256 / 2 - 32, spinnerPos.y + 144 / 2 - 32));
+								UIHelper::Spinner("##spinner", 32.0f, 6, ImGui::GetColorU32(ImGuiCol_Text));
+							}
 
 							ImGui::TableSetColumnIndex(1);
 							ImGui::Text("%s", shaderInfo.Title.c_str()); // just in case someone has a %s or sth in the title, so that the app doesn't crash :'D
@@ -1237,6 +1292,47 @@ namespace ed {
 					ImGui::EndTabItem();
 				}
 				if (ImGui::BeginTabItem("Plugins")) {
+					// load plugin thumbnails
+					if (m_refreshPluginThumbnails) {
+						int minSize = std::min<int>(12, m_onlinePlugins.size());
+						m_onlinePluginThumbnail.resize(minSize);
+
+						size_t dataLen = 0;
+						for (int i = 0; i < minSize; i++) {
+							char* data = m_data->API.DecodeThumbnail(m_onlinePlugins[i].Thumbnail, dataLen);
+							if (data == nullptr) {
+								Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
+								continue;
+							}
+							m_onlinePlugins[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
+
+							int width, height, nrChannels;
+							unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
+
+							if (pixelData == nullptr) {
+								Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
+								free(data);
+								continue;
+							}
+
+							// normal texture
+							glGenTextures(1, &m_onlinePluginThumbnail[i]);
+							glBindTexture(GL_TEXTURE_2D, m_onlinePluginThumbnail[i]);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+							glBindTexture(GL_TEXTURE_2D, 0);
+
+							free(data);
+						}
+
+						m_refreshPluginThumbnails = false;
+					}
+
+
+
 					m_onlineIsShader = false;
 					m_onlineIsPlugin = true;
 					m_onlinePage = m_onlinePluginPage;
@@ -1282,6 +1378,48 @@ namespace ed {
 					ImGui::EndTabItem();
 				}
 				if (ImGui::BeginTabItem("Themes")) {
+					// load theme thumbnails
+					if (m_refreshThemeThumbnails) {
+						int minSize = std::min<int>(12, m_onlineThemes.size());
+
+						m_onlineThemeThumbnail.resize(minSize);
+
+						size_t dataLen = 0;
+						for (int i = 0; i < minSize; i++) {
+							char* data = m_data->API.DecodeThumbnail(m_onlineThemes[i].Thumbnail, dataLen);
+							if (data == nullptr) {
+								Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
+								continue;
+							}
+							m_onlineThemes[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
+
+							int width, height, nrChannels;
+							unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
+
+							if (pixelData == nullptr) {
+								Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
+								free(data);
+								continue;
+							}
+
+							// normal texture
+							glGenTextures(1, &m_onlineThemeThumbnail[i]);
+							glBindTexture(GL_TEXTURE_2D, m_onlineThemeThumbnail[i]);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+							glBindTexture(GL_TEXTURE_2D, 0);
+
+							free(data);
+						}
+
+						m_refreshThemeThumbnails = false;
+					}
+
+
+
 					m_onlineIsShader = false;
 					m_onlineIsPlugin = false;
 					m_onlinePage = m_onlineThemePage;
@@ -2549,48 +2687,21 @@ namespace ed {
 	}
 	void GUIManager::m_onlineSearchShaders()
 	{
+		m_queueThumbnailProcess = false;
+		m_queueThumbnailNext = false;
 		m_onlineShaders.clear();
 		for (int i = 0; i < m_onlineShaderThumbnail.size(); i++)
 			glDeleteTextures(1, &m_onlineShaderThumbnail[i]);
 		m_onlineShaderThumbnail.clear();
+		m_queueThumbnailID = 0;
+		m_refreshShaderThumbnails = false;
 
-		m_onlineShaders = m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot);
-
-
-
-		int minSize = std::min<int>(12, m_onlineShaders.size());
-
-		m_onlineShaderThumbnail.resize(minSize);
-
-		size_t dataLen = 0;
-		for (int i = 0; i < minSize; i++) {
-			char* data = m_data->API.AllocateThumbnail(m_onlineShaders[i].ID, dataLen);
-			if (data == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineShaders[i].ID, true);
-				continue;
-			}
-
-			int width, height, nrChannels;
-			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
-
-			if (pixelData == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineShaders[i].ID, true);
-				free(data);
-				continue;
-			}
-
-			// normal texture
-			glGenTextures(1, &m_onlineShaderThumbnail[i]);
-			glBindTexture(GL_TEXTURE_2D, m_onlineShaderThumbnail[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			free(data);
-		}
+		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot, [&](const std::vector<WebAPI::ShaderResult>& shaders) {
+			m_onlineShaders = shaders;
+			m_refreshShaderThumbnails = true;
+			m_queueThumbnailProcess = false;
+			m_queueThumbnailNext = true;
+		});
 	}
 	void GUIManager::m_onlineSearchPlugins()
 	{
@@ -2598,44 +2709,12 @@ namespace ed {
 		for (int i = 0; i < m_onlinePluginThumbnail.size(); i++)
 			glDeleteTextures(1, &m_onlinePluginThumbnail[i]);
 		m_onlinePluginThumbnail.clear();
+		m_refreshPluginThumbnails = false;
 
-		m_onlinePlugins = m_data->API.SearchPlugins(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername);
-		
-		
-		int minSize = std::min<int>(12, m_onlinePlugins.size());
-
-		m_onlinePluginThumbnail.resize(minSize);
-
-		size_t dataLen = 0;
-		for (int i = 0; i < minSize; i++) {
-			char* data = m_data->API.DecodeThumbnail(m_onlinePlugins[i].Thumbnail, dataLen);
-			if (data == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
-				continue;
-			}
-			m_onlinePlugins[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
-
-			int width, height, nrChannels;
-			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
-
-			if (pixelData == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlinePlugins[i].ID, true);
-				free(data);
-				continue;
-			}
-
-			// normal texture
-			glGenTextures(1, &m_onlinePluginThumbnail[i]);
-			glBindTexture(GL_TEXTURE_2D, m_onlinePluginThumbnail[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			free(data);
-		}
+		m_data->API.SearchPlugins(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername, [&](const std::vector<WebAPI::PluginResult>& plugins) {
+			m_onlinePlugins = plugins;
+			m_refreshPluginThumbnails = true;
+		});
 	}
 	void GUIManager::m_onlineSearchThemes()
 	{
@@ -2643,43 +2722,12 @@ namespace ed {
 		for (int i = 0; i < m_onlineThemeThumbnail.size(); i++)
 			glDeleteTextures(1, &m_onlineThemeThumbnail[i]);
 		m_onlineThemeThumbnail.clear();
+		m_refreshThemeThumbnails = false;
 
-		m_onlineThemes = m_data->API.SearchThemes(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername);
-
-		int minSize = std::min<int>(12, m_onlineThemes.size());
-
-		m_onlineThemeThumbnail.resize(minSize);
-
-		size_t dataLen = 0;
-		for (int i = 0; i < minSize; i++) {
-			char* data = m_data->API.DecodeThumbnail(m_onlineThemes[i].Thumbnail, dataLen);
-			if (data == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
-				continue;
-			}
-			m_onlineThemes[i].Thumbnail.clear(); // since they are pretty large, no need to keep them in memory
-
-			int width, height, nrChannels;
-			unsigned char* pixelData = stbi_load_from_memory((stbi_uc*)data, dataLen, &width, &height, &nrChannels, STBI_rgb_alpha);
-
-			if (pixelData == nullptr) {
-				Logger::Get().Log("Failed to load a texture thumbnail for " + m_onlineThemes[i].ID, true);
-				free(data);
-				continue;
-			}
-
-			// normal texture
-			glGenTextures(1, &m_onlineThemeThumbnail[i]);
-			glBindTexture(GL_TEXTURE_2D, m_onlineThemeThumbnail[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			free(data);
-		}
+		m_data->API.SearchThemes(m_onlineQuery, m_onlinePage, "popular", m_onlineUsername, [&](const std::vector<WebAPI::ThemeResult>& themes) {
+			m_onlineThemes = themes;
+			m_refreshThemeThumbnails = true;
+		});
 	}
 	void GUIManager::m_renderOptions()
 	{

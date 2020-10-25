@@ -5,6 +5,7 @@
 #include <SFML/Network.hpp>
 #include <pugixml/src/pugixml.hpp>
 #include <miniz/zip_file.hpp>
+#include <stb/stb_image.h>
 
 #include <filesystem>
 #include <fstream>
@@ -107,8 +108,160 @@ namespace ed {
 			}
 		}
 	}
-	
-	
+	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<WebAPI::ShaderResult>&)> onFetch)
+	{
+		std::vector<WebAPI::ShaderResult> ret = std::vector<WebAPI::ShaderResult>();
+
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders);
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL);
+		sf::Http::Request request;
+		request.setUri("/search.php");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(2.5f));
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (result) {
+				auto resultsNode = doc.child("results");
+
+				for (auto shaderNode : resultsNode.children("shader")) {
+					WebAPI::ShaderResult result;
+
+					result.ID = shaderNode.child("id").text().as_string();
+					result.Title = shaderNode.child("title").text().as_string();
+					result.Description = shaderNode.child("description").text().as_string();
+					result.Owner = shaderNode.child("owner").text().as_string();
+					result.Views = shaderNode.child("views").text().as_int();
+					result.Language = shaderNode.child("language").text().as_string();
+
+					ret.push_back(result);
+				}
+			}
+		}
+
+		onFetch(ret);
+	}
+	void searchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<WebAPI::ThemeResult>&)> onFetch)
+	{
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL);
+		sf::Http::Request request;
+		request.setUri("/search_theme.php");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		std::vector<WebAPI::ThemeResult> ret = std::vector<WebAPI::ThemeResult>();
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (result) {
+				auto resultsNode = doc.child("results");
+
+				for (auto pluginNode : resultsNode.children("theme")) {
+					WebAPI::ThemeResult result;
+
+					result.ID = pluginNode.child("id").text().as_string();
+					result.Title = pluginNode.child("title").text().as_string();
+					result.Description = pluginNode.child("description").text().as_string();
+					result.Owner = pluginNode.child("owner").text().as_string();
+					result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
+					result.Downloads = pluginNode.child("downloads").text().as_int();
+
+					result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
+
+					ret.push_back(result);
+				}
+			}
+		}
+
+		onFetch(ret);
+	}
+	void searchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<WebAPI::PluginResult>&)> onFetch)
+	{
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		if (!owner.empty())
+			requestBody += "&owner=" + owner;
+
+		sf::Http http(WebAPI::URL);
+		sf::Http::Request request;
+		request.setUri("/search_plugin.php");
+		request.setBody(requestBody);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		std::vector<WebAPI::PluginResult> ret = std::vector<WebAPI::PluginResult>();
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			if (result) {
+				auto resultsNode = doc.child("results");
+
+				for (auto pluginNode : resultsNode.children("plugin")) {
+					WebAPI::PluginResult result;
+
+					result.ID = pluginNode.child("id").text().as_string();
+					result.Title = pluginNode.child("title").text().as_string();
+					result.Description = pluginNode.child("description").text().as_string();
+					result.Owner = pluginNode.child("owner").text().as_string();
+					result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
+					result.Downloads = pluginNode.child("downloads").text().as_int();
+
+					result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
+
+					ret.push_back(result);
+				}
+			}
+		}
+
+		onFetch(ret);
+	}
+	void allocateThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch)
+	{
+		sf::Http http(WebAPI::URL);
+		sf::Http::Request request;
+		request.setUri("/get_shader_thumbnail");
+		request.setBody("shader=" + id);
+		request.setMethod(sf::Http::Request::Method::Post);
+		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+
+		unsigned char* imgData = nullptr;
+		int imgWidth = 0, imgHeight = 0;
+
+		if (response.getStatus() == sf::Http::Response::Ok) {
+			std::string src = response.getBody();
+
+			const char* byteData = src.c_str();
+			size_t byteLength = src.size();
+
+			int nrChannels;
+			imgData = stbi_load_from_memory((stbi_uc*)byteData, byteLength, &imgWidth, &imgHeight, &nrChannels, STBI_rgb_alpha);
+
+			if (imgData == nullptr) {
+				imgWidth = 0;
+				imgHeight = 0;
+			}
+		}
+
+		onFetch(imgData, imgWidth, imgHeight);
+	}
+
 	/* base64 stuff for plugin & theme thumbnails */
 	/* 
 	   base64.cpp and base64.h
@@ -193,6 +346,10 @@ namespace ed {
 		m_tipsThread = nullptr;
 		m_changelogThread = nullptr;
 		m_updateThread = nullptr;
+		m_shadersThread = nullptr;
+		m_thumbnailThread = nullptr;
+		m_themesThread = nullptr;
+		m_pluginsThread = nullptr;
 	}
 	WebAPI::~WebAPI()
 	{
@@ -207,6 +364,22 @@ namespace ed {
 		if (m_updateThread != nullptr && m_updateThread->joinable())
 			m_updateThread->join();
 		delete m_updateThread;
+
+		if (m_shadersThread != nullptr && m_shadersThread->joinable())
+			m_shadersThread->join();
+		delete m_shadersThread;
+
+		if (m_thumbnailThread != nullptr && m_thumbnailThread->joinable())
+			m_thumbnailThread->join();
+		delete m_thumbnailThread;
+
+		if (m_themesThread != nullptr && m_themesThread->joinable())
+			m_themesThread->join();
+		delete m_themesThread;
+
+		if (m_pluginsThread != nullptr && m_pluginsThread->joinable())
+			m_pluginsThread->join();
+		delete m_pluginsThread;
 	}
 	void WebAPI::FetchTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
@@ -247,75 +420,21 @@ namespace ed {
 		delete m_updateThread;
 		m_updateThread = new std::thread(checkUpdates, onUpdate);
 	}
-	std::vector<WebAPI::ShaderResult> WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders)
+	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch)
 	{
-		Logger::Get().Log("Searching for shaders with WebAPI");
+		Logger::Get().Log("Searching shaders with WebAPI");
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders);
-		if (!owner.empty())
-			requestBody += "&owner=" + owner;
-
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			std::vector<WebAPI::ShaderResult> results;
-
-			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
-			if (!result) {
-				Logger::Get().Log("Failed to parse web search results", true);
-				return std::vector<WebAPI::ShaderResult>();
-			}
-
-			auto resultsNode = doc.child("results");
-
-			for (auto shaderNode : resultsNode.children("shader")) {
-				WebAPI::ShaderResult result;
-
-				result.ID = shaderNode.child("id").text().as_string();
-				result.Title = shaderNode.child("title").text().as_string();
-				result.Description = shaderNode.child("description").text().as_string();
-				result.Owner = shaderNode.child("owner").text().as_string();
-				result.Views = shaderNode.child("views").text().as_int();
-				result.Language = shaderNode.child("language").text().as_string();
-
-				results.push_back(result);
-			}
-
-			return results;
-		}
-
-		return std::vector<WebAPI::ShaderResult>();
+		if (m_shadersThread != nullptr && m_shadersThread->joinable())
+			m_shadersThread->join();
+		delete m_shadersThread;
+		m_shadersThread = new std::thread(searchShaders, query, page, sort, language, owner, excludeGodotShaders, onFetch);
 	}
-	char* WebAPI::AllocateThumbnail(const std::string& id, size_t& length)
+	void WebAPI::AllocateShaderThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/get_shader_thumbnail");
-		request.setBody("shader=" + id);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			const char* bytedata = src.c_str();
-			length = src.size();
-
-			char* allocated = (char*)malloc(length);
-			memcpy(allocated, bytedata, length);
-
-			return allocated;
-		}
-
-		return nullptr;
+		if (m_thumbnailThread != nullptr && m_thumbnailThread->joinable())
+			m_thumbnailThread->join();
+		delete m_thumbnailThread;
+		m_thumbnailThread = new std::thread(allocateThumbnail, id, onFetch);
 	}
 	bool WebAPI::DownloadShaderProject(const std::string& id)
 	{
@@ -351,54 +470,14 @@ namespace ed {
 
 		return false;
 	}
-	std::vector<WebAPI::PluginResult> WebAPI::SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner)
+	void WebAPI::SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<WebAPI::PluginResult>&)> onFetch)
 	{
-		Logger::Get().Log("Searching for plugins with WebAPI");
+		Logger::Get().Log("Searching SHADERed plugins with WebAPI");
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
-		if (!owner.empty())
-			requestBody += "&owner=" + owner;
-
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search_plugin.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			std::vector<WebAPI::PluginResult> results;
-
-			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
-			if (!result) {
-				Logger::Get().Log("Failed to parse web search results", true);
-				return std::vector<WebAPI::PluginResult>();
-			}
-
-			auto resultsNode = doc.child("results");
-
-			for (auto pluginNode : resultsNode.children("plugin")) {
-				WebAPI::PluginResult result;
-
-				result.ID = pluginNode.child("id").text().as_string();
-				result.Title = pluginNode.child("title").text().as_string();
-				result.Description = pluginNode.child("description").text().as_string();
-				result.Owner = pluginNode.child("owner").text().as_string();
-				result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
-				result.Downloads = pluginNode.child("downloads").text().as_int();
-
-				result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
-				
-				results.push_back(result);
-			}
-
-			return results;
-		}
-
-		return std::vector<WebAPI::PluginResult>();
+		if (m_pluginsThread != nullptr && m_pluginsThread->joinable())
+			m_pluginsThread->join();
+		delete m_pluginsThread;
+		m_pluginsThread = new std::thread(searchPlugins, query, page, sort, owner, onFetch);
 	}
 	char* WebAPI::DecodeThumbnail(const std::string& base64, size_t& length)
 	{
@@ -447,54 +526,15 @@ namespace ed {
 			zipFile.extractall(outputDir);
 		}
 	}
-	std::vector<WebAPI::ThemeResult> WebAPI::SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner)
+	void WebAPI::SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<ThemeResult>&)> onFetch)
 	{
-		Logger::Get().Log("Searching for themes with WebAPI");
+		Logger::Get().Log("Searching SHADERed themes with WebAPI");
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
-		if (!owner.empty())
-			requestBody += "&owner=" + owner;
-
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search_theme.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			std::vector<WebAPI::ThemeResult> results;
-
-			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
-			if (!result) {
-				Logger::Get().Log("Failed to parse web search results", true);
-				return std::vector<WebAPI::ThemeResult>();
-			}
-
-			auto resultsNode = doc.child("results");
-
-			for (auto pluginNode : resultsNode.children("theme")) {
-				WebAPI::ThemeResult result;
-
-				result.ID = pluginNode.child("id").text().as_string();
-				result.Title = pluginNode.child("title").text().as_string();
-				result.Description = pluginNode.child("description").text().as_string();
-				result.Owner = pluginNode.child("owner").text().as_string();
-				result.Thumbnail = pluginNode.child("thumbnail").text().as_string();
-				result.Downloads = pluginNode.child("downloads").text().as_int();
-
-				result.Thumbnail = result.Thumbnail.substr(result.Thumbnail.find_first_of(',') + 1);
-
-				results.push_back(result);
-			}
-
-			return results;
-		}
-
-		return std::vector<WebAPI::ThemeResult>();
+		if (m_themesThread != nullptr && m_themesThread->joinable())
+			m_themesThread->join();
+		delete m_themesThread;
+		
+		m_themesThread = new std::thread(searchThemes, query, page, sort, owner, onFetch);
 	}
 	void WebAPI::DownloadTheme(const std::string& id)
 	{

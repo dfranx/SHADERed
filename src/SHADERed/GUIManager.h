@@ -110,6 +110,12 @@ namespace ed {
 
 		std::vector<ed::WebAPI::ShaderResult> m_onlineShaders;
 		std::vector<GLuint> m_onlineShaderThumbnail;
+		bool m_refreshShaderThumbnails, m_refreshPluginThumbnails, m_refreshThemeThumbnails;
+		unsigned char* m_queueThumbnailPixelData;
+		int m_queueThumbnailWidth, m_queueThumbnailHeight;
+		bool m_queueThumbnailNext, m_queueThumbnailProcess;
+		int m_queueThumbnailID;
+
 		std::vector<ed::WebAPI::PluginResult> m_onlinePlugins;
 		std::vector<GLuint> m_onlinePluginThumbnail;
 		std::vector<ed::WebAPI::ThemeResult> m_onlineThemes;

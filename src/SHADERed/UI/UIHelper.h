@@ -24,6 +24,8 @@ namespace ed {
 
 		static void ShellOpen(const std::string& path);
 
+		static bool Spinner(const char* label, float radius, int thickness, unsigned int color);
+
 		static bool CreateBlendOperatorCombo(const char* name, GLenum& op);
 		static bool CreateBlendCombo(const char* name, GLenum& blend);
 		static bool CreateCullModeCombo(const char* name, GLenum& cull);

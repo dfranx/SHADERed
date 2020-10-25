@@ -2,13 +2,14 @@
 + add "Save SPIR-V binary" option
 + add the ability to drag and drop objects on pipeline items
 + add --version | -v command line argument
++ add threading to "Browse online" window, now it is much smoother
 + improve logging
 + improve Pixel Inspect window's UI
 + reset file dialog search query after opening a directory
 + right clicking on the path button in file dialog will open path textbox
 + text editor's "Find" feature is now case insensitive
 + unpin the variable after applying system value to it
-+ fix textures in the debugger
++ fix binding textures to HLSL shaders in the debugger
 + fix pipeline item drag and drop
 + fix "Check for plugin updates on startup" option
 + fix undo bug that happens after autocomplete

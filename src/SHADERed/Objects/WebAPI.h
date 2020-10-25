@@ -51,16 +51,16 @@ namespace ed {
 		void CheckForApplicationUpdates(std::function<void()> onUpdate);
 
 		/* list of shaders */
-		std::vector<ShaderResult> SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders);
-
-		/* bytes, bytecount <- download thumbnail */
-		char* AllocateThumbnail(const std::string& id, size_t& length);
+		void SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch);
+		
+		/* download and parse shader thumbnail in another thread, onFetch(pixelData, width, height) */
+		void AllocateShaderThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch);
 
 		/* download project in temp directory */
 		bool DownloadShaderProject(const std::string& id);
 
 		/* search plugins */
-		std::vector<PluginResult> SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner);
+		void SearchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<PluginResult>&)> onFetch);
 
 		/* decode thumbnail */
 		char* DecodeThumbnail(const std::string& base64, size_t& length);
@@ -69,7 +69,7 @@ namespace ed {
 		void DownloadPlugin(const std::string& id);
 
 		/* search themes */
-		std::vector<ThemeResult> SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner);
+		void SearchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<ThemeResult>&)> onFetch);
 
 		/* download theme */
 		void DownloadTheme(const std::string& id);
@@ -82,5 +82,9 @@ namespace ed {
 		std::thread* m_tipsThread;
 		std::thread* m_changelogThread;
 		std::thread* m_updateThread;
+		std::thread* m_shadersThread;
+		std::thread* m_thumbnailThread;
+		std::thread* m_themesThread;
+		std::thread* m_pluginsThread;
 	};
 }
