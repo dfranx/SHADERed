@@ -2576,20 +2576,12 @@ namespace ed {
 			preview (screenshot, pause, zoom in, zoom out, maximize) ||
 			random (settings)
 		*/
-		ImGui::Columns(4);
 
 		ImGui::PushFont(m_iconFontLarge);
 
-		const ImVec2 labelSize = ImGui::CalcTextSize(UI_ICON_DOCUMENT_FOLDER, NULL, true);
-		const float btnWidth = labelSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
-		const float scaledBtnWidth = Settings::Instance().CalculateWidth(btnWidth) + ImGui::GetStyle().ItemSpacing.x * 2.0f;
-
-		ImGui::SetColumnWidth(0, 5 * scaledBtnWidth);
-		ImGui::SetColumnWidth(1, 8 * scaledBtnWidth);
-		ImGui::SetColumnWidth(2, 4 * scaledBtnWidth);
-
 		// TODO: maybe pack all these into functions such as m_open, m_createEmpty, etc... so that there are no code
 		// repetitions
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button(UI_ICON_DOCUMENT_FOLDER)) { // OPEN PROJECT
 			bool cont = true;
 			if (m_data->Parser.IsProjectModified()) {
@@ -2601,7 +2593,6 @@ namespace ed {
 			if (cont)
 				igfd::ImGuiFileDialog::Instance()->OpenModal("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*", ".");
 		}
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		m_tooltip("Open a project");
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_SAVE)) // SAVE
@@ -2625,7 +2616,10 @@ namespace ed {
 #endif
 		}
 		m_tooltip("Open project directory");
-		ImGui::NextColumn();
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine(0.0f, 32.0f);
 
 		if (ImGui::Button(UI_ICON_PIXELS)) this->CreateNewShaderPass();
 		m_tooltip("New shader pass");
@@ -2650,7 +2644,10 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_TEXT)) this->CreateNewBuffer();
 		m_tooltip("New buffer");
-		ImGui::NextColumn();
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine(0.0f, 32.0f);
 
 		if (ImGui::Button(UI_ICON_REFRESH)) { // REBUILD PROJECT
 			((CodeEditorUI*)Get(ViewID::Code))->SaveAll();
@@ -2669,7 +2666,10 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_MAXIMIZE)) m_perfModeFake = !m_perfModeFake;
 		m_tooltip("Performance mode");
-		ImGui::NextColumn();
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine(0.0f, 32.0f);
 
 		if (ImGui::Button(UI_ICON_GEAR)) { // SETTINGS BUTTON
 			m_optionsOpened = true;
@@ -2677,11 +2677,9 @@ namespace ed {
 			m_shortcutsBkp = KeyboardShortcuts::Instance().GetMap();
 		}
 		m_tooltip("Settings");
-		ImGui::NextColumn();
 
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
-		ImGui::Columns(1);
 
 		ImGui::End();
 	}

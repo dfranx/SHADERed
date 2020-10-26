@@ -2,9 +2,9 @@
 + add "Save SPIR-V binary" option
 + add the ability to drag and drop objects on pipeline items
 + add --version | -v command line argument
-+ add threading to "Browse online" window, now it is much smoother
-+ improve logging
++ add threading to "Browse online" window so that it doesn't block SHADERedik
 + improve Pixel Inspect window's UI
++ improve logging
 + reset file dialog search query after opening a directory
 + right clicking on the path button in file dialog will open path textbox
 + text editor's "Find" feature is now case insensitive
