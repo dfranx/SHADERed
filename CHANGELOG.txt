@@ -2,6 +2,7 @@
 + add "Save SPIR-V binary" option
 + add the ability to drag and drop objects on pipeline items
 + add --version | -v command line argument
++ add --render | -r, --renderwidth | -rw, --renderheight | -rh, --rendertime | -rt, etc... commands
 + add threading to "Browse online" window so that it doesn't block SHADERedik
 + improve Pixel Inspect window's UI
 + improve logging

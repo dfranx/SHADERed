@@ -1978,218 +1978,8 @@ namespace ed {
 			glm::ivec2 rerenderSize = m_data->Renderer.GetLastRenderSize();
 
 			if (ImGui::Button("Save")) {
-				int sizeMulti = 1;
-				switch (m_savePreviewSupersample) {
-				case 1: sizeMulti = 2; break;
-				case 2: sizeMulti = 4; break;
-				case 3: sizeMulti = 8; break;
-				}
-				int actualSizeX = m_previewSaveSize.x * sizeMulti;
-				int actualSizeY = m_previewSaveSize.y * sizeMulti;
-
-				SystemVariableManager::Instance().SetSavingToFile(true);
-
-				// normal render
-				if (!m_savePreviewSeq) {
-					if (actualSizeX > 0 && actualSizeY > 0) {
-						SystemVariableManager::Instance().CopyState();
-
-						SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
-						SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
-						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
-						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
-						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
-
-						m_data->Renderer.Render(actualSizeX, actualSizeY);
-
-						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTime);
-					
-						rerenderPreview = true;
-					}
-
-					unsigned char* pixels = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
-					unsigned char* outPixels = nullptr;
-
-					if (sizeMulti != 1)
-						outPixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-					else
-						outPixels = pixels;
-
-					GLuint tex = m_data->Renderer.GetTexture();
-					glBindTexture(GL_TEXTURE_2D, tex);
-					glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-					glBindTexture(GL_TEXTURE_2D, 0);
-
-					// resize image
-					if (sizeMulti != 1) {
-						stbir_resize_uint8(pixels, actualSizeX, actualSizeY, actualSizeX * 4,
-							outPixels, m_previewSaveSize.x, m_previewSaveSize.y, m_previewSaveSize.x * 4, 4);
-					}
-
-					std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.') + 1);
-
-					if (ext == "jpg" || ext == "jpeg")
-						stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, 100);
-					else if (ext == "bmp")
-						stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
-					else if (ext == "tga")
-						stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
-					else
-						stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, m_previewSaveSize.x * 4);
-
-					if (sizeMulti != 1) free(outPixels);
-					free(pixels);
-				} else { // sequence render
-					float seqDelta = 1.0f / m_savePreviewSeqFPS;
-
-					if (actualSizeX > 0 && actualSizeY > 0) {
-						SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
-						SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
-						SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
-
-						float curTime = 0.0f;
-
-						GLuint tex = m_data->Renderer.GetTexture();
-
-						size_t lastDot = m_previewSavePath.find_last_of('.');
-						std::string ext = lastDot == std::string::npos ? "png" : m_previewSavePath.substr(lastDot + 1);
-						std::string filename = m_previewSavePath;
-
-						// allow only one %??d
-						bool inFormat = false;
-						int lastFormatPos = -1;
-						int formatCount = 0;
-						for (int i = 0; i < filename.size(); i++) {
-							if (filename[i] == '%') {
-								inFormat = true;
-								lastFormatPos = i;
-								continue;
-							}
-
-							if (inFormat) {
-								if (isdigit(filename[i])) {
-								} else {
-									if (filename[i] != '%' && ((filename[i] == 'd' && formatCount > 0) || (filename[i] != 'd'))) {
-										filename.insert(lastFormatPos, 1, '%');
-									}
-
-									if (filename[i] == 'd')
-										formatCount++;
-									inFormat = false;
-								}
-							}
-						}
-
-						// no %d found? add one
-						if (formatCount == 0)
-							filename.insert(lastDot == std::string::npos ? filename.size() : lastDot, "%d"); // frame%d
-
-						SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
-						SystemVariableManager::Instance().SetTimeDelta(seqDelta);
-
-						stbi_write_png_compression_level = 5; // set to lowest compression level
-
-						int tCount = std::thread::hardware_concurrency();
-						tCount = tCount == 0 ? 2 : tCount;
-
-						unsigned char** pixels = new unsigned char*[tCount];
-						unsigned char** outPixels = new unsigned char*[tCount];
-						int* curFrame = new int[tCount];
-						bool* needsUpdate = new bool[tCount];
-						std::thread** threadPool = new std::thread*[tCount];
-						std::atomic<bool> isOver = false;
-
-						for (int i = 0; i < tCount; i++) {
-							curFrame[i] = 0;
-							needsUpdate[i] = true;
-							pixels[i] = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
-
-							if (sizeMulti != 1)
-								outPixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
-							else
-								outPixels[i] = nullptr;
-
-							threadPool[i] = new std::thread([ext, filename, sizeMulti, actualSizeX, actualSizeY, &outPixels, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
-								char prevSavePath[SHADERED_MAX_PATH];
-								while (!isOver) {
-									if (needsUpdate[worker])
-										continue;
-
-									// resize image
-									if (sizeMulti != 1) {
-										stbir_resize_uint8(pixels[worker], actualSizeX, actualSizeY, actualSizeX * 4,
-											outPixels[worker], w, h, w * 4, 4);
-									} else
-										outPixels[worker] = pixels[worker];
-
-									sprintf(prevSavePath, filename.c_str(), curFrame[worker]);
-
-									if (ext == "jpg" || ext == "jpeg")
-										stbi_write_jpg(prevSavePath, w, h, 4, outPixels[worker], 100);
-									else if (ext == "bmp")
-										stbi_write_bmp(prevSavePath, w, h, 4, outPixels[worker]);
-									else if (ext == "tga")
-										stbi_write_tga(prevSavePath, w, h, 4, outPixels[worker]);
-									else
-										stbi_write_png(prevSavePath, w, h, 4, outPixels[worker], w * 4);
-
-									needsUpdate[worker] = true;
-								}
-							},
-								i, m_previewSaveSize.x, m_previewSaveSize.y);
-						}
-
-						int globalFrame = 0;
-						while (curTime < m_savePreviewSeqDuration) {
-							int hasWork = -1;
-							for (int i = 0; i < tCount; i++)
-								if (needsUpdate[i]) {
-									hasWork = i;
-									break;
-								}
-
-							if (hasWork == -1)
-								continue;
-
-							SystemVariableManager::Instance().CopyState();
-							SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex + globalFrame);
-
-							m_data->Renderer.Render(actualSizeX, actualSizeY);
-
-							glBindTexture(GL_TEXTURE_2D, tex);
-							glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels[hasWork]);
-							glBindTexture(GL_TEXTURE_2D, 0);
-
-							SystemVariableManager::Instance().AdvanceTimer(seqDelta);
-
-							curTime += seqDelta;
-							curFrame[hasWork] = globalFrame;
-							needsUpdate[hasWork] = false;
-							globalFrame++;
-						}
-						isOver = true;
-
-						for (int i = 0; i < tCount; i++) {
-							if (threadPool[i]->joinable())
-								threadPool[i]->join();
-							free(pixels[i]);
-							if (sizeMulti != 1)
-								free(outPixels[i]);
-							delete threadPool[i];
-						}
-						delete[] pixels;
-						delete[] outPixels;
-						delete[] curFrame;
-						delete[] needsUpdate;
-						delete[] threadPool;
-
-						stbi_write_png_compression_level = 8; // set back to default compression level
-
-						rerenderPreview = true;
-					}
-				}
-
-				SystemVariableManager::Instance().SetSavingToFile(false);
+				SavePreviewToFile();
+				rerenderPreview = true;
 
 				m_data->Renderer.Pause(m_wasPausedPrior);
 				ImGui::CloseCurrentPopup();
@@ -3075,6 +2865,238 @@ namespace ed {
 	{
 		m_cmdArguments = &options;
 		SetMinimalMode(options.MinimalMode);
+
+		if (options.Render) {
+			m_savePreviewCachedTime = options.RenderTime;
+			m_savePreviewTimeDelta = 1/60.0f;
+			m_savePreviewFrameIndex = options.RenderFrameIndex;
+			m_savePreviewSupersample = 0;
+
+			switch (options.RenderSupersampling) {
+			case 2: m_savePreviewSupersample = 1; break;
+			case 4: m_savePreviewSupersample = 2; break;
+			case 8: m_savePreviewSupersample = 3; break;
+			}
+
+			m_previewSavePath = options.RenderPath;
+			m_previewSaveSize = glm::ivec2(options.RenderWidth, options.RenderHeight);
+			m_savePreviewSeq = options.RenderSequence;
+			m_savePreviewSeqDuration = options.RenderSequenceDuration;
+			m_savePreviewSeqFPS = options.RenderSequenceFPS;
+		}
+	}
+
+	void GUIManager::SavePreviewToFile()
+	{
+		int sizeMulti = 1;
+		switch (m_savePreviewSupersample) {
+		case 1: sizeMulti = 2; break;
+		case 2: sizeMulti = 4; break;
+		case 3: sizeMulti = 8; break;
+		}
+		int actualSizeX = m_previewSaveSize.x * sizeMulti;
+		int actualSizeY = m_previewSaveSize.y * sizeMulti;
+
+		SystemVariableManager::Instance().SetSavingToFile(true);
+
+		// normal render
+		if (!m_savePreviewSeq) {
+			if (actualSizeX > 0 && actualSizeY > 0) {
+				SystemVariableManager::Instance().CopyState();
+
+				SystemVariableManager::Instance().SetTimeDelta(m_savePreviewTimeDelta);
+				SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex);
+				SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
+				SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+				SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+
+				m_data->Renderer.Render(actualSizeX, actualSizeY);
+
+				SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTime);
+			}
+
+			unsigned char* pixels = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
+			unsigned char* outPixels = nullptr;
+
+			if (sizeMulti != 1)
+				outPixels = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+			else
+				outPixels = pixels;
+
+			GLuint tex = m_data->Renderer.GetTexture();
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			// resize image
+			if (sizeMulti != 1) {
+				stbir_resize_uint8(pixels, actualSizeX, actualSizeY, actualSizeX * 4,
+					outPixels, m_previewSaveSize.x, m_previewSaveSize.y, m_previewSaveSize.x * 4, 4);
+			}
+
+			std::string ext = m_previewSavePath.substr(m_previewSavePath.find_last_of('.') + 1);
+
+			if (ext == "jpg" || ext == "jpeg")
+				stbi_write_jpg(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, 100);
+			else if (ext == "bmp")
+				stbi_write_bmp(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
+			else if (ext == "tga")
+				stbi_write_tga(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels);
+			else
+				stbi_write_png(m_previewSavePath.c_str(), m_previewSaveSize.x, m_previewSaveSize.y, 4, outPixels, m_previewSaveSize.x * 4);
+
+			if (sizeMulti != 1) free(outPixels);
+			free(pixels);
+		} 
+		else { // sequence render
+			float seqDelta = 1.0f / m_savePreviewSeqFPS;
+
+			if (actualSizeX > 0 && actualSizeY > 0) {
+				SystemVariableManager::Instance().SetKeysWASD(m_savePreviewWASD[0], m_savePreviewWASD[1], m_savePreviewWASD[2], m_savePreviewWASD[3]);
+				SystemVariableManager::Instance().SetMousePosition(m_savePreviewMouse.x, m_savePreviewMouse.y);
+				SystemVariableManager::Instance().SetMouse(m_savePreviewMouse.x, m_savePreviewMouse.y, m_savePreviewMouse.z, m_savePreviewMouse.w);
+
+				float curTime = 0.0f;
+
+				GLuint tex = m_data->Renderer.GetTexture();
+
+				size_t lastDot = m_previewSavePath.find_last_of('.');
+				std::string ext = lastDot == std::string::npos ? "png" : m_previewSavePath.substr(lastDot + 1);
+				std::string filename = m_previewSavePath;
+
+				// allow only one %??d
+				bool inFormat = false;
+				int lastFormatPos = -1;
+				int formatCount = 0;
+				for (int i = 0; i < filename.size(); i++) {
+					if (filename[i] == '%') {
+						inFormat = true;
+						lastFormatPos = i;
+						continue;
+					}
+
+					if (inFormat) {
+						if (isdigit(filename[i])) {
+						} else {
+							if (filename[i] != '%' && ((filename[i] == 'd' && formatCount > 0) || (filename[i] != 'd'))) {
+								filename.insert(lastFormatPos, 1, '%');
+							}
+
+							if (filename[i] == 'd')
+								formatCount++;
+							inFormat = false;
+						}
+					}
+				}
+
+				// no %d found? add one
+				if (formatCount == 0)
+					filename.insert(lastDot == std::string::npos ? filename.size() : lastDot, "%d"); // frame%d
+
+				SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
+				SystemVariableManager::Instance().SetTimeDelta(seqDelta);
+
+				stbi_write_png_compression_level = 5; // set to lowest compression level
+
+				int tCount = std::thread::hardware_concurrency();
+				tCount = tCount == 0 ? 2 : tCount;
+
+				unsigned char** pixels = new unsigned char*[tCount];
+				unsigned char** outPixels = new unsigned char*[tCount];
+				int* curFrame = new int[tCount];
+				bool* needsUpdate = new bool[tCount];
+				std::thread** threadPool = new std::thread*[tCount];
+				std::atomic<bool> isOver = false;
+
+				for (int i = 0; i < tCount; i++) {
+					curFrame[i] = 0;
+					needsUpdate[i] = true;
+					pixels[i] = (unsigned char*)malloc(actualSizeX * actualSizeY * 4);
+
+					if (sizeMulti != 1)
+						outPixels[i] = (unsigned char*)malloc(m_previewSaveSize.x * m_previewSaveSize.y * 4);
+					else
+						outPixels[i] = nullptr;
+
+					threadPool[i] = new std::thread([ext, filename, sizeMulti, actualSizeX, actualSizeY, &outPixels, &pixels, &needsUpdate, &curFrame, &isOver](int worker, int w, int h) {
+						char prevSavePath[SHADERED_MAX_PATH];
+						while (!isOver) {
+							if (needsUpdate[worker])
+								continue;
+
+							// resize image
+							if (sizeMulti != 1) {
+								stbir_resize_uint8(pixels[worker], actualSizeX, actualSizeY, actualSizeX * 4,
+									outPixels[worker], w, h, w * 4, 4);
+							} else
+								outPixels[worker] = pixels[worker];
+
+							sprintf(prevSavePath, filename.c_str(), curFrame[worker]);
+
+							if (ext == "jpg" || ext == "jpeg")
+								stbi_write_jpg(prevSavePath, w, h, 4, outPixels[worker], 100);
+							else if (ext == "bmp")
+								stbi_write_bmp(prevSavePath, w, h, 4, outPixels[worker]);
+							else if (ext == "tga")
+								stbi_write_tga(prevSavePath, w, h, 4, outPixels[worker]);
+							else
+								stbi_write_png(prevSavePath, w, h, 4, outPixels[worker], w * 4);
+
+							needsUpdate[worker] = true;
+						}
+					},
+						i, m_previewSaveSize.x, m_previewSaveSize.y);
+				}
+
+				int globalFrame = 0;
+				while (curTime < m_savePreviewSeqDuration) {
+					int hasWork = -1;
+					for (int i = 0; i < tCount; i++)
+						if (needsUpdate[i]) {
+							hasWork = i;
+							break;
+						}
+
+					if (hasWork == -1)
+						continue;
+
+					SystemVariableManager::Instance().CopyState();
+					SystemVariableManager::Instance().SetFrameIndex(m_savePreviewFrameIndex + globalFrame);
+
+					m_data->Renderer.Render(actualSizeX, actualSizeY);
+
+					glBindTexture(GL_TEXTURE_2D, tex);
+					glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels[hasWork]);
+					glBindTexture(GL_TEXTURE_2D, 0);
+
+					SystemVariableManager::Instance().AdvanceTimer(seqDelta);
+
+					curTime += seqDelta;
+					curFrame[hasWork] = globalFrame;
+					needsUpdate[hasWork] = false;
+					globalFrame++;
+				}
+				isOver = true;
+
+				for (int i = 0; i < tCount; i++) {
+					if (threadPool[i]->joinable())
+						threadPool[i]->join();
+					free(pixels[i]);
+					if (sizeMulti != 1)
+						free(outPixels[i]);
+					delete threadPool[i];
+				}
+				delete[] pixels;
+				delete[] outPixels;
+				delete[] curFrame;
+				delete[] needsUpdate;
+				delete[] threadPool;
+
+				stbi_write_png_compression_level = 8; // set back to default compression level
+			}
+		}
+
+		SystemVariableManager::Instance().SetSavingToFile(false);
 	}
 
 	void GUIManager::CreateNewShaderPass()

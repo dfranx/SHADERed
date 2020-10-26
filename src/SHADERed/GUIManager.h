@@ -90,6 +90,8 @@ namespace ed {
 
 		void SetCommandLineOptions(CommandLineOptionParser& options);
 
+		void SavePreviewToFile();
+
 	private:
 		void m_setupShortcuts();
 

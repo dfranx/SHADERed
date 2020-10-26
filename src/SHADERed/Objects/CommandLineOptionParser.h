@@ -11,6 +11,11 @@ namespace ed {
 
 		bool LaunchUI;
 
+		std::string RenderPath;
+		bool Render, RenderSequence;
+		int RenderWidth, RenderHeight, RenderSupersampling, RenderFrameIndex, RenderSequenceFPS;
+		float RenderTime, RenderSequenceDuration;
+
 		bool Fullscreen;
 		bool Maximized;
 		bool PerformanceMode;

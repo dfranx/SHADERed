@@ -42,6 +42,8 @@ void SetDpiAware();
 
 int main(int argc, char* argv[])
 {
+	bool run = true; // should we enter the infinite loop?
+
 	srand(time(NULL));
 	
 	std::error_code fsError;
@@ -194,8 +196,18 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
 
+	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+	
+	// make the window invisible if only rendering to a file
+	if (coptsParser.Render) {
+		windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+		maximized = false;
+		fullscreen = false;
+		run = false;
+	}
+
 	// open window
-	SDL_Window* wnd = SDL_CreateWindow("SHADERed", (wndPosX == -1) ? SDL_WINDOWPOS_CENTERED : wndPosX, (wndPosY == -1) ? SDL_WINDOWPOS_CENTERED : wndPosY, wndWidth, wndHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	SDL_Window* wnd = SDL_CreateWindow("SHADERed", (wndPosX == -1) ? SDL_WINDOWPOS_CENTERED : wndPosX, (wndPosY == -1) ? SDL_WINDOWPOS_CENTERED : wndPosY, wndWidth, wndHeight, windowFlags);
 	SetDpiAware();
 	SDL_SetWindowMinimumSize(wnd, 200, 200);
 
@@ -241,10 +253,16 @@ int main(int argc, char* argv[])
 	while ((oglError = glGetError()) != GL_NO_ERROR)
 		ed::Logger::Get().Log("GL error: " + std::to_string(oglError), true);
 
+	// render to file
+	if (coptsParser.Render) {
+		engine.UI().Open(coptsParser.ProjectFile);
+		printf("Rendering to file...\n");
+		engine.UI().SavePreviewToFile();
+	}
+
 	// timer for time delta
 	ed::eng::Timer timer;
 	SDL_Event event;
-	bool run = true;
 	bool minimized = false;
 	bool hasFocus = true;
 	while (run) {
@@ -331,24 +349,24 @@ int main(int argc, char* argv[])
 
 	// save window size
 	preloadDatPath = ed::Settings::Instance().ConvertPath("data/preload.dat");
-	std::ofstream save(preloadDatPath);
+	if (!coptsParser.Render) {
+		ed::Logger::Get().Log("Saving window information");
 
-	ed::Logger::Get().Log("Saving window information");
-
-	converter.size = wndWidth; // write window width
-	save.write(converter.data, 2);
-	converter.size = wndHeight; // write window height
-	save.write(converter.data, 2);
-	converter.size = wndPosX; // write window position x
-	save.write(converter.data, 2);
-	converter.size = wndPosY; // write window position y
-	save.write(converter.data, 2);
-	save.put(fullscreen);
-	save.put(maximized);
-	save.put(engine.UI().IsPerformanceMode());
-	save.write(converter.data, 2);
-
-	save.close();
+		std::ofstream save(preloadDatPath);
+		converter.size = wndWidth; // write window width
+		save.write(converter.data, 2);
+		converter.size = wndHeight; // write window height
+		save.write(converter.data, 2);
+		converter.size = wndPosX; // write window position x
+		save.write(converter.data, 2);
+		converter.size = wndPosY; // write window position y
+		save.write(converter.data, 2);
+		save.put(fullscreen);
+		save.put(maximized);
+		save.put(engine.UI().IsPerformanceMode());
+		save.write(converter.data, 2);
+		save.close();
+	}
 
 	// close and free the memory
 	engine.Destroy();
