@@ -207,7 +207,7 @@ namespace ed {
 
 		glEnable(GL_BLEND);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-		glBlendEquationSeparate(GL_ADD, GL_MAX);
+		glBlendEquationSeparate(GL_FUNC_ADD, GL_MAX);
 
 		// draw lines
 		glUniform4fv(m_uColor, 1, glm::value_ptr(glm::vec4(1.0f, 1.0f, 1.0f, 0.5f)));
