@@ -973,6 +973,36 @@ namespace ed {
 					ImGui::NextColumn();
 					ImGui::Separator();
 
+					/* buffers */
+					ImGui::Text("Index Buffer:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##pui_ib_buffer", ((item->IndexBuffer == nullptr) ? "NULL" : (m_data->Objects.GetBufferNameByID(((BufferObject*)item->IndexBuffer)->ID).c_str())))) {
+						// null element
+						if (ImGui::Selectable("NULL", item->IndexBuffer == nullptr)) {
+							item->IndexBuffer = nullptr;
+							m_data->Parser.ModifyProject();
+						}
+
+						for (int i = 0; i < bufList.size(); i++) {
+							if (bufList[i]->Buffer == nullptr)
+								continue;
+
+							ed::BufferObject* buf = bufList[i]->Buffer;
+
+							if (ImGui::Selectable(bufNames[i].c_str(), buf == item->IndexBuffer)) {
+								item->IndexBuffer = buf;
+								m_data->Parser.ModifyProject();
+							}
+						}
+
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
 					/* position */
 					ImGui::Text("Position:");
 					ImGui::NextColumn();

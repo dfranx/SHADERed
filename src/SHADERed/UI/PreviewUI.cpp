@@ -980,13 +980,15 @@ namespace ed {
 				pos = model->Position;
 			} else if (item->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* vertBuffer = (pipe::VertexBuffer*)item->Data;
-				gl::GetVertexBufferBounds(&m_data->Objects, vertBuffer, minPosItem, maxPosItem);
-			
-				minPosItem *= vertBuffer->Scale;
-				maxPosItem *= vertBuffer->Scale;
+				if(vertBuffer->Buffer) {
+					gl::GetVertexBufferBounds(&m_data->Objects, vertBuffer, minPosItem, maxPosItem);
 
-				rota = vertBuffer->Rotation;
-				pos = vertBuffer->Position;
+					minPosItem *= vertBuffer->Scale;
+					maxPosItem *= vertBuffer->Scale;
+
+					rota = vertBuffer->Rotation;
+					pos = vertBuffer->Position;
+				}
 			} else if (item->Type == ed::PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = (pipe::PluginItemData*)item->Data;
 
