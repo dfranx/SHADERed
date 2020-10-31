@@ -214,6 +214,26 @@ namespace ed {
 				auto resultsNode = doc.child("results");
 
 				for (auto pluginNode : resultsNode.children("plugin")) {
+
+					// first check if plugin supports our OS
+					int flags = pluginNode.child("flags").text().as_int();
+					bool shouldAdd = false;
+
+#if defined(_WIN64)
+					if (flags & 0b0001)
+						shouldAdd = true; // plugin supports win64
+#elif defined(_WIN32)
+					if (flags & 0b0010)
+						shouldAdd = true; // plugin supports win32
+#elif defined(__linux__) || defined(__unix__)
+					if (flags & 0b0100)
+						shouldAdd = true; // plugin supports linux
+#endif
+					if (!shouldAdd)
+						continue;
+
+
+
 					WebAPI::PluginResult result;
 
 					result.ID = pluginNode.child("id").text().as_string();
