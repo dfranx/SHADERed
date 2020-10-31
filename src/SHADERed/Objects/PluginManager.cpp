@@ -1083,9 +1083,16 @@ namespace ed {
 
 	IPlugin1* PluginManager::GetPlugin(const std::string& plugin)
 	{
-		for (int i = 0; i < m_names.size(); i++)
-			if (m_names[i] == plugin)
+		std::string pluginLower = plugin;
+		std::transform(pluginLower.begin(), pluginLower.end(), pluginLower.begin(), ::tolower);
+
+		for (int i = 0; i < m_names.size(); i++) {
+			std::string nameLower = m_names[i];
+			std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+			if (nameLower == plugin)
 				return m_plugins[i];
+		}
 
 		return nullptr;
 	}

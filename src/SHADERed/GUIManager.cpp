@@ -1358,15 +1358,37 @@ namespace ed {
 							ImGui::Text("%d download(s)", pluginInfo.Downloads);
 							ImGui::Text("by: %s", pluginInfo.Owner.c_str());
 
-							if (m_data->Plugins.GetPlugin(pluginInfo.ID) == nullptr && std::count(m_onlineInstalledPlugins.begin(), m_onlineInstalledPlugins.end(), pluginInfo.ID) == 0) {
+							bool isInstalled = !(m_data->Plugins.GetPlugin(pluginInfo.ID) == nullptr && std::count(m_onlineInstalledPlugins.begin(), m_onlineInstalledPlugins.end(), pluginInfo.ID) == 0);
+							
+							if (!isInstalled) {
+								std::string pluginLower = pluginInfo.ID;
+								std::transform(pluginLower.begin(), pluginLower.end(), pluginLower.begin(), ::tolower);
+
+								const std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
+
+								for (int j = 0; j < notLoaded.size(); j++) {
+									std::string nameLower = notLoaded[j];
+									std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+									if (pluginLower == nameLower) {
+										isInstalled = true;
+										break;
+									}
+								}
+							}
+
+							if (isInstalled) {
+								if (std::count(m_onlineInstalledPlugins.begin(), m_onlineInstalledPlugins.end(), pluginInfo.ID) > 0)
+									ImGui::TextWrapped("Plugin installed! Restart SHADERed.");
+								else
+									ImGui::TextWrapped("Plugin already installed!");
+							} else {
 								ImGui::PushID(i);
 								if (ImGui::Button("DOWNLOAD")) {
 									m_onlineInstalledPlugins.push_back(pluginInfo.ID); // since PluginManager's GetPlugin won't register it immediately
 									m_data->API.DownloadPlugin(pluginInfo.ID);
 								}
 								ImGui::PopID();
-							} else {
-								ImGui::Text("Plugin already installed!");
 							}
 						}
 

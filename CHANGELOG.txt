@@ -6,6 +6,7 @@
 + add threading to "Browse online" window so that it doesn't block SHADERed
 + add OS support check for plugins in "Browse online" window
 + improve Pixel Inspect window's UI
++ improve message written after installing plugin through "Browse online" window
 + improve logging
 + reset file dialog search query after opening a directory
 + right clicking on the path button in file dialog will open path textbox
