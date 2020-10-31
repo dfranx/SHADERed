@@ -887,12 +887,12 @@ namespace ed {
 						}
 
 						if (!wrongBind && textureID != 0) {
-							std::string textureName = m_objs->GetItemNameByTextureID(textureID);
-
-							bool isActuallyImage = m_objs->IsRenderTexture(textureName) || m_objs->IsTexture(textureName) || m_objs->IsImage(textureName) || m_objs->IsImage3D(textureName);
-							if (!isActuallyImage) {
-								wrongBind = true;
-								textureID = 0;
+							ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
+							if (itemData) {
+								if (!(itemData->Type == ObjectType::Texture || itemData->Type == ObjectType::RenderTexture || itemData->Type == ObjectType::Image || itemData->Type == ObjectType::Image3D || itemData->Type == ObjectType::KeyboardTexture)) {
+									wrongBind = true;
+									textureID = 0;
+								}
 							}
 						}
 
@@ -975,20 +975,19 @@ namespace ed {
 							} else {
 								// cubemaps
 								if (type_info->image_info->dim == SpvDimCube) {
-									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
 
 									// get texture size
 									glm::ivec2 size(1, 1);
 									if (itemData != nullptr) {
 										if (itemData->RT != nullptr)
-											size = m_objs->GetRenderTextureSize(itemName);
+											size = m_objs->GetRenderTextureSize(itemData);
 										else if (itemData->Image != nullptr)
 											size = itemData->Image->Size;
 										else if (itemData->Sound != nullptr)
 											size = glm::ivec2(512, 2);
 										else
-											size = itemData->ImageSize;
+											size = itemData->TextureSize;
 									}
 									imgSize.x = size.x;
 									imgSize.y = size.y;
@@ -1005,8 +1004,7 @@ namespace ed {
 								// 3d textures
 								else if (type_info->image_info->dim == SpvDim3D) {
 									// get texture size
-									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
 									
 									if (itemData != nullptr && itemData->Image3D != nullptr)
 										imgSize = itemData->Image3D->Size;
@@ -1021,18 +1019,17 @@ namespace ed {
 								// 2d textures
 								else {
 									// get texture size
-									std::string itemName = m_objs->GetItemNameByTextureID(textureID);
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItem(itemName);
+									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
 									glm::ivec2 size(1, 1);
 									if (itemData != nullptr) {
 										if (itemData->RT != nullptr)
-											size = m_objs->GetRenderTextureSize(itemName);
+											size = m_objs->GetRenderTextureSize(itemData);
 										else if (itemData->Image != nullptr)
 											size = itemData->Image->Size;
 										else if (itemData->Sound != nullptr)
 											size = glm::ivec2(512, 2);
 										else
-											size = itemData->ImageSize;
+											size = itemData->TextureSize;
 									}
 									imgSize.x = size.x;
 									imgSize.y = size.y;
@@ -1072,7 +1069,7 @@ namespace ed {
 					}
 
 					if (binding < ubos.size()) {
-						ed::BufferObject* obj = m_objs->GetBuffer(m_objs->GetBufferNameByID(ubos[binding]));
+						ed::BufferObject* obj = m_objs->GetObjectManagerItemByBufferID(ubos[binding])->Buffer;
 
 						float* data = (float*)calloc(1, obj->Size);
 						glBindBuffer(GL_SHADER_STORAGE_BUFFER, obj->ID);

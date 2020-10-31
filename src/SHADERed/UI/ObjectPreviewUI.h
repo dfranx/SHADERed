@@ -14,45 +14,31 @@ namespace ed {
 			m_cubePrev.Init(256, 192);
 			m_curHoveredItem = -1;
 			m_initRowSize = false;
+			m_saveObject = nullptr;
 		}
 		~ObjectPreviewUI() { }
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
-		void Open(const std::string& name, float w, float h, unsigned int item, bool isCube = false, void* rt = nullptr, void* audio = nullptr, void* buffer = nullptr, void* plugin = nullptr);
+		void Open(ObjectManagerItem* item);
 
 		inline bool ShouldRun() { return m_items.size() > 0; }
 		inline void CloseAll() { m_items.clear(); }
 		void Close(const std::string& name);
 
-	protected:
-		struct mItem {
-			std::string Name;
-			float Width, Height;
-			unsigned int Texture;
-			bool IsCube;
-			bool IsOpen;
-
-			void* RT;
-
-			void* Audio;
-
-			void* Buffer;
-			std::vector<ShaderVariable::ValueType> CachedFormat;
-			int CachedSize;
-
-			void* Plugin;
-		};
-
 	private:
 		eng::Timer m_bufUpdateClock;
 		bool m_drawBufferElement(int row, int col, void* data, ShaderVariable::ValueType type);
-		std::vector<mItem> m_items;
+		std::vector<ObjectManagerItem*> m_items;
+		std::vector<char> m_isOpen; // char since bool is packed
+		std::vector<std::vector<ShaderVariable::ValueType>> m_cachedBufFormat;
+		std::vector<int> m_cachedBufSize;
+		std::vector<glm::ivec2> m_cachedImgSize;
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_samples[512], m_fft[512];
 
-		std::string m_saveObject;
+		ObjectManagerItem* m_saveObject;
 
 		bool m_initRowSize;
 

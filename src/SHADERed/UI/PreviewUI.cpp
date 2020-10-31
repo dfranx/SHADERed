@@ -69,7 +69,7 @@ namespace ed {
 				PropertyUI* props = (PropertyUI*)m_ui->Get(ViewID::Properties);
 				for (int i = 0; i < m_picks.size(); i++) {
 					if (props->CurrentItemName() == m_picks[i]->Name)
-						props->Open(nullptr);
+						props->Close();
 					m_data->Pipeline.Remove(m_picks[i]->Name);
 				}
 				m_picks.clear();
@@ -659,7 +659,7 @@ namespace ed {
 			static char pxCoord[32] = { 0 };
 
 			for (int i = 0; i < pixelList.size(); i++) {
-				if (pixelList[i].RenderTexture.empty() && pixelList[i].Fetched) { // we only care about window's pixel info here
+				if (pixelList[i].RenderTexture == nullptr && pixelList[i].Fetched) { // we only care about window's pixel info here
 
 					if (settings.Debug.PrimitiveOutline) {
 						// render the lines

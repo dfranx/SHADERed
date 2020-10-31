@@ -14,16 +14,20 @@ namespace ed {
 		virtual void Update(float delta);
 
 		void Open(PipelineItem* item);
-		void Open(const std::string& name, ObjectManagerItem* obj);
-		inline std::string CurrentItemName() { return m_current != nullptr ? m_current->Name : (m_currentObj != nullptr ? m_data->Objects.GetObjectManagerItemName(m_currentObj) : ""); }
+		void Open(ObjectManagerItem* obj);
+		inline void Close() {
+			m_current = nullptr;
+			m_currentObj = nullptr;
+		}
+		inline std::string CurrentItemName() { return m_current != nullptr ? m_current->Name : (m_currentObj != nullptr ? m_currentObj->Name : ""); }
 		inline bool HasItemSelected() { return m_current != nullptr || m_currentObj != nullptr; }
 
 		inline bool IsPipelineItem() { return m_current != nullptr; }
-		inline bool IsRenderTexture() { return m_currentObj != nullptr && m_currentObj->RT != nullptr; }
-		inline bool IsTexture() { return m_currentObj != nullptr && m_currentObj->IsTexture; }
-		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Image != nullptr; }
-		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Image3D != nullptr; }
-		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Plugin != nullptr; }
+		inline bool IsRenderTexture() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::RenderTexture; }
+		inline bool IsTexture() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Texture; }
+		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image; }
+		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image3D; }
+		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::PluginObject; }
 
 	private:
 		char m_itemName[64];

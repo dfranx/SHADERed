@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/Engine/Model.h>
 #include <SHADERed/Objects/PipelineItem.h>
+#include <SHADERed/Objects/ObjectManagerItem.h>
 
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -20,7 +21,7 @@ namespace ed {
 			Fetched = false;
 			Discarded = false;
 			VertexCount = 0;
-			RenderTexture = "";
+			RenderTexture = nullptr;
 			RenderTextureIndex = 0;
 			InstanceID = 0;
 			VertexID = 0;
@@ -32,7 +33,7 @@ namespace ed {
 		PipelineItem* Object;	   // pipeline item responsible for this pixel
 
 
-		std::string RenderTexture; // what render texture
+		ObjectManagerItem* RenderTexture; // what render texture
 		glm::ivec2 RenderTextureSize; // cache RT size
 		int RenderTextureIndex;
 

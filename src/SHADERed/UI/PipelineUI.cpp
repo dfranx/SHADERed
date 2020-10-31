@@ -318,7 +318,7 @@ namespace ed {
 		
 		// check if it is opened in property viewer/picked
 		if (props->HasItemSelected() && props->CurrentItemName() == item->Name)
-			props->Open(nullptr);
+			props->Close();
 		if (prev->IsPicked(item))
 			prev->Pick(nullptr);
 
@@ -327,7 +327,7 @@ namespace ed {
 			pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
 			for (const auto& child : pass->Items) {
 				if (props->HasItemSelected() && props->CurrentItemName() == child->Name)
-					props->Open(nullptr);
+					props->Close();
 				if (prev->IsPicked(child))
 					prev->Pick(nullptr);
 			}
@@ -335,7 +335,7 @@ namespace ed {
 			pipe::PluginItemData* pass = (pipe::PluginItemData*)item->Data;
 			for (const auto& child : pass->Items) {
 				if (props->HasItemSelected() && props->CurrentItemName() == child->Name)
-					props->Open(nullptr);
+					props->Close();
 				if (prev->IsPicked(child))
 					prev->Pick(nullptr);
 			}
@@ -1282,12 +1282,11 @@ namespace ed {
 
 			int id = 0;
 			std::vector<GLuint>& els = m_data->Objects.GetBindList(m_modalItem);
-			const std::vector<std::string>& items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
 				ImGui::PushID(id);
-				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
+				ObjectManagerItem* resData = m_data->Objects.GetObjectManagerItemByTextureID(el);
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -1314,24 +1313,24 @@ namespace ed {
 				ImGui::NextColumn();
 
 				/* NAME */
-				if (objs->IsImage(itemName))
+				if (resData->Type == ObjectType::Image)
 					ImGui::Text("image");
-				else if (objs->IsImage3D(itemName))
+				else if (resData->Type == ObjectType::Image3D)
 					ImGui::Text("image3D");
-				else if (objs->IsRenderTexture(itemName))
+				else if (resData->Type == ObjectType::RenderTexture)
 					ImGui::Text("render texture");
-				else if (objs->IsAudio(itemName))
+				else if (resData->Type == ObjectType::Audio)
 					ImGui::Text("audio");
-				else if (objs->IsBuffer(itemName))
+				else if (resData->Type == ObjectType::Buffer)
 					ImGui::Text("buffer");
-				else if (objs->IsCubeMap(itemName))
+				else if (resData->Type == ObjectType::CubeMap)
 					ImGui::Text("cubemap");
 				else
 					ImGui::Text("texture");
 				ImGui::NextColumn();
 
 				/* VALUE */
-				ImGui::Text("%s", itemName.c_str());
+				ImGui::Text("%s", resData->Name.c_str());
 				ImGui::NextColumn();
 
 				ImGui::PopID();
@@ -1372,12 +1371,11 @@ namespace ed {
 
 			int id = 0;
 			std::vector<GLuint>& els = m_data->Objects.GetUniformBindList(m_modalItem);
-			const std::vector<std::string>& items = m_data->Objects.GetObjects();
 
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
 				ImGui::PushID(id);
-				const std::string& itemName = m_data->Objects.GetItemNameByTextureID(el);
+				ObjectManagerItem* resData = m_data->Objects.GetObjectManagerItemByTextureID(el);
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -1404,24 +1402,24 @@ namespace ed {
 				ImGui::NextColumn();
 
 				/* NAME */
-				if (objs->IsImage(itemName))
+				if (resData->Type == ObjectType::Image)
 					ImGui::Text("image");
-				else if (objs->IsImage3D(itemName))
+				else if (resData->Type == ObjectType::Image3D)
 					ImGui::Text("image3D");
-				else if (objs->IsRenderTexture(itemName))
+				else if (resData->Type == ObjectType::RenderTexture)
 					ImGui::Text("render texture");
-				else if (objs->IsAudio(itemName))
+				else if (resData->Type == ObjectType::Audio)
 					ImGui::Text("audio");
-				else if (objs->IsBuffer(itemName))
+				else if (resData->Type == ObjectType::Buffer)
 					ImGui::Text("buffer");
-				else if (objs->IsCubeMap(itemName))
+				else if (resData->Type == ObjectType::CubeMap)
 					ImGui::Text("cubemap");
 				else
 					ImGui::Text("texture");
 				ImGui::NextColumn();
 
 				/* VALUE */
-				ImGui::Text("%s", itemName.c_str());
+				ImGui::Text("%s", resData->Name.c_str());
 				ImGui::NextColumn();
 
 
@@ -1766,7 +1764,7 @@ namespace ed {
 				if (!duplicate) {
 					PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 					if (props->HasItemSelected() && props->CurrentItemName() == dropItem->Name)
-						props->Open(nullptr);
+						props->Close();
 
 					PreviewUI* prev = ((PreviewUI*)m_ui->Get(ViewID::Preview));
 					if (prev->IsPicked(dropItem))
@@ -2045,7 +2043,7 @@ namespace ed {
 					if (!duplicate) {
 						PropertyUI* props = ((PropertyUI*)m_ui->Get(ViewID::Properties));
 						if (props->HasItemSelected() && props->CurrentItemName() == dropItem->Name)
-							props->Open(nullptr);
+							props->Close();
 
 						PreviewUI* prev = ((PreviewUI*)m_ui->Get(ViewID::Preview));
 						if (prev->IsPicked(dropItem))
@@ -2106,7 +2104,6 @@ namespace ed {
 
 		bool isPluginOwner = object->Plugin != nullptr;
 		PluginObject* pobj = object->Plugin;
-		std::string objectName = m_data->Objects.GetObjectManagerItemName(object);
 
 		bool bindAsUAV = false;
 		bool bindAsSRV = false;
@@ -2131,13 +2128,13 @@ namespace ed {
 		}
 
 		if (bindAsUAV) {
-			int boundID = m_data->Objects.IsUniformBound(objectName, pass);
+			int boundID = m_data->Objects.IsUniformBound(object, pass);
 			if (boundID == -1)
-				m_data->Objects.BindUniform(objectName, pass);
+				m_data->Objects.BindUniform(object, pass);
 		} else if (bindAsSRV) {
-			int boundID = m_data->Objects.IsBound(objectName, pass);
+			int boundID = m_data->Objects.IsBound(object, pass);
 			if (boundID == -1)
-				m_data->Objects.Bind(objectName, pass);
+				m_data->Objects.Bind(object, pass);
 		}
 	}
 }

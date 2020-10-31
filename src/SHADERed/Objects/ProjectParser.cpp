@@ -387,7 +387,7 @@ namespace ed {
 					if (rtID == m_renderer->GetTexture())
 						passNode.append_child("rendertexture");
 					else
-						passNode.append_child("rendertexture").append_attribute("name").set_value(m_objects->GetRenderTexture(rtID)->Name.c_str());
+						passNode.append_child("rendertexture").append_attribute("name").set_value(m_objects->GetObjectManagerItemByTextureID(rtID)->Name.c_str());
 				}
 
 				// pass items
@@ -532,30 +532,30 @@ namespace ed {
 		// objects
 		{
 			// textures & buffers
-			std::vector<std::string> texs = m_objects->GetObjects();
+			std::vector<ObjectManagerItem*> texs = m_objects->GetObjects();
 			for (int i = 0; i < texs.size(); i++) {
-				ObjectManagerItem* item = m_objects->GetObjectManagerItem(texs[i]);
+				ObjectManagerItem* item = texs[i];
 
-				bool isRT = item->RT != nullptr;
-				bool isAudio = item->Sound != nullptr;
-				bool isCube = item->IsCube;
-				bool isBuffer = item->Buffer != nullptr;
-				bool isImage = item->Image != nullptr;
-				bool isImage3D = item->Image3D != nullptr;
-				bool isPluginOwner = item->Plugin != nullptr;
-				bool isTexture = item->IsTexture;
-				bool isKeyboardTexture = item->IsKeyboardTexture;
+				bool isRT = (item->Type == ObjectType::RenderTexture);
+				bool isAudio = (item->Type == ObjectType::Audio);
+				bool isCube = (item->Type == ObjectType::CubeMap);
+				bool isBuffer = (item->Type == ObjectType::Buffer);
+				bool isImage = (item->Type == ObjectType::Image);
+				bool isImage3D = (item->Type == ObjectType::Image3D);
+				bool isPluginOwner = (item->Type == ObjectType::PluginObject);
+				bool isTexture = (item->Type == ObjectType::Texture);
+				bool isKeyboardTexture = (item->Type == ObjectType::KeyboardTexture);
 				
-				std::string texOutPath = texs[i];
+				std::string texOutPath = item->Name;
 				if ((isTexture && !isKeyboardTexture) || isAudio)
-					texOutPath = GetRelativePath(oldProjectPath + "/" + texs[i]);
+					texOutPath = GetRelativePath(oldProjectPath + "/" + item->Name);
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
 				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
 				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isAudio) ? "path" : "name").set_value(texOutPath.c_str());
 
 				if (isRT) {
-					ed::RenderTextureObject* rtObj = m_objects->GetRenderTexture(m_objects->GetTexture(texs[i]));
+					ed::RenderTextureObject* rtObj = item->RT;
 
 					if (rtObj->Format != GL_RGBA)
 						textureNode.append_attribute("format").set_value(gl::String::Format(rtObj->Format));
@@ -573,7 +573,7 @@ namespace ed {
 				}
 
 				if (isCube) {
-					std::vector<std::string> texmaps = m_objects->GetCubemapTextures(texs[i]);
+					const std::vector<std::string>& texmaps = item->CubemapPaths;
 
 					textureNode.append_attribute("cube").set_value(isCube);
 
@@ -586,8 +586,6 @@ namespace ed {
 				}
 
 				if (isTexture && !isKeyboardTexture) {
-					ObjectManagerItem* item = m_objects->GetObjectManagerItem(texs[i]);
-
 					textureNode.append_attribute("vflip").set_value(item->Texture_VFlipped);
 					textureNode.append_attribute("min_filter").set_value(ed::gl::String::TextureMinFilter(item->Texture_MinFilter));
 					textureNode.append_attribute("mag_filter").set_value(ed::gl::String::TextureMagFilter(item->Texture_MagFilter));
@@ -599,7 +597,7 @@ namespace ed {
 					textureNode.append_attribute("keyboard_texture").set_value(isKeyboardTexture);
 
 				if (isImage) {
-					ImageObject* iobj = m_objects->GetImage(texs[i]);
+					ImageObject* iobj = item->Image;
 
 					if (iobj->DataPath[0] != 0)
 						textureNode.append_attribute("data").set_value(iobj->DataPath);
@@ -609,7 +607,7 @@ namespace ed {
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 				if (isImage3D) {
-					Image3DObject* iobj = m_objects->GetImage3D(texs[i]);
+					Image3DObject* iobj = item->Image3D;
 
 					textureNode.append_attribute("width").set_value(iobj->Size.x);
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
@@ -617,7 +615,7 @@ namespace ed {
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
 				}
 
-				PluginObject* pluginObj = (PluginObject*)m_objects->GetPluginObject(texs[i]);
+				PluginObject* pluginObj = item->Plugin;
 				bool isPluginObjectUAV = isPluginOwner && pluginObj->Owner->Object_IsBindableUAV(pluginObj->Type);
 
 				if (isPluginOwner) {
@@ -633,13 +631,13 @@ namespace ed {
 				}
 
 				if (isBuffer) {
-					ed::BufferObject* bobj = m_objects->GetBuffer(texs[i]);
+					ed::BufferObject* bobj = item->Buffer;
 
 					textureNode.append_attribute("size").set_value(bobj->Size);
 					textureNode.append_attribute("format").set_value(bobj->ViewFormat);
 					textureNode.append_attribute("pausedpreview").set_value(bobj->PreviewPaused);
 
-					std::string bPath = GetProjectPath("buffers/" + texs[i] + ".buf");
+					std::string bPath = GetProjectPath("buffers/" + item->Name + ".buf");
 					if (!std::filesystem::exists(GetProjectPath("buffers")))
 						std::filesystem::create_directories(GetProjectPath("buffers"));
 
@@ -651,34 +649,26 @@ namespace ed {
 						const std::vector<GLuint>& bound = m_objects->GetUniformBindList(passItems[j]);
 
 						for (int slot = 0; slot < bound.size(); slot++) {
-							if (!m_objects->IsImage(bound[slot])) {
-								if (m_objects->GetBufferNameByID(bound[slot]) == texs[i]) {
-									pugi::xml_node bindNode = textureNode.append_child("bind");
-									bindNode.append_attribute("slot").set_value(slot);
-									bindNode.append_attribute("name").set_value(passItems[j]->Name);
-								}
+							if (bound[slot] == bobj->ID) {
+								pugi::xml_node bindNode = textureNode.append_child("bind");
+								bindNode.append_attribute("slot").set_value(slot);
+								bindNode.append_attribute("name").set_value(passItems[j]->Name);
 							}
 						}
 					}
 				} else if (isImage || isImage3D || isPluginObjectUAV) {
 					for (int j = 0; j < passItems.size(); j++) {
 
-						GLuint myTex = 0;
-						if (isImage)
-							myTex = m_objects->GetImage(texs[i])->Texture;
-						if (isImage3D)
-							myTex = m_objects->GetImage3D(texs[i])->Texture;
+						GLuint myTex = item->Texture;
 
 						// as image2D
 						const std::vector<GLuint>& boundUBO = m_objects->GetUniformBindList(passItems[j]);
 						for (int slot = 0; slot < boundUBO.size(); slot++) {
-							if (m_objects->IsImage(boundUBO[slot]) || m_objects->IsImage3D(boundUBO[slot])) {
-								if (boundUBO[slot] == myTex) {
-									pugi::xml_node bindNode = textureNode.append_child("bind");
-									bindNode.append_attribute("slot").set_value(slot);
-									bindNode.append_attribute("name").set_value(passItems[j]->Name);
-									bindNode.append_attribute("uav").set_value(1);
-								}
+							if (boundUBO[slot] == myTex) {
+								pugi::xml_node bindNode = textureNode.append_child("bind");
+								bindNode.append_attribute("slot").set_value(slot);
+								bindNode.append_attribute("name").set_value(passItems[j]->Name);
+								bindNode.append_attribute("uav").set_value(1);
 							}
 						}
 
@@ -693,7 +683,7 @@ namespace ed {
 							}
 					}
 				} else {
-					GLuint myTex = m_objects->GetTexture(texs[i]);
+					GLuint myTex = item->Texture;
 					if (isPluginOwner)
 						myTex = pluginObj->ID;
 
@@ -1177,7 +1167,7 @@ namespace ed {
 				if (tData->InstanceCount > 0)
 					itemNode.append_child("instancecount").text().set(tData->InstanceCount);
 				if (tData->InstanceBuffer != nullptr)
-					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)tData->InstanceBuffer)->ID).c_str());
+					itemNode.append_child("instancebuffer").text().set(m_objects->GetObjectManagerItemByBufferID(((BufferObject*)tData->InstanceBuffer)->ID)->Name.c_str());
 				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
 					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
 						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
@@ -1262,13 +1252,13 @@ namespace ed {
 				if (data->InstanceCount > 0)
 					itemNode.append_child("instancecount").text().set(data->InstanceCount);
 				if (data->InstanceBuffer != nullptr)
-					itemNode.append_child("instancebuffer").text().set(m_objects->GetBufferNameByID(((BufferObject*)data->InstanceBuffer)->ID).c_str());
+					itemNode.append_child("instancebuffer").text().set(m_objects->GetObjectManagerItemByBufferID(((BufferObject*)data->InstanceBuffer)->ID)->Name.c_str());
 			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 				itemNode.append_attribute("type").set_value("vertexbuffer");
 
 				pipe::VertexBuffer* tData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
 
-				itemNode.append_child("buffer").text().set(m_objects->GetBufferNameByID(((ed::BufferObject*)tData->Buffer)->ID).c_str());
+				itemNode.append_child("buffer").text().set(m_objects->GetObjectManagerItemByBufferID(((ed::BufferObject*)tData->Buffer)->ID)->Name.c_str());
 				if (tData->Scale.x != 1.0f)
 					itemNode.append_child("scaleX").text().set(tData->Scale.x);
 				if (tData->Scale.y != 1.0f)
@@ -2019,7 +2009,9 @@ namespace ed {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateRenderTexture(objName);
-				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(m_objects->GetTexture(objName));
+
+				ObjectManagerItem* rtData = m_objects->GetObjectManagerItem(objName);
+				RenderTextureObject* rt = rtData->RT;
 				rt->Format = GL_RGBA;
 
 				// load size
@@ -2031,7 +2023,7 @@ namespace ed {
 					rt->RatioSize = glm::vec2(rtSizeX, rtSizeY);
 					rt->FixedSize = glm::ivec2(-1, -1);
 
-					m_objects->ResizeRenderTexture(objName, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
+					m_objects->ResizeRenderTexture(rtData, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
 				} else {
 					std::string rtSize = objectNode.attribute("fsize").as_string();
 					int rtSizeX = std::stoi(rtSize.substr(0, rtSize.find(',')));
@@ -2039,7 +2031,7 @@ namespace ed {
 
 					rt->FixedSize = glm::ivec2(rtSizeX, rtSizeY);
 
-					m_objects->ResizeRenderTexture(objName, rt->FixedSize);
+					m_objects->ResizeRenderTexture(rtData, rt->FixedSize);
 				}
 
 				// load clear color
@@ -2103,7 +2095,7 @@ namespace ed {
 		for (const auto& b : boundTextures)
 			for (const auto& id : b.second)
 				if (!id.empty())
-					m_objects->Bind(id, b.first);
+					m_objects->Bind(m_objects->GetObjectManagerItem(id), b.first);
 
 		// settings
 		for (pugi::xml_node settingItem : projectNode.child("settings").children("entry")) {
@@ -2194,7 +2186,9 @@ namespace ed {
 		for (auto& pass : fbos) {
 			int index = 0;
 			for (auto& rtName : pass.second) {
-				GLuint rtID = (rtName == "Window") ? m_renderer->GetTexture() : m_objects->GetTexture(rtName);
+				ObjectManagerItem* rtNameObj = m_objects->GetObjectManagerItem(rtName);
+
+				GLuint rtID = (rtName == "Window") ? m_renderer->GetTexture() : rtNameObj->Texture;
 				pass.first->RenderTextures[index] = rtID;
 				index++;
 			}
@@ -2777,7 +2771,9 @@ namespace ed {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateRenderTexture(objName);
-				ed::RenderTextureObject* rt = m_objects->GetRenderTexture(m_objects->GetTexture(objName));
+
+				ObjectManagerItem* rtData = m_objects->GetObjectManagerItem(objName);
+				RenderTextureObject* rt = rtData->RT;
 
 				// load format
 				if (!objectNode.attribute("format").empty()) {
@@ -2799,7 +2795,7 @@ namespace ed {
 					rt->RatioSize = glm::vec2(rtSizeX, rtSizeY);
 					rt->FixedSize = glm::ivec2(-1, -1);
 
-					m_objects->ResizeRenderTexture(objName, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
+					m_objects->ResizeRenderTexture(rtData, rt->CalculateSize(m_renderer->GetLastRenderSize().x, m_renderer->GetLastRenderSize().y));
 				} else {
 					std::string rtSize = objectNode.attribute("fsize").as_string();
 					int rtSizeX = std::stoi(rtSize.substr(0, rtSize.find(',')));
@@ -2807,7 +2803,7 @@ namespace ed {
 
 					rt->FixedSize = glm::ivec2(rtSizeX, rtSizeY);
 
-					m_objects->ResizeRenderTexture(objName, rt->FixedSize);
+					m_objects->ResizeRenderTexture(rtData, rt->FixedSize);
 				}
 
 				// load clear flag
@@ -2852,7 +2848,8 @@ namespace ed {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateImage(objName);
-				ImageObject* iobj = m_objects->GetImage(objName);
+				ObjectManagerItem* iobjOwner = m_objects->GetObjectManagerItem(objName);
+				ImageObject* iobj = iobjOwner->Image;
 
 				// data path
 				if (!objectNode.attribute("data").empty())
@@ -2873,7 +2870,7 @@ namespace ed {
 					iobj->Size.x = objectNode.attribute("width").as_int();
 				if (!objectNode.attribute("height").empty())
 					iobj->Size.y = objectNode.attribute("height").as_int();
-				m_objects->ResizeImage(objName, iobj->Size);
+				m_objects->ResizeImage(iobjOwner, iobj->Size);
 
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
@@ -2909,7 +2906,8 @@ namespace ed {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateImage3D(objName);
-				Image3DObject* iobj = m_objects->GetImage3D(objName);
+				ObjectManagerItem* iobjOwner = m_objects->GetObjectManagerItem(objName);
+				Image3DObject* iobj = iobjOwner->Image3D;
 
 				// load format
 				if (!objectNode.attribute("format").empty()) {
@@ -2928,7 +2926,7 @@ namespace ed {
 					iobj->Size.y = objectNode.attribute("height").as_int();
 				if (!objectNode.attribute("depth").empty())
 					iobj->Size.z = objectNode.attribute("depth").as_int();
-				m_objects->ResizeImage3D(objName, iobj->Size);
+				m_objects->ResizeImage3D(iobjOwner, iobj->Size);
 
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
@@ -2984,7 +2982,7 @@ namespace ed {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
 				m_objects->CreateBuffer(objName);
-				ed::BufferObject* buf = m_objects->GetBuffer(objName);
+				ed::BufferObject* buf = m_objects->GetObjectManagerItem(objName)->Buffer;
 
 				if (!objectNode.attribute("size").empty()) {
 					buf->Size = objectNode.attribute("size").as_int();
@@ -3065,13 +3063,13 @@ namespace ed {
 
 		// bind ARRAY_BUFFERS
 		for (auto& geo : geoUBOs) {
-			BufferObject* bojb = m_objects->GetBuffer(geo.second.first);
+			BufferObject* bojb = m_objects->GetObjectManagerItem(geo.second.first)->Buffer;
 			geo.first->InstanceBuffer = bojb;
 			gl::CreateVAO(geo.first->VAO, geo.first->VBO, geo.second.second->InputLayout, 0, bojb->ID, m_objects->ParseBufferFormat(bojb->ViewFormat));
 		}
 		for (auto& mdl : modelUBOs) {
 			if (mdl.second.first.size() > 0) {
-				BufferObject* bobj = m_objects->GetBuffer(mdl.second.first);
+				BufferObject* bobj = m_objects->GetObjectManagerItem(mdl.second.first)->Buffer;
 				mdl.first->InstanceBuffer = bobj;
 
 				for (auto& mesh : mdl.first->Data->Meshes)
@@ -3082,7 +3080,7 @@ namespace ed {
 			}
 		}
 		for (auto& vb : vbUBOs) {
-			BufferObject* bobj = m_objects->GetBuffer(vb.second.first);
+			BufferObject* bobj = m_objects->GetObjectManagerItem(vb.second.first)->Buffer;
 			vb.first->Buffer = bobj;
 
 			if (bobj)
@@ -3093,12 +3091,12 @@ namespace ed {
 		for (const auto& b : boundTextures)
 			for (const auto& id : b.second)
 				if (!id.empty())
-					m_objects->Bind(id, b.first);
+					m_objects->Bind(m_objects->GetObjectManagerItem(id), b.first);
 		// bind buffers
 		for (const auto& b : boundUBOs)
 			for (const auto& id : b.second)
 				if (!id.empty())
-					m_objects->BindUniform(id, b.first);
+					m_objects->BindUniform(m_objects->GetObjectManagerItem(id), b.first);
 
 		// settings
 		for (pugi::xml_node settingItem : projectNode.child("settings").children("entry")) {
@@ -3120,8 +3118,10 @@ namespace ed {
 						if (type == 0) {
 							PipelineItem* item = m_pipe->Get(itemName);
 							props->Open(item);
-						} else
-							props->Open(itemName, m_objects->GetObjectManagerItem(itemName));
+						} else {
+							ObjectManagerItem* item = m_objects->GetObjectManagerItem(itemName);
+							props->Open(item);
+						}
 					}
 				} else if (type == "file" && Settings::Instance().General.ReopenShaders) {
 					CodeEditorUI* editor = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
@@ -3260,7 +3260,9 @@ namespace ed {
 		for (auto& pass : fbos) {
 			int index = 0;
 			for (auto& rtName : pass.second) {
-				GLuint rtID = (rtName.size() == 0) ? m_renderer->GetTexture() : m_objects->GetTexture(rtName);
+				ObjectManagerItem* rtOwner = m_objects->GetObjectManagerItem(rtName);
+
+				GLuint rtID = (rtName.size() == 0) ? m_renderer->GetTexture() : rtOwner->Texture;
 				pass.first->RenderTextures[index] = rtID;
 				index++;
 			}

@@ -50,7 +50,7 @@ namespace ed {
 				float pxCursorStart = ImGui::GetCursorPosY();
 
 				/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
-				ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture.empty() ? "Window" : pixel.RenderTexture.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
+				ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture == nullptr ? "Window" : pixel.RenderTexture->Name.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
 
 				/* [PIXEL COLOR] */
 				ImGui::PushItemWidth(-1);

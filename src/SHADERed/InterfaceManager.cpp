@@ -63,7 +63,7 @@ namespace ed {
 			return;
 
 		// info
-		const std::vector<ObjectManagerItem*>& objs = Objects.GetItemDataList();
+		const std::vector<ObjectManagerItem*>& objs = Objects.GetObjects();
 		glm::ivec2 previewSize = Renderer.GetLastRenderSize();
 		glm::ivec2 maxRTSize = previewSize;
 		GLuint previewTexture = Renderer.GetTexture();
@@ -78,7 +78,7 @@ namespace ed {
 		// get max RT size
 		for (int i = 0; i < objs.size(); i++) {
 			if (objs[i]->RT != nullptr) {
-				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]->RT->Name);
+				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]);
 				if (rtSize.x > maxRTSize.x)
 					maxRTSize.x = rtSize.x;
 				if (rtSize.y > maxRTSize.y)
@@ -93,9 +93,9 @@ namespace ed {
 
 		// rt pixel colors
 		for (int i = 0; i < objs.size(); i++) {
-			if (objs[i]->RT != nullptr) {
+			if (objs[i]->Type == ObjectType::RenderTexture) {
 				GLuint tex = objs[i]->Texture;
-				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]->RT->Name);
+				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]);
 
 				pixelColors[tex] = getPixelColor(tex, mainPixelData, r.x * rtSize.x, r.y * rtSize.y, rtSize.x);
 			}
@@ -111,7 +111,7 @@ namespace ed {
 		for (int i = 0; i < objs.size(); i++) {
 			if (objs[i]->RT != nullptr) {
 				GLuint tex = objs[i]->Texture;
-				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]->RT->Name);
+				glm::ivec2 rtSize = Objects.GetRenderTextureSize(objs[i]);
 
 				pipelineItems[tex] = Renderer.GetPipelineItemByDebugID(0x00FFFFFF & getPixelID(tex, mainPixelData, r.x * rtSize.x, r.y * rtSize.y, rtSize.x));
 			}
@@ -122,12 +122,12 @@ namespace ed {
 			if (k.second.second == nullptr)
 				continue;
 
-			std::string rtName = Objects.GetItemNameByTextureID(k.first);
+			ObjectManagerItem* rtItem = Objects.GetObjectManagerItemByTextureID(k.first);
 			std::string objName = k.second.second->Name;
 
 			glm::ivec2 rtSize = previewSize;
-			if (!rtName.empty())
-				rtSize = Objects.GetRenderTextureSize(rtName);
+			if (rtItem != nullptr)
+				rtSize = Objects.GetRenderTextureSize(rtItem);
 			x = r.x * rtSize.x;
 			y = r.y * rtSize.y;
 
@@ -171,7 +171,7 @@ namespace ed {
 			pxInfo.Object = k.second.second;
 			pxInfo.Pass = k.second.first;
 			pxInfo.RelativeCoordinate = r;
-			pxInfo.RenderTexture = rtName;
+			pxInfo.RenderTexture = rtItem;
 			pxInfo.RenderTextureSize = rtSize;
 			pxInfo.RenderTextureIndex = rtIndex;
 			pxInfo.VertexID = 0;
@@ -219,10 +219,10 @@ namespace ed {
 		// compute shader suggestion for instanced objects
 		if (pixel.InstanceBuffer) {
 			BufferObject* buf = (BufferObject*)pixel.InstanceBuffer;
-			std::string name = Objects.GetBufferNameByID(buf->ID);
+			ObjectManagerItem* bufOwner = Objects.GetObjectManagerItemByBufferID(buf->ID);
 			
 			for (auto& item : Pipeline.GetList()) {
-				if (Objects.IsUniformBound(name, item) != -1) {
+				if (Objects.IsUniformBound(bufOwner, item) != -1) {
 					if (item->Type == PipelineItem::ItemType::ComputePass) {
 						DebuggerSuggestion suggestion;
 						suggestion.Type = DebuggerSuggestion::SuggestionType::ComputeShader;
@@ -241,10 +241,10 @@ namespace ed {
 			BufferObject* buf = (BufferObject*)vertBufferItem->Buffer;
 
 			if (buf) {
-				std::string name = Objects.GetBufferNameByID(buf->ID);
-
+				ObjectManagerItem* bufOwner = Objects.GetObjectManagerItemByBufferID(buf->ID);
+			
 				for (auto& item : Pipeline.GetList()) {
-					if (Objects.IsUniformBound(name, item) != -1) {
+					if (Objects.IsUniformBound(bufOwner, item) != -1) {
 						if (item->Type == PipelineItem::ItemType::ComputePass) {
 							DebuggerSuggestion suggestion;
 							suggestion.Type = DebuggerSuggestion::SuggestionType::ComputeShader;

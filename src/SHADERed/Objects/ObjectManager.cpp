@@ -22,6 +22,111 @@ namespace ed {
 	{
 		m_binds.clear();
 		memset(m_kbTexture, 0, sizeof(unsigned char) * 256 * 3);
+		
+		m_keyIDs = {
+			{ SDLK_BACKSPACE, 8 },
+			{ SDLK_TAB, 9 },
+			{ SDLK_RETURN, 13 },
+			// { SHIFT, 16 },
+			// { CTRL, 17 },
+			// { ALT, 18 },
+			{ SDLK_PAUSE, 19 },
+			{ SDLK_CAPSLOCK, 20 },
+			{ SDLK_ESCAPE, 27 },
+			{ SDLK_PAGEUP, 33 },
+			{ SDLK_SPACE, 32 },
+			{ SDLK_PAGEDOWN, 34 },
+			{ SDLK_END, 35 },
+			{ SDLK_HOME, 36 },
+			{ SDLK_LEFT, 37 },
+			{ SDLK_UP, 38 },
+			{ SDLK_RIGHT, 39 },
+			{ SDLK_DOWN, 40 },
+			{ SDLK_PRINTSCREEN, 44 },
+			{ SDLK_INSERT, 45 },
+			{ SDLK_DELETE, 46 },
+			{ SDLK_0, 48 },
+			{ SDLK_1, 49 },
+			{ SDLK_2, 50 },
+			{ SDLK_3, 51 },
+			{ SDLK_4, 52 },
+			{ SDLK_5, 53 },
+			{ SDLK_6, 54 },
+			{ SDLK_7, 55 },
+			{ SDLK_8, 56 },
+			{ SDLK_9, 57 },
+			{ SDLK_a, 65 },
+			{ SDLK_b, 66 },
+			{ SDLK_c, 67 },
+			{ SDLK_d, 68 },
+			{ SDLK_e, 69 },
+			{ SDLK_f, 70 },
+			{ SDLK_g, 71 },
+			{ SDLK_h, 72 },
+			{ SDLK_i, 73 },
+			{ SDLK_j, 74 },
+			{ SDLK_k, 75 },
+			{ SDLK_l, 76 },
+			{ SDLK_m, 77 },
+			{ SDLK_n, 78 },
+			{ SDLK_o, 79 },
+			{ SDLK_p, 80 },
+			{ SDLK_q, 81 },
+			{ SDLK_r, 82 },
+			{ SDLK_s, 83 },
+			{ SDLK_t, 84 },
+			{ SDLK_u, 85 },
+			{ SDLK_v, 86 },
+			{ SDLK_w, 87 },
+			{ SDLK_x, 88 },
+			{ SDLK_y, 89 },
+			{ SDLK_z, 90 },
+			{ SDLK_SELECT, 93 },
+			{ SDLK_KP_0, 96 },
+			{ SDLK_KP_1, 97 },
+			{ SDLK_KP_2, 98 },
+			{ SDLK_KP_3, 99 },
+			{ SDLK_KP_4, 100 },
+			{ SDLK_KP_5, 101 },
+			{ SDLK_KP_6, 102 },
+			{ SDLK_KP_7, 103 },
+			{ SDLK_KP_8, 104 },
+			{ SDLK_KP_9, 105 },
+			{ SDLK_KP_MULTIPLY, 106 },
+			{ SDLK_KP_PLUS, 107 },
+			{ SDLK_KP_MINUS, 109 },
+			{ SDLK_KP_DECIMAL, 110 },
+			{ SDLK_KP_DIVIDE, 111 },
+			{ SDLK_F1, 112 },
+			{ SDLK_F2, 113 },
+			{ SDLK_F3, 114 },
+			{ SDLK_F4, 115 },
+			{ SDLK_F5, 116 },
+			{ SDLK_F6, 117 },
+			{ SDLK_F7, 118 },
+			{ SDLK_F8, 119 },
+			{ SDLK_F9, 120 },
+			{ SDLK_F10, 121 },
+			{ SDLK_F11, 122 },
+			{ SDLK_F12, 123 },
+			{ SDLK_NUMLOCKCLEAR, 144 },
+			{ SDLK_SCROLLLOCK, 145 },
+			{ SDLK_SEMICOLON, 186 },
+			{ SDLK_EQUALS, 187 },
+			{ SDLK_COMMA, 188 },
+			{ SDLK_MINUS, 189 },
+			{ SDLK_PERIOD, 190 },
+			{ SDLK_SLASH, 191 },
+			{ SDLK_LEFTBRACKET, 219 },
+			{ SDLK_BACKSLASH, 220 },
+			{ SDLK_RIGHTBRACKET, 221 },
+			{ SDLK_QUOTE, 222 },
+			//{ LEFT MOUSE CLICK, 245 },
+			//{ MIDDLE MOUSE CLICK, 246 },
+			//{ RIGHT MOUSE CLICK, 247 },
+			//{ MSCROLL_UP, 250 },
+			//{ MSCROLL_DOWN, 251 },
+		};
 	}
 	ObjectManager::~ObjectManager()
 	{
@@ -68,19 +173,18 @@ namespace ed {
 	{
 		Logger::Get().Log("Clearing ObjectManager contents...");
 
-		for (int i = 0; i < m_itemData.size(); i++) {
-			if (m_itemData[i]->Plugin != nullptr) {
-				PluginObject* pobj = m_itemData[i]->Plugin;
-				pobj->Owner->Object_Remove(m_items[i].c_str(), pobj->Type, pobj->Data, pobj->ID);
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i]->Plugin != nullptr) {
+				PluginObject* pobj = m_items[i]->Plugin;
+				pobj->Owner->Object_Remove(m_items[i]->Name.c_str(), pobj->Type, pobj->Data, pobj->ID);
 			}
 
-			delete m_itemData[i];
+			delete m_items[i];
 		}
 
 		m_binds.clear();
 		m_uniformBinds.clear();
 		m_items.clear();
-		m_itemData.clear();
 	}
 	bool ObjectManager::CreateRenderTexture(const std::string& name)
 	{
@@ -93,9 +197,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::RenderTexture);
+		m_items.push_back(item);
 
 		ed::RenderTextureObject* rtObj = item->RT = new ed::RenderTextureObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
@@ -103,7 +206,6 @@ namespace ed {
 		rtObj->FixedSize = size;
 		rtObj->RatioSize = glm::vec2(-1, -1);
 		rtObj->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		rtObj->Name = name;
 		rtObj->Clear = true;
 		rtObj->Format = GL_RGBA;
 
@@ -158,11 +260,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(file);
-
-		item->IsTexture = true;
+		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Texture);
+		m_items.push_back(item);
 
 		// normal texture
 		glGenTextures(1, &item->Texture);
@@ -197,7 +296,7 @@ namespace ed {
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		item->ImageSize = glm::ivec2(width, height);
+		item->TextureSize = glm::ivec2(width, height);
 
 		free(flippedData);
 		stbi_image_free(data);
@@ -215,11 +314,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
-
-		item->IsCube = true;
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::CubeMap);
+		m_items.push_back(item);
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, item->Texture);
@@ -258,7 +354,7 @@ namespace ed {
 
 		// clean up
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-		item->ImageSize = glm::ivec2(width, height);
+		item->TextureSize = glm::ivec2(width, height);
 
 		return true;
 	}
@@ -271,7 +367,7 @@ namespace ed {
 			return false;
 		}
 
-		ObjectManagerItem* item = new ObjectManagerItem();
+		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Audio);
 
 		item->SoundBuffer = new sf::SoundBuffer();
 		bool loaded = item->SoundBuffer->loadFromFile(m_parser->GetProjectPath(file));
@@ -281,9 +377,8 @@ namespace ed {
 			return false;
 		}
 
-		m_itemData.push_back(item);
 		m_parser->ModifyProject();
-		m_items.push_back(file);
+		m_items.push_back(item);
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
@@ -313,9 +408,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::Buffer);
+		m_items.push_back(item);
 
 		ed::BufferObject* bObj = item->Buffer = new ed::BufferObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
@@ -343,14 +437,13 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::Image);
+		m_items.push_back(item);
 
 		ed::ImageObject* iObj = item->Image = new ImageObject();
 
-		glGenTextures(1, &iObj->Texture);
-		glBindTexture(GL_TEXTURE_2D, iObj->Texture);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -373,16 +466,15 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::Image3D);
+		m_items.push_back(item);
 
 		ed::Image3DObject* iObj = item->Image3D = new Image3DObject();
 		iObj->Size = size;
 		iObj->Format = GL_RGBA32F;
 
-		glGenTextures(1, &iObj->Texture);
-		glBindTexture(GL_TEXTURE_3D, iObj->Texture);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexImage3D(GL_TEXTURE_3D, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -401,9 +493,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::PluginObject);
+		m_items.push_back(item);
 
 		PluginObject* pObj = item->Plugin = new PluginObject();
 		strcpy(pObj->Type, objtype.c_str());
@@ -424,12 +515,8 @@ namespace ed {
 
 		m_parser->ModifyProject();
 
-		ObjectManagerItem* item = new ObjectManagerItem();
-		m_itemData.push_back(item);
-		m_items.push_back(name);
-
-		item->IsTexture = true;
-		item->IsKeyboardTexture = true;
+		ObjectManagerItem* item = new ObjectManagerItem(name, ObjectType::KeyboardTexture);
+		m_items.push_back(item);
 
 		GLenum fmt = GL_RED;
 		int width = 256, height = 3;
@@ -445,7 +532,7 @@ namespace ed {
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		item->ImageSize = glm::ivec2(width, height);
+		item->TextureSize = glm::ivec2(width, height);
 
 		return true;
 	}
@@ -619,8 +706,8 @@ namespace ed {
 	{
 		stbi_set_flip_vertically_on_load(1);
 
-		for (int i = 0; i < m_itemData.size(); i++) {
-			if (m_itemData[i] == item) {
+		for (int i = 0; i < m_items.size(); i++) {
+			if (m_items[i] == item) {
 				std::string path = m_parser->GetProjectPath(newPath);
 				int width, height, nrChannels;
 				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
@@ -628,8 +715,8 @@ namespace ed {
 				if (data == nullptr)
 					return false;
 
-				if (m_items[i] != newPath) {
-					m_items[i] = newPath;
+				if (m_items[i]->Name != newPath) {
+					m_items[i]->Name = newPath;
 					m_parser->ModifyProject();
 				}
 
@@ -656,7 +743,7 @@ namespace ed {
 				glGenerateMipmap(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
-				item->ImageSize = glm::ivec2(width, height);
+				item->TextureSize = glm::ivec2(width, height);
 
 				free(flippedData);
 				stbi_image_free(data);
@@ -670,14 +757,13 @@ namespace ed {
 
 	void ObjectManager::Pause(bool pause)
 	{
-		for (auto& it : m_itemData) {
+		for (auto& it : m_items) {
 			if (it->SoundBuffer == nullptr)
 				continue;
 
 			// get samples and fft data
 			sf::Sound* player = it->Sound;
 			
-
 			if (pause)
 				player->pause();
 			else
@@ -686,111 +772,6 @@ namespace ed {
 	}
 	void ObjectManager::OnEvent(const SDL_Event& e)
 	{
-		std::unordered_map<SDL_Keycode, int> keyIDs = {
-			{ SDLK_BACKSPACE, 8 },
-			{ SDLK_TAB, 9 },
-			{ SDLK_RETURN, 13 },
-			// { SHIFT, 16 },
-			// { CTRL, 17 },
-			// { ALT, 18 },
-			{ SDLK_PAUSE, 19 },
-			{ SDLK_CAPSLOCK, 20 }, 
-			{ SDLK_ESCAPE, 27 },
-			{ SDLK_PAGEUP, 33 },
-			{ SDLK_SPACE, 32 },
-			{ SDLK_PAGEDOWN, 34 },
-			{ SDLK_END, 35 },
-			{ SDLK_HOME, 36 },
-			{ SDLK_LEFT, 37 },
-			{ SDLK_UP, 38 },
-			{ SDLK_RIGHT, 39 },
-			{ SDLK_DOWN, 40 },
-			{ SDLK_PRINTSCREEN, 44 }, 
-			{ SDLK_INSERT, 45 },
-			{ SDLK_DELETE, 46 },
-			{ SDLK_0, 48 },
-			{ SDLK_1, 49 },
-			{ SDLK_2, 50 },
-			{ SDLK_3, 51 },
-			{ SDLK_4, 52 },
-			{ SDLK_5, 53 },
-			{ SDLK_6, 54 },
-			{ SDLK_7, 55 },
-			{ SDLK_8, 56 },
-			{ SDLK_9, 57 },
-			{ SDLK_a, 65 },
-			{ SDLK_b, 66 },
-			{ SDLK_c, 67 },
-			{ SDLK_d, 68 },
-			{ SDLK_e, 69 },
-			{ SDLK_f, 70 },
-			{ SDLK_g, 71 },
-			{ SDLK_h, 72 },
-			{ SDLK_i, 73 },
-			{ SDLK_j, 74 },
-			{ SDLK_k, 75 },
-			{ SDLK_l, 76 },
-			{ SDLK_m, 77 },
-			{ SDLK_n, 78 },
-			{ SDLK_o, 79 },
-			{ SDLK_p, 80 },
-			{ SDLK_q, 81 },
-			{ SDLK_r, 82 },
-			{ SDLK_s, 83 },
-			{ SDLK_t, 84 },
-			{ SDLK_u, 85 },
-			{ SDLK_v, 86 },
-			{ SDLK_w, 87 },
-			{ SDLK_x, 88 },
-			{ SDLK_y, 89 },
-			{ SDLK_z, 90 },
-			{ SDLK_SELECT, 93 },
-			{ SDLK_KP_0, 96 },
-			{ SDLK_KP_1, 97 },
-			{ SDLK_KP_2, 98 },
-			{ SDLK_KP_3, 99 },
-			{ SDLK_KP_4, 100 },
-			{ SDLK_KP_5, 101 },
-			{ SDLK_KP_6, 102 },
-			{ SDLK_KP_7, 103 },
-			{ SDLK_KP_8, 104 },
-			{ SDLK_KP_9, 105 },
-			{ SDLK_KP_MULTIPLY, 106 },
-			{ SDLK_KP_PLUS, 107 },
-			{ SDLK_KP_MINUS, 109 },
-			{ SDLK_KP_DECIMAL, 110 }, 
-			{ SDLK_KP_DIVIDE, 111 },
-			{ SDLK_F1, 112 },
-			{ SDLK_F2, 113 },
-			{ SDLK_F3, 114 },
-			{ SDLK_F4, 115 },
-			{ SDLK_F5, 116 },
-			{ SDLK_F6, 117 },
-			{ SDLK_F7, 118 }, 
-			{ SDLK_F8, 119 }, 
-			{ SDLK_F9, 120 }, 
-			{ SDLK_F10, 121 }, 
-			{ SDLK_F11, 122 }, 
-			{ SDLK_F12, 123 }, 
-			{ SDLK_NUMLOCKCLEAR, 144 },
-			{ SDLK_SCROLLLOCK, 145 },
-			{ SDLK_SEMICOLON, 186 },
-			{ SDLK_EQUALS, 187 },
-			{ SDLK_COMMA, 188 },
-			{ SDLK_MINUS, 189 },
-			{ SDLK_PERIOD, 190 },
-			{ SDLK_SLASH, 191 },
-			{ SDLK_LEFTBRACKET, 219 },
-			{ SDLK_BACKSLASH, 220 },
-			{ SDLK_RIGHTBRACKET, 221 },
-			{ SDLK_QUOTE, 222 },
-			//{ LEFT MOUSE CLICK, 245 },
-			//{ MIDDLE MOUSE CLICK, 246 },
-			//{ RIGHT MOUSE CLICK, 247 },
-			//{ MSCROLL_UP, 250 },
-			//{ MSCROLL_DOWN, 251 },
-		};
-
 		if (e.type == SDL_KEYDOWN) {
 			int keyCode = 0;
 			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_RSHIFT)
@@ -799,8 +780,8 @@ namespace ed {
 				keyCode = 17;
 			else if (e.key.keysym.sym == SDLK_LALT || e.key.keysym.sym == SDLK_RALT)
 				keyCode = 18;
-			else if (keyIDs.count(e.key.keysym.sym))
-				keyCode = keyIDs[e.key.keysym.sym];
+			else if (m_keyIDs.count(e.key.keysym.sym))
+				keyCode = m_keyIDs[e.key.keysym.sym];
 
 			if (keyCode > 0) {
 				m_kbTexture[keyCode] = 0xFF;
@@ -816,8 +797,8 @@ namespace ed {
 				keyCode = 17;
 			else if (e.key.keysym.sym == SDLK_LALT || e.key.keysym.sym == SDLK_RALT)
 				keyCode = 18;
-			else if (keyIDs.count(e.key.keysym.sym))
-				keyCode = keyIDs[e.key.keysym.sym];
+			else if (m_keyIDs.count(e.key.keysym.sym))
+				keyCode = m_keyIDs[e.key.keysym.sym];
 
 			if (keyCode > 0)
 				m_kbTexture[keyCode] = 0;
@@ -867,7 +848,7 @@ namespace ed {
 	}
 	void ObjectManager::Update(float delta)
 	{
-		for (auto& it : m_itemData) {
+		for (auto& it : m_items) {
 			// update audio items
 			if (it->SoundBuffer != nullptr) {
 				// get samples and fft data
@@ -892,7 +873,7 @@ namespace ed {
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 			// update kb texture
-			else if (it->IsKeyboardTexture) {
+			else if (it->Type == ObjectType::KeyboardTexture) {
 				glBindTexture(GL_TEXTURE_2D, it->Texture);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 256, 3, 0, GL_RED, GL_UNSIGNED_BYTE, m_kbTexture);
 				glBindTexture(GL_TEXTURE_2D, 0);
@@ -904,266 +885,144 @@ namespace ed {
 	{
 		m_parser->ModifyProject();
 
-		GLuint srv = GetTexture(file);
-		if (IsImage3D(file))
-			srv = GetImage3D(file)->Texture;
-		else if (IsImage(file))
-			srv = GetImage(file)->Texture;
-		else if (IsBuffer(file))
-			srv = GetBuffer(file)->ID;
-		else if (IsPluginObject(file))
-			srv = GetPluginObject(file)->ID;
+		ed::ObjectManagerItem* item = GetObjectManagerItem(file);
+
+		GLuint data = item->Texture;
+		if (item->Type == ObjectType::Buffer && item->Buffer != nullptr)
+			data = item->Buffer->ID;
+		else if (item->Type == ObjectType::PluginObject && item->Plugin != nullptr)
+			data = item->Plugin->ID;
 
 		for (auto& i : m_binds)
 			for (int j = 0; j < i.second.size(); j++)
-				if (i.second[j] == srv) {
+				if (i.second[j] == data) {
 					i.second.erase(i.second.begin() + j);
 					j--;
 				}
 		for (auto& i : m_uniformBinds)
 			for (int j = 0; j < i.second.size(); j++)
-				if (i.second[j] == srv) {
+				if (i.second[j] == data) {
 					i.second.erase(i.second.begin() + j);
 					j--;
 				}
 
 		int index = 0;
 		for (; index < m_items.size(); index++)
-			if (m_items[index] == file) break;
+			if (m_items[index]->Name == file) break;
 
-		if (IsPluginObject(file)) {
-			PluginObject* pobj = GetPluginObject(file);
+		if (item->Type == ObjectType::PluginObject) {
+			PluginObject* pobj = item->Plugin;
 			pobj->Owner->Object_Remove(file.c_str(), pobj->Type, pobj->Data, pobj->ID);
 		}
 
-		delete m_itemData[index];
-		m_itemData.erase(m_itemData.begin() + index);
+		delete item;
 		m_items.erase(m_items.begin() + index);
 	}
 
-	void ObjectManager::Bind(const std::string& file, PipelineItem* pass)
+	void ObjectManager::Bind(ObjectManagerItem* item, PipelineItem* pass)
 	{
-		if (IsBound(file, pass) == -1) {
+		if (IsBound(item, pass) == -1) {
 			m_parser->ModifyProject();
 
-			if (IsImage(file))
-				m_binds[pass].push_back(GetImage(file)->Texture);
-			else if (IsImage3D(file))
-				m_binds[pass].push_back(GetImage3D(file)->Texture);
-			else if (IsPluginObject(file))
-				m_binds[pass].push_back(GetPluginObject(file)->ID);
-			else
-				m_binds[pass].push_back(GetTexture(file));
+			GLuint glObject = this->m_getGLObject(item);
+			
+			m_binds[pass].push_back(glObject);
 		}
 	}
-	void ObjectManager::Unbind(const std::string& file, PipelineItem* pass)
+	void ObjectManager::Unbind(ObjectManagerItem* item, PipelineItem* pass)
 	{
 		std::vector<GLuint>& srvs = m_binds[pass];
 
-		GLuint srv = GetTexture(file);
-		if (IsImage(file))
-			srv = GetImage(file)->Texture;
-		else if (IsImage3D(file))
-			srv = GetImage3D(file)->Texture;
-		else if (IsPluginObject(file))
-			srv = GetPluginObject(file)->ID;
+		GLuint glObject = this->m_getGLObject(item);
 
 		for (int i = 0; i < srvs.size(); i++)
-			if (srvs[i] == srv) {
+			if (srvs[i] == glObject) {
 				m_parser->ModifyProject();
 
 				srvs.erase(srvs.begin() + i);
 				return;
 			}
 	}
-	int ObjectManager::IsBound(const std::string& file, PipelineItem* pass)
+	int ObjectManager::IsBound(ObjectManagerItem* item, PipelineItem* pass)
 	{
 		if (m_binds.count(pass) == 0)
 			return -1;
 
-		if (IsImage(file)) {
-			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == GetImage(file)->Texture)
-					return i;
-		} else if (IsImage3D(file)) {
-			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == GetImage3D(file)->Texture)
-					return i;
-		} else if (IsPluginObject(file)) {
-			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == GetPluginObject(file)->ID)
-					return i;
-		} else {
-			for (int i = 0; i < m_binds[pass].size(); i++)
-				if (m_binds[pass][i] == GetTexture(file))
-					return i;
-		}
+		GLuint glObject = this->m_getGLObject(item);
 
-		return -1;
-	}
-
-	void ObjectManager::BindUniform(const std::string& file, PipelineItem* pass)
-	{
-		if (IsUniformBound(file, pass) == -1) {
-			if (IsBuffer(file))
-				m_uniformBinds[pass].push_back(GetBuffer(file)->ID);
-			else if (IsImage3D(file))
-				m_uniformBinds[pass].push_back(GetImage3D(file)->Texture);
-			else if (IsPluginObject(file))
-				m_uniformBinds[pass].push_back(GetPluginObject(file)->ID);
-			else
-				m_uniformBinds[pass].push_back(GetImage(file)->Texture);
-
-			m_parser->ModifyProject();
-		}
-	}
-	void ObjectManager::UnbindUniform(const std::string& file, PipelineItem* pass)
-	{
-		std::vector<GLuint>& ubos = m_uniformBinds[pass];
-		GLuint itemID = 0;
-
-		if (IsBuffer(file))
-			itemID = GetBuffer(file)->ID;
-		else if (IsImage3D(file))
-			itemID = GetImage3D(file)->Texture;
-		else if (IsPluginObject(file))
-			itemID = GetPluginObject(file)->ID;
-		else
-			itemID = GetImage(file)->Texture;
-
-		for (int i = 0; i < ubos.size(); i++)
-			if (ubos[i] == itemID) {
-				ubos.erase(ubos.begin() + i);
-				m_parser->ModifyProject();
-				return;
-			}
-	}
-	int ObjectManager::IsUniformBound(const std::string& file, PipelineItem* pass)
-	{
-		if (m_uniformBinds.count(pass) == 0)
-			return -1;
-
-		GLuint itemID = 0;
-		if (IsBuffer(file))
-			itemID = GetBuffer(file)->ID;
-		else if (IsImage3D(file))
-			itemID = GetImage3D(file)->Texture;
-		else if (IsPluginObject(file))
-			itemID = GetPluginObject(file)->ID;
-		else
-			itemID = GetImage(file)->Texture;
-
-		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
-			if (m_uniformBinds[pass][i] == itemID)
+		for (int i = 0; i < m_binds[pass].size(); i++)
+			if (m_binds[pass][i] == glObject)
 				return i;
 
 		return -1;
 	}
 
-	std::string ObjectManager::GetItemNameByTextureID(GLuint texID)
+	void ObjectManager::BindUniform(ObjectManagerItem* item, PipelineItem* pass)
 	{
-		for (int i = 0; i < m_itemData.size(); i++) {
-			ObjectManagerItem* item = m_itemData[i];
-			if (item->Texture == texID || (item->Image != nullptr && item->Image->Texture == texID) || (item->Image3D != nullptr && item->Image3D->Texture == texID) || (item->Buffer != nullptr && item->Buffer->ID == texID)) {
-				return m_items[i];
-			}
-		}
+		if (IsUniformBound(item, pass) == -1) {
+			GLuint glObject = this->m_getGLObject(item);
+			
+			m_uniformBinds[pass].push_back(glObject);
 
-		return "";
+			m_parser->ModifyProject();
+		}
 	}
-	glm::ivec2 ObjectManager::GetRenderTextureSize(const std::string& name)
+	void ObjectManager::UnbindUniform(ObjectManagerItem* item, PipelineItem* pass)
 	{
-		RenderTextureObject* rt = GetRenderTexture(name);
-		if (rt->FixedSize.x < 0) return glm::ivec2(rt->RatioSize.x * m_renderer->GetLastRenderSize().x, rt->RatioSize.y * m_renderer->GetLastRenderSize().y);
+		std::vector<GLuint>& ubos = m_uniformBinds[pass];
+
+		GLuint glObject = this->m_getGLObject(item);
+			
+		for (int i = 0; i < ubos.size(); i++)
+			if (ubos[i] == glObject) {
+				ubos.erase(ubos.begin() + i);
+				m_parser->ModifyProject();
+				return;
+			}
+	}
+	int ObjectManager::IsUniformBound(ObjectManagerItem* item, PipelineItem* pass)
+	{
+		if (m_uniformBinds.count(pass) == 0)
+			return -1;
+
+		GLuint glObject = this->m_getGLObject(item);
+		
+		for (int i = 0; i < m_uniformBinds[pass].size(); i++)
+			if (m_uniformBinds[pass][i] == glObject)
+				return i;
+
+		return -1;
+	}
+
+	glm::ivec2 ObjectManager::GetRenderTextureSize(ObjectManagerItem* obj)
+	{
+		RenderTextureObject* rt = obj->RT;
+
+		if (rt == nullptr)
+			return glm::ivec2(0, 0);
+		
+		if (rt->FixedSize.x < 0)
+			return glm::ivec2(rt->RatioSize.x * m_renderer->GetLastRenderSize().x, rt->RatioSize.y * m_renderer->GetLastRenderSize().y);
+		
 		return rt->FixedSize;
 	}
-	const std::vector<std::string>& ObjectManager::GetCubemapTextures(const std::string& name)
+	bool ObjectManager::Exists(const std::string& name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->CubemapPaths;
-		return m_emptyCBTexs;
-	}
-
-	bool ObjectManager::IsRenderTexture(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->RT != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsCubeMap(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->IsCube;
-		return false;
-	}
-	bool ObjectManager::IsAudio(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Sound != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsAudioMuted(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->SoundMuted;
-		return false;
-	}
-	bool ObjectManager::IsBuffer(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Buffer != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsImage(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsTexture(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->IsTexture;
-		return false;
-	}
-	bool ObjectManager::IsImage3D(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image3D != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsPluginObject(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Plugin != nullptr;
-		return false;
-	}
-	bool ObjectManager::IsPluginObject(GLuint id)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_itemData[i]->Plugin != nullptr && m_itemData[i]->Plugin->ID == id)
+			if (m_items[i]->Name == name)
 				return true;
 		return false;
 	}
-	bool ObjectManager::IsCubeMap(GLuint id)
-	{
-		for (const auto& i : m_itemData)
-			if (i->Texture == id)
-				return i->IsCube;
-		return false;
-	}
+
 	void ObjectManager::UploadDataToImage(ImageObject* img, GLuint tex, glm::ivec2 texSize)
 	{
+		GLuint imgTex = 0;
+		for (auto& obj : m_items)
+			if (obj->Image == img) {
+				imgTex = obj->Texture;
+				break;
+			}
+
 		if (tex != 0 && texSize.x != 0 && texSize.y != 0) {
 			int width = std::min<int>(img->Size.x, texSize.x);
 			int height = std::min<int>(img->Size.y, texSize.y);
@@ -1183,7 +1042,7 @@ namespace ed {
 					memcpy(&resPixels[(height - y - 1) * width * 4], &pixels[(texSize.y - y - 1) * texSize.x * 4], width * 4);
 			}
 
-			glBindTexture(GL_TEXTURE_2D, img->Texture);
+			glBindTexture(GL_TEXTURE_2D, imgTex);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, resPixels);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1194,26 +1053,24 @@ namespace ed {
 		} else {
 			unsigned char* pixels = (unsigned char*)calloc(img->Size.x * img->Size.y, 4);
 
-			glBindTexture(GL_TEXTURE_2D, img->Texture);
+			glBindTexture(GL_TEXTURE_2D, imgTex);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, img->Size.x, img->Size.y, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			free(pixels);
 		}
 	}
-	void ObjectManager::SaveToFile(const std::string& itemName, ObjectManagerItem* item, const std::string& filepath)
+	void ObjectManager::SaveToFile(ObjectManagerItem* item, const std::string& filepath)
 	{
-		glm::vec2 imgSize = item->ImageSize;
-		if (item->RT != nullptr)
-			imgSize = GetRenderTextureSize(itemName);
-		else if (item->Image != nullptr)
+		glm::vec2 imgSize = item->TextureSize;
+		if (item->Type == ObjectType::RenderTexture)
+			imgSize = GetRenderTextureSize(item);
+		else if (item->Type == ObjectType::Image)
 			imgSize = item->Image->Size;
 
 		unsigned char* pixels = (unsigned char*)malloc(imgSize.x * imgSize.y * 4);
 
 		GLuint outTex = item->Texture;
-		if (item->Image != nullptr)
-			outTex = item->Image->Texture; // TODO: why doesn't image use item->Texture ??
 
 		glBindTexture(GL_TEXTURE_2D, outTex);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -1232,162 +1089,35 @@ namespace ed {
 
 		free(pixels);
 	}
-	bool ObjectManager::IsImage(GLuint id)
-	{
-		for (const auto& i : m_itemData)
-			if (i->Image != nullptr && i->Image->Texture == id)
-				return true;
-		return false;
-	}
-	bool ObjectManager::IsImage3D(GLuint id)
-	{
-		for (const auto& i : m_itemData)
-			if (i->Image3D != nullptr && i->Image3D->Texture == id)
-				return true;
-		return false;
-	}
 
-	GLuint ObjectManager::GetTexture(const std::string& file)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file)
-				return m_itemData[i]->Texture;
-		return 0;
-	}
-	GLuint ObjectManager::GetFlippedTexture(const std::string& file)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file)
-				return m_itemData[i]->FlippedTexture;
-		return 0;
-	}
-	glm::ivec2 ObjectManager::GetTextureSize(const std::string& file)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file)
-				return m_itemData[i]->ImageSize;
-		return glm::ivec2(0, 0);
-	}
-	sf::SoundBuffer* ObjectManager::GetSoundBuffer(const std::string& file)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file)
-				return m_itemData[i]->SoundBuffer;
-		return nullptr;
-	}
-	sf::Sound* ObjectManager::GetAudioPlayer(const std::string& file)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == file)
-				return m_itemData[i]->Sound;
-		return nullptr;
-	}
-	BufferObject* ObjectManager::GetBuffer(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Buffer;
-		return nullptr;
-	}
-	ImageObject* ObjectManager::GetImage(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image;
-		return nullptr;
-	}
-	Image3DObject* ObjectManager::GetImage3D(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image3D;
-		return nullptr;
-	}
-	glm::ivec2 ObjectManager::GetImageSize(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image->Size;
-		return glm::ivec2(0, 0);
-	}
-	glm::ivec3 ObjectManager::GetImage3DSize(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Image3D->Size;
-		return glm::ivec3(0, 0, 0);
-	}
 	bool ObjectManager::HasKeyboardTexture()
 	{
-		for (const auto& obj : m_itemData)
-			if (obj->IsKeyboardTexture)
+		for (const auto& obj : m_items)
+			if (obj->Type == ObjectType::KeyboardTexture)
 				return true;
 		return false;
 	}
-	RenderTextureObject* ObjectManager::GetRenderTexture(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->RT;
-		return nullptr;
-	}
-	PluginObject* ObjectManager::GetPluginObject(const std::string& name)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i]->Plugin;
-		return nullptr;
-	}
-	PluginObject* ObjectManager::GetPluginObject(GLuint id)
-	{
-		for (int i = 0; i < m_items.size(); i++)
-			if (m_itemData[i]->Plugin != nullptr && m_itemData[i]->Plugin->ID == id)
-				return m_itemData[i]->Plugin;
-		return nullptr;
-	}
 
-	RenderTextureObject* ObjectManager::GetRenderTexture(GLuint tex)
+	ObjectManagerItem* ObjectManager::GetObjectManagerItemByTextureID(GLuint tex)
 	{
-		for (const auto& i : m_itemData)
-			if (i->Texture == tex)
-				return i->RT;
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i]->Texture == tex)
+				return m_items[i];
 		return nullptr;
 	}
-	std::string ObjectManager::GetBufferNameByID(int id)
+	ObjectManagerItem* ObjectManager::GetObjectManagerItemByBufferID(GLuint tex)
 	{
-		for (int i = 0; i < m_itemData.size(); i++)
-			if (m_itemData[i]->Buffer != nullptr && m_itemData[i]->Buffer->ID == id)
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i]->Buffer && m_items[i]->Buffer->ID == tex)
 				return m_items[i];
-		return "";
+		return nullptr;
 	}
-	std::string ObjectManager::GetImageNameByID(GLuint id)
-	{
-		for (int i = 0; i < m_itemData.size(); i++)
-			if (m_itemData[i]->Image != nullptr && m_itemData[i]->Image->Texture == id)
-				return m_items[i];
-		return "";
-	}
-	std::string ObjectManager::GetImage3DNameByID(GLuint id)
-	{
-		for (int i = 0; i < m_itemData.size(); i++)
-			if (m_itemData[i]->Image3D != nullptr && m_itemData[i]->Image3D->Texture == id)
-				return m_items[i];
-		return "";
-	}
-
 	ObjectManagerItem* ObjectManager::GetObjectManagerItem(const std::string& name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
-			if (m_items[i] == name)
-				return m_itemData[i];
-		return nullptr;
-	}
-	std::string ObjectManager::GetObjectManagerItemName(ObjectManagerItem* item)
-	{
-		for (int i = 0; i < m_itemData.size(); i++)
-			if (m_itemData[i] == item)
+			if (m_items[i]->Name == name)
 				return m_items[i];
-		return "";
+		return nullptr;
 	}
 
 	void ObjectManager::FlipTexture(const std::string& name)
@@ -1431,31 +1161,32 @@ namespace ed {
 		}
 	}
 
-	void ObjectManager::Mute(const std::string& name)
+	void ObjectManager::Mute(ObjectManagerItem* item)
 	{
-		ObjectManagerItem* item = GetObjectManagerItem(name);
 		if (item != nullptr) {
 			item->SoundMuted = true;
 			item->Sound->setVolume(0);
 		}
 	}
-	void ObjectManager::Unmute(const std::string& name)
+	void ObjectManager::Unmute(ObjectManagerItem* item)
 	{
-		ObjectManagerItem* item = GetObjectManagerItem(name);
 		if (item != nullptr) {
 			item->SoundMuted = false;
 			item->Sound->setVolume(100);
 		}
 	}
 
-	void ObjectManager::ResizeRenderTexture(const std::string& name, glm::ivec2 size)
+	void ObjectManager::ResizeRenderTexture(ObjectManagerItem* item, glm::ivec2 size)
 	{
-		RenderTextureObject* rtObj = GetRenderTexture(name);
+		RenderTextureObject* rtObj = item->RT;
+
+		if (rtObj == nullptr)
+			return;
 
 		if (rtObj->RatioSize.x == -1 && rtObj->RatioSize.y == -1)
 			m_parser->ModifyProject();
 
-		glBindTexture(GL_TEXTURE_2D, GetTexture(name));
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
@@ -1469,27 +1200,27 @@ namespace ed {
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, size.x, size.y, true);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	}
-	void ObjectManager::ResizeImage(const std::string& name, glm::ivec2 size)
+	void ObjectManager::ResizeImage(ObjectManagerItem* item, glm::ivec2 size)
 	{
-		ImageObject* iobj = GetImage(name);
+		ImageObject* iobj = item->Image;
 
 		m_parser->ModifyProject();
 
 		iobj->Size = size;
 
-		glBindTexture(GL_TEXTURE_2D, iobj->Texture);
+		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	void ObjectManager::ResizeImage3D(const std::string& name, glm::ivec3 size)
+	void ObjectManager::ResizeImage3D(ObjectManagerItem* item, glm::ivec3 size)
 	{
-		Image3DObject* iobj = GetImage3D(name);
+		Image3DObject* iobj = item->Image3D;
 
 		m_parser->ModifyProject();
 
 		iobj->Size = size;
 
-		glBindTexture(GL_TEXTURE_3D, iobj->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
 		glTexImage3D(GL_TEXTURE_3D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, iobj->Size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}

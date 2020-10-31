@@ -424,7 +424,7 @@ namespace ed {
 		}
 
 		// initialize geometry, framebuffers, etc...
-		const auto& objItems = data->Objects.GetItemDataList();
+		const auto& objItems = data->Objects.GetObjects();
 		size_t locInit = findSection(templateSrc, "init");
 		indent = getSectionIndent(templateSrc, "init");
 		if (locInit != std::string::npos) {
@@ -483,12 +483,12 @@ namespace ed {
 			// objects
 			initSrc += indent + "// objects\n";
 			for (int i = 0; i < objItems.size(); i++) {
-				if (objItems[i]->RT != nullptr) { // RT
+				if (objItems[i]->Type == ObjectType::RenderTexture) { // RT
 					const auto rtObj = objItems[i]->RT;
 
-					std::string itemName = objItems[i]->RT->Name;
-					std::string rtColorName = objItems[i]->RT->Name + "_Color";
-					std::string rtDepthName = objItems[i]->RT->Name + "_Depth";
+					std::string itemName = objItems[i]->Name;
+					std::string rtColorName = objItems[i]->Name + "_Color";
+					std::string rtDepthName = objItems[i]->Name + "_Depth";
 
 					// size string
 					std::string sizeSrc = "";
@@ -515,8 +515,8 @@ namespace ed {
 					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);\n";
 					initSrc += indent + "glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);\n";
 					initSrc += indent + "glBindTexture(GL_TEXTURE_2D, 0);\n\n";
-				} else if (objItems[i]->IsTexture) { // Texture
-					std::string actualName = data->Objects.GetItemNameByTextureID(objItems[i]->Texture);
+				} else if (objItems[i]->Type == ObjectType::Texture) { // Texture
+					std::string actualName = objItems[i]->Name;
 					std::string texName = actualName;
 					if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos) {
 						texName = std::filesystem::path(texName).filename().string();
@@ -542,7 +542,7 @@ namespace ed {
 					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture()) {
 					} else {
 						GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
-						const auto depthRT = data->Objects.GetRenderTexture(lastID);
+						const auto depthRT = data->Objects.GetObjectManagerItemByTextureID(lastID);
 
 						initSrc += indent + "GLuint " + std::string(pipeItems[i]->Name) + "_FBO = 0;\n";
 						initSrc += indent + "glGenFramebuffers(1, &" + std::string(pipeItems[i]->Name) + "_FBO);\n";
@@ -550,7 +550,7 @@ namespace ed {
 						initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, " + depthRT->Name + "_Depth, 0);\n";
 
 						for (int i = 0; i < pass->RTCount; i++) {
-							const auto curRT = data->Objects.GetRenderTexture(pass->RenderTextures[i]);
+							const auto curRT = data->Objects.GetObjectManagerItemByTextureID(pass->RenderTextures[i]);
 							initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + " + std::to_string(i) + ", GL_TEXTURE_2D, " + curRT->Name + "_Color, 0);\n";
 						}
 						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n\n";
@@ -594,8 +594,8 @@ namespace ed {
 			resizeEventSrc += indent + "sysViewOrthographic = sysOrthographic * sysView;\n\n";
 
 			for (const auto& rt : objItems) {
-				if (rt->RT != nullptr) {
-					std::string itemName = rt->RT->Name;
+				if (rt->Type == ObjectType::RenderTexture) {
+					std::string itemName = rt->Name;
 					std::string rtColorName = itemName + "_Color";
 					std::string rtDepthName = itemName + "_Depth";
 
@@ -654,7 +654,8 @@ namespace ed {
 								break;
 
 							GLuint rt = pass->RenderTextures[i];
-							ed::RenderTextureObject* rtObject = data->Objects.GetRenderTexture(rt);
+							ObjectManagerItem* rtObjectItem = data->Objects.GetObjectManagerItemByTextureID(rt);
+							RenderTextureObject* rtObject = rtObjectItem->RT;
 
 							// clear and bind rt (only if not used in last shader pass)
 							bool usedPreviously = false;
@@ -664,8 +665,8 @@ namespace ed {
 									break;
 								}
 							if (!usedPreviously && rtObject->Clear) {
-								renderSrc += indent + "glm::vec4 " + std::string(rtObject->Name) + "_ClearColor = glm::vec4(" + std::to_string(rtObject->ClearColor.r) + ", " + std::to_string(rtObject->ClearColor.g) + ", " + std::to_string(rtObject->ClearColor.b) + ", " + std::to_string(rtObject->ClearColor.a) + ");\n";
-								renderSrc += indent + "glClearBufferfv(GL_COLOR, " + std::to_string(i) + ", glm::value_ptr(" + std::string(rtObject->Name) + "_ClearColor));\n";
+								renderSrc += indent + "glm::vec4 " + std::string(rtObjectItem->Name) + "_ClearColor = glm::vec4(" + std::to_string(rtObject->ClearColor.r) + ", " + std::to_string(rtObject->ClearColor.g) + ", " + std::to_string(rtObject->ClearColor.b) + ", " + std::to_string(rtObject->ClearColor.a) + ");\n";
+								renderSrc += indent + "glClearBufferfv(GL_COLOR, " + std::to_string(i) + ", glm::value_ptr(" + std::string(rtObjectItem->Name) + "_ClearColor));\n";
 							}
 						}
 						for (int i = 0; i < pass->RTCount; i++)
@@ -676,19 +677,18 @@ namespace ed {
 					// bind textures
 					const auto& srvs = data->Objects.GetBindList(pipeItems[i]);
 					for (int j = 0; j < srvs.size(); j++) {
-						std::string actualName = data->Objects.GetItemNameByTextureID(srvs[j]);
-						std::string texName = actualName;
-						if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos) {
+						ed::ObjectManagerItem* itemData = data->Objects.GetObjectManagerItemByTextureID(srvs[j]);
+						std::string texName = itemData->Name;
+						if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos)
 							texName = std::filesystem::path(texName).filename().string();
-						}
 						texName = getFilename(texName);
 
 						renderSrc += indent + "glActiveTexture(GL_TEXTURE0 + " + std::to_string(j) + ");\n";
-						if (data->Objects.IsCubeMap(srvs[j]))
+						if (itemData->Type == ObjectType::CubeMap)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_CUBE_MAP, " + texName + ");\n";
-						else if (data->Objects.IsImage3D(srvs[j]))
+						else if (itemData->Type == ObjectType::Image3D)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_3D, " + texName + ");\n";
-						else if (data->Objects.IsRenderTexture(actualName))
+						else if (itemData->Type == ObjectType::RenderTexture)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + "_Color);\n";
 						else
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + ");\n";

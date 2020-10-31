@@ -786,12 +786,11 @@ namespace ed {
 						m_data->Renderer.Render();
 				}
 				if (ImGui::MenuItem("Reload textures")) {
-					const std::vector<std::string>& objs = m_data->Objects.GetObjects();
+					std::vector<ObjectManagerItem*>& objs = m_data->Objects.GetObjects();
 					
 					for (const auto& obj : objs) {
-						ObjectManagerItem* item = m_data->Objects.GetObjectManagerItem(obj);
-						if (item->IsTexture && !item->IsKeyboardTexture && !item->IsCube)
-							m_data->Objects.ReloadTexture(item, obj);
+						if (obj->Type == ObjectType::Texture)
+							m_data->Objects.ReloadTexture(obj, obj->Name);
 					}
 				}
 				if (ImGui::MenuItem("Options")) {
@@ -1628,7 +1627,7 @@ namespace ed {
 
 			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateRenderTexture(buf)) {
-					((PropertyUI*)Get(ViewID::Properties))->Open(buf, m_data->Objects.GetObjectManagerItem(buf));
+					((PropertyUI*)Get(ViewID::Properties))->Open(m_data->Objects.GetObjectManagerItem(buf));
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -2601,7 +2600,7 @@ namespace ed {
 		((CodeEditorUI*)Get(ViewID::Code))->CloseAll();
 		((PinnedUI*)Get(ViewID::Pinned))->CloseAll();
 		((PreviewUI*)Get(ViewID::Preview))->Reset();
-		((PropertyUI*)Get(ViewID::Properties))->Open(nullptr);
+		((PropertyUI*)Get(ViewID::Properties))->Close();
 		((PipelineUI*)Get(ViewID::Pipeline))->Reset();
 		((ObjectPreviewUI*)Get(ViewID::ObjectPreview))->CloseAll();
 		CameraSnapshots::Clear();
