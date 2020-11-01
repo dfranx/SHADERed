@@ -122,7 +122,7 @@ namespace ed {
 			if (k.second.second == nullptr)
 				continue;
 
-			ObjectManagerItem* rtItem = Objects.GetObjectManagerItemByTextureID(k.first);
+			ObjectManagerItem* rtItem = Objects.GetByTextureID(k.first);
 			std::string objName = k.second.second->Name;
 
 			glm::ivec2 rtSize = previewSize;
@@ -219,7 +219,7 @@ namespace ed {
 		// compute shader suggestion for instanced objects
 		if (pixel.InstanceBuffer) {
 			BufferObject* buf = (BufferObject*)pixel.InstanceBuffer;
-			ObjectManagerItem* bufOwner = Objects.GetObjectManagerItemByBufferID(buf->ID);
+			ObjectManagerItem* bufOwner = Objects.GetByBufferID(buf->ID);
 			
 			for (auto& item : Pipeline.GetList()) {
 				if (Objects.IsUniformBound(bufOwner, item) != -1) {
@@ -241,7 +241,7 @@ namespace ed {
 			BufferObject* buf = (BufferObject*)vertBufferItem->Buffer;
 
 			if (buf) {
-				ObjectManagerItem* bufOwner = Objects.GetObjectManagerItemByBufferID(buf->ID);
+				ObjectManagerItem* bufOwner = Objects.GetByBufferID(buf->ID);
 			
 				for (auto& item : Pipeline.GetList()) {
 					if (Objects.IsUniformBound(bufOwner, item) != -1) {

@@ -126,7 +126,7 @@ namespace ed {
 					for (item->RTCount = 0; item->RTCount < MAX_RENDER_TEXTURES; item->RTCount++) {
 						int i = item->RTCount;
 						GLuint rtID = item->RenderTextures[i];
-						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetObjectManagerItemByTextureID(rtID)->Name);
+						std::string name = rtID == 0 ? "NULL" : (rtID == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetByTextureID(rtID)->Name);
 
 						ImGui::PushID(i);
 						if (ImGui::BeginCombo("##pui_rt_combo", name.c_str())) {
@@ -154,7 +154,7 @@ namespace ed {
 								if (item->RenderTextures[j] == 0)
 									break;
 
-								std::string name = item->RenderTextures[j] == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetObjectManagerItemByTextureID(item->RenderTextures[j])->Name;
+								std::string name = item->RenderTextures[j] == m_data->Renderer.GetTexture() ? "Window" : m_data->Objects.GetByTextureID(item->RenderTextures[j])->Name;
 
 								for (int k = 0; k < rts.size(); k++) {
 									if (rts[k]->Name == name) {
@@ -460,7 +460,7 @@ namespace ed {
 
 					const auto& bufList = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::BeginCombo("##pui_geo_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetObjectManagerItemByBufferID(((BufferObject*)item->InstanceBuffer)->ID)->Name.c_str())))) {
+					if (ImGui::BeginCombo("##pui_geo_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetByBufferID(((BufferObject*)item->InstanceBuffer)->ID)->Name.c_str())))) {
 						// null element
 						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
 							item->InstanceBuffer = nullptr;
@@ -883,7 +883,7 @@ namespace ed {
 
 					const auto& bufList = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::BeginCombo("##pui_mdl_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetObjectManagerItemByBufferID(((BufferObject*)item->InstanceBuffer)->ID)->Name.c_str())))) {
+					if (ImGui::BeginCombo("##pui_mdl_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetByBufferID(((BufferObject*)item->InstanceBuffer)->ID)->Name.c_str())))) {
 						// null element
 						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
 							item->InstanceBuffer = nullptr;
@@ -934,7 +934,7 @@ namespace ed {
 
 					auto& bufList = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
-					if (ImGui::BeginCombo("##pui_vb_buffer", ((item->Buffer == nullptr) ? "NULL" : (m_data->Objects.GetObjectManagerItemByBufferID(((BufferObject*)item->Buffer)->ID)->Name.c_str())))) {
+					if (ImGui::BeginCombo("##pui_vb_buffer", ((item->Buffer == nullptr) ? "NULL" : (m_data->Objects.GetByBufferID(((BufferObject*)item->Buffer)->ID)->Name.c_str())))) {
 						// null element
 						if (ImGui::Selectable("NULL", item->Buffer == nullptr)) {
 							item->Buffer = nullptr;
@@ -1177,7 +1177,7 @@ namespace ed {
 						GLuint tex = 0;
 						glm::ivec2 texSize(0);
 						if (m_currentImg->DataPath[0] != 0) {
-							ObjectManagerItem* texPtr = m_data->Objects.GetObjectManagerItem(m_currentImg->DataPath);
+							ObjectManagerItem* texPtr = m_data->Objects.Get(m_currentImg->DataPath);
 							tex = texPtr->Texture;
 							texSize = texPtr->TextureSize;
 						}

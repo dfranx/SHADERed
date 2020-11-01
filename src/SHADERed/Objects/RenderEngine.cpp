@@ -218,7 +218,7 @@ namespace ed {
 					GLuint rt = data->RenderTextures[i];
 
 					if (rt != m_rtColor) {
-						ed::RenderTextureObject* rtObject = m_objects->GetObjectManagerItemByTextureID(rt)->RT;
+						ed::RenderTextureObject* rtObject = m_objects->GetByTextureID(rt)->RT;
 
 						rtSize = rtObject->CalculateSize(width, height);
 
@@ -254,7 +254,7 @@ namespace ed {
 
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++) {
-					ObjectManagerItem* srvData = m_objects->GetObjectManagerItemByTextureID(srvs[j]);
+					ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
 
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
@@ -460,7 +460,7 @@ namespace ed {
 				
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++) {
-					ObjectManagerItem* srvData = m_objects->GetObjectManagerItemByTextureID(srvs[j]);
+					ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
 
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
@@ -483,7 +483,9 @@ namespace ed {
 					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, j, 0);
 
 				for (int j = 0; j < ubos.size(); j++) {
-					ObjectManagerItem* uboData = m_objects->GetObjectManagerItemByTextureID(ubos[j]);
+					ObjectManagerItem* uboData = m_objects->GetByTextureID(ubos[j]);
+					if (uboData == nullptr)
+						uboData = m_objects->GetByBufferID(ubos[j]);
 
 					if (uboData->Type == ObjectType::Image) {
 						ImageObject* iobj = uboData->Image;
@@ -516,7 +518,7 @@ namespace ed {
 
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++) {
-					ObjectManagerItem* srvData = m_objects->GetObjectManagerItemByTextureID(srvs[j]);
+					ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
 
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
@@ -619,7 +621,7 @@ namespace ed {
 				GLuint rt = vertexPass->RenderTextures[i];
 
 				if (rt != m_rtColor) {
-					ed::RenderTextureObject* rtObject = m_objects->GetObjectManagerItemByTextureID(rt)->RT;
+					ed::RenderTextureObject* rtObject = m_objects->GetByTextureID(rt)->RT;
 					rtSize = rtObject->CalculateSize(m_lastSize.x, m_lastSize.y);
 				}
 
@@ -634,7 +636,7 @@ namespace ed {
 
 			// bind shader resource views
 			for (int j = 0; j < srvs.size(); j++) {
-				ObjectManagerItem* srvData = m_objects->GetObjectManagerItemByTextureID(srvs[j]);
+				ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
 
 				glActiveTexture(GL_TEXTURE0 + j);
 				if (srvData->Type == ObjectType::CubeMap)
@@ -860,7 +862,7 @@ namespace ed {
 				GLuint rt = vertexPass->RenderTextures[i];
 
 				if (rt != m_rtColor) {
-					ObjectManagerItem* rtObject = m_objects->GetObjectManagerItemByTextureID(rt);
+					ObjectManagerItem* rtObject = m_objects->GetByTextureID(rt);
 					rtSize = rtObject->RT->CalculateSize(m_lastSize.x, m_lastSize.y);
 				}
 
@@ -875,7 +877,7 @@ namespace ed {
 
 			// bind shader resource views
 			for (int j = 0; j < srvs.size(); j++) {
-				ObjectManagerItem* srvData = m_objects->GetObjectManagerItemByTextureID(srvs[j]);
+				ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
 
 				glActiveTexture(GL_TEXTURE0 + j);
 				if (srvData->Type == ObjectType::CubeMap)
@@ -2240,7 +2242,7 @@ namespace ed {
 			return;
 
 		GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
-		ObjectManagerItem* lastData = m_objects->GetObjectManagerItemByTextureID(lastID);
+		ObjectManagerItem* lastData = m_objects->GetByTextureID(lastID);
 
 		GLuint depthID = lastID == m_rtColor ? m_rtDepth : lastData->RT->DepthStencilBuffer;
 		GLuint depthMSID = lastID == m_rtColor ? m_rtDepthMS : lastData->RT->DepthStencilBufferMS;
@@ -2279,7 +2281,7 @@ namespace ed {
 			if (texID == m_rtColor)
 				texID = m_rtColorMS;
 			else
-				texID = m_objects->GetObjectManagerItemByTextureID(texID)->RT->BufferMS;
+				texID = m_objects->GetByTextureID(texID)->RT->BufferMS;
 
 			// attach
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, texID, 0);

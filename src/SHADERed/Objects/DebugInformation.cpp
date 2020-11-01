@@ -887,7 +887,7 @@ namespace ed {
 						}
 
 						if (!wrongBind && textureID != 0) {
-							ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
+							ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 							if (itemData) {
 								if (!(itemData->Type == ObjectType::Texture || itemData->Type == ObjectType::RenderTexture || itemData->Type == ObjectType::Image || itemData->Type == ObjectType::Image3D || itemData->Type == ObjectType::KeyboardTexture)) {
 									wrongBind = true;
@@ -975,7 +975,7 @@ namespace ed {
 							} else {
 								// cubemaps
 								if (type_info->image_info->dim == SpvDimCube) {
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
+									ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 
 									// get texture size
 									glm::ivec2 size(1, 1);
@@ -1004,7 +1004,7 @@ namespace ed {
 								// 3d textures
 								else if (type_info->image_info->dim == SpvDim3D) {
 									// get texture size
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
+									ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 									
 									if (itemData != nullptr && itemData->Image3D != nullptr)
 										imgSize = itemData->Image3D->Size;
@@ -1019,7 +1019,7 @@ namespace ed {
 								// 2d textures
 								else {
 									// get texture size
-									ObjectManagerItem* itemData = m_objs->GetObjectManagerItemByTextureID(textureID);
+									ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 									glm::ivec2 size(1, 1);
 									if (itemData != nullptr) {
 										if (itemData->RT != nullptr)
@@ -1069,7 +1069,7 @@ namespace ed {
 					}
 
 					if (binding < ubos.size()) {
-						ed::BufferObject* obj = m_objs->GetObjectManagerItemByBufferID(ubos[binding])->Buffer;
+						ed::BufferObject* obj = m_objs->GetByBufferID(ubos[binding])->Buffer;
 
 						float* data = (float*)calloc(1, obj->Size);
 						glBindBuffer(GL_SHADER_STORAGE_BUFFER, obj->ID);

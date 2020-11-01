@@ -542,7 +542,7 @@ namespace ed {
 					if (pass->RTCount == 1 && pass->RenderTextures[0] == data->Renderer.GetTexture()) {
 					} else {
 						GLuint lastID = pass->RenderTextures[pass->RTCount - 1];
-						const auto depthRT = data->Objects.GetObjectManagerItemByTextureID(lastID);
+						const auto depthRT = data->Objects.GetByTextureID(lastID);
 
 						initSrc += indent + "GLuint " + std::string(pipeItems[i]->Name) + "_FBO = 0;\n";
 						initSrc += indent + "glGenFramebuffers(1, &" + std::string(pipeItems[i]->Name) + "_FBO);\n";
@@ -550,7 +550,7 @@ namespace ed {
 						initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, " + depthRT->Name + "_Depth, 0);\n";
 
 						for (int i = 0; i < pass->RTCount; i++) {
-							const auto curRT = data->Objects.GetObjectManagerItemByTextureID(pass->RenderTextures[i]);
+							const auto curRT = data->Objects.GetByTextureID(pass->RenderTextures[i]);
 							initSrc += indent + "glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + " + std::to_string(i) + ", GL_TEXTURE_2D, " + curRT->Name + "_Color, 0);\n";
 						}
 						initSrc += indent + "glBindFramebuffer(GL_FRAMEBUFFER, 0);\n\n";
@@ -654,7 +654,7 @@ namespace ed {
 								break;
 
 							GLuint rt = pass->RenderTextures[i];
-							ObjectManagerItem* rtObjectItem = data->Objects.GetObjectManagerItemByTextureID(rt);
+							ObjectManagerItem* rtObjectItem = data->Objects.GetByTextureID(rt);
 							RenderTextureObject* rtObject = rtObjectItem->RT;
 
 							// clear and bind rt (only if not used in last shader pass)
@@ -677,7 +677,7 @@ namespace ed {
 					// bind textures
 					const auto& srvs = data->Objects.GetBindList(pipeItems[i]);
 					for (int j = 0; j < srvs.size(); j++) {
-						ed::ObjectManagerItem* itemData = data->Objects.GetObjectManagerItemByTextureID(srvs[j]);
+						ed::ObjectManagerItem* itemData = data->Objects.GetByTextureID(srvs[j]);
 						std::string texName = itemData->Name;
 						if (texName.find('\\') != std::string::npos || texName.find('/') != std::string::npos || texName.find('.') != std::string::npos)
 							texName = std::filesystem::path(texName).filename().string();

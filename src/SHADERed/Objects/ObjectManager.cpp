@@ -885,7 +885,7 @@ namespace ed {
 	{
 		m_parser->ModifyProject();
 
-		ed::ObjectManagerItem* item = GetObjectManagerItem(file);
+		ed::ObjectManagerItem* item = Get(file);
 
 		GLuint data = item->Texture;
 		if (item->Type == ObjectType::Buffer && item->Buffer != nullptr)
@@ -1098,21 +1098,21 @@ namespace ed {
 		return false;
 	}
 
-	ObjectManagerItem* ObjectManager::GetObjectManagerItemByTextureID(GLuint tex)
+	ObjectManagerItem* ObjectManager::GetByTextureID(GLuint tex)
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i]->Texture == tex)
 				return m_items[i];
 		return nullptr;
 	}
-	ObjectManagerItem* ObjectManager::GetObjectManagerItemByBufferID(GLuint tex)
+	ObjectManagerItem* ObjectManager::GetByBufferID(GLuint tex)
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i]->Buffer && m_items[i]->Buffer->ID == tex)
 				return m_items[i];
 		return nullptr;
 	}
-	ObjectManagerItem* ObjectManager::GetObjectManagerItem(const std::string& name)
+	ObjectManagerItem* ObjectManager::Get(const std::string& name)
 	{
 		for (int i = 0; i < m_items.size(); i++)
 			if (m_items[i]->Name == name)
@@ -1122,7 +1122,7 @@ namespace ed {
 
 	void ObjectManager::FlipTexture(const std::string& name)
 	{
-		ObjectManagerItem* item = GetObjectManagerItem(name);
+		ObjectManagerItem* item = Get(name);
 
 		if (item != nullptr) {
 			GLuint tex = item->Texture;
@@ -1142,7 +1142,7 @@ namespace ed {
 	}
 	void ObjectManager::UpdateTextureParameters(const std::string& name)
 	{
-		ObjectManagerItem* item = GetObjectManagerItem(name);
+		ObjectManagerItem* item = Get(name);
 
 		if (item != nullptr) {
 			glBindTexture(GL_TEXTURE_2D, item->Texture);

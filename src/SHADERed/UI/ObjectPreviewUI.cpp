@@ -96,7 +96,7 @@ namespace ed {
 				} else {
 					glm::ivec2 iSize(m_cachedImgSize[i]);
 					if (item->Type == ObjectType::RenderTexture) {
-						ObjectManagerItem* actualData = m_data->Objects.GetObjectManagerItem(item->Name);
+						ObjectManagerItem* actualData = m_data->Objects.Get(item->Name);
 
 						iSize = m_data->Objects.GetRenderTextureSize(actualData);
 					}
@@ -350,7 +350,7 @@ namespace ed {
 									m_data->DebugClick(s);
 								}
 								// image
-								ImageObject* image = m_data->Objects.GetObjectManagerItem(name)->Image;
+								ImageObject* image = m_data->Objects.Get(name)->Image;
 								if (image != nullptr) {
 									glm::vec2 s(zPos.x + zSize.x * mousePos.x, zPos.y + zSize.y * mousePos.y);
 

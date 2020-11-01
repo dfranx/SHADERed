@@ -205,11 +205,11 @@ namespace ed {
 				};
 				plugin->ResizeRenderTexture = [](void* objects, const char* name, int width, int height) {
 					ObjectManager* objs = (ObjectManager*)objects;
-					objs->ResizeRenderTexture(objs->GetObjectManagerItem(name), glm::ivec2(width, height));
+					objs->ResizeRenderTexture(objs->Get(name), glm::ivec2(width, height));
 				};
 				plugin->ResizeImage = [](void* objects, const char* name, int width, int height) {
 					ObjectManager* objs = (ObjectManager*)objects;
-					objs->ResizeImage(objs->GetObjectManagerItem(name), glm::ivec2(width, height));
+					objs->ResizeImage(objs->Get(name), glm::ivec2(width, height));
 				};
 				plugin->ExistsObject = [](void* objects, const char* name) -> bool {
 					ObjectManager* objs = (ObjectManager*)objects;
@@ -369,19 +369,19 @@ namespace ed {
 				plugin->IsTexture = [](void* objects, const char* name) -> bool {
 					ObjectManager* obj = (ObjectManager*)objects;
 					
-					return obj->GetObjectManagerItem(name)->Type == ObjectType::Texture;
+					return obj->Get(name)->Type == ObjectType::Texture;
 				};
 				plugin->GetTexture = [](void* objects, const char* name) -> unsigned int {
 					ObjectManager* obj = (ObjectManager*)objects;
-					return obj->GetObjectManagerItem(name)->Texture;
+					return obj->Get(name)->Texture;
 				};
 				plugin->GetFlippedTexture = [](void* objects, const char* name) -> unsigned int {
 					ObjectManager* obj = (ObjectManager*)objects;
-					return obj->GetObjectManagerItem(name)->FlippedTexture;
+					return obj->Get(name)->FlippedTexture;
 				};
 				plugin->GetTextureSize = [](void* objects, const char* name, int& w, int& h) {
 					ObjectManager* obj = (ObjectManager*)objects;
-					glm::ivec2 tsize = obj->GetObjectManagerItem(name)->TextureSize;
+					glm::ivec2 tsize = obj->Get(name)->TextureSize;
 					w = tsize.x;
 					h = tsize.y;
 				};
@@ -860,7 +860,7 @@ namespace ed {
 				};
 				plugin->IsRenderTexture = [](void* objects, const char* name) -> bool {
 					ObjectManager* obj = (ObjectManager*)objects;
-					ObjectManagerItem* item = obj->GetObjectManagerItem(name);
+					ObjectManagerItem* item = obj->Get(name);
 
 					if (item && item->RT != nullptr)
 						return true;
@@ -869,14 +869,14 @@ namespace ed {
 				};
 				plugin->GetRenderTextureSize = [](void* objects, const char* name, int& w, int& h) {
 					ObjectManager* obj = (ObjectManager*)objects;
-					ObjectManagerItem* item = obj->GetObjectManagerItem(name);
+					ObjectManagerItem* item = obj->Get(name);
 					glm::ivec2 tsize = obj->GetRenderTextureSize(item);
 					w = tsize.x;
 					h = tsize.y;
 				};
 				plugin->GetDepthTexture = [](void* objects, const char* name) -> unsigned int {
 					ObjectManager* obj = (ObjectManager*)objects;
-					return obj->GetObjectManagerItem(name)->RT->DepthStencilBuffer;
+					return obj->Get(name)->RT->DepthStencilBuffer;
 				};
 				plugin->ScaleSize = [](float size) -> float {
 					return Settings::Instance().CalculateSize(size);

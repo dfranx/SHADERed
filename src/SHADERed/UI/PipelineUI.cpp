@@ -1286,7 +1286,7 @@ namespace ed {
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
 				ImGui::PushID(id);
-				ObjectManagerItem* resData = m_data->Objects.GetObjectManagerItemByTextureID(el);
+				ObjectManagerItem* resData = m_data->Objects.GetByTextureID(el);
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -1375,7 +1375,7 @@ namespace ed {
 			/* EXISTING VARIABLES */
 			for (const auto& el : els) {
 				ImGui::PushID(id);
-				ObjectManagerItem* resData = m_data->Objects.GetObjectManagerItemByTextureID(el);
+				ObjectManagerItem* resData = m_data->Objects.GetByTextureID(el);
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

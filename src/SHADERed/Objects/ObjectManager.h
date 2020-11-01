@@ -58,9 +58,9 @@ namespace ed {
 
 		bool HasKeyboardTexture();
 
-		ObjectManagerItem* GetObjectManagerItemByTextureID(GLuint tex);
-		ObjectManagerItem* GetObjectManagerItemByBufferID(GLuint tex);
-		ObjectManagerItem* GetObjectManagerItem(const std::string& name);
+		ObjectManagerItem* GetByTextureID(GLuint tex);
+		ObjectManagerItem* GetByBufferID(GLuint tex);
+		ObjectManagerItem* Get(const std::string& name);
 
 		void Mute(ObjectManagerItem* item);
 		void Unmute(ObjectManagerItem* item);

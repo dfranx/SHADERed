@@ -544,6 +544,8 @@ namespace ed {
 				SDL_GetDisplayDPI(wndDisplayIndex, NULL, &dpi, NULL);
 				dpi /= 96.0f;
 
+				if (dpi <= 0.0f) dpi = 1.0f;
+
 				settings->TempScale = dpi;
 			} else
 				settings->TempScale = 1;

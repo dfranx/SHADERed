@@ -204,6 +204,9 @@ namespace ed {
 			int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
 			SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
 			dpi /= 96.0f;
+
+			if (dpi <= 0.0f) dpi = 1.0f;
+
 			Settings::Instance().DPIScale = dpi;
 			Logger::Get().Log("Setting DPI to " + std::to_string(dpi));
 		}
@@ -1649,7 +1652,7 @@ namespace ed {
 
 			if (ImGui::Button("Ok")) {
 				if (m_data->Objects.CreateRenderTexture(buf)) {
-					((PropertyUI*)Get(ViewID::Properties))->Open(m_data->Objects.GetObjectManagerItem(buf));
+					((PropertyUI*)Get(ViewID::Properties))->Open(m_data->Objects.Get(buf));
 					ImGui::CloseCurrentPopup();
 				}
 			}

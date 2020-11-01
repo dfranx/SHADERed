@@ -313,6 +313,8 @@ int main(int argc, char* argv[])
 					int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
 					SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
 
+					if (dpi <= 0.0f) dpi = 1.0f;
+
 					ed::Settings::Instance().TempScale = dpi / 96.0f;
 					ed::Logger::Get().Log("Updating DPI to " + std::to_string(dpi / 96.0f));
 				}
@@ -389,6 +391,8 @@ void SetIcon(SDL_Window* wnd)
 	int wndDisplayIndex = SDL_GetWindowDisplayIndex(wnd);
 	SDL_GetDisplayDPI(wndDisplayIndex, &dpi, NULL, NULL);
 	dpi /= 96.0f;
+
+	if (dpi <= 0.0f) dpi = 1.0f;
 
 	stbi_set_flip_vertically_on_load(0);
 
