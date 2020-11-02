@@ -435,9 +435,11 @@ namespace ed {
 				}
 			}
 			ImGui::End();
+		}
 
+		for (int i = 0; i < m_items.size(); i++) {
 			if (!m_isOpen[i]) {
-				Close(item->Name);
+				Close(m_items[i]->Name);
 				i--;
 			}
 		}
@@ -541,6 +543,13 @@ namespace ed {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	}
+	void ObjectPreviewUI::CloseAll()
+	{
+		for (int i = 0; i < m_items.size(); i++) {
+			Close(m_items[i]->Name);
+			i--;
+		}
 	}
 	void ObjectPreviewUI::Close(const std::string& name)
 	{

@@ -24,7 +24,7 @@ namespace ed {
 		void Open(ObjectManagerItem* item);
 
 		inline bool ShouldRun() { return m_items.size() > 0; }
-		inline void CloseAll() { m_items.clear(); }
+		void CloseAll();
 		void Close(const std::string& name);
 
 	private:

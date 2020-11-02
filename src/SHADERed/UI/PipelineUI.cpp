@@ -1287,6 +1287,10 @@ namespace ed {
 			for (const auto& el : els) {
 				ImGui::PushID(id);
 				ObjectManagerItem* resData = m_data->Objects.GetByTextureID(el);
+				if (resData == nullptr)
+					resData = m_data->Objects.GetByBufferID(el);
+				if (resData == nullptr)
+					continue;
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -1376,6 +1380,10 @@ namespace ed {
 			for (const auto& el : els) {
 				ImGui::PushID(id);
 				ObjectManagerItem* resData = m_data->Objects.GetByTextureID(el);
+				if (resData == nullptr)
+					resData = m_data->Objects.GetByBufferID(el);
+				if (resData == nullptr)
+					continue;
 
 				/* CONTROLS */
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
