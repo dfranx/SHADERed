@@ -20,7 +20,7 @@
 
 namespace ed {
 	const std::string WebAPI::URL = "api.shadered.org"; // TODO: change URL & ports
-	const char* WebAPI::Version = "1.4.1";
+	const char* WebAPI::Version = "1.4.2";
 
 	bool isDigitsOnly(const std::string& str)
 	{
@@ -286,7 +286,7 @@ namespace ed {
 	/* 
 	   base64.cpp and base64.h
 
-	   Copyright (C) 2004-2008 René Nyffenegger
+	   Copyright (C) 2004-2008 Renï¿½ Nyffenegger
 
 	   This source code is provided 'as-is', without any express or implied
 	   warranty. In no event will the author be held liable for any damages
@@ -306,7 +306,7 @@ namespace ed {
 
 	   3. This notice may not be removed or altered from any source distribution.
 
-	   René Nyffenegger rene.nyffenegger@adp-gmbh.ch
+	   Renï¿½ Nyffenegger rene.nyffenegger@adp-gmbh.ch
 
 	*/
 	static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
