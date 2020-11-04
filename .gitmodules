@@ -37,3 +37,4 @@
 [submodule "libs/SpvGenTwo"]
 	path = libs/SpvGenTwo
 	url = https://github.com/dfranx/SpvGenTwo
+	ignore = dirty
