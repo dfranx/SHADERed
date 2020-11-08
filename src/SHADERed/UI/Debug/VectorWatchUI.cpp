@@ -350,7 +350,7 @@ namespace ed {
 				ImGui::PopItemWidth();
 
 				ImGui::TableSetColumnIndex(2);
-				ImGui::Text(m_data->Debugger.GetVectorWatchValue(i).c_str());
+				ImGui::Text("%s", m_data->Debugger.GetVectorWatchValue(i).c_str());
 
 				ImGui::PopID();
 			}

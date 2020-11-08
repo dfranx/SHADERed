@@ -31,7 +31,7 @@ namespace ed {
 					ImGui::TableNextRow();
 
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Text(fileName);
+					ImGui::Text("%s", fileName);
 
 					ImGui::TableSetColumnIndex(1);
 					const dbg::Breakpoint& b = bkpt.second[i];
@@ -44,7 +44,7 @@ namespace ed {
 					}
 
 					ImGui::TableSetColumnIndex(2);
-					ImGui::Text(b.Condition.c_str());
+					ImGui::Text("%s", b.Condition.c_str());
 
 					ImGui::TableSetColumnIndex(3);
 					ImGui::Text("%d", b.Line);

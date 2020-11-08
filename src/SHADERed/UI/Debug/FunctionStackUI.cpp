@@ -30,6 +30,6 @@ namespace ed {
 	void DebugFunctionStackUI::Update(float delta)
 	{
 		for (int i = 0; i < m_stack.size(); i++)
-			ImGui::Text(m_stack[i].c_str());
+			ImGui::Text("%s", m_stack[i].c_str());
 	}
 }

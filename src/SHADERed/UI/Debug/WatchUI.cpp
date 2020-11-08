@@ -48,7 +48,7 @@ namespace ed {
 
 				
 				ImGui::TableSetColumnIndex(1);
-				ImGui::Text(m_data->Debugger.GetWatchValue(i).c_str());
+				ImGui::Text("%s", m_data->Debugger.GetWatchValue(i).c_str());
 			}
 			ImGui::PopStyleColor();
 

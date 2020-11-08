@@ -44,9 +44,9 @@ namespace ed {
 		ImGui::Separator();
 		ImGui::Columns(2);
 		for (const auto& key : m_cachedGlobals) {
-			ImGui::Text(key.first.c_str());
+			ImGui::Text("%s", key.first.c_str());
 			ImGui::NextColumn();
-			ImGui::Text(key.second.c_str());
+			ImGui::Text("%s", key.second.c_str());
 			ImGui::NextColumn();
 			ImGui::Separator();
 		}
@@ -58,9 +58,9 @@ namespace ed {
 		ImGui::Separator();
 		ImGui::Columns(2);
 		for (const auto& key : m_cachedLocals) {
-			ImGui::Text(key.first.c_str());
+			ImGui::Text("%s", key.first.c_str());
 			ImGui::NextColumn();
-			ImGui::Text(key.second.c_str());
+			ImGui::Text("%s", key.second.c_str());
 			ImGui::NextColumn();
 			ImGui::Separator();
 		}
