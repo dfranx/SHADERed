@@ -355,7 +355,7 @@ namespace ed {
 					msgs->ClearGroup(group);
 				};
 				plugin->Log = [](const char* msg, bool error, const char* file, int line) {
-					printf("%s", msg);
+					printf("%s\n", msg);
 					//ed::Logger::Get().Log(msg, error, file, line);
 				};
 				plugin->GetObjectCount = [](void* objects) -> int {

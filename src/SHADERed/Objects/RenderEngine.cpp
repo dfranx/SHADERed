@@ -1843,7 +1843,7 @@ namespace ed {
 					data->Variables.UpdateTextureList(psContent);
 					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
 					psCompiled &= gl::CheckShaderCompilationStatus(ps);
-					
+
 					// geometry shader
 					lineBias = 0;
 					bool gsCompiled = true;
