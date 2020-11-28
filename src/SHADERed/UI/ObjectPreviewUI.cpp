@@ -249,7 +249,7 @@ namespace ed {
 
 						// update buffer data every 350ms
 						ImGui::Text(buf->PreviewPaused ? "Buffer view is paused" : "Buffer view is updated every 350ms");
-						if (!buf->PreviewPaused && m_bufUpdateClock.GetElapsedTime() > 0.350f) {
+						if (!buf->PreviewPaused && m_bufUpdateClock.GetElapsedTime() > 0.350f && buf->Data != nullptr) {
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, buf->ID);
 							glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, buf->Size, buf->Data);
 							glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
