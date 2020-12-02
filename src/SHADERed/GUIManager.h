@@ -198,7 +198,7 @@ namespace ed {
 		void m_splashScreenLoad();
 		bool m_splashScreen;
 		unsigned int m_splashScreenIcon, m_splashScreenText;
-		unsigned int m_sponsorDigitalOcean;
+		unsigned int m_sponsorDigitalOcean, m_sponsorEmbark;
 		unsigned int m_splashScreenFrame;
 		eng::Timer m_splashScreenTimer;
 		bool m_splashScreenLoaded;

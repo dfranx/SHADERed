@@ -111,6 +111,8 @@ Instancing, buffers, audio shaders, ability to have more than one camera, shader
 You can also check this list too: [link](https://shadered.org/features.php).
 
 ## Sponsors
+[<img height="90" src="bin/data/sponsors/Embark-black.png">](https://embark-studios.com/)
+
 [<img width="150" src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PNG/DO_Logo_Vertical_Blue.png">](https://www.digitalocean.com/?utm_medium=opensource&utm_source=SHADERed)
 
 ## Supporters

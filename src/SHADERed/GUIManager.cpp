@@ -2169,12 +2169,15 @@ namespace ed {
 		if (ImGui::Begin("##splash_screen", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, (m_height - 324) / 6));
 			ImGui::Image((ImTextureID)m_splashScreenIcon, ImVec2(350, 324));
-
+			
 			ImGui::SetCursorPos(ImVec2((m_width - 199) / 2, m_height - 202 - 48));
 			ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(199, 46));
 
-			ImGui::SetCursorPos(ImVec2((m_width - 200) / 2, m_height - 202));
+			ImGui::SetCursorPos(ImVec2((m_width - 200) / 2 + 200, m_height - 202));
 			ImGui::Image((ImTextureID)m_sponsorDigitalOcean, ImVec2(200, 200));
+
+			ImGui::SetCursorPos(ImVec2((m_width - 284 * 2) / 2 - 40, m_height - 202 + (101+32)/2));
+			ImGui::Image((ImTextureID)m_sponsorEmbark, ImVec2(284, 64));
 		}
 		ImGui::End();
 
@@ -2263,18 +2266,18 @@ namespace ed {
 		int req_format = STBI_rgb_alpha;
 		int width, height, orig_format;
 		unsigned char* data = stbi_load("./data/splash_screen_logo.png", &width, &height, &orig_format, req_format);
-		if (data == NULL) {
+		if (data == NULL)
 			ed::Logger::Get().Log("Failed to load splash screen icon", true);
-			return;
+		else {
+			glGenTextures(1, &m_splashScreenIcon);
+			glBindTexture(GL_TEXTURE_2D, m_splashScreenIcon);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			stbi_image_free(data);
 		}
-		glGenTextures(1, &m_splashScreenIcon);
-		glBindTexture(GL_TEXTURE_2D, m_splashScreenIcon);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		stbi_image_free(data);
 
 		// check if we should use black or white text
 		bool white = true;
@@ -2285,34 +2288,56 @@ namespace ed {
 
 		// text
 		data = stbi_load(white ? "./data/splash_screen_text_white.png" : "./data/splash_screen_text_black.png", &width, &height, &orig_format, req_format);
-		if (data == NULL) {
+		if (data == NULL)
 			ed::Logger::Get().Log("Failed to load splash screen icon", true);
-			return;
+		else {
+			glGenTextures(1, &m_splashScreenText);
+			glBindTexture(GL_TEXTURE_2D, m_splashScreenText);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			stbi_image_free(data);
+			data = NULL;
 		}
-		glGenTextures(1, &m_splashScreenText);
-		glBindTexture(GL_TEXTURE_2D, m_splashScreenText);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		stbi_image_free(data);
-		data = NULL;
 
-		// text
+		// digital ocean logo
 		data = stbi_load(white ? "./data/sponsors/DigitalOcean-white.png" : "./data/sponsors/DigitalOcean-black.png", &width, &height, &orig_format, req_format);
-		if (data == NULL) {
+		if (data == NULL)
 			ed::Logger::Get().Log("Failed to load DigitalOcean logo", true);
-			return;
+		else {
+			glGenTextures(1, &m_sponsorDigitalOcean);
+			glBindTexture(GL_TEXTURE_2D, m_sponsorDigitalOcean);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			stbi_image_free(data);
 		}
-		glGenTextures(1, &m_sponsorDigitalOcean);
-		glBindTexture(GL_TEXTURE_2D, m_sponsorDigitalOcean);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		stbi_image_free(data);
+
+		// TODO: write some system so that I do not have to do this manually
+		// embark studios
+		data = stbi_load(white ? "./data/sponsors/Embark-white.png" : "./data/sponsors/Embark-black.png", &width, &height, &orig_format, req_format);
+		if (data == NULL)
+			ed::Logger::Get().Log("Failed to load Embark logo", true);
+		else {
+			unsigned char* outEmbark = (unsigned char*)malloc(284 * 64 * 4);
+			stbir_resize_uint8(data, width, height, width * 4, outEmbark, 284, 64, 284 * 4, 4);
+			width = 284;
+			height = 64;
+
+			glGenTextures(1, &m_sponsorEmbark);
+			glBindTexture(GL_TEXTURE_2D, m_sponsorEmbark);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, outEmbark);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			stbi_image_free(data);
+			free(outEmbark);
+		}
 
 		stbi_set_flip_vertically_on_load(1);
 
