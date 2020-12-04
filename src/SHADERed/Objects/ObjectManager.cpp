@@ -203,8 +203,8 @@ namespace ed {
 		ed::RenderTextureObject* rtObj = item->RT = new ed::RenderTextureObject();
 		glm::ivec2 size = m_renderer->GetLastRenderSize();
 
-		rtObj->FixedSize = size;
-		rtObj->RatioSize = glm::vec2(-1, -1);
+		rtObj->FixedSize = glm::vec2(-1, -1);
+		rtObj->RatioSize = glm::vec2(1, 1);
 		rtObj->ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		rtObj->Clear = true;
 		rtObj->Format = GL_RGBA;
