@@ -137,7 +137,7 @@ namespace ed {
 				curFunc = "";
 			} break;
 			case spv::OpVariable: {
-				spv_word type = ir[++i]; // skip type
+				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
 				std::string varName = names[loc];
@@ -157,17 +157,28 @@ namespace ed {
 							}
 						} else
 							Uniforms.push_back(uni);
-					} else if (varName.size() > 0 && varName[0] != 0)
-						Globals.push_back(varName);
-				} else
-					Functions[curFunc].Locals.push_back(varName);
+					} else if (varName.size() > 0 && varName[0] != 0) {
+						Variable glob;
+						glob.Name = varName;
+						fetchType(glob, type);
+
+						Globals.push_back(glob);
+					}
+				} else {
+					Variable loc;
+					loc.Name = varName;
+					fetchType(loc, type);
+					Functions[curFunc].Locals.push_back(loc);
+				}
 			} break;
 			case spv::OpFunctionParameter: {
-				++i; // skip type
+				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
-				std::string varName = names[loc];
-				Functions[curFunc].Arguments.push_back(varName);
+				Variable arg;
+				arg.Name = names[loc];
+				fetchType(arg, type);
+				Functions[curFunc].Arguments.push_back(arg);
 			} break;
 			case spv::OpTypePointer: {
 				spv_word loc = ir[++i];

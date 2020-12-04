@@ -653,7 +653,7 @@ namespace ed {
 						for (const auto& arg : func.second.Arguments) {
 							bool argExists = false;
 							for (const auto& editorArg : editor.second.Arguments) {
-								if (arg == editorArg) {
+								if (arg.Name == editorArg.Name) {
 									argExists = true;
 									break;
 								}
@@ -665,7 +665,7 @@ namespace ed {
 						for (const auto& loc : func.second.Locals) {
 							bool locExists = false;
 							for (const auto& editorLoc : editor.second.Locals) {
-								if (loc == editorLoc) {
+								if (loc.Name == editorLoc.Name) {
 									locExists = true;
 									break;
 								}
@@ -683,7 +683,7 @@ namespace ed {
 			for (const auto& type : spv.UserTypes) {
 				bool typeExists = false;
 				for (const auto& editor : tEdit->GetAutocompleteUserTypes()) {
-					if (type.first == editor) {
+					if (type.first == editor.first) {
 						typeExists = true;
 						break;
 					}
@@ -694,7 +694,7 @@ namespace ed {
 			for (const auto& unif : spv.Uniforms) {
 				bool unifExists = false;
 				for (const auto& editor : tEdit->GetAutocompleteUniforms()) {
-					if (unif.Name == editor) {
+					if (unif.Name == editor.Name) {
 						unifExists = true;
 						break;
 					}
@@ -705,7 +705,7 @@ namespace ed {
 			for (const auto& glob : spv.Globals) {
 				bool globExists = false;
 				for (const auto& editor : tEdit->GetAutocompleteGlobals()) {
-					if (glob == editor) {
+					if (glob.Name == editor.Name) {
 						globExists = true;
 						break;
 					}
@@ -719,14 +719,10 @@ namespace ed {
 		tEdit->ClearAutocompleteEntries();
 
 		// spirv parser
-		for (const auto& pair : spv.Functions)
-			tEdit->AddAutocompleteFunction(pair.first, pair.second.LineStart, pair.second.LineEnd, pair.second.Arguments, pair.second.Locals);
-		for (const auto& pair : spv.UserTypes)
-			tEdit->AddAutocompleteUserType(pair.first);
-		for (const auto& uni : spv.Uniforms)
-			tEdit->AddAutocompleteUniform(uni.Name);
-		for (const auto& glob : spv.Globals)
-			tEdit->AddAutocompleteGlobal(glob);
+		tEdit->SetAutocompleteFunctions(spv.Functions);
+		tEdit->SetAutocompleteUserTypes(spv.UserTypes);
+		tEdit->SetAutocompleteUniforms(spv.Uniforms);
+		tEdit->SetAutocompleteGlobals(spv.Globals);
 
 		// plugins
 		plugin::ShaderStage stage = plugin::ShaderStage::Vertex;

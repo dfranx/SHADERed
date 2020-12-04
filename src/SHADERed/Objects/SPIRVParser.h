@@ -9,12 +9,6 @@ namespace ed {
 	public:
 		void Parse(const std::vector<unsigned int>& spv);
 
-		struct Function {
-			int LineStart;
-			int LineEnd;
-			std::vector<std::string> Arguments;
-			std::vector<std::string> Locals;
-		};
 		enum class ValueType
 		{
 			Void,
@@ -32,10 +26,17 @@ namespace ed {
 			int TypeComponentCount;
 			std::string TypeName;
 		};
+		struct Function {
+			int LineStart;
+			int LineEnd;
+			std::vector<Variable> Arguments;
+			std::vector<Variable> Locals;
+		};
+
 		std::unordered_map<std::string, Function> Functions;
 		std::unordered_map<std::string, std::vector<Variable>> UserTypes;
 		std::vector<Variable> Uniforms;
-		std::vector<std::string> Globals;
+		std::vector<Variable> Globals;
 
 		bool BarrierUsed;
 		int LocalSizeX, LocalSizeY, LocalSizeZ;
