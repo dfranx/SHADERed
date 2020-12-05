@@ -1357,6 +1357,9 @@ namespace ed {
 
 		m_current = item;
 		m_currentObj = nullptr;
+
+		if (item != nullptr)
+			Visible = true;
 	}
 	void PropertyUI::Open(ObjectManagerItem* obj)
 	{
@@ -1367,5 +1370,8 @@ namespace ed {
 
 		m_current = nullptr;
 		m_currentObj = obj;
+
+		if (obj != nullptr)
+			Visible = true;
 	}
 }
