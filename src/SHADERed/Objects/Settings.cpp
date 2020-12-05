@@ -60,7 +60,7 @@ namespace ed {
 		Editor.ScrollbarMarkers = true;
 
 		Debug.ShowValuesOnHover = true;
-		Debug.AutoFetch = false;
+		Debug.AutoFetch = true;
 		Debug.PrimitiveOutline = true;
 		Debug.PixelOutline = true;
 
@@ -143,7 +143,7 @@ namespace ed {
 		Editor.ScrollbarMarkers = ini.GetBoolean("editor", "scrollbarmarkers", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
-		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", false);
+		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", true);
 		Debug.PixelOutline = ini.GetBoolean("debug", "pixeloutline", true);
 		Debug.PrimitiveOutline = ini.GetBoolean("debug", "primitiveoutline", true);
 
