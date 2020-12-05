@@ -82,7 +82,6 @@ namespace ed {
 		m_isCreateRTOpened = false;
 		m_isCreateKBTxtOpened = false;
 		m_isCreateBufferOpened = false;
-		m_isNewProjectPopupOpened = false;
 		m_isRecordCameraSnapshotOpened = false;
 		m_exportAsCPPOpened = false;
 		m_isCreateImgOpened = false;
@@ -621,7 +620,7 @@ namespace ed {
 
 						if (cont) {
 							m_selectedTemplate = "?empty";
-							m_isNewProjectPopupOpened = true;
+							m_createNewProject();
 						}
 					}
 					ImGui::Separator();
@@ -637,7 +636,7 @@ namespace ed {
 
 							if (cont) {
 								m_selectedTemplate = m_templates[i];
-								m_isNewProjectPopupOpened = true;
+								m_createNewProject();
 							}
 						}
 
@@ -1029,12 +1028,6 @@ namespace ed {
 		if (m_isCreateKBTxtOpened) {
 			ImGui::OpenPopup("Create KeyboardTexture##main_create_kbtxt");
 			m_isCreateKBTxtOpened = false;
-		}
-
-		// open popup for opening new project
-		if (m_isNewProjectPopupOpened) {
-			ImGui::OpenPopup("Are you sure?##main_new_proj");
-			m_isNewProjectPopupOpened = false;
 		}
 
 		// open about popup
@@ -1832,27 +1825,7 @@ namespace ed {
 		if (ImGui::BeginPopupModal("Are you sure?##main_new_proj", 0, ImGuiWindowFlags_NoResize)) {
 			ImGui::TextWrapped("You will lose your unsaved progress if you create a new project. Are you sure you want to continue?");
 			if (ImGui::Button("Yes")) {
-				m_saveAsOldFile = m_data->Parser.GetOpenedFile();
-
-				SaveAsProject(false, nullptr, [&]() {
-					if (m_selectedTemplate == "?empty") {
-						Settings::Instance().Project.FPCamera = false;
-						Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
-
-						ResetWorkspace();
-						m_data->Pipeline.New(false);
-
-						SDL_SetWindowTitle(m_wnd, "SHADERed");
-					} else {
-						m_data->Parser.SetTemplate(m_selectedTemplate);
-
-						ResetWorkspace();
-						m_data->Pipeline.New();
-						m_data->Parser.SetTemplate(settings.General.StartUpTemplate);
-
-						SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());
-					}
-				});
+				
 
 				ImGui::CloseCurrentPopup();
 			}
@@ -2440,7 +2413,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button(UI_ICON_FILE_FILE)) { // EMPTY PROJECT
 			m_selectedTemplate = "?empty";
-			m_isNewProjectPopupOpened = true;
+			m_createNewProject();
 		}
 		m_tooltip("New empty project");
 		ImGui::SameLine();
@@ -2856,6 +2829,49 @@ namespace ed {
 		m_recentProjects.insert(m_recentProjects.begin(), fileToBeOpened);
 		if (m_recentProjects.size() > 9)
 			m_recentProjects.pop_back();
+	}
+	void GUIManager::m_createNewProject()
+	{
+		CodeEditorUI* codeUI = ((CodeEditorUI*)Get(ViewID::Code));
+		codeUI->SetTrackFileChanges(false);
+
+
+
+		m_saveAsOldFile = m_data->Parser.GetOpenedFile();
+
+		std::string outputPath = Settings::Instance().ConvertPath("temp/");
+
+		// first clear the old data and create new directory
+		std::error_code ec;
+		std::filesystem::remove_all(outputPath, ec);
+		std::filesystem::create_directory(outputPath);
+
+		if (m_selectedTemplate == "?empty") {
+			Settings::Instance().Project.FPCamera = false;
+			Settings::Instance().Project.ClearColor = glm::vec4(0, 0, 0, 0);
+
+			ResetWorkspace();
+			m_data->Pipeline.New(false);
+
+			SDL_SetWindowTitle(m_wnd, "SHADERed");
+		} else {
+			m_data->Parser.SetTemplate(m_selectedTemplate);
+
+			ResetWorkspace();
+			m_data->Pipeline.New();
+			m_data->Parser.SetTemplate(Settings::Instance().General.StartUpTemplate);
+
+			SDL_SetWindowTitle(m_wnd, ("SHADERed (" + m_selectedTemplate + ")").c_str());
+		}
+
+		std::string savePath = (std::filesystem::path(outputPath) / "project.sprj").generic_string();
+		m_data->Parser.SaveAs(savePath, true);
+		Open(savePath);
+		m_data->Parser.SetOpenedFile("");
+		
+		
+
+		codeUI->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 	}
 	bool GUIManager::Save()
 	{

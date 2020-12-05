@@ -102,6 +102,8 @@ namespace ed {
 
 		void m_addProjectToRecents(const std::string& file);
 
+		void m_createNewProject();
+
 		void m_tooltip(const std::string& str);
 		void m_renderToolbar();
 		ImFont* m_iconFontLarge;
@@ -151,7 +153,7 @@ namespace ed {
 		bool m_recompiledAll;
 
 		bool m_isCreateItemPopupOpened, m_isCreateRTOpened,
-			m_isCreateCubemapOpened, m_isNewProjectPopupOpened,
+			m_isCreateCubemapOpened,
 			m_isAboutOpen, m_isCreateBufferOpened, m_isCreateImgOpened,
 			m_isInfoOpened, m_isCreateImg3DOpened, m_isRecordCameraSnapshotOpened,
 			m_isIncompatPluginsOpened, m_isCreateKBTxtOpened, m_isBrowseOnlineOpened;
