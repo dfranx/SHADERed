@@ -28,13 +28,8 @@ namespace ed {
 		std::vector<PixelInformation>& pixels = m_data->Debugger.GetPixelList();
 		std::vector<DebuggerSuggestion>& suggestions = m_data->Debugger.GetSuggestionList();
 
-		if (ImGui::Button("Clear##pixel_clear", ImVec2(-1, 0)))
-			m_data->Debugger.ClearPixelList();
-
 		if (pixels.size() != m_pixelHeights.size())
 			m_pixelHeights.resize(pixels.size());
-
-		ImGui::NewLine();
 
 		ImGui::BeginChild("##pixel_scroll_container", ImVec2(-1, -1));
 
