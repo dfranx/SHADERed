@@ -5,6 +5,7 @@
 + remove "Clear" button in pixel inspect window
 + "Auto fetch" is turned on by default
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
++ fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item"
 
 [v1.4.2]
 + add "Save SPIR-V binary" option

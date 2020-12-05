@@ -732,13 +732,17 @@ namespace ed {
 
 			m_createFile(origData->VSPath);
 			m_createFile(origData->PSPath);
-			if (origData->GSUsed)
+			if (origData->GSUsed) {
 				m_createFile(origData->GSPath);
+				strcpy(data->GSEntry, origData->GSEntry);
+				strcpy(data->GSPath, origData->GSPath);
+			}
 
 			strcpy(data->PSEntry, origData->PSEntry);
 			strcpy(data->PSPath, origData->PSPath);
 			strcpy(data->VSEntry, origData->VSEntry);
 			strcpy(data->VSPath, origData->VSPath);
+			data->GSUsed = origData->GSUsed;
 			data->RenderTextures[0] = origData->RenderTextures[0];
 			data->RTCount = 1;
 			data->InputLayout = gl::CreateDefaultInputLayout();
@@ -751,6 +755,9 @@ namespace ed {
 				CodeEditorUI* code = ((CodeEditorUI*)m_ui->Get(ViewID::Code));
 				code->Open(actualItem, ed::ShaderStage::Vertex);
 				code->Open(actualItem, ed::ShaderStage::Pixel);
+
+				if (data->GSUsed && data->GSPath[0] != 0)
+					code->Open(actualItem, ed::ShaderStage::Geometry);
 			}
 
 			return !m_errorOccured;
