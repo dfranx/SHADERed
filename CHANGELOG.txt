@@ -3,6 +3,7 @@
 + when creating a render texture the ratio size will now be used by default
 + remove "Clear" button in pixel inspect window
 + "Auto fetch" is turned on by default
++ fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 
 [v1.4.2]
 + add "Save SPIR-V binary" option

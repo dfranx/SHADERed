@@ -48,9 +48,9 @@ namespace ed {
 	// Default include class for normal include convention of search backward
 	// through the stack of active include paths (for nested includes).
 	// Can be overridden to customize.
-	class HLSLFileIncluder : public glslang::TShader::Includer {
+	class ShaderFileIncluder : public glslang::TShader::Includer {
 	public:
-		HLSLFileIncluder()
+		ShaderFileIncluder()
 				: externalLocalDirectoryCount(0)
 		{
 		}
@@ -89,7 +89,7 @@ namespace ed {
 			}
 		}
 
-		virtual ~HLSLFileIncluder() override { }
+		virtual ~ShaderFileIncluder() override { }
 
 		ProjectParser* ProjectHandle;
 

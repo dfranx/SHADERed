@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <SHADERed/Engine/GLUtils.h>
-#include <SHADERed/Objects/HLSLFileIncluder.h>
+#include <SHADERed/Objects/ShaderFileIncluder.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
@@ -412,7 +412,7 @@ namespace ed {
 		const int defVersion = sVersion;
 
 		// includer
-		ed::HLSLFileIncluder includer;
+		ShaderFileIncluder includer;
 		includer.ProjectHandle = project;
 		includer.pushExternalLocalDirectory(filename.substr(0, filename.find_last_of("/\\")));
 		if (project != nullptr)
