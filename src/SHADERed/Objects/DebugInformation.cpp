@@ -2072,7 +2072,7 @@ namespace ed {
 		m_pixels.clear();
 	}
 		
-	void DebugInformation::AddBreakpoint(const std::string& file, int line, const std::string& condition, bool enabled)
+	void DebugInformation::AddBreakpoint(const std::string& file, int line, bool useCondition, const std::string& condition, bool enabled)
 	{
 		std::vector<dbg::Breakpoint>& bkpts = m_breakpoints[file];
 
@@ -2080,7 +2080,7 @@ namespace ed {
 		for (size_t i = 0; i < bkpts.size(); i++) {
 			if (bkpts[i].Line == line) {
 				bkpts[i].Condition = condition;
-				bkpts[i].IsConditional = !condition.empty();
+				bkpts[i].IsConditional = useCondition;
 				m_breakpointStates[file][i] = enabled;
 				alreadyExists = true;
 				break;
@@ -2091,7 +2091,7 @@ namespace ed {
 			dbg::Breakpoint bkpt;
 			bkpt.Line = line;
 			bkpt.Condition = condition;
-			bkpt.IsConditional = !condition.empty();
+			bkpt.IsConditional = useCondition;
 			bkpts.push_back(bkpt);
 			m_breakpointStates[file].push_back(enabled);
 		}

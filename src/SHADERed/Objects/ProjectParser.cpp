@@ -847,8 +847,8 @@ namespace ed {
 					watchNode.append_attribute("type").set_value("bkpt");
 					watchNode.append_attribute("file").set_value(bkpt.first.c_str());
 					watchNode.append_attribute("line").set_value(bkpt.second[i].Line);
-					if (bkpt.second[i].IsConditional)
-						watchNode.append_attribute("cond").set_value(bkpt.second[i].Condition.c_str());
+					watchNode.append_attribute("use_cond").set_value(bkpt.second[i].IsConditional);
+					watchNode.append_attribute("cond").set_value(bkpt.second[i].Condition.c_str());
 					watchNode.append_attribute("enabled").set_value(bkptStates[bkpt.first][i]);
 				}
 			}
@@ -3232,7 +3232,8 @@ namespace ed {
 				} else if (type == "bkpt") {
 					m_debug->AddBreakpoint(settingItem.attribute("file").as_string(),
 						settingItem.attribute("line").as_int(),
-						!settingItem.attribute("cond").empty() ? settingItem.attribute("cond").as_string() : "",
+						settingItem.attribute("use_cond").empty() || settingItem.attribute("use_cond").as_bool(),
+						settingItem.attribute("cond").as_string(),
 						settingItem.attribute("enabled").as_bool());
 				}
 			}

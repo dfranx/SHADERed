@@ -82,7 +82,7 @@ namespace ed {
 		void AddVectorWatch(const std::string& expr, glm::vec4 color, bool execute = true);
 		void UpdateVectorWatchValue(size_t index);
 
-		void AddBreakpoint(const std::string& file, int line, const std::string& condition, bool enabled = true);
+		void AddBreakpoint(const std::string& file, int line, bool useCondition, const std::string& condition, bool enabled = true);
 		void RemoveBreakpoint(const std::string& file, int line);
 		void SetBreakpointEnabled(const std::string& file, int line, bool enable);
 		dbg::Breakpoint* GetBreakpoint(const std::string& file, int line, bool& enabled);

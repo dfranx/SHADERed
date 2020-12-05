@@ -1093,13 +1093,13 @@ namespace ed {
 		const std::vector<bool>& states = m_data->Debugger.GetBreakpointStateList(path);
 
 		for (size_t i = 0; i < bkpts.size(); i++)
-			editor->AddBreakpoint(bkpts[i].Line, bkpts[i].IsConditional ? bkpts[i].Condition : "", states[i]);
+			editor->AddBreakpoint(bkpts[i].Line, bkpts[i].IsConditional, bkpts[i].Condition, states[i]);
 
 		editor->OnBreakpointRemove = [&](TextEditor* ed, int line) {
 			m_data->Debugger.RemoveBreakpoint(ed->GetPath(), line);
 		};
-		editor->OnBreakpointUpdate = [&](TextEditor* ed, int line, const std::string& cond, bool enabled) {
-			m_data->Debugger.AddBreakpoint(ed->GetPath(), line, cond, enabled);
+		editor->OnBreakpointUpdate = [&](TextEditor* ed, int line, bool useCond, const std::string& cond, bool enabled) {
+			m_data->Debugger.AddBreakpoint(ed->GetPath(), line, useCond, cond, enabled);
 		};
 	}
 
