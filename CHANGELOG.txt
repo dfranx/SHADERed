@@ -1,11 +1,11 @@
 [v1.4.3]
-+ added the ability to temporarily disable breakpoint condition
++ add the ability to temporarily disable breakpoint condition
++ add "Editor.DuplicateLine" shortcut
 + autocomplete now suggest object members after typing '.'
 + creating a new project doesn't require a save location anymore
 + when creating a render texture the ratio size will now be used by default
 + remove "Clear" button in pixel inspect window
 + "Properties" window will now open (if it was closed) when opening the object's/item's properties
-+ "Auto fetch" is turned on by default
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 + fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item"
 
