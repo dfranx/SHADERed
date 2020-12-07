@@ -17,6 +17,13 @@ namespace ed {
 			ret[j*4+3] = (data[i] & 0xFF000000) >> 24;
 		}
 
+		for (size_t j = 0; j < ret.size(); j++) {
+			if (ret[j] == 0) {
+				ret.resize(j);
+				break;
+			}
+		}
+
 		return ret;
 	}
 
@@ -121,7 +128,7 @@ namespace ed {
 				}
 			} break;
 			case spv::OpFunction: {
-				++i; // skip type
+				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
 				curFunc = names[loc];
@@ -129,6 +136,7 @@ namespace ed {
 				if (args != std::string::npos)
 					curFunc = curFunc.substr(0, args);
 
+				fetchType(Functions[curFunc].ReturnType, type);
 				Functions[curFunc].LineStart = -1;
 			} break;
 			case spv::OpFunctionEnd: {

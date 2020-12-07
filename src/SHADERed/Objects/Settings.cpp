@@ -56,6 +56,7 @@ namespace ed {
 		Editor.InsertSpaces = false;
 		Editor.TabSize = 4;
 		Editor.FunctionTooltips = true;
+		Editor.FunctionDeclarationTooltips = false;
 		Editor.SyntaxHighlighting = true;
 		Editor.ScrollbarMarkers = true;
 
@@ -139,6 +140,7 @@ namespace ed {
 		Editor.InsertSpaces = ini.GetBoolean("editor", "insertspace", false);
 		Editor.TabSize = std::max<int>(std::min<int>(ini.GetInteger("editor", "tabsize", 4), 12), 1);
 		Editor.FunctionTooltips = ini.GetBoolean("editor", "functooltips", true);
+		Editor.FunctionDeclarationTooltips = ini.GetBoolean("editor", "funcdeclrtooltips", false);
 		Editor.SyntaxHighlighting = ini.GetBoolean("editor", "syntaxhighlighting", true);
 		Editor.ScrollbarMarkers = ini.GetBoolean("editor", "scrollbarmarkers", true);
 
@@ -270,6 +272,7 @@ namespace ed {
 		ini << "insertspace=" << Editor.InsertSpaces << std::endl;
 		ini << "tabsize=" << Editor.TabSize << std::endl;
 		ini << "functooltips=" << Editor.FunctionTooltips << std::endl;
+		ini << "funcdeclrtooltips=" << Editor.FunctionDeclarationTooltips << std::endl;
 		ini << "syntaxhighlighting=" << Editor.SyntaxHighlighting << std::endl;
 		ini << "scrollbarmarkers=" << Editor.ScrollbarMarkers << std::endl;
 

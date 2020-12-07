@@ -608,6 +608,8 @@ namespace ed {
 			editor->SetCompleteBraces(Settings::Instance().Editor.AutoBraceCompletion);
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
+			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+			editor->SetFunctionDeclarationTooltip(Settings::Instance().Editor.FunctionDeclarationTooltips);
 			editor->SetUIScale(Settings::Instance().TempScale);
 			editor->SetUIFontSize(Settings::Instance().General.FontSize);
 			editor->SetEditorFontSize(Settings::Instance().Editor.FontSize);
@@ -847,6 +849,7 @@ namespace ed {
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+			editor->SetFunctionDeclarationTooltip(Settings::Instance().Editor.FunctionDeclarationTooltips);
 			editor->SetPath(shaderPath);
 			editor->SetUIScale(Settings::Instance().DPIScale);
 			editor->SetUIFontSize(Settings::Instance().General.FontSize);
@@ -959,6 +962,7 @@ namespace ed {
 			editor->SetHorizontalScroll(Settings::Instance().Editor.HorizontalScroll);
 			editor->SetSmartPredictions(Settings::Instance().Editor.SmartPredictions);
 			editor->SetFunctionTooltips(Settings::Instance().Editor.FunctionTooltips);
+			editor->SetFunctionDeclarationTooltip(Settings::Instance().Editor.FunctionDeclarationTooltips);
 			editor->SetPath(filepath);
 			editor->SetUIScale(Settings::Instance().DPIScale);
 			editor->SetUIFontSize(Settings::Instance().General.FontSize);

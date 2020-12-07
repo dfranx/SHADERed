@@ -31,6 +31,8 @@ namespace ed {
 			int LineEnd;
 			std::vector<Variable> Arguments;
 			std::vector<Variable> Locals;
+
+			Variable ReturnType;
 		};
 
 		std::unordered_map<std::string, Function> Functions;

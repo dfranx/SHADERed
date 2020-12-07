@@ -65,6 +65,7 @@ namespace ed {
 			bool SmartIndent;
 			bool AutoIndentOnPaste;
 			bool InsertSpaces;
+			bool FunctionDeclarationTooltips;
 			bool FunctionTooltips;
 			bool SyntaxHighlighting;
 			bool ScrollbarMarkers;

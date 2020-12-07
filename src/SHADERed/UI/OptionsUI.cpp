@@ -645,10 +645,15 @@ namespace ed {
 			settings->Editor.FontSize = std::max<int>(std::min<int>(settings->Editor.FontSize, 72), 9);
 		ImGui::PopItemWidth();
 
-		/* SHOW WHITESPACE: */
+		/* FUNCTION TOOLTIPS: */
 		ImGui::Text("Show function description tooltips: ");
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_show_functooltips", &settings->Editor.FunctionTooltips);
+
+		/* FUNCTION DECLARATION TOOLTIPS: */
+		ImGui::Text("Show function declaration tooltips: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_show_funcdeclrtooltips", &settings->Editor.FunctionDeclarationTooltips);
 
 		/* SYNTAX HIGHLIGHTING: */
 		ImGui::Text("Syntax highlighting: ");
