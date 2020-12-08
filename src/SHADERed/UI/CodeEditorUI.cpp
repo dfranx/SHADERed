@@ -159,6 +159,13 @@ namespace ed {
 			igfd::ImGuiFileDialog::Instance()->OpenModal("SaveSPVBinaryDlg", "Save SPIR-V binary", "SPIR-V binary (*.spv){.spv},.*", ".");
 		}
 	}
+	void CodeEditorUI::m_saveAsGLSL(int id)
+	{
+		if (id < m_items.size()) {
+			m_editorSaveRequestID = id;
+			igfd::ImGuiFileDialog::Instance()->OpenModal("SaveGLSLDlg", "Save as GLSL", "GLSL source (*.glsl){.glsl},.*", ".");
+		}
+	}
 	void CodeEditorUI::m_compile(int id)
 	{
 		if (id >= m_editor.size())
@@ -228,6 +235,7 @@ namespace ed {
 						if (ImGui::BeginMenu("File")) {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
 							if (ImGui::MenuItem("Save SPIR-V binary")) m_saveAsSPV(i);
+							if (ImGui::MenuItem("Save as GLSL")) m_saveAsGLSL(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
@@ -404,6 +412,55 @@ namespace ed {
 				spvOut.close();
 			}
 			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveSPVBinaryDlg");
+		}
+
+		// save glsl binary dialog
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveGLSLDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+
+				std::vector<unsigned int> spv;
+				bool gsUsed = false;
+
+				PipelineItem* item = m_items[m_editorSaveRequestID];
+				ShaderStage stage = m_shaderStage[m_editorSaveRequestID];
+
+				ed::ShaderLanguage lang = ed::ShaderLanguage::Plugin;
+				if (m_editor[m_editorSaveRequestID]->GetLanguageDefinition().mName == "HLSL")
+					lang = ed::ShaderLanguage::HLSL;
+				else if (m_editor[m_editorSaveRequestID]->GetLanguageDefinition().mName == "GLSL")
+					lang = ed::ShaderLanguage::GLSL;
+
+
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->PSSPV;
+					else if (stage == ShaderStage::Vertex)
+						spv = pass->VSSPV;
+					else if (stage == ShaderStage::Geometry)
+						spv = pass->GSSPV;
+					gsUsed = pass->GSUsed;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->SPV;
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)item->Data;
+					unsigned int spvSize = data->Owner->PipelineItem_GetSPIRVSize(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+					unsigned int* spvPtr = data->Owner->PipelineItem_GetSPIRV(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+
+					if (spvPtr != nullptr && spvSize != 0)
+						spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+				}
+
+				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, lang, stage, gsUsed, nullptr);
+
+				std::ofstream spvOut(filePathName, std::ios::out | std::ios::binary);
+				spvOut.write(glslSource.c_str(), glslSource.size());
+				spvOut.close();
+			}
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveGLSLDlg");
 		}
 
 		// delete closed editors

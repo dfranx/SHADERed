@@ -113,6 +113,7 @@ namespace ed {
 		// menu bar item actions
 		void m_save(int id);
 		void m_saveAsSPV(int id);
+		void m_saveAsGLSL(int id);
 		void m_compile(int id);
 
 		std::vector<PipelineItem*> m_items;
