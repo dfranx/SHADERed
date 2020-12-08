@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <filesystem>
+#include <SHADERed/Objects/ShaderStage.h>
+#include <SHADERed/Objects/ShaderLanguage.h>
 
 namespace ed {
 	class CommandLineOptionParser {
@@ -10,6 +12,11 @@ namespace ed {
 		void Parse(const std::filesystem::path& cmdDir, int argc, char* argv[]);
 
 		bool LaunchUI;
+
+		std::string CompilePath, CompileOutput, CompileEntry;
+		ed::ShaderStage CompileStage;
+		ed::ShaderLanguage CompileLanguage;
+		bool CompileSPIRV;
 
 		std::string RenderPath;
 		bool Render, RenderSequence;

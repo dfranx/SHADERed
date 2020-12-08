@@ -414,7 +414,7 @@ namespace ed {
 			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveSPVBinaryDlg");
 		}
 
-		// save glsl binary dialog
+		// save glsl dialog
 		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveGLSLDlg")) {
 			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
 				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();

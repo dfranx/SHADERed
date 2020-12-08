@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SHADERed/EditorEngine.h>
 #include <SHADERed/Objects/CommandLineOptionParser.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 #include <glslang/Public/ShaderLang.h>
@@ -57,8 +58,40 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	// start glslang process
+	bool glslangInit = glslang::InitializeProcess();
+	ed::Logger::Get().Log("Initializing glslang...");
+
+	if (glslangInit)
+		ed::Logger::Get().Log("Finished glslang initialization");
+	else
+		ed::Logger::Get().Log("Failed to initialize glslang", true);
+
 	ed::CommandLineOptionParser coptsParser;
 	coptsParser.Parse(cmdDir, argc - 1, argv + 1);
+
+	// compiling
+	if (!coptsParser.CompilePath.empty()) {
+		std::vector<unsigned int> spv;
+		bool status = ed::ShaderCompiler::CompileToSPIRV(spv, coptsParser.CompileLanguage, coptsParser.CompilePath, coptsParser.CompileStage, coptsParser.CompileEntry, std::vector<ed::ShaderMacro>(), nullptr, nullptr);
+		if (!status) {
+			printf("Failed to compile the shader.\n");
+		} else {
+			if (coptsParser.CompileSPIRV) {
+				std::ofstream spvOut(coptsParser.CompileOutput, std::ios::out | std::ios::binary);
+				spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
+				spvOut.close();
+			} else {
+				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, coptsParser.CompileLanguage, coptsParser.CompileStage, false, nullptr);
+
+				std::ofstream glslOut(coptsParser.CompileOutput, std::ios::out | std::ios::binary);
+				glslOut.write(glslSource.c_str(), glslSource.size());
+				glslOut.close();
+			}
+			printf("Done compiling.");
+		}
+	}
+
 	if (!coptsParser.LaunchUI)
 		return 0;
 
@@ -128,15 +161,6 @@ int main(int argc, char* argv[])
 	// set stb_image flags
 	stbi_flip_vertically_on_write(1);
 	stbi_set_flip_vertically_on_load(1);
-
-	// start glslang process
-	bool glslangInit = glslang::InitializeProcess();
-	ed::Logger::Get().Log("Initializing glslang...");
-
-	if (glslangInit)
-		ed::Logger::Get().Log("Finished glslang initialization");
-	else
-		ed::Logger::Get().Log("Failed to initialize glslang", true);
 
 	// init sdl2
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {

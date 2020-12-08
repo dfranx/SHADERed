@@ -4,6 +4,7 @@
 + add function declaration tooltips
 + add scrollbar markers for changed lines
 + add "Save as GLSL" option
++ add --compile and related commands
 + autocomplete now suggest object members after typing '.'
 + creating a new project doesn't require a save location anymore
 + when creating a render texture the ratio size will now be used by default

@@ -15,6 +15,12 @@ namespace ed {
 		ProjectFile = "";
 		WindowWidth = WindowHeight = 0;
 
+		CompileEntry = "";
+		CompilePath = CompileOutput = "";
+		CompileLanguage = ShaderLanguage::GLSL;
+		CompileStage = ShaderStage::Pixel;
+		CompileSPIRV = true;
+
 		Render = false;
 		RenderSequence = false;
 		RenderWidth = 1920;
@@ -157,6 +163,80 @@ namespace ed {
 				}
 				RenderTime = std::max<float>(0.0f, tm);
 			}
+			// --compile, -c [file]
+			else if (strcmp(argv[i], "--compile") == 0 || strcmp(argv[i], "-c") == 0) {
+				CompilePath = "";
+				if (i + 1 < argc) {
+					CompilePath = argv[i + 1];
+					i++;
+				}
+
+				LaunchUI = false;
+			}
+			// --language, -cl [language]
+			else if (strcmp(argv[i], "--language") == 0 || strcmp(argv[i], "-cl") == 0) {
+				std::string lang = "";
+				if (i + 1 < argc) {
+					lang = argv[i + 1];
+					i++;
+				}
+				
+				std::transform(lang.begin(), lang.end(), lang.begin(), tolower);
+
+				CompileLanguage = ed::ShaderLanguage::GLSL;
+				if (lang == "hlsl")
+					CompileLanguage = ed::ShaderLanguage::HLSL;
+				else if (lang == "vkglsl")
+					CompileLanguage = ed::ShaderLanguage::VulkanGLSL;
+			}
+			// --stage, -cs [stage]
+			else if (strcmp(argv[i], "--stage") == 0 || strcmp(argv[i], "-cs") == 0) {
+				std::string stage = "";
+				if (i + 1 < argc) {
+					stage = argv[i + 1];
+					i++;
+				}
+
+				std::transform(stage.begin(), stage.end(), stage.begin(), tolower);
+
+				CompileStage = ed::ShaderStage::Pixel;
+				if (stage == "vert")
+					CompileStage = ed::ShaderStage::Vertex;
+				else if (stage == "geom")
+					CompileStage = ed::ShaderStage::Geometry;
+				else if (stage == "comp")
+					CompileStage = ed::ShaderStage::Compute;
+			}
+			// --output, -o [outputpath]
+			else if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0) {
+				CompileOutput = "";
+				if (i + 1 < argc) {
+					CompileOutput = argv[i + 1];
+					i++;
+				}
+			}
+			// --target, -t [spirv|glsl]
+			else if (strcmp(argv[i], "--target") == 0 || strcmp(argv[i], "-t") == 0) {
+				std::string target = "";
+				if (i + 1 < argc) {
+					target = argv[i + 1];
+					i++;
+				}
+
+				std::transform(target.begin(), target.end(), target.begin(), tolower);
+
+				CompileSPIRV = true;
+				if (target == "glsl")
+					CompileSPIRV = false;
+			}
+			// --entry, -e [entry]
+			else if (strcmp(argv[i], "--entry") == 0 || strcmp(argv[i], "-e") == 0) {
+				CompileEntry = "main";
+				if (i + 1 < argc) {
+					CompileEntry = argv[i + 1];
+					i++;
+				}
+			}
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 				static const std::vector<std::pair<std::string, std::string>> opts = {
@@ -177,6 +257,14 @@ namespace ed {
 					{ "--rendersequence | -rseq", "render a sequence" },
 					{ "--renderseqfps | -rseqfps <index>", "set sequence FPS" },
 					{ "--renderseqduration | -rseqdur <time>", "set sequence duration" },
+
+					{ "--compile | -c <file>", "compile a shader file" },
+					{ "--language | -cl <language>", "compiler input language" },
+					{ "--stage | -cs <vert|frag|geom|comp>", "compiler input stage" },
+					{ "--output | -o <path>", "compiler output path" },
+					{ "--target | -t <spirv|glsl>", "choose whether to compile to SPIR-V or GLSL" },
+					{ "--entry | -e <funcname>", "shader entry" },
+
 					{ "<file>", "open a file" }
 				};
 
