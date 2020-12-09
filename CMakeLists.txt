@@ -128,6 +128,8 @@ else()
 endif()
 
 # opengl
+set(OpenGL_GL_PREFERENCE GLVND CACHE STRING "Linux only: if GLVND, use the vendor-neutral GL libraries (default). If LEGACY, use the legacy ones (might be necessary to have working optirun/primusrun)")
+set_property(CACHE OpenGL_GL_PREFERENCE PROPERTY STRINGS GLVND LEGACY)
 find_package(OpenGL REQUIRED)
 
 # glew
@@ -205,7 +207,7 @@ if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
 
-# link libraries 
+# link libraries
 target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
 
 # link SpvGenTwo
