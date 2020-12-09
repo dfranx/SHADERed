@@ -11,7 +11,8 @@
 + remove "Clear" button in pixel inspect window
 + "Properties" window will now open (if it was closed) when opening the object's/item's properties
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
-+ fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item"
++ fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item" window
++ fix "Auto indent on paste" feature
 
 [v1.4.2]
 + add "Save SPIR-V binary" option
