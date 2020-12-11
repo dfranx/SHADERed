@@ -37,6 +37,8 @@ namespace ed {
 						m_data->Debugger.RemoveWatch(i);
 						m_data->Parser.ModifyProject();
 						i--;
+						ImGui::PopID();
+						ImGui::PopItemWidth();
 						continue;
 					} else {
 						m_data->Debugger.UpdateWatchValue(i);
