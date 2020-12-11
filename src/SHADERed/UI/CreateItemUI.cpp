@@ -37,6 +37,8 @@ namespace ed {
 		m_dialogPath = nullptr;
 		m_dialogShaderAuto = nullptr;
 		m_dialogShaderType = "";
+
+		Reset();
 	}
 
 	void CreateItemUI::OnEvent(const SDL_Event& e)

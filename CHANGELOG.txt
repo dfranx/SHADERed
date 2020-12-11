@@ -13,6 +13,7 @@
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 + fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item" window
 + fix "Auto indent on paste" feature
++ fix a bug that caused "Create item" not to create shader files sometimes
 
 [v1.4.2]
 + add "Save SPIR-V binary" option
