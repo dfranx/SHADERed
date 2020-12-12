@@ -18,7 +18,7 @@ extern const char* TEXTURE_MAG_FILTER_NAMES[2];
 extern const char* TEXTURE_WRAP_NAMES[3];
 extern const char* FORMAT_NAMES[66];
 extern const char* ATTRIBUTE_VALUE_NAMES[6];
-extern const char* EDITOR_SHORTCUT_NAMES[56];
+extern const char* EDITOR_SHORTCUT_NAMES[58];
 
 // VALUES //
 extern const unsigned int FORMAT_VALUES[66];

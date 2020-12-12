@@ -912,7 +912,7 @@ namespace igfd
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
-					if (ImGui::Button("OK##DialogConfirm")) {
+					if (ImGui::Button("OK##DialogConfirm", ImVec2(70, 0))) {
 						if (FileNameBuffer[0] != '\0' || dlg_filters == nullptr)
 						{
 							bool shouldCheck = false;

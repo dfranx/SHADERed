@@ -343,7 +343,9 @@ const char* EDITOR_SHORTCUT_NAMES[] = {
 	"DebugJumpHere",
 	"DebugBreakpoint",
 	"DebugStop",
-	"DuplicateLine"
+	"DuplicateLine",
+	"CommentLines",
+	"UncommentLines"
 };
 
 const unsigned int FORMAT_VALUES[] = {

@@ -33,11 +33,17 @@ namespace ed {
 
 		ImGui::BeginChild("##pixel_scroll_container", ImVec2(-1, -1));
 
+		if (!m_data->Renderer.IsPaused())
+			ImGui::TextWrapped("Pause the execution in order to select a pixel to inspect.");
+		else if (pixels.size() == 0)
+			ImGui::TextWrapped("Click on a pixel to inspect it.");
+
+
 		ImVec4 childBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, childBg * ImVec4(0.9f, 0.9f, 0.9f, 0.9f));
 
 		// pixel/vertex
 		int pxId = 0;
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, childBg * ImVec4(0.9f, 0.9f, 0.9f, 0.9f));
 		for (auto& pixel : pixels) {
 			ImGui::PushID(pxId);
 
@@ -240,8 +246,8 @@ namespace ed {
 		
 			ImGui::PopStyleColor();
 		}
-		ImGui::PopStyleColor();
 
+		ImGui::PopStyleColor();
 		ImGui::EndChild();
 	}
 	void PixelInspectUI::StartDebugging(TextEditor* editor, PixelInformation* pixel)
