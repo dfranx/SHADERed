@@ -125,6 +125,8 @@ namespace ed {
 		m_onlineIsShader = true;
 		m_onlineIsPlugin = false;
 		m_onlineExcludeGodot = false;
+		m_onlineIncludeCPP = false;
+		m_onlineIncludeRust = false;
 		m_refreshPluginThumbnails = false;
 		m_refreshShaderThumbnails = false;
 		m_refreshThemeThumbnails = false;
@@ -2209,6 +2211,8 @@ namespace ed {
 
 			// check if godot shaders should be excluded from the "Browse online" window
 			m_onlineExcludeGodot = m_data->Plugins.GetPlugin("GodotShaders") == nullptr;
+			m_onlineIncludeCPP = m_data->Plugins.GetPlugin("CPP") != nullptr;
+			m_onlineIncludeRust = m_data->Plugins.GetPlugin("Rust") != nullptr;
 
 			// load a startup project (if given through arguments)
 			if (m_cmdArguments && !m_cmdArguments->ProjectFile.empty()) {
@@ -2506,7 +2510,8 @@ namespace ed {
 		m_queueThumbnailID = 0;
 		m_refreshShaderThumbnails = false;
 
-		m_data->API.SearchShaders(m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot, [&](const std::vector<WebAPI::ShaderResult>& shaders) {
+		m_data->API.SearchShaders(
+			m_onlineQuery, m_onlinePage, "hot", "", m_onlineUsername, m_onlineExcludeGodot, m_onlineIncludeCPP, m_onlineIncludeRust, [&](const std::vector<WebAPI::ShaderResult>& shaders) {
 			m_onlineShaders = shaders;
 			m_refreshShaderThumbnails = true;
 			m_queueThumbnailProcess = false;

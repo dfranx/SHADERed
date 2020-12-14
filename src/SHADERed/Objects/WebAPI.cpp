@@ -108,11 +108,11 @@ namespace ed {
 			}
 		}
 	}
-	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<WebAPI::ShaderResult>&)> onFetch)
+	void searchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, bool includeCPPShaders, bool includeRustShaders, std::function<void(const std::vector<WebAPI::ShaderResult>&)> onFetch)
 	{
 		std::vector<WebAPI::ShaderResult> ret = std::vector<WebAPI::ShaderResult>();
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders);
+		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders) + "&include_cpp=" + std::to_string(includeCPPShaders) + "&include_rust=" + std::to_string(includeRustShaders);
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
@@ -440,14 +440,14 @@ namespace ed {
 		delete m_updateThread;
 		m_updateThread = new std::thread(checkUpdates, onUpdate);
 	}
-	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch)
+	void WebAPI::SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, bool includeCPPShaders, bool includeRustShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch)
 	{
 		Logger::Get().Log("Searching shaders with WebAPI");
 
 		if (m_shadersThread != nullptr && m_shadersThread->joinable())
 			m_shadersThread->join();
 		delete m_shadersThread;
-		m_shadersThread = new std::thread(searchShaders, query, page, sort, language, owner, excludeGodotShaders, onFetch);
+		m_shadersThread = new std::thread(searchShaders, query, page, sort, language, owner, excludeGodotShaders, includeCPPShaders, includeRustShaders, onFetch);
 	}
 	void WebAPI::AllocateShaderThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch)
 	{

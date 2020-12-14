@@ -51,7 +51,7 @@ namespace ed {
 		void CheckForApplicationUpdates(std::function<void()> onUpdate);
 
 		/* list of shaders */
-		void SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch);
+		void SearchShaders(const std::string& query, int page, const std::string& sort, const std::string& language, const std::string& owner, bool excludeGodotShaders, bool includeCPPShaders, bool includeRustShaders, std::function<void(const std::vector<ShaderResult>&)> onFetch);
 		
 		/* download and parse shader thumbnail in another thread, onFetch(pixelData, width, height) */
 		void AllocateShaderThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch);

@@ -129,7 +129,7 @@ namespace ed {
 		bool m_onlineIsShader, m_onlineIsPlugin;
 		char m_onlineQuery[256];
 		char m_onlineUsername[64];
-		bool m_onlineExcludeGodot;
+		bool m_onlineExcludeGodot, m_onlineIncludeCPP, m_onlineIncludeRust;
 		void m_onlineSearchShaders();
 		void m_onlineSearchPlugins();
 		void m_onlineSearchThemes();

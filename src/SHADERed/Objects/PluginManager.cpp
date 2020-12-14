@@ -1090,7 +1090,7 @@ namespace ed {
 			std::string nameLower = m_names[i];
 			std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
 
-			if (nameLower == plugin)
+			if (nameLower == pluginLower)
 				return m_plugins[i];
 		}
 

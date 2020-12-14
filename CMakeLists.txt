@@ -228,7 +228,11 @@ if(WIN32)
 
 elseif(UNIX AND NOT APPLE)
 	# link linux libraries
-	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS} stdc++fs)
+	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
+
+	if (NOT DONT_LINK_FILESYSTEM)
+		target_link_libraries(SHADERed stdc++fs)
+	endif()
 elseif(APPLE)
 	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()
