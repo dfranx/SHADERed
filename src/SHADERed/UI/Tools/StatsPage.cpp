@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <spirv-tools/libspirv.h>
 #include <spirv-tools/optimizer.hpp>
+#include <sstream>
 
 namespace ed {
 	void StatsPage::OnEvent(const SDL_Event& e) { }
@@ -20,6 +21,10 @@ namespace ed {
 
 		ImGui::Text("SPIR-V: ");
 		ImGui::Separator();
+		
+		if (m_data->Debugger.IsDebugging())
+			Highlight(m_data->Debugger.GetCurrentLine()); // TODO: this is copying a vector (although small, but still..) every frame == bad :(
+
 		m_spirv.Render("stats");
 		ImGui::Separator();					
 	}
@@ -54,7 +59,10 @@ namespace ed {
 		}
 
 		if (!m_spv.empty()) {
-			core.Disassemble(m_spv, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+			bool disResult = core.Disassemble(m_spv, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+
+			if (disResult)
+				m_parse(disassembly);
 
 			m_info.Parse(m_spv);
 		}
@@ -62,5 +70,41 @@ namespace ed {
 		m_spirv.SetPalette(ThemeContainer::Instance().GetTextEditorStyle(Settings::Instance().Theme));
 		m_spirv.SetLanguageDefinition(TextEditor::LanguageDefinition::SPIRV());
 		m_spirv.SetText(disassembly);
+	}
+	void StatsPage::Highlight(int line)
+	{
+		if (m_lineMap.count(line))
+			m_spirv.SetHighlightedLines(m_lineMap[line]);
+		else
+			m_spirv.ClearHighlightedLines();
+	}
+	void StatsPage::m_parse(const std::string& spv)
+	{
+		m_lineMap.clear();
+
+		std::istringstream iss(spv);
+		std::string line = "";
+
+		int curLine = -1;
+		int spvLine = 0;
+
+		while (std::getline(iss, line)) {
+			if (line.find("OpLine") != std::string::npos) {
+				std::istringstream lineSS(line);
+				std::vector<std::string> tokens { std::istream_iterator<std::string> { lineSS }, std::istream_iterator<std::string> {} };
+				
+				if (tokens.size() >= 3)
+					curLine = std::stoi(tokens[2]);
+
+				m_lineMap[curLine].push_back(spvLine);
+			} else if (curLine != -1) {
+				if (line.find("OpFunctionEnd") != std::string::npos)
+					curLine = -1;
+				else
+					m_lineMap[curLine].push_back(spvLine);
+			}
+
+			spvLine++;
+		}
 	}
 }

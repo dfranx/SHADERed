@@ -18,10 +18,16 @@ namespace ed {
 
 		void Refresh(PipelineItem* item, ShaderStage stage);
 
+		inline void ClearHighlights() { m_spirv.ClearHighlightedLines(); }
+		void Highlight(int line);
+
 	private:
 		SPIRVParser m_info;
 		TextEditor m_spirv;
 
+		void m_parse(const std::string& spv);
+
 		std::vector<unsigned int> m_spv;
+		std::unordered_map<int, std::vector<int>> m_lineMap;
 	};
 }
