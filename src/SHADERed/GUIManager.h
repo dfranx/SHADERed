@@ -93,6 +93,8 @@ namespace ed {
 		void SavePreviewToFile();
 
 	private:
+		void m_renderPopups(float delta);
+
 		void m_setupShortcuts();
 
 		void m_imguiHandleEvent(const SDL_Event& e);

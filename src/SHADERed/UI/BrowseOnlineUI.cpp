@@ -337,7 +337,7 @@ namespace ed {
 						ImGui::Image((ImTextureID)m_onlineThemeThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
 
 						ImGui::TableSetColumnIndex(1);
-						ImGui::Text("%s", themeInfo.Title.c_str()); // just in case someone has a %s or sth in the title, so that the app doesn't crash :'D
+						ImGui::TextUnformatted(themeInfo.Title.c_str());
 						ImGui::TextWrapped("%s", themeInfo.Description.c_str());
 						ImGui::Text("%d download(s)", themeInfo.Downloads);
 						ImGui::Text("by: %s", themeInfo.Owner.c_str());
