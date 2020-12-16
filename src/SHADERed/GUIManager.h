@@ -112,35 +112,13 @@ namespace ed {
 
 		std::vector<std::string> m_recentProjects;
 
-		std::vector<ed::WebAPI::ShaderResult> m_onlineShaders;
-		std::vector<GLuint> m_onlineShaderThumbnail;
-		bool m_refreshShaderThumbnails, m_refreshPluginThumbnails, m_refreshThemeThumbnails;
-		unsigned char* m_queueThumbnailPixelData;
-		int m_queueThumbnailWidth, m_queueThumbnailHeight;
-		bool m_queueThumbnailNext, m_queueThumbnailProcess;
-		int m_queueThumbnailID;
-
-		std::vector<ed::WebAPI::PluginResult> m_onlinePlugins;
-		std::vector<GLuint> m_onlinePluginThumbnail;
-		std::vector<ed::WebAPI::ThemeResult> m_onlineThemes;
-		std::vector<GLuint> m_onlineThemeThumbnail;
-		std::vector<std::string> m_onlineInstalledPlugins;
-		int m_onlinePage, m_onlineShaderPage, m_onlinePluginPage, m_onlineThemePage;
-		bool m_onlineIsShader, m_onlineIsPlugin;
-		char m_onlineQuery[256];
-		char m_onlineUsername[64];
-		bool m_onlineExcludeGodot, m_onlineIncludeCPP, m_onlineIncludeRust;
-		void m_onlineSearchShaders();
-		void m_onlineSearchPlugins();
-		void m_onlineSearchThemes();
-
 		int m_width, m_height;
 
 		void m_renderOptions();
 		bool m_optionsOpened;
 		int m_optGroup;
 		UIView* m_options;
-
+		UIView* m_browseOnline;
 		UIView* m_objectPrev;
 
 		std::string m_cachedFont;
@@ -181,6 +159,7 @@ namespace ed {
 		bool m_saveAsRestoreCache;
 		std::function<void(bool)> m_saveAsHandle;
 		std::function<void()> m_saveAsPreHandle;
+
 
 		bool m_expcppError;
 		int m_expcppBackend;
