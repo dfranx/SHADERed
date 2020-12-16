@@ -16,10 +16,11 @@ namespace ed {
 		bool Create();
 		void Reset();
 
-	private:
-		void m_autoVariablePopulate(pipe::ShaderPass* pass);
+		void UpdateLanguageList();
 
+	private:
 		void m_createFile(const std::string& filen);
+		void m_updateItemFilenames();
 
 		std::vector<std::string> m_groups;
 		int m_selectedGroup;
@@ -33,6 +34,9 @@ namespace ed {
 		bool* m_dialogShaderAuto;
 		std::string m_dialogShaderType;
 
+		int m_fileAutoExtensionSel;
+		std::string m_fileAutoLanguages;
+		std::vector<std::string> m_fileAutoExtensions;
 		bool m_isShaderFileAuto[3];
 	};
 }

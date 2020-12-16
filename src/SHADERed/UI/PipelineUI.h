@@ -25,6 +25,8 @@ namespace ed {
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
+		inline void UpdateLanguageList() { m_createUI.UpdateLanguageList(); }
+
 		inline void Reset() { m_expandList.clear(); }
 
 		void DeleteItem(PipelineItem* item);

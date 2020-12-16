@@ -3,20 +3,23 @@
 + add function declaration tooltips
 + add scrollbar markers for changed lines
 + add "Save as GLSL" option
++ add "Language" dropdown to "Create Item" when creating a shader pass
 + add --compile and related commands
 + add "Editor.DuplicateLine" shortcut
 + add "Editor.CommentLines" and "Editor.UncommentLines" shortcuts
 + autocomplete now suggest object members after typing '.'
-+ creating a new project doesn't require a save location anymore
++ highlight SPIR-V code that corresponds to the line on which the shader debugger is currently located
 + list Rust and C++ shaders in 'Browse online' window if corresponding plugins are installed
++ creating a new project doesn't require a save location anymore
 + when creating a render texture the ratio size will now be used by default
 + remove "Clear" button in pixel inspect window
 + "Properties" window will now open (if it was closed) when opening the object's/item's properties
++ fix a bug that caused "Create item" window not to create shader files sometimes
++ fix a crash that happened when deleting last expression in the "Watch" window
++ fix "Auto indent on paste" feature
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 + fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item" window
-+ fix "Auto indent on paste" feature
-+ fix a bug that caused "Create item" not to create shader files sometimes
-+ fix a crash that happened when deleting last expression in the "Watch" window
++ fix a bug that caused SHADERed to crash when plugin tried to add a message without a "group"
 
 [v1.4.2]
 + add "Save SPIR-V binary" option

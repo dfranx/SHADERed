@@ -2194,6 +2194,10 @@ namespace ed {
 
 			// load plugins
 			m_data->Plugins.Init(m_data, this);
+			
+			// once we loaded plugins, we can get the complete list of all languages
+			m_createUI->UpdateLanguageList();
+			((PipelineUI*)Get(ViewID::Pipeline))->UpdateLanguageList();
 
 			// check for plugin updates
 			if (Settings::Instance().General.CheckPluginUpdates) {

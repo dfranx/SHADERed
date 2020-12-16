@@ -38,6 +38,8 @@ namespace ed {
 		m_dialogShaderAuto = nullptr;
 		m_dialogShaderType = "";
 
+		m_fileAutoExtensionSel = 0;
+		
 		Reset();
 	}
 
@@ -69,28 +71,7 @@ namespace ed {
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputText("##cui_name", m_item.Name, PIPELINE_ITEM_NAME_LENGTH)) {
 			// generate filenames
-			if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
-				pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
-
-				if (m_isShaderFileAuto[0])
-					strcpy(data->VSPath, ("shaders/" + std::string(m_item.Name) + "VS.glsl").c_str());
-				if (m_isShaderFileAuto[1])
-					strcpy(data->PSPath, ("shaders/" + std::string(m_item.Name) + "PS.glsl").c_str());
-				if (m_isShaderFileAuto[2] && data->GSUsed)
-					strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS.glsl").c_str());
-			}
-			else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
-				pipe::ComputePass* data = (pipe::ComputePass*)m_item.Data;
-
-				if (m_isShaderFileAuto[0])
-					strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "CS.glsl").c_str());
-			}
-			else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
-				pipe::AudioPass* data = (pipe::AudioPass*)m_item.Data;
-
-				if (m_isShaderFileAuto[0])
-					strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "AS.glsl").c_str());
-			}
+			m_updateItemFilenames();
 		}
 		ImGui::NextColumn();
 
@@ -143,6 +124,14 @@ namespace ed {
 		}
 		else if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
+
+			// file extension / language:
+			ImGui::Text("Language:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::Combo("##cui_splangext", &m_fileAutoExtensionSel, m_fileAutoLanguages.c_str()))
+				m_updateItemFilenames();
+			ImGui::NextColumn();
 
 			// vs path
 			ImGui::Text("Vertex shader path:");
@@ -197,8 +186,12 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::Checkbox("##cui_spgsuse", &data->GSUsed)) {
-				if (m_isShaderFileAuto[2] && data->GSUsed)
-					strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS.glsl").c_str());
+				if (m_isShaderFileAuto[2]) {
+					if (data->GSUsed)
+						strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS." + m_fileAutoExtensions[m_fileAutoExtensionSel]).c_str());
+					else
+						strcpy(data->GSPath, "");
+				}
 			}
 			ImGui::NextColumn();
 
@@ -881,6 +874,36 @@ namespace ed {
 		m_isShaderFileAuto[0] = true;
 		m_isShaderFileAuto[1] = true;
 		m_isShaderFileAuto[2] = true;
+
+	}
+	void CreateItemUI::UpdateLanguageList()
+	{
+		m_fileAutoLanguages = std::string("GLSL\0HLSL\0Vulkan GLSL\0", 22);
+		m_fileAutoExtensions = std::vector<std::string>(3);
+
+		m_fileAutoExtensions[0] = "glsl";
+		if (Settings::Instance().General.HLSLExtensions.size() > 0)
+			m_fileAutoExtensions[1] = Settings::Instance().General.HLSLExtensions[0];
+		if (Settings::Instance().General.VulkanGLSLExtensions.size() > 0)
+			m_fileAutoExtensions[2] = Settings::Instance().General.VulkanGLSLExtensions[0];
+
+		const auto& plugins = m_data->Plugins.Plugins();
+		for (IPlugin1* pl : plugins) {
+			int langCount = pl->CustomLanguage_GetCount();
+			for (int i = 0; i < langCount; i++) {
+				std::string langName = pl->CustomLanguage_GetName(i);
+				std::vector<std::string>& extVec = Settings::Instance().General.PluginShaderExtensions[langName];
+
+				m_fileAutoLanguages += langName;
+				m_fileAutoLanguages.resize(m_fileAutoLanguages.size() + 1);
+				m_fileAutoLanguages[m_fileAutoLanguages.size() - 1] = 0;
+
+				if (extVec.size() > 0)
+					m_fileAutoExtensions.push_back(extVec[0]);
+				else
+					m_fileAutoExtensions.push_back("null");
+			}
+		}
 	}
 	void CreateItemUI::m_createFile(const std::string& filename)
 	{
@@ -893,6 +916,29 @@ namespace ed {
 			std::ofstream shdr(fname);
 			shdr << "// empty shader file\n";
 			shdr.close();
+		}
+	}
+	void CreateItemUI::m_updateItemFilenames()
+	{
+		if (m_item.Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* data = (pipe::ShaderPass*)m_item.Data;
+
+			if (m_isShaderFileAuto[0])
+				strcpy(data->VSPath, ("shaders/" + std::string(m_item.Name) + "VS." + m_fileAutoExtensions[m_fileAutoExtensionSel]).c_str());
+			if (m_isShaderFileAuto[1])
+				strcpy(data->PSPath, ("shaders/" + std::string(m_item.Name) + "PS." + m_fileAutoExtensions[m_fileAutoExtensionSel]).c_str());
+			if (m_isShaderFileAuto[2] && data->GSUsed)
+				strcpy(data->GSPath, ("shaders/" + std::string(m_item.Name) + "GS." + m_fileAutoExtensions[m_fileAutoExtensionSel]).c_str());
+		} else if (m_item.Type == PipelineItem::ItemType::ComputePass) {
+			pipe::ComputePass* data = (pipe::ComputePass*)m_item.Data;
+
+			if (m_isShaderFileAuto[0])
+				strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "CS." + m_fileAutoExtensions[m_fileAutoExtensionSel]).c_str());
+		} else if (m_item.Type == PipelineItem::ItemType::AudioPass) {
+			pipe::AudioPass* data = (pipe::AudioPass*)m_item.Data;
+
+			if (m_isShaderFileAuto[0])
+				strcpy(data->Path, ("shaders/" + std::string(m_item.Name) + "AS.glsl").c_str());
 		}
 	}
 }

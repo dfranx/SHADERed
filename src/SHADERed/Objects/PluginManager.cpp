@@ -193,7 +193,10 @@ namespace ed {
 				};
 				plugin->AddMessage = [](void* messages, plugin::MessageType mtype, const char* group, const char* txt, int ln) {
 					MessageStack* msgs = (MessageStack*)messages;
-					msgs->Add((MessageStack::Type)mtype, group, txt, ln);
+					std::string groupStr = "";
+					if (group != nullptr)
+						groupStr = std::string(group);
+					msgs->Add((MessageStack::Type)mtype, groupStr, txt, ln);
 				};
 				plugin->CreateRenderTexture = [](void* objects, const char* name) -> bool {
 					ObjectManager* objs = (ObjectManager*)objects;
