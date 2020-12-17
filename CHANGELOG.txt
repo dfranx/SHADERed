@@ -20,6 +20,7 @@
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 + fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item" window
 + fix a bug that caused SHADERed to crash when plugin tried to add a message without a "group"
++ fix a bug that would sometimes cause SHADERed to store configs and downloads on non user owned folders on Linux
 
 [v1.4.2]
 + add "Save SPIR-V binary" option
