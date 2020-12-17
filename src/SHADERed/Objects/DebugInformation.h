@@ -131,6 +131,7 @@ namespace ed {
 
 		std::vector<spvm_image_t> m_images; // TODO: clear these + smart cache
 
+		void* m_vertexBuffer;
 
 		spvm_context_t m_vmContext;
 		spvm_ext_opcode_func* m_vmGLSL;

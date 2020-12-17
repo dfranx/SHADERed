@@ -285,7 +285,15 @@ const char* ATTRIBUTE_VALUE_NAMES[] = {
 	"Texcoord",
 	"Tangent",
 	"Bitangent",
-	"Color"
+	"Color",
+	"BufferFloat",
+	"BufferFloat2",
+	"BufferFloat3",
+	"BufferFloat4",
+	"BufferInt",
+	"BufferInt2",
+	"BufferInt3",
+	"BufferInt4"
 };
 const char* EDITOR_SHORTCUT_NAMES[] = {
 	"Undo",

@@ -10,6 +10,14 @@ namespace ed {
 		case InputLayoutValue::Tangent: return 3;
 		case InputLayoutValue::Binormal: return 3;
 		case InputLayoutValue::Color: return 4;
+		case InputLayoutValue::BufferFloat: return 1;
+		case InputLayoutValue::BufferFloat2: return 2;
+		case InputLayoutValue::BufferFloat3: return 3;
+		case InputLayoutValue::BufferFloat4: return 4;
+		case InputLayoutValue::BufferInt: return 1;
+		case InputLayoutValue::BufferInt2: return 2;
+		case InputLayoutValue::BufferInt3: return 3;
+		case InputLayoutValue::BufferInt4: return 4;
 		}
 		return 0;
 	}

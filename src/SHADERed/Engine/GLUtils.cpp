@@ -154,11 +154,18 @@ namespace ed {
 			glBindBuffer(GL_ARRAY_BUFFER, geoVBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geoEBO);
 
+			GLuint layOffset = 0;
 			for (const auto& layitem : ilayout) {
+				GLint size = InputLayoutItem::GetValueSize(layitem.Value);
+				GLint offset = InputLayoutItem::GetValueOffset(layitem.Value) * sizeof(GLfloat);
+				if (layitem.Value >= InputLayoutValue::BufferFloat && layitem.Value <= InputLayoutValue::BufferInt4)
+					offset = layOffset;
+
 				// vertex positions
-				glVertexAttribPointer(fmtIndex, InputLayoutItem::GetValueSize(layitem.Value), GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void*)(InputLayoutItem::GetValueOffset(layitem.Value) * sizeof(GLfloat)));
+				glVertexAttribPointer(fmtIndex, size, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void*)offset);
 				glEnableVertexAttribArray(fmtIndex);
 				fmtIndex++;
+				layOffset += size;
 			}
 
 			// user defined

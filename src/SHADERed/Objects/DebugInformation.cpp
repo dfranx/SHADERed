@@ -1400,6 +1400,7 @@ namespace ed {
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
 		m_stage = ShaderStage::Vertex;
+		m_vertexBuffer = nullptr;
 
 		m_resetVM();
 		if (owner->Type == PipelineItem::ItemType::ShaderPass)
@@ -1418,6 +1419,12 @@ namespace ed {
 
 		// uniforms
 		m_copyUniforms(owner, item, px);
+
+		// check if vertex buffer is our input
+		if (item != nullptr && item->Type == PipelineItem::ItemType::VertexBuffer) {
+			pipe::VertexBuffer* vb = (pipe::VertexBuffer*)item->Data;
+			m_vertexBuffer = vb->Buffer;
+		}
 	}
 	void DebugInformation::SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
 	{
@@ -1448,14 +1455,17 @@ namespace ed {
 
 				if (hasLocation) {
 					glm::vec4 value(0.0f);
+					size_t layOffset = 0;
 
 					InputLayoutValue inputType = InputLayoutValue::MaxCount;
 
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* passData = (pipe::ShaderPass*)pass->Data;
-						if (location < passData->InputLayout.size())
+						if (location < passData->InputLayout.size()) {
 							inputType = passData->InputLayout[location].Value;
-						else if (instanceBuffer != nullptr) {
+							for (spvm_word j = 0; j < location; j++)
+								layOffset += InputLayoutItem::GetValueSize(passData->InputLayout[location].Value);
+						} else if (instanceBuffer != nullptr) {
 							int bufferLocation = location - passData->InputLayout.size();
 
 							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
@@ -1508,7 +1518,13 @@ namespace ed {
 					case InputLayoutValue::Tangent: value = glm::vec4(vertex.Tangent, 0.0f); break;
 					case InputLayoutValue::Binormal: value = glm::vec4(vertex.Binormal, 0.0f); break;
 					case InputLayoutValue::Color: value = glm::vec4(vertex.Color); break;
-					default: break;
+					default: {
+						ed::BufferObject* vbData = (ed::BufferObject*)m_vertexBuffer;
+						if (vbData != nullptr) {
+
+							// TODO: BufferFloat and BufferInt variables;
+						}
+					} break;
 					}
 
 					for (spvm_word j = 0; j < slot->member_count; j++)
