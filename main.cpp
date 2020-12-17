@@ -107,7 +107,22 @@ int main(int argc, char* argv[])
 		std::string exePath = "";
 		if (readlinkRes != -1)
 			exePath = std::string(dirname(result));
-			
+		
+		std::vector<std::string> toCheck = {
+			"/../share/SHADERed",
+			"/../share/shadered"
+			// TODO: maybe more paths here?
+		};
+
+		for (const auto& wrkpath : toCheck) {
+			if (std::filesystem::exists(exePath + wrkpath, fsError)) {
+				linuxUseHomeDir = true;
+				std::filesystem::current_path(exePath + wrkpath, fsError);
+				ed::Logger::Get().Log("Setting current_path to " + std::filesystem::current_path().generic_string());
+				break;
+			}
+		}
+
 		if (access(exePath.c_str(), W_OK) != 0) 
 			linuxUseHomeDir = true;		
 	}
