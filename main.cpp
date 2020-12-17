@@ -73,7 +73,8 @@ int main(int argc, char* argv[])
 	// compiling
 	if (!coptsParser.CompilePath.empty()) {
 		std::vector<unsigned int> spv;
-		bool status = ed::ShaderCompiler::CompileToSPIRV(spv, coptsParser.CompileLanguage, coptsParser.CompilePath, coptsParser.CompileStage, coptsParser.CompileEntry, std::vector<ed::ShaderMacro>(), nullptr, nullptr);
+		std::vector<ed::ShaderMacro> macros;
+		bool status = ed::ShaderCompiler::CompileToSPIRV(spv, coptsParser.CompileLanguage, coptsParser.CompilePath, coptsParser.CompileStage, coptsParser.CompileEntry, macros, nullptr, nullptr);
 		if (!status) {
 			printf("Failed to compile the shader.\n");
 		} else {

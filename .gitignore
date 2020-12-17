@@ -20,6 +20,7 @@ SPIRV-ToolsConfig.cmake
 
 # Generated files
 libs/**/*.tcl
+include/
 
 # Compiled binaries
 ./Debug*
