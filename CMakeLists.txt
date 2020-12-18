@@ -56,6 +56,7 @@ set(SOURCES
 	src/SHADERed/UI/Tools/NotificationSystem.cpp
 
 # UI Debug
+	src/SHADERed/UI/Debug/AutoUI.cpp
 	src/SHADERed/UI/Debug/BreakpointListUI.cpp
 	src/SHADERed/UI/Debug/FunctionStackUI.cpp
 	src/SHADERed/UI/Debug/ImmediateUI.cpp

@@ -4,6 +4,7 @@
 #include <SHADERed/Objects/ArcBallCamera.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <SHADERed/UI/CodeEditorUI.h>
+#include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/Debug/VectorWatchUI.h>
@@ -314,6 +315,11 @@ namespace ed {
 				((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
 
 				int curLine = m_data->Debugger.GetCurrentLine();
+
+				DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
+				if (autoWnd->Visible)
+					autoWnd->SetExpressions(ed->GetRelevantExpressions(curLine));
+
 				if (!m_data->Debugger.IsVMRunning())
 					curLine++;
 				ed->SetCurrentLineIndicator(curLine);

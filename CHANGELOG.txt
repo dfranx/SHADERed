@@ -1,12 +1,14 @@
 [v1.4.3]
-+ add the ability to temporarily disable breakpoint condition
-+ add function declaration tooltips
-+ add scrollbar markers for changed lines
++ add "Auto" window
 + add "Save as GLSL" option
 + add "Language" dropdown to "Create Item" when creating a shader pass
 + add --compile and related commands
++ add function declaration tooltips
++ add scrollbar markers for changed lines
++ add the ability to temporarily disable breakpoint condition
 + add "Editor.DuplicateLine" shortcut
 + add "Editor.CommentLines" and "Editor.UncommentLines" shortcuts
++ add BufferFloat and BufferInt to input layout manager
 + autocomplete now suggest object members after typing '.'
 + highlight SPIR-V code that corresponds to the line on which the shader debugger is currently located
 + list Rust and C++ shaders in 'Browse online' window if corresponding plugins are installed

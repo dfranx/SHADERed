@@ -15,6 +15,7 @@
 #include <SHADERed/UI/BrowseOnlineUI.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/CreateItemUI.h>
+#include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/BreakpointListUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/ImmediateUI.h>
@@ -167,6 +168,7 @@ namespace ed {
 		m_debugViews.push_back(new DebugFunctionStackUI(this, objects, "Function stack"));
 		m_debugViews.push_back(new DebugBreakpointListUI(this, objects, "Breakpoints"));
 		m_debugViews.push_back(new DebugVectorWatchUI(this, objects, "Vector watch"));
+		m_debugViews.push_back(new DebugAutoUI(this, objects, "Auto", false));
 		m_debugViews.push_back(new DebugImmediateUI(this, objects, "Immediate"));
 
 		KeyboardShortcuts::Instance().Load();
@@ -341,8 +343,11 @@ namespace ed {
 
 		for (auto& view : m_views)
 			view->OnEvent(e);
-		for (auto& dview : m_debugViews)
-			dview->OnEvent(e);
+
+		if (m_data->Debugger.IsDebugging()) {
+			for (auto& dview : m_debugViews)
+				dview->OnEvent(e);
+		}
 
 		m_data->Plugins.OnEvent(e);
 	}
