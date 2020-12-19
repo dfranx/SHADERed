@@ -200,6 +200,11 @@ Pos=485,217
 Size=878,582
 Collapsed=0
 
+[Window][###Create3DTextureDlg]
+Pos=560,207
+Size=900,634
+Collapsed=0
+
 [Table][0x7F96C4D9,3]
 RefScale=19.05
 Column 0  Sort=0v
