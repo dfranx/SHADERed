@@ -613,6 +613,7 @@ namespace ed {
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
 					textureNode.append_attribute("depth").set_value(iobj->Size.z);
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
+					//textureNode.append_attribute("3dTex").set_value(item->is3dTex); //LUK: added
 				}
 
 				PluginObject* pluginObj = item->Plugin;
@@ -2905,7 +2906,18 @@ namespace ed {
 			} else if (strcmp(objType, "image3d") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
 
-				m_objects->CreateImage3D(objName);
+				//LUK: 3dtex ?
+				std::string fname = objectNode.attribute("name").as_string();
+
+				bool is3dtex = false;
+				if(fname.find(".dds") != std::string::npos) 
+				  is3dtex = true;				  				
+
+
+				if(is3dtex)
+				  m_objects->Create3DTexture(objName);
+				else
+				  m_objects->CreateImage3D(objName);
 				ObjectManagerItem* iobjOwner = m_objects->Get(objName);
 				Image3DObject* iobj = iobjOwner->Image3D;
 
@@ -2926,8 +2938,10 @@ namespace ed {
 					iobj->Size.y = objectNode.attribute("height").as_int();
 				if (!objectNode.attribute("depth").empty())
 					iobj->Size.z = objectNode.attribute("depth").as_int();
-				m_objects->ResizeImage3D(iobjOwner, iobj->Size);
 
+				if(!is3dtex)
+				  m_objects->ResizeImage3D(iobjOwner, iobj->Size);
+				
 				// load binds
 				for (pugi::xml_node bindNode : objectNode.children("bind")) {
 					const pugi::char_t* passBindName = bindNode.attribute("name").as_string();

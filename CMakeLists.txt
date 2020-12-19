@@ -16,7 +16,8 @@ set(SOURCES
 	src/SHADERed/EditorEngine.cpp
 	src/SHADERed/GUIManager.cpp
 	src/SHADERed/InterfaceManager.cpp
-
+	src/SHADERed/nv_dds.cpp
+	
 # objects:
 	src/SHADERed/Objects/Export/ExportCPP.cpp
 	src/SHADERed/Objects/ArcBallCamera.cpp
@@ -204,7 +205,7 @@ endif()
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc)
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-tools/include libs/spirv-headers/include)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()

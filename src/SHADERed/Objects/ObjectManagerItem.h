@@ -87,6 +87,7 @@ namespace ed {
 			Name = name;
 			Type = type;
 
+			is3dTex = false;
 			TextureSize = glm::ivec2(0, 0);
 			Texture = 0;
 			FlippedTexture = 0;
@@ -149,6 +150,7 @@ namespace ed {
 		sf::Sound* Sound;
 		bool SoundMuted;
 
+		bool is3dTex;
 		RenderTextureObject* RT;
 		BufferObject* Buffer;
 		ImageObject* Image;
