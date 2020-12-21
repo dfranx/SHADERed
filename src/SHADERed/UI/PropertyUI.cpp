@@ -305,6 +305,7 @@ namespace ed {
 					// gs entry
 					ImGui::Text("GS entry:");
 					ImGui::NextColumn();
+					strcpy(item->GSEntry, "main"); //LUK: added; why needed ???
 					if (ShaderCompiler::GetShaderLanguageFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_gsentry", item->GSEntry, 32))
