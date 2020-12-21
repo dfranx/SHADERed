@@ -428,8 +428,15 @@ namespace ed {
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+					int selectedTopology = 0;
+					for (selectedTopology = 0; selectedTopology < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); selectedTopology++) {
+						if (TOPOLOGY_ITEM_VALUES[selectedTopology] == item->Topology) 
+							break;
+					}
+					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&selectedTopology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES))) {
+						item->Topology = TOPOLOGY_ITEM_VALUES[selectedTopology];
 						m_data->Parser.ModifyProject();
+					}
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -1013,8 +1020,15 @@ namespace ed {
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+					int selectedTopology = 0;
+					for (selectedTopology = 0; selectedTopology < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); selectedTopology++) {
+						if (TOPOLOGY_ITEM_VALUES[selectedTopology] == item->Topology)
+							break;
+					}
+					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&selectedTopology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES))) {
+						item->Topology = TOPOLOGY_ITEM_VALUES[selectedTopology];
 						m_data->Parser.ModifyProject();
+					}
 					ImGui::PopItemWidth();
 				} 
 			} else if (IsRenderTexture()) {
