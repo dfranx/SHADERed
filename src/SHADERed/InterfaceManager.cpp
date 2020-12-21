@@ -220,7 +220,7 @@ namespace ed {
 
 		Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
 		for (int i = 0; i < pixel.VertexCount; i++) {
-			Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+			Debugger.SetVertexShaderInput(pixel, i);
 			pixel.glPosition[i] = Debugger.ExecuteVertexShader();
 			Debugger.CopyVertexShaderOutput(pixel, i);
 		}

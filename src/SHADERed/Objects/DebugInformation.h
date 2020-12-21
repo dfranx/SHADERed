@@ -38,7 +38,7 @@ namespace ed {
 		void GetVariableValueAsString(std::stringstream& outString, spvm_state_t state, spvm_result_t type, spvm_member_t mems, spvm_word mem_count, const std::string& prefix);
 
 		void PrepareVertexShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
-		void SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer = nullptr);
+		void SetVertexShaderInput(PixelInformation& pixel, int vertexIndex);
 		glm::vec4 ExecuteVertexShader();
 		void CopyVertexShaderOutput(PixelInformation& px, int vertexIndex);
 
