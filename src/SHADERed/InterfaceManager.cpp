@@ -137,13 +137,24 @@ namespace ed {
 				pipe::GeometryItem* geoData = ((pipe::GeometryItem*)k.second.second->Data);
 
 				objTopology = geoData->Topology;
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
+
 				instanceBuffer = (BufferObject*)geoData->InstanceBuffer;
 			} else if (k.second.second->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* bufData = ((pipe::VertexBuffer*)k.second.second->Data);
 
 				objTopology = bufData->Topology;
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 			} else if (k.second.second->Type == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* objData = ((pipe::Model*)k.second.second->Data);
 				instanceBuffer = (BufferObject*)objData->InstanceBuffer;
@@ -151,7 +162,12 @@ namespace ed {
 				pipe::PluginItemData* objData = ((pipe::PluginItemData*)k.second.second->Data);
 
 				objTopology = objData->Owner->PipelineItem_GetTopology(objData->Type, objData->PluginData);
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+				
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 			}
 
 			int rtIndex = 0;

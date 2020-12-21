@@ -21,12 +21,11 @@ namespace ed {
 		vertPos3.y = itemSize.y - vertPos3.y;
 
 		if (pixel.VertexCount > 1) drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), outlineColor);
-		else drawList->AddLine(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), ImVec2(uiPos.x + 1.0f, uiPos.y + 1.0f), outlineColor);
 		if (pixel.VertexCount > 2) drawList->AddLine(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), outlineColor);
 		if (pixel.VertexCount > 2) drawList->AddLine(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), outlineColor);
 
 		drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), outlineColor, "0");
-		if (pixel.VertexCount > 2) drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), outlineColor, "1");
+		if (pixel.VertexCount >= 2) drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), outlineColor, "1");
 		if (pixel.VertexCount > 2) drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), outlineColor, "2");
 	}
 	void DebuggerOutline::RenderPixelOutline(const PixelInformation& pixel, glm::vec2 uiPos, glm::vec2 itemSize, glm::vec2 zoomPos, glm::vec2 zoomSize)
