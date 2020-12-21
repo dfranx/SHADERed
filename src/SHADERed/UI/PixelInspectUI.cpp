@@ -144,7 +144,7 @@ namespace ed {
 							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
 
 							m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
-							m_data->Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+							m_data->Debugger.SetVertexShaderInput(pixel, i);
 
 							initIndex = i;
 							requestCompile = true;

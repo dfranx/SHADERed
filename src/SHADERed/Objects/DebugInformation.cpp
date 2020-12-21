@@ -1426,9 +1426,9 @@ namespace ed {
 			m_vertexBuffer = vb->Buffer;
 		}
 	}
-	void DebugInformation::SetVertexShaderInput(PipelineItem* pass, eng::Model::Mesh::Vertex vertex, int vertexID, int instanceID, ed::BufferObject* instanceBuffer)
+	void DebugInformation::SetVertexShaderInput(PixelInformation& pixel, int vertexIndex)
 	{
-		m_pixel = nullptr; // TODO?
+		m_pixel = &pixel; // TODO?
 
 		// input variables
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
@@ -1459,16 +1459,16 @@ namespace ed {
 
 					InputLayoutValue inputType = InputLayoutValue::MaxCount;
 
-					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass* passData = (pipe::ShaderPass*)pass->Data;
+					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* passData = (pipe::ShaderPass*)pixel.Pass->Data;
 						if (location < passData->InputLayout.size()) {
 							inputType = passData->InputLayout[location].Value;
 							for (spvm_word j = 0; j < location; j++)
-								layOffset += InputLayoutItem::GetValueSize(passData->InputLayout[location].Value);
-						} else if (instanceBuffer != nullptr) {
+								layOffset += InputLayoutItem::GetValueSize(passData->InputLayout[j].Value);
+						} else if (pixel.InstanceBuffer != nullptr) {
 							int bufferLocation = location - passData->InputLayout.size();
 
-							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(instanceBuffer->ViewFormat);
+							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(((ed::BufferObject*)pixel.InstanceBuffer)->ViewFormat);
 
 							int stride = 0;
 							for (const auto& dataEl : tData)
@@ -1476,8 +1476,8 @@ namespace ed {
 
 							GLfloat* bufPtr = (GLfloat*)malloc(stride);
 
-							glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer->ID);
-							glGetBufferSubData(GL_ARRAY_BUFFER, instanceID * stride, stride, &bufPtr[0]);
+							glBindBuffer(GL_ARRAY_BUFFER, ((ed::BufferObject*)pixel.InstanceBuffer)->ID);
+							glGetBufferSubData(GL_ARRAY_BUFFER, pixel.InstanceID * stride, stride, &bufPtr[0]);
 							glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 							int iOffset = 0;
@@ -1501,8 +1501,8 @@ namespace ed {
 
 							free(bufPtr);
 						}
-					} else if (pass->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* plData = (pipe::PluginItemData*)pass->Data;
+					} else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
 						if (location < plData->Owner->PipelineItem_GetInputLayoutSize(plData->Type, plData->PluginData)) {
 							plugin::InputLayoutItem inputItem;
 							plData->Owner->PipelineItem_GetInputLayoutItem(plData->Type, plData->PluginData, location, inputItem);
@@ -1512,17 +1512,37 @@ namespace ed {
 					}
 
 					switch (inputType) {
-					case InputLayoutValue::Position: value = glm::vec4(vertex.Position, 0.0f); break;
-					case InputLayoutValue::Normal: value = glm::vec4(vertex.Normal, 0.0f); break;
-					case InputLayoutValue::Texcoord: value = glm::vec4(vertex.TexCoords, 0.0f, 0.0f); break;
-					case InputLayoutValue::Tangent: value = glm::vec4(vertex.Tangent, 0.0f); break;
-					case InputLayoutValue::Binormal: value = glm::vec4(vertex.Binormal, 0.0f); break;
-					case InputLayoutValue::Color: value = glm::vec4(vertex.Color); break;
+					case InputLayoutValue::Position: value = glm::vec4(pixel.Vertex[vertexIndex].Position, 0.0f); break;
+					case InputLayoutValue::Normal: value = glm::vec4(pixel.Vertex[vertexIndex].Normal, 0.0f); break;
+					case InputLayoutValue::Texcoord: value = glm::vec4(pixel.Vertex[vertexIndex].TexCoords, 0.0f, 0.0f); break;
+					case InputLayoutValue::Tangent: value = glm::vec4(pixel.Vertex[vertexIndex].Tangent, 0.0f); break;
+					case InputLayoutValue::Binormal: value = glm::vec4(pixel.Vertex[vertexIndex].Binormal, 0.0f); break;
+					case InputLayoutValue::Color: value = glm::vec4(pixel.Vertex[vertexIndex].Color); break;
 					default: {
 						ed::BufferObject* vbData = (ed::BufferObject*)m_vertexBuffer;
 						if (vbData != nullptr) {
+							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(vbData->ViewFormat);
 
-							// TODO: BufferFloat and BufferInt variables;
+							int stride = 0;
+							for (const auto& dataEl : tData)
+								stride += ShaderVariable::GetSize(dataEl, true);
+
+							GLfloat* bufPtr = (GLfloat*)malloc(pixel.VertexCount * stride);
+
+							glBindBuffer(GL_ARRAY_BUFFER, vbData->ID);
+							glGetBufferSubData(GL_ARRAY_BUFFER, pixel.VertexID * stride, pixel.VertexCount * stride, &bufPtr[0]);
+							glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+							int valCount = 0;
+							if (inputType >= InputLayoutValue::BufferInt && inputType <= InputLayoutValue::BufferInt4)
+								valCount = ((int)inputType - (int)InputLayoutValue::BufferInt) + 1;
+							else if (inputType >= InputLayoutValue::BufferFloat && inputType <= InputLayoutValue::BufferFloat4)
+								valCount = ((int)inputType - (int)InputLayoutValue::BufferFloat) + 1;
+
+							for (int v = 0; v < valCount; v++)
+								value[v] = *(bufPtr + layOffset + v);
+
+							free(bufPtr);
 						}
 					} break;
 					}
@@ -1531,9 +1551,9 @@ namespace ed {
 						slot->members[j].value.f = value[j];
 				} else if (isBuiltin) {
 					if (builtinType == SpvBuiltInVertexId)
-						slot->members[0].value.s = vertexID;
+						slot->members[0].value.s = pixel.VertexID + vertexIndex;
 					else if (builtinType == SpvBuiltInInstanceId)
-						slot->members[0].value.s = instanceID;
+						slot->members[0].value.s = pixel.InstanceID;
 				}
 			}
 		}
