@@ -46,6 +46,9 @@ namespace ed {
 		void SetPixelShaderInput(PixelInformation& pixel);
 		glm::vec4 ExecutePixelShader(int x, int y, int loc = 0);
 
+		void PrepareGeometryShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
+		void SetGeometryShaderInput(PixelInformation& pixel);
+
 		void PrepareComputeShader(PipelineItem* pass, int x, int y, int z);
 
 		spvm_result_t Immediate(const std::string& entry, spvm_result_t& outType);
@@ -130,8 +133,6 @@ namespace ed {
 		void m_interpolateValues(spvm_state_t state, glm::vec3 weights);
 
 		std::vector<spvm_image_t> m_images; // TODO: clear these + smart cache
-
-		void* m_vertexBuffer;
 
 		spvm_context_t m_vmContext;
 		spvm_ext_opcode_func* m_vmGLSL;

@@ -158,7 +158,26 @@ namespace ed {
 						ImGui::PopItemFlag();
 					}
 
-					/* [TODO:GEOMETRY SHADER] */
+					/* [GEOMETRY SHADER] */
+					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass) {
+						pipe::ShaderPass* pass = (pipe::ShaderPass*)pixel.Pass->Data;
+						if (pass->GSUsed) {
+							if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
+								CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+								codeUI->StopDebugging();
+								codeUI->Open(pixel.Pass, ShaderStage::Geometry);
+								editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
+
+								m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+								m_data->Debugger.SetGeometryShaderInput(pixel);
+
+								requestCompile = true;
+							}
+							ImGui::SameLine();
+							ImGui::Text("Geometry Shader");
+					
+						}
+					}
 
 					/* ACTUAL ACTION HERE */
 					if (requestCompile && editor != nullptr)
