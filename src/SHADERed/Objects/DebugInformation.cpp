@@ -11,7 +11,7 @@
 #define GET_VALUE_WITH_CHECK_INT(val, c) (val == nullptr ? 0 : val->members[c].value.s)
 #define GET_VALUE2_WITH_CHECK_INT(val, c, r) (val == nullptr ? 0 : val->members[c].members[r].value.s)
 
-
+/* compute shader callbacks */
 void allocateWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_word type_id)
 {
 	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
@@ -77,7 +77,7 @@ void writeWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_wo
 		spvm_member_memcpy(members, state->results[val_id].members, member_count);
 	}
 }
-void controlBarrier(spvm_state* state, spvm_word exec, spvm_word mem, spvm_word sem)
+void controlBarrier(struct spvm_state* state, spvm_word exec, spvm_word mem, spvm_word sem)
 {
 	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
 
@@ -96,7 +96,7 @@ void controlBarrier(spvm_state* state, spvm_word exec, spvm_word mem, spvm_word 
 		spvm_member_memcpy(entry.Destination->members, entry.Data.members, entry.Destination->member_count);
 	}
 }
-void atomicOperation(spvm_word inst, spvm_word word_count, spvm_state* state)
+void atomicOperation(spvm_word inst, spvm_word word_count, struct spvm_state* state)
 {
 	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
 
@@ -282,6 +282,29 @@ void atomicOperation(spvm_word inst, spvm_word word_count, spvm_state* state)
 	}
 }
 
+/* geometry shader callbacks */
+void emitVertex(struct spvm_state* state, spvm_word stream)
+{
+	// TODO: use spvm_word stream
+
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+
+	spvm_word mem_count = 0;
+	spvm_member_t glPosition = spvm_state_get_builtin(state, SpvBuiltInPosition, &mem_count);
+
+	printf("pos: ");
+	for (int i = 0; i < mem_count; i++)
+		printf("%.2f ", glPosition[i].value.f);
+	printf("\n");
+}
+void endPrimitive(struct spvm_state* state, spvm_word stream)
+{
+	// TODO: use spvm_word stream
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+
+	
+	printf("EndPrimitive();");
+}
 
 namespace ed {
 	DebugInformation::DebugInformation(ObjectManager* objs, RenderEngine* renderer, MessageStack* msgs)
@@ -367,6 +390,8 @@ namespace ed {
 
 		m_vm = _spvm_state_create_base(m_shader, m_stage == ShaderStage::Pixel, 0);
 		m_vm->control_barrier = controlBarrier;
+		m_vm->emit_vertex = emitVertex;
+		m_vm->end_primitive = endPrimitive;
 		m_shader->allocate_workgroup_memory = nullptr; // "sub-programs" shouldn't handle this anymore
 
 		// link GLSL.std.450
@@ -1400,7 +1425,6 @@ namespace ed {
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
 	{
 		m_stage = ShaderStage::Vertex;
-		m_vertexBuffer = nullptr;
 
 		m_resetVM();
 		if (owner->Type == PipelineItem::ItemType::ShaderPass)
@@ -1419,16 +1443,10 @@ namespace ed {
 
 		// uniforms
 		m_copyUniforms(owner, item, px);
-
-		// check if vertex buffer is our input
-		if (item != nullptr && item->Type == PipelineItem::ItemType::VertexBuffer) {
-			pipe::VertexBuffer* vb = (pipe::VertexBuffer*)item->Data;
-			m_vertexBuffer = vb->Buffer;
-		}
 	}
 	void DebugInformation::SetVertexShaderInput(PixelInformation& pixel, int vertexIndex)
 	{
-		m_pixel = &pixel; // TODO?
+		m_pixel = &pixel;
 
 		// input variables
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
@@ -1519,7 +1537,11 @@ namespace ed {
 					case InputLayoutValue::Binormal: value = glm::vec4(pixel.Vertex[vertexIndex].Binormal, 0.0f); break;
 					case InputLayoutValue::Color: value = glm::vec4(pixel.Vertex[vertexIndex].Color); break;
 					default: {
-						ed::BufferObject* vbData = (ed::BufferObject*)m_vertexBuffer;
+						ed::BufferObject* vbData = nullptr;
+
+						if (pixel.Object != nullptr && pixel.Object->Type == PipelineItem::ItemType::VertexBuffer)
+							vbData = (BufferObject*)((pipe::VertexBuffer*)pixel.Object->Data)->Buffer;
+
 						if (vbData != nullptr) {
 							std::vector<ShaderVariable::ValueType> tData = m_objs->ParseBufferFormat(vbData->ViewFormat);
 
@@ -1557,7 +1579,6 @@ namespace ed {
 				}
 			}
 		}
-
 	}
 	glm::vec4 DebugInformation::ExecuteVertexShader()
 	{
@@ -1588,7 +1609,28 @@ namespace ed {
 	}
 	void DebugInformation::CopyVertexShaderOutput(PixelInformation& px, int vertexIndex)
 	{
+		// free the memory
+		for (auto& vsOut : px.VertexShaderOutput[vertexIndex]) {
+			if (vsOut.name)
+				free(vsOut.name);
+
+			if (vsOut.members) {
+				spvm_member_free(vsOut.members, vsOut.member_count);
+				vsOut.member_count = 0;
+			}
+		}
 		px.VertexShaderOutput[vertexIndex].clear();
+
+		// check if GS is used
+		bool gsUsed = false;
+		if (px.Pass && px.Pass->Type == PipelineItem::ItemType::ShaderPass) {
+			pipe::ShaderPass* pass = (pipe::ShaderPass*)px.Pass->Data;
+
+			if (pass->GSUsed)
+				gsUsed = true;
+		}
+
+		// copy the spir-v registers
 		for (int i = 0; i < m_shader->bound; i++) {
 			spvm_result_t slot = &m_vm->results[i];
 			spvm_result_t pointer = nullptr;
@@ -1611,9 +1653,26 @@ namespace ed {
 				copy.decoration_count = 0;
 				copy.members = nullptr;
 
-				if (slot->name) { // TODO: mem leak
-					copy.name = (spvm_string)calloc(1, strlen(slot->name) + 1);
-					strcpy(copy.name, slot->name);
+				const char* nameCpy = slot->name;
+				if (gsUsed) { // get interface block
+					if (pointer->pointer && slot->name && strcmp(slot->name, "") != 0) { // there surely must be a better way to do this?
+						spvm_result_t block = &m_vm->results[pointer->pointer];
+						bool isBlock = false;
+
+						for (spvm_word j = 0; j < block->decoration_count; j++)
+							if (block->decorations[j].type == SpvDecorationBlock) {
+								isBlock = true;
+								break;
+							}
+
+						if (isBlock && block->name)
+							nameCpy = block->name;
+					}
+				}
+
+				if (nameCpy) {
+					copy.name = (spvm_string)calloc(1, strlen(nameCpy) + 1);
+					strcpy(copy.name, nameCpy);
 				}
 
 				// hax: store location in spvm_result::return_type -> this can be done in a better way, but im lazy right now [TODO]
@@ -1858,6 +1917,116 @@ namespace ed {
 		return glm::clamp(ret, 0.0f, 1.0f);
 	}
 
+	void DebugInformation::PrepareGeometryShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
+	{
+		m_stage = ShaderStage::Geometry;
+
+		m_resetVM();
+		if (owner->Type == PipelineItem::ItemType::ShaderPass)
+			m_setupVM(((pipe::ShaderPass*)owner->Data)->GSSPV);
+		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
+
+			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::Geometry);
+			std::vector<unsigned int> spv;
+			if (spvSize != 0) {
+				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::Geometry);
+				spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+			}
+			m_setupVM(spv);
+		}
+
+		// uniforms
+		m_copyUniforms(owner, item, px);
+	}
+	void DebugInformation::SetGeometryShaderInput(PixelInformation& pixel)
+	{
+		m_pixel = &pixel;
+
+		// input variables
+		for (spvm_word i = 0; i < m_shader->bound; i++) {
+			spvm_result_t slot = &m_vm->results[i];
+			spvm_result_t pointer = nullptr;
+
+			if (slot->pointer)
+				pointer = &m_vm->results[m_vm->results[i].pointer];
+
+			// input variable
+			if (pointer && pointer->storage_class == SpvStorageClassInput) {
+				spvm_word location = 0, builtinType = 0;
+				bool hasLocation = false, isBuiltin = false;
+				for (spvm_word j = 0; j < slot->decoration_count; j++) {
+					if (slot->decorations[j].type == SpvDecorationLocation) {
+						location = slot->decorations[j].literal1;
+						hasLocation = true;
+					} else if (slot->decorations[j].type == SpvDecorationBuiltIn) {
+						builtinType = slot->decorations[j].literal1;
+						isBuiltin = true;
+					}
+				}
+
+				if (slot->name && strcmp(slot->name, "gl_in") == 0) {
+					for (spvm_word vert = 0; vert < slot->member_count; vert++) {
+						spvm_member_t gl_PerVertex = &slot->members[vert];
+						spvm_result_t gl_PerVertex_Type = &m_vm->results[gl_PerVertex->type];
+
+						for (spvm_word j = 0; j < gl_PerVertex->member_count; j++) {
+							bool is_glPosition = false;
+
+							for (spvm_word k = 0; k < gl_PerVertex_Type->decoration_count; k++) {
+								if (gl_PerVertex_Type->decorations[k].index == j) {
+									if (gl_PerVertex_Type->decorations[k].type == SpvDecorationBuiltIn && gl_PerVertex_Type->decorations[k].literal1 == SpvBuiltInPosition)
+										is_glPosition = true;
+								}
+							}
+
+							// TODO: gl_PointSize, gl_ClipDistance
+
+							if (is_glPosition) {
+								spvm_member_t gl_Position = gl_PerVertex->members[j].members;
+								spvm_word gl_Position_comps = gl_PerVertex->members[j].member_count;
+
+								for (spvm_word k = 0; k < gl_Position_comps; k++)
+									gl_Position[k].value.f = pixel.glPosition[vert][k];
+							}
+						}
+					}
+				} else {
+					const char* blockName = nullptr;
+					spvm_result_t currentBlock = slot;
+					
+					// find the interface block name
+					do {
+						currentBlock = &m_vm->results[currentBlock->pointer];
+
+						if (currentBlock->name) {
+							blockName = currentBlock->name;
+							break;
+						}
+					} while (currentBlock->pointer);
+
+					// copy the VS shader output
+					for (spvm_word vert = 0; vert < slot->member_count; vert++) {
+						// find the interface block from the VertexShaderOutput
+						spvm_result_t blockData = nullptr;
+						for (spvm_word j = 0; j < pixel.VertexShaderOutput[vert].size(); j++) {
+							const char* vsOutName = pixel.VertexShaderOutput[vert][j].name;
+
+							if (vsOutName && blockName && strcmp(vsOutName, blockName) == 0) {
+								blockData = &pixel.VertexShaderOutput[vert][j];
+								break;
+							}
+						}
+
+						if (blockData) {
+							spvm_member_memcpy(slot->members[vert].members, blockData->members, blockData->member_count);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void DebugInformation::PrepareComputeShader(PipelineItem* pass, int x, int y, int z)
 	{
 		m_stage = ShaderStage::Compute;
@@ -2098,10 +2267,14 @@ namespace ed {
 	{
 		for (PixelInformation& px : m_pixels) {
 			for (int i = 0; i < px.VertexCount; i++) {
-				auto& outputs = px.VertexShaderOutput[i];
-				for (int j = 0; j < outputs.size(); j++)
-					if (outputs[j].name != nullptr)
-						free(outputs[j].name);
+				for (auto& out : px.VertexShaderOutput[i]) {
+					if (out.name)
+						free(out.name);
+					if (out.members) {
+						spvm_member_free(out.members, out.member_count);
+						out.member_count = 0;
+					}
+				}
 			}
 		}
 		m_suggestions.clear();
