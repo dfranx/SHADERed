@@ -429,7 +429,9 @@ namespace ed {
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+					//LUK: item->Topology was used both as combo index and OGL values
+					//if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+					if (UIHelper::CreateTopologyCombo("##pui_geotopology", item->Topology))
 						m_data->Parser.ModifyProject();
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();

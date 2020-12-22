@@ -300,6 +300,35 @@ namespace ed {
 
 		return ret;
 	}
+	bool UIHelper::CreateTopologyCombo(const char* name, GLenum& topology)
+	{
+	  bool ret = false;
+	  unsigned int topology_idx = 0;
+	  for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
+	    if (TOPOLOGY_ITEM_VALUES[tind] == topology) {
+	      topology_idx = tind;
+	      break;
+	    }
+	  }
+
+	  if (ImGui::BeginCombo(name, TOPOLOGY_ITEM_NAMES[topology_idx])) {
+	    for (int i = 0; i < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); i++) {
+	      bool is_selected = ((int)topology_idx == i);
+
+	      if (strlen(TOPOLOGY_ITEM_NAMES[i]) > 1)
+		if (ImGui::Selectable(TOPOLOGY_ITEM_NAMES[i], is_selected)) {
+		  topology = TOPOLOGY_ITEM_VALUES[i];
+		  ret = true;
+		}
+	      
+	      if (is_selected)
+		ImGui::SetItemDefaultFocus();
+	    }
+	    
+	    ImGui::EndCombo();
+	  }
+	  return ret;
+	}
 
 	void MarkdownLinkCallback(ImGui::MarkdownLinkCallbackData data_)
 	{

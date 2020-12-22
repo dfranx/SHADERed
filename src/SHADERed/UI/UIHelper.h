@@ -34,7 +34,7 @@ namespace ed {
 		static bool CreateTextureMinFilterCombo(const char* name, GLenum& filter);
 		static bool CreateTextureMagFilterCombo(const char* name, GLenum& filter);
 		static bool CreateTextureWrapCombo(const char* name, GLenum& mode);
-
+		static bool CreateTopologyCombo(const char* name, GLenum& topology);
 		static void Markdown(const std::string& md);
 	};
 }
