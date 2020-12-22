@@ -1224,7 +1224,7 @@ namespace ed {
 				if (tData->InstanceBuffer != nullptr)
 					itemNode.append_child("instancebuffer").text().set(m_objects->GetByBufferID(((BufferObject*)tData->InstanceBuffer)->ID)->Name.c_str());
 				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
-					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
+				  if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
 						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
 						break;
 					}
