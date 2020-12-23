@@ -36,7 +36,7 @@ With SHADERed, you can debug vertex, geometry, pixel and compute shaders.
 ### Compute & geometry shaders
 You are not limited to vertex and pixel shaders. SHADERed also supports compute & geometry
 shaders. You can create advanced animations and effects with these two shader stages:
-<img src="./Misc/Screenshots/computeshader.gif">
+<img src="./Misc/Screenshots/computesh.gif">
 
 ### Plugin API
 You can develop custom SHADERed plugins and upload them to [SHADERed store](https://shadered.org/addons) so that they can be installed through SHADERed.
