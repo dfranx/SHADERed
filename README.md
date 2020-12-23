@@ -48,6 +48,7 @@ To see the plugin API's potential, check out these plugins:
 * [Slang](https://shadered.org/plugin?id=slang) - adds support for Slang shader language
 * [Rust](https://shadered.org/plugin?id=Rust) - adds the ability to write shaders in Rust
 * [C++](https://shadered.org/plugin?id=CPP) - adds the ability to write shaders in C++
+* [Terminal](https://shadered.org/plugin?id=Terminal) - open terminal windows in SHADERed
 
 ### See changes instantly
 SHADERed can compile your shaders while you write  the code. This way you can see your changes instantly. SHADERed also works nicely with external text editors (such as VS Code) - it will recompile the shaders if it has been modified by some external program.
