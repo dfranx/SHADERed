@@ -6,15 +6,20 @@ namespace ed {
 	{
 		return glm::vec2(((v / v.w) + 1.0f) * 0.5f);
 	}
+	glm::vec2 getScreenCoordInverted(glm::vec4 v)
+	{
+		glm::vec2 ret = getScreenCoord(v);
+		return glm::vec2(ret.x, 1-ret.y);
+	}
 
 	void DebuggerOutline::RenderPrimitiveOutline(const PixelInformation& pixel, glm::vec2 uiPos, glm::vec2 itemSize, glm::vec2 zoomPos, glm::vec2 zoomSize)
 	{
 		unsigned int outlineColor = 0xffffffff;
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		
-		glm::ivec2 vertPos1 = (getScreenCoord(pixel.glPosition[0]) - zoomPos) * (1.0f / zoomSize) * itemSize;
-		glm::ivec2 vertPos2 = (getScreenCoord(pixel.glPosition[1]) - zoomPos) * (1.0f / zoomSize) * itemSize;
-		glm::ivec2 vertPos3 = (getScreenCoord(pixel.glPosition[2]) - zoomPos) * (1.0f / zoomSize) * itemSize;
+		glm::ivec2 vertPos1 = (getScreenCoord(pixel.VertexShaderPosition[0]) - zoomPos) * (1.0f / zoomSize) * itemSize;
+		glm::ivec2 vertPos2 = (getScreenCoord(pixel.VertexShaderPosition[1]) - zoomPos) * (1.0f / zoomSize) * itemSize;
+		glm::ivec2 vertPos3 = (getScreenCoord(pixel.VertexShaderPosition[2]) - zoomPos) * (1.0f / zoomSize) * itemSize;
 
 		vertPos1.y = itemSize.y - vertPos1.y;
 		vertPos2.y = itemSize.y - vertPos2.y;
@@ -27,6 +32,29 @@ namespace ed {
 		drawList->AddText(ImVec2(uiPos.x + vertPos1.x, uiPos.y + vertPos1.y), outlineColor, "0");
 		if (pixel.VertexCount >= 2) drawList->AddText(ImVec2(uiPos.x + vertPos2.x, uiPos.y + vertPos2.y), outlineColor, "1");
 		if (pixel.VertexCount > 2) drawList->AddText(ImVec2(uiPos.x + vertPos3.x, uiPos.y + vertPos3.y), outlineColor, "2");
+	
+		if (pixel.GeometryShaderUsed) {
+			if (pixel.GeometryOutputType == GeometryShaderOutput::LineStrip) {
+				glm::ivec2 gsPos1 = (getScreenCoordInverted(pixel.FinalPosition[0]) - glm::vec2(zoomPos.x, -zoomPos.y)) * (1.0f / zoomSize) * itemSize;
+				glm::ivec2 gsPos2 = (getScreenCoordInverted(pixel.FinalPosition[1]) - glm::vec2(zoomPos.x, -zoomPos.y)) * (1.0f / zoomSize) * itemSize;
+				
+				drawList->AddLine(ImVec2(uiPos.x + gsPos1.x, uiPos.y + gsPos1.y), ImVec2(uiPos.x + gsPos2.x, uiPos.y + gsPos2.y), outlineColor);
+				drawList->AddText(ImVec2(uiPos.x + gsPos1.x, uiPos.y + gsPos1.y), outlineColor, "GS0");
+				drawList->AddText(ImVec2(uiPos.x + gsPos2.x, uiPos.y + gsPos2.y), outlineColor, "GS1");
+			}
+			else if (pixel.GeometryOutputType == GeometryShaderOutput::TriangleStrip) {
+				glm::ivec2 gsPos1 = (getScreenCoordInverted(pixel.FinalPosition[0]) - glm::vec2(zoomPos.x, -zoomPos.y)) * (1.0f / zoomSize) * itemSize;
+				glm::ivec2 gsPos2 = (getScreenCoordInverted(pixel.FinalPosition[1]) - glm::vec2(zoomPos.x, -zoomPos.y)) * (1.0f / zoomSize) * itemSize;
+				glm::ivec2 gsPos3 = (getScreenCoordInverted(pixel.FinalPosition[2]) - glm::vec2(zoomPos.x, -zoomPos.y)) * (1.0f / zoomSize) * itemSize;
+
+				drawList->AddLine(ImVec2(uiPos.x + gsPos1.x, uiPos.y + gsPos1.y), ImVec2(uiPos.x + gsPos2.x, uiPos.y + gsPos2.y), outlineColor);
+				drawList->AddLine(ImVec2(uiPos.x + gsPos2.x, uiPos.y + gsPos2.y), ImVec2(uiPos.x + gsPos3.x, uiPos.y + gsPos3.y), outlineColor);
+				drawList->AddLine(ImVec2(uiPos.x + gsPos3.x, uiPos.y + gsPos3.y), ImVec2(uiPos.x + gsPos1.x, uiPos.y + gsPos1.y), outlineColor);
+				drawList->AddText(ImVec2(uiPos.x + gsPos1.x, uiPos.y + gsPos1.y), outlineColor, "GS0");
+				drawList->AddText(ImVec2(uiPos.x + gsPos2.x, uiPos.y + gsPos2.y), outlineColor, "GS1");
+				drawList->AddText(ImVec2(uiPos.x + gsPos3.x, uiPos.y + gsPos3.y), outlineColor, "GS2");
+			}
+		}
 	}
 	void DebuggerOutline::RenderPixelOutline(const PixelInformation& pixel, glm::vec2 uiPos, glm::vec2 itemSize, glm::vec2 zoomPos, glm::vec2 zoomSize)
 	{

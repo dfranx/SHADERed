@@ -6,6 +6,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
+#include <SHADERed/UI/Debug/GeometryOutputUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
@@ -159,24 +160,20 @@ namespace ed {
 					}
 
 					/* [GEOMETRY SHADER] */
-					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass) {
-						pipe::ShaderPass* pass = (pipe::ShaderPass*)pixel.Pass->Data;
-						if (pass->GSUsed) {
-							if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
-								CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-								codeUI->StopDebugging();
-								codeUI->Open(pixel.Pass, ShaderStage::Geometry);
-								editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
+					if (pixel.GeometryShaderUsed) {
+						if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
+							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+							codeUI->StopDebugging();
+							codeUI->Open(pixel.Pass, ShaderStage::Geometry);
+							editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
 
-								m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
-								m_data->Debugger.SetGeometryShaderInput(pixel);
+							m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+							m_data->Debugger.SetGeometryShaderInput(pixel);
 
-								requestCompile = true;
-							}
-							ImGui::SameLine();
-							ImGui::Text("Geometry Shader");
-					
+							requestCompile = true;
 						}
+						ImGui::SameLine();
+						ImGui::Text("Geometry Shader");
 					}
 
 					/* ACTUAL ACTION HERE */
@@ -488,11 +485,15 @@ namespace ed {
 			ImGui::Text(m_cacheValue.c_str());
 		};
 
-		// copy preview camera info to vertex watch camera
+		// copy preview camera info to vertex watch camera & geometry shader output camera
 		if (!Settings::Instance().Project.FPCamera) {
 			ArcBallCamera* previewCamera = (ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
+			
 			DebugVectorWatchUI* vectorWatchUI = (DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch);
 			ArcBallCamera* vectorCamera = vectorWatchUI->GetCamera();
+
+			DebugGeometryOutputUI* geometryOutputUI = (DebugGeometryOutputUI*)m_ui->Get(ViewID::DebugGeometryOutput);
+			ArcBallCamera* geometryCamera = geometryOutputUI->GetCamera();
 
 			glm::vec3 rota = previewCamera->GetRotation();
 
@@ -500,6 +501,11 @@ namespace ed {
 			vectorCamera->SetPitch(rota.x);
 			vectorCamera->SetYaw(rota.y);
 			vectorCamera->SetRoll(rota.z);
+
+			geometryCamera->SetDistance(previewCamera->GetDistance());
+			geometryCamera->SetPitch(rota.x);
+			geometryCamera->SetYaw(rota.y);
+			geometryCamera->SetRoll(rota.z);
 		}
 	}
 }

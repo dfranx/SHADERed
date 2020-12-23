@@ -31,7 +31,7 @@ namespace ed {
 
 		float m_lastFBOWidth, m_lastFBOHeight;
 
-		ed::ArcBallCamera m_camera;
+		ArcBallCamera m_camera;
 		unsigned int m_unitSphereVAO, m_unitSphereVBO;
 
 		unsigned int m_xVAO, m_xVBO;

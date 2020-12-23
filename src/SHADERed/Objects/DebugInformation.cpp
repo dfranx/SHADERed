@@ -290,20 +290,39 @@ void emitVertex(struct spvm_state* state, spvm_word stream)
 	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
 
 	spvm_word mem_count = 0;
-	spvm_member_t glPosition = spvm_state_get_builtin(state, SpvBuiltInPosition, &mem_count);
+	spvm_member_t glPosObject = spvm_state_get_builtin(state, SpvBuiltInPosition, &mem_count);
 
-	printf("pos: ");
+	glm::vec4 glPos(0.0f);
 	for (int i = 0; i < mem_count; i++)
-		printf("%.2f ", glPosition[i].value.f);
-	printf("\n");
+		glPos[i] = glPosObject[i].value.f;
+
+	dbgr->EmitVertex(glPos);
 }
 void endPrimitive(struct spvm_state* state, spvm_word stream)
 {
 	// TODO: use spvm_word stream
-	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
 
-	
-	printf("EndPrimitive();");
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+	dbgr->EndPrimitive();
+}
+
+bool isPointInTriangle(glm::vec2 p, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2)
+{
+	/* https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#:~:text=A%20simple%20way%20is%20to,point%20is%20inside%20the%20triangle. */
+	float s = p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y;
+	float t = p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y;
+
+	if ((s < 0) != (t < 0))
+		return false;
+
+	float a = -p1.y * p2.x + p0.y * (p2.x - p1.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y;
+
+	return a < 0 ? (s <= 0 && s + t >= a) : (s >= 0 && s + t <= a);
+}
+bool isPointOnLine(glm::vec2 p, glm::vec2 p0, glm::vec2 p1)
+{
+	float v = glm::distance(p0, p) + glm::distance(p, p1) - glm::distance(p0, p1);
+	return -0.01 < v && v < 0.01;
 }
 
 namespace ed {
@@ -319,12 +338,15 @@ namespace ed {
 		m_shaderImmediate = nullptr;
 		m_msgs = msgs;
 		m_workgroup = nullptr;
+		m_updatedGeometryOutput = false;
 
 		m_vmContext = spvm_context_initialize();
 		m_vmGLSL = spvm_build_glsl450_ext();
 	}
 	DebugInformation::~DebugInformation()
 	{
+		ClearPixelList();
+
 		m_resetVM();
 
 		free(m_vmGLSL);
@@ -1611,26 +1633,19 @@ namespace ed {
 	{
 		// free the memory
 		for (auto& vsOut : px.VertexShaderOutput[vertexIndex]) {
-			if (vsOut.name)
+			if (vsOut.name) {
 				free(vsOut.name);
-
+				vsOut.name = nullptr;
+			}
 			if (vsOut.members) {
 				spvm_member_free(vsOut.members, vsOut.member_count);
 				vsOut.member_count = 0;
+				vsOut.members = nullptr;
 			}
 		}
 		px.VertexShaderOutput[vertexIndex].clear();
 
-		// check if GS is used
-		bool gsUsed = false;
-		if (px.Pass && px.Pass->Type == PipelineItem::ItemType::ShaderPass) {
-			pipe::ShaderPass* pass = (pipe::ShaderPass*)px.Pass->Data;
-
-			if (pass->GSUsed)
-				gsUsed = true;
-		}
-
-		// copy the spir-v registers
+		// copy the output registers
 		for (int i = 0; i < m_shader->bound; i++) {
 			spvm_result_t slot = &m_vm->results[i];
 			spvm_result_t pointer = nullptr;
@@ -1654,7 +1669,7 @@ namespace ed {
 				copy.members = nullptr;
 
 				const char* nameCpy = slot->name;
-				if (gsUsed) { // get interface block
+				if (px.GeometryShaderUsed) { // get interface block
 					if (pointer->pointer && slot->name && strcmp(slot->name, "") != 0) { // there surely must be a better way to do this?
 						spvm_result_t block = &m_vm->results[pointer->pointer];
 						bool isBlock = false;
@@ -1777,11 +1792,11 @@ namespace ed {
 		glm::vec2 pxPosition = glm::vec2(m_pixel->Coordinate + offset) / glm::vec2(m_pixel->RenderTextureSize - 1);
 
 		// weigths
-		glm::vec2 scrnPos1 = m_getScreenCoord(m_pixel->glPosition[0]);
-		glm::vec2 scrnPos2 = m_getScreenCoord(m_pixel->glPosition[1]);
-		glm::vec2 scrnPos3 = m_getScreenCoord(m_pixel->glPosition[2]);
+		glm::vec2 scrnPos1 = m_getScreenCoord(m_pixel->FinalPosition[0]);
+		glm::vec2 scrnPos2 = m_getScreenCoord(m_pixel->FinalPosition[1]);
+		glm::vec2 scrnPos3 = m_getScreenCoord(m_pixel->FinalPosition[2]);
 		glm::vec3 weights = m_getWeights(scrnPos1, scrnPos2, scrnPos3, pxPosition);
-		weights *= glm::vec3(m_pixel->glPosition[0].w == 0.0f ? 0.0f : (1.0f / m_pixel->glPosition[0].w), m_pixel->glPosition[1].w == 0.0f ? 0.0f : (1.0f / m_pixel->glPosition[1].w), m_pixel->glPosition[2].w == 0.0f ? 0.0f : (1.0f / m_pixel->glPosition[2].w));
+		weights *= glm::vec3(m_pixel->FinalPosition[0].w == 0.0f ? 0.0f : (1.0f / m_pixel->FinalPosition[0].w), m_pixel->FinalPosition[1].w == 0.0f ? 0.0f : (1.0f / m_pixel->FinalPosition[1].w), m_pixel->FinalPosition[2].w == 0.0f ? 0.0f : (1.0f / m_pixel->FinalPosition[2].w));
 	
 		return weights;
 	}
@@ -1790,6 +1805,10 @@ namespace ed {
 		// !!! m_pixel must be set !!!
 
 		float weightSum = weights.x + weights.y + weights.z;
+
+		auto* mainStageOutput = &m_pixel->VertexShaderOutput[0];
+		if (m_pixel->GeometryShaderUsed && m_pixel->GeometrySelectedPrimitive != -1 && m_pixel->GeometrySelectedVertex != -1)
+			mainStageOutput = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
 
 		// match the ps input with vs output
 		for (int i = 0; i < state->owner->bound; i++) {
@@ -1811,8 +1830,8 @@ namespace ed {
 					}
 
 				// get vs output index
-				for (int j = 0; j < m_pixel->VertexShaderOutput[0].size(); j++) {
-					const struct spvm_result* vsOutput = &m_pixel->VertexShaderOutput[0][j];
+				for (int j = 0; j < mainStageOutput->size(); j++) {
+					const struct spvm_result* vsOutput = &(*mainStageOutput)[j];
 					if (vsOutput->return_type == loc) {
 						if (loc == -1) {
 							if (vsOutput->name && slot->name)
@@ -1829,10 +1848,30 @@ namespace ed {
 
 				// copy and interpolate values
 				if (outputIndex >= 0) {
-					const struct spvm_result* value0 = m_pixel->VertexShaderOutput[0].empty() ? nullptr : &m_pixel->VertexShaderOutput[0][outputIndex];
-					const struct spvm_result* value1 = m_pixel->VertexShaderOutput[1].empty() ? nullptr : &m_pixel->VertexShaderOutput[1][outputIndex];
-					const struct spvm_result* value2 = m_pixel->VertexShaderOutput[2].empty() ? nullptr : &m_pixel->VertexShaderOutput[2][outputIndex];
+					auto* outputPtr0 = &m_pixel->VertexShaderOutput[0];
+					auto* outputPtr1 = &m_pixel->VertexShaderOutput[1];
+					auto* outputPtr2 = &m_pixel->VertexShaderOutput[2];
 
+					if (m_pixel->GeometryShaderUsed) {
+						if (m_pixel->GeometryOutputType == GeometryShaderOutput::Points) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+							outputPtr1 = nullptr;
+							outputPtr2 = nullptr;
+						} else if (m_pixel->GeometryOutputType == GeometryShaderOutput::LineStrip) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 1];
+							outputPtr1 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+							outputPtr2 = nullptr;
+						} else if (m_pixel->GeometryOutputType == GeometryShaderOutput::TriangleStrip) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 2];
+							outputPtr1 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 1];
+							outputPtr2 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+						}
+					}
+
+					const struct spvm_result* value0 = (outputPtr0 == nullptr || outputPtr0->empty()) ? nullptr : &(*outputPtr0)[outputIndex];
+					const struct spvm_result* value1 = (outputPtr1 == nullptr || outputPtr1->empty()) ? nullptr : &(*outputPtr1)[outputIndex];
+					const struct spvm_result* value2 = (outputPtr2 == nullptr || outputPtr2->empty()) ? nullptr : &(*outputPtr2)[outputIndex];
+					
 					// get type
 					spvm_result_t memType = spvm_state_get_type_info(state->results, pointer);
 					spvm_value_type elType = (spvm_value_type)memType->value_type;
@@ -1943,6 +1982,34 @@ namespace ed {
 	{
 		m_pixel = &pixel;
 
+		// clear some old info
+		for (auto& prim : pixel.GeometryOutput)
+			for (int i = 0; i < prim.Output.size(); i++)
+				for (auto& out : prim.Output[i]) {
+					if (out.name) {
+						free(out.name);
+						out.name = nullptr;
+					}
+					if (out.members) {
+						spvm_member_free(out.members, out.member_count);
+						out.member_count = 0;
+						out.members = nullptr;
+					}
+				}
+		pixel.GeometryOutput.clear();
+
+		// fill some info into PixelInformation
+		if (m_vm) {
+			if (m_vm->owner->geometry_output == SpvExecutionModeOutputPoints)
+				pixel.GeometryOutputType = GeometryShaderOutput::Points;
+			else if (m_vm->owner->geometry_output == SpvExecutionModeOutputTriangleStrip)
+				pixel.GeometryOutputType = GeometryShaderOutput::TriangleStrip;
+			else if (m_vm->owner->geometry_output == SpvExecutionModeOutputLineStrip)
+				pixel.GeometryOutputType = GeometryShaderOutput::LineStrip;
+			pixel.GeometryOutput.push_back(GeometryShaderPrimitive());
+		}
+		m_updatedGeometryOutput = true;
+
 		// input variables
 		for (spvm_word i = 0; i < m_shader->bound; i++) {
 			spvm_result_t slot = &m_vm->results[i];
@@ -1987,7 +2054,7 @@ namespace ed {
 								spvm_word gl_Position_comps = gl_PerVertex->members[j].member_count;
 
 								for (spvm_word k = 0; k < gl_Position_comps; k++)
-									gl_Position[k].value.f = pixel.glPosition[vert][k];
+									gl_Position[k].value.f = pixel.VertexShaderPosition[vert][k];
 							}
 						}
 					}
@@ -2020,6 +2087,81 @@ namespace ed {
 
 						if (blockData) {
 							spvm_member_memcpy(slot->members[vert].members, blockData->members, blockData->member_count);
+						}
+					}
+				}
+			}
+		}
+	}
+	void DebugInformation::ExecuteGeometryShader()
+	{
+		if (m_vm == nullptr)
+			return;
+
+		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
+		if (fnMain == 0)
+			return;
+
+		spvm_state_prepare(m_vm, fnMain);
+		spvm_state_call_function(m_vm);
+
+		// check where the new primitive is located
+		float depth = -INFINITY;
+		for (int p = 0; p < m_pixel->GeometryOutput.size(); p++) {
+			auto* prim = &m_pixel->GeometryOutput[p];
+
+			// triangles
+			if (m_pixel->GeometryOutputType == GeometryShaderOutput::TriangleStrip) {
+				for (int v = 2; v < prim->Position.size(); v++) {
+					glm::vec4 p0 = (prim->Position[v - 2] / prim->Position[v - 2].w + 1.0f) * 0.5f;
+					glm::vec4 p1 = (prim->Position[v - 1] / prim->Position[v - 1].w + 1.0f) * 0.5f;
+					glm::vec4 p2 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
+
+					if (isPointInTriangle(m_pixel->RelativeCoordinate, p0, p1, p2)) {
+						if ((p0.z + p1.z + p2.z) / 3.0f > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+							depth = (p0.z + p1.z + p2.z) / 3.0f;
+							m_pixel->GeometrySelectedPrimitive = p;
+							m_pixel->GeometrySelectedVertex = v;
+
+							m_pixel->FinalPosition[0] = prim->Position[v - 2];
+							m_pixel->FinalPosition[1] = prim->Position[v - 1];
+							m_pixel->FinalPosition[2] = prim->Position[v];
+						}
+					}
+				}
+			}
+
+			// lines
+			else if (m_pixel->GeometryOutputType == GeometryShaderOutput::LineStrip) {
+				for (int v = 1; v < prim->Position.size(); v++) {
+					glm::vec4 p0 = (prim->Position[v - 1] / prim->Position[v - 1].w + 1.0f) * 0.5f;
+					glm::vec4 p1 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
+
+					if (isPointOnLine(m_pixel->RelativeCoordinate, p0, p1)) {
+						if ((p0.z + p1.z) / 2.0f > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+							depth = (p0.z + p1.z) / 2.0f;
+							m_pixel->GeometrySelectedPrimitive = p;
+							m_pixel->GeometrySelectedVertex = v;
+
+							m_pixel->FinalPosition[0] = prim->Position[v - 1];
+							m_pixel->FinalPosition[1] = prim->Position[v];
+						}
+					}
+				}
+			}
+
+			// points
+			else if (m_pixel->GeometryOutputType == GeometryShaderOutput::Points) {
+				for (int v = 0; v < prim->Position.size(); v++) {
+					glm::vec4 p0 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
+
+					if (abs(m_pixel->RelativeCoordinate.x - p0.x) < 0.01f && abs(m_pixel->RelativeCoordinate.y - p0.y) < 0.01f) {
+						if (p0.z > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+							depth = p0.z / 2.0f;
+							m_pixel->GeometrySelectedPrimitive = p;
+							m_pixel->GeometrySelectedVertex = v;
+
+							m_pixel->FinalPosition[0] = prim->Position[v];
 						}
 					}
 				}
@@ -2266,13 +2408,34 @@ namespace ed {
 	void DebugInformation::ClearPixelList()
 	{
 		for (PixelInformation& px : m_pixels) {
+			// vertex shader output
 			for (int i = 0; i < px.VertexCount; i++) {
 				for (auto& out : px.VertexShaderOutput[i]) {
-					if (out.name)
+					if (out.name) {
 						free(out.name);
+						out.name = nullptr;
+					}
 					if (out.members) {
 						spvm_member_free(out.members, out.member_count);
 						out.member_count = 0;
+						out.members = nullptr;
+					}
+				}
+			}
+
+			// geometry shader output
+			for (auto& prim : px.GeometryOutput) {
+				for (int i = 0; i < prim.Output.size(); i++) {
+					for (auto& out : prim.Output[i]) {
+						if (out.name) {
+							free(out.name);
+							out.name = nullptr;
+						}
+						if (out.members) {
+							spvm_member_free(out.members, out.member_count);
+							out.member_count = 0;
+							out.members = nullptr;
+						}
 					}
 				}
 			}
@@ -2342,11 +2505,67 @@ namespace ed {
 		enabled = false;
 		return nullptr;
 	}
+	
 	void DebugInformation::SyncWorkgroup()
 	{
 		if (m_workgroup)
 			for (int i = 0; i < m_shader->local_size_x * m_shader->local_size_y * m_shader->local_size_z; i++)
 				if (m_workgroup[i])
 					spvm_state_jump_to_instruction(m_workgroup[i], m_vm->instruction_count);
+	}
+	void DebugInformation::EmitVertex(const glm::vec4& position)
+	{
+		if (m_pixel == nullptr)
+			return;
+
+		GeometryShaderPrimitive* primitive = &m_pixel->GeometryOutput.back();
+
+		primitive->Position.push_back(position);
+		primitive->Output.push_back(std::vector<struct spvm_result>());
+
+		std::vector<struct spvm_result>* out = &primitive->Output.back();
+		
+		// copy the spir-v registers
+		for (int i = 0; i < m_shader->bound; i++) {
+			spvm_result_t slot = &m_vm->results[i];
+			spvm_result_t pointer = nullptr;
+
+			if (slot->pointer)
+				pointer = &m_vm->results[m_vm->results[i].pointer];
+
+			// output variable
+			if (pointer && pointer->storage_class == SpvStorageClassOutput) {
+				int loc = -1;
+				for (int j = 0; j < slot->decoration_count; j++)
+					if (slot->decorations[j].type == SpvDecorationLocation) {
+						loc = slot->decorations[j].literal1;
+						break;
+					}
+
+				struct spvm_result copy;
+				memcpy(&copy, slot, sizeof(struct spvm_result));
+				copy.decorations = nullptr;
+				copy.decoration_count = 0;
+				copy.members = nullptr;
+
+				if (slot->name) {
+					copy.name = (spvm_string)calloc(1, strlen(slot->name) + 1);
+					strcpy(copy.name, slot->name);
+				}
+
+				// hax: store location in spvm_result::return_type -> this can be done in a better way, but im lazy right now [TODO]
+				copy.return_type = loc;
+
+				spvm_result_allocate_typed_value(&copy, m_vm->results, copy.pointer);
+				spvm_member_memcpy(copy.members, slot->members, copy.member_count);
+
+				out->push_back(copy);
+			}
+		}
+
+		m_updatedGeometryOutput = true;
+	}
+	void DebugInformation::EndPrimitive() {
+		m_pixel->GeometryOutput.push_back(GeometryShaderPrimitive());
 	}
 }

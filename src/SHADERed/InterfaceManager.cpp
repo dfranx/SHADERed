@@ -194,6 +194,10 @@ namespace ed {
 			pxInfo.VertexCount = vertexCount;
 			pxInfo.InTopology = pxInfo.OutTopology = objTopology;
 			pxInfo.InstanceBuffer = instanceBuffer;
+			pxInfo.GeometryShaderUsed = false;
+
+			if (pxInfo.Pass && pxInfo.Pass->Type == PipelineItem::ItemType::ShaderPass)
+				pxInfo.GeometryShaderUsed = ((pipe::ShaderPass*)pxInfo.Pass->Data)->GSUsed;
 
 			if (Settings::Instance().Debug.AutoFetch)
 				FetchPixel(pxInfo);
@@ -218,13 +222,24 @@ namespace ed {
 		// return old info
 		Renderer.Render(false, pixel.Pass); // render everything up to the pixel.Pass object
 
+		// run vertex shader
 		Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
 		for (int i = 0; i < pixel.VertexCount; i++) {
 			Debugger.SetVertexShaderInput(pixel, i);
-			pixel.glPosition[i] = Debugger.ExecuteVertexShader();
+			pixel.VertexShaderPosition[i] = Debugger.ExecuteVertexShader();
 			Debugger.CopyVertexShaderOutput(pixel, i);
 		}
 
+		memcpy(pixel.FinalPosition, pixel.VertexShaderPosition, sizeof(glm::vec4) * 3);
+
+		// run the geometry shader if needed
+		if (pixel.GeometryShaderUsed) {
+			Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+			Debugger.SetGeometryShaderInput(pixel);
+			Debugger.ExecuteGeometryShader();
+		}
+
+		// run pixel shader
 		Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
 		Debugger.SetPixelShaderInput(pixel);
 		pixel.DebuggerColor = Debugger.ExecutePixelShader(pixel.Coordinate.x, pixel.Coordinate.y, pixel.RenderTextureIndex);
