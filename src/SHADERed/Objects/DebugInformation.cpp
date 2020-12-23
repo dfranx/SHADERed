@@ -1852,7 +1852,7 @@ namespace ed {
 					auto* outputPtr1 = &m_pixel->VertexShaderOutput[1];
 					auto* outputPtr2 = &m_pixel->VertexShaderOutput[2];
 
-					if (m_pixel->GeometryShaderUsed) {
+					if (m_pixel->GeometryShaderUsed && m_pixel->GeometrySelectedPrimitive != -1 && m_pixel->GeometrySelectedVertex != -1) {
 						if (m_pixel->GeometryOutputType == GeometryShaderOutput::Points) {
 							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
 							outputPtr1 = nullptr;
@@ -2072,6 +2072,9 @@ namespace ed {
 						}
 					} while (currentBlock->pointer);
 
+					if (blockName == nullptr)
+						blockName = slot->name;
+
 					// copy the VS shader output
 					for (spvm_word vert = 0; vert < slot->member_count; vert++) {
 						// find the interface block from the VertexShaderOutput
@@ -2079,15 +2082,16 @@ namespace ed {
 						for (spvm_word j = 0; j < pixel.VertexShaderOutput[vert].size(); j++) {
 							const char* vsOutName = pixel.VertexShaderOutput[vert][j].name;
 
-							if (vsOutName && blockName && strcmp(vsOutName, blockName) == 0) {
+							// check by name or by location
+							if ((vsOutName && blockName && strcmp(vsOutName, blockName) == 0) ||
+								(pixel.VertexShaderOutput[vert][j].return_type == location)) {
 								blockData = &pixel.VertexShaderOutput[vert][j];
 								break;
 							}
 						}
 
-						if (blockData) {
+						if (blockData && slot->members[vert].member_count == blockData->member_count)
 							spvm_member_memcpy(slot->members[vert].members, blockData->members, blockData->member_count);
-						}
 					}
 				}
 			}
