@@ -271,7 +271,9 @@ namespace ed {
 			const int numPoints = 32 * 3;
 			const int numSegs = numPoints / 3;
 
-			GLfloat circleData[numPoints * 18];
+			//LUK: avoid stack allocation
+			//GLfloat circleData[numPoints * 18];
+			GLfloat *circleData = new GLfloat[numPoints * 18];
 
 			float step = glm::two_pi<float>() / numSegs;
 
@@ -304,6 +306,8 @@ namespace ed {
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
+			delete circleData;
+			
 			return vao;
 		}
 		unsigned int GeometryFactory::CreatePlane(unsigned int& vbo, float sx, float sy, const std::vector<InputLayoutItem>& inp)
@@ -341,7 +345,9 @@ namespace ed {
 			const size_t sliceCount = 20;
 
 			const size_t count = sliceCount * stackCount * 6;
-			GLfloat sphereData[count * 18];
+			//LUK: stack allocation produces issues !
+			//GLfloat sphereData[count * 18];
+			GLfloat *sphereData = new GLfloat[count * 18];
 
 			const float stepY = glm::pi<float>() / stackCount;
 			const float stepX = glm::two_pi<float>() / sliceCount;
@@ -367,6 +373,8 @@ namespace ed {
 			GLuint vao;
 			gl::CreateVAO(vao, vbo, inp);
 
+			delete sphereData;
+			
 			return vao;
 		}
 		unsigned int GeometryFactory::CreateTriangle(unsigned int& vbo, float s, const std::vector<InputLayoutItem>& inp)
