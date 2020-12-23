@@ -48,6 +48,7 @@ namespace ed {
 
 		void PrepareGeometryShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
 		void SetGeometryShaderInput(PixelInformation& pixel);
+		void ExecuteGeometryShader();
 
 		void PrepareComputeShader(PipelineItem* pass, int x, int y, int z);
 
@@ -65,6 +66,7 @@ namespace ed {
 		void ClearPixelList();
 		inline void AddPixel(const PixelInformation& px) { m_pixels.push_back(px); }
 		inline std::vector<PixelInformation>& GetPixelList() { return m_pixels; }
+		inline PixelInformation* GetPixel() { return m_pixel; }
 
 		inline void AddSuggestion(const DebuggerSuggestion& px) { m_suggestions.push_back(px); }
 		inline std::vector<DebuggerSuggestion>& GetSuggestionList() { return m_suggestions; }
@@ -112,10 +114,18 @@ namespace ed {
 		};
 		std::vector<SharedMemoryEntry> SharedMemory;
 
+		// geometry shader stuff
+		void EmitVertex(const glm::vec4& position);
+		void EndPrimitive();
+		inline bool IsGeometryUpdated() { return m_updatedGeometryOutput; }
+		inline void ResetGeometryUpdated() { m_updatedGeometryOutput = false; }
+
 	private:
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;
 		MessageStack* m_msgs;
+
+		bool m_updatedGeometryOutput;
 
 #ifdef BUILD_IMMEDIATE_MODE
 		ExpressionCompiler m_compiler;

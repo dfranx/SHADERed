@@ -39,6 +39,7 @@ namespace ed {
 		DebugVectorWatch,
 		DebugAuto,
 		DebugImmediate,
+		DebugGeometryOutput,
 		Options,
 		ObjectPreview
 	};
@@ -123,6 +124,7 @@ namespace ed {
 		UIView* m_options;
 		UIView* m_browseOnline;
 		UIView* m_objectPrev;
+		UIView* m_geometryOutput;
 
 		std::string m_cachedFont;
 		int m_cachedFontSize;

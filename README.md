@@ -118,7 +118,6 @@ You can also check this list too: [link](https://shadered.org/features.php).
 ## Supporters
 **Supporter(s):**
   * [Hugo Locurcio](https://hugo.pro)
-  * Senthil Kumaran Rajasekaran
   * [Vladimir Alyamkin](https://alyamkin.com/)
   * [Wogos Media](http://theWogos.com/)
   * [Snow Developments](https://snow.llc)

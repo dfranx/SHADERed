@@ -1,4 +1,5 @@
 [v1.4.3]
++ add geometry shader debugger
 + add "Auto" window
 + add "Save as GLSL" option
 + add "Language" dropdown to "Create Item" when creating a shader pass

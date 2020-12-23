@@ -18,6 +18,7 @@
 #include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/BreakpointListUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
+#include <SHADERed/UI/Debug/GeometryOutputUI.h>
 #include <SHADERed/UI/Debug/ImmediateUI.h>
 #include <SHADERed/UI/Debug/ValuesUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
@@ -178,6 +179,7 @@ namespace ed {
 		m_options = new OptionsUI(this, objects, "Options");
 		m_createUI = new CreateItemUI(this, objects);
 		m_objectPrev = new ObjectPreviewUI(this, objects, "Object Preview");
+		m_geometryOutput = new DebugGeometryOutputUI(this, objects, "Geometry Shader Output");
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
@@ -261,6 +263,7 @@ namespace ed {
 			delete view;
 		for (auto& dview : m_debugViews)
 			delete dview;
+		delete m_geometryOutput;
 
 		((BrowseOnlineUI*)m_browseOnline)->FreeMemory();
 		delete m_browseOnline;
@@ -347,6 +350,8 @@ namespace ed {
 		if (m_data->Debugger.IsDebugging()) {
 			for (auto& dview : m_debugViews)
 				dview->OnEvent(e);
+			if (m_data->Debugger.GetStage() == ShaderStage::Geometry)
+				m_geometryOutput->OnEvent(e);
 		}
 
 		m_data->Plugins.OnEvent(e);
@@ -915,6 +920,12 @@ namespace ed {
 					}
 #endif
 				}
+				
+				if (m_data->Debugger.GetStage() == ShaderStage::Geometry) {
+					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
+					if (ImGui::Begin(m_geometryOutput->Name.c_str())) m_geometryOutput->Update(delta);
+					ImGui::End();
+				}
 			}
 
 			Get(ViewID::Code)->Update(delta);
@@ -1406,6 +1417,8 @@ namespace ed {
 			return m_objectPrev;
 		else if (view >= ViewID::DebugWatch && view <= ViewID::DebugImmediate)
 			return m_debugViews[(int)view - (int)ViewID::DebugWatch];
+		else if (view == ViewID::DebugGeometryOutput)
+			return m_geometryOutput;
 
 		return m_views[(int)view];
 	}
