@@ -1,8 +1,7 @@
 # SHADERed
 
 SHADERed is a lightweight tool for writing and debugging shaders. It is easy to use,
-open source, cross-platform (runs on Windows, Linux & [Web](https://shadered.org/template) -
-HLSL shaders work on all three platforms) and frequently updated with new features.
+open source, cross-platform (runs on Windows, Linux & [Web](https://shadered.org/template)).
 
 <img src="https://shadered.org/assets/img/header.png"/>
 
@@ -10,9 +9,9 @@ HLSL shaders work on all three platforms) and frequently updated with new featur
 * [Features](#features)
 * [Sponsors](#sponsors)
 * [Supporters](#supporters)
-* [Support](#support)
 * [Binaries](#binaries)
 * [Building](#building)
+* [Tutorials](#tutorials)
 * [Screenshots](#screenshots)
 * [Dependencies](#dependencies)
 * [License](#license)
@@ -20,95 +19,57 @@ HLSL shaders work on all three platforms) and frequently updated with new featur
 ## Features
 
 ### Shader debugger
-Shader debugger lets you find bugs in your shader. It is simple to use - you just pause
-the preview and select the pixel that you are interested in. After starting the debugger,
+Shader debugger lets you easily find bugs in your shader code. It is simple to use - you just need to pause
+the preview and select the pixel that you want to debug. After starting the debugger,
 you will be able to:
 * step through your shader code line by line
 * run immediate expressions
 * add watches
 * place (conditional) breakpoints
 * see list of all variables and their values
-<img src="https://shadered.org/assets/img/debugger.gif"/>
+* hover over expressions and see their value
+
+<img src="./Misc/Screenshots/debugger.gif">
+
+With SHADERed, you can debug vertex, geometry, pixel and compute shaders.
 
 ### Compute & geometry shaders
-You are not limited to vertex and pixel shaders. SHADERed also has support for compute & geometry
-shaders. To use GS, enable it in the shader pass' properties and set the path to your shader. You can create advanced
-animations and effects using geometry shaders.
-<p align="center">
-    <img width="200" src="./Misc/Screenshots/geometryshader.gif">
-</p>
-
-You can also add **compute pass**es alongside normal shader passes:
-<p align="center">
-    <img width="200" src="./Misc/Screenshots/computeshader.gif">
-</p>
+You are not limited to vertex and pixel shaders. SHADERed also supports compute & geometry
+shaders. You can create advanced animations and effects with these two shader stages:
+<img src="./Misc/Screenshots/computeshader.gif">
 
 ### Plugin API
-You can develop your own SHADERed plugins and upload them to our database
-so that they can be installed through SHADERed: [link](https://shadered.org/addons).
+You can develop custom SHADERed plugins and upload them to [SHADERed store](https://shadered.org/addons) so that they can be installed through SHADERed.
 
-To see the plugin API's potential, check out:
-* [GodotShaders](https://shadered.org/plugin?id=godotshaders) - adds support for Godot's shading language
-* [ShadertoyImporter](https://shadered.org/plugin?id=shadertoyimport) - makes loading Shadertoy project a super easy task
-* [GIFCapture](https://shadered.org/plugin?id=gifcapture) - SHADERed plugin that adds the ability to capture GIFs
-* [Slang](https://shadered.org/plugin?id=slang) - SHADERed plugins that adds support for Slang shader language
-
-You can download them through the [shadered.org](https://shadered.org/addons) website or through SHADERed's "Browse online" window.
+To see the plugin API's potential, check out these plugins:
+* [GodotShaders](https://shadered.org/plugin?id=godotshaders) - adds support for Godot's canvas shaders
+* [ShadertoyImporter](https://shadered.org/plugin?id=shadertoyimport) - import ShaderToy projects
+* [GIFCapture](https://shadered.org/plugin?id=gifcapture) - adds the ability to capture GIFs
+* [Slang](https://shadered.org/plugin?id=slang) - adds support for Slang shader language
+* [Rust](https://shadered.org/plugin?id=Rust) - adds the ability to write shaders in Rust
+* [C++](https://shadered.org/plugin?id=CPP) - adds the ability to write shaders in C++
 
 ### See changes instantly
-There are different ways to compile your shaders. You can: press F5 to
-manually recompile shader, make it recompile shaders on file modify
-event (which then allows you to use external editors) or make it recompile
-shaders when content in built-in text edtior changes:
+SHADERed can compile your shaders while you write  the code. This way you can see your changes instantly. SHADERed also works nicely with external text editors (such as VS Code) - it will recompile the shaders if it has been modified by some external program.
 <img src="./Misc/Screenshots/instantresult.gif">
 
-### Render states
-You can modify rasterizer, blend and depth-stencil states. Using these states you
-can: turn on wireframe mode, disable depth test, use stencil buffer, disable culling,
-custom blending, etc... All these things help you achieve even more advanced effects.
-
-### 3D models, textures (2D, 3D, cubemaps) & audio files
-You can add music and create amazing visualizers!
-
-Custom 3D models can also be easily added to the scene. You can also use built-in geometry objects such as cubes, spheres, planes,
-full screen quads, etc...
-
-Load textures from files and bind them to your shader. SHADERed also supports cubemaps & 3D textures.
-<p align="center">
-    <img width="260" src="./Misc/Screenshots/texture.jpg">
-</p>
-
-### Render textures
-You can render your scene to render textures. You can bind multiple render textures as output
-to one shader pass. This helps with creating G-Buffer and similar things.
-You can modify these render texture properties: size, format & clear color
-<p align="center">
-    <img width="220" src="./Misc/Screenshots/multiplert.jpg">
-</p>
-
-### Shader input variables
-You can create your own variables and edit their values in real time. SHADERed also
-comes with lots of built-in 'system' shader variables (elapsed time, window size,
-various view matrices, etc...).
-You can change shader variable value only for a specific 3D object - no
-programming required.
-<p align="center">
-    <img width="400" src="./Misc/Screenshots/itemvarvalue.gif">
-</p>
-
-### Zooming in & pausing
-Do you need to zoom in on an area of your shader output? You can do that by
-holding ALT and then selecting the area you want to zoom in. This can be useful
-when developing antialiasing shaders. It is also possible to pause the time
-<p align="center">
-    <img width="400" src="./Misc/Screenshots/zoomin.gif"><br/>
-    <em>Shader made by <a href="https://www.youtube.com/channel/UCcAlTqd9zID6aNX3TzwxJXg">The Art Of Code</a></em>
-</p>
-
-### And many more
-Instancing, buffers, audio shaders, ability to have more than one camera, shader macros, pausing time, input layout/vertex attribute manager, export as image and image sequence, variable pointers, etc...
-
-You can also check this list too: [link](https://shadered.org/features.php).
+### Other features
+SHADERed has lots of features that let you achieve effects like in no other shader editor. Features are also being added rapidly. Here are some of the feature:
+* render states (blending, stencil test, depth test, etc...)
+* import 3D models
+* built-in 3D geometry objects
+* import 2D texture, 3D textures, cubemaps
+* import audio files (build awesome music visualizers)
+* render textures (easily build G-Buffer)
+* buffers
+* instancing
+* camera system
+* audio shaders (generate music on GPU)
+* custom variables & powerful variable system
+* zooming in on the preview window
+* exporting image sequence
+* code autocompletion designed for shader code
+* ... and so much more!
 
 ## Sponsors
 [<img height="90" src="bin/data/sponsors/Embark-black.png">](https://embark-studios.com/)
@@ -123,16 +84,15 @@ You can also check this list too: [link](https://shadered.org/features.php).
   * [Snow Developments](https://snow.llc)
   * [Adad Morales](https://www.moralesfx.com/)
 
-## Support
-Support the development of this project on Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
+If you like SHADERed and would like to support the development, check out Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
 
-You can support the development of this project via **PayPal**: [<img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/pp-acceptance-medium.png" alt="Buy now with PayPal" />](https://paypal.me/dfranx) 
+... or **PayPal**: [<img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/pp-acceptance-medium.png" alt="Buy now with PayPal" />](https://paypal.me/dfranx) 
 
 My e-mail address for businesses (or if you just want to contact me):
 **contact at shadered dot org**
 
 ## Binaries
-You can download precompiled binaries through the [Releases](https://github.com/dfranx/SHADERed/releases) page or you can use the [shadered.org](https://shadered.org/) website.
+You can download precompiled binaries through the [Releases](https://github.com/dfranx/SHADERed/releases) page or via [SHADERed's website](https://shadered.org/).
 
 ### Install using Scoop (Windows)
 
@@ -181,7 +141,7 @@ cmake .
 make
 ```
 
-**NOTE:** If you want immediate mode and related features, turn on BUILD_IMMEDIATE_MODE flag.
+**NOTE:** If you want immediate mode and related features, set the BUILD_IMMEDIATE_MODE flag to "ON".
 ```
 cmake -DBUILD_IMMEDIATE_MODE=ON .
 make
@@ -207,7 +167,7 @@ Run:
 ```
 
 ### macOS
-**NOTE: macOS is not officially supported by me + some features are not supported on macOS**
+**NOTE: macOS is not officially supported by me + some features are not implemented for macOS**
 
 Install all the libraries that are needed:
 
@@ -241,7 +201,7 @@ Run:
 3. Press Configure and then Generate if no errors occured
 4. Open the .sln and build the project!
 
-## Tutorial
+## Tutorials
 Don't know how or where to start? The debugger is confusing? Want to create your own
 shader or custom SHADERed theme? Visit [the official documentation](https://shadered.org/docs/index.html)
 to see detailed steps on how to do these things.
@@ -272,8 +232,6 @@ This project uses:
  - [rAzoR8/SpvGenTwo](https://github.com/rAzoR8/SpvGenTwo)
  - [nothings/stb](https://github.com/nothings/stb)
  - [aiekick/ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
-
-Some of the examples in the `examples` directory were taken from AMD's Render Monkey, so credits to AMD.
 
 ## LICENSE
 SHADERed is licensed under MIT license. See [LICENSE](./LICENSE) for more details.
