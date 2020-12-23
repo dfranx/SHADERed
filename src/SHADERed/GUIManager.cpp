@@ -2725,6 +2725,12 @@ namespace ed {
 
 			if (ImGui::Button("Ok"))
 				ImGui::CloseCurrentPopup();
+
+			ImGui::SameLine();
+
+			if (!m_changelogBlogLink.empty() && ImGui::Button("Open the blogpost"))
+				UIHelper::ShellOpen(m_changelogBlogLink);
+
 			ImGui::EndPopup();
 		}
 
@@ -2922,7 +2928,12 @@ namespace ed {
 		if (curVer < WebAPI::InternalVersion) {
 			m_data->API.FetchChangelog([&](const std::string& str) -> void {
 				m_isChangelogOpened = true;
-				m_changelogText = str;
+				
+				size_t firstNewline = str.find_first_of('\n');
+				if (firstNewline != std::string::npos) {
+					m_changelogText = str.substr(firstNewline + 1);
+					m_changelogBlogLink = str.substr(0, firstNewline);
+				}
 			});
 		}
 	}

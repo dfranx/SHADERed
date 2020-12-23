@@ -156,7 +156,7 @@ namespace ed {
 		glm::ivec2 m_previewSaveSize;
 
 		bool m_isChangelogOpened;
-		std::string m_changelogText;
+		std::string m_changelogText, m_changelogBlogLink;
 		void m_checkChangelog();
 
 		std::string m_saveAsOldFile;

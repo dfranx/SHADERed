@@ -10,6 +10,7 @@
 + add "Editor.DuplicateLine" shortcut
 + add "Editor.CommentLines" and "Editor.UncommentLines" shortcuts
 + add BufferFloat and BufferInt to input layout manager
++ add link to the blog post in the "Changelog" window
 + autocomplete now suggest object members after typing '.'
 + highlight SPIR-V code that corresponds to the line on which the shader debugger is currently located
 + list Rust and C++ shaders in 'Browse online' window if corresponding plugins are installed
