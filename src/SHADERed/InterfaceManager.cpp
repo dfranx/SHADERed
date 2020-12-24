@@ -137,13 +137,24 @@ namespace ed {
 				pipe::GeometryItem* geoData = ((pipe::GeometryItem*)k.second.second->Data);
 
 				objTopology = geoData->Topology;
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
+
 				instanceBuffer = (BufferObject*)geoData->InstanceBuffer;
 			} else if (k.second.second->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* bufData = ((pipe::VertexBuffer*)k.second.second->Data);
 
 				objTopology = bufData->Topology;
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 			} else if (k.second.second->Type == ed::PipelineItem::ItemType::Model) {
 				pipe::Model* objData = ((pipe::Model*)k.second.second->Data);
 				instanceBuffer = (BufferObject*)objData->InstanceBuffer;
@@ -151,7 +162,12 @@ namespace ed {
 				pipe::PluginItemData* objData = ((pipe::PluginItemData*)k.second.second->Data);
 
 				objTopology = objData->Owner->PipelineItem_GetTopology(objData->Type, objData->PluginData);
-				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[objTopology];
+				
+				int topologySelection = 0;
+				for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+					if (TOPOLOGY_ITEM_VALUES[topologySelection] == objTopology)
+						break;
+				vertexCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 			}
 
 			int rtIndex = 0;
@@ -178,6 +194,10 @@ namespace ed {
 			pxInfo.VertexCount = vertexCount;
 			pxInfo.InTopology = pxInfo.OutTopology = objTopology;
 			pxInfo.InstanceBuffer = instanceBuffer;
+			pxInfo.GeometryShaderUsed = false;
+
+			if (pxInfo.Pass && pxInfo.Pass->Type == PipelineItem::ItemType::ShaderPass)
+				pxInfo.GeometryShaderUsed = ((pipe::ShaderPass*)pxInfo.Pass->Data)->GSUsed;
 
 			if (Settings::Instance().Debug.AutoFetch)
 				FetchPixel(pxInfo);
@@ -202,13 +222,24 @@ namespace ed {
 		// return old info
 		Renderer.Render(false, pixel.Pass); // render everything up to the pixel.Pass object
 
+		// run vertex shader
 		Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
 		for (int i = 0; i < pixel.VertexCount; i++) {
-			Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
-			pixel.glPosition[i] = Debugger.ExecuteVertexShader();
+			Debugger.SetVertexShaderInput(pixel, i);
+			pixel.VertexShaderPosition[i] = Debugger.ExecuteVertexShader();
 			Debugger.CopyVertexShaderOutput(pixel, i);
 		}
 
+		memcpy(pixel.FinalPosition, pixel.VertexShaderPosition, sizeof(glm::vec4) * 3);
+
+		// run the geometry shader if needed
+		if (pixel.GeometryShaderUsed) {
+			Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+			Debugger.SetGeometryShaderInput(pixel);
+			Debugger.ExecuteGeometryShader();
+		}
+
+		// run pixel shader
 		Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
 		Debugger.SetPixelShaderInput(pixel);
 		pixel.DebuggerColor = Debugger.ExecutePixelShader(pixel.Coordinate.x, pixel.Coordinate.y, pixel.RenderTextureIndex);

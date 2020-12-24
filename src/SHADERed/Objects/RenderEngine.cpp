@@ -692,11 +692,16 @@ namespace ed {
 					// bind variables
 					vertexPass->Variables.Bind(item);
 
-					int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[geoData->Topology];
+					int topologySelection = 0;
+					for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+						if (TOPOLOGY_ITEM_VALUES[topologySelection] == geoData->Topology)
+							break;
+
+					int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 					int vertexStart = (group >= 0) * group;
 					int maxVertexCount = (group < 0 ? eng::GeometryFactory::VertexCount[geoData->Type] : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
 					int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
-					int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[geoData->Topology];
+					int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[topologySelection];
 
 					maxVertexCount = std::min<int>(maxVertexCount, eng::GeometryFactory::VertexCount[geoData->Type]);
 
@@ -751,11 +756,16 @@ namespace ed {
 						// bind variables
 						vertexPass->Variables.Bind(item);
 
-						int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[vbData->Topology];
+						int topologySelection = 0;
+						for (; topologySelection < (sizeof(TOPOLOGY_ITEM_VALUES) / sizeof(*TOPOLOGY_ITEM_VALUES)); topologySelection++)
+							if (TOPOLOGY_ITEM_VALUES[topologySelection] == vbData->Topology)
+								break;
+
+						int singlePrimitiveVCount = TOPOLOGY_SINGLE_VERTEX_COUNT[topologySelection];
 						int vertexStart = (group >= 0) * group;
 						int maxVertexCount = (group < 0 ? actualMaxVertexCount : (vertexStart + DEBUG_PRIMITIVE_GROUP * singlePrimitiveVCount));
 						int vertexCount = (group < 0 ? DEBUG_PRIMITIVE_GROUP : 1) * singlePrimitiveVCount;
-						int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[vbData->Topology];
+						int vertexStrip = (group >= 0) * TOPOLOGY_IS_STRIP[topologySelection];
 
 						maxVertexCount = std::min<int>(maxVertexCount, actualMaxVertexCount);
 

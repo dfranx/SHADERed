@@ -1,4 +1,5 @@
 [v1.4.3]
++ add geometry shader debugger
 + add "Auto" window
 + add "Save as GLSL" option
 + add "Language" dropdown to "Create Item" when creating a shader pass
@@ -9,6 +10,7 @@
 + add "Editor.DuplicateLine" shortcut
 + add "Editor.CommentLines" and "Editor.UncommentLines" shortcuts
 + add BufferFloat and BufferInt to input layout manager
++ add link to the blog post in the "Changelog" window
 + autocomplete now suggest object members after typing '.'
 + highlight SPIR-V code that corresponds to the line on which the shader debugger is currently located
 + list Rust and C++ shaders in 'Browse online' window if corresponding plugins are installed
@@ -16,9 +18,13 @@
 + when creating a render texture the ratio size will now be used by default
 + remove "Clear" button in pixel inspect window
 + "Properties" window will now open (if it was closed) when opening the object's/item's properties
++ fix a bug that would sometimes crash SHADERed when pasting code
++ fix a bug that would cause SHADERed to crash when opening a newly created VertexBuffer item in the properties window
++ fix a bug that caused SHADERed to crash when deleting a input layout item
 + fix a bug that caused "Create item" window not to create shader files sometimes
 + fix a crash that happened when deleting last expression in the "Watch" window
 + fix "Auto indent on paste" feature
++ fix "Topology" dropdown in the properties (it was impossible to render a point list)
 + fix double click, CTRL+Backspace & CTRL+Delete shortcuts in the text editor
 + fix a bug that would cause the "Use geometry shader" flag to be completely ignored in "Create item" window
 + fix a bug that caused SHADERed to crash when plugin tried to add a message without a "group"

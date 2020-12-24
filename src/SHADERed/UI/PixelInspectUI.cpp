@@ -6,6 +6,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
+#include <SHADERed/UI/Debug/GeometryOutputUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
@@ -144,7 +145,7 @@ namespace ed {
 							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
 
 							m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
-							m_data->Debugger.SetVertexShaderInput(pixel.Pass, pixel.Vertex[i], pixel.VertexID + i, pixel.InstanceID, (BufferObject*)pixel.InstanceBuffer);
+							m_data->Debugger.SetVertexShaderInput(pixel, i);
 
 							initIndex = i;
 							requestCompile = true;
@@ -158,7 +159,22 @@ namespace ed {
 						ImGui::PopItemFlag();
 					}
 
-					/* [TODO:GEOMETRY SHADER] */
+					/* [GEOMETRY SHADER] */
+					if (pixel.GeometryShaderUsed) {
+						if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
+							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+							codeUI->StopDebugging();
+							codeUI->Open(pixel.Pass, ShaderStage::Geometry);
+							editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
+
+							m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+							m_data->Debugger.SetGeometryShaderInput(pixel);
+
+							requestCompile = true;
+						}
+						ImGui::SameLine();
+						ImGui::Text("Geometry Shader");
+					}
 
 					/* ACTUAL ACTION HERE */
 					if (requestCompile && editor != nullptr)
@@ -469,11 +485,15 @@ namespace ed {
 			ImGui::Text(m_cacheValue.c_str());
 		};
 
-		// copy preview camera info to vertex watch camera
+		// copy preview camera info to vertex watch camera & geometry shader output camera
 		if (!Settings::Instance().Project.FPCamera) {
 			ArcBallCamera* previewCamera = (ArcBallCamera*)SystemVariableManager::Instance().GetCamera();
+			
 			DebugVectorWatchUI* vectorWatchUI = (DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch);
 			ArcBallCamera* vectorCamera = vectorWatchUI->GetCamera();
+
+			DebugGeometryOutputUI* geometryOutputUI = (DebugGeometryOutputUI*)m_ui->Get(ViewID::DebugGeometryOutput);
+			ArcBallCamera* geometryCamera = geometryOutputUI->GetCamera();
 
 			glm::vec3 rota = previewCamera->GetRotation();
 
@@ -481,6 +501,11 @@ namespace ed {
 			vectorCamera->SetPitch(rota.x);
 			vectorCamera->SetYaw(rota.y);
 			vectorCamera->SetRoll(rota.z);
+
+			geometryCamera->SetDistance(previewCamera->GetDistance());
+			geometryCamera->SetPitch(rota.x);
+			geometryCamera->SetYaw(rota.y);
+			geometryCamera->SetRoll(rota.z);
 		}
 	}
 }

@@ -225,6 +225,12 @@ namespace ed {
 		{
 			BufferObject* buffer = (BufferObject*)model->Buffer;
 
+			if (buffer == nullptr) {
+				minPosItem = glm::vec3(0.0f);
+				maxPosItem = glm::vec3(0.0f);
+				return;
+			}
+
 			std::vector<ShaderVariable::ValueType> tData = objs->ParseBufferFormat(buffer->ViewFormat);
 
 			int stride = 0;
