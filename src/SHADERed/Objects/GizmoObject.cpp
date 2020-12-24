@@ -270,7 +270,8 @@ namespace ed {
 
 			m_axisHovered = m_getBasicAxisSelection(x, y, vw, vh, depth);
 
-			if (m_axisHovered != -1) {
+			//LUK: test depth for infty
+			if (m_axisHovered != -1 && depth != std::numeric_limits<float>::infinity()) {
 				m_hoverDepth = m_lastDepth = depth;
 				m_hoverStart = rayOrigin + m_hoverDepth * rayDir;
 			}
@@ -370,13 +371,11 @@ namespace ed {
 		
 		float depth = std::numeric_limits<float>::infinity();
 		bool rpInters = glm::intersectRayPlane(rayOrigin, glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
-		
-		if (!rpInters || depth == std::numeric_limits<float>::infinity())
+		if (!rpInters || depth == std::numeric_limits<float>::infinity()) 
 			return false;
-
+		
 		glm::vec4 mouseVec = rayOrigin + depth * glm::vec4(rayDir, 0.0f);
 		glm::vec3 moveVec = glm::vec3(glm::vec3(mouseVec) - m_clickStart);
-
 		if (m_mode == 0) {
 			m_tValue += moveVec * glm::vec3(axisVec);
 
@@ -385,7 +384,7 @@ namespace ed {
 				*m_trans = m_curValue + m_tValue;
 			else
 				*m_trans = m_curValue + glm::vec3((glm::ivec3(m_tValue) / snap) * snap);
-
+			
 			ret = true;
 		} else if (m_mode == 1) {
 			m_tValue += moveVec * glm::vec3(axisVec);
@@ -400,7 +399,7 @@ namespace ed {
 		}
 
 		m_clickStart = mouseVec;
-
+		
 		return ret;
 	}
 	void GizmoObject::Render()
