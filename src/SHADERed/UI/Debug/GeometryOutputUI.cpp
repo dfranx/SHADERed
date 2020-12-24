@@ -303,13 +303,13 @@ namespace ed {
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
 		glViewport(0, 0, m_lastFBOWidth, m_lastFBOHeight);
 
+		glUseProgram(m_shader);
+
 		if (m_is3D) {
 			glm::mat4 matVP = glm::perspective(glm::radians(45.0f), m_lastFBOWidth / m_lastFBOHeight, 0.1f, 1000.0f) * m_camera.GetMatrix();
 			glUniformMatrix4fv(m_uMatLoc, 1, GL_FALSE, glm::value_ptr(matVP));
 		} else
 			glUniformMatrix4fv(m_uMatLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-		glUseProgram(m_shader);
 
 		glBindVertexArray(m_bufLinesVAO);
 		glDrawArrays(GL_LINES, 0, m_lines);
