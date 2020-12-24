@@ -9,6 +9,7 @@ Editor.AutocompleteSelectActive Return
 Editor.AutocompleteUp Up
 Editor.BackwardDelete Backspace
 Editor.BackwardDeleteWord CTRL Backspace
+Editor.CommentLines CTRL SHIFT K
 Editor.Copy CTRL C
 Editor.Cut CTRL X
 Editor.DebugBreakpoint F9
@@ -20,6 +21,7 @@ Editor.DebugStepOut SHIFT F11
 Editor.DebugStop SHIFT F5
 Editor.DeleteLeft SHIFT Backspace
 Editor.DeleteRight SHIFT Delete
+Editor.DuplicateLine CTRL D
 Editor.Find CTRL F
 Editor.FindNext F3
 Editor.ForwardDelete Delete
@@ -55,6 +57,7 @@ Editor.SelectUp SHIFT Up
 Editor.SelectUpBlock SHIFT PageUp
 Editor.SelectWordLeft CTRL SHIFT Left
 Editor.SelectWordRight CTRL SHIFT Right
+Editor.UncommentLines CTRL SHIFT U
 Editor.Undo CTRL Z
 Editor.Unindent SHIFT Tab
 Gizmo.Position CTRL G P
