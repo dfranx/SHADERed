@@ -717,10 +717,6 @@ namespace ed {
 			/* DELETE BUTTON */
 			if (ImGui::Button(UI_ICON_DELETE, BUTTON_ICON_SIZE)) {
 				els.erase(els.begin() + id);
-				ImGui::PopStyleColor();
-				//LUK: fixes crash when deleting e.g. TEXCOORD
-				ImGui::PopID();
-				//
 				m_data->Parser.ModifyProject();
 
 				ImGui::PopStyleColor();
