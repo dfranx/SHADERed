@@ -2084,7 +2084,7 @@ namespace ed {
 
 							// check by name or by location
 							if ((vsOutName && blockName && strcmp(vsOutName, blockName) == 0) ||
-								(pixel.VertexShaderOutput[vert][j].return_type == location)) {
+								(pixel.VertexShaderOutput[vert][j].return_type != -1 && pixel.VertexShaderOutput[vert][j].return_type == location)) {
 								blockData = &pixel.VertexShaderOutput[vert][j];
 								break;
 							}
@@ -2110,7 +2110,7 @@ namespace ed {
 		spvm_state_call_function(m_vm);
 
 		// check where the new primitive is located
-		float depth = -INFINITY;
+		float depth = INFINITY;
 		for (int p = 0; p < m_pixel->GeometryOutput.size(); p++) {
 			auto* prim = &m_pixel->GeometryOutput[p];
 
@@ -2122,7 +2122,7 @@ namespace ed {
 					glm::vec4 p2 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
 
 					if (isPointInTriangle(m_pixel->RelativeCoordinate, p0, p1, p2)) {
-						if ((p0.z + p1.z + p2.z) / 3.0f > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+						if ((p0.z + p1.z + p2.z) / 3.0f < depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
 							depth = (p0.z + p1.z + p2.z) / 3.0f;
 							m_pixel->GeometrySelectedPrimitive = p;
 							m_pixel->GeometrySelectedVertex = v;
@@ -2142,7 +2142,7 @@ namespace ed {
 					glm::vec4 p1 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
 
 					if (isPointOnLine(m_pixel->RelativeCoordinate, p0, p1)) {
-						if ((p0.z + p1.z) / 2.0f > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+						if ((p0.z + p1.z) / 2.0f < depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
 							depth = (p0.z + p1.z) / 2.0f;
 							m_pixel->GeometrySelectedPrimitive = p;
 							m_pixel->GeometrySelectedVertex = v;
@@ -2160,7 +2160,7 @@ namespace ed {
 					glm::vec4 p0 = (prim->Position[v] / prim->Position[v].w + 1.0f) * 0.5f;
 
 					if (abs(m_pixel->RelativeCoordinate.x - p0.x) < 0.01f && abs(m_pixel->RelativeCoordinate.y - p0.y) < 0.01f) {
-						if (p0.z > depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
+						if (p0.z < depth) { // TODO: this is obviously inaccurate, we should calculate Z that is near the RelativeCoordinate
 							depth = p0.z / 2.0f;
 							m_pixel->GeometrySelectedPrimitive = p;
 							m_pixel->GeometrySelectedVertex = v;
