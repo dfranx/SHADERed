@@ -20,13 +20,15 @@
   <url type="bugtracker">https://github.com/dfranx/SHADERed/issues</url>
   <url type="donation">https://www.patreon.com/dfranx</url>
   <screenshots>
-    <screenshot type="default" width="1920" height="1014">
+    <screenshot type="default" width="1920" height="1017">
       <image type="source">https://shadered.org/assets/img/header.png</image>
       <caption>Editing an HLSL shader</caption>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.4.3" date="2020-12-24"/>
+    <release version="1.4.2" date="2020-11-05"/>
     <release version="1.4.1" date="2020-10-02"/>
     <release version="1.4" date="2020-09-02"/>
     <release version="1.3.6" date="2020-07-27"/>
