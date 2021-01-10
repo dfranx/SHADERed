@@ -101,14 +101,20 @@ namespace ed {
 				FBO = 0;
 				RTCount = 0;
 				GSUsed = false;
+				TSUsed = false;
+				TSPatchVertices = 1;
 				Active = true;
 				Macros.clear();
 				memset(VSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
 				memset(PSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
 				memset(GSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
+				memset(TCSPath, 0, sizeof(char) * SHADERED_MAX_PATH);
+				memset(TESPath, 0, sizeof(char) * SHADERED_MAX_PATH);
 				memset(VSEntry, 0, sizeof(char) * 32);
 				memset(PSEntry, 0, sizeof(char) * 32);
 				memset(GSEntry, 0, sizeof(char) * 32);
+				memset(TCSEntry, 0, sizeof(char) * 32);
+				memset(TESEntry, 0, sizeof(char) * 32);
 			}
 
 			GLbyte RTCount;
@@ -130,6 +136,17 @@ namespace ed {
 			char GSEntry[32];
 			std::vector<unsigned int> GSSPV; // GS SPIR-V
 			bool GSUsed;
+
+			bool TSUsed;
+			int TSPatchVertices;
+			// Tessellation control shader
+			char TCSPath[SHADERED_MAX_PATH];
+			char TCSEntry[32];
+			std::vector<unsigned int> TCSSPV; // Tessellation control shader SPIR-V
+			// Tessellation evaluation shader
+			char TESPath[SHADERED_MAX_PATH];
+			char TESEntry[32];
+			std::vector<unsigned int> TESSPV; // Tessellation evaulation shader SPIR-V
 
 			ShaderVariableContainer Variables;
 			std::vector<ShaderMacro> Macros;

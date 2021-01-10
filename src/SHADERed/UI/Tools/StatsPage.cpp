@@ -44,6 +44,10 @@ namespace ed {
 				m_spv = pass->PSSPV;
 			else if (stage == ShaderStage::Geometry)
 				m_spv = pass->GSSPV;
+			else if (stage == ShaderStage::TessellationControl)
+				m_spv = pass->TCSSPV;
+			else if (stage == ShaderStage::TessellationEvaluation)
+				m_spv = pass->TESSPV;
 		}
 		else if (item->Type == PipelineItem::ItemType::ComputePass) {
 			pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;

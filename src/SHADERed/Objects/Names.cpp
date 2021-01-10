@@ -19,18 +19,14 @@ const char* TOPOLOGY_ITEM_NAMES[] = {
 	"LineListAdjecent",
 	"LineStripAdjecent",
 	"TriangleListAdjecent",
-	"TriangleStripAdjecent"
+	"TriangleStripAdjecent",
+	"Patches"
 };
 const unsigned char TOPOLOGY_SINGLE_VERTEX_COUNT[] = {
-	0, 1, 2, 2, 3, 3, 2, 2, 3, 3
+	0, 1, 2, 2, 3, 3, 2, 2, 3, 3, 3
 };
 const unsigned char TOPOLOGY_IS_STRIP[] = {
-	0, 0, 0, 1, 0, 2, 0, 1, 0, 2
-};
-
-const char* SHADER_TYPE_NAMES[] = {
-	"Pixel",
-	"Vertex"
+	0, 0, 0, 1, 0, 2, 0, 1, 0, 2, 0
 };
 
 const char* SYSTEM_VARIABLE_NAMES[] = {
@@ -509,7 +505,8 @@ const unsigned int TOPOLOGY_ITEM_VALUES[] = {
 	GL_LINES_ADJACENCY,
 	GL_LINE_STRIP_ADJACENCY,
 	GL_TRIANGLES_ADJACENCY,
-	GL_TRIANGLE_STRIP_ADJACENCY
+	GL_TRIANGLE_STRIP_ADJACENCY,
+	GL_PATCHES
 };
 
 const char* KEYBOARD_KEYCODES_TEXT = R"(// KeyboardTexture: 256x3 

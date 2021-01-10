@@ -125,7 +125,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
 };
 
 namespace ed {
-	std::string ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>& spvIn, ShaderLanguage inLang, ShaderStage sType, bool gsUsed, MessageStack* msgs)
+	std::string ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>& spvIn, ShaderLanguage inLang, ShaderStage sType, bool tsUsed, bool gsUsed, MessageStack* msgs)
 	{
 		if (spvIn.empty())
 			return "";
@@ -153,6 +153,10 @@ namespace ed {
 			model = spv::ExecutionModelGeometry;
 		else if (sType == ShaderStage::Compute)
 			model = spv::ExecutionModelGLCompute;
+		else if (sType == ShaderStage::TessellationControl)
+			model = spv::ExecutionModelTessellationControl;
+		else if (sType == ShaderStage::TessellationEvaluation)
+			model = spv::ExecutionModelTessellationEvaluation;
 		for (auto& e : entry_points) {
 			if (e.execution_model == model) {
 				entry_point = e.name;
@@ -167,10 +171,14 @@ namespace ed {
 		// rename outputs
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 		std::string outputName = "outputVS";
-		if (sType == ShaderStage::Pixel)
-			outputName = "outputPS";
+		if (sType == ShaderStage::TessellationControl)
+			outputName = "outputTCS";
+		else if (sType == ShaderStage::TessellationEvaluation)
+			outputName = "outputTES";
 		else if (sType == ShaderStage::Geometry)
 			outputName = "outputGS";
+		else if (sType == ShaderStage::Pixel)
+			outputName = "outputPS";
 		for (auto& resource : resources.stage_outputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
 			glsl.set_name(resource.id, outputName + std::to_string(resID));
@@ -179,9 +187,13 @@ namespace ed {
 		// rename inputs
 		std::string inputName = "inputVS";
 		if (sType == ShaderStage::Pixel)
-			inputName = gsUsed ? "outputGS" : "outputVS";
+			inputName = gsUsed ? "outputGS" : (tsUsed ? "outputTES" : "outputVS");
 		else if (sType == ShaderStage::Geometry)
+			inputName = tsUsed ? "outputTES" : "outputVS";
+		else if (sType == ShaderStage::TessellationControl)
 			inputName = "outputVS";
+		else if (sType == ShaderStage::TessellationEvaluation)
+			inputName = "outputTCS";
 		for (auto& resource : resources.stage_inputs) {
 			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
 			glsl.set_name(resource.id, inputName + std::to_string(resID));
@@ -255,7 +267,7 @@ namespace ed {
 			bool inUBO = false;
 			std::vector<std::string> uboNames;
 			int deleteUboPos = 0, deleteUboLength = 0;
-			std::string uboExt = (sType == ShaderStage::Vertex) ? "VS" : (sType == ShaderStage::Pixel ? "PS" : "GS");
+			std::string uboExt = (sType == ShaderStage::Vertex) ? "VS" : (sType == ShaderStage::Pixel ? "PS" : (sType == ShaderStage::TessellationControl ?  "TCS" : (sType == ShaderStage::TessellationEvaluation ? "TES" : "GS")));
 			while (std::getline(ss, line)) {
 
 				// i know, ewww, but idk if there's a function to do this (this = converting UBO
@@ -365,6 +377,10 @@ namespace ed {
 			shaderType = EShLangFragment;
 		else if (sType == ShaderStage::Geometry)
 			shaderType = EShLangGeometry;
+		else if (sType == ShaderStage::TessellationControl)
+			shaderType = EShLangTessControl;
+		else if (sType == ShaderStage::TessellationEvaluation)
+			shaderType = EShLangTessEvaluation;
 		else if (sType == ShaderStage::Compute)
 			shaderType = EShLangCompute;
 

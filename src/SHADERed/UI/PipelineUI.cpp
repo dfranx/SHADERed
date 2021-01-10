@@ -458,15 +458,26 @@ namespace ed {
 					if (items[index]->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* passData = (pipe::ShaderPass*)(items[index]->Data);
 
-						if (ImGui::MenuItem("Vertex Shader") && m_data->Parser.FileExists(passData->VSPath))
+						if (ImGui::MenuItem("Vertex") && m_data->Parser.FileExists(passData->VSPath))
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Vertex);
-						else if (ImGui::MenuItem("Pixel Shader") && m_data->Parser.FileExists(passData->PSPath))
+						else if (ImGui::MenuItem("Pixel") && m_data->Parser.FileExists(passData->PSPath))
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
-						else if (passData->GSUsed && ImGui::MenuItem("Geometry Shader") && m_data->Parser.FileExists(passData->GSPath))
+						else if (passData->GSUsed && ImGui::MenuItem("Geometry") && m_data->Parser.FileExists(passData->GSPath))
 							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Geometry);
+						else if (passData->TSUsed && ImGui::MenuItem("Tessellation control") && m_data->Parser.FileExists(passData->TCSPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::TessellationControl);
+						else if (passData->TSUsed && ImGui::MenuItem("Tessellation evaluation") && m_data->Parser.FileExists(passData->TESPath))
+							(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::TessellationEvaluation);
 						else if (ImGui::MenuItem("All")) {
 							if (passData->GSUsed && m_data->Parser.FileExists(passData->GSPath))
 								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Geometry);
+
+							if (passData->TSUsed) {
+								if (m_data->Parser.FileExists(passData->TCSPath))
+									(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::TessellationControl);
+								if (m_data->Parser.FileExists(passData->TESPath))
+									(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::TessellationEvaluation);
+							}
 
 							if (m_data->Parser.FileExists(passData->PSPath))
 								(reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)))->Open(items[index], ShaderStage::Pixel);
@@ -1627,6 +1638,13 @@ namespace ed {
 
 						if (data->GSUsed && strlen(data->GSPath) > 0 && m_data->Parser.FileExists(data->GSPath))
 							editor->Open(item, ShaderStage::Geometry);
+
+						if (data->TSUsed) {
+							if (strlen(data->TCSPath) > 0 && m_data->Parser.FileExists(data->TCSPath))
+								editor->Open(item, ShaderStage::TessellationControl);
+							if (strlen(data->TESPath) > 0 && m_data->Parser.FileExists(data->TESPath))
+								editor->Open(item, ShaderStage::TessellationEvaluation);
+						}
 					}
 				}
 

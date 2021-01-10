@@ -98,6 +98,8 @@ namespace ed {
 			Compute,
 			Audio,
 			Plugin,
+			TessellationControl,
+			TessellationEvaluation,
 			Count
 		};
 

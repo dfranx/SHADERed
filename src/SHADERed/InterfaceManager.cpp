@@ -442,6 +442,14 @@ namespace ed {
 					plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->GSPath, Plugins.Plugins());
 					ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
 				}
+
+				if (pass->TSUsed) {
+					plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->TCSPath, Plugins.Plugins());
+					ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;	
+				
+					plugin = ed::ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->TESPath, Plugins.Plugins());
+					ret &= (plugin != nullptr && plugin->CustomLanguage_IsDebuggable(langID)) || plugin == nullptr;
+				}
 			} else if (i->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass* pass = (pipe::ComputePass*)i->Data;
 				int langID = -1;
