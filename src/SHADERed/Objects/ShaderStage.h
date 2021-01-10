@@ -10,6 +10,9 @@ namespace ed {
 		Audio,
 		Plugin,
 
+		TessellationControl,
+		TessellationEvaluation,
+
 		Count
 	};
 }

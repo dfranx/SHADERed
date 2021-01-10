@@ -411,7 +411,7 @@ namespace ed {
 						std::vector<unsigned int> tempSPV;
 
 						ShaderCompiler::CompileSourceToSPIRV(tempSPV, shdrLanguage, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, nullptr, nullptr);
-						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, nullptr);
+						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, false, nullptr);
 					}
 
 					shadersSrc += "std::string " + getShaderFilename(allShaderFiles[i]) + " = R\"(\n";
@@ -446,7 +446,7 @@ namespace ed {
 						std::vector<unsigned int> tempSPV;
 
 						ShaderCompiler::CompileSourceToSPIRV(tempSPV, shdrLanguage, allShaderFiles[i], shdrSource, allShaderTypes[i], allShaderEntries[i], tempMacros, nullptr, nullptr);
-						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, nullptr);
+						shdrSource = ShaderCompiler::ConvertToGLSL(tempSPV, shdrLanguage, allShaderTypes[i], false, false, nullptr);
 					}
 
 					std::ofstream shaderWriter(shdrFile);

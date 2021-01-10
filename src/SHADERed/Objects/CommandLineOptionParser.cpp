@@ -206,6 +206,10 @@ namespace ed {
 					CompileStage = ed::ShaderStage::Geometry;
 				else if (stage == "comp")
 					CompileStage = ed::ShaderStage::Compute;
+				else if (stage == "tesc")
+					CompileStage = ed::ShaderStage::TessellationControl;
+				else if (stage == "tese")
+					CompileStage = ed::ShaderStage::TessellationEvaluation;
 			}
 			// --output, -o [outputpath]
 			else if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0) {

@@ -121,6 +121,10 @@ namespace ed {
 						path = shader->PSPath;
 					else if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::Geometry)
 						path = shader->GSPath;
+					else if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::TessellationControl)
+						path = shader->TCSPath;
+					else if (m_shaderStage[m_editorSaveRequestID] == ShaderStage::TessellationEvaluation)
+						path = shader->TESPath;
 				} else if (m_items[m_editorSaveRequestID]->Type == PipelineItem::ItemType::ComputePass) {
 					ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[m_editorSaveRequestID]->Data);
 					path = shader->Path;
@@ -187,6 +191,10 @@ namespace ed {
 				shaderFile = shader->PSPath;
 			else if (m_shaderStage[id] == ShaderStage::Geometry)
 				shaderFile = shader->GSPath;
+			else if (m_shaderStage[id] == ShaderStage::TessellationControl)
+				shaderFile = shader->TCSPath;
+			else if (m_shaderStage[id] == ShaderStage::TessellationEvaluation)
+				shaderFile = shader->TESPath;
 		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
 			shaderFile = shader->Path;
@@ -218,7 +226,16 @@ namespace ed {
 				bool isPluginItem = m_items[i]->Type == PipelineItem::ItemType::PluginItem;
 				pipe::PluginItemData* plData = (pipe::PluginItemData*)m_items[i]->Data;
 
-				std::string shaderType = isPluginItem ? plData->Owner->LanguageDefinition_GetNameAbbreviation((int)m_shaderStage[i]) : m_shaderStage[i] == ShaderStage::Vertex ? "VS" : (m_shaderStage[i] == ShaderStage::Pixel ? "PS" : (m_shaderStage[i] == ShaderStage::Geometry ? "GS" : "CS"));
+				std::string stageAbbr = "VS";
+				if (m_shaderStage[i] == ShaderStage::Pixel) stageAbbr = "PS";
+				else if (m_shaderStage[i] == ShaderStage::Geometry) stageAbbr = "GS";
+				else if (m_shaderStage[i] == ShaderStage::Compute) stageAbbr = "CS";
+				else if (m_shaderStage[i] == ShaderStage::Audio) stageAbbr = "AS";
+				else if (m_shaderStage[i] == ShaderStage::TessellationControl) stageAbbr = "TCS";
+				else if (m_shaderStage[i] == ShaderStage::TessellationEvaluation) stageAbbr = "TES";
+
+
+				std::string shaderType = isPluginItem ? plData->Owner->LanguageDefinition_GetNameAbbreviation((int)m_shaderStage[i]) : stageAbbr;
 				std::string windowName(std::string(m_items[i]->Name) + " (" + shaderType + ")");
 
 				int pluginLanguageID = m_pluginEditor[i].LanguageID;
@@ -394,6 +411,10 @@ namespace ed {
 						spv = pass->VSSPV;
 					else if (stage == ShaderStage::Geometry)
 						spv = pass->GSSPV;
+					else if (stage == ShaderStage::TessellationControl)
+						spv = pass->TCSSPV;
+					else if (stage == ShaderStage::TessellationEvaluation)
+						spv = pass->TESSPV;
 				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 					pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;
 					if (stage == ShaderStage::Pixel)
@@ -421,6 +442,7 @@ namespace ed {
 
 				std::vector<unsigned int> spv;
 				bool gsUsed = false;
+				bool tsUsed = false;
 
 				PipelineItem* item = m_items[m_editorSaveRequestID];
 				ShaderStage stage = m_shaderStage[m_editorSaveRequestID];
@@ -440,7 +462,13 @@ namespace ed {
 						spv = pass->VSSPV;
 					else if (stage == ShaderStage::Geometry)
 						spv = pass->GSSPV;
+					else if (stage == ShaderStage::TessellationControl)
+						spv = pass->TCSSPV;
+					else if (stage == ShaderStage::TessellationEvaluation)
+						spv = pass->TESSPV;
+
 					gsUsed = pass->GSUsed;
+					tsUsed = pass->TSUsed;
 				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 					pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;
 					if (stage == ShaderStage::Pixel)
@@ -454,7 +482,7 @@ namespace ed {
 						spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
 				}
 
-				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, lang, stage, gsUsed, nullptr);
+				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, lang, stage, tsUsed, gsUsed, nullptr);
 
 				std::ofstream spvOut(filePathName, std::ios::out | std::ios::binary);
 				spvOut.write(glslSource.c_str(), glslSource.size());
@@ -578,14 +606,18 @@ namespace ed {
 				for (int j = 0; j < m_editor.size(); j++) {
 					if (m_editor[j] == m_changedEditors[i]) {
 						if (m_items[j]->Type == PipelineItem::ItemType::ShaderPass) {
-							std::string vs = "", ps = "", gs = "";
+							std::string vs = "", ps = "", gs = "", tcs = "", tes = "";
 							if (m_shaderStage[j] == ShaderStage::Vertex)
 								vs = m_editor[j]->GetText();
 							else if (m_shaderStage[j] == ShaderStage::Pixel)
 								ps = m_editor[j]->GetText();
 							else if (m_shaderStage[j] == ShaderStage::Geometry)
 								gs = m_editor[j]->GetText();
-							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs);
+							else if (m_shaderStage[j] == ShaderStage::TessellationControl)
+								tcs = m_editor[j]->GetText();
+							else if (m_shaderStage[j] == ShaderStage::TessellationEvaluation)
+								tes = m_editor[j]->GetText();
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs, tcs, tes);
 						} else if (m_items[j]->Type == PipelineItem::ItemType::ComputePass)
 							m_data->Renderer.RecompileFromSource(m_items[j]->Name, m_editor[j]->GetText());
 						else if (m_items[j]->Type == PipelineItem::ItemType::AudioPass)
@@ -613,14 +645,18 @@ namespace ed {
 						const char* tempText = plugin->ShaderEditor_GetContent(langID, editorID, &contentLength);
 
 						if (m_items[j]->Type == PipelineItem::ItemType::ShaderPass) {
-							std::string vs = "", ps = "", gs = "";
+							std::string vs = "", ps = "", gs = "", tcs = "", tes = "";
 							if (m_shaderStage[j] == ShaderStage::Vertex)
 								vs = std::string(tempText, contentLength);
 							else if (m_shaderStage[j] == ShaderStage::Pixel)
 								ps = std::string(tempText, contentLength);
 							else if (m_shaderStage[j] == ShaderStage::Geometry)
 								gs = std::string(tempText, contentLength);
-							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs);
+							else if (m_shaderStage[j] == ShaderStage::TessellationControl)
+								tcs = std::string(tempText, contentLength);
+							else if (m_shaderStage[j] == ShaderStage::TessellationEvaluation)
+								tes = std::string(tempText, contentLength);
+							m_data->Renderer.RecompileFromSource(m_items[j]->Name, vs, ps, gs, tcs, tes);
 						} else if (m_items[j]->Type == PipelineItem::ItemType::ComputePass)
 							m_data->Renderer.RecompileFromSource(m_items[j]->Name, std::string(tempText, contentLength));
 						else if (m_items[j]->Type == PipelineItem::ItemType::AudioPass)
@@ -836,6 +872,12 @@ namespace ed {
 			} else if (stage == ShaderStage::Geometry) {
 				shaderPath = shader->GSPath;
 				if (!externalEditor) spvData.Parse(shader->PSSPV);
+			} else if (stage == ShaderStage::TessellationControl) {
+				shaderPath = shader->TCSPath;
+				if (!externalEditor) spvData.Parse(shader->TCSSPV);
+			} else if (stage == ShaderStage::TessellationEvaluation) {
+				shaderPath = shader->TESPath;
+				if (!externalEditor) spvData.Parse(shader->TESSPV);
 			}
 		} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(item->Data);
@@ -1214,6 +1256,7 @@ namespace ed {
 
 		std::vector<PipelineItem*> passes = m_data->Pipeline.GetList();
 		std::vector<bool> gsUsed(passes.size());
+		std::vector<bool> tsUsed(passes.size());
 
 		std::vector<std::string> allFiles;	// list of all files we care for
 		std::vector<std::string> allPasses; // list of shader pass names that correspond to the file name
@@ -1268,7 +1311,7 @@ namespace ed {
 				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
-					bool foundVS = false, foundPS = false, foundGS = false;
+					bool foundVS = false, foundPS = false, foundGS = false, foundTCS = false, foundTES = false;
 
 					std::string vsPath(m_data->Parser.GetProjectPath(data->VSPath));
 					std::string psPath(m_data->Parser.GetProjectPath(data->PSPath));
@@ -1293,7 +1336,26 @@ namespace ed {
 					} else
 						foundGS = true;
 
-					if (!foundGS || !foundVS || !foundPS) {
+					if (data->TSUsed) {
+						std::string tcsPath(m_data->Parser.GetProjectPath(data->TCSPath));
+						std::string tesPath(m_data->Parser.GetProjectPath(data->TESPath));
+						for (auto& f : allFiles) {
+							if (f == tesPath) {
+								foundTES = true;
+								break;
+							}
+							if (f == tcsPath) {
+								foundTCS = true;
+								break;
+							}
+						}
+					} else {
+						foundTES = true;
+						foundTCS = true;
+					}
+					
+
+					if (!foundGS || !foundVS || !foundPS || !foundTES || !foundTCS) {
 						needsUpdate = true;
 						break;
 					}
@@ -1337,11 +1399,16 @@ namespace ed {
 				}
 			}
 
-			for (int i = 0; i < gsUsed.size() && i < nPasses.size(); i++) {
+			for (int i = 0; i < gsUsed.size() && i < nPasses.size() && i < tsUsed.size(); i++) {
 				if (nPasses[i]->Type == PipelineItem::ItemType::ShaderPass) {
-					bool used = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
-					if (gsUsed[i] != used) {
-						gsUsed[i] = used;
+					bool newGSUsed = ((pipe::ShaderPass*)nPasses[i]->Data)->GSUsed;
+					bool newTSUsed = ((pipe::ShaderPass*)nPasses[i]->Data)->TSUsed;
+					if (gsUsed[i] != newGSUsed) {
+						gsUsed[i] = newGSUsed;
+						needsUpdate = true;
+					}
+					if (tsUsed[i] != newTSUsed) {
+						tsUsed[i] = newTSUsed;
 						needsUpdate = true;
 					}
 				}
@@ -1372,6 +1439,7 @@ namespace ed {
 				// get all paths to all shaders
 				passes = nPasses;
 				gsUsed.resize(passes.size());
+				tsUsed.resize(passes.size());
 				m_trackedNeedsUpdate.resize(passes.size());
 				for (const auto& pass : passes) {
 					if (pass->Type == PipelineItem::ItemType::ShaderPass) {
@@ -1388,11 +1456,27 @@ namespace ed {
 						paths.push_back(psPath.substr(0, psPath.find_last_of("/\\") + 1));
 						allPasses.push_back(pass->Name);
 
+						// geometry shader
 						if (data->GSUsed) {
 							std::string gsPath(m_data->Parser.GetProjectPath(data->GSPath));
 
 							allFiles.push_back(gsPath);
 							paths.push_back(gsPath.substr(0, gsPath.find_last_of("/\\") + 1));
+							allPasses.push_back(pass->Name);
+						}
+
+						// tessellation shader
+						if (data->TSUsed) {
+							// tessellation control shader
+							std::string tcsPath(m_data->Parser.GetProjectPath(data->TCSPath));
+							allFiles.push_back(tcsPath);
+							paths.push_back(tcsPath.substr(0, tcsPath.find_last_of("/\\") + 1));
+							allPasses.push_back(pass->Name);
+
+							// tessellation evaluation shader
+							std::string tesPath(m_data->Parser.GetProjectPath(data->TESPath));
+							allFiles.push_back(tesPath);
+							paths.push_back(tesPath.substr(0, tesPath.find_last_of("/\\") + 1));
 							allPasses.push_back(pass->Name);
 						}
 					} else if (pass->Type == PipelineItem::ItemType::ComputePass) {

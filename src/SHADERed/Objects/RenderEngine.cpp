@@ -96,6 +96,8 @@ namespace ed {
 			, m_rtDepth(0)
 			, m_fbosNeedUpdate(false)
 			, m_computeSupported(true)
+			, m_tessellationSupported(true)
+			, m_tessMaxPatchVertices(0)
 			, m_wasMultiPick(false)
 	{
 		m_paused = false;
@@ -180,7 +182,7 @@ namespace ed {
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
 
-				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0 /* || (isDebug && data->GSUsed) */)
+				if (!data->Active || data->Items.size() <= 0 || data->RTCount == 0)
 					continue;
 
 				const std::vector<GLuint>& srvs = m_objects->GetBindList(m_items[i]);
@@ -191,6 +193,9 @@ namespace ed {
 
 				if (m_shaders[i] == 0)
 					continue;
+
+				if (data->TSUsed && m_tessellationSupported) 
+					glPatchParameteri(GL_PATCH_VERTICES, data->TSPatchVertices);
 
 				// bind fbo and buffers
 				glBindFramebuffer(GL_FRAMEBUFFER, isMSAA ? m_fboMS[data] : data->FBO);
@@ -1065,6 +1070,8 @@ namespace ed {
 					glDeleteShader(m_shaderSources[i].VS);
 					glDeleteShader(m_shaderSources[i].PS);
 					glDeleteShader(m_shaderSources[i].GS);
+					glDeleteShader(m_shaderSources[i].TCS);
+					glDeleteShader(m_shaderSources[i].TES);
 
 					std::string psContent = "", vsContent = "",
 								vsEntry = shader->VSEntry,
@@ -1073,6 +1080,8 @@ namespace ed {
 					ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->PSPath);
 					ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath);
 					ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
+					ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TCSPath);
+					ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TESPath);
 
 					// pixel shader
 					bool psCompiled = false;
@@ -1087,7 +1096,7 @@ namespace ed {
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, shader);
 					} else { // HLSL / VK
-						psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->GSUsed, m_msgs);
+						psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->TSUsed, shader->GSUsed, m_msgs);
 						psEntry = "main";
 
 						if (psLang == ShaderLanguage::Plugin)
@@ -1113,7 +1122,7 @@ namespace ed {
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, shader);
 					} else { // HLSL / VK
-						vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->GSUsed, m_msgs);
+						vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->TSUsed, shader->GSUsed, m_msgs);
 						vsEntry = "main";
 
 						if (vsLang == ShaderLanguage::Plugin)
@@ -1142,7 +1151,7 @@ namespace ed {
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
 						} else { // HLSL / VK
-							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
+							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->TSUsed, shader->GSUsed, m_msgs);
 							gsEntry = "main";
 
 							if (gsLang == ShaderLanguage::Plugin)
@@ -1156,10 +1165,78 @@ namespace ed {
 							gsCompiled = false;
 					}
 
+					// tessellation shader
+					bool tsCompiled = ((shader->TSUsed && m_tessellationSupported) || !shader->TSUsed);
+					GLuint tcs = 0, tes = 0;
+					if (shader->TSUsed) {
+						// tess control
+						if (strlen(shader->TCSPath) > 0 && strlen(shader->TCSEntry) > 0) {
+							std::string tcsContent = "",
+										tcsEntry = shader->TCSEntry;
+
+							lineBias = 0;
+
+							if (gsLang == ShaderLanguage::Plugin)
+								tsCompiled &= m_pluginCompileToSpirv(shader->TCSSPV, shader->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size());
+							else
+								tsCompiled &= ShaderCompiler::CompileToSPIRV(shader->TCSSPV, tcsLang, shader->TCSPath, ShaderStage::TessellationControl, tcsEntry, shader->Macros, m_msgs, m_project);
+
+							if (tcsLang == ShaderLanguage::GLSL) { // GLSL
+								tcsContent = m_project->LoadProjectFile(shader->TCSPath);
+								m_includeCheck(tcsContent, std::vector<std::string>(), lineBias);
+								m_applyMacros(tcsContent, shader);
+							} else { // HLSL / VK
+								tcsContent = ShaderCompiler::ConvertToGLSL(shader->TCSSPV, gsLang, ShaderStage::TessellationControl, shader->TSUsed, shader->GSUsed, m_msgs);
+								tcsEntry = "main";
+
+								if (tcsLang == ShaderLanguage::Plugin)
+									tcsContent = m_pluginProcessGLSL(shader->TCSPath, tcsContent.c_str());
+							}
+
+							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+
+							if (tcsContent.empty())
+								tsCompiled = false;
+						}
+						
+						// tess evaluation
+						if (strlen(shader->TESPath) > 0 && strlen(shader->TESEntry) > 0) {
+							std::string tesContent = "",
+										tesEntry = shader->TESEntry;
+
+							lineBias = 0;
+
+							if (gsLang == ShaderLanguage::Plugin)
+								tsCompiled &= m_pluginCompileToSpirv(shader->TESSPV, shader->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size());
+							else
+								tsCompiled &= ShaderCompiler::CompileToSPIRV(shader->TESSPV, tcsLang, shader->TESPath, ShaderStage::TessellationEvaluation, tesEntry, shader->Macros, m_msgs, m_project);
+
+							if (tesLang == ShaderLanguage::GLSL) { // GLSL
+								tesContent = m_project->LoadProjectFile(shader->TESPath);
+								m_includeCheck(tesContent, std::vector<std::string>(), lineBias);
+								m_applyMacros(tesContent, shader);
+							} else { // HLSL / VK
+								tesContent = ShaderCompiler::ConvertToGLSL(shader->TESSPV, gsLang, ShaderStage::TessellationEvaluation, shader->TSUsed, shader->GSUsed, m_msgs);
+								tesEntry = "main";
+
+								if (tesLang == ShaderLanguage::Plugin)
+									tesContent = m_pluginProcessGLSL(shader->TESPath, tesContent.c_str());
+							}
+
+							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+
+							if (tesContent.empty())
+								tsCompiled = false;
+						}
+					}
+
+
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!vsCompiled || !psCompiled || !gsCompiled || vsContent.empty() || psContent.empty()) {
+					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled | vsContent.empty() || psContent.empty()) {
 						Logger::Get().Log("Shaders not compiled", true);
 						if (vsContent.empty() || psContent.empty())
 							m_msgs->Add(MessageStack::Type::Error, name, "Shader source empty - try recompiling");
@@ -1172,8 +1249,10 @@ namespace ed {
 
 						m_shaders[i] = glCreateProgram();
 						glAttachShader(m_shaders[i], vs);
-						glAttachShader(m_shaders[i], ps);
+						if (shader->TSUsed) glAttachShader(m_shaders[i], tcs);
+						if (shader->TSUsed) glAttachShader(m_shaders[i], tes);
 						if (shader->GSUsed) glAttachShader(m_shaders[i], gs);
+						glAttachShader(m_shaders[i], ps);
 						glLinkProgram(m_shaders[i]);
 					}
 
@@ -1183,6 +1262,8 @@ namespace ed {
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
+					m_shaderSources[i].TCS = tcs;
+					m_shaderSources[i].TES = tes;
 				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
 
@@ -1207,7 +1288,7 @@ namespace ed {
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, shader);
 					} else { // HLSL / VK
-						content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, m_msgs);
+						content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, false, m_msgs);
 						entry = "main";
 
 						if (lang == ShaderLanguage::Plugin)
@@ -1282,7 +1363,7 @@ namespace ed {
 			}
 		}
 	}
-	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc)
+	void RenderEngine::RecompileFromSource(const char* name, const std::string& vssrc, const std::string& pssrc, const std::string& gssrc, const std::string& tcssrc, const std::string& tessrc)
 	{
 		m_msgs->BuildOccured = true;
 		m_msgs->CurrentItem = name;
@@ -1300,6 +1381,7 @@ namespace ed {
 					SPIRVQueue.push_back(item);
 
 					bool vsCompiled = true, psCompiled = true, gsCompiled = true;
+					bool tsCompiled = ((shader->TSUsed && m_tessellationSupported) || !shader->TSUsed);
 					int lineBias = 0;
 
 					// pixel shader
@@ -1315,7 +1397,7 @@ namespace ed {
 							m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(psContent, shader);
 						} else { // HLSL / VK
-							psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->GSUsed, m_msgs);
+							psContent = ShaderCompiler::ConvertToGLSL(shader->PSSPV, psLang, ShaderStage::Pixel, shader->TSUsed, shader->GSUsed, m_msgs);
 							
 							if (psLang == ShaderLanguage::Plugin)
 								psContent = m_pluginProcessGLSL(shader->PSPath, psContent.c_str());
@@ -1346,7 +1428,7 @@ namespace ed {
 							m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(vsContent, shader);
 						} else { // HLSL / VK
-							vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->GSUsed, m_msgs);
+							vsContent = ShaderCompiler::ConvertToGLSL(shader->VSSPV, vsLang, ShaderStage::Vertex, shader->TSUsed, shader->GSUsed, m_msgs);
 
 							if (vsLang == ShaderLanguage::Plugin)
 								vsContent = m_pluginProcessGLSL(shader->VSPath, vsContent.c_str());
@@ -1375,7 +1457,7 @@ namespace ed {
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, shader);
 						} else { // HLSL / VK
-							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->GSUsed, m_msgs);
+							gsContent = ShaderCompiler::ConvertToGLSL(shader->GSSPV, gsLang, ShaderStage::Geometry, shader->TSUsed, shader->GSUsed, m_msgs);
 
 							if (gsLang == ShaderLanguage::Plugin)
 								gsContent = m_pluginProcessGLSL(shader->GSPath, gsContent.c_str());
@@ -1392,10 +1474,72 @@ namespace ed {
 						}
 					}
 
+					// tessellation control shader
+					if (tcssrc.size() > 0) {
+						lineBias = 0;
+
+						ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TCSPath);
+						if (tcsLang == ShaderLanguage::Plugin)
+							tsCompiled &= m_pluginCompileToSpirv(shader->TCSSPV, shader->TCSPath, shader->TCSEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size(), tcssrc);
+						else
+							tsCompiled &= ShaderCompiler::CompileSourceToSPIRV(shader->TCSSPV, tcsLang, shader->TCSPath, tcssrc, ShaderStage::TessellationControl, shader->TCSEntry, shader->Macros, m_msgs, m_project);
+
+						std::string tcsContent = tcssrc;
+						if (tcsLang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(tcsContent, std::vector<std::string>(), lineBias);
+							m_applyMacros(tcsContent, shader);
+						} else { // HLSL / VK
+							tcsContent = ShaderCompiler::ConvertToGLSL(shader->TCSSPV, tcsLang, ShaderStage::TessellationControl, shader->TSUsed, shader->GSUsed, m_msgs);
+
+							if (tcsLang == ShaderLanguage::Plugin)
+								tcsContent = m_pluginProcessGLSL(shader->TCSPath, tcsContent.c_str());
+						}
+
+						GLuint tcs = 0;
+						glDeleteShader(m_shaderSources[i].TCS);
+						if (shader->TSUsed && strlen(shader->TCSPath) > 0 && strlen(shader->TCSEntry) > 0) {
+							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+
+							m_shaderSources[i].TCS = tcs;
+						}
+					}
+
+					// tessellation control shader
+					if (tessrc.size() > 0) {
+						lineBias = 0;
+
+						ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TESPath);
+						if (tesLang == ShaderLanguage::Plugin)
+							tsCompiled &= m_pluginCompileToSpirv(shader->TESSPV, shader->TESPath, shader->TESEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size(), tessrc);
+						else
+							tsCompiled &= ShaderCompiler::CompileSourceToSPIRV(shader->TESSPV, tesLang, shader->TESPath, tessrc, ShaderStage::TessellationEvaluation, shader->TESEntry, shader->Macros, m_msgs, m_project);
+
+						std::string tesContent = tessrc;
+						if (tesLang == ShaderLanguage::GLSL) { // GLSL
+							m_includeCheck(tesContent, std::vector<std::string>(), lineBias);
+							m_applyMacros(tesContent, shader);
+						} else { // HLSL / VK
+							tesContent = ShaderCompiler::ConvertToGLSL(shader->TESSPV, tesLang, ShaderStage::TessellationEvaluation, shader->TSUsed, shader->GSUsed, m_msgs);
+
+							if (tesLang == ShaderLanguage::Plugin)
+								tesContent = m_pluginProcessGLSL(shader->TESPath, tesContent.c_str());
+						}
+
+						GLuint tes = 0;
+						glDeleteShader(m_shaderSources[i].TES);
+						if (shader->TSUsed && strlen(shader->TESPath) > 0 && strlen(shader->TESEntry) > 0) {
+							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+
+							m_shaderSources[i].TES = tes;
+						}
+					}
+
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!vsCompiled || !psCompiled || !gsCompiled) {
+					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled) {
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
 						m_shaders[i] = 0;
 					} else {
@@ -1405,6 +1549,8 @@ namespace ed {
 						glAttachShader(m_shaders[i], m_shaderSources[i].VS);
 						glAttachShader(m_shaders[i], m_shaderSources[i].PS);
 						if (shader->GSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].GS);
+						if (shader->TSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].TCS);
+						if (shader->TSUsed) glAttachShader(m_shaders[i], m_shaderSources[i].TES);
 						glLinkProgram(m_shaders[i]);
 					}
 
@@ -1434,7 +1580,7 @@ namespace ed {
 							m_includeCheck(content, std::vector<std::string>(), lineBias);
 							m_applyMacros(content, shader);
 						} else { // HLSL / VK
-							content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, m_msgs);
+							content = ShaderCompiler::ConvertToGLSL(shader->SPV, lang, ShaderStage::Compute, false, false, m_msgs);
 
 							if (lang == ShaderLanguage::Plugin)
 								content = m_pluginProcessGLSL(shader->Path, content.c_str());
@@ -1724,6 +1870,8 @@ namespace ed {
 			glDeleteShader(m_shaderSources[i].VS);
 			glDeleteShader(m_shaderSources[i].PS);
 			glDeleteShader(m_shaderSources[i].GS);
+			glDeleteShader(m_shaderSources[i].TCS);
+			glDeleteShader(m_shaderSources[i].TES);
 			glDeleteProgram(m_shaders[i]);
 		}
 
@@ -1787,6 +1935,8 @@ namespace ed {
 					glDeleteShader(m_shaderSources[i].VS);
 					glDeleteShader(m_shaderSources[i].PS);
 					glDeleteShader(m_shaderSources[i].GS);
+					glDeleteShader(m_shaderSources[i].TCS);
+					glDeleteShader(m_shaderSources[i].TES);
 
 					/*
 						ITEM CACHING
@@ -1794,7 +1944,7 @@ namespace ed {
 
 					m_fbos[data].resize(MAX_RENDER_TEXTURES);
 
-					GLuint ps = 0, vs = 0, gs = 0;
+					GLuint ps = 0, vs = 0, gs = 0, tcs = 0, tes = 0;
 
 					m_msgs->CurrentItem = items[i]->Name;
 
@@ -1819,7 +1969,7 @@ namespace ed {
 						m_includeCheck(vsContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(vsContent, data);
 					} else if (vsCompiled) {
-						vsContent = ShaderCompiler::ConvertToGLSL(data->VSSPV, vsLang, ShaderStage::Vertex, data->GSUsed, m_msgs);
+						vsContent = ShaderCompiler::ConvertToGLSL(data->VSSPV, vsLang, ShaderStage::Vertex, data->TSUsed, data->GSUsed, m_msgs);
 						vsEntry = "main";
 
 						if (vsLang == ShaderLanguage::Plugin)
@@ -1843,7 +1993,7 @@ namespace ed {
 						m_includeCheck(psContent, std::vector<std::string>(), lineBias);
 						m_applyMacros(psContent, data);
 					} else if (psCompiled) { // HLSL / VK
-						psContent = ShaderCompiler::ConvertToGLSL(data->PSSPV, psLang, ShaderStage::Pixel, data->GSUsed, m_msgs);
+						psContent = ShaderCompiler::ConvertToGLSL(data->PSSPV, psLang, ShaderStage::Pixel, data->TSUsed, data->GSUsed, m_msgs);
 						psEntry = "main";
 
 						if (psLang == ShaderLanguage::Plugin)
@@ -1859,7 +2009,7 @@ namespace ed {
 					bool gsCompiled = true;
 					if (data->GSUsed && strlen(data->GSEntry) > 0 && strlen(data->GSPath) > 0) {
 						std::string gsContent = "", gsEntry = data->GSEntry;
-						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->PSPath);
+						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->GSPath);
 						
 						if (gsLang == ShaderLanguage::Plugin)
 							gsCompiled = m_pluginCompileToSpirv(data->GSSPV, data->GSPath, gsEntry, plugin::ShaderStage::Geometry, data->Macros.data(), data->Macros.size());
@@ -1871,7 +2021,7 @@ namespace ed {
 							m_includeCheck(gsContent, std::vector<std::string>(), lineBias);
 							m_applyMacros(gsContent, data);
 						} else if (gsCompiled) { // HLSL
-							gsContent = ShaderCompiler::ConvertToGLSL(data->GSSPV, gsLang, ShaderStage::Geometry, data->GSUsed, m_msgs);
+							gsContent = ShaderCompiler::ConvertToGLSL(data->GSSPV, gsLang, ShaderStage::Geometry, data->TSUsed, data->GSUsed, m_msgs);
 							gsEntry = "main";
 
 							if (gsLang == ShaderLanguage::Plugin)
@@ -1882,13 +2032,71 @@ namespace ed {
 						gsCompiled &= gl::CheckShaderCompilationStatus(gs);
 					}
 
+					// tessellation shader
+					lineBias = 0;
+					bool tsCompiled = ((data->TSUsed && m_tessellationSupported) || !data->TSUsed);
+					if (data->TSUsed) {
+						// tessellation control shader
+						if (strlen(data->TCSEntry) > 0 && strlen(data->TCSPath) > 0) {
+							std::string tcsContent = "", tcsEntry = data->TCSEntry;
+							ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->TCSPath);
+
+							if (tcsLang == ShaderLanguage::Plugin)
+								tsCompiled &= m_pluginCompileToSpirv(data->TCSSPV, data->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, data->Macros.data(), data->Macros.size());
+							else
+								tsCompiled &= ShaderCompiler::CompileToSPIRV(data->TCSSPV, tcsLang, data->TCSPath, ShaderStage::TessellationControl, tcsEntry, data->Macros, m_msgs, m_project);
+
+							if (tcsLang == ShaderLanguage::GLSL) { // GLSL
+								tcsContent = m_project->LoadProjectFile(data->TCSPath);
+								m_includeCheck(tcsContent, std::vector<std::string>(), lineBias);
+								m_applyMacros(tcsContent, data);
+							} else if (gsCompiled) { // HLSL
+								tcsContent = ShaderCompiler::ConvertToGLSL(data->TCSSPV, tcsLang, ShaderStage::TessellationControl, data->TSUsed, data->GSUsed, m_msgs);
+								tcsEntry = "main";
+
+								if (tcsLang == ShaderLanguage::Plugin)
+									tcsContent = m_pluginProcessGLSL(data->TCSPath, tcsContent.c_str());
+							}
+
+							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+						}
+
+						// tessellation evauluation shader
+						if (strlen(data->TESEntry) > 0 && strlen(data->TESPath) > 0) {
+							std::string tesContent = "", tesEntry = data->TESEntry;
+							ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(data->TESPath);
+
+							if (tesLang == ShaderLanguage::Plugin)
+								tsCompiled &= m_pluginCompileToSpirv(data->TESSPV, data->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, data->Macros.data(), data->Macros.size());
+							else
+								tsCompiled &= ShaderCompiler::CompileToSPIRV(data->TESSPV, tesLang, data->TESPath, ShaderStage::TessellationEvaluation, tesEntry, data->Macros, m_msgs, m_project);
+
+							if (tesLang == ShaderLanguage::GLSL) { // GLSL
+								tesContent = m_project->LoadProjectFile(data->TESPath);
+								m_includeCheck(tesContent, std::vector<std::string>(), lineBias);
+								m_applyMacros(tesContent, data);
+							} else if (gsCompiled) { // HLSL
+								tesContent = ShaderCompiler::ConvertToGLSL(data->TESSPV, tesLang, ShaderStage::TessellationEvaluation, data->TSUsed, data->GSUsed, m_msgs);
+								tesEntry = "main";
+
+								if (tesLang == ShaderLanguage::Plugin)
+									tesContent = m_pluginProcessGLSL(data->TESPath, tesContent.c_str());
+							}
+
+							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+						}
+					}
+
+
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
 					if (m_debugShaders[i] != 0)
 						glDeleteProgram(m_debugShaders[i]);
 
-					if (!vsCompiled || !psCompiled || !gsCompiled) {
+					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled) {
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 						m_shaders[i] = 0;
 					} else {
@@ -1898,12 +2106,16 @@ namespace ed {
 						glAttachShader(m_shaders[i], vs);
 						glAttachShader(m_shaders[i], ps);
 						if (data->GSUsed) glAttachShader(m_shaders[i], gs);
+						if (data->TSUsed) glAttachShader(m_shaders[i], tcs);
+						if (data->TSUsed) glAttachShader(m_shaders[i], tes);
 						glLinkProgram(m_shaders[i]);
 
 						m_debugShaders[i] = glCreateProgram();
 						glAttachShader(m_debugShaders[i], m_generalDebugShader);
 						glAttachShader(m_debugShaders[i], vs);
 						if (data->GSUsed) glAttachShader(m_debugShaders[i], gs);
+						if (data->TSUsed) glAttachShader(m_debugShaders[i], tcs);
+						if (data->TSUsed) glAttachShader(m_debugShaders[i], tes);
 						glLinkProgram(m_debugShaders[i]);
 					}
 
@@ -1913,6 +2125,8 @@ namespace ed {
 					m_shaderSources[i].VS = vs;
 					m_shaderSources[i].PS = ps;
 					m_shaderSources[i].GS = gs;
+					m_shaderSources[i].TCS = tcs;
+					m_shaderSources[i].TES = tes;
 				}
 				else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* data = reinterpret_cast<ed::pipe::ComputePass*>(items[i]->Data);
@@ -1954,7 +2168,7 @@ namespace ed {
 						m_includeCheck(content, std::vector<std::string>(), lineBias);
 						m_applyMacros(content, data);
 					} else if (compiled) { // HLSL / VK
-						content = ShaderCompiler::ConvertToGLSL(data->SPV, lang, ShaderStage::Compute, false, m_msgs);
+						content = ShaderCompiler::ConvertToGLSL(data->SPV, lang, ShaderStage::Compute, false, false, m_msgs);
 						entry = "main";
 
 						if (lang == ShaderLanguage::Plugin)
@@ -1984,6 +2198,8 @@ namespace ed {
 					m_shaderSources[i].VS = 0;
 					m_shaderSources[i].PS = 0;
 					m_shaderSources[i].GS = 0;
+					m_shaderSources[i].TCS = 0;
+					m_shaderSources[i].TES = 0;
 				} 
 				else if (items[i]->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass* data = reinterpret_cast<ed::pipe::AudioPass*>(items[i]->Data);

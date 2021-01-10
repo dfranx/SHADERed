@@ -439,6 +439,12 @@ namespace ed {
 						} else if (stage == plugin::ShaderStage::Geometry) {
 							*len = data->GSSPV.size();
 							return data->GSSPV.data();
+						} else if (stage == plugin::ShaderStage::TessellationControl) {
+							*len = data->TCSSPV.size();
+							return data->TCSSPV.data();
+						} else if (stage == plugin::ShaderStage::TessellationEvaluation) {
+							*len = data->TESSPV.size();
+							return data->TESSPV.data();
 						}
 					} else if (pItem->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass* data = (pipe::ComputePass*)pItem->Data;

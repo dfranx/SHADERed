@@ -37,6 +37,6 @@ namespace ed {
 		int m_fileAutoExtensionSel;
 		std::string m_fileAutoLanguages;
 		std::vector<std::string> m_fileAutoExtensions;
-		bool m_isShaderFileAuto[3];
+		bool m_isShaderFileAuto[5];
 	};
 }

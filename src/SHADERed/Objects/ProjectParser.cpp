@@ -272,6 +272,18 @@ namespace ed {
 						std::filesystem::copy_file(gs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "GS", gsExt), std::filesystem::copy_options::overwrite_existing, errc);
 					}
 
+					if (passData->TSUsed) {
+						// tcs
+						std::string tcs = std::filesystem::path(passData->TCSPath).is_absolute() ? passData->TCSPath : (proj + std::string(passData->TCSPath));
+						std::string tcsExt = getExtension(tcs);
+						std::filesystem::copy_file(tcs, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "TCS", tcsExt), std::filesystem::copy_options::overwrite_existing, errc);
+					
+						// tes
+						std::string tes = std::filesystem::path(passData->TESPath).is_absolute() ? passData->TESPath : (proj + std::string(passData->TESPath));
+						std::string tesExt = getExtension(tes);
+						std::filesystem::copy_file(tes, shadersDir + "/" + newShaderFilename(projectStem, passItem->Name, "TES", tesExt), std::filesystem::copy_options::overwrite_existing, errc);
+					}
+
 					if (errc)
 						ed::Logger::Get().Log("Failed to copy a file (source == destination)", true);
 				} else if (passItem->Type == PipelineItem::ItemType::ComputePass) {
@@ -321,6 +333,7 @@ namespace ed {
 
 				passNode.append_attribute("type").set_value("shader");
 				passNode.append_attribute("active").set_value(passData->Active);
+				passNode.append_attribute("patchverts").set_value(passData->TSPatchVertices);
 
 				/* collapsed="true" attribute */
 				for (int i = 0; i < collapsedSP.size(); i++)
@@ -367,6 +380,38 @@ namespace ed {
 					gsNode.append_attribute("type").set_value("gs");
 					gsNode.append_attribute("path").set_value(relativePath.c_str());
 					gsNode.append_attribute("entry").set_value(passData->GSEntry);
+				}
+
+				// TCS shader
+				if (strlen(passData->TCSEntry) > 0 && strlen(passData->TCSPath) > 0) {
+					pugi::xml_node tcsNode = passNode.append_child("shader");
+					relativePath = (std::filesystem::path(passData->TCSPath).is_absolute()) ? passData->TCSPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->TCSPath));
+					if (copyFiles) {
+						std::string tcsExt = getExtension(passData->TCSPath);
+						relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "TCS", tcsExt);
+					}
+
+					tcsNode.append_attribute("used").set_value(passData->TSUsed);
+
+					tcsNode.append_attribute("type").set_value("tcs");
+					tcsNode.append_attribute("path").set_value(relativePath.c_str());
+					tcsNode.append_attribute("entry").set_value(passData->TCSEntry);
+				}
+
+				// TES shader
+				if (strlen(passData->TESEntry) > 0 && strlen(passData->TESPath) > 0) {
+					pugi::xml_node tesNode = passNode.append_child("shader");
+					relativePath = (std::filesystem::path(passData->TESPath).is_absolute()) ? passData->TESPath : GetRelativePath(oldProjectPath + ((oldProjectPath[oldProjectPath.size() - 1] == '/') ? "" : "/") + std::string(passData->TESPath));
+					if (copyFiles) {
+						std::string tesExt = getExtension(passData->TESPath);
+						relativePath = "shaders/" + newShaderFilename(projectStem, passItem->Name, "TES", tesExt);
+					}
+
+					tesNode.append_attribute("used").set_value(passData->TSUsed);
+
+					tesNode.append_attribute("type").set_value("tes");
+					tesNode.append_attribute("path").set_value(relativePath.c_str());
+					tesNode.append_attribute("entry").set_value(passData->TESEntry);
 				}
 
 				/* vs input layout */
@@ -721,7 +766,16 @@ namespace ed {
 				pugi::xml_node fileNode = settingsNode.append_child("entry");
 				fileNode.append_attribute("type").set_value("file");
 				fileNode.append_attribute("name").set_value(file.first.c_str());
-				fileNode.append_attribute("shader").set_value(file.second == ShaderStage::Vertex ? "vs" : (file.second == ShaderStage::Pixel ? "ps" : (file.second == ShaderStage::Geometry ? "gs" : "cs")));
+
+				std::string shaderAbbr = "vs";
+				if (file.second == ShaderStage::Pixel) shaderAbbr = "ps";
+				if (file.second == ShaderStage::Geometry) shaderAbbr = "gs";
+				if (file.second == ShaderStage::TessellationControl) shaderAbbr = "tcs";
+				if (file.second == ShaderStage::TessellationEvaluation) shaderAbbr = "tes";
+				if (file.second == ShaderStage::Compute) shaderAbbr = "cs";
+				if (file.second == ShaderStage::Audio) shaderAbbr = "as";
+
+				fileNode.append_attribute("shader").set_value(shaderAbbr.c_str());
 			}
 
 			// pinned ui
@@ -2113,13 +2167,16 @@ namespace ed {
 						PipelineItem* item = m_pipe->Get(settingItem.attribute("name").as_string());
 						const pugi::char_t* shaderType = settingItem.attribute("shader").as_string();
 
-						std::string type = ((strcmp(shaderType, "vs") == 0) ? "vertex" : ((strcmp(shaderType, "ps") == 0) ? "pixel" : "geometry"));
 						std::string path = ((ed::pipe::ShaderPass*)item->Data)->VSPath;
 
 						if (strcmp(shaderType, "ps") == 0)
 							path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
 						else if (strcmp(shaderType, "gs") == 0)
 							path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
+						else if (strcmp(shaderType, "tcs") == 0)
+							path = ((ed::pipe::ShaderPass*)item->Data)->TCSPath;
+						else if (strcmp(shaderType, "tes") == 0)
+							path = ((ed::pipe::ShaderPass*)item->Data)->TESPath;
 
 						if (strcmp(shaderType, "vs") == 0 && FileExists(path))
 							editor->Open(item, ShaderStage::Vertex);
@@ -2127,6 +2184,10 @@ namespace ed {
 							editor->Open(item, ShaderStage::Pixel);
 						else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
 							editor->Open(item, ShaderStage::Geometry);
+						else if (strcmp(shaderType, "tcs") == 0 && FileExists(path))
+							editor->Open(item, ShaderStage::TessellationControl);
+						else if (strcmp(shaderType, "tes") == 0 && FileExists(path))
+							editor->Open(item, ShaderStage::TessellationEvaluation);
 					}
 				} else if (type == "pinned") {
 					PinnedUI* pinned = ((PinnedUI*)m_ui->Get(ViewID::Pinned));
@@ -2241,6 +2302,10 @@ namespace ed {
 						((PipelineUI*)m_ui->Get(ViewID::Pipeline))->Collapse(data);
 				}
 
+				// patch vertex count
+				if (!passNode.attribute("patchverts").empty())
+					data->TSPatchVertices = std::max(1, std::min(m_renderer->GetMaxPatchVertices(), passNode.attribute("patchverts").as_int()));
+
 				// get render textures
 				int rtCur = 0;
 				for (pugi::xml_node rtNode : passNode.children("rendertexture")) {
@@ -2277,6 +2342,20 @@ namespace ed {
 							data->GSUsed = false;
 						strcpy(data->GSPath, shaderPath);
 						strcpy(data->GSEntry, shaderEntry);
+					} else if (shaderNodeType == "tcs") {
+						if (!shaderNode.attribute("used").empty())
+							data->TSUsed = shaderNode.attribute("used").as_bool();
+						else
+							data->TSUsed = false;
+						strcpy(data->TCSPath, shaderPath);
+						strcpy(data->TCSEntry, shaderEntry);
+					} else if (shaderNodeType == "tes") {
+						if (!shaderNode.attribute("used").empty())
+							data->TSUsed = shaderNode.attribute("used").as_bool();
+						else
+							data->TSUsed = false;
+						strcpy(data->TESPath, shaderPath);
+						strcpy(data->TESEntry, shaderEntry);
 					}
 
 					std::string type = ((shaderNodeType == "vs") ? "vertex" : ((shaderNodeType == "ps") ? "pixel" : "geometry"));
@@ -3136,6 +3215,10 @@ namespace ed {
 								path = ((ed::pipe::ShaderPass*)item->Data)->PSPath;
 							else if (strcmp(shaderType, "gs") == 0)
 								path = ((ed::pipe::ShaderPass*)item->Data)->GSPath;
+							else if (strcmp(shaderType, "tcs") == 0)
+								path = ((ed::pipe::ShaderPass*)item->Data)->TCSPath;
+							else if (strcmp(shaderType, "tes") == 0)
+								path = ((ed::pipe::ShaderPass*)item->Data)->TESPath;
 
 							if (strcmp(shaderType, "vs") == 0 && FileExists(path))
 								editor->Open(item, ShaderStage::Vertex);
@@ -3143,6 +3226,10 @@ namespace ed {
 								editor->Open(item, ShaderStage::Pixel);
 							else if (strcmp(shaderType, "gs") == 0 && FileExists(path))
 								editor->Open(item, ShaderStage::Geometry);
+							else if (strcmp(shaderType, "tcs") == 0 && FileExists(path))
+								editor->Open(item, ShaderStage::TessellationControl);
+							else if (strcmp(shaderType, "tes") == 0 && FileExists(path))
+								editor->Open(item, ShaderStage::TessellationEvaluation);
 						} else if (item->Type == PipelineItem::ItemType::ComputePass) {
 							std::string path = ((ed::pipe::ComputePass*)item->Data)->Path;
 

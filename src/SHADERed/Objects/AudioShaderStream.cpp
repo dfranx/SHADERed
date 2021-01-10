@@ -88,7 +88,7 @@ namespace ed {
 			std::vector<unsigned int> spv;
 
 			ShaderCompiler::CompileSourceToSPIRV(spv, ed::ShaderLanguage::HLSL, "audio.shader", psCodeIn, ShaderStage::Pixel, "main", macros, m_msgs, project);
-			psTrans = ShaderCompiler::ConvertToGLSL(spv, ed::ShaderLanguage::HLSL, ShaderStage::Pixel, false, m_msgs);
+			psTrans = ShaderCompiler::ConvertToGLSL(spv, ed::ShaderLanguage::HLSL, ShaderStage::Pixel, false, false, m_msgs);
 		}
 		const char* psSource = isHLSL ? psTrans.c_str() : psCodeIn.c_str();
 
