@@ -280,7 +280,7 @@ namespace ed {
 
 	void GUIManager::OnEvent(const SDL_Event& e)
 	{
-		m_imguiHandleEvent(e);
+		ImGui_ImplSDL2_ProcessEvent(&e);
 
 		if (m_splashScreen) {
 
@@ -1487,10 +1487,6 @@ namespace ed {
 		Get(ViewID::Code)->Visible = false;
 
 		((OptionsUI*)m_options)->ApplyTheme();
-	}
-	void GUIManager::m_imguiHandleEvent(const SDL_Event& e)
-	{
-		ImGui_ImplSDL2_ProcessEvent(&e);
 	}
 	ShaderVariable::ValueType getTypeFromSPV(SPIRVParser::ValueType valType)
 	{

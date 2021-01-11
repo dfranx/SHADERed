@@ -1168,7 +1168,7 @@ namespace ed {
 					// tessellation shader
 					bool tsCompiled = ((shader->TSUsed && m_tessellationSupported) || !shader->TSUsed);
 					GLuint tcs = 0, tes = 0;
-					if (shader->TSUsed) {
+					if (shader->TSUsed && m_tessellationSupported) {
 						// tess control
 						if (strlen(shader->TCSPath) > 0 && strlen(shader->TCSEntry) > 0) {
 							std::string tcsContent = "",
@@ -1475,7 +1475,7 @@ namespace ed {
 					}
 
 					// tessellation control shader
-					if (tcssrc.size() > 0) {
+					if (tcssrc.size() > 0 && m_tessellationSupported) {
 						lineBias = 0;
 
 						ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TCSPath);
@@ -1506,7 +1506,7 @@ namespace ed {
 					}
 
 					// tessellation control shader
-					if (tessrc.size() > 0) {
+					if (tessrc.size() > 0 && m_tessellationSupported) {
 						lineBias = 0;
 
 						ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TESPath);
@@ -2035,7 +2035,7 @@ namespace ed {
 					// tessellation shader
 					lineBias = 0;
 					bool tsCompiled = ((data->TSUsed && m_tessellationSupported) || !data->TSUsed);
-					if (data->TSUsed) {
+					if (data->TSUsed && m_tessellationSupported) {
 						// tessellation control shader
 						if (strlen(data->TCSEntry) > 0 && strlen(data->TCSPath) > 0) {
 							std::string tcsContent = "", tcsEntry = data->TCSEntry;
