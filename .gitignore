@@ -57,3 +57,6 @@ bin/log.txt
 
 # Ignore out-of-source build directory.
 build/
+
+# MacOS
+.DS_Store
