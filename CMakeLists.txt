@@ -211,7 +211,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM SPIRV-Tools SPIRV-Headers assimp::assimp)
 
 # link SpvGenTwo
 if (BUILD_IMMEDIATE_MODE)
