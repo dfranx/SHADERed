@@ -256,7 +256,6 @@ namespace ed {
 						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
 					}
 					ImGui::NextColumn();
-
 					ImGui::Separator();
 
 					/* pixel shader entry */
@@ -271,8 +270,9 @@ namespace ed {
 					} else
 						ImGui::Text("main");
 					ImGui::NextColumn();
-
 					ImGui::Separator();
+
+
 
 					// gs used
 					ImGui::Text("GS:");
@@ -308,6 +308,90 @@ namespace ed {
 					if (ShaderCompiler::GetShaderLanguageFromExtension(item->GSPath) != ShaderLanguage::GLSL) {
 						ImGui::PushItemWidth(-1);
 						if (ImGui::InputText("##pui_gsentry", item->GSEntry, 32))
+							m_data->Parser.ModifyProject();
+						ImGui::PopItemWidth();
+					} else
+						ImGui::Text("main");
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!item->GSUsed) ImGui::PopItemFlag();
+
+
+					
+					// gs used
+					ImGui::Text("TS:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::Checkbox("##pui_tsuse", &item->TSUsed))
+						m_data->Parser.ModifyProject();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					if (!item->TSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
+					// patch vertices
+					ImGui::Text("Patch vertices:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					if (ImGui::DragInt("##cui_sptspatchverts", &item->TSPatchVertices, 1.0f, 1, m_data->Renderer.GetMaxPatchVertices()))
+						item->TSPatchVertices = std::max(1, std::min(m_data->Renderer.GetMaxPatchVertices(), item->TSPatchVertices));
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// tcs path
+					ImGui::Text("TCS path:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::InputText("##pui_tcspath", item->TCSPath, SHADERED_MAX_PATH);
+					ImGui::PopItemFlag();
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("...##pui_tcsbtn", ImVec2(-1, 0))) {
+						m_dialogPath = item->TCSPath;
+						m_dialogShaderType = "Tessellation Control";
+						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*", ".");
+					}
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// tcs entry
+					ImGui::Text("TCS entry:");
+					ImGui::NextColumn();
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->TCSPath) != ShaderLanguage::GLSL) {
+						ImGui::PushItemWidth(-1);
+						if (ImGui::InputText("##pui_tcsentry", item->TCSEntry, 32))
+							m_data->Parser.ModifyProject();
+						ImGui::PopItemWidth();
+					} else
+						ImGui::Text("main");
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// tes path
+					ImGui::Text("TES path:");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::InputText("##pui_tespath", item->TESPath, SHADERED_MAX_PATH);
+					ImGui::PopItemFlag();
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					if (ImGui::Button("...##pui_tesbtn", ImVec2(-1, 0))) {
+						m_dialogPath = item->TESPath;
+						m_dialogShaderType = "Tessellation Evaluation";
+						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*", ".");
+					}
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					// tes entry
+					ImGui::Text("TES entry:");
+					ImGui::NextColumn();
+					if (ShaderCompiler::GetShaderLanguageFromExtension(item->TESPath) != ShaderLanguage::GLSL) {
+						ImGui::PushItemWidth(-1);
+						if (ImGui::InputText("##pui_tesentry", item->TESEntry, 32))
 							m_data->Parser.ModifyProject();
 						ImGui::PopItemWidth();
 					} else

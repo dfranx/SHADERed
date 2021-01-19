@@ -62,8 +62,17 @@ namespace ed {
 				ImGui::PopID();
 
 				ImGui::TableSetColumnIndex(1);
-				if (m->Shader != ShaderStage::Count) // TODO: array? duh
-					ImGui::Text(m->Shader == ShaderStage::Vertex ? "VS" : (m->Shader == ShaderStage::Pixel ? "PS" : (m->Shader == ShaderStage::Geometry ? "GS" : "CS")));
+				if (m->Shader != ShaderStage::Count) {
+					// TODO: array? duh
+					std::string stageAbbr = "VS";
+					if (m->Shader == ShaderStage::Pixel) stageAbbr = "PS";
+					else if (m->Shader == ShaderStage::Geometry) stageAbbr = "GS";
+					else if (m->Shader == ShaderStage::Compute) stageAbbr = "CS";
+					else if (m->Shader == ShaderStage::Audio) stageAbbr = "AS";
+					else if (m->Shader == ShaderStage::TessellationControl) stageAbbr = "TCS";
+					else if (m->Shader == ShaderStage::TessellationEvaluation) stageAbbr = "TES";
+					ImGui::TextUnformatted(stageAbbr.c_str());
+				}
 
 				ImGui::TableSetColumnIndex(2);
 				if (m->Line != -1)

@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 				spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
 				spvOut.close();
 			} else {
-				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, coptsParser.CompileLanguage, coptsParser.CompileStage, false, nullptr);
+				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, coptsParser.CompileLanguage, coptsParser.CompileStage, false, false, nullptr);
 
 				std::ofstream glslOut(coptsParser.CompileOutput, std::ios::out | std::ios::binary);
 				glslOut.write(glslSource.c_str(), glslSource.size());
@@ -271,6 +271,7 @@ int main(int argc, char* argv[])
 	engine.UI().SetCommandLineOptions(coptsParser);
 	engine.UI().SetPerformanceMode(perfMode);
 	engine.Interface().Renderer.AllowComputeShaders(GLEW_ARB_compute_shader);
+	engine.Interface().Renderer.AllowTessellationShaders(GLEW_ARB_tessellation_shader);
 
 	// check for filesystem errors
 	if (fsError)

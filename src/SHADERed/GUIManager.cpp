@@ -280,7 +280,7 @@ namespace ed {
 
 	void GUIManager::OnEvent(const SDL_Event& e)
 	{
-		m_imguiHandleEvent(e);
+		ImGui_ImplSDL2_ProcessEvent(&e);
 
 		if (m_splashScreen) {
 
@@ -553,8 +553,34 @@ namespace ed {
 							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
+						if (pass->TCSSPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->TCSPath, m_data->Plugins.Plugins());
 
-						if (settings.General.AutoUniforms && deleteUnusedVariables && settings.General.AutoUniformsDelete && pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed))
+							deleteUnusedVariables &= (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)));
+
+							spvParser.Parse(pass->TCSSPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::TessellationControl);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
+						}
+						if (pass->TESSPV.size() > 0) {
+							int langID = -1;
+							IPlugin1* plugin = ShaderCompiler::GetPluginLanguageFromExtension(&langID, pass->TESPath, m_data->Plugins.Plugins());
+
+							deleteUnusedVariables &= (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID)));
+
+							spvParser.Parse(pass->TESSPV);
+							TextEditor* tEdit = codeEditor->Get(spvItem, ed::ShaderStage::TessellationEvaluation);
+							if (tEdit != nullptr) codeEditor->FillAutocomplete(tEdit, spvParser);
+							if (settings.General.AutoUniforms && (plugin == nullptr || (plugin != nullptr && plugin->CustomLanguage_SupportsAutoUniforms(langID))))
+								m_autoUniforms(pass->Variables, spvParser, allUniforms);
+						}
+
+						if (settings.General.AutoUniforms && deleteUnusedVariables && settings.General.AutoUniformsDelete && 
+							pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed) &&
+							((pass->TSUsed && pass->TCSSPV.size() > 0 && pass->TESSPV.size() > 0) || !pass->TSUsed))
 							m_deleteUnusedUniforms(pass->Variables, allUniforms);
 					} else if (spvItem->Type == PipelineItem::ItemType::ComputePass) {
 						pipe::ComputePass* pass = (pipe::ComputePass*)spvItem->Data;
@@ -877,7 +903,8 @@ namespace ed {
 					std::make_pair("Vladimir Alyamkin", "https://alyamkin.com"),
 					std::make_pair("Wogos Media", "http://theWogos.com"),
 					std::make_pair("Snow Developments", "https://snow.llc"),
-					std::make_pair("Adad Morales", "https://www.moralesfx.com/")
+					std::make_pair("Adad Morales", "https://www.moralesfx.com/"),
+					std::make_pair("Liam Don", "https://twitter.com/liamdon")
 				};
 
 				for (auto& sitem : slist)
@@ -1460,10 +1487,6 @@ namespace ed {
 		Get(ViewID::Code)->Visible = false;
 
 		((OptionsUI*)m_options)->ApplyTheme();
-	}
-	void GUIManager::m_imguiHandleEvent(const SDL_Event& e)
-	{
-		ImGui_ImplSDL2_ProcessEvent(&e);
 	}
 	ShaderVariable::ValueType getTypeFromSPV(SPIRVParser::ValueType valType)
 	{
@@ -2408,11 +2431,16 @@ namespace ed {
 		// Create about popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
-			ImGui::TextWrapped("(C) 2020 dfranx");
+			ImGui::TextWrapped("(C) 2021 dfranx");
 			ImGui::TextWrapped("Version %s", WebAPI::Version);
 			ImGui::TextWrapped("Internal version: %d", WebAPI::InternalVersion);
+			ImGui::TextWrapped("Compute shaders: %s", GLEW_ARB_compute_shader ? "true" : "false");
+			ImGui::TextWrapped("Tessellation shaders: %s", GLEW_ARB_tessellation_shader ? "true" : "false");
+			if (GLEW_ARB_tessellation_shader)
+				ImGui::TextWrapped("GL_MAX_PATCH_VERTICES: %d", m_data->Renderer.GetMaxPatchVertices());
+
 			ImGui::NewLine();
-			UIHelper::Markdown("This app is open sourced: [link](https://www.github.com/dfranx/SHADERed)");
+			UIHelper::Markdown("SHADERed is [open sourc](https://www.github.com/dfranx/SHADERed)");
 			ImGui::NewLine();
 
 			ImGui::Separator();

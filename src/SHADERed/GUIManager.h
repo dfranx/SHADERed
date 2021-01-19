@@ -99,8 +99,6 @@ namespace ed {
 
 		void m_setupShortcuts();
 
-		void m_imguiHandleEvent(const SDL_Event& e);
-
 		void m_autoUniforms(ShaderVariableContainer& vars, SPIRVParser& spv, std::vector<std::string>& uniformList);
 		void m_deleteUnusedUniforms(ShaderVariableContainer& vars, const std::vector<std::string>& spv);
 

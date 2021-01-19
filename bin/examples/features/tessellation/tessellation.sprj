@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<project version="2">
+	<pipeline>
+		<pass name="Simple" type="shader" active="true" patchverts="3">
+			<shader type="vs" path="shaders\SimpleVS.glsl" entry="main" />
+			<shader type="ps" path="shaders\SimplePS.glsl" entry="main" />
+			<shader used="true" type="tcs" path="shaders\SimpleTCS.glsl" entry="main" />
+			<shader used="true" type="tes" path="shaders\SimpleTES.glsl" entry="main" />
+			<inputlayout>
+				<item value="BufferFloat3" semantic="POSITION" />
+			</inputlayout>
+			<rendertexture />
+			<items>
+				<item name="Wireframe" type="renderstate">
+					<wireframe>true</wireframe>
+					<cull>false</cull>
+					<cullfront>true</cullfront>
+					<blend>false</blend>
+					<alpha2coverage>false</alpha2coverage>
+					<colorsrcfactor>Source Alpha</colorsrcfactor>
+					<colordstfactor>Inverse Source Alpha</colordstfactor>
+					<colorfunc>Add</colorfunc>
+					<alphasrcfactor>Source Alpha</alphasrcfactor>
+					<alphadstfactor>Inverse Source Alpha</alphadstfactor>
+					<alphafunc>Add</alphafunc>
+					<blendfactor_r>1</blendfactor_r>
+					<blendfactor_g>1</blendfactor_g>
+					<blendfactor_b>1</blendfactor_b>
+					<blendfactor_a>1</blendfactor_a>
+					<depthtest>true</depthtest>
+					<depthclamp>true</depthclamp>
+					<depthmask>true</depthmask>
+					<depthfunc>Less</depthfunc>
+					<depthbias>0</depthbias>
+					<stenciltest>false</stenciltest>
+					<stencilmask>0</stencilmask>
+					<stencilref>255</stencilref>
+					<stencilfrontfunc>Equal</stencilfrontfunc>
+					<stencilbackfunc>Equal</stencilbackfunc>
+					<stencilfrontpass>Keep</stencilfrontpass>
+					<stencilbackpass>Keep</stencilbackpass>
+					<stencilfrontfail>Keep</stencilfrontfail>
+					<stencilbackfail>Keep</stencilbackfail>
+					<depthfrontfail>Keep</depthfrontfail>
+					<depthbackfail>Keep</depthbackfail>
+				</item>
+				<item name="ControlPoints" type="vertexbuffer">
+					<buffer>vbControlPoints</buffer>
+					<x>-2.54869032</x>
+					<y>-2.18721747</y>
+					<topology>Patches</topology>
+				</item>
+			</items>
+			<itemvalues />
+			<variables>
+				<variable type="float4x4" name="matGeo" system="GeometryTransform" />
+				<variable type="float3" name="cameraPos" system="CameraPosition3" />
+				<variable type="float4x4" name="matVP" system="ViewProjection" />
+			</variables>
+			<macros />
+		</pass>
+	</pipeline>
+	<objects>
+		<object type="buffer" name="vbControlPoints" size="36" format="vec3" pausedpreview="false" />
+	</objects>
+	<cameras />
+	<settings>
+		<entry type="file" name="Simple" shader="vs" />
+		<entry type="file" name="Simple" shader="ps" />
+		<entry type="file" name="Simple" shader="tcs" />
+		<entry type="file" name="Simple" shader="tes" />
+		<entry type="camera" fp="false">
+			<distance>8</distance>
+			<pitch>2</pitch>
+			<yaw>357</yaw>
+			<roll>360</roll>
+		</entry>
+		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
+		<entry type="usealpha" val="false" />
+	</settings>
+	<plugindata />
+</project>
