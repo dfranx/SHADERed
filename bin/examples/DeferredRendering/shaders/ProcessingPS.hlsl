@@ -20,7 +20,8 @@ float4 main(PSInput pin) : SV_TARGET
 	pin.UV.y = 1-pin.UV.y;
 		
 	float4 pos = posTex.Sample(smp,pin.UV);   
-	clip((pos.w != 0) - 1);
+	const float div_zero = pos.w == 0.0 ? 0.0 : 1.0;
+	clip(div_zero - 1);
 	
 	float4 n = normalTex.Sample(smp, pin.UV);
 	float3 normal = normalize(n.xyz);
