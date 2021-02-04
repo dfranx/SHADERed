@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project version="2">
 	<pipeline>
-		<pass name="GBuffer" type="shader" active="true">
+		<pass name="GBuffer" type="shader" active="true" patchverts="1">
 			<shader type="vs" path="shaders\SimpleVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\SimplePS.hlsl" entry="main" />
 			<inputlayout>
@@ -54,7 +54,7 @@
 			</variables>
 			<macros />
 		</pass>
-		<pass name="Processing" type="shader" active="true">
+		<pass name="Processing" type="shader" active="true" patchverts="1">
 			<shader type="vs" path="shaders\ProcessingVS.hlsl" entry="main" />
 			<shader type="ps" path="shaders\ProcessingPS.hlsl" entry="main" />
 			<inputlayout>
@@ -100,7 +100,9 @@
 	</objects>
 	<cameras />
 	<settings>
-		<entry type="property" name="GBuffer" item="pipe" />
+		<entry type="property" name="Processing" item="pipe" />
+		<entry type="file" name="Processing" shader="vs" />
+		<entry type="file" name="Processing" shader="ps" />
 		<entry type="pinned" name="lightPos" owner="Processing" />
 		<entry type="camera" fp="false">
 			<distance>6</distance>
@@ -111,4 +113,5 @@
 		<entry type="clearcolor" r="0" g="0" b="0" a="0" />
 		<entry type="usealpha" val="true" />
 	</settings>
+	<plugindata />
 </project>
