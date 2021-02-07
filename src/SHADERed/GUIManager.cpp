@@ -37,7 +37,7 @@
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/imgui.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <filesystem>
 #include <fstream>
@@ -217,20 +217,45 @@ namespace ed {
 		// load snippets
 		((CodeEditorUI*)Get(ViewID::Code))->LoadSnippets();
 
+		// setup file dialog
+		ifd::FileDialog::Instance().CreateTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
+			GLuint tex;
+
+			glGenTextures(1, &tex);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, (fmt == 0) ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			return (void*)tex;
+		};
+		ifd::FileDialog::Instance().DeleteTexture = [](void* tex) {
+			GLuint texID = (GLuint)((uintptr_t)tex);
+			glDeleteTextures(1, &texID);
+		};
+
+
 		// load file dialog bookmarks
-		std::string bookmarksFileLoc = "data/bookmarks.dat";
-		if (!ed::Settings::Instance().LinuxHomeDirectory.empty())
-			bookmarksFileLoc = ed::Settings::Instance().LinuxHomeDirectory + "data/bookmarks.dat";
+		std::string bookmarksFileLoc = Settings::Instance().ConvertPath("data/filedialog.dat");
 		std::ifstream bookmarksFile(bookmarksFileLoc);
-		std::string bookmarksString((std::istreambuf_iterator<char>(bookmarksFile)), std::istreambuf_iterator<char>());
-		igfd::ImGuiFileDialog::Instance()->DeserializeBookmarks(bookmarksString);
+		int fdlgFileVersion = 0;
+		float fdlgZoom = 1.0f;
+		std::string bookmark;
+		bookmarksFile >> fdlgFileVersion;
+		bookmarksFile >> fdlgZoom;
+		while (std::getline(bookmarksFile, bookmark))
+			ifd::FileDialog::Instance().AddFavorite(std::wstring(bookmark.begin(), bookmark.end()));
+		ifd::FileDialog::Instance().SetZoom(fdlgZoom);
 
 		// setup splash screen
 		m_splashScreenLoad();
 
 		// load recents
 		std::string currentInfoPath = Settings::Instance().ConvertPath("info.dat");
-
 		int recentsSize = 0;
 		std::ifstream infoReader(currentInfoPath);
 		infoReader.ignore(128, '\n');
@@ -670,7 +695,7 @@ namespace ed {
 					}
 
 					if (cont)
-						igfd::ImGuiFileDialog::Instance()->OpenModal("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*", ".");
+						ifd::FileDialog::Instance().Open("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*");
 				}
 				if (ImGui::BeginMenu("Open Recent")) {
 					int recentCount = 0;
@@ -1206,9 +1231,15 @@ namespace ed {
 	}
 	void GUIManager::Destroy()
 	{
-		std::string bookmarksFileLoc = Settings::Instance().ConvertPath("data/bookmarks.dat");
+		std::string bookmarksFileLoc = Settings::Instance().ConvertPath("data/filedialog.dat");
 		std::ofstream bookmarksFile(bookmarksFileLoc);
-		bookmarksFile << igfd::ImGuiFileDialog::Instance()->SerializeBookmarks();
+		int fdlgFileVersion = 0;
+		float fdlgZoom = ifd::FileDialog::Instance().GetZoom();
+		std::string bookmark;
+		bookmarksFile << fdlgFileVersion << std::endl;
+		bookmarksFile << fdlgZoom << std::endl;
+		for (const auto& fav : ifd::FileDialog::Instance().GetFavorites())
+			bookmarksFile << std::string(fav.begin(), fav.end()) << std::endl;
 		bookmarksFile.close();
 
 		CodeEditorUI* codeUI = ((CodeEditorUI*)Get(ViewID::Code));
@@ -1277,7 +1308,7 @@ namespace ed {
 			}
 
 			if (cont)
-				igfd::ImGuiFileDialog::Instance()->OpenModal("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*", ".");
+				ifd::FileDialog::Instance().Open("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*");
 		}
 		m_tooltip("Open a project");
 		ImGui::SameLine();
@@ -1728,7 +1759,7 @@ namespace ed {
 		m_saveAsRestoreCache = restoreCached;
 		m_saveAsHandle = handle;
 		m_saveAsPreHandle = preHandle;
-		igfd::ImGuiFileDialog::Instance()->OpenModal("SaveProjectDlg", "Save project", "SHADERed project (*.sprj){.sprj},.*", ".");
+		ifd::FileDialog::Instance().Save("SaveProjectDlg", "Save project", "SHADERed project (*.sprj){.sprj},.*");
 	}
 	void GUIManager::Open(const std::string& file)
 	{
@@ -2009,11 +2040,11 @@ namespace ed {
 	}
 	void GUIManager::CreateNewTexture()
 	{
-		igfd::ImGuiFileDialog::Instance()->OpenModal("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".", 0);
+		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 	}
 	void GUIManager::CreateNewAudio()
 	{
-		igfd::ImGuiFileDialog::Instance()->OpenModal("CreateAudioDlg", "Select audio file", "Audio file (*.wav;*.flac;*.ogg;*.midi){.wav,.flac,.ogg,.midi},.*", ".", 0);
+		ifd::FileDialog::Instance().Open("CreateAudioDlg", "Select audio file", "Audio file (*.wav;*.flac;*.ogg;*.midi){.wav,.flac,.ogg,.midi},.*");
 	}
 
 	void GUIManager::m_renderPopups(float delta)
@@ -2134,44 +2165,41 @@ namespace ed {
 		}
 
 		// File dialogs (open project, create texture, create audio, pick cubemap face texture)
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("OpenProjectDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				Open(filePathName);
+		if (ifd::FileDialog::Instance().IsDone("OpenProjectDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring filePathName = ifd::FileDialog::Instance().GetResult();
+				Open(std::string(filePathName.begin(), filePathName.end()));
 			}
 
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("OpenProjectDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateTextureDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection();
-
-				for (auto pair : sel) {
-					std::string file = m_data->Parser.GetRelativePath(pair.second);
-					if (!file.empty())
-						m_data->Objects.CreateTexture(file);
-				}
+		if (ifd::FileDialog::Instance().IsDone("CreateTextureDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				// IGFD-TODO: multiple file selection
+				std::wstring filePathName = ifd::FileDialog::Instance().GetResult();
+				m_data->Objects.CreateTexture(std::string(filePathName.begin(), filePathName.end()));
 			}
 
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("CreateTextureDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateAudioDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string filepath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				std::string rfile = m_data->Parser.GetRelativePath(filepath);
+		if (ifd::FileDialog::Instance().IsDone("CreateAudioDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring filepath = ifd::FileDialog::Instance().GetResult();
+				std::string rfile = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));
 				if (!rfile.empty())
 					m_data->Objects.CreateAudio(rfile);
 			}
 
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("CreateAudioDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveProjectDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+		if (ifd::FileDialog::Instance().IsDone("SaveProjectDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
 				if (m_saveAsPreHandle)
 					m_saveAsPreHandle();
 
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				m_data->Parser.SaveAs(file, true);
+				std::wstring file = ifd::FileDialog::Instance().GetResult();
+				std::string fileStr(file.begin(), file.end());
+				m_data->Parser.SaveAs(fileStr, true);
 
 				// cache opened code editors
 				CodeEditorUI* editor = ((CodeEditorUI*)Get(ViewID::Code));
@@ -2182,8 +2210,8 @@ namespace ed {
 				this->StopDebugging();
 				this->ResetWorkspace();
 
-				m_addProjectToRecents(file);
-				m_data->Parser.Open(file);
+				m_addProjectToRecents(fileStr);
+				m_data->Parser.Open(fileStr);
 
 				std::string projName = m_data->Parser.GetOpenedFile();
 				projName = projName.substr(projName.find_last_of("/\\") + 1);
@@ -2202,9 +2230,9 @@ namespace ed {
 			}
 
 			if (m_saveAsHandle != nullptr)
-				m_saveAsHandle(igfd::ImGuiFileDialog::Instance()->IsOk);
+				m_saveAsHandle(ifd::FileDialog::Instance().HasResult());
 
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveProjectDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 
 		// Create RT popup
@@ -2250,7 +2278,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##left")) {
 				m_cubemapPathPtr = &left;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - left", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - left", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
 			ImGui::Text("Top: %s", std::filesystem::path(top).filename().string().c_str());
@@ -2258,7 +2286,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##top")) {
 				m_cubemapPathPtr = &top;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - top", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - top", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
 			ImGui::Text("Front: %s", std::filesystem::path(front).filename().string().c_str());
@@ -2266,7 +2294,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##front")) {
 				m_cubemapPathPtr = &front;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - front", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - front", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
 			ImGui::Text("Bottom: %s", std::filesystem::path(bottom).filename().string().c_str());
@@ -2274,7 +2302,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##bottom")) {
 				m_cubemapPathPtr = &bottom;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - bottom", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - bottom", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
 			ImGui::Text("Right: %s", std::filesystem::path(right).filename().string().c_str());
@@ -2282,7 +2310,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##right")) {
 				m_cubemapPathPtr = &right;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - right", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - right", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
 			ImGui::Text("Back: %s", std::filesystem::path(back).filename().string().c_str());
@@ -2290,16 +2318,16 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##back")) {
 				m_cubemapPathPtr = &back;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CubemapFaceDlg", "Select cubemap face - back", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - back", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			}
 
-			if (igfd::ImGuiFileDialog::Instance()->FileDialog("CubemapFaceDlg")) {
-				if (igfd::ImGuiFileDialog::Instance()->IsOk && m_cubemapPathPtr != nullptr) {
-					std::string filepath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-					*m_cubemapPathPtr = m_data->Parser.GetRelativePath(filepath);
+			if (ifd::FileDialog::Instance().IsDone("CubemapFaceDlg")) {
+				if (ifd::FileDialog::Instance().HasResult() && m_cubemapPathPtr != nullptr) {
+					std::wstring filepath = ifd::FileDialog::Instance().GetResult();
+					*m_cubemapPathPtr = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));
 				}
 
-				igfd::ImGuiFileDialog::Instance()->CloseDialog("CubemapFaceDlg");
+				ifd::FileDialog::Instance().Close();
 			}
 
 			if (ImGui::Button("Ok") && strlen(buf) > 0 && !m_data->Objects.Exists(buf)) {
@@ -2519,11 +2547,13 @@ namespace ed {
 			ImGui::TextWrapped("Path: %s", m_previewSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##save_prev_path"))
-				igfd::ImGuiFileDialog::Instance()->OpenModal("SavePreviewDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
-			if (igfd::ImGuiFileDialog::Instance()->FileDialog("SavePreviewDlg")) {
-				if (igfd::ImGuiFileDialog::Instance()->IsOk)
-					m_previewSavePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				igfd::ImGuiFileDialog::Instance()->CloseDialog("SavePreviewDlg");
+				ifd::FileDialog::Instance().Save("SavePreviewDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+			if (ifd::FileDialog::Instance().IsDone("SavePreviewDlg")) {
+				if (ifd::FileDialog::Instance().HasResult()) {
+					std::wstring previewSavePath = ifd::FileDialog::Instance().GetResult();
+					m_previewSavePath = std::string(previewSavePath.begin(), previewSavePath.end());
+				}
+				ifd::FileDialog::Instance().Close();
 			}
 
 			ImGui::Text("Width: ");
@@ -2681,11 +2711,13 @@ namespace ed {
 			ImGui::TextWrapped("Output file: %s", m_expcppSavePath.c_str());
 			ImGui::SameLine();
 			if (ImGui::Button("...##expcpp_savepath"))
-				igfd::ImGuiFileDialog::Instance()->OpenModal("ExportCPPDlg", "Save", "C++ source file (*.cpp;*.cxx){.cpp,.cxx},.*", ".");
-			if (igfd::ImGuiFileDialog::Instance()->FileDialog("ExportCPPDlg")) {
-				if (igfd::ImGuiFileDialog::Instance()->IsOk)
-					m_expcppSavePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				igfd::ImGuiFileDialog::Instance()->CloseDialog("ExportCPPDlg");
+				ifd::FileDialog::Instance().Save("ExportCPPDlg", "Save", "C++ source file (*.cpp;*.cxx){.cpp,.cxx},.*");
+			if (ifd::FileDialog::Instance().IsDone("ExportCPPDlg")) {
+				if (ifd::FileDialog::Instance().HasResult()) {
+					std::wstring expcppSavePath = ifd::FileDialog::Instance().GetResult();
+					m_expcppSavePath = std::string(expcppSavePath.begin(), expcppSavePath.end());
+				}
+				ifd::FileDialog::Instance().Close();
 			}
 
 			// store shaders in files
@@ -2819,7 +2851,7 @@ namespace ed {
 			}
 
 			if (cont)
-				igfd::ImGuiFileDialog::Instance()->OpenModal("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*", ".");
+				ifd::FileDialog::Instance().Open("OpenProjectDlg", "Open SHADERed project", "SHADERed project (*.sprj){.sprj},.*");
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.New", [=]() {
 			this->ResetWorkspace();

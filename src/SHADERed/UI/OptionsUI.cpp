@@ -7,7 +7,7 @@
 #include <SHADERed/UI/OptionsUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -80,17 +80,19 @@ namespace ed {
 
 		
 		
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("OptionsFontDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				file = std::filesystem::relative(file).generic_string();
-				strcpy(m_dialogPath, file.c_str());
+		if (ifd::FileDialog::Instance().IsDone("OptionsFontDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring file = ifd::FileDialog::Instance().GetResult();
+				file = std::filesystem::relative(file).generic_wstring();
+				strcpy(m_dialogPath, std::string(file.begin(), file.end()).c_str());
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("OptionsFontDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("AddIncludeDirDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string ipath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("AddIncludeDirDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring ipathW = ifd::FileDialog::Instance().GetResult();
+				std::string ipath(ipathW.begin(), ipathW.end());
+
 				bool exists = false;
 				for (int i = 0; i < Settings::Instance().Project.IncludePaths.size(); i++)
 					if (Settings::Instance().Project.IncludePaths[i] == ipath) {
@@ -102,7 +104,7 @@ namespace ed {
 					Settings::Instance().Project.IncludePaths.push_back(m_data->Parser.GetRelativePath(ipath));
 				}
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("AddIncludeDirDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 
 		if (m_overwriteShortcutOpened) {
@@ -522,7 +524,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
 			m_dialogPath = settings->General.Font;
-			igfd::ImGuiFileDialog::Instance()->OpenModal("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*", ".");
+			ifd::FileDialog::Instance().Open("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*");
 		}
 
 		/* FONT SIZE: */
@@ -634,7 +636,7 @@ namespace ed {
 		ImGui::SameLine();
 		if (ImGui::Button("...", ImVec2(-1, 0))) {
 			m_dialogPath = settings->Editor.Font;
-			igfd::ImGuiFileDialog::Instance()->OpenModal("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*", ".");
+			ifd::FileDialog::Instance().Open("OptionsFontDlg", "Select a font", "Font (*.ttf;*.otf){.ttf,.otf},.*");
 		}
 
 		/* FONT SIZE: */
@@ -1022,7 +1024,7 @@ namespace ed {
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 		if (ImGui::Button("ADD##optpr_btnaddext"))
-			igfd::ImGuiFileDialog::Instance()->OpenModal("AddIncludeDirDlg", "Select a directory", nullptr, ".");
+			ifd::FileDialog::Instance().Open("AddIncludeDirDlg", "Select a directory", "");
 		ImGui::SameLine();
 		if (ImGui::Button("REMOVE##optpr_btnremext")) {
 			std::string glslExtEntryStr(ipathEntry);

@@ -6,7 +6,7 @@
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -218,7 +218,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_vsbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->VSPath;
 						m_dialogShaderType = "Vertex";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 
@@ -253,7 +253,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_psbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->PSPath;
 						m_dialogShaderType = "Pixel";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -297,7 +297,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_gsbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->GSPath;
 						m_dialogShaderType = "Geometry";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -351,7 +351,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_tcsbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->TCSPath;
 						m_dialogShaderType = "Tessellation Control";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -381,7 +381,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_tesbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->TESPath;
 						m_dialogShaderType = "Tessellation Evaluation";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tcs,.tes,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -415,7 +415,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_csbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->Path;
 						m_dialogShaderType = "Compute";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
 					ImGui::NextColumn();
 					ImGui::Separator();
@@ -464,7 +464,7 @@ namespace ed {
 					if (ImGui::Button("...##pui_ssbtn", ImVec2(-1, 0))) {
 						m_dialogPath = item->Path;
 						m_dialogShaderType = "Audio";
-						igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
 				} else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
@@ -1294,7 +1294,7 @@ namespace ed {
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0)))
-					igfd::ImGuiFileDialog::Instance()->OpenModal("PropertyTextureDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 				ImGui::NextColumn();
 				ImGui::Separator();
 
@@ -1408,9 +1408,11 @@ namespace ed {
 
 		
 		// file dialogs
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("PropertyShaderDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("PropertyShaderDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
+
+				std::string file(fileW.begin(), fileW.end());
 				file = m_data->Parser.GetRelativePath(file);
 
 				strcpy(m_dialogPath, file.c_str());
@@ -1423,15 +1425,17 @@ namespace ed {
 				} else
 					m_data->Messages.Add(ed::MessageStack::Type::Error, m_current->Name, m_dialogShaderType + " shader file doesnt exist");
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("PropertyShaderDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("PropertyTextureDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("PropertyTextureDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
+
+				std::string file(fileW.begin(), fileW.end());
 				file = m_data->Parser.GetRelativePath(file);
 				m_data->Objects.ReloadTexture(m_currentObj, file);
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("PropertyTextureDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 	}
 	void PropertyUI::Open(ed::PipelineItem* item)

@@ -6,7 +6,7 @@
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 namespace ed {
 	void ObjectPreviewUI::Open(ObjectManagerItem* item)
@@ -212,26 +212,27 @@ namespace ed {
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD BYTE DATA FROM TEXTURE")) {
 							m_dialogActionType = 0;
-							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD FLOAT DATA FROM TEXTURE")) {
 							m_dialogActionType = 1;
-							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 						}
 						if (ImGui::Button("LOAD DATA FROM 3D MODEL")) {
 							m_dialogActionType = 2;
-							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "3D model", ".*", ".");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "3D model", ".*");
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD RAW DATA")) {
 							m_dialogActionType = 3;
-							igfd::ImGuiFileDialog::Instance()->OpenModal("LoadObjectDlg", "Open", ".*", ".");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Open", ".*");
 						}
 
-						if (igfd::ImGuiFileDialog::Instance()->FileDialog("LoadObjectDlg")) {
-							if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-								std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+						if (ifd::FileDialog::Instance().IsDone("LoadObjectDlg")) {
+							if (ifd::FileDialog::Instance().HasResult()) {
+								std::wstring fileW = ifd::FileDialog::Instance().GetResult();
+								std::string file(fileW.begin(), fileW.end());
 
 								if (m_dialogActionType == 0)
 									m_data->Objects.LoadBufferFromTexture(buf, file);
@@ -242,7 +243,7 @@ namespace ed {
 								else if (m_dialogActionType == 3)
 									m_data->Objects.LoadBufferFromFile(buf, file);
 							}
-							igfd::ImGuiFileDialog::Instance()->CloseDialog("LoadObjectDlg");
+							ifd::FileDialog::Instance().Close();
 						}
 
 						ImGui::Separator();
@@ -371,7 +372,7 @@ namespace ed {
 
 						if (!ImGui::GetIO().KeyAlt && ImGui::BeginPopupContextItem("##context")) {
 							if (ImGui::Selectable("Save")) {
-								igfd::ImGuiFileDialog::Instance()->OpenModal("SavePreviewTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+								ifd::FileDialog::Instance().Save("SavePreviewTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 								m_saveObject = item;
 							}
 							ImGui::EndPopup();
@@ -444,12 +445,12 @@ namespace ed {
 			}
 		}
 
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SavePreviewTextureDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk && m_saveObject) {
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				m_data->Objects.SaveToFile(m_saveObject, filePath);
+		if (ifd::FileDialog::Instance().IsDone("SavePreviewTextureDlg")) {
+			if (ifd::FileDialog::Instance().HasResult() && m_saveObject) {
+				std::wstring filePath = ifd::FileDialog::Instance().GetResult();
+				m_data->Objects.SaveToFile(m_saveObject, std::string(filePath.begin(), filePath.end()));
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("SavePreviewTextureDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 	}
 	bool ObjectPreviewUI::m_drawBufferElement(int row, int col, void* data, ShaderVariable::ValueType type)

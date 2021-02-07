@@ -11,7 +11,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <filesystem>
 #include <fstream>
@@ -146,7 +146,7 @@ namespace ed {
 				m_dialogPath = data->VSPath;
 				m_dialogShaderAuto = &m_isShaderFileAuto[0];
 				m_dialogShaderType = "Vertex";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -170,7 +170,7 @@ namespace ed {
 				m_dialogPath = data->PSPath;
 				m_dialogShaderAuto = &m_isShaderFileAuto[1];
 				m_dialogShaderType = "Pixel";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -210,7 +210,7 @@ namespace ed {
 				m_dialogPath = data->GSPath;
 				m_dialogShaderAuto = &m_isShaderFileAuto[2];
 				m_dialogShaderType = "Geometry";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -268,7 +268,7 @@ namespace ed {
 				m_dialogPath = data->TCSPath;
 				m_dialogShaderAuto = &m_isShaderFileAuto[3];
 				m_dialogShaderType = "Tessellation Control";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tsc,.tes.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tsc,.tes.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -292,7 +292,7 @@ namespace ed {
 				m_dialogPath = data->TESPath;
 				m_dialogShaderAuto = &m_isShaderFileAuto[4];
 				m_dialogShaderType = "Tessellation Evaluation";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tsc,.tes.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.tess,.tsc,.tes.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -321,7 +321,7 @@ namespace ed {
 				m_dialogPath = data->Path;
 				m_dialogShaderAuto = &m_isShaderFileAuto[0];
 				m_dialogShaderType = "Compute";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 
@@ -360,7 +360,7 @@ namespace ed {
 				m_dialogPath = data->Path;
 				m_dialogShaderAuto = &m_isShaderFileAuto[0];
 				m_dialogShaderType = "Audio";
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*", ".");
+				ifd::FileDialog::Instance().Open("CreateItemShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 			}
 			ImGui::NextColumn();
 		}
@@ -653,7 +653,7 @@ namespace ed {
 			ImGui::SameLine();
 			if (ImGui::Button("...##cui_meshfile", ImVec2(-1, 0))) {
 				m_dialogPath = data->Filename;
-				igfd::ImGuiFileDialog::Instance()->OpenModal("CreateMeshDlg", "3D model", ".*", ".");
+				ifd::FileDialog::Instance().Open("CreateMeshDlg", "3D model", ".*");
 			}
 			ImGui::NextColumn();
 
@@ -689,9 +689,10 @@ namespace ed {
 
 		
 		// file dialogs
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateItemShaderDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("CreateItemShaderDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
+				std::string file(fileW.begin(), fileW.end());
 				file = m_data->Parser.GetRelativePath(file);
 
 				if (m_dialogPath != nullptr)
@@ -705,11 +706,12 @@ namespace ed {
 				else
 					m_data->Messages.Add(ed::MessageStack::Type::Error, m_item.Name, m_dialogShaderType + " shader file doesnt exist");
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("CreateItemShaderDlg");
+			ifd::FileDialog::Instance().Close();
 		}
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateMeshDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string file = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("CreateMeshDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
+				std::string file(fileW.begin(), fileW.end());
 				file = m_data->Parser.GetRelativePath(file);
 
 				strcpy(m_dialogPath, file.c_str());
@@ -718,7 +720,7 @@ namespace ed {
 				if (mdl != nullptr)
 					m_groups = mdl->GetMeshNames();
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("CreateMeshDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 	}
 	void CreateItemUI::SetOwner(const char* shaderPass)
