@@ -717,6 +717,7 @@ namespace ed {
 			/* DELETE BUTTON */
 			if (ImGui::Button(UI_ICON_DELETE, BUTTON_ICON_SIZE)) {
 				els.erase(els.begin() + id);
+
 				m_data->Parser.ModifyProject();
 
 				ImGui::PopStyleColor();

@@ -206,11 +206,9 @@ endif()
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
-#<<<<<<< HEAD
-target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include libs/spirv-tools/include)
-#=======
-#target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-tools/include libs/spirv-headers/include)
-#>>>>>>> basic dds file loading, 3d tex support
+
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-tools/include libs/spirv-headers/include)
+
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()

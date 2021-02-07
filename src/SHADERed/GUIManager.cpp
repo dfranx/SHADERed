@@ -2204,6 +2204,25 @@ namespace ed {
 		}
 
 		if (ifd::FileDialog::Instance().IsDone("Create3DTextureDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+			  std::wstring filepath = ifd::FileDialog::Instance().GetResult();
+			  std::string file = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));			  
+			  if (!file.empty())
+			    m_data->Objects.Create3DTexture(file);
+
+			}
+
+			ifd::FileDialog::Instance().Close();
+		}
+		
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateAudioDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filepath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				std::string rfile = m_data->Parser.GetRelativePath(filepath);
+>>>>>>> 7669396eaa55a9fa8c8185de1ca0a41f2ae56116
+
+		
+		if (ifd::FileDialog::Instance().IsDone("Create3DTextureDlg")) {
 		  if (ifd::FileDialog::Instance().HasResult()) {
 		    std::wstring filepath = ifd::FileDialog::Instance().GetResult();
 		    std::string file = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));

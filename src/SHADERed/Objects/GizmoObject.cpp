@@ -371,8 +371,12 @@ namespace ed {
 		
 		float depth = std::numeric_limits<float>::infinity();
 		bool rpInters = glm::intersectRayPlane(rayOrigin, glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
-		if (!rpInters || depth == std::numeric_limits<float>::infinity()) 
+		if (!rpInters || depth == std::numeric_limits<float>::infinity()) {
+		  //LUK: attempt fixing stupid glm issue 
+		  rpInters = glm::intersectRayPlane(rayOrigin, glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), -planeNormal, depth);
+		  if (!rpInters || depth == std::numeric_limits<float>::infinity())
 			return false;
+		}
 		
 		glm::vec4 mouseVec = rayOrigin + depth * glm::vec4(rayDir, 0.0f);
 		glm::vec3 moveVec = glm::vec3(glm::vec3(mouseVec) - m_clickStart);
@@ -523,6 +527,9 @@ namespace ed {
 				glm::vec3 planeOrigin = *m_trans;
 				glm::vec4 planeNormal = glm::vec4(glm::normalize(planeOrigin - glm::vec3(SystemVariableManager::Instance().GetCamera()->GetPosition())), 0);
 				glm::intersectRayPlane(glm::vec4(rayOrigin, 1), glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
+				//LUK: attempt fixing stupid glm issue 
+				if(depth == std::numeric_limits<float>::infinity())
+				  glm::intersectRayPlane(glm::vec4(rayOrigin, 1), glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), -planeNormal, depth);
 			}
 		}
 

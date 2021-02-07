@@ -513,7 +513,12 @@ namespace ed {
 					ImGui::NextColumn();
 
 					ImGui::PushItemWidth(-1);
-					//<<<<<<< HEAD
+#if 0					
+					//LUK: item->Topology was used both as combo index and OGL values
+					//if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
+					if (UIHelper::CreateTopologyCombo("##pui_geotopology", item->Topology))
+						m_data->Parser.ModifyProject();
+#else
 					int selectedTopology = 0;
 					for (selectedTopology = 0; selectedTopology < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); selectedTopology++) {
 						if (TOPOLOGY_ITEM_VALUES[selectedTopology] == item->Topology) 
@@ -521,15 +526,9 @@ namespace ed {
 					}
 					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&selectedTopology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES))) {
 						item->Topology = TOPOLOGY_ITEM_VALUES[selectedTopology];
-#if 0
-						=======
-					//LUK: item->Topology was used both as combo index and OGL values
-					//if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&item->Topology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES)))
-					if (UIHelper::CreateTopologyCombo("##pui_geotopology", item->Topology))
->>>>>>> corrected topology selection via UI combo
-#endif	  
 						m_data->Parser.ModifyProject();
 					}
+#endif
 					ImGui::PopItemWidth();
 					ImGui::NextColumn();
 					ImGui::Separator();
