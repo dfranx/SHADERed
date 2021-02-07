@@ -4,6 +4,7 @@
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Engine/Model.h>
+#include <SHADERed/nv_dds.h>
 
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
@@ -301,6 +302,103 @@ namespace ed {
 		free(flippedData);
 		stbi_image_free(data);
 
+		return true;
+	}
+  	bool ObjectManager::Create3DTexture(const std::string& file)
+	{
+#if 0	  
+		Logger::Get().Log("Creating a 3D texture " + file + " ...");
+
+		if (Exists(file)) {
+			Logger::Get().Log("Cannot create a texture " + file + " because that texture is already added to the project", true);
+			return false;
+		}
+
+		//stbi_set_flip_vertically_on_load(1);
+
+		std::string path = m_parser->GetProjectPath(file);
+		int width, height, depth, nrChannels;
+		//unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		nv_dds::CDDSImage image;
+		image.load(path);
+		
+		if (!image.is_valid()) {
+			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Texture3D);
+		m_items.push_back(item);
+
+		// normal texture
+		//glEnable(GL_TEXTURE_3D);
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapT); //LUK:
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, //image.get_components(),
+			     image.get_width(), image.get_height(), image.get_depth(),
+			     0, image.get_format(), GL_UNSIGNED_BYTE, image);
+
+		glBindTexture(GL_TEXTURE_3D, 0);
+		
+		item->TextureSize = glm::ivec3(image.get_width(), image.get_height(), image.get_depth());
+#endif
+
+		Logger::Get().Log("Creating a 3D image " + file + " ...");
+
+		if (file.size() == 0 || Exists(file)) {
+			Logger::Get().Log("Cannot create the image " + file + " because an item with exact name already exists", true);
+			return false;
+		}
+		std::string path = m_parser->GetProjectPath(file);
+		nv_dds::CDDSImage image;
+		image.load(path);
+		
+		if (!image.is_valid()) {
+		  //Logger::Get().Log("Failed to load a texture " + file + " from file", true);
+		  printf("image3D not valid\n");
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Image3D);
+		item->is3dTex = true; //LUK: mark data already loaded
+		m_items.push_back(item);
+
+		ed::Image3DObject* iObj = item->Image3D = new Image3DObject();
+		iObj->Size = glm::ivec3(image.get_width(), image.get_height(), image.get_depth());//size;
+		iObj->Format = GL_RGB8; //image.get_components(); //GL_RGBA32F;
+		/*
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage3D(GL_TEXTURE_3D, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_3D, 0);
+		*/
+
+		// normal texture
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapT); //LUK:
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, //image.get_components(),
+			     image.get_width(), image.get_height(), image.get_depth(),
+			     0, image.get_format(), GL_UNSIGNED_BYTE, image);
+
+		glBindTexture(GL_TEXTURE_3D, 0);
+		
+		
 		return true;
 	}
 	bool ObjectManager::CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back)

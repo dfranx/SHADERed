@@ -5,7 +5,7 @@
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 #include <imgui/imgui.h>
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 

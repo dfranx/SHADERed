@@ -782,6 +782,8 @@ namespace ed {
 					ImGui::Separator();
 					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str()))
 						this->CreateNewTexture();
+					if (ImGui::MenuItem("3D Texture", KeyboardShortcuts::Instance().GetString("Project.New3DTexture").c_str()))
+						this->CreateNew3DTexture();
 					if (ImGui::MenuItem("Cubemap", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str()))
 						this->CreateNewCubemap();
 					if (ImGui::MenuItem("Audio", KeyboardShortcuts::Instance().GetString("Project.NewAudio").c_str()))
@@ -1347,6 +1349,9 @@ namespace ed {
 		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNewTexture();
 		m_tooltip("New texture");
 		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_FILE_IMAGE)) this->CreateNew3DTexture();
+		m_tooltip("New 3D texture");
+		ImGui::SameLine();		
 		if (ImGui::Button(UI_ICON_IMAGE)) this->CreateNewImage();
 		m_tooltip("New empty image");
 		ImGui::SameLine();
@@ -2042,6 +2047,10 @@ namespace ed {
 	{
 		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 	}
+  	void GUIManager::CreateNew3DTexture()
+	{       //LUK:
+		igfd::ImGuiFileDialog::Instance()->OpenModal("Create3DTextureDlg", "Select texture(s)", "DDS file (*.dds){.dds},.*", ".", 0);
+	}  
 	void GUIManager::CreateNewAudio()
 	{
 		ifd::FileDialog::Instance().Open("CreateAudioDlg", "Select audio file", "Audio file (*.wav;*.flac;*.ogg;*.midi){.wav,.flac,.ogg,.midi},.*");
@@ -2182,10 +2191,31 @@ namespace ed {
 
 			ifd::FileDialog::Instance().Close();
 		}
+		
 		if (ifd::FileDialog::Instance().IsDone("CreateAudioDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
 				std::wstring filepath = ifd::FileDialog::Instance().GetResult();
 				std::string rfile = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));
+#if 0				
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("Create3DTextureDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				auto sel = igfd::ImGuiFileDialog::Instance()->GetSelection();
+
+				for (auto pair : sel) {
+					std::string file = m_data->Parser.GetRelativePath(pair.second);
+					if (!file.empty())
+						m_data->Objects.Create3DTexture(file);
+				}
+			}
+
+			igfd::ImGuiFileDialog::Instance()->CloseDialog("Create3DTextureDlg");
+		}
+		if (igfd::ImGuiFileDialog::Instance()->FileDialog("CreateAudioDlg")) {
+			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
+				std::string filepath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+				std::string rfile = m_data->Parser.GetRelativePath(filepath);
+>>>>>>> basic dds file loading, 3d tex support
+#endif	  
 				if (!rfile.empty())
 					m_data->Objects.CreateAudio(rfile);
 			}

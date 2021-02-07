@@ -27,6 +27,7 @@ namespace ed {
 		bool CreateBuffer(const std::string& file);
 		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1, 1));
 		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1));
+		bool Create3DTexture(const std::string& file);
 		bool CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin1* owner);
 		bool CreateKeyboardTexture(const std::string& name);
 		
