@@ -13,7 +13,7 @@
 #include <SHADERed/UI/PropertyUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <vector>
@@ -897,22 +897,23 @@ namespace ed {
 						return 2;
 					};
 					plugin2->ImGuiFileDialogOpen = [](const char* key, const char* title, const char* filter) {
-						igfd::ImGuiFileDialog::Instance()->OpenModal(key, title, filter, ".");
+						ifd::FileDialog::Instance().Save(key, title, filter);
 					};
 					plugin2->ImGuiDirectoryDialogOpen = [](const char* key, const char* title) {
-						igfd::ImGuiFileDialog::Instance()->OpenModal(key, title, nullptr, ".");
+						ifd::FileDialog::Instance().Open(key, title, "");
 					};
 					plugin2->ImGuiFileDialogIsDone = [](const char* key) -> bool {
-						return igfd::ImGuiFileDialog::Instance()->FileDialog(key);
+						return ifd::FileDialog::Instance().IsDone(key);
 					};
 					plugin2->ImGuiFileDialogClose = [](const char* key) {
-						igfd::ImGuiFileDialog::Instance()->CloseDialog(key);
+						ifd::FileDialog::Instance().Close();
 					};
 					plugin2->ImGuiFileDialogGetResult = []() -> bool {
-						return igfd::ImGuiFileDialog::Instance()->IsOk;
+						return ifd::FileDialog::Instance().HasResult();
 					};
 					plugin2->ImGuiFileDialogGetPath = [](char* outPath) {
-						strcpy(outPath, igfd::ImGuiFileDialog::Instance()->GetFilepathName().c_str());
+						std::wstring res = ifd::FileDialog::Instance().GetResult();
+						strcpy(outPath, std::string(res.begin(), res.end()).c_str());
 					};
 					plugin2->DebuggerImmediate = [](void* Debugger, const char* expr) -> const char* {
 						static std::string buffer;

@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #define IMAGE_CONTEXT_WIDTH Settings::Instance().CalculateSize(150)
 
@@ -173,7 +173,7 @@ namespace ed {
 
 				if (oItem->Type == ObjectType::RenderTexture || oItem->Type == ObjectType::Image || oItem->Type == ObjectType::Texture) {
 					if (ImGui::Selectable("Save")) {
-						igfd::ImGuiFileDialog::Instance()->OpenModal("SaveTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", ".");
+						ifd::FileDialog::Instance().Save("SaveTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 						m_saveObject = oItem;
 					}
 				}
@@ -271,12 +271,12 @@ namespace ed {
 
 		ImGui::EndChild();
 
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveTextureDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk && m_saveObject) {
-				std::string filePath = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
-				m_data->Objects.SaveToFile(m_saveObject, filePath);
+		if (ifd::FileDialog::Instance().IsDone("SaveTextureDlg")) {
+			if (ifd::FileDialog::Instance().HasResult() && m_saveObject) {
+				std::wstring filePathW = ifd::FileDialog::Instance().GetResult();
+				m_data->Objects.SaveToFile(m_saveObject, std::string(filePathW.begin(), filePathW.end()));
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveTextureDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 
 		if (!itemMenuOpened && ImGui::BeginPopupContextItem("##context_main_objects")) {

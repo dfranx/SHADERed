@@ -6,7 +6,7 @@
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <ImFileDialog/ImFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -160,14 +160,14 @@ namespace ed {
 	{
 		if (id < m_items.size()) {
 			m_editorSaveRequestID = id;
-			igfd::ImGuiFileDialog::Instance()->OpenModal("SaveSPVBinaryDlg", "Save SPIR-V binary", "SPIR-V binary (*.spv){.spv},.*", ".");
+			ifd::FileDialog::Instance().Save("SaveSPVBinaryDlg", "Save SPIR-V binary", "SPIR-V binary (*.spv){.spv},.*");
 		}
 	}
 	void CodeEditorUI::m_saveAsGLSL(int id)
 	{
 		if (id < m_items.size()) {
 			m_editorSaveRequestID = id;
-			igfd::ImGuiFileDialog::Instance()->OpenModal("SaveGLSLDlg", "Save as GLSL", "GLSL source (*.glsl){.glsl},.*", ".");
+			ifd::FileDialog::Instance().Save("SaveGLSLDlg", "Save as GLSL", "GLSL source (*.glsl){.glsl},.*");
 		}
 	}
 	void CodeEditorUI::m_compile(int id)
@@ -394,9 +394,10 @@ namespace ed {
 		}
 
 		// save spir-v binary dialog
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveSPVBinaryDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("SaveSPVBinaryDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring filePathNameW = ifd::FileDialog::Instance().GetResult();
+				std::string filePathName = std::string(filePathNameW.begin(), filePathNameW.end());
 
 				std::vector<unsigned int> spv;
 
@@ -432,13 +433,14 @@ namespace ed {
 				spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
 				spvOut.close();
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveSPVBinaryDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 
 		// save glsl dialog
-		if (igfd::ImGuiFileDialog::Instance()->FileDialog("SaveGLSLDlg")) {
-			if (igfd::ImGuiFileDialog::Instance()->IsOk) {
-				std::string filePathName = igfd::ImGuiFileDialog::Instance()->GetFilepathName();
+		if (ifd::FileDialog::Instance().IsDone("SaveGLSLDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::wstring filePathNameW = ifd::FileDialog::Instance().GetResult();
+				std::string filePathName = std::string(filePathNameW.begin(), filePathNameW.end());
 
 				std::vector<unsigned int> spv;
 				bool gsUsed = false;
@@ -488,7 +490,7 @@ namespace ed {
 				spvOut.write(glslSource.c_str(), glslSource.size());
 				spvOut.close();
 			}
-			igfd::ImGuiFileDialog::Instance()->CloseDialog("SaveGLSLDlg");
+			ifd::FileDialog::Instance().Close();
 		}
 
 		// delete closed editors

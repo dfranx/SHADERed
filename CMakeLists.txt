@@ -102,7 +102,7 @@ set(SOURCES
 	libs/pugixml/src/pugixml.cpp
 	libs/ShaderExpressionParser/Parser.cpp
 	libs/ShaderExpressionParser/Tokenizer.cpp
-	libs/ImGuiFileDialog/ImGuiFileDialog.cpp
+	libs/ImFileDialog/ImFileDialog.cpp
 )
 
 
