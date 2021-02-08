@@ -354,13 +354,13 @@ namespace ed {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			glViewport(0.0f, 0.0f, imageSize.x, imageSize.y);
 
-			if (settings.Preview.Gizmo && m_picks.size() != 0 && pixelList.size() == 0) {
+			if (!paused && settings.Preview.Gizmo && m_picks.size() != 0 && pixelList.size() == 0) {
 				m_gizmo.SetProjectionMatrix(SystemVariableManager::Instance().GetProjectionMatrix());
 				m_gizmo.SetViewMatrix(SystemVariableManager::Instance().GetCamera()->GetMatrix());
 				m_gizmo.Render();
 			}
 
-			if (settings.Preview.BoundingBox && m_picks.size() != 0 && pixelList.size() == 0)
+			if (!paused && settings.Preview.BoundingBox && m_picks.size() != 0 && pixelList.size() == 0)
 				m_renderBoundingBox();
 
 			if (m_zoom.IsSelecting())
