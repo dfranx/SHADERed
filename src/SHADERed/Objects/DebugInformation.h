@@ -120,6 +120,9 @@ namespace ed {
 		inline bool IsGeometryUpdated() { return m_updatedGeometryOutput; }
 		inline void ResetGeometryUpdated() { m_updatedGeometryOutput = false; }
 
+		// VertexShaderPosition & smart bounding box
+		glm::vec4 GetPositionThroughVertexShader(PipelineItem* pass, PipelineItem* item, const glm::vec3& pos);
+
 	private:
 		ObjectManager* m_objs;
 		RenderEngine* m_renderer;

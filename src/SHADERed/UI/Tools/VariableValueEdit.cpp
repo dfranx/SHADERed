@@ -317,6 +317,15 @@ namespace ed {
 				if (isSelected)
 					ImGui::SetItemDefaultFocus();
 
+				/* VERTEX SHADER POSITION */
+				isSelected = strcmp(propName, "VertexShaderPosition") == 0;
+				if (ImGui::Selectable("VertexShaderPosition", isSelected)) {
+					strcpy(propName, "VertexShaderPosition");
+					ret = true;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
 				ImGui::EndCombo();
 			}
 			ImGui::NextColumn();

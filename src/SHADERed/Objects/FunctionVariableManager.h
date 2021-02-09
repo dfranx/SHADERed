@@ -1,6 +1,8 @@
 #pragma once
 #include <SHADERed/Objects/ShaderVariable.h>
 #include <SHADERed/Objects/PipelineManager.h>
+#include <SHADERed/Objects/Debug/PixelInformation.h>
+#include <SHADERed/Engine/Timer.h>
 #include <vector>
 
 namespace ed {
@@ -8,7 +10,7 @@ namespace ed {
 	public:
 		FunctionVariableManager();
 
-		void Initialize(PipelineManager* pipe);
+		void Initialize(PipelineManager* pipe, DebugInformation* dbgr, RenderEngine* rndr);
 
 		void AddToList(ed::ShaderVariable* var);
 		void Update(ed::ShaderVariable* var);
@@ -29,7 +31,12 @@ namespace ed {
 		}
 
 	private:
+		std::unordered_map<void*, eng::Timer> m_vertexShaderTimer;
+		std::unordered_map<void*, glm::vec4> m_vertexShaderCache;
+
 		int m_currentIndex;
 		PipelineManager* m_pipeline;
+		DebugInformation* m_debugger;
+		RenderEngine* m_renderer;
 	};
 }

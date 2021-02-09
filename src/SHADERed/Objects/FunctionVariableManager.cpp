@@ -1,5 +1,7 @@
 #include <SHADERed/Objects/CameraSnapshots.h>
 #include <SHADERed/Objects/FunctionVariableManager.h>
+#include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/SystemVariableManager.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,9 +12,11 @@ namespace ed {
 		m_currentIndex = 0;
 	}
 
-	void FunctionVariableManager::Initialize(PipelineManager* pipe)
+	void FunctionVariableManager::Initialize(PipelineManager* pipe, DebugInformation* dbgr, RenderEngine* rndr)
 	{
 		m_pipeline = pipe;
+		m_debugger = dbgr;
+		m_renderer = rndr;
 		m_currentIndex = 0;
 	}
 
@@ -62,6 +66,15 @@ namespace ed {
 					dataVal = glm::vec4(geom->Scale, 0.0f);
 				else if (strcmp(propName, "Rotation") == 0)
 					dataVal = glm::vec4(geom->Rotation, 0.0f);
+				else if (strcmp(propName, "VertexShaderPosition") == 0) {
+					if (m_vertexShaderTimer[item->Data].GetElapsedTime() < 1.0f / 30.0f)
+						dataVal = m_vertexShaderCache[item->Data];
+					else {
+						PipelineItem* passItem = m_pipeline->Get(m_pipeline->GetItemOwner(item->Name));
+						m_vertexShaderCache[item->Data] = dataVal = m_debugger->GetPositionThroughVertexShader(passItem, item, glm::vec3(0.0f));
+						m_vertexShaderTimer[item->Data].Restart();
+					}
+				}
 			} else if (item->Type == PipelineItem::ItemType::Model) {
 				pipe::Model* mdl = (pipe::Model*)item->Data;
 
@@ -71,6 +84,15 @@ namespace ed {
 					dataVal = glm::vec4(mdl->Scale, 0.0f);
 				else if (strcmp(propName, "Rotation") == 0)
 					dataVal = glm::vec4(mdl->Rotation, 0.0f);
+				else if (strcmp(propName, "VertexShaderPosition") == 0) {
+					if (m_vertexShaderTimer[item->Data].GetElapsedTime() < 1.0f / 30.0f)
+						dataVal = m_vertexShaderCache[item->Data];
+					else {
+						PipelineItem* passItem = m_pipeline->Get(m_pipeline->GetItemOwner(item->Name));
+						m_vertexShaderCache[item->Data] = dataVal = m_debugger->GetPositionThroughVertexShader(passItem, item, glm::vec3(0.0f));
+						m_vertexShaderTimer[item->Data].Restart();
+					}
+				}
 			} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
 				pipe::VertexBuffer* vbuf = (pipe::VertexBuffer*)item->Data;
 
@@ -80,6 +102,15 @@ namespace ed {
 					dataVal = glm::vec4(vbuf->Scale, 0.0f);
 				else if (strcmp(propName, "Rotation") == 0)
 					dataVal = glm::vec4(vbuf->Rotation, 0.0f);
+				else if (strcmp(propName, "VertexShaderPosition") == 0) {
+					if (m_vertexShaderTimer[item->Data].GetElapsedTime() < 1.0f / 30.0f)
+						dataVal = m_vertexShaderCache[item->Data];
+					else {
+						PipelineItem* passItem = m_pipeline->Get(m_pipeline->GetItemOwner(item->Name));
+						m_vertexShaderCache[item->Data] = dataVal = m_debugger->GetPositionThroughVertexShader(passItem, item, glm::vec3(0.0f));
+						m_vertexShaderTimer[item->Data].Restart();
+					}
+				}
 			}
 
 			if (var->GetType() == ShaderVariable::ValueType::Float3)
@@ -216,6 +247,15 @@ namespace ed {
 	}
 	void FunctionVariableManager::ClearVariableList()
 	{
+		for (auto it = m_vertexShaderTimer.begin(); it != m_vertexShaderTimer.end();) {
+			if (it->second.GetElapsedTime() > 1.0f) {
+				if (m_vertexShaderCache.count(it->first))
+					m_vertexShaderCache.erase(it->first);
+				it = m_vertexShaderTimer.erase(it);
+			}
+			else
+				++it;
+		}
 		VariableList.clear();
 		m_currentIndex = 0;
 	}

@@ -35,6 +35,7 @@ namespace ed {
 			VertexCount = 0;
 			RenderTexture = nullptr;
 			RenderTextureIndex = 0;
+			InstanceBuffer = nullptr;
 			InstanceID = 0;
 			VertexID = 0;
 			GeometryOutputType = GeometryShaderOutput::Points;

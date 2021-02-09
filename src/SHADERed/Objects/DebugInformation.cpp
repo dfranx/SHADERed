@@ -2572,4 +2572,31 @@ namespace ed {
 	void DebugInformation::EndPrimitive() {
 		m_pixel->GeometryOutput.push_back(GeometryShaderPrimitive());
 	}
+
+	glm::vec4 DebugInformation::GetPositionThroughVertexShader(PipelineItem* pass, PipelineItem* item, const glm::vec3& pos)
+	{
+		glm::vec4 ret(0.0f);
+
+		if (pass != nullptr && item != nullptr && pass->Type == PipelineItem::ItemType::ShaderPass) {
+			if (((pipe::ShaderPass*)pass->Data)->VSSPV.size() > 0) {
+				PixelInformation px;
+				px.Pass = pass;
+				px.Object = item;
+				px.InTopology = GL_POINTS;
+				px.VertexID = 0;
+				px.InstanceID = 0;
+				px.VertexCount = 1;
+				px.RenderTextureSize = m_renderer->GetLastRenderSize();
+				px.Vertex[0].Position = pos;
+				px.Vertex[1].Position = pos;
+				px.Vertex[2].Position = pos;
+
+				this->PrepareVertexShader(pass, item, &px);
+				this->SetVertexShaderInput(px, 0);
+				ret = glm::inverse(SystemVariableManager::Instance().GetViewProjectionMatrix()) * this->ExecuteVertexShader();
+			}
+		}
+
+		return ret;
+	}
 }

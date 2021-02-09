@@ -204,7 +204,7 @@ namespace ed {
 
 		((OptionsUI*)m_options)->ApplyTheme();
 
-		FunctionVariableManager::Instance().Initialize(&objects->Pipeline);
+		FunctionVariableManager::Instance().Initialize(&objects->Pipeline, &objects->Debugger, &objects->Renderer);
 		m_data->Renderer.Pause(Settings::Instance().Preview.PausedOnStartup);
 
 		m_kbInfo.SetText(std::string(KEYBOARD_KEYCODES_TEXT));
@@ -407,7 +407,7 @@ namespace ed {
 		Settings& settings = Settings::Instance();
 		m_performanceMode = m_perfModeFake;
 
-		// update audio textures
+		// reset FunctionVariableManager
 		FunctionVariableManager::Instance().ClearVariableList();
 
 		// update editor & workspace font
