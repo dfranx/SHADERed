@@ -1,6 +1,7 @@
 [v1.4.4]
 + add tessellation shaders
 + add new file dialog
++ add PickPosition variable
 + add VertexShaderPosition variable
 + fix a bug where gizmo and bounding box would still render even when preview is paused
 

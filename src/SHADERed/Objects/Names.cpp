@@ -50,6 +50,7 @@ const char* SYSTEM_VARIABLE_NAMES[] = {
 	"KeysWASD",
 	"Mouse",
 	"MouseButton",
+	"PickPosition",
 	"PluginVariable"
 };
 const char* VARIABLE_TYPE_NAMES[] = {

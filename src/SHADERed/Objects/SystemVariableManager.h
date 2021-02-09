@@ -56,6 +56,7 @@ namespace ed {
 			case ed::SystemShaderVariable::CameraPosition3: return ed::ShaderVariable::ValueType::Float3;
 			case ed::SystemShaderVariable::CameraDirection3: return ed::ShaderVariable::ValueType::Float3;
 			case ed::SystemShaderVariable::KeysWASD: return ed::ShaderVariable::ValueType::Integer4;
+			case ed::SystemShaderVariable::PickPosition: return ed::ShaderVariable::ValueType::Float3;
 			}
 
 			return ed::ShaderVariable::ValueType::Float1;
@@ -74,12 +75,13 @@ namespace ed {
 		inline glm::mat4 GetOrthographicMatrix() { return glm::ortho(0.0f, m_curState.Viewport.x, m_curState.Viewport.y, 0.0f, 0.1f, 1000.0f); }
 		inline glm::mat4 GetViewProjectionMatrix() { return GetProjectionMatrix() * GetViewMatrix(); }
 		inline glm::mat4 GetViewOrthographicMatrix() { return GetOrthographicMatrix() * GetViewMatrix(); }
-		inline glm::mat4 GetGeometryTransform(PipelineItem* item) { return m_curGeoTransform[item]; }
-		inline glm::vec2 GetViewportSize() { return m_curState.Viewport; }
-		inline glm::ivec4 GetKeysWASD() { return m_curState.WASD; }
-		inline glm::vec2 GetMousePosition() { return m_curState.MousePosition; }
-		inline glm::vec4 GetMouse() { return m_curState.Mouse; }
-		inline glm::vec4 GetMouseButton() { return m_curState.MouseButton; }
+		inline const glm::mat4& GetGeometryTransform(PipelineItem* item) { return m_curGeoTransform[item]; }
+		inline const glm::vec2& GetViewportSize() { return m_curState.Viewport; }
+		inline const glm::ivec4& GetKeysWASD() { return m_curState.WASD; }
+		inline const glm::vec2& GetMousePosition() { return m_curState.MousePosition; }
+		inline const glm::vec4& GetMouse() { return m_curState.Mouse; }
+		inline const glm::vec4& GetMouseButton() { return m_curState.MouseButton; }
+		inline const glm::vec3& GetPickPosition() { return m_curState.PickPosition; }
 		inline unsigned int GetFrameIndex() { return m_curState.FrameIndex; }
 		inline float GetTime() { return m_timer.GetElapsedTime() + m_advTimer; }
 		inline eng::Timer& GetTimeClock() { return m_timer; }
@@ -99,6 +101,7 @@ namespace ed {
 		inline void SetKeysWASD(int w, int a, int s, int d) { m_curState.WASD = glm::ivec4(w, a, s, d); }
 		inline void SetFrameIndex(unsigned int ind) { m_curState.FrameIndex = ind; }
 		inline void SetSavingToFile(bool isSaving) { m_curState.IsSavingToFile = isSaving; }
+		inline void SetPickPosition(const glm::vec3& pos) { m_curState.PickPosition = pos; }
 
 		inline void AdvanceTimer(float t) { m_advTimer += t; }
 
@@ -117,6 +120,7 @@ namespace ed {
 			unsigned int FrameIndex;
 			glm::ivec4 WASD;
 			glm::vec4 Mouse, MouseButton;
+			glm::vec3 PickPosition;
 		} m_prevState, m_curState;
 
 		std::unordered_map<PipelineItem*, glm::mat4> m_curGeoTransform, m_prevGeoTransform;

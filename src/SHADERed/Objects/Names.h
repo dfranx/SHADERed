@@ -2,7 +2,7 @@
 
 // NAMES //
 extern const char* TOPOLOGY_ITEM_NAMES[11];
-extern const char* SYSTEM_VARIABLE_NAMES[21];
+extern const char* SYSTEM_VARIABLE_NAMES[22];
 extern const char* VARIABLE_TYPE_NAMES[15];
 extern const char* VARIABLE_TYPE_NAMES_GLSL[15];
 extern const char* FUNCTION_NAMES[22];

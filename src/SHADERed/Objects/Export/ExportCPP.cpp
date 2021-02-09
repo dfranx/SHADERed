@@ -188,7 +188,7 @@ namespace ed {
 		case ed::SystemShaderVariable::MousePosition: return "sysMousePosition";
 		}
 
-		return "";
+		return "shaderVariable";
 	}
 
 	std::string getVariableValue(ed::ShaderVariable* var)

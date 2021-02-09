@@ -37,6 +37,7 @@ namespace ed {
 		KeysWASD,		   // vec4 - are W, A, S or D keys pressed
 		Mouse,			   // vec4 - (x,y,left,right) updated every frame
 		MouseButton,	   // vec4 - (x,y,left,right) updated only when mouse button pressed
+		PickPosition,	   // vec3 - last pick position
 		PluginVariable,	   // a value that is updated by some plugin
 		Count
 	};

@@ -529,7 +529,10 @@ namespace ed {
 				((ed::ArcBallCamera*)SystemVariableManager::Instance().GetCamera())->Move(-ImGui::GetIO().MouseWheel);
 
 			// handle left click - selection
-			if (isNotMinimalMode && ((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && (settings.Preview.Gizmo || settings.Preview.BoundingBox) && !ImGui::GetIO().KeyAlt) {
+			if ((settings.Preview.Gizmo || settings.Preview.BoundingBox) && !ImGui::GetIO().KeyAlt && 
+				isNotMinimalMode && 
+				((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)))
+			{
 				// screen space position
 				glm::vec2 s(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 

@@ -41,7 +41,7 @@ namespace ed {
 			if (tzmax < tmax)
 				tmax = tzmax;
 
-			distHit = tmax;
+			distHit = tmin;
 
 			return true;
 		}

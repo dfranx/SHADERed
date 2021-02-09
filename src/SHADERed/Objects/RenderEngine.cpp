@@ -1796,6 +1796,8 @@ namespace ed {
 
 		// did we actually pick sth that is closer?
 		if (myDist < m_pickDist) {
+			SystemVariableManager::Instance().SetPickPosition(m_pickOrigin + m_pickDir * myDist);
+
 			m_pickDist = myDist;
 			AddPickedItem(item, multiPick);
 		}

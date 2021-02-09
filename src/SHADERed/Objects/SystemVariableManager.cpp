@@ -48,42 +48,34 @@ namespace ed {
 					rawMatrix = this->GetGeometryTransform((PipelineItem*)item);
 					memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 					break;
-				case ed::SystemShaderVariable::ViewportSize: {
-					glm::vec2 raw = this->GetViewportSize();
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
-				} break;
-				case ed::SystemShaderVariable::MousePosition: {
-					glm::vec2 raw = this->GetMousePosition();
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
-				} break;
-				case ed::SystemShaderVariable::Mouse: {
-					glm::vec4 raw = this->GetMouse();
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
-				} break;
-				case ed::SystemShaderVariable::MouseButton: {
-					glm::vec4 raw = this->GetMouseButton();
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
-				} break;
+				case ed::SystemShaderVariable::ViewportSize:
+					memcpy(var->Data, glm::value_ptr(GetViewportSize()), sizeof(glm::vec2));
+					break;
+				case ed::SystemShaderVariable::MousePosition:
+					memcpy(var->Data, glm::value_ptr(GetMousePosition()), sizeof(glm::vec2));
+					break;
+				case ed::SystemShaderVariable::Mouse:
+					memcpy(var->Data, glm::value_ptr(GetMouse()), sizeof(glm::vec4));
+					break;
+				case ed::SystemShaderVariable::MouseButton:
+					memcpy(var->Data, glm::value_ptr(GetMouseButton()), sizeof(glm::vec4));
+					break;
 				case ed::SystemShaderVariable::Time: {
 					float raw = this->GetTime();
 					memcpy(var->Data, &raw, sizeof(float));
 				} break;
-				case ed::SystemShaderVariable::TimeDelta: {
-					float raw = this->GetTimeDelta();
-					memcpy(var->Data, &raw, sizeof(float));
-				} break;
-				case ed::SystemShaderVariable::FrameIndex: {
-					unsigned int frame = this->GetFrameIndex();
-					memcpy(var->Data, &frame, sizeof(unsigned int));
-				} break;
-				case ed::SystemShaderVariable::IsPicked: {
-					bool raw = this->IsPicked();
-					memcpy(var->Data, &raw, sizeof(bool));
-				} break;
-				case ed::SystemShaderVariable::IsSavingToFile: {
-					bool raw = this->m_curState.IsSavingToFile;
-					memcpy(var->Data, &raw, sizeof(bool));
-				} break;
+				case ed::SystemShaderVariable::TimeDelta:
+					memcpy(var->Data, &m_curState.DeltaTime, sizeof(float));
+					break;
+				case ed::SystemShaderVariable::FrameIndex:
+					memcpy(var->Data, &m_curState.FrameIndex, sizeof(unsigned int));
+					break;
+				case ed::SystemShaderVariable::IsPicked:
+					memcpy(var->Data, &m_curState.IsPicked, sizeof(bool));
+					break;
+				case ed::SystemShaderVariable::IsSavingToFile:
+					memcpy(var->Data, &m_curState.IsSavingToFile, sizeof(bool));
+					break;
 				case ed::SystemShaderVariable::CameraPosition: {
 					glm::vec3 cam = this->GetCamera()->GetPosition();
 					memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec4));
@@ -96,10 +88,12 @@ namespace ed {
 					glm::vec3 cam = this->GetCamera()->GetViewDirection();
 					memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
 				} break;
-				case ed::SystemShaderVariable::KeysWASD: {
-					glm::ivec4 raw = this->GetKeysWASD();
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::ivec4));
-				} break;
+				case ed::SystemShaderVariable::KeysWASD:
+					memcpy(var->Data, glm::value_ptr(this->GetKeysWASD()), sizeof(glm::ivec4));
+					break;
+				case ed::SystemShaderVariable::PickPosition:
+					memcpy(var->Data, glm::value_ptr(this->GetPickPosition()), sizeof(glm::vec3));
+					break;
 				case ed::SystemShaderVariable::PluginVariable: {
 					PluginSystemVariableData* pvData = &var->PluginSystemVarData;
 					pvData->Owner->SystemVariables_UpdateValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
@@ -134,45 +128,36 @@ namespace ed {
 					memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
 				} break;
 				case ed::SystemShaderVariable::GeometryTransform:
-					rawMatrix = m_prevGeoTransform[(PipelineItem*)item];
-					memcpy(var->Data, glm::value_ptr(rawMatrix), sizeof(glm::mat4));
+					memcpy(var->Data, glm::value_ptr(m_prevGeoTransform[(PipelineItem*)item]), sizeof(glm::mat4));
 					break;
-				case ed::SystemShaderVariable::ViewportSize: {
-					glm::vec2 raw = m_prevState.Viewport;
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
-				} break;
-				case ed::SystemShaderVariable::MousePosition: {
-					glm::vec2 raw = m_prevState.MousePosition;
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec2));
-				} break;
-				case ed::SystemShaderVariable::Mouse: {
-					glm::vec4 raw = m_prevState.Mouse;
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
-				} break;
-				case ed::SystemShaderVariable::MouseButton: {
-					glm::vec4 raw = m_prevState.MouseButton;
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::vec4));
-				} break;
+				case ed::SystemShaderVariable::ViewportSize:
+					memcpy(var->Data, glm::value_ptr(m_prevState.Viewport), sizeof(glm::vec2));
+					break;
+				case ed::SystemShaderVariable::MousePosition:
+					memcpy(var->Data, glm::value_ptr(m_prevState.MousePosition), sizeof(glm::vec2));
+					break;
+				case ed::SystemShaderVariable::Mouse:
+					memcpy(var->Data, glm::value_ptr(m_prevState.Mouse), sizeof(glm::vec4));
+					break;
+				case ed::SystemShaderVariable::MouseButton:
+					memcpy(var->Data, glm::value_ptr(m_prevState.MouseButton), sizeof(glm::vec4));
+					break;
 				case ed::SystemShaderVariable::Time: {
 					float raw = SystemVariableManager::Instance().GetTime();
 					memcpy(var->Data, &raw, sizeof(float));
 				} break;
-				case ed::SystemShaderVariable::TimeDelta: {
-					float raw = m_prevState.DeltaTime;
-					memcpy(var->Data, &raw, sizeof(float));
-				} break;
-				case ed::SystemShaderVariable::FrameIndex: {
-					unsigned int frame = m_prevState.FrameIndex;
-					memcpy(var->Data, &frame, sizeof(unsigned int));
-				} break;
-				case ed::SystemShaderVariable::IsPicked: {
-					bool raw = m_prevState.IsPicked;
-					memcpy(var->Data, &raw, sizeof(bool));
-				} break;
-				case ed::SystemShaderVariable::IsSavingToFile: {
-					bool raw = m_prevState.IsPicked;
-					memcpy(var->Data, &raw, sizeof(bool));
-				} break;
+				case ed::SystemShaderVariable::TimeDelta:
+					memcpy(var->Data, &m_prevState.DeltaTime, sizeof(float));
+					break;
+				case ed::SystemShaderVariable::FrameIndex:
+					memcpy(var->Data, &m_prevState.FrameIndex, sizeof(unsigned int));
+					break;
+				case ed::SystemShaderVariable::IsPicked:
+					memcpy(var->Data, &m_prevState.IsPicked, sizeof(bool));
+					break;
+				case ed::SystemShaderVariable::IsSavingToFile:
+					memcpy(var->Data, &m_prevState.IsSavingToFile, sizeof(bool));
+					break;
 				case ed::SystemShaderVariable::CameraPosition: {
 					glm::vec3 cam = (Settings::Instance().Project.FPCamera ? (Camera*)&m_prevState.FPCam : (Camera*)&m_prevState.ArcCam)->GetPosition();
 					memcpy(var->Data, glm::value_ptr(glm::vec4(cam, 1)), sizeof(glm::vec4));
@@ -185,10 +170,12 @@ namespace ed {
 					glm::vec3 cam = (Settings::Instance().Project.FPCamera ? (Camera*)&m_prevState.FPCam : (Camera*)&m_prevState.ArcCam)->GetViewDirection();
 					memcpy(var->Data, glm::value_ptr(cam), sizeof(glm::vec3));
 				} break;
-				case ed::SystemShaderVariable::KeysWASD: {
-					glm::ivec4 raw = m_prevState.WASD;
-					memcpy(var->Data, glm::value_ptr(raw), sizeof(glm::ivec4));
-				} break;
+				case ed::SystemShaderVariable::KeysWASD:
+					memcpy(var->Data, glm::value_ptr(m_prevState.WASD), sizeof(glm::ivec4));
+					break;
+				case ed::SystemShaderVariable::PickPosition:
+					memcpy(var->Data, glm::value_ptr(m_prevState.PickPosition), sizeof(glm::vec3));
+					break;
 				case ed::SystemShaderVariable::PluginVariable: {
 					PluginSystemVariableData* pvData = &var->PluginSystemVarData;
 					pvData->Owner->SystemVariables_UpdateValue(var->Data, pvData->Name, (plugin::VariableType)var->GetType(), isLastFrame);
@@ -225,6 +212,8 @@ namespace ed {
 			return SystemShaderVariable::GeometryTransform;
 		else if (vname.find("picked") != std::string::npos)
 			return SystemShaderVariable::IsPicked;
+		else if (vname.find("pick") != std::string::npos)
+			return SystemShaderVariable::PickPosition;
 		else if (vname.find("issaving") != std::string::npos)
 			return SystemShaderVariable::IsSavingToFile;
 		else if (vname.find("cam") != std::string::npos)
