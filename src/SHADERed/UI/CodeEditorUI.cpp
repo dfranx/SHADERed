@@ -711,6 +711,7 @@ namespace ed {
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
+			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			
 			editor->ClearAutocompleteEntries();
 
@@ -958,6 +959,7 @@ namespace ed {
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
+			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			m_loadEditorShortcuts(editor);
 
 			if (sLang == ShaderLanguage::HLSL)
@@ -1071,6 +1073,7 @@ namespace ed {
 			editor->SetActiveAutocomplete(Settings::Instance().Editor.ActiveSmartPredictions);
 			editor->SetColorizerEnable(Settings::Instance().Editor.SyntaxHighlighting);
 			editor->SetScrollbarMarkers(Settings::Instance().Editor.ScrollbarMarkers);
+			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			m_loadEditorShortcuts(editor);
 
 			unsigned int spvSize = shader->Owner->PipelineItem_GetSPIRVSize(shader->Type, shader->PluginData, (plugin::ShaderStage)shaderStage);

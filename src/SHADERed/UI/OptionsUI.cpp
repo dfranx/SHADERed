@@ -667,6 +667,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##opte_autobrace", &settings->Editor.AutoBraceCompletion);
 
+		/* HIGHLIGHT brackets: */
+		ImGui::Text("Highlight brackets: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_highlight_brackets", &settings->Editor.HighlightBrackets);
+
 		/* LINE NUMBERS: */
 		ImGui::Text("Line numbers: ");
 		ImGui::SameLine();

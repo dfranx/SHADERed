@@ -59,6 +59,7 @@ namespace ed {
 		Editor.FunctionDeclarationTooltips = false;
 		Editor.SyntaxHighlighting = true;
 		Editor.ScrollbarMarkers = true;
+		Editor.HighlightBrackets = true;
 
 		Debug.ShowValuesOnHover = true;
 		Debug.AutoFetch = true;
@@ -143,6 +144,7 @@ namespace ed {
 		Editor.FunctionDeclarationTooltips = ini.GetBoolean("editor", "funcdeclrtooltips", false);
 		Editor.SyntaxHighlighting = ini.GetBoolean("editor", "syntaxhighlighting", true);
 		Editor.ScrollbarMarkers = ini.GetBoolean("editor", "scrollbarmarkers", true);
+		Editor.HighlightBrackets = ini.GetBoolean("editor", "highlightbrackets", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", true);
@@ -275,6 +277,7 @@ namespace ed {
 		ini << "funcdeclrtooltips=" << Editor.FunctionDeclarationTooltips << std::endl;
 		ini << "syntaxhighlighting=" << Editor.SyntaxHighlighting << std::endl;
 		ini << "scrollbarmarkers=" << Editor.ScrollbarMarkers << std::endl;
+		ini << "highlightbrackets=" << Editor.HighlightBrackets << std::endl;
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;
