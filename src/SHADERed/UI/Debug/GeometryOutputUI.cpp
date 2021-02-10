@@ -348,7 +348,7 @@ namespace ed {
 		float wndHeight = ImGui::GetContentRegionAvail().y;
 		if (m_lastFBOHeight != wndHeight || m_lastFBOWidth != wndWidth) {
 			glBindTexture(GL_TEXTURE_2D, m_fboColor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, wndWidth, wndHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, wndWidth, wndHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 			glBindTexture(GL_TEXTURE_2D, m_fboDepth);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, wndWidth, wndHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -357,12 +357,24 @@ namespace ed {
 			m_lastFBOHeight = wndHeight;
 		}
 
+		// draw the render texture contents but darkened
+		PixelInformation* px = m_data->Debugger.GetPixel();
+		if (px != nullptr && m_is3D == 0) {
+			ImVec2 curPos = ImGui::GetCursorPos();
+
+			if (px->RenderTexture != nullptr)
+				ImGui::Image((ImTextureID)px->RenderTexture->Texture, ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+			else
+				ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+		
+			ImGui::SetCursorPos(curPos);
+		}
 		// render the contents
 		m_render();
 
-		// draw the image to the window
+		// draw the contents on the window
 		ImVec2 uiPos = ImGui::GetCursorScreenPos();
-		ImGui::Image((ImTextureID)m_fboColor, ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::Image((ImTextureID)m_fboColor, ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.9f, 0.9f, 0.9f, 0.6f));
 
 		// camera controlls
 		if (ImGui::IsItemHovered()) {

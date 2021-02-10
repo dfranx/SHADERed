@@ -3,6 +3,7 @@
 + add new file dialog
 + add PickPosition variable
 + add VertexShaderPosition variable
++ add darkened render texture to GeometryOutputUI
 + fix a bug where gizmo and bounding box would still render even when preview is paused
 
 [v1.4.3]
