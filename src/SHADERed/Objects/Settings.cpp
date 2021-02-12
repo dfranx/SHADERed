@@ -60,6 +60,7 @@ namespace ed {
 		Editor.SyntaxHighlighting = true;
 		Editor.ScrollbarMarkers = true;
 		Editor.HighlightBrackets = true;
+		Editor.CodeFolding = true;
 
 		Debug.ShowValuesOnHover = true;
 		Debug.AutoFetch = true;
@@ -145,6 +146,7 @@ namespace ed {
 		Editor.SyntaxHighlighting = ini.GetBoolean("editor", "syntaxhighlighting", true);
 		Editor.ScrollbarMarkers = ini.GetBoolean("editor", "scrollbarmarkers", true);
 		Editor.HighlightBrackets = ini.GetBoolean("editor", "highlightbrackets", true);
+		Editor.CodeFolding = ini.GetBoolean("editor", "codefolding", true);
 
 		Debug.ShowValuesOnHover = ini.GetBoolean("debug", "valuesonhover", true);
 		Debug.AutoFetch = ini.GetBoolean("debug", "autofetch", true);
@@ -278,6 +280,7 @@ namespace ed {
 		ini << "syntaxhighlighting=" << Editor.SyntaxHighlighting << std::endl;
 		ini << "scrollbarmarkers=" << Editor.ScrollbarMarkers << std::endl;
 		ini << "highlightbrackets=" << Editor.HighlightBrackets << std::endl;
+		ini << "codefolding" << Editor.CodeFolding << std::endl;
 
 		ini << "[debug]" << std::endl;
 		ini << "valuesonhover=" << Debug.ShowValuesOnHover << std::endl;

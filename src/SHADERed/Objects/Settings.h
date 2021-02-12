@@ -70,6 +70,7 @@ namespace ed {
 			bool SyntaxHighlighting;
 			bool ScrollbarMarkers;
 			bool HighlightBrackets;
+			bool CodeFolding;
 			int TabSize;
 		} Editor;
 

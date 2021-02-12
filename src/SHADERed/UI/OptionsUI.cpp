@@ -615,6 +615,11 @@ namespace ed {
 			ImGui::PopItemFlag();
 		}
 
+		/* CODE FOLDING: */
+		ImGui::Text("Code folding: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##opte_code_folding", &settings->Editor.CodeFolding);
+
 		/* SHOW WHITESPACE: */
 		ImGui::Text("Show whitespace: ");
 		ImGui::SameLine();

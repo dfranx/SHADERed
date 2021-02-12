@@ -1,6 +1,8 @@
 [v1.4.4]
 + add tessellation shaders
 + add new file dialog
++ add code folding
++ add "Highlight brackets" option to text editor
 + add PickPosition variable
 + add VertexShaderPosition variable
 + add darkened render texture to GeometryOutputUI
