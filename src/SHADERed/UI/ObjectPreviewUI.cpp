@@ -231,8 +231,7 @@ namespace ed {
 
 						if (ifd::FileDialog::Instance().IsDone("LoadObjectDlg")) {
 							if (ifd::FileDialog::Instance().HasResult()) {
-								std::wstring fileW = ifd::FileDialog::Instance().GetResult();
-								std::string file(fileW.begin(), fileW.end());
+								std::string file = ifd::FileDialog::Instance().GetResult().u8string();
 
 								if (m_dialogActionType == 0)
 									m_data->Objects.LoadBufferFromTexture(buf, file);
@@ -446,10 +445,8 @@ namespace ed {
 		}
 
 		if (ifd::FileDialog::Instance().IsDone("SavePreviewTextureDlg")) {
-			if (ifd::FileDialog::Instance().HasResult() && m_saveObject) {
-				std::wstring filePath = ifd::FileDialog::Instance().GetResult();
-				m_data->Objects.SaveToFile(m_saveObject, std::string(filePath.begin(), filePath.end()));
-			}
+			if (ifd::FileDialog::Instance().HasResult() && m_saveObject)
+				m_data->Objects.SaveToFile(m_saveObject, ifd::FileDialog::Instance().GetResult().u8string());
 			ifd::FileDialog::Instance().Close();
 		}
 	}

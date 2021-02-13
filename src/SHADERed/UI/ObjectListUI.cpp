@@ -272,10 +272,8 @@ namespace ed {
 		ImGui::EndChild();
 
 		if (ifd::FileDialog::Instance().IsDone("SaveTextureDlg")) {
-			if (ifd::FileDialog::Instance().HasResult() && m_saveObject) {
-				std::wstring filePathW = ifd::FileDialog::Instance().GetResult();
-				m_data->Objects.SaveToFile(m_saveObject, std::string(filePathW.begin(), filePathW.end()));
-			}
+			if (ifd::FileDialog::Instance().HasResult() && m_saveObject)
+				m_data->Objects.SaveToFile(m_saveObject, ifd::FileDialog::Instance().GetResult().u8string());
 			ifd::FileDialog::Instance().Close();
 		}
 

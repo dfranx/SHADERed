@@ -1410,9 +1410,7 @@ namespace ed {
 		// file dialogs
 		if (ifd::FileDialog::Instance().IsDone("PropertyShaderDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
-
-				std::string file(fileW.begin(), fileW.end());
+				std::string file = ifd::FileDialog::Instance().GetResult().u8string();
 				file = m_data->Parser.GetRelativePath(file);
 
 				strcpy(m_dialogPath, file.c_str());
@@ -1429,9 +1427,7 @@ namespace ed {
 		}
 		if (ifd::FileDialog::Instance().IsDone("PropertyTextureDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring fileW = ifd::FileDialog::Instance().GetResult();
-
-				std::string file(fileW.begin(), fileW.end());
+				std::string file = ifd::FileDialog::Instance().GetResult().u8string();
 				file = m_data->Parser.GetRelativePath(file);
 				m_data->Objects.ReloadTexture(m_currentObj, file);
 			}

@@ -248,7 +248,7 @@ namespace ed {
 		bookmarksFile >> fdlgFileVersion;
 		bookmarksFile >> fdlgZoom;
 		while (std::getline(bookmarksFile, bookmark))
-			ifd::FileDialog::Instance().AddFavorite(std::wstring(bookmark.begin(), bookmark.end()));
+			ifd::FileDialog::Instance().AddFavorite(bookmark);
 		ifd::FileDialog::Instance().SetZoom(fdlgZoom);
 
 		// setup splash screen
@@ -1239,7 +1239,7 @@ namespace ed {
 		bookmarksFile << fdlgFileVersion << std::endl;
 		bookmarksFile << fdlgZoom << std::endl;
 		for (const auto& fav : ifd::FileDialog::Instance().GetFavorites())
-			bookmarksFile << std::string(fav.begin(), fav.end()) << std::endl;
+			bookmarksFile << fav << std::endl;
 		bookmarksFile.close();
 
 		CodeEditorUI* codeUI = ((CodeEditorUI*)Get(ViewID::Code));
@@ -2040,7 +2040,7 @@ namespace ed {
 	}
 	void GUIManager::CreateNewTexture()
 	{
-		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", true);
 	}
 	void GUIManager::CreateNewAudio()
 	{
@@ -2166,26 +2166,23 @@ namespace ed {
 
 		// File dialogs (open project, create texture, create audio, pick cubemap face texture)
 		if (ifd::FileDialog::Instance().IsDone("OpenProjectDlg")) {
-			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring filePathName = ifd::FileDialog::Instance().GetResult();
-				Open(std::string(filePathName.begin(), filePathName.end()));
-			}
+			if (ifd::FileDialog::Instance().HasResult()) 
+				Open(ifd::FileDialog::Instance().GetResult().u8string());
 
 			ifd::FileDialog::Instance().Close();
 		}
 		if (ifd::FileDialog::Instance().IsDone("CreateTextureDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				// IGFD-TODO: multiple file selection
-				std::wstring filePathName = ifd::FileDialog::Instance().GetResult();
-				m_data->Objects.CreateTexture(std::string(filePathName.begin(), filePathName.end()));
+				const std::vector<std::filesystem::path>& results = ifd::FileDialog::Instance().GetResults();
+				for (const auto& res : results)
+					m_data->Objects.CreateTexture(res.u8string());
 			}
 
 			ifd::FileDialog::Instance().Close();
 		}
 		if (ifd::FileDialog::Instance().IsDone("CreateAudioDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring filepath = ifd::FileDialog::Instance().GetResult();
-				std::string rfile = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));
+				std::string rfile = m_data->Parser.GetRelativePath(ifd::FileDialog::Instance().GetResult().u8string());
 				if (!rfile.empty())
 					m_data->Objects.CreateAudio(rfile);
 			}
@@ -2197,9 +2194,8 @@ namespace ed {
 				if (m_saveAsPreHandle)
 					m_saveAsPreHandle();
 
-				std::wstring file = ifd::FileDialog::Instance().GetResult();
-				std::string fileStr(file.begin(), file.end());
-				m_data->Parser.SaveAs(fileStr, true);
+				std::string fileName = ifd::FileDialog::Instance().GetResult().u8string();
+				m_data->Parser.SaveAs(fileName, true);
 
 				// cache opened code editors
 				CodeEditorUI* editor = ((CodeEditorUI*)Get(ViewID::Code));
@@ -2210,8 +2206,8 @@ namespace ed {
 				this->StopDebugging();
 				this->ResetWorkspace();
 
-				m_addProjectToRecents(fileStr);
-				m_data->Parser.Open(fileStr);
+				m_addProjectToRecents(fileName);
+				m_data->Parser.Open(fileName);
 
 				std::string projName = m_data->Parser.GetOpenedFile();
 				projName = projName.substr(projName.find_last_of("/\\") + 1);
@@ -2322,10 +2318,8 @@ namespace ed {
 			}
 
 			if (ifd::FileDialog::Instance().IsDone("CubemapFaceDlg")) {
-				if (ifd::FileDialog::Instance().HasResult() && m_cubemapPathPtr != nullptr) {
-					std::wstring filepath = ifd::FileDialog::Instance().GetResult();
-					*m_cubemapPathPtr = m_data->Parser.GetRelativePath(std::string(filepath.begin(), filepath.end()));
-				}
+				if (ifd::FileDialog::Instance().HasResult() && m_cubemapPathPtr != nullptr)
+					*m_cubemapPathPtr = m_data->Parser.GetRelativePath(ifd::FileDialog::Instance().GetResult().u8string());
 
 				ifd::FileDialog::Instance().Close();
 			}
@@ -2549,10 +2543,8 @@ namespace ed {
 			if (ImGui::Button("...##save_prev_path"))
 				ifd::FileDialog::Instance().Save("SavePreviewDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 			if (ifd::FileDialog::Instance().IsDone("SavePreviewDlg")) {
-				if (ifd::FileDialog::Instance().HasResult()) {
-					std::wstring previewSavePath = ifd::FileDialog::Instance().GetResult();
-					m_previewSavePath = std::string(previewSavePath.begin(), previewSavePath.end());
-				}
+				if (ifd::FileDialog::Instance().HasResult())
+					m_previewSavePath = ifd::FileDialog::Instance().GetResult().u8string();
 				ifd::FileDialog::Instance().Close();
 			}
 
@@ -2713,10 +2705,8 @@ namespace ed {
 			if (ImGui::Button("...##expcpp_savepath"))
 				ifd::FileDialog::Instance().Save("ExportCPPDlg", "Save", "C++ source file (*.cpp;*.cxx){.cpp,.cxx},.*");
 			if (ifd::FileDialog::Instance().IsDone("ExportCPPDlg")) {
-				if (ifd::FileDialog::Instance().HasResult()) {
-					std::wstring expcppSavePath = ifd::FileDialog::Instance().GetResult();
-					m_expcppSavePath = std::string(expcppSavePath.begin(), expcppSavePath.end());
-				}
+				if (ifd::FileDialog::Instance().HasResult())
+					m_expcppSavePath = ifd::FileDialog::Instance().GetResult().u8string();
 				ifd::FileDialog::Instance().Close();
 			}
 

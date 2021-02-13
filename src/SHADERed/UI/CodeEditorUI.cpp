@@ -396,8 +396,7 @@ namespace ed {
 		// save spir-v binary dialog
 		if (ifd::FileDialog::Instance().IsDone("SaveSPVBinaryDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring filePathNameW = ifd::FileDialog::Instance().GetResult();
-				std::string filePathName = std::string(filePathNameW.begin(), filePathNameW.end());
+				std::string filePathName = ifd::FileDialog::Instance().GetResult().u8string();
 
 				std::vector<unsigned int> spv;
 
@@ -439,8 +438,7 @@ namespace ed {
 		// save glsl dialog
 		if (ifd::FileDialog::Instance().IsDone("SaveGLSLDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring filePathNameW = ifd::FileDialog::Instance().GetResult();
-				std::string filePathName = std::string(filePathNameW.begin(), filePathNameW.end());
+				std::string filePathName = ifd::FileDialog::Instance().GetResult().u8string();
 
 				std::vector<unsigned int> spv;
 				bool gsUsed = false;

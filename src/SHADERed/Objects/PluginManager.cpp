@@ -912,8 +912,8 @@ namespace ed {
 						return ifd::FileDialog::Instance().HasResult();
 					};
 					plugin2->ImGuiFileDialogGetPath = [](char* outPath) {
-						std::wstring res = ifd::FileDialog::Instance().GetResult();
-						strcpy(outPath, std::string(res.begin(), res.end()).c_str());
+						std::string res = ifd::FileDialog::Instance().GetResult().u8string();
+						strcpy(outPath, res.c_str());
 					};
 					plugin2->DebuggerImmediate = [](void* Debugger, const char* expr) -> const char* {
 						static std::string buffer;

@@ -82,16 +82,14 @@ namespace ed {
 		
 		if (ifd::FileDialog::Instance().IsDone("OptionsFontDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring file = ifd::FileDialog::Instance().GetResult();
-				file = std::filesystem::relative(file).generic_wstring();
-				strcpy(m_dialogPath, std::string(file.begin(), file.end()).c_str());
+				std::string file = std::filesystem::relative(ifd::FileDialog::Instance().GetResult()).generic_u8string();
+				strcpy(m_dialogPath, file.c_str());
 			}
 			ifd::FileDialog::Instance().Close();
 		}
 		if (ifd::FileDialog::Instance().IsDone("AddIncludeDirDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
-				std::wstring ipathW = ifd::FileDialog::Instance().GetResult();
-				std::string ipath(ipathW.begin(), ipathW.end());
+				std::string ipath = ifd::FileDialog::Instance().GetResult().u8string();
 
 				bool exists = false;
 				for (int i = 0; i < Settings::Instance().Project.IncludePaths.size(); i++)
