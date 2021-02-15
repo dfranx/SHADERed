@@ -393,6 +393,8 @@ namespace ed {
 
 		// set macros
 		std::string preambleStr = (inLang == ShaderLanguage::HLSL) ? "#extension GL_GOOGLE_include_directive : enable\n" : "";
+		if (inLang == ShaderLanguage::HLSL && (sType == ShaderStage::TessellationControl || sType == ShaderStage::TessellationEvaluation))
+			preambleStr += "#extension GL_EXT_debug_printf : enable\n";
 
 #ifdef SHADERED_WEB
 		preambleStr += "#define SHADERED_WEB\n";
@@ -462,10 +464,20 @@ namespace ed {
 		// link
 		glslang::TProgram prog;
 		prog.addShader(&shader);
-
+		
 		if (!prog.link(messages)) {
-			if (msgs != nullptr)
+			if (msgs != nullptr) {
 				msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, "Shader linking failed", -1, sType);
+				
+				const char* infoLog = prog.getInfoLog();
+				if (infoLog != nullptr) {
+					std::string info(infoLog);
+					size_t errorLoc = info.find("ERROR:");
+					size_t errorEnd = info.find("\n", errorLoc+1);
+					if (errorLoc != std::string::npos && errorEnd != std::string::npos)
+						msgs->Add(MessageStack::Type::Error, msgs->CurrentItem, info.substr(errorLoc+7, errorEnd-errorLoc-7), -1, sType);
+				}
+			}
 			return false;
 		}
 

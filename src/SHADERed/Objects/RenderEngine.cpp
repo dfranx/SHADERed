@@ -1349,7 +1349,7 @@ namespace ed {
 			PipelineItem* item = m_items[i];
 			if (item->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
-				if (strcmp(shader->VSPath, fname) == 0 || strcmp(shader->PSPath, fname) == 0 || strcmp(shader->GSPath, fname) == 0) {
+				if (strcmp(shader->VSPath, fname) == 0 || strcmp(shader->TESPath, fname) == 0 || strcmp(shader->TCSPath, fname) == 0 || strcmp(shader->PSPath, fname) == 0 || strcmp(shader->GSPath, fname) == 0) {
 					Recompile(item->Name);
 				}
 			} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {

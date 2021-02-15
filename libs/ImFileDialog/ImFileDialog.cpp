@@ -150,7 +150,11 @@ namespace ifd {
 					ImGui::SameLine();
 				}
 				if (ImGui::Button(btnList[i].c_str(), ImVec2(0, GUI_ELEMENT_SIZE))) {
+#ifdef _WIN32
 					std::string newPath = "";
+#else
+					std::string newPath = "/";
+#endif
 					for (int j = 0; j <= i; j++) {
 						newPath += btnList[j];
 #ifdef _WIN32
