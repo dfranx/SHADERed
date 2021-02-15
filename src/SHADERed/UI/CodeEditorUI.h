@@ -44,7 +44,7 @@ namespace ed {
 		void SaveAll();
 
 		void Open(PipelineItem* item, ed::ShaderStage stage);
-		void OpenFile(TextEditor* tEdit, const std::string& tEditPath, const std::string& path);
+		void OpenFile(const std::string& path);
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 		TextEditor* Get(const std::string& path);

@@ -6,7 +6,8 @@
 + add "Highlight brackets" option to text editor
 + add PickPosition variable
 + add VertexShaderPosition variable
-+ add darkened render texture to GeometryOutputUI
++ add darkened render texture as background to GeometryOutputUI
++ add the ability to open a shader file by drag and dropping it into the window
 + fix a bug where gizmo and bounding box would still render even when preview is paused
 
 [v1.4.3]

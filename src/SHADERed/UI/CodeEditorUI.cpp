@@ -968,7 +968,7 @@ namespace ed {
 			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			editor->SetFoldEnabled(Settings::Instance().Editor.CodeFolding);
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
-				OpenFile(tEdit, tEditPath, m_findIncludedFile(tEditPath, path));
+				OpenFile(m_findIncludedFile(tEditPath, path));
 			};
 			m_loadEditorShortcuts(editor);
 
@@ -1006,7 +1006,7 @@ namespace ed {
 			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
 		}
 	}
-	void CodeEditorUI::OpenFile(TextEditor* tEdit, const std::string& tEditPath, const std::string& path)
+	void CodeEditorUI::OpenFile(const std::string& path)
 	{
 		std::string shaderContent = "";
 		bool externalEditor = Settings::Instance().General.UseExternalEditor;
@@ -1079,7 +1079,7 @@ namespace ed {
 			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			editor->SetFoldEnabled(Settings::Instance().Editor.CodeFolding);
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
-				OpenFile(tEdit, tEditPath, m_findIncludedFile(tEditPath, path));
+				OpenFile(m_findIncludedFile(tEditPath, path));
 			};
 			m_loadEditorShortcuts(editor);
 
@@ -1191,7 +1191,7 @@ namespace ed {
 			editor->SetHiglightBrackets(Settings::Instance().Editor.HighlightBrackets);
 			editor->SetFoldEnabled(Settings::Instance().Editor.CodeFolding);
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
-				OpenFile(tEdit, tEditPath, path);
+				OpenFile(m_findIncludedFile(tEditPath, path));
 			};
 			m_loadEditorShortcuts(editor);
 

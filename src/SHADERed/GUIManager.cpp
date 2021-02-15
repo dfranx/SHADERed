@@ -337,6 +337,7 @@ namespace ed {
 				const std::vector<std::string> imgExt = { "png", "jpeg", "jpg", "bmp", "gif", "psd", "pic", "pnm", "hdr", "tga" };
 				const std::vector<std::string> sndExt = { "ogg", "wav", "flac", "aiff", "raw" }; // TODO: more file ext
 				const std::vector<std::string> projExt = { "sprj" };
+				const std::vector<std::string> shaderExt = { "hlsl", "glsl", "vert", "frag", "geom", "tess", "shader" };
 
 				if (std::count(projExt.begin(), projExt.end(), ext) > 0) {
 					bool cont = true;
@@ -352,6 +353,8 @@ namespace ed {
 					m_data->Objects.CreateTexture(file);
 				else if (std::count(sndExt.begin(), sndExt.end(), ext) > 0)
 					m_data->Objects.CreateAudio(file);
+				else if (std::count(shaderExt.begin(), shaderExt.end(), ext) > 0)
+					((CodeEditorUI*)Get(ed::ViewID::Code))->OpenFile(m_data->Parser.GetProjectPath(file));
 				else
 					m_data->Plugins.HandleDropFile(file.c_str());
 			}
