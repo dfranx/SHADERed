@@ -2,6 +2,7 @@
 + add tessellation shaders
 + add new file dialog
 + add code folding
++ add the ability to CTRL+Click on keywords, functions, headers... etc in the text editor
 + add "Highlight brackets" option to text editor
 + add PickPosition variable
 + add VertexShaderPosition variable

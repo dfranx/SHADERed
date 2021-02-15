@@ -32,8 +32,10 @@ namespace ed {
 	void StatsPage::Refresh(PipelineItem* item, ShaderStage stage)
 	{
 		m_spv.clear();
-		std::string disassembly = "";
+		if (item == nullptr)
+			return;
 
+		std::string disassembly = "";
 		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
 
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {

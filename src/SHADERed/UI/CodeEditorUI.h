@@ -44,6 +44,7 @@ namespace ed {
 		void SaveAll();
 
 		void Open(PipelineItem* item, ed::ShaderStage stage);
+		void OpenFile(TextEditor* tEdit, const std::string& tEditPath, const std::string& path);
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 		TextEditor* Get(const std::string& path);
@@ -83,6 +84,7 @@ namespace ed {
 	private:
 		void m_setupShortcuts();
 		void m_loadEditorShortcuts(TextEditor* editor);
+		std::string m_findIncludedFile(const std::string& relativeTo, const std::string& path);
 
 		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin1* plugin, int languageID);
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
@@ -131,8 +133,7 @@ namespace ed {
 		int m_fontSize;
 
 		bool m_focusWindow;
-		ShaderStage m_focusStage;
-		std::string m_focusItem;
+		std::string m_focusPath;
 
 		int m_savePopupOpen;
 		int m_selectedItem;
