@@ -264,7 +264,7 @@ namespace ed {
 
 					{ "--compile | -c <file>", "compile a shader file" },
 					{ "--language | -cl <language>", "compiler input language" },
-					{ "--stage | -cs <vert|frag|geom|comp>", "compiler input stage" },
+					{ "--stage | -cs <stage>", "compiler input stage; stage can be one of these: vert, geom, tesc, tese, frag, comp" },
 					{ "--output | -o <path>", "compiler output path" },
 					{ "--target | -t <spirv|glsl>", "choose whether to compile to SPIR-V or GLSL" },
 					{ "--entry | -e <funcname>", "shader entry" },
