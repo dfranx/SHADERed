@@ -164,7 +164,7 @@ namespace ed {
 		Preview.GizmoSnapRotation = ini.GetInteger("preview", "gizmosnaprota", 0);
 		Preview.GizmoSnapTranslation = ini.GetInteger("preview", "gizmosnaptrans", 0);
 		Preview.PropertyPick = ini.GetBoolean("preview", "propertypick", true);
-		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", false);
+		Preview.StatusBar = ini.GetBoolean("preview", "statusbar", true);
 		Preview.FPSLimit = ini.GetInteger("preview", "fpslimit", -1);
 		Preview.ApplyFPSLimitToApp = ini.GetBoolean("preview", "fpslimitwholeapp", false);
 		Preview.LostFocusLimitFPS = ini.GetBoolean("preview", "fpslimitlostfocus", false);
