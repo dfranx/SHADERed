@@ -24,8 +24,8 @@ namespace ed {
 
 		void BuildHeatmap();
 		inline float* GetHeatmap() { return m_heatmap; }
-		inline uint32_t GetHeatmapMax() { return m_heatmapMax; }
-		inline uint32_t GetInstructionCount(int x, int y) { return m_heatmapTemp[y * m_width + x]; }
+		inline uint32_t GetHeatmapMax() { return m_instCountMax; }
+		inline uint32_t GetInstructionCount(int x, int y) { return m_instCount[y * m_width + x]; }
 
 	private:
 		class EdgeEquation {
@@ -62,8 +62,8 @@ namespace ed {
 		uint32_t* m_color;
 		int m_width, m_height;
 
-		uint32_t m_heatmapMax, m_heatmapAvg, m_heatmapCount;
-		uint32_t* m_heatmapTemp;
+		uint32_t m_instCountMax, m_instCountAvg, m_instCountAvgN;
+		uint32_t* m_instCount;
 		float* m_heatmap;
 
 		PipelineItem* m_pass;

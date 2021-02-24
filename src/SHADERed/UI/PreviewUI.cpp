@@ -355,13 +355,17 @@ namespace ed {
 			heatPos.x = glm::floor(heatPos.x / pixelSize.x) * pixelSize.x;
 			heatPos.y = glm::floor(heatPos.y / pixelSize.y) * pixelSize.y;
 
-			ImGui::BeginTooltip();
-			ImVec2 selectorPos = ImGui::GetCursorScreenPos();
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-			ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
-			drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
-			ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(heatPos.x * outputSize.x, heatPos.y * outputSize.y));
-			ImGui::EndTooltip();
+			glm::ivec2 pixelPos(heatPos.x * outputSize.x, heatPos.y * outputSize.y);
+
+			if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
+				ImGui::BeginTooltip();
+				ImVec2 selectorPos = ImGui::GetCursorScreenPos();
+				ImDrawList* drawList = ImGui::GetWindowDrawList();
+				ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
+				drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
+				ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(pixelPos.x, pixelPos.y));
+				ImGui::EndTooltip();
+			}
 		}
 
 		// rerender when paused and resized
@@ -714,7 +718,7 @@ namespace ed {
 		}
 	
 		// frame analyzer popup
-		ImGui::SetNextWindowSize(ImVec2(m_imgSize.x * 0.5f + Settings::Instance().CalculateSize(300), m_imgSize.y * 0.5f + Settings::Instance().CalculateSize(55)), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(m_imgSize.x * 0.75f + Settings::Instance().CalculateSize(300), m_imgSize.y * 0.75f + Settings::Instance().CalculateSize(55)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Analyzer##analyzer")) {
 			m_renderAnalyzerPopup();
 			ImGui::EndPopup();
@@ -1197,8 +1201,9 @@ namespace ed {
 			ImVec2 cursorPos = ImVec2((contentSize.x - iSize.x) / 2.0f, (contentSize.y - iSize.y) / 2.0f);
 			ImGui::SetCursorPos(cursorPos);
 			ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), iSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, isFullFrame ? 1.0f : 0.5f));
+			
+			// handle region selection
 			if (!isFullFrame) {
-				// handle region selection
 				ImGui::SetCursorPos(cursorPos);
 				ImVec2 screenCursorPos = ImGui::GetCursorScreenPos();
 				ImGui::InvisibleButton("##analyzer_image_btn", iSize);
@@ -1206,6 +1211,10 @@ namespace ed {
 					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 						ImVec2 mousePos = ImGui::GetMousePos();
 						m_regionStart = glm::vec2((mousePos.x - screenCursorPos.x) / iSize.x, (mousePos.y - screenCursorPos.y) / iSize.y);
+						
+						glm::vec2 blockCount = glm::floor(m_regionStart * glm::vec2(m_imgSize.x / RASTER_BLOCK_SIZE, m_imgSize.y / RASTER_BLOCK_SIZE));
+						m_regionStart = ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));
+						
 						m_isSelectingRegion = true;
 					}
 				}
@@ -1217,7 +1226,7 @@ namespace ed {
 
 						// round the result to blocks
 						glm::vec2 blockCount = glm::ceil((m_regionEnd - m_regionStart) * glm::vec2(m_imgSize.x / RASTER_BLOCK_SIZE, m_imgSize.y / RASTER_BLOCK_SIZE));
-						m_regionEnd = m_regionStart + glm::sign(m_regionEnd - m_regionStart) * ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));		
+						m_regionEnd = m_regionStart + ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));		
 					}
 					if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 						ImVec2 mousePos = ImGui::GetMousePos();
@@ -1225,7 +1234,7 @@ namespace ed {
 						
 						// round the result to blocks
 						glm::vec2 blockCount = glm::ceil((m_regionEnd - m_regionStart) * glm::vec2(m_imgSize.x / RASTER_BLOCK_SIZE, m_imgSize.y / RASTER_BLOCK_SIZE));
-						m_regionEnd = m_regionStart + glm::sign(m_regionEnd - m_regionStart) * ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));
+						m_regionEnd = m_regionStart + ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));
 					}
 				}
 			

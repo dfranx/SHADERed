@@ -40,13 +40,13 @@ namespace ed {
 		m_depth = nullptr;
 		m_color = nullptr;
 		m_heatmap = nullptr;
-		m_heatmapTemp = nullptr;
+		m_instCount = nullptr;
 		m_pass = nullptr;
 
 		m_width = 0;
 		m_height = 0;
 
-		m_heatmapAvg = m_heatmapCount = m_heatmapMax = 0;
+		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
 
 		m_debugger = dbgr;
 		m_renderer = renderer;
@@ -70,9 +70,9 @@ namespace ed {
 			m_color = nullptr;
 		}
 
-		if (m_heatmapTemp != nullptr) {
-			free(m_heatmapTemp);
-			m_heatmapTemp = nullptr;
+		if (m_instCount != nullptr) {
+			free(m_instCount);
+			m_instCount = nullptr;
 		}
 
 		if (m_heatmap != nullptr) {
@@ -101,7 +101,7 @@ namespace ed {
 
 		m_depth = (float*)malloc(width * height * sizeof(float));
 		m_color = (uint32_t*)malloc(width * height * sizeof(uint32_t));
-		m_heatmapTemp = (uint32_t*)calloc(width * height, sizeof(uint32_t));
+		m_instCount = (uint32_t*)calloc(width * height, sizeof(uint32_t));
 
 		uint32_t clearColorU32 = m_encodeColor(clearColor);
 
@@ -114,7 +114,7 @@ namespace ed {
 		m_width = width;
 		m_height = height;
 
-		m_heatmapAvg = m_heatmapCount = m_heatmapMax = 0;
+		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
 
 		m_isRegion = false;
 	}
@@ -325,18 +325,19 @@ namespace ed {
 		if (edge1.c + edge2.c + edge3.c < 0.0f)
 			return;
 
-		// round to block size
-		minX &= ~(RASTER_BLOCK_SIZE - 1);
-		maxX &= ~(RASTER_BLOCK_SIZE - 1);
-		minY &= ~(RASTER_BLOCK_SIZE - 1);
-		maxY &= ~(RASTER_BLOCK_SIZE - 1);
-
+		// clip to region limits
 		if (m_isRegion) {
 			minX = std::max(minX, m_regionX);
 			minY = std::max(minY, m_regionY);
 			maxX = std::min(maxX, m_regionEndX);
 			maxY = std::min(maxY, m_regionEndY);
 		}
+
+		// round to block size
+		minX &= ~(RASTER_BLOCK_SIZE - 1);
+		maxX &= ~(RASTER_BLOCK_SIZE - 1);
+		minY &= ~(RASTER_BLOCK_SIZE - 1);
+		maxY &= ~(RASTER_BLOCK_SIZE - 1);
 
 		// init the renderer
 		// TODO: tested with threads, it was 3-4 times faster though there were some artifacts which appeared only *sometimes*... it's really slow rn :(
@@ -368,7 +369,7 @@ namespace ed {
 
 		for (int y = 0; y < m_height; y++) {
 			for (int x = 0; x < m_width; x++) {
-				float val = m_heatmapTemp[y * m_width + x] / (float)m_heatmapMax;
+				float val = m_instCount[y * m_width + x] / (float)m_instCountMax;
 				glm::vec3 color = getHeatmapColor(val);
 				m_heatmap[(y * m_width + x) * 3 + 0] = color.r;
 				m_heatmap[(y * m_width + x) * 3 + 1] = color.g;
@@ -399,10 +400,10 @@ namespace ed {
 						m_depth[y * m_width + x] = depth;
 
 						uint32_t instCount = renderer->GetVM()->instruction_count;
-						m_heatmapTemp[y * m_width + x] = instCount;
-						m_heatmapMax = std::max(m_heatmapMax, instCount);
-						m_heatmapCount++;
-						m_heatmapAvg = m_heatmapAvg + (instCount - m_heatmapAvg) / m_heatmapCount;
+						m_instCount[y * m_width + x] = instCount;
+						m_instCountMax = std::max(m_instCountMax, instCount);
+						m_instCountAvgN++;
+						m_instCountAvg = m_instCountAvg + (instCount - m_instCountAvg) / m_instCountAvgN;
 					}
 				}
 			}
