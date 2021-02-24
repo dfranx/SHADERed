@@ -43,7 +43,7 @@ namespace ed {
 		void CopyVertexShaderOutput(PixelInformation& px, int vertexIndex);
 
 		void PreparePixelShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
-		void SetPixelShaderInput(PixelInformation& pixel);
+		float SetPixelShaderInput(PixelInformation& pixel);
 		glm::vec4 ExecutePixelShader(int x, int y, int loc = 0);
 
 		void PrepareGeometryShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
@@ -63,6 +63,7 @@ namespace ed {
 		void StepOut();
 		bool CheckBreakpoint(int line);
 		
+		void ClearPixelData(PixelInformation& px);
 		void ClearPixelList();
 		inline void AddPixel(const PixelInformation& px) { m_pixels.push_back(px); }
 		inline std::vector<PixelInformation>& GetPixelList() { return m_pixels; }
@@ -120,7 +121,7 @@ namespace ed {
 		inline bool IsGeometryUpdated() { return m_updatedGeometryOutput; }
 		inline void ResetGeometryUpdated() { m_updatedGeometryOutput = false; }
 
-		// VertexShaderPosition & smart bounding box
+		// VertexShaderPosition
 		glm::vec4 GetPositionThroughVertexShader(PipelineItem* pass, PipelineItem* item, const glm::vec3& pos);
 
 	private:

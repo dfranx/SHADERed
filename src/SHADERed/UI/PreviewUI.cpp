@@ -49,6 +49,14 @@ void main()
 )";
 
 namespace ed {
+	const char* getViewName(PreviewUI::PreviewView view)
+	{
+		switch (view) {
+		case PreviewUI::PreviewView::Debugger: return "Debugger view";
+		default: return "Preview";
+		}
+		return "Preview";
+	}
 
 	void PreviewUI::m_setupShortcuts()
 	{
@@ -98,9 +106,7 @@ namespace ed {
 			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.TogglePause", [=]() {
-			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
-			m_data->Objects.Pause(m_data->Renderer.IsPaused());
-			m_ui->StopDebugging();
+			m_pause();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.Unselect", [=]() {
 			m_picks.clear();
@@ -323,15 +329,15 @@ namespace ed {
 		if (capWholeApp && m_fpsLimit > 0 && 1000 / delta > m_fpsLimit)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000 / (int)m_fpsLimit - (int)(1000 * delta)));
 
-		GLuint rtView = renderer->GetTexture();
-		
 		m_imgPosition = ImGui::GetCursorScreenPos();
 
 		// display the image on the imgui window
 		const glm::vec2& zPos = m_zoom.GetZoomPosition();
 		const glm::vec2& zSize = m_zoom.GetZoomSize();
-		ImGui::Image((void*)rtView, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
-
+		GLuint displayImagePtr = renderer->GetTexture();
+		if (m_view == PreviewView::Debugger)
+			displayImagePtr = m_viewDebugger;
+		ImGui::Image((void*)displayImagePtr, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 		m_hasFocus = ImGui::IsWindowFocused();
 
 		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() &&!m_data->Debugger.IsDebugging()) {
@@ -681,6 +687,13 @@ namespace ed {
 				}
 			}
 		}
+	
+		// frame analyzer popup
+		ImGui::SetNextWindowSize(ImVec2(m_imgSize.x + Settings::Instance().CalculateSize(300), m_imgSize.y + Settings::Instance().CalculateSize(55)), ImGuiCond_Once);
+		if (ImGui::BeginPopupModal("Analyzer##analyzer")) {
+			m_renderAnalyzerPopup();
+			ImGui::EndPopup();
+		}
 	}
 	void PreviewUI::Duplicate()
 	{
@@ -834,29 +847,51 @@ namespace ed {
 		}
 
 		if (areControlsVisible) {
-			ImGui::SameLine(Settings::Instance().CalculateSize(340 + offset));
-			if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
-				m_pickMode = 0;
-				m_gizmo.SetMode(m_pickMode);
-			} else if (m_pickMode == 0)
-				ImGui::PopStyleColor();
+			if (!m_data->Renderer.IsPaused()) {
+				ImGui::SameLine(Settings::Instance().CalculateSize(340 + offset));
+				if (m_pickMode == 0) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				if (ImGui::Button("P##pickModePos", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 0) {
+					m_pickMode = 0;
+					m_gizmo.SetMode(m_pickMode);
+				} else if (m_pickMode == 0)
+					ImGui::PopStyleColor();
 
-			ImGui::SameLine();
-			if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
-				m_pickMode = 1;
-				m_gizmo.SetMode(m_pickMode);
-			} else if (m_pickMode == 1)
-				ImGui::PopStyleColor();
+				ImGui::SameLine();
+				if (m_pickMode == 1) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				if (ImGui::Button("S##pickModeScl", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 1) {
+					m_pickMode = 1;
+					m_gizmo.SetMode(m_pickMode);
+				} else if (m_pickMode == 1)
+					ImGui::PopStyleColor();
 
-			ImGui::SameLine();
-			if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
-				m_pickMode = 2;
-				m_gizmo.SetMode(m_pickMode);
-			} else if (m_pickMode == 2)
-				ImGui::PopStyleColor();
+				ImGui::SameLine();
+				if (m_pickMode == 2) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				if (ImGui::Button("R##pickModeRot", ImVec2(BUTTON_SIZE, BUTTON_SIZE)) && m_pickMode != 2) {
+					m_pickMode = 2;
+					m_gizmo.SetMode(m_pickMode);
+				} else if (m_pickMode == 2)
+					ImGui::PopStyleColor();
+			} else {
+				ImGui::SameLine(Settings::Instance().CalculateSize(340 + offset));
+				if (m_frameAnalyzed) {
+					ImGui::PushItemWidth(150.0f);
+					if (ImGui::BeginCombo("##fa_preview", getViewName(m_view))) {
+						// normal preview
+						if (ImGui::Selectable(getViewName(PreviewView::Normal)))
+							m_view = PreviewView::Normal;
+
+						// SPIRV-VM view
+						if (ImGui::Selectable(getViewName(PreviewView::Debugger)))
+							m_view = PreviewView::Debugger;
+
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
+				} else {
+					if (ImGui::Button("Analyze", ImVec2(150.0f, 0.0f)))
+						ImGui::OpenPopup("Analyzer##analyzer");
+				}
+			}
 		}
 
 		ImGui::SameLine();
@@ -890,11 +925,8 @@ namespace ed {
 
 		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
-			m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
-			m_data->Objects.Pause(m_data->Renderer.IsPaused());
-			m_ui->StopDebugging();
-		}
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) 
+			m_pause();
 
 		ImGui::SameLine(0, BUTTON_INDENT);
 		if (ImGui::Button(UI_ICON_NEXT, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Renderer.IsPaused()) {
@@ -1108,5 +1140,174 @@ namespace ed {
 
 		glBindVertexArray(m_boxVAO);
 		glDrawArrays(GL_LINES, 0, 24);
+	}
+	void PreviewUI::m_pause()
+	{
+		m_data->Renderer.Pause(!m_data->Renderer.IsPaused());
+		m_data->Objects.Pause(m_data->Renderer.IsPaused());
+		m_ui->StopDebugging();
+		m_view = PreviewView::Normal;
+		m_frameAnalyzed = false;
+	}
+	void PreviewUI::m_renderAnalyzerPopup()
+	{
+		bool isFullFrame = m_isAnalyzingFullFrame;
+
+		if (ImGui::BeginTable("##analyzer_layout", 2, ImGuiTableFlags_BordersVInner, ImVec2(0, -Settings::Instance().CalculateSize(45)))) {
+			ImGui::TableSetupColumn("##preview", ImGuiTableColumnFlags_WidthStretch, ImGui::GetWindowWidth() - Settings::Instance().CalculateSize(250));
+			ImGui::TableSetupColumn("##controls", ImGuiTableColumnFlags_WidthStretch, Settings::Instance().CalculateSize(250));
+			ImGui::TableNextRow();
+
+			// image
+			ImGui::TableSetColumnIndex(0);
+			ImVec2 iSize = ImGui::GetContentRegionAvail();
+			ImVec2 contentSize = iSize;
+			float scale = std::min<float>(iSize.x / m_imgSize.x, (iSize.y - Settings::Instance().CalculateSize(45.0f)) / m_imgSize.y);
+			iSize.x = m_imgSize.x * scale;
+			iSize.y = m_imgSize.y * scale;
+			ImVec2 cursorPos = ImVec2((contentSize.x - iSize.x) / 2.0f, (contentSize.y - iSize.y) / 2.0f);
+			ImGui::SetCursorPos(cursorPos);
+			ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), iSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, isFullFrame ? 1.0f : 0.5f));
+			if (!isFullFrame) {
+				// handle region selection
+				ImGui::SetCursorPos(cursorPos);
+				ImVec2 screenCursorPos = ImGui::GetCursorScreenPos();
+				ImGui::InvisibleButton("##analyzer_image_btn", iSize);
+				if (ImGui::IsItemHovered()) {
+					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+						ImVec2 mousePos = ImGui::GetMousePos();
+						m_regionStart = glm::vec2((mousePos.x - screenCursorPos.x) / iSize.x, (mousePos.y - screenCursorPos.y) / iSize.y);
+						m_isSelectingRegion = true;
+					}
+				}
+				if (m_isSelectingRegion) {
+					if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+						ImVec2 mousePos = ImGui::GetMousePos();
+						m_regionEnd = glm::min(glm::vec2(1.0f, 1.0f), glm::max(glm::vec2(0.0f, 0.0f), glm::vec2((mousePos.x - screenCursorPos.x) / iSize.x, (mousePos.y - screenCursorPos.y) / iSize.y)));
+						m_isSelectingRegion = false;
+
+						// round the result to blocks
+						glm::vec2 blockCount = glm::ceil((m_regionEnd - m_regionStart) * glm::vec2(m_imgSize.x / RASTER_BLOCK_SIZE, m_imgSize.y / RASTER_BLOCK_SIZE));
+						m_regionEnd = m_regionStart + glm::sign(m_regionEnd - m_regionStart) * ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));		
+					}
+					if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+						ImVec2 mousePos = ImGui::GetMousePos();
+						m_regionEnd = glm::min(glm::vec2(1.0f, 1.0f), glm::max(glm::vec2(0.0f, 0.0f), glm::vec2((mousePos.x - screenCursorPos.x) / iSize.x, (mousePos.y - screenCursorPos.y) / iSize.y)));		
+						
+						// round the result to blocks
+						glm::vec2 blockCount = glm::ceil((m_regionEnd - m_regionStart) * glm::vec2(m_imgSize.x / RASTER_BLOCK_SIZE, m_imgSize.y / RASTER_BLOCK_SIZE));
+						m_regionEnd = m_regionStart + glm::sign(m_regionEnd - m_regionStart) * ((blockCount * glm::vec2(RASTER_BLOCK_SIZE)) / glm::vec2(m_imgSize.x, m_imgSize.y));
+					}
+				}
+			
+				// render the selected region
+				if (m_regionEnd != m_regionStart) {
+					ImGui::SetCursorPos(ImVec2(cursorPos.x + iSize.x * m_regionStart.x, cursorPos.y + iSize.y * m_regionStart.y));
+					ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), ImVec2((m_regionEnd.x - m_regionStart.x) * iSize.x, (m_regionEnd.y - m_regionStart.y) * iSize.y), ImVec2(m_regionStart.x, 1.0f - m_regionStart.y), ImVec2(m_regionEnd.x, 1.0f - m_regionEnd.y));
+				}
+			}
+
+			// controls
+			ImGui::TableSetColumnIndex(1);
+			if (!isFullFrame) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+			if (ImGui::Button("Region", ImVec2(-FLT_MIN, 0)))
+				m_isAnalyzingFullFrame = false;
+
+			if (!isFullFrame) ImGui::PopStyleColor();
+			else ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+			if (ImGui::Button("Full frame", ImVec2(-FLT_MIN, 0)))
+				m_isAnalyzingFullFrame = true;
+			if (isFullFrame) ImGui::PopStyleColor();
+
+			ImGui::NewLine();
+			if (isFullFrame)
+				ImGui::TextWrapped("WARNING: Running the analyzer on the whole frame is very slow. Please save your project before starting the analyzer.");
+			else
+				ImGui::TextWrapped("Please select the area that you want to analyze.");
+
+			ImGui::EndTable();
+		}
+
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 260);
+		bool canContinue = isFullFrame || ((std::abs(m_regionEnd.x - m_regionStart.x) * std::abs(m_regionEnd.y - m_regionStart.y) * m_imgSize.x * m_imgSize.y) > 100); // don't allow small regions
+
+		if (!canContinue) {
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+		if (ImGui::Button("Analyze", ImVec2(120, 0))) {
+			m_runFrameAnalysis();
+			ImGui::CloseCurrentPopup();
+		}
+		if (!canContinue) {
+			ImGui::PopStyleVar();
+			ImGui::PopItemFlag();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Close", ImVec2(120, 0)))
+			ImGui::CloseCurrentPopup();
+	}
+	void PreviewUI::m_runFrameAnalysis()
+	{
+		if (m_frameAnalyzed)
+			return;
+
+		m_frameAnalyzed = true;
+		m_view = PreviewView::Debugger;
+
+		glm::vec4 clearColor = Settings::Instance().Project.ClearColor;
+		clearColor.a = Settings::Instance().Project.UseAlphaChannel ? clearColor.a : 1.0f;
+
+		m_data->Analysis.Init(m_imgSize.x, m_imgSize.y, clearColor);
+		if (!m_isAnalyzingFullFrame) {
+			m_data->Analysis.Copy(m_data->Renderer.GetTexture(), m_imgSize.x, m_imgSize.y);
+
+			float minX = (m_regionEnd.x > m_regionStart.x) ? m_regionStart.x : m_regionEnd.x;
+			float minY = (m_regionEnd.y > m_regionStart.y) ? m_regionStart.y : m_regionEnd.y;
+			float maxX = (m_regionEnd.x > m_regionStart.x) ? m_regionEnd.x : m_regionStart.x;
+			float maxY = (m_regionEnd.y > m_regionStart.y) ? m_regionEnd.y : m_regionStart.y;
+			
+			m_data->Analysis.SetRegion(minX * m_imgSize.x, (1.0f - maxY) * m_imgSize.y, maxX * m_imgSize.x, (1.0f - minY) * m_imgSize.y);
+		}
+		
+		// find the passes to render to
+		int passStartPos = -1;
+		int passEndPos = -1;
+		auto& passes = m_data->Pipeline.GetList();
+		for (int i = 0; i < passes.size(); i++) {
+			if (passes[i]->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)passes[i]->Data;
+				bool isWindowUsed = false;
+
+				for (int j = 0; j < pass->RTCount; j++)
+					if (pass->RenderTextures[j] == m_data->Renderer.GetTexture()) {
+						isWindowUsed = true;
+						break;
+					}
+
+				if (isWindowUsed) {
+					if (passStartPos == -1 || i - 1 != passStartPos)
+						passStartPos = passEndPos = i;
+					else if (i - 1 == passStartPos)
+						passEndPos = i;
+				}
+			}
+		}
+
+		if (passStartPos != -1 && passEndPos != -1) {
+			for (int i = passStartPos; i <= passEndPos; i++)
+				m_data->Analysis.RenderPass(passes[i]);
+		}
+
+		// normal texture
+		glDeleteTextures(1, &m_viewDebugger);
+		glGenTextures(1, &m_viewDebugger);
+		glBindTexture(GL_TEXTURE_2D, m_viewDebugger);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data->Analysis.GetColorOutput());
 	}
 }

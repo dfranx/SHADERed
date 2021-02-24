@@ -28,6 +28,7 @@ set(SOURCES
 	src/SHADERed/Objects/DebugInformation.cpp
 	src/SHADERed/Objects/FirstPersonCamera.cpp
 	src/SHADERed/Objects/FunctionVariableManager.cpp
+	src/SHADERed/Objects/FrameAnalysis.cpp
 	src/SHADERed/Objects/GizmoObject.cpp
 	src/SHADERed/Objects/ShaderCompiler.cpp
 	src/SHADERed/Objects/KeyboardShortcuts.cpp

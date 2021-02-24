@@ -352,7 +352,7 @@ namespace ed {
 		free(m_vmGLSL);
 		spvm_context_deinitialize(m_vmContext);
 	}
-	
+
 	void DebugInformation::m_resetVM()
 	{
 		ed::Logger::Get().Log("Resetting the debugger");
@@ -387,6 +387,7 @@ namespace ed {
 			m_workgroup = nullptr;
 		}
 
+		// delete old program & state
 		if (m_vm) {
 			spvm_state_delete(m_vm);
 			m_vm = nullptr;
@@ -396,6 +397,15 @@ namespace ed {
 			m_shader = nullptr;
 		}
 
+		// delete old immediate program & state
+		if (m_vmImmediate) {
+			spvm_state_delete(m_vmImmediate);
+			m_vmImmediate = nullptr;
+		}
+		if (m_shaderImmediate) {
+			spvm_program_delete(m_shaderImmediate);
+			m_shaderImmediate = nullptr;
+		}
 	}
 	void DebugInformation::m_setupVM(std::vector<unsigned int>& spv)
 	{
@@ -1755,13 +1765,15 @@ namespace ed {
 			}
 		}
 	}
-	void DebugInformation::SetPixelShaderInput(PixelInformation& pixel)
+	float DebugInformation::SetPixelShaderInput(PixelInformation& pixel)
 	{
 		m_pixel = &pixel;
 
 		glm::vec3 weights = m_processWeight(glm::ivec2(0, 0));
 		m_interpolateValues(m_vm, weights);
 
+		float depth = weights.x * pixel.FinalPosition[0].z + weights.y * pixel.FinalPosition[1].z + weights.z * pixel.FinalPosition[2].z;
+		
 		if (m_vm->derivative_used && !m_vm->_derivative_is_group_member) {
 			spvm_byte isOddX = ((int)pixel.Coordinate.x) % 2 != 0;
 			spvm_byte isOddY = ((int)pixel.Coordinate.y) % 2 != 0;
@@ -1784,6 +1796,8 @@ namespace ed {
 				m_interpolateValues(m_vm->derivative_group_d, weights);
 			}
 		}
+
+		return depth / (weights.x + weights.y + weights.z);
 	}
 	glm::vec3 DebugInformation::m_processWeight(glm::ivec2 offset)
 	{
@@ -2409,12 +2423,27 @@ namespace ed {
 		return false;
 	}
 
-	void DebugInformation::ClearPixelList()
+	void DebugInformation::ClearPixelData(PixelInformation& px)
 	{
-		for (PixelInformation& px : m_pixels) {
-			// vertex shader output
-			for (int i = 0; i < px.VertexCount; i++) {
-				for (auto& out : px.VertexShaderOutput[i]) {
+		// vertex shader output
+		for (int i = 0; i < px.VertexCount; i++) {
+			for (auto& out : px.VertexShaderOutput[i]) {
+				if (out.name) {
+					free(out.name);
+					out.name = nullptr;
+				}
+				if (out.members) {
+					spvm_member_free(out.members, out.member_count);
+					out.member_count = 0;
+					out.members = nullptr;
+				}
+			}
+		}
+
+		// geometry shader output
+		for (auto& prim : px.GeometryOutput) {
+			for (int i = 0; i < prim.Output.size(); i++) {
+				for (auto& out : prim.Output[i]) {
 					if (out.name) {
 						free(out.name);
 						out.name = nullptr;
@@ -2426,24 +2455,12 @@ namespace ed {
 					}
 				}
 			}
-
-			// geometry shader output
-			for (auto& prim : px.GeometryOutput) {
-				for (int i = 0; i < prim.Output.size(); i++) {
-					for (auto& out : prim.Output[i]) {
-						if (out.name) {
-							free(out.name);
-							out.name = nullptr;
-						}
-						if (out.members) {
-							spvm_member_free(out.members, out.member_count);
-							out.member_count = 0;
-							out.members = nullptr;
-						}
-					}
-				}
-			}
 		}
+	}
+	void DebugInformation::ClearPixelList()
+	{
+		for (PixelInformation& px : m_pixels)
+			this->ClearPixelData(px);
 		m_suggestions.clear();
 		m_pixels.clear();
 	}

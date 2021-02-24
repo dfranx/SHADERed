@@ -32,12 +32,19 @@ namespace ed {
 			m_mouseLock = false;
 			m_fullWindowFocus = true;
 			m_pauseTime = false;
+			m_view = PreviewView::Normal;
+			m_viewDebugger = 0;
+			m_isAnalyzingFullFrame = false;
+			m_isSelectingRegion = false;
+			m_regionStart = m_regionEnd = glm::vec2(0.0f);
 		}
 		~PreviewUI()
 		{
 			glDeleteBuffers(1, &m_boxVBO);
 			glDeleteVertexArrays(1, &m_boxVAO);
 			glDeleteShader(m_boxShader);
+
+			glDeleteTextures(1, &m_viewDebugger);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -54,7 +61,13 @@ namespace ed {
 		{
 			m_zoom.Reset();
 			Pick(nullptr);
+			m_view = PreviewView::Normal;
 		}
+
+		enum class PreviewView {
+			Normal,
+			Debugger
+		};
 
 	private:
 		void m_setupShortcuts();
@@ -64,6 +77,8 @@ namespace ed {
 		void m_setupBoundingBox();
 		void m_buildBoundingBox();
 		void m_renderBoundingBox();
+
+		void m_pause();
 
 		// zoom info
 		Magnifier m_zoom;
@@ -108,5 +123,15 @@ namespace ed {
 		bool m_mouseVisible;
 		bool m_mouseLock;
 		bool m_fullWindowFocus;
+
+		// frame analysis
+		PreviewView m_view;
+		GLuint m_viewDebugger;
+		bool m_frameAnalyzed;
+		bool m_isAnalyzingFullFrame;
+		bool m_isSelectingRegion;
+		glm::vec2 m_regionStart, m_regionEnd;
+		void m_renderAnalyzerPopup();
+		void m_runFrameAnalysis();
 	};
 }

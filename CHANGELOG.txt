@@ -1,3 +1,6 @@
+[v1.5]
++ add FrameAnalyzer
+
 [v1.4.4]
 + add tessellation shaders
 + add new file dialog
