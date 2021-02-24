@@ -34,6 +34,7 @@ namespace ed {
 			m_pauseTime = false;
 			m_view = PreviewView::Normal;
 			m_viewDebugger = 0;
+			m_viewHeatmap = 0;
 			m_isAnalyzingFullFrame = false;
 			m_isSelectingRegion = false;
 			m_regionStart = m_regionEnd = glm::vec2(0.0f);
@@ -45,6 +46,7 @@ namespace ed {
 			glDeleteShader(m_boxShader);
 
 			glDeleteTextures(1, &m_viewDebugger);
+			glDeleteTextures(1, &m_viewHeatmap);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -66,7 +68,8 @@ namespace ed {
 
 		enum class PreviewView {
 			Normal,
-			Debugger
+			Debugger,
+			Heatmap
 		};
 
 	private:
@@ -127,6 +130,7 @@ namespace ed {
 		// frame analysis
 		PreviewView m_view;
 		GLuint m_viewDebugger;
+		GLuint m_viewHeatmap;
 		bool m_frameAnalyzed;
 		bool m_isAnalyzingFullFrame;
 		bool m_isSelectingRegion;

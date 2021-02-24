@@ -22,6 +22,11 @@ namespace ed {
 		inline uint32_t* GetColorOutput() { return m_color; }
 		inline glm::ivec2 GetOutputSize() { return glm::ivec2(m_width, m_height); }
 
+		void BuildHeatmap();
+		inline float* GetHeatmap() { return m_heatmap; }
+		inline uint32_t GetHeatmapMax() { return m_heatmapMax; }
+		inline uint32_t GetInstructionCount(int x, int y) { return m_heatmapTemp[y * m_width + x]; }
+
 	private:
 		class EdgeEquation {
 		public:
@@ -50,12 +55,16 @@ namespace ed {
 		ObjectManager* m_objects;
 		MessageStack* m_msgs;
 
+		bool m_isRegion;
+		int m_regionX, m_regionY, m_regionEndX, m_regionEndY;
+
 		float* m_depth;
 		uint32_t* m_color;
 		int m_width, m_height;
 
-		bool m_isRegion;
-		int m_regionX, m_regionY, m_regionEndX, m_regionEndY;
+		uint32_t m_heatmapMax, m_heatmapAvg, m_heatmapCount;
+		uint32_t* m_heatmapTemp;
+		float* m_heatmap;
 
 		PipelineItem* m_pass;
 		PixelInformation m_pixel;

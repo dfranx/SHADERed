@@ -53,6 +53,7 @@ namespace ed {
 	{
 		switch (view) {
 		case PreviewUI::PreviewView::Debugger: return "Debugger view";
+		case PreviewUI::PreviewView::Heatmap: return "Heatmap";
 		default: return "Preview";
 		}
 		return "Preview";
@@ -334,13 +335,37 @@ namespace ed {
 		// display the image on the imgui window
 		const glm::vec2& zPos = m_zoom.GetZoomPosition();
 		const glm::vec2& zSize = m_zoom.GetZoomSize();
-		GLuint displayImagePtr = renderer->GetTexture();
-		if (m_view == PreviewView::Debugger)
+		GLuint displayImagePtr = 0;
+		if (m_view == PreviewView::Normal)
+			displayImagePtr = m_data->Renderer.GetTexture();
+		else if (m_view == PreviewView::Debugger)
 			displayImagePtr = m_viewDebugger;
+		else if (m_view == PreviewView::Heatmap)
+			displayImagePtr = m_viewHeatmap;
 		ImGui::Image((void*)displayImagePtr, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 		m_hasFocus = ImGui::IsWindowFocused();
 
-		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() &&!m_data->Debugger.IsDebugging()) {
+		// heatmap tooltip
+		if (m_view == PreviewView::Heatmap && ImGui::IsItemHovered()) {
+			glm::ivec2 outputSize = m_data->Analysis.GetOutputSize();
+			glm::vec2 pixelSize = 1.0f / glm::vec2(outputSize);
+			const float pixelMult = 60.0f;
+
+			glm::vec2 heatPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+			heatPos.x = glm::floor(heatPos.x / pixelSize.x) * pixelSize.x;
+			heatPos.y = glm::floor(heatPos.y / pixelSize.y) * pixelSize.y;
+
+			ImGui::BeginTooltip();
+			ImVec2 selectorPos = ImGui::GetCursorScreenPos();
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
+			drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
+			ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(heatPos.x * outputSize.x, heatPos.y * outputSize.y));
+			ImGui::EndTooltip();
+		}
+
+		// rerender when paused and resized
+		if (paused && m_zoomLastSize != renderer->GetLastRenderSize() && !m_data->Debugger.IsDebugging()) {
 			renderer->Render(imageSize.x, imageSize.y);
 			m_data->Debugger.ClearPixelList();
 		}
@@ -689,7 +714,7 @@ namespace ed {
 		}
 	
 		// frame analyzer popup
-		ImGui::SetNextWindowSize(ImVec2(m_imgSize.x + Settings::Instance().CalculateSize(300), m_imgSize.y + Settings::Instance().CalculateSize(55)), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(m_imgSize.x * 0.5f + Settings::Instance().CalculateSize(300), m_imgSize.y * 0.5f + Settings::Instance().CalculateSize(55)), ImGuiCond_Once);
 		if (ImGui::BeginPopupModal("Analyzer##analyzer")) {
 			m_renderAnalyzerPopup();
 			ImGui::EndPopup();
@@ -883,6 +908,10 @@ namespace ed {
 						// SPIRV-VM view
 						if (ImGui::Selectable(getViewName(PreviewView::Debugger)))
 							m_view = PreviewView::Debugger;
+
+						// opcode heatmap view
+						if (ImGui::Selectable(getViewName(PreviewView::Heatmap)))
+							m_view = PreviewView::Heatmap;
 
 						ImGui::EndCombo();
 					}
@@ -1309,5 +1338,16 @@ namespace ed {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data->Analysis.GetColorOutput());
+	
+		// heatmap
+		m_data->Analysis.BuildHeatmap();
+		glDeleteTextures(1, &m_viewHeatmap);
+		glGenTextures(1, &m_viewHeatmap);
+		glBindTexture(GL_TEXTURE_2D, m_viewHeatmap);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_imgSize.x, m_imgSize.y, 0, GL_RGB, GL_FLOAT, m_data->Analysis.GetHeatmap());	
 	}
 }

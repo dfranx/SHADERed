@@ -1,5 +1,6 @@
 [v1.5]
-+ add FrameAnalyzer
++ add FrameAnalysis
++ add SPIR-V instruction heatmap
 
 [v1.4.4]
 + add tessellation shaders

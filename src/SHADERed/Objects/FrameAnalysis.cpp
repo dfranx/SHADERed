@@ -15,15 +15,38 @@ namespace ed {
 		c = -(a * (v0.x + v1.x) + b * (v0.y + v1.y)) / 2.0f;
 		tie = a != 0 ? a > 0 : b > 0;
 	}
+	glm::vec3 getHeatmapColor(float value)
+	{
+		const glm::vec3 color[5] = { glm::vec3(0, 0, 1), glm::vec3(0, 1, 1), glm::vec3(0, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 0, 0) };
+		int id1 = 0;
+		int id2 = 0;
+
+		if (value <= 0) 
+			id1 = id2 = 0;
+		else if (value >= 1)
+			id1 = id2 = 4;
+		else {
+			value *= 4;
+			id1 = std::floor(value);
+			id2 = id1 + 1;
+			value -= id1;
+		}
+
+		return (color[id2] - color[id1]) * value + color[id1];
+	}
 
 	FrameAnalysis::FrameAnalysis(DebugInformation* dbgr, RenderEngine* renderer, ObjectManager* objects, MessageStack* msgs)
 	{
 		m_depth = nullptr;
 		m_color = nullptr;
+		m_heatmap = nullptr;
+		m_heatmapTemp = nullptr;
 		m_pass = nullptr;
 
 		m_width = 0;
 		m_height = 0;
+
+		m_heatmapAvg = m_heatmapCount = m_heatmapMax = 0;
 
 		m_debugger = dbgr;
 		m_renderer = renderer;
@@ -45,6 +68,16 @@ namespace ed {
 		if (m_color != nullptr) {
 			free(m_color);
 			m_color = nullptr;
+		}
+
+		if (m_heatmapTemp != nullptr) {
+			free(m_heatmapTemp);
+			m_heatmapTemp = nullptr;
+		}
+
+		if (m_heatmap != nullptr) {
+			free(m_heatmap);
+			m_heatmap = nullptr;
 		}
 	}
 	void FrameAnalysis::m_copyVBOData(eng::Model::Mesh::Vertex& vertex, GLfloat* vbo, int stride)
@@ -68,6 +101,7 @@ namespace ed {
 
 		m_depth = (float*)malloc(width * height * sizeof(float));
 		m_color = (uint32_t*)malloc(width * height * sizeof(uint32_t));
+		m_heatmapTemp = (uint32_t*)calloc(width * height, sizeof(uint32_t));
 
 		uint32_t clearColorU32 = m_encodeColor(clearColor);
 
@@ -79,6 +113,8 @@ namespace ed {
 
 		m_width = width;
 		m_height = height;
+
+		m_heatmapAvg = m_heatmapCount = m_heatmapMax = 0;
 
 		m_isRegion = false;
 	}
@@ -110,7 +146,6 @@ namespace ed {
 	{
 		m_pass = pass;
 
-		eng::Timer timer;
 		if (pass->Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
@@ -206,7 +241,6 @@ namespace ed {
 				} 
 			}
 		}
-		printf("time: %.6f\n", timer.GetElapsedTime());
 	}
 	void FrameAnalysis::RenderPrimitive(PipelineItem* item, unsigned int vertexStart, uint8_t vertexCount, unsigned int topology)
 	{
@@ -328,6 +362,23 @@ namespace ed {
 		}
 	}
 
+	void FrameAnalysis::BuildHeatmap()
+	{
+		m_heatmap = (float*)malloc(m_width * m_height * 3 * sizeof(float));
+
+		for (int y = 0; y < m_height; y++) {
+			for (int x = 0; x < m_width; x++) {
+				float val = m_heatmapTemp[y * m_width + x] / (float)m_heatmapMax;
+				glm::vec3 color = getHeatmapColor(val);
+				m_heatmap[(y * m_width + x) * 3 + 0] = color.r;
+				m_heatmap[(y * m_width + x) * 3 + 1] = color.g;
+				m_heatmap[(y * m_width + x) * 3 + 2] = color.b; 
+			}
+		}
+
+		// free(m_heatmapTemp);
+		// m_heatmapTemp = nullptr;
+	}
 	void FrameAnalysis::m_renderBlock(DebugInformation* renderer, size_t startX, size_t startY, bool skipChecks, EdgeEquation& e1, EdgeEquation& e2, EdgeEquation& e3)
 	{
 		for (size_t x = startX; x < startX + RASTER_BLOCK_SIZE; x++) {
@@ -346,10 +397,14 @@ namespace ed {
 						
 						m_color[y * m_width + x] = m_encodeColor(m_pixel.DebuggerColor);
 						m_depth[y * m_width + x] = depth;
+
+						uint32_t instCount = renderer->GetVM()->instruction_count;
+						m_heatmapTemp[y * m_width + x] = instCount;
+						m_heatmapMax = std::max(m_heatmapMax, instCount);
+						m_heatmapCount++;
+						m_heatmapAvg = m_heatmapAvg + (instCount - m_heatmapAvg) / m_heatmapCount;
 					}
 				}
-				// else if (!skipChecks && y < m_height && x < m_width && x >= 0 && y >= 0)
-				//	m_color[y * m_width + x] = 0xFF00FF00;
 			}
 		}
 	}
