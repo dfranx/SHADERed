@@ -306,6 +306,14 @@ void endPrimitive(struct spvm_state* state, spvm_word stream)
 	dbgr->EndPrimitive();
 }
 
+/* analyzer functions */
+void onUndefinedBehavior(struct spvm_state* state, spvm_word ub)
+{
+	ed::DebugInformation* dbgr = (ed::DebugInformation*)state->owner->user_data;
+	dbgr->OnUndefinedBehavior(state, ub);
+}
+
+/* helper functions */
 bool isPointInTriangle(glm::vec2 p, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2)
 {
 	/* https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#:~:text=A%20simple%20way%20is%20to,point%20is%20inside%20the%20triangle. */
@@ -342,6 +350,8 @@ namespace ed {
 
 		m_vmContext = spvm_context_initialize();
 		m_vmGLSL = spvm_build_glsl450_ext();
+
+		m_analyzer.on_undefined_behavior = onUndefinedBehavior;
 	}
 	DebugInformation::~DebugInformation()
 	{
@@ -406,6 +416,9 @@ namespace ed {
 			spvm_program_delete(m_shaderImmediate);
 			m_shaderImmediate = nullptr;
 		}
+
+		// reset undefined behavior info
+		m_ubLastType = m_ubLastLine = m_ubCount = 0;
 	}
 	void DebugInformation::m_setupVM(std::vector<unsigned int>& spv)
 	{
@@ -1930,6 +1943,8 @@ namespace ed {
 		if (fnMain == 0)
 			return glm::vec4(0.0f);
 
+		m_ubLastType = m_ubLastLine = m_ubCount = 0;
+
 		spvm_state_prepare(m_vm, fnMain);
 		spvm_state_set_frag_coord(m_vm, x + 0.5f, y + 0.5f, 1.0f, 1.0f); // TODO: z and w components
 		spvm_state_call_function(m_vm);
@@ -2615,5 +2630,11 @@ namespace ed {
 		}
 
 		return ret;
+	}
+	void DebugInformation::OnUndefinedBehavior(spvm_state_t state, spvm_word ubID)
+	{
+		m_ubLastType = ubID;
+		m_ubLastLine = state->current_line;
+		m_ubCount = std::max<spvm_word>(m_ubCount + 1, 11);
 	}
 }

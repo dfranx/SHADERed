@@ -54,6 +54,7 @@ namespace ed {
 		switch (view) {
 		case PreviewUI::PreviewView::Debugger: return "Debugger view";
 		case PreviewUI::PreviewView::Heatmap: return "Heatmap";
+		case PreviewUI::PreviewView::UndefinedBehavior: return "Undefined behavior";
 		default: return "Preview";
 		}
 		return "Preview";
@@ -342,29 +343,56 @@ namespace ed {
 			displayImagePtr = m_viewDebugger;
 		else if (m_view == PreviewView::Heatmap)
 			displayImagePtr = m_viewHeatmap;
+		else if (m_view == PreviewView::UndefinedBehavior)
+			displayImagePtr = m_viewUB;
 		ImGui::Image((void*)displayImagePtr, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 		m_hasFocus = ImGui::IsWindowFocused();
 
-		// heatmap tooltip
-		if (m_view == PreviewView::Heatmap && ImGui::IsItemHovered()) {
-			glm::ivec2 outputSize = m_data->Analysis.GetOutputSize();
-			glm::vec2 pixelSize = 1.0f / glm::vec2(outputSize);
-			const float pixelMult = 60.0f;
+		// analyzer tooltip
+		if ((m_view == PreviewView::UndefinedBehavior || m_view == PreviewView::Heatmap) && ImGui::IsItemHovered()) {
+			// heatmap tooltip
+			if (m_view == PreviewView::Heatmap) {
+				glm::ivec2 outputSize = m_data->Analysis.GetOutputSize();
+				glm::vec2 pixelSize = 1.0f / glm::vec2(outputSize);
+				const float pixelMult = 60.0f;
 
-			glm::vec2 heatPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
-			heatPos.x = glm::floor(heatPos.x / pixelSize.x) * pixelSize.x;
-			heatPos.y = glm::floor(heatPos.y / pixelSize.y) * pixelSize.y;
+				glm::vec2 heatPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+				heatPos.x = glm::floor(heatPos.x / pixelSize.x) * pixelSize.x;
+				heatPos.y = glm::floor(heatPos.y / pixelSize.y) * pixelSize.y;
 
-			glm::ivec2 pixelPos(heatPos.x * outputSize.x, heatPos.y * outputSize.y);
+				glm::ivec2 pixelPos(heatPos.x * outputSize.x, heatPos.y * outputSize.y);
 
-			if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
-				ImGui::BeginTooltip();
-				ImVec2 selectorPos = ImGui::GetCursorScreenPos();
-				ImDrawList* drawList = ImGui::GetWindowDrawList();
-				ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
-				drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
-				ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(pixelPos.x, pixelPos.y));
-				ImGui::EndTooltip();
+				if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
+					ImGui::BeginTooltip();
+					ImVec2 selectorPos = ImGui::GetCursorScreenPos();
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
+					drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
+					ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(pixelPos.x, pixelPos.y));
+					ImGui::EndTooltip();
+				}
+			}
+			// ub tooltip
+			else if (m_view == PreviewView::UndefinedBehavior) {
+				glm::vec2 outputSize = m_data->Analysis.GetOutputSize();
+				glm::vec2 pixelPos = (zPos + zSize * m_mousePos) * outputSize;
+
+				
+				if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
+					uint32_t ubType = m_data->Analysis.GetUndefinedBehaviorLastType(pixelPos.x, pixelPos.y);
+					uint32_t ubLine = m_data->Analysis.GetUndefinedBehaviorLastLine(pixelPos.x, pixelPos.y);
+					uint32_t ubCount = m_data->Analysis.GetUndefinedBehaviorCount(pixelPos.x, pixelPos.y);
+
+					if (ubType) {
+						ImGui::BeginTooltip();
+						ImGui::Text("Undefined behavior\n%s\nLine: %d", "...", ubLine); // todo: ubType
+						if (ubCount <= 10)
+							ImGui::Text("UB count: %d", ubCount);
+						else
+							ImGui::Text("UB count: >10");
+						ImGui::EndTooltip();
+					}
+				}
 			}
 		}
 
@@ -917,6 +945,10 @@ namespace ed {
 						if (ImGui::Selectable(getViewName(PreviewView::Heatmap)))
 							m_view = PreviewView::Heatmap;
 
+						// undefined behavior map
+						if (ImGui::Selectable(getViewName(PreviewView::UndefinedBehavior)))
+							m_view = PreviewView::UndefinedBehavior;
+
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
@@ -1259,7 +1291,7 @@ namespace ed {
 
 			ImGui::NewLine();
 			if (isFullFrame)
-				ImGui::TextWrapped("WARNING: Running the analyzer on the whole frame is very slow. Please save your project before starting the analyzer.");
+				ImGui::TextWrapped("WARNING: Running the analyzer on the whole frame might be very slow. Please save your project before starting the analyzer.");
 			else
 				ImGui::TextWrapped("Please select the area that you want to analyze.");
 
@@ -1349,7 +1381,7 @@ namespace ed {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data->Analysis.GetColorOutput());
 	
 		// heatmap
-		m_data->Analysis.BuildHeatmap();
+		float* heatmap = m_data->Analysis.AllocateHeatmap();
 		glDeleteTextures(1, &m_viewHeatmap);
 		glGenTextures(1, &m_viewHeatmap);
 		glBindTexture(GL_TEXTURE_2D, m_viewHeatmap);
@@ -1357,6 +1389,19 @@ namespace ed {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_imgSize.x, m_imgSize.y, 0, GL_RGB, GL_FLOAT, m_data->Analysis.GetHeatmap());	
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_imgSize.x, m_imgSize.y, 0, GL_RGB, GL_FLOAT, heatmap);
+		free(heatmap);
+
+		// undefined behavior
+		uint32_t* ubMap = m_data->Analysis.AllocateUndefinedBehaviorMap();
+		glDeleteTextures(1, &m_viewUB);
+		glGenTextures(1, &m_viewUB);
+		glBindTexture(GL_TEXTURE_2D, m_viewUB);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ubMap);
+		free(ubMap);
 	}
 }

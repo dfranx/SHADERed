@@ -39,8 +39,8 @@ namespace ed {
 	{
 		m_depth = nullptr;
 		m_color = nullptr;
-		m_heatmap = nullptr;
 		m_instCount = nullptr;
+		m_ub = nullptr;
 		m_pass = nullptr;
 
 		m_width = 0;
@@ -75,9 +75,9 @@ namespace ed {
 			m_instCount = nullptr;
 		}
 
-		if (m_heatmap != nullptr) {
-			free(m_heatmap);
-			m_heatmap = nullptr;
+		if (m_ub != nullptr) {
+			free(m_ub);
+			m_ub = nullptr;
 		}
 	}
 	void FrameAnalysis::m_copyVBOData(eng::Model::Mesh::Vertex& vertex, GLfloat* vbo, int stride)
@@ -102,6 +102,7 @@ namespace ed {
 		m_depth = (float*)malloc(width * height * sizeof(float));
 		m_color = (uint32_t*)malloc(width * height * sizeof(uint32_t));
 		m_instCount = (uint32_t*)calloc(width * height, sizeof(uint32_t));
+		m_ub = (uint32_t*)calloc(width * height, sizeof(uint32_t));
 
 		uint32_t clearColorU32 = m_encodeColor(clearColor);
 
@@ -342,6 +343,7 @@ namespace ed {
 		// init the renderer
 		// TODO: tested with threads, it was 3-4 times faster though there were some artifacts which appeared only *sometimes*... it's really slow rn :(
 		m_debugger->PreparePixelShader(m_pass, item, &m_pixel);
+		m_debugger->ToggleAnalyzer(true); // turn on the analyzer
 		for (int x = minX; x <= maxX; x += RASTER_BLOCK_SIZE) {
 			for (int y = minY; y <= maxY; y += RASTER_BLOCK_SIZE) {
 				// check if block is inside the triangle
@@ -361,24 +363,41 @@ namespace ed {
 				}
 			}
 		}
+		m_debugger->ToggleAnalyzer(false); // turn off the analyzer
 	}
 
-	void FrameAnalysis::BuildHeatmap()
+	float* FrameAnalysis::AllocateHeatmap()
 	{
-		m_heatmap = (float*)malloc(m_width * m_height * 3 * sizeof(float));
+		float* tex = (float*)malloc(m_width * m_height * 3 * sizeof(float));
 
 		for (int y = 0; y < m_height; y++) {
 			for (int x = 0; x < m_width; x++) {
 				float val = m_instCount[y * m_width + x] / (float)m_instCountMax;
 				glm::vec3 color = getHeatmapColor(val);
-				m_heatmap[(y * m_width + x) * 3 + 0] = color.r;
-				m_heatmap[(y * m_width + x) * 3 + 1] = color.g;
-				m_heatmap[(y * m_width + x) * 3 + 2] = color.b; 
+				tex[(y * m_width + x) * 3 + 0] = color.r;
+				tex[(y * m_width + x) * 3 + 1] = color.g;
+				tex[(y * m_width + x) * 3 + 2] = color.b; 
 			}
 		}
 
-		// free(m_heatmapTemp);
-		// m_heatmapTemp = nullptr;
+		return tex;
+	}
+	uint32_t* FrameAnalysis::AllocateUndefinedBehaviorMap()
+	{
+		uint32_t* tex = (uint32_t*)malloc(m_width * m_height * sizeof(uint32_t));
+
+		for (int y = 0; y < m_height; y++) {
+			for (int x = 0; x < m_width; x++) {
+				uint32_t ubType = GetUndefinedBehaviorLastType(x, y);
+
+				if (ubType)
+					tex[y * m_width + x] = 0xFFFFFFFF;
+				else
+					tex[y * m_width + x] = (m_color[y * m_width + x] & 0x00FFFFFF) | 0x66000000; // darken the texture
+			}
+		}
+
+		return tex;
 	}
 	void FrameAnalysis::m_renderBlock(DebugInformation* renderer, size_t startX, size_t startY, bool skipChecks, EdgeEquation& e1, EdgeEquation& e2, EdgeEquation& e3)
 	{
@@ -396,14 +415,22 @@ namespace ed {
 						if (renderer->GetVM()->discarded)
 							continue;
 						
+						// actual color and depth
 						m_color[y * m_width + x] = m_encodeColor(m_pixel.DebuggerColor);
 						m_depth[y * m_width + x] = depth;
 
+						// instruction count / heatmap stuff
 						uint32_t instCount = renderer->GetVM()->instruction_count;
 						m_instCount[y * m_width + x] = instCount;
 						m_instCountMax = std::max(m_instCountMax, instCount);
 						m_instCountAvgN++;
 						m_instCountAvg = m_instCountAvg + (instCount - m_instCountAvg) / m_instCountAvgN;
+					
+						// undefined behavior
+						spvm_word ubType = renderer->GetLastUndefinedBehaviorType();
+						spvm_word ubLine = renderer->GetLastUndefinedBehaviorLine();
+						spvm_word ubCount = renderer->GetUndefinedBehaviorCount();
+						m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubLine << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
 					}
 				}
 			}

@@ -1,5 +1,6 @@
 [v1.5]
 + add FrameAnalysis
++ add the ability to detect undefined behavior in shaders
 + add SPIR-V instruction heatmap
 
 [v1.4.4]

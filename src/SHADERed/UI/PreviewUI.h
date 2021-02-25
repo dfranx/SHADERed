@@ -47,6 +47,7 @@ namespace ed {
 
 			glDeleteTextures(1, &m_viewDebugger);
 			glDeleteTextures(1, &m_viewHeatmap);
+			glDeleteTextures(1, &m_viewUB);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -69,7 +70,8 @@ namespace ed {
 		enum class PreviewView {
 			Normal,
 			Debugger,
-			Heatmap
+			Heatmap,
+			UndefinedBehavior
 		};
 
 	private:
@@ -129,8 +131,7 @@ namespace ed {
 
 		// frame analysis
 		PreviewView m_view;
-		GLuint m_viewDebugger;
-		GLuint m_viewHeatmap;
+		GLuint m_viewDebugger, m_viewHeatmap, m_viewUB;
 		bool m_frameAnalyzed;
 		bool m_isAnalyzingFullFrame;
 		bool m_isSelectingRegion;

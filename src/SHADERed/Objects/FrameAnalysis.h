@@ -22,10 +22,14 @@ namespace ed {
 		inline uint32_t* GetColorOutput() { return m_color; }
 		inline glm::ivec2 GetOutputSize() { return glm::ivec2(m_width, m_height); }
 
-		void BuildHeatmap();
-		inline float* GetHeatmap() { return m_heatmap; }
+		float* AllocateHeatmap();
 		inline uint32_t GetHeatmapMax() { return m_instCountMax; }
 		inline uint32_t GetInstructionCount(int x, int y) { return m_instCount[y * m_width + x]; }
+
+		uint32_t* AllocateUndefinedBehaviorMap();
+		inline uint32_t GetUndefinedBehaviorLastLine(int x, int y) { return (m_ub[y * m_width + x] & 0xFFFFF000) >> 12; }
+		inline uint32_t GetUndefinedBehaviorLastType(int x, int y) { return (m_ub[y * m_width + x] & 0x00000F00) >> 8; }
+		inline uint32_t GetUndefinedBehaviorCount(int x, int y) { return (m_ub[y * m_width + x] & 0x000000FF); }
 
 	private:
 		class EdgeEquation {
@@ -64,7 +68,8 @@ namespace ed {
 
 		uint32_t m_instCountMax, m_instCountAvg, m_instCountAvgN;
 		uint32_t* m_instCount;
-		float* m_heatmap;
+
+		uint32_t* m_ub;
 
 		PipelineItem* m_pass;
 		PixelInformation m_pixel;

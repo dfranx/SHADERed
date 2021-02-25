@@ -30,7 +30,7 @@ namespace ed {
 		inline void SetCurrentFile(const std::string& file) { m_file = file; }
 		inline const std::string& GetCurrentFile() { return m_file; }
 		inline const std::vector<int>& GetFunctionStackLines() { return m_funcStackLines; }
-
+		
 		spvm_member_t GetVariable(const std::string& str, size_t& count, spvm_result_t& outType);
 		spvm_member_t GetVariable(const std::string& str, size_t& count);
 		spvm_member_t GetVariableFromState(spvm_state_t state, const std::string& str, size_t& count, spvm_result_t& outType);
@@ -121,8 +121,19 @@ namespace ed {
 		inline bool IsGeometryUpdated() { return m_updatedGeometryOutput; }
 		inline void ResetGeometryUpdated() { m_updatedGeometryOutput = false; }
 
-		// VertexShaderPosition
+		// VertexShaderPosition variable
 		glm::vec4 GetPositionThroughVertexShader(PipelineItem* pass, PipelineItem* item, const glm::vec3& pos);
+
+		// analyzer stuff
+		inline void ToggleAnalyzer(bool analyze)
+		{
+			if (m_vm != nullptr)
+				m_vm->analyzer = analyze ? &m_analyzer : nullptr;
+		}
+		void OnUndefinedBehavior(spvm_state_t state, spvm_word ubID);
+		inline spvm_word GetLastUndefinedBehaviorType() { return m_ubLastType; }
+		inline spvm_word GetLastUndefinedBehaviorLine() { return m_ubLastLine; }
+		inline spvm_word GetUndefinedBehaviorCount() { return m_ubCount; }
 
 	private:
 		ObjectManager* m_objs;
@@ -151,7 +162,7 @@ namespace ed {
 		spvm_context_t m_vmContext;
 		spvm_ext_opcode_func* m_vmGLSL;
 
-		// keep track of replace results
+		// keep track of replaced results
 		struct OriginalValue {
 			OriginalValue(spvm_state_t state, int slot, spvm_word member_count, spvm_member_t members)
 			{
@@ -178,6 +189,7 @@ namespace ed {
 		void m_resetVM();
 		spvm_state_t m_vm;
 		spvm_program_t m_shader;
+		spvm_analyzer m_analyzer;
 		std::vector<unsigned int> m_spv;
 
 		spvm_state_t m_vmImmediate;
@@ -203,5 +215,9 @@ namespace ed {
 
 		std::unordered_map<std::string, std::vector<dbg::Breakpoint>> m_breakpoints;
 		std::unordered_map<std::string, std::vector<bool>> m_breakpointStates;
+
+		spvm_word m_ubLastType; // currently only keep track of last UB that happened
+		spvm_word m_ubLastLine; // line on which last undefined behavior happened
+		spvm_word m_ubCount;	// number of undefined behaviors that happened
 	};
 }
