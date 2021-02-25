@@ -2635,6 +2635,6 @@ namespace ed {
 	{
 		m_ubLastType = ubID;
 		m_ubLastLine = state->current_line;
-		m_ubCount = std::max<spvm_word>(m_ubCount + 1, 11);
+		m_ubCount = std::min<spvm_word>(m_ubCount + 1, 11);
 	}
 }

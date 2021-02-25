@@ -430,7 +430,7 @@ namespace ed {
 						spvm_word ubType = renderer->GetLastUndefinedBehaviorType();
 						spvm_word ubLine = renderer->GetLastUndefinedBehaviorLine();
 						spvm_word ubCount = renderer->GetUndefinedBehaviorCount();
-						m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubLine << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
+						m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubCount << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
 					}
 				}
 			}

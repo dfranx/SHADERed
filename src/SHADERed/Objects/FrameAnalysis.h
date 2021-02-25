@@ -28,8 +28,8 @@ namespace ed {
 
 		uint32_t* AllocateUndefinedBehaviorMap();
 		inline uint32_t GetUndefinedBehaviorLastLine(int x, int y) { return (m_ub[y * m_width + x] & 0xFFFFF000) >> 12; }
-		inline uint32_t GetUndefinedBehaviorLastType(int x, int y) { return (m_ub[y * m_width + x] & 0x00000F00) >> 8; }
-		inline uint32_t GetUndefinedBehaviorCount(int x, int y) { return (m_ub[y * m_width + x] & 0x000000FF); }
+		inline uint32_t GetUndefinedBehaviorCount(int x, int y) { return (m_ub[y * m_width + x] & 0x00000F00) >> 8; }
+		inline uint32_t GetUndefinedBehaviorLastType(int x, int y) { return (m_ub[y * m_width + x] & 0x000000FF); }
 
 	private:
 		class EdgeEquation {
