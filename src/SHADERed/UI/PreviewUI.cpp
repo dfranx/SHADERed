@@ -440,9 +440,9 @@ namespace ed {
 						ImGui::Separator();
 						ImGui::Text("%s\nLine: %d", getUndefinedBehavior(ubType), ubLine); // todo: ubType
 						if (ubCount <= 10)
-							ImGui::Text("UB count: %d", ubCount);
+							ImGui::Text("Total UB count: %d", ubCount);
 						else
-							ImGui::Text("UB count: >10");
+							ImGui::Text("Total UB count is over 10");
 						ImGui::EndTooltip();
 					}
 				}

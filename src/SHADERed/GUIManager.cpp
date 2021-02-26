@@ -932,11 +932,12 @@ namespace ed {
 					std::make_pair("Wogos Media", "http://theWogos.com"),
 					std::make_pair("Snow Developments", "https://snow.llc"),
 					std::make_pair("Adad Morales", "https://www.moralesfx.com/"),
-					std::make_pair("Liam Don", "https://twitter.com/liamdon")
+					std::make_pair("Liam Don", "https://twitter.com/liamdon"),
+					std::make_pair("Andrew Kerr", "")
 				};
 
 				for (auto& sitem : slist)
-					if (ImGui::MenuItem(sitem.first.c_str()))
+					if (ImGui::MenuItem(sitem.first.c_str()) && !sitem.second.empty())
 						UIHelper::ShellOpen(sitem.second);
 
 				ImGui::EndMenu();
