@@ -59,6 +59,57 @@ namespace ed {
 		}
 		return "Preview";
 	}
+	const char* getUndefinedBehavior(uint32_t type)
+	{
+		switch (type) {
+		case spvm_undefined_behavior_div_by_zero:
+			return "division by zero";
+		case spvm_undefined_behavior_mod_by_zero:
+			return "mod by zero";
+		case spvm_undefined_behavior_image_read_out_of_bounds:
+			return "image read out of bounds";
+		case spvm_undefined_behavior_image_write_out_of_bounds:
+			return "image write out of bounds";
+		case spvm_undefined_behavior_vector_extract_dynamic:
+			return "vector component out of bounds";
+		case spvm_undefined_behavior_vector_insert_dynamic:
+			return "vector component out of bounds";
+		case spvm_undefined_behavior_asin:
+			return "asin(x), |x| > 1";
+		case spvm_undefined_behavior_acos:
+			return "acos(x), |x| > 1";
+		case spvm_undefined_behavior_acosh:
+			return "acosh(x), x < 1";
+		case spvm_undefined_behavior_atanh:
+			return "atanh(x), |x| >= 1";
+		case spvm_undefined_behavior_atan2:
+			return "atan2(y, x), x = y = 0";
+		case spvm_undefined_behavior_pow:
+			return "pow(x, y), x < 0 or (x = 0 and y <= 0)";
+		case spvm_undefined_behavior_log:
+			return "log(x), x <= 0";
+		case spvm_undefined_behavior_log2:
+			return "log2(x), x <= 0";
+		case spvm_undefined_behavior_sqrt:
+			return "sqrt(x), x < 0";
+		case spvm_undefined_behavior_inverse_sqrt:
+			return "invsqrt(x), x <= 0";
+		case spvm_undefined_behavior_fmin:
+			return "min(x, y), x or y is NaN";
+		case spvm_undefined_behavior_fmax:
+			return "max(x, y), x or y is NaN";
+		case spvm_undefined_behavior_clamp:
+			return "clamp(x, minVal, maxVal), minVal > maxVal";
+		case spvm_undefined_behavior_smoothstep:
+			return "smoothstep(edge0, edge1, x), edge0 >= edge1";
+		case spvm_undefined_behavior_frexp:
+			return "frexp(x, out exp), x is NaN or inf";
+		case spvm_undefined_behavior_ldexp:
+			return "ldexp(x, exp), exp > 128 (float) or exp > 1024 (double)";
+		default: return "unknown";
+		}
+		return "unknown";
+	}
 
 	void PreviewUI::m_setupShortcuts()
 	{
@@ -385,7 +436,9 @@ namespace ed {
 
 					if (ubType) {
 						ImGui::BeginTooltip();
-						ImGui::Text("Undefined behavior\n%s\nLine: %d", "...", ubLine); // todo: ubType
+						ImGui::Text("Undefined behavior");
+						ImGui::Separator();
+						ImGui::Text("%s\nLine: %d", getUndefinedBehavior(ubType), ubLine); // todo: ubType
 						if (ubCount <= 10)
 							ImGui::Text("UB count: %d", ubCount);
 						else
