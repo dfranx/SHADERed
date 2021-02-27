@@ -32,12 +32,16 @@ namespace ed {
 			m_mouseLock = false;
 			m_fullWindowFocus = true;
 			m_pauseTime = false;
-			m_view = PreviewView::Normal;
-			m_viewDebugger = 0;
-			m_viewHeatmap = 0;
+
 			m_isAnalyzingFullFrame = false;
 			m_isSelectingRegion = false;
 			m_regionStart = m_regionEnd = glm::vec2(0.0f);
+
+			m_view = PreviewView::Normal;
+			m_viewDebugger = 0;
+			m_viewHeatmap = 0;
+			m_viewUB = 0;
+			m_viewBreakpoints = 0;
 		}
 		~PreviewUI()
 		{
@@ -48,6 +52,7 @@ namespace ed {
 			glDeleteTextures(1, &m_viewDebugger);
 			glDeleteTextures(1, &m_viewHeatmap);
 			glDeleteTextures(1, &m_viewUB);
+			glDeleteTextures(1, &m_viewBreakpoints);
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -71,7 +76,8 @@ namespace ed {
 			Normal,
 			Debugger,
 			Heatmap,
-			UndefinedBehavior
+			UndefinedBehavior,
+			GlobalBreakpoints
 		};
 
 	private:
@@ -131,12 +137,19 @@ namespace ed {
 
 		// frame analysis
 		PreviewView m_view;
-		GLuint m_viewDebugger, m_viewHeatmap, m_viewUB;
+		GLuint m_viewDebugger, m_viewHeatmap, m_viewUB, m_viewBreakpoints;
 		bool m_frameAnalyzed;
 		bool m_isAnalyzingFullFrame;
 		bool m_isSelectingRegion;
 		glm::vec2 m_regionStart, m_regionEnd;
 		void m_renderAnalyzerPopup();
 		void m_runFrameAnalysis();
+
+		// global breakpoints
+		std::vector<const dbg::Breakpoint*> m_analyzerBreakpoint;
+		std::vector<const char*> m_analyzerBreakpointPath;
+		std::vector<bool> m_analyzerBreakpointGlobal;
+		std::vector<glm::vec3> m_analyzerBreakpointColor;
+		void m_buildBreakpointList();
 	};
 }

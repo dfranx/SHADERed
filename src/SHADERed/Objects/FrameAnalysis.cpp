@@ -35,27 +35,169 @@ namespace ed {
 		return (color[id2] - color[id1]) * value + color[id1];
 	}
 
-	FrameAnalysis::FrameAnalysis(DebugInformation* dbgr, RenderEngine* renderer, ObjectManager* objects, MessageStack* msgs)
+	FrameAnalysis::FrameAnalysis(DebugInformation* dbgr, RenderEngine* renderer, PipelineManager* pipeline, ObjectManager* objects, MessageStack* msgs)
 	{
 		m_depth = nullptr;
 		m_color = nullptr;
 		m_instCount = nullptr;
 		m_ub = nullptr;
 		m_pass = nullptr;
+		m_bkpt = nullptr;
 
 		m_width = 0;
 		m_height = 0;
-
+		m_hasBreakpoints = false;
+		m_isRegion = false;
 		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
 
 		m_debugger = dbgr;
 		m_renderer = renderer;
+		m_pipeline = pipeline;
 		m_objects = objects;
 		m_msgs = msgs;
 	}
 	FrameAnalysis::~FrameAnalysis()
 	{
+		m_cleanBreakpoints();
 		m_clean();
+	}
+
+	std::vector<unsigned int>* FrameAnalysis::m_getPixelShaderSPV(const char* path)
+	{
+		for (auto& pass : m_pipeline->GetList()) {
+			if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
+				if (strcmp(path, data->PSPath) == 0) {
+					return &data->PSSPV;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	void FrameAnalysis::m_cacheBreakpoint(int i)
+	{
+		ExpressionCompiler compiler;
+		compiler.SetSPIRV(*m_getPixelShaderSPV(m_breakpoint[i].PSPath));
+
+		std::string curFunction = "";
+		if (m_debugger->GetVM()->current_function != nullptr)
+			curFunction = m_debugger->GetVM()->current_function->name;
+		m_breakpoint[i].ResultID = compiler.Compile(m_breakpoint[i].Breakpoint->Condition, curFunction);
+
+		compiler.GetSPIRV(m_breakpoint[i].SPIRV);
+
+		if (m_breakpoint[i].SPIRV.size() <= 1) {
+			m_breakpoint[i].SPIRV.clear();
+			return;
+		}
+
+		m_breakpoint[i].VariableList = compiler.GetVariableList();
+		m_breakpoint[i].Shader = spvm_program_create(m_debugger->GetVMContext(), (spvm_source)m_breakpoint[i].SPIRV.data(), m_breakpoint[i].SPIRV.size());
+		m_breakpoint[i].VM = _spvm_state_create_base(m_breakpoint[i].Shader, true, 0);
+
+		// can't use set_extenstion() function because for some reason two GLSL.std.450 instructions are generated with spvgentwo
+		for (int j = 0; j < m_breakpoint[i].Shader->bound; j++)
+			if (m_breakpoint[i].VM->results[j].name)
+				if (strcmp(m_breakpoint[i].VM->results[j].name, "GLSL.std.450") == 0)
+					m_breakpoint[i].VM->results[j].extension = m_debugger->GetGLSLExtension();
+
+		m_breakpoint[i].Cached = true;
+	}
+	spvm_result_t FrameAnalysis::m_executeBreakpoint(int index, spvm_result_t& returnType)
+	{
+		spvm_state_t vm = m_breakpoint[index].VM;
+		spvm_program_t program = m_breakpoint[index].Shader;
+		const std::vector<std::string>& varList = m_breakpoint[index].VariableList;
+
+		// copy variable values
+		spvm_state_group_sync(vm);
+		for (int i = 0; i < varList.size(); i++) {
+			size_t varValueCount = 0;
+			spvm_result_t varType = nullptr;
+			spvm_member_t varValue = m_debugger->GetVariable(varList[i], varValueCount, varType);
+
+			if (varValue == nullptr)
+				continue;
+
+			spvm_result_t pointerToVariable[4] = { nullptr };
+
+			for (int j = 0; j < program->bound; j++) {
+				if (vm->results[j].name == nullptr)
+					continue;
+
+				spvm_result_t res = &vm->results[j];
+				spvm_result_t resType = spvm_state_get_type_info(vm->results, &vm->results[res->pointer]);
+
+				// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
+
+				if (res->member_count == varValueCount && resType->value_type == varType->value_type && res->members != nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
+					spvm_member_memcpy(res->members, varValue, varValueCount);
+
+					pointerToVariable[0] = res;
+
+					if (vm->derivative_used) {
+						if (vm->derivative_group_x) {
+							spvm_member_memcpy(vm->derivative_group_x->results[j].members, m_debugger->GetVariableFromState(m_debugger->GetVM()->derivative_group_x, varList[i], varValueCount), varValueCount);
+							pointerToVariable[1] = &vm->derivative_group_x->results[j];
+						}
+						if (vm->derivative_group_y) {
+							spvm_member_memcpy(vm->derivative_group_y->results[j].members, m_debugger->GetVariableFromState(m_debugger->GetVM()->derivative_group_y, varList[i], varValueCount), varValueCount);
+							pointerToVariable[2] = &vm->derivative_group_y->results[j];
+						}
+						if (vm->derivative_group_d) {
+							spvm_member_memcpy(vm->derivative_group_d->results[j].members, m_debugger->GetVariableFromState(m_debugger->GetVM()->derivative_group_d, varList[i], varValueCount), varValueCount);
+							pointerToVariable[3] = &vm->derivative_group_d->results[j];
+						}
+					}
+				}
+			}
+
+			// function parameters (which are pointers)
+			if (pointerToVariable[0] != nullptr) {
+				for (int j = 0; j < program->bound; j++) {
+					if (vm->results[j].name == nullptr)
+						continue;
+
+					spvm_result_t res = &vm->results[j];
+
+					// TODO: also check for the type, or there might be some crashes caused by two vars with different type (?) (mat4 and vec4 for example)
+
+					if (res->member_count == varValueCount && res->members == nullptr && strcmp(varList[i].c_str(), res->name) == 0) {
+						res->members = pointerToVariable[0]->members;
+
+						if (vm->derivative_used) {
+							if (vm->derivative_group_x) vm->derivative_group_x->results[j].members = pointerToVariable[1]->members;
+							if (vm->derivative_group_y) vm->derivative_group_y->results[j].members = pointerToVariable[2]->members;
+							if (vm->derivative_group_d) vm->derivative_group_d->results[j].members = pointerToVariable[3]->members;
+						}
+					}
+				}
+			}
+		}
+
+		// execute $$_shadered_immediate
+		spvm_word fnImmediate = spvm_state_get_result_location(vm, "$$_shadered_immediate");
+		spvm_state_prepare(vm, fnImmediate);
+		spvm_state_call_function(vm);
+
+		// get type and return value
+		spvm_result_t val = &vm->results[m_breakpoint[index].ResultID];
+		returnType = spvm_state_get_type_info(vm->results, &vm->results[val->pointer]);
+		return val;
+	}
+	void FrameAnalysis::m_cleanBreakpoints()
+	{
+		for (int i = 0; i < m_breakpoint.size(); i++) {
+			if (m_breakpoint[i].SPIRV.size() > 1) {
+				spvm_state_delete(m_breakpoint[i].VM);
+				spvm_program_delete(m_breakpoint[i].Shader);
+			}
+		}
+
+		m_breakpoint.clear();
+		m_hasBreakpoints = false;
 	}
 
 	void FrameAnalysis::m_clean()
@@ -79,6 +221,11 @@ namespace ed {
 			free(m_ub);
 			m_ub = nullptr;
 		}
+		
+		if (m_bkpt != nullptr) {
+			free(m_bkpt);
+			m_bkpt = nullptr;
+		}
 	}
 	void FrameAnalysis::m_copyVBOData(eng::Model::Mesh::Vertex& vertex, GLfloat* vbo, int stride)
 	{
@@ -95,6 +242,45 @@ namespace ed {
 		}
 	}
 
+	glm::vec4 FrameAnalysis::m_executePixelShaderWithBreakpoints(int x, int y, uint8_t& res, int loc)
+	{
+		spvm_state_t vm = m_debugger->GetVM();
+		if (vm == nullptr)
+			return glm::vec4(0.0f);
+
+		spvm_word fnMain = spvm_state_get_result_location(vm, "main");
+		if (fnMain == 0)
+			return glm::vec4(0.0f);
+
+		spvm_state_prepare(vm, fnMain);
+		spvm_state_set_frag_coord(vm, x + 0.5f, y + 0.5f, 1.0f, 1.0f); // TODO: z and w components
+		spvm_word prevLine = vm->current_line;
+		while (vm->code_current != nullptr) {
+			spvm_state_step_into(vm);
+			if (vm->current_line != prevLine) {
+				for (uint8_t i = 0; i < m_breakpoint.size(); i++) {
+					if (m_breakpoint[i].Breakpoint->Line == vm->current_line) {
+						if (m_breakpoint[i].Breakpoint->IsConditional && (res & (1 << i)) == 0) { // only run conditional breakpoint if needed
+							if (!m_breakpoint[i].Cached) {
+								m_cacheBreakpoint(i);
+								m_breakpoint[i].Cached = true;
+							}
+							
+							spvm_result_t resultType = nullptr;
+							spvm_result_t result = m_executeBreakpoint(i, resultType);
+							if (result && resultType->value_type == spvm_value_type_bool && result->member_count == 1)
+								res |= (result->members[0].value.b << i);
+						} else
+							res |= (1 << i);
+					}
+				}
+				prevLine = vm->current_line;
+			}
+		}
+
+		return m_debugger->GetPixelShaderOutput(loc);
+	}
+
 	void FrameAnalysis::Init(size_t width, size_t height, const glm::vec4& clearColor)
 	{
 		m_clean();
@@ -103,6 +289,9 @@ namespace ed {
 		m_color = (uint32_t*)malloc(width * height * sizeof(uint32_t));
 		m_instCount = (uint32_t*)calloc(width * height, sizeof(uint32_t));
 		m_ub = (uint32_t*)calloc(width * height, sizeof(uint32_t));
+
+		if (m_hasBreakpoints)
+			m_bkpt = (uint8_t*)calloc(width * height, sizeof(uint8_t));
 
 		uint32_t clearColorU32 = m_encodeColor(clearColor);
 
@@ -141,6 +330,21 @@ namespace ed {
 		m_regionY = y;
 		m_regionEndX = endX;
 		m_regionEndY = endY;
+	}
+	void FrameAnalysis::SetBreakpoints(const std::vector<const dbg::Breakpoint*>& breakpoints, const std::vector<glm::vec3>& bkptColors, const std::vector<const char*>& bkptPaths)
+	{
+		m_cleanBreakpoints();
+
+		m_breakpoint.resize(breakpoints.size());
+		for (int i = 0; i < m_breakpoint.size(); i++) {
+			m_breakpoint[i].Breakpoint = breakpoints[i];
+			m_breakpoint[i].Color = bkptColors[i];
+			m_breakpoint[i].PSPath = bkptPaths[i];
+
+			m_breakpoint[i].VM = nullptr;
+			m_breakpoint[i].Shader = nullptr;
+		}
+		m_hasBreakpoints = m_breakpoint.size() > 0;
 	}
 
 	void FrameAnalysis::RenderPass(PipelineItem* pass)
@@ -355,12 +559,11 @@ namespace ed {
 
 				int result = btmLeft + btmRight + topLeft + topRight;
 
-				if (result == 4)
-					m_renderBlock(m_debugger, x, y, true, edge1, edge2, edge3);
-				else {
-					// TODO: check if triangle and and rectangle don't intersect - skip the m_renderBlock
-					m_renderBlock(m_debugger, x, y, false, edge1, edge2, edge3);
-				}
+				// TODO: check if triangle and and rectangle don't intersect - skip the m_renderBlock
+				if (m_hasBreakpoints)
+					m_renderBlock<true>(m_debugger, x, y, result == 4, edge1, edge2, edge3);
+				else
+					m_renderBlock<false>(m_debugger, x, y, result == 4, edge1, edge2, edge3);
 			}
 		}
 		m_debugger->ToggleAnalyzer(false); // turn off the analyzer
@@ -399,41 +602,26 @@ namespace ed {
 
 		return tex;
 	}
-	void FrameAnalysis::m_renderBlock(DebugInformation* renderer, size_t startX, size_t startY, bool skipChecks, EdgeEquation& e1, EdgeEquation& e2, EdgeEquation& e3)
+	uint32_t* FrameAnalysis::AllocateGlobalBreakpointsMap()
 	{
-		for (size_t x = startX; x < startX + RASTER_BLOCK_SIZE; x++) {
-			for (size_t y = startY; y < startY + RASTER_BLOCK_SIZE; y++) {
-				if (skipChecks || (e1.Test(x, y) && e2.Test(x, y) && e3.Test(x, y))) {
-					m_pixel.Coordinate = glm::ivec2(x, y);
-					m_pixel.RelativeCoordinate = glm::vec2(x, y) / glm::vec2(m_pixel.RenderTextureSize);
+		if (!m_hasBreakpoints)
+			return nullptr;
 
-					float depth = renderer->SetPixelShaderInput(m_pixel);
+		uint32_t* tex = (uint32_t*)malloc(m_width * m_height * sizeof(uint32_t));
 
-					if (depth <= m_depth[y * m_width + x]) { // TODO: OpExecutionMode DepthReplacing -> execute pixel shader, then go through depth test
-						m_pixel.DebuggerColor = renderer->ExecutePixelShader(x, y, m_pixel.RenderTextureIndex);
+		for (int y = 0; y < m_height; y++) {
+			for (int x = 0; x < m_width; x++) {
+				uint8_t bkpt = m_bkpt[y * m_width + x];
 
-						if (renderer->GetVM()->discarded)
-							continue;
-						
-						// actual color and depth
-						m_color[y * m_width + x] = m_encodeColor(m_pixel.DebuggerColor);
-						m_depth[y * m_width + x] = depth;
-
-						// instruction count / heatmap stuff
-						uint32_t instCount = renderer->GetVM()->instruction_count;
-						m_instCount[y * m_width + x] = instCount;
-						m_instCountMax = std::max(m_instCountMax, instCount);
-						m_instCountAvgN++;
-						m_instCountAvg = m_instCountAvg + (instCount - m_instCountAvg) / m_instCountAvgN;
-					
-						// undefined behavior
-						spvm_word ubType = renderer->GetLastUndefinedBehaviorType();
-						spvm_word ubLine = renderer->GetLastUndefinedBehaviorLine();
-						spvm_word ubCount = renderer->GetUndefinedBehaviorCount();
-						m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubCount << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
-					}
-				}
+				if (bkpt) {
+					for (uint8_t i = 0; i < 8; i++)
+						if (bkpt & (1 << i))
+							tex[y * m_width + x] = m_encodeColor(glm::vec4(m_breakpoint[i].Color, 1.0f));
+				} else
+					tex[y * m_width + x] = (m_color[y * m_width + x] & 0x00FFFFFF) | 0x66000000; // darken the texture
 			}
 		}
+
+		return tex;
 	}
 }

@@ -1781,6 +1781,7 @@ namespace ed {
 	float DebugInformation::SetPixelShaderInput(PixelInformation& pixel)
 	{
 		m_pixel = &pixel;
+		m_ubLastType = m_ubLastLine = m_ubCount = 0;
 
 		glm::vec3 weights = m_processWeight(glm::ivec2(0, 0));
 		m_interpolateValues(m_vm, weights);
@@ -1943,12 +1944,15 @@ namespace ed {
 		if (fnMain == 0)
 			return glm::vec4(0.0f);
 
-		m_ubLastType = m_ubLastLine = m_ubCount = 0;
-
 		spvm_state_prepare(m_vm, fnMain);
 		spvm_state_set_frag_coord(m_vm, x + 0.5f, y + 0.5f, 1.0f, 1.0f); // TODO: z and w components
 		spvm_state_call_function(m_vm);
 
+		return GetPixelShaderOutput(loc);
+	}
+
+	glm::vec4 DebugInformation::GetPixelShaderOutput(int loc)
+	{
 		glm::vec4 ret(0.0f);
 
 		spvm_word mCount = 0;

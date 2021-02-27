@@ -25,6 +25,8 @@ namespace ed {
 
 		inline spvm_state_t GetVM() { return m_vm; }
 		inline spvm_state_t GetVMImmediate() { return m_vmImmediate; }
+		inline spvm_context_t GetVMContext() { return m_vmContext; }
+		inline spvm_ext_opcode_func* GetGLSLExtension() { return m_vmGLSL; }
 		inline int GetCurrentLine() { return m_shader->language == SpvSourceLanguageHLSL ? (m_vm->current_line - 1) : m_vm->current_line; }
 		inline bool IsVMRunning() { return m_vm->code_current != nullptr; }
 		inline void SetCurrentFile(const std::string& file) { m_file = file; }
@@ -45,6 +47,7 @@ namespace ed {
 		void PreparePixelShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
 		float SetPixelShaderInput(PixelInformation& pixel);
 		glm::vec4 ExecutePixelShader(int x, int y, int loc = 0);
+		glm::vec4 GetPixelShaderOutput(int loc = 0);
 
 		void PrepareGeometryShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
 		void SetGeometryShaderInput(PixelInformation& pixel);
