@@ -5,6 +5,7 @@
 #include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/ThemeContainer.h>
 #include <SHADERed/UI/CodeEditorUI.h>
+#include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/UIHelper.h>
 #include <ImFileDialog/ImFileDialog.h>
 
@@ -970,6 +971,13 @@ namespace ed {
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
 				OpenFile(m_findIncludedFile(tEditPath, path));
 			};
+			editor->OnCtrlAltClick = [&](TextEditor* tEdit, const std::string& keyword, TextEditor::Coordinates coords) {
+				for (int t = 0; t < m_editor.size(); t++)
+					if (m_editor[t] == tEdit) {
+						((PreviewUI*)m_ui->Get(ViewID::Preview))->SetVariableValue(m_items[t], keyword, coords.mLine);
+						break;
+					}
+			};
 			m_loadEditorShortcuts(editor);
 
 			if (sLang == ShaderLanguage::HLSL)
@@ -1080,6 +1088,13 @@ namespace ed {
 			editor->SetFoldEnabled(Settings::Instance().Editor.CodeFolding);
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
 				OpenFile(m_findIncludedFile(tEditPath, path));
+			};
+			editor->OnCtrlAltClick = [&](TextEditor* tEdit, const std::string& keyword, TextEditor::Coordinates coords) {
+				for (int t = 0; t < m_editor.size(); t++)
+					if (m_editor[t] == tEdit) {
+						((PreviewUI*)m_ui->Get(ViewID::Preview))->SetVariableValue(m_items[t], keyword, coords.mLine);
+						break;
+					}
 			};
 			m_loadEditorShortcuts(editor);
 
@@ -1192,6 +1207,13 @@ namespace ed {
 			editor->SetFoldEnabled(Settings::Instance().Editor.CodeFolding);
 			editor->RequestOpen = [&](TextEditor* tEdit, const std::string& tEditPath, const std::string& path) {
 				OpenFile(m_findIncludedFile(tEditPath, path));
+			};
+			editor->OnCtrlAltClick = [&](TextEditor* tEdit, const std::string& keyword, TextEditor::Coordinates coords) {
+				for (int t = 0; t < m_editor.size(); t++)
+					if (m_editor[t] == tEdit) {
+						((PreviewUI*)m_ui->Get(ViewID::Preview))->SetVariableValue(m_items[t], keyword, coords.mLine);
+						break;
+					}
 			};
 			m_loadEditorShortcuts(editor);
 

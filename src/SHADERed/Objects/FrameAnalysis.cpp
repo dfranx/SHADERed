@@ -1,13 +1,39 @@
 #include <SHADERed/Objects/FrameAnalysis.h>
 #include <SHADERed/Objects/Debug/PixelInformation.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/Names.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 
 #include <thread>
 #include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
+#include <spvgentwo/Reader.h>
+#include <common/BinaryVectorWriter.h>
 
 namespace ed {
+	template <typename U32Vector>
+	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
+	public:
+		SPIRVBinaryVectorReader(U32Vector& spv)
+				: m_vec(spv)
+				, m_index(0)
+		{
+		}
+		~SPIRVBinaryVectorReader() { }
+
+		bool get(unsigned int& _word) final
+		{
+			if (m_index >= m_vec.size())
+				return false;
+			_word = m_vec[m_index++];
+			return true;
+		}
+
+	private:
+		U32Vector& m_vec;
+		int m_index;
+	};
+
 	FrameAnalysis::EdgeEquation::EdgeEquation(const glm::ivec2& v0, const glm::ivec2& v1)
 	{
 		a = v0.y - v1.y;
@@ -623,5 +649,136 @@ namespace ed {
 		}
 
 		return tex;
+	}
+	float* FrameAnalysis::AllocateVariableValueMap(PipelineItem* pass, const std::string& variableName, unsigned int line, uint8_t& components)
+	{
+		if (pass == nullptr || variableName.size() == 0 || line == 0 || pass->Type != PipelineItem::ItemType::ShaderPass)
+			return nullptr;
+
+		pipe::ShaderPass* passData = ((pipe::ShaderPass*)pass->Data);
+		std::vector<unsigned int> oldSPV = passData->PSSPV;
+		if (oldSPV.size() <= 1)
+			return nullptr;
+
+		spvgentwo::HeapAllocator* allocator = new spvgentwo::HeapAllocator();
+		spvgentwo::Grammar* grammar = new spvgentwo::Grammar(allocator);
+		spvgentwo::Module* module = new spvgentwo::Module(allocator, spvgentwo::spv::Version);
+
+
+		SPIRVBinaryVectorReader reader(oldSPV);
+
+		module->reset();
+		module->read(&reader, *grammar);
+		module->resolveIDs();
+		module->reconstructTypeAndConstantInfo();
+		module->reconstructNames();
+
+		spvgentwo::Instruction* outputInstruction = nullptr, *inputInstruction = nullptr;
+		module->iterateInstructions([&](spvgentwo::Instruction& inst) {
+			if (inst.getOperation() == spvgentwo::spv::Op::OpVariable) {
+				spvgentwo::spv::StorageClass sc = inst.getStorageClass();
+				if (sc == spvgentwo::spv::StorageClass::Output)
+					outputInstruction = &inst;
+			}
+		});
+
+		unsigned int currentLine = 0;
+		auto& funcs = module->getEntryPoints();
+		for (auto& f : funcs) {
+			const char* fName = f.getName();
+			if (strcmp(fName, "main") == 0) {
+				spvgentwo::BasicBlock& bb = f.front();
+				auto it = bb.begin();
+				// loop through instructions
+				while (it != bb.end()) {
+					spvgentwo::Instruction& inst = *it;
+
+					if ((inst.getOpCode() & spvgentwo::spv::OpCodeMask) == (unsigned int)spvgentwo::spv::Op::OpLine) {
+						for (auto& op : inst) {
+							if (op.isLiteral()) {
+								currentLine = op.getLiteral().value;
+								break;
+							}
+						}
+					}
+					const char* iName = inst.getName();
+					if (iName != nullptr && strcmp(iName, variableName.c_str()) == 0)
+						inputInstruction = &inst;
+
+					if (currentLine > line + 1) { // since line starts from 0 and currentLine (SPIR-V) is from 1
+						it++;
+						bb.remove(&inst);
+					} else
+						it++;
+				}
+
+				if (inputInstruction == nullptr) {
+					auto& globalVariables = module->getGlobalVariables();
+					for (auto& glob : globalVariables) {
+						const char* globName = glob.getName();
+						if (globName != nullptr && strcmp(globName, variableName.c_str()) == 0) {
+							inputInstruction = &glob;
+							break;
+						}
+					}
+				}
+
+				if (inputInstruction && outputInstruction) {
+					spvgentwo::Instruction* loadedInput = bb->opLoad(inputInstruction);
+					spvgentwo::Instruction* newValue = nullptr;
+
+					if (loadedInput->getType()->isScalar()) {
+						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, loadedInput, loadedInput, loadedInput);
+						components = 1;
+					} else if (loadedInput->getType()->getScalarOrVectorLength() == 2) {
+						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(0.0f), module->constant<float>(1.0f));
+						components = 2;
+					} else if (loadedInput->getType()->getScalarOrVectorLength() == 3) {
+						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(1.0f));
+						components = 3;
+					} else if (loadedInput->getType()->getScalarOrVectorLength() == 4) {
+						newValue = loadedInput;
+						components = 4;
+					}
+
+					bb->opStore(outputInstruction, newValue);
+				}
+				
+				bb->opReturn();
+			}
+		}
+
+		module->assignIDs();
+
+		std::vector<unsigned int> newSPV;
+		spvgentwo::BinaryVectorWriter writer(newSPV);
+		module->write(&writer);
+
+		bool failed = (outputInstruction == nullptr || inputInstruction == nullptr);
+
+		delete grammar;
+		delete module;
+		delete allocator;
+
+		if (failed)
+			return nullptr;
+
+		std::string newGLSL = ed::ShaderCompiler::ConvertToGLSL(newSPV, ed::ShaderLanguage::GLSL, ed::ShaderStage::Pixel, passData->TSUsed, passData->GSUsed, nullptr, false);
+		
+		// input the new shader
+		m_renderer->RecompileFromSource(pass->Name, "", newGLSL);
+		m_renderer->Render();
+
+		GLuint rendTex = m_renderer->GetTexture();
+		float* returnData = (float*)malloc(m_renderer->GetLastRenderSize().x * m_renderer->GetLastRenderSize().y * 4 * sizeof(float));
+		glBindTexture(GL_TEXTURE_2D, rendTex);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, returnData);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// return old shader
+		m_renderer->Recompile(pass->Name);
+		m_renderer->Render();
+
+		return returnData;
 	}
 }

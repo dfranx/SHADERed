@@ -36,6 +36,8 @@ namespace ed {
 		uint32_t* AllocateGlobalBreakpointsMap();
 		inline bool HasGlobalBreakpoints() { return m_hasBreakpoints; }
 
+		float* AllocateVariableValueMap(PipelineItem* pass, const std::string& variableName, unsigned int line, uint8_t& components);
+
 	private:
 		class EdgeEquation {
 		public:
@@ -116,8 +118,8 @@ namespace ed {
 		template <bool hasBreakpoints>
 		void m_renderBlock(DebugInformation* renderer, size_t startX, size_t startY, bool skipChecks, EdgeEquation& e1, EdgeEquation& e2, EdgeEquation& e3)
 		{
-			for (size_t x = startX; x < startX + RASTER_BLOCK_SIZE; x++) {
-				for (size_t y = startY; y < startY + RASTER_BLOCK_SIZE; y++) {
+			for (size_t x = startX; x < std::min<size_t>(m_width, startX + RASTER_BLOCK_SIZE); x++) {
+				for (size_t y = startY; y < std::min<size_t>(m_height, startY + RASTER_BLOCK_SIZE); y++) {
 					if (skipChecks || (e1.Test(x, y) && e2.Test(x, y) && e3.Test(x, y))) {
 						m_pixel.Coordinate = glm::ivec2(x, y);
 						m_pixel.RelativeCoordinate = glm::vec2(x, y) / glm::vec2(m_pixel.RenderTextureSize);

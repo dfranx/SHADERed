@@ -56,6 +56,7 @@ namespace ed {
 		case PreviewUI::PreviewView::Heatmap: return "Heatmap";
 		case PreviewUI::PreviewView::UndefinedBehavior: return "Undefined behavior";
 		case PreviewUI::PreviewView::GlobalBreakpoints: return "Global breakpoints";
+		case PreviewUI::PreviewView::VariableValue: return "Variable value";
 		default: return "Preview";
 		}
 		return "Preview";
@@ -329,6 +330,30 @@ namespace ed {
 			m_gizmo.SetTransform(&m_tempTrans, &m_tempScale, &m_tempRota);
 		}
 	}
+	void PreviewUI::SetVariableValue(PipelineItem* item, const std::string& varName, int line)
+	{
+		m_varValueItem = item;
+		m_varValueName = varName;
+		m_varValueLine = line;
+
+		if (m_varValue != nullptr) {
+			free(m_varValue);
+			m_varValue = nullptr;
+		}
+
+		if (m_frameAnalyzed) {
+			// variable value viewer
+			m_varValue = m_data->Analysis.AllocateVariableValueMap(item, varName, line, m_varValueComponents);
+			glDeleteTextures(1, &m_viewVariableValue);
+			glGenTextures(1, &m_viewVariableValue);
+			glBindTexture(GL_TEXTURE_2D, m_viewVariableValue);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_FLOAT, m_varValue);
+		}
+	}
 	void PreviewUI::Update(float delta)
 	{
 		if (!m_data->Messages.CanRenderPreview()) {
@@ -399,30 +424,46 @@ namespace ed {
 			displayImagePtr = m_viewUB;
 		else if (m_view == PreviewView::GlobalBreakpoints)
 			displayImagePtr = m_viewBreakpoints;
+		else if (m_view == PreviewView::VariableValue)
+			displayImagePtr = m_viewVariableValue;
 		ImGui::Image((void*)displayImagePtr, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
 		m_hasFocus = ImGui::IsWindowFocused();
 
 		// analyzer tooltip
-		if ((m_view == PreviewView::UndefinedBehavior || m_view == PreviewView::Heatmap) && ImGui::IsItemHovered()) {
+		if ((m_view == PreviewView::UndefinedBehavior || m_view == PreviewView::Heatmap || m_view == PreviewView::VariableValue) && ImGui::IsItemHovered()) {
 			// heatmap tooltip
-			if (m_view == PreviewView::Heatmap) {
+			if (m_view == PreviewView::Heatmap || m_view == PreviewView::VariableValue) {
 				glm::ivec2 outputSize = m_data->Analysis.GetOutputSize();
 				glm::vec2 pixelSize = 1.0f / glm::vec2(outputSize);
-				const float pixelMult = 60.0f;
+				const float pixelMult = 30.0f;
+				const int pixelCount = 7;
 
-				glm::vec2 heatPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
-				heatPos.x = glm::floor(heatPos.x / pixelSize.x) * pixelSize.x;
-				heatPos.y = glm::floor(heatPos.y / pixelSize.y) * pixelSize.y;
+				glm::vec2 selectionPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
+				selectionPos.x = glm::floor(selectionPos.x / pixelSize.x) * pixelSize.x;
+				selectionPos.y = glm::floor(selectionPos.y / pixelSize.y) * pixelSize.y;
 
-				glm::ivec2 pixelPos(heatPos.x * outputSize.x, heatPos.y * outputSize.y);
+				glm::ivec2 pixelPos(selectionPos.x * outputSize.x, selectionPos.y * outputSize.y);
 
 				if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
 					ImGui::BeginTooltip();
 					ImVec2 selectorPos = ImGui::GetCursorScreenPos();
 					ImDrawList* drawList = ImGui::GetWindowDrawList();
-					ImGui::Image((ImTextureID)m_viewHeatmap, ImVec2(3 * pixelMult, 3 * pixelMult), ImVec2(heatPos.x - pixelSize.x, heatPos.y + pixelSize.y * 2.0f), ImVec2(heatPos.x + pixelSize.x * 2.0f, heatPos.y - pixelSize.y));
-					drawList->AddRect(ImVec2(selectorPos.x + pixelMult, selectorPos.y + pixelMult), ImVec2(selectorPos.x + 2 * pixelMult, selectorPos.y + 2 * pixelMult), 0xFFFFFFFF);
-					ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(pixelPos.x, pixelPos.y));
+					ImGui::Image(m_view == PreviewView::VariableValue ? (ImTextureID)m_viewVariableValue : (ImTextureID)m_viewHeatmap, ImVec2(pixelCount * pixelMult, pixelCount * pixelMult), ImVec2(selectionPos.x - (pixelCount / 2) * pixelSize.x, selectionPos.y + (pixelCount / 2 + 1) * pixelSize.y), ImVec2(selectionPos.x + (pixelCount / 2 + 1) * pixelSize.x, selectionPos.y - (pixelCount / 2) * pixelSize.y));
+					drawList->AddRect(ImVec2(selectorPos.x + (pixelCount / 2) * pixelMult, selectorPos.y + (pixelCount / 2) * pixelMult), ImVec2(selectorPos.x + (pixelCount / 2 + 1) * pixelMult, selectorPos.y + (pixelCount / 2 + 1) * pixelMult), 0xFFFFFFFF);
+					if (m_view == PreviewView::VariableValue) {
+						if (m_varValue) {
+							float* varVal = &m_varValue[(pixelPos.y * outputSize.x + pixelPos.x) * 4];
+							if (m_varValueComponents == 1)
+								ImGui::Text("value: %.6f", varVal[0]);
+							else if (m_varValueComponents == 2)
+								ImGui::Text("x: %.6f\ny: %.6f", varVal[0], varVal[1]);
+							else if (m_varValueComponents == 3)
+								ImGui::Text("x: %.6f\ny: %.6f\nz: %.6f", varVal[0], varVal[1], varVal[2]);
+							else if (m_varValueComponents == 4)
+								ImGui::Text("x: %.6f\ny: %.6f\nz: %.6f\nw: %.6f", varVal[0], varVal[1], varVal[2], varVal[3]);
+						}
+					} else 
+						ImGui::Text("Instruction count: %u", m_data->Analysis.GetInstructionCount(pixelPos.x, pixelPos.y));
 					ImGui::EndTooltip();
 				}
 			}
@@ -1009,6 +1050,10 @@ namespace ed {
 						if (m_data->Analysis.HasGlobalBreakpoints() && ImGui::Selectable(getViewName(PreviewView::GlobalBreakpoints)))
 							m_view = PreviewView::GlobalBreakpoints;
 
+						// variable value viewer
+						if (ImGui::Selectable(getViewName(PreviewView::VariableValue)))
+							m_view = PreviewView::VariableValue;
+
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
@@ -1557,6 +1602,9 @@ namespace ed {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_imgSize.x, m_imgSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, globBkptMap);
 			free(globBkptMap);
 		}
+
+		// refresh variable value
+		SetVariableValue(m_varValueItem, m_varValueName, m_varValueLine);
 	}
 	void PreviewUI::m_buildBreakpointList()
 	{

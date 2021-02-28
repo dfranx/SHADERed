@@ -125,7 +125,7 @@ const TBuiltInResource DefaultTBuiltInResource = {
 };
 
 namespace ed {
-	std::string ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>& spvIn, ShaderLanguage inLang, ShaderStage sType, bool tsUsed, bool gsUsed, MessageStack* msgs)
+	std::string ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>& spvIn, ShaderLanguage inLang, ShaderStage sType, bool tsUsed, bool gsUsed, MessageStack* msgs, bool convertNames)
 	{
 		if (spvIn.empty())
 			return "";
@@ -179,9 +179,11 @@ namespace ed {
 			outputName = "outputGS";
 		else if (sType == ShaderStage::Pixel)
 			outputName = "outputPS";
-		for (auto& resource : resources.stage_outputs) {
-			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
-			glsl.set_name(resource.id, outputName + std::to_string(resID));
+		if (convertNames) {
+			for (auto& resource : resources.stage_outputs) {
+				uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
+				glsl.set_name(resource.id, outputName + std::to_string(resID));
+			}
 		}
 
 		// rename inputs
@@ -194,9 +196,11 @@ namespace ed {
 			inputName = "outputVS";
 		else if (sType == ShaderStage::TessellationEvaluation)
 			inputName = "outputTCS";
-		for (auto& resource : resources.stage_inputs) {
-			uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
-			glsl.set_name(resource.id, inputName + std::to_string(resID));
+		if (convertNames) {
+			for (auto& resource : resources.stage_inputs) {
+				uint32_t resID = glsl.get_decoration(resource.id, spv::DecorationLocation);
+				glsl.set_name(resource.id, inputName + std::to_string(resID));
+			}
 		}
 
 		// Compile to GLSL

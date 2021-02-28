@@ -42,6 +42,13 @@ namespace ed {
 			m_viewHeatmap = 0;
 			m_viewUB = 0;
 			m_viewBreakpoints = 0;
+			m_viewVariableValue = 0;
+
+			m_varValueItem = nullptr;
+			m_varValueName = "";
+			m_varValueLine = 0;
+			m_varValueComponents = 0;
+			m_varValue = nullptr;
 		}
 		~PreviewUI()
 		{
@@ -53,6 +60,12 @@ namespace ed {
 			glDeleteTextures(1, &m_viewHeatmap);
 			glDeleteTextures(1, &m_viewUB);
 			glDeleteTextures(1, &m_viewBreakpoints);
+			glDeleteTextures(1, &m_viewVariableValue);
+
+			if (m_varValue != nullptr) {
+				free(m_varValue);
+				m_varValue = nullptr;
+			}
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -64,6 +77,8 @@ namespace ed {
 
 		inline glm::vec2 GetUIRectSize() { return glm::vec2(m_imgSize.x, m_imgSize.y); }
 		inline glm::vec2 GetUIRectPosition() { return glm::vec2(m_imgPosition.x, m_imgPosition.y); }
+
+		void SetVariableValue(PipelineItem* item, const std::string& varName, int line);
 
 		inline void Reset()
 		{
@@ -77,7 +92,8 @@ namespace ed {
 			Debugger,
 			Heatmap,
 			UndefinedBehavior,
-			GlobalBreakpoints
+			GlobalBreakpoints,
+			VariableValue
 		};
 
 	private:
@@ -137,7 +153,7 @@ namespace ed {
 
 		// frame analysis
 		PreviewView m_view;
-		GLuint m_viewDebugger, m_viewHeatmap, m_viewUB, m_viewBreakpoints;
+		GLuint m_viewDebugger, m_viewHeatmap, m_viewUB, m_viewBreakpoints, m_viewVariableValue;
 		bool m_frameAnalyzed;
 		bool m_isAnalyzingFullFrame;
 		bool m_isSelectingRegion;
@@ -151,5 +167,12 @@ namespace ed {
 		std::vector<bool> m_analyzerBreakpointGlobal;
 		std::vector<glm::vec3> m_analyzerBreakpointColor;
 		void m_buildBreakpointList();
+
+		// variable value
+		PipelineItem* m_varValueItem;
+		std::string m_varValueName;
+		int m_varValueLine;
+		uint8_t m_varValueComponents;
+		float* m_varValue;
 	};
 }
