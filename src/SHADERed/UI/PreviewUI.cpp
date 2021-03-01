@@ -434,6 +434,9 @@ namespace ed {
 			// heatmap tooltip
 			if (m_view == PreviewView::Heatmap || m_view == PreviewView::VariableValue) {
 				glm::ivec2 outputSize = m_data->Analysis.GetOutputSize();
+				if (m_view == PreviewView::VariableValue)
+					outputSize = m_data->Renderer.GetLastRenderSize();
+
 				glm::vec2 pixelSize = 1.0f / glm::vec2(outputSize);
 				const float pixelMult = 30.0f;
 				const int pixelCount = 7;
@@ -452,7 +455,7 @@ namespace ed {
 					drawList->AddRect(ImVec2(selectorPos.x + (pixelCount / 2) * pixelMult, selectorPos.y + (pixelCount / 2) * pixelMult), ImVec2(selectorPos.x + (pixelCount / 2 + 1) * pixelMult, selectorPos.y + (pixelCount / 2 + 1) * pixelMult), 0xFFFFFFFF);
 					if (m_view == PreviewView::VariableValue) {
 						if (m_varValue) {
-							float* varVal = &m_varValue[(pixelPos.y * outputSize.x + pixelPos.x) * 4];
+							float* varVal = &m_varValue[(pixelPos.y * m_data->Renderer.GetLastRenderSize().x + pixelPos.x) * 4];
 							if (m_varValueComponents == 1)
 								ImGui::Text("value: %.6f", varVal[0]);
 							else if (m_varValueComponents == 2)

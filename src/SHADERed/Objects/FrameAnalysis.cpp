@@ -10,6 +10,9 @@
 #include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
 
+#include <spirv-tools/libspirv.h>
+#include <spirv-tools/optimizer.hpp>
+
 namespace ed {
 	template <typename U32Vector>
 	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
@@ -682,48 +685,77 @@ namespace ed {
 			}
 		});
 
+		bool passedOpReturn = false;
 		unsigned int currentLine = 0;
 		auto& funcs = module->getEntryPoints();
 		for (auto& f : funcs) {
 			const char* fName = f.getName();
 			if (strcmp(fName, "main") == 0) {
-				spvgentwo::BasicBlock& bb = f.front();
-				auto it = bb.begin();
-				// loop through instructions
-				while (it != bb.end()) {
-					spvgentwo::Instruction& inst = *it;
+				// loop through global variables
+				auto& globalVariables = module->getGlobalVariables();
+				for (auto& glob : globalVariables) {
+					const char* globName = glob.getName();
+					if (globName != nullptr && strcmp(globName, variableName.c_str()) == 0) {
+						inputInstruction = &glob;
+						break;
+					}
+				}
 
-					if ((inst.getOpCode() & spvgentwo::spv::OpCodeMask) == (unsigned int)spvgentwo::spv::Op::OpLine) {
-						for (auto& op : inst) {
-							if (op.isLiteral()) {
-								currentLine = op.getLiteral().value;
-								break;
+				// loop through BasicBlocks
+				std::vector<bool> clearBB(f.size(), true);
+				int lastBBIndex = 0, currentBBIndex = 0;
+				for (auto bbIterator = f.begin(); bbIterator != f.end(); bbIterator++, currentBBIndex++) {
+					spvgentwo::BasicBlock& bb = *bbIterator;
+					
+					// loop through instructions
+					auto it = bb.begin();
+					while (it != bb.end()) {
+						spvgentwo::Instruction& inst = *it;
+						unsigned int actualOpCode = (inst.getOpCode() & spvgentwo::spv::OpCodeMask);
+
+						if (actualOpCode == (unsigned int)spvgentwo::spv::Op::OpLine) {
+							for (auto& op : inst) {
+								if (op.isLiteral()) {
+									currentLine = op.getLiteral().value;
+									break;
+								}
 							}
 						}
-					}
-					const char* iName = inst.getName();
-					if (iName != nullptr && strcmp(iName, variableName.c_str()) == 0)
-						inputInstruction = &inst;
+						const char* iName = inst.getName();
+						if (iName != nullptr && strcmp(iName, variableName.c_str()) == 0)
+							inputInstruction = &inst;
 
-					if (currentLine > line + 1) { // since line starts from 0 and currentLine (SPIR-V) is from 1
-						it++;
-						bb.remove(&inst);
-					} else
-						it++;
-				}
-
-				if (inputInstruction == nullptr) {
-					auto& globalVariables = module->getGlobalVariables();
-					for (auto& glob : globalVariables) {
-						const char* globName = glob.getName();
-						if (globName != nullptr && strcmp(globName, variableName.c_str()) == 0) {
-							inputInstruction = &glob;
-							break;
+						bool isOpReturn = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpReturn;
+						bool isOpFunctionEnd = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpFunctionEnd;
+						
+						if (currentLine > line + 1 || passedOpReturn || ((isOpReturn || isOpFunctionEnd) && inputInstruction != nullptr)) { // since line starts from 0 and currentLine (SPIR-V) is from 1
+							it++;
+							bb.remove(&inst);
+							passedOpReturn = isOpReturn;
+						} else {
+							if (currentLine == line + 1)
+								lastBBIndex = currentBBIndex;
+							it++;
+							clearBB[currentBBIndex] = false;
 						}
 					}
 				}
 
+				// generate new instructions
 				if (inputInstruction && outputInstruction) {
+					if (lastBBIndex >= f.size())
+						lastBBIndex = f.size() - 1;
+					for (int i = 0; i < clearBB.size(); i++) {
+						if (!clearBB[i]) {
+							lastBBIndex = i;
+							continue;
+						}
+						spvgentwo::BasicBlock& bb = *(f.begin() + i);
+						bb.clear();
+					}
+
+					spvgentwo::BasicBlock& bb = *(f.begin() + lastBBIndex);
+					
 					spvgentwo::Instruction* loadedInput = bb->opLoad(inputInstruction);
 					spvgentwo::Instruction* newValue = nullptr;
 
@@ -742,9 +774,9 @@ namespace ed {
 					}
 
 					bb->opStore(outputInstruction, newValue);
+					bb->opReturn();
+					bb->opFunctionEnd();
 				}
-				
-				bb->opReturn();
 			}
 		}
 
@@ -762,6 +794,11 @@ namespace ed {
 
 		if (failed)
 			return nullptr;
+
+		std::string disassembly = "";
+		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
+		bool disResult = core.Disassemble(newSPV, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+		printf("spv: \n%s\n", disassembly.c_str());
 
 		std::string newGLSL = ed::ShaderCompiler::ConvertToGLSL(newSPV, ed::ShaderLanguage::GLSL, ed::ShaderStage::Pixel, passData->TSUsed, passData->GSUsed, nullptr, false);
 		

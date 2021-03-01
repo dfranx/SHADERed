@@ -85,6 +85,9 @@ namespace ed {
 			m_zoom.Reset();
 			Pick(nullptr);
 			m_view = PreviewView::Normal;
+			m_varValueItem = nullptr;
+			m_varValueName = "";
+			m_varValueLine = 0;
 		}
 
 		enum class PreviewView {
