@@ -10,6 +10,7 @@
 #include <SHADERed/UI/PipelineUI.h>
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
+#include <SHADERed/UI/FrameAnalysisUI.h>
 #include <SHADERed/UI/Tools/DebuggerOutline.h>
 
 #include <imgui/imgui_internal.h>
@@ -444,7 +445,7 @@ namespace ed {
 				glm::vec2 selectionPos(zPos.x + zSize.x * m_mousePos.x, zPos.y + zSize.y * m_mousePos.y);
 				selectionPos.x = glm::floor(selectionPos.x / pixelSize.x) * pixelSize.x;
 				selectionPos.y = glm::floor(selectionPos.y / pixelSize.y) * pixelSize.y;
-
+				
 				glm::ivec2 pixelPos(selectionPos.x * outputSize.x, selectionPos.y * outputSize.y);
 
 				if (pixelPos.x >= 0 && pixelPos.y >= 0 && pixelPos.x < outputSize.x && pixelPos.y < outputSize.y) {
@@ -1555,6 +1556,9 @@ namespace ed {
 			for (int i = passStartPos; i <= passEndPos; i++)
 				m_data->Analysis.RenderPass(passes[i]);
 		}
+
+		// build a histogram and other stuff
+		((FrameAnalysisUI*)m_ui->Get(ViewID::FrameAnalysis))->Process();
 
 		// TODO: ayo, why didn't I create gl::CreateTexture() ???
 

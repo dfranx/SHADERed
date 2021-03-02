@@ -33,6 +33,7 @@
 #include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
+#include <SHADERed/UI/FrameAnalysisUI.h>
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
@@ -180,6 +181,7 @@ namespace ed {
 		m_createUI = new CreateItemUI(this, objects);
 		m_objectPrev = new ObjectPreviewUI(this, objects, "Object Preview");
 		m_geometryOutput = new DebugGeometryOutputUI(this, objects, "Geometry Shader Output");
+		m_frameAnalysis = new FrameAnalysisUI(this, objects, "Frame Analysis");
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
@@ -852,11 +854,25 @@ namespace ed {
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Window")) {
+				// casual window controls
 				for (auto& view : m_views) {
 					if (view->Name != "Code") // dont show the "Code" UI view in this menu
 						ImGui::MenuItem(view->Name.c_str(), 0, &view->Visible);
 				}
 
+				// frame analysis control
+				bool isFrameAnalyzed = ((PreviewUI*)Get(ViewID::Preview))->IsFrameAnalyzed();
+				if (!isFrameAnalyzed) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+				ImGui::MenuItem(m_frameAnalysis->Name.c_str(), 0, &m_frameAnalysis->Visible);
+				if (!isFrameAnalyzed) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
+
+				// debug window controls
 				if (ImGui::BeginMenu("Debug")) {
 					if (!m_data->Debugger.IsDebugging()) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -984,11 +1000,19 @@ namespace ed {
 				}
 			}
 
+			// text editor windows
 			Get(ViewID::Code)->Update(delta);
 
 			// object preview
 			if (((ed::ObjectPreviewUI*)m_objectPrev)->ShouldRun())
 				m_objectPrev->Update(delta);
+
+			// frame analysis window
+			if (((PreviewUI*)Get(ViewID::Preview))->IsFrameAnalyzed()) {
+				if (ImGui::Begin(m_frameAnalysis->Name.c_str(), &m_frameAnalysis->Visible))
+					m_frameAnalysis->Update(delta);
+				ImGui::End();
+			}
 		}
 
 		// handle the "build occured" event
@@ -1481,6 +1505,8 @@ namespace ed {
 			return m_debugViews[(int)view - (int)ViewID::DebugWatch];
 		else if (view == ViewID::DebugGeometryOutput)
 			return m_geometryOutput;
+		else if (view == ViewID::FrameAnalysis)
+			return m_frameAnalysis;
 
 		return m_views[(int)view];
 	}

@@ -10,9 +10,6 @@
 #include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
 
-#include <spirv-tools/libspirv.h>
-#include <spirv-tools/optimizer.hpp>
-
 namespace ed {
 	template <typename U32Vector>
 	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
@@ -78,6 +75,7 @@ namespace ed {
 		m_hasBreakpoints = false;
 		m_isRegion = false;
 		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
+		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = 0;
 
 		m_debugger = dbgr;
 		m_renderer = renderer;
@@ -334,6 +332,7 @@ namespace ed {
 		m_height = height;
 
 		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
+		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = 0;
 
 		m_isRegion = false;
 	}
@@ -794,11 +793,6 @@ namespace ed {
 
 		if (failed)
 			return nullptr;
-
-		std::string disassembly = "";
-		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
-		bool disResult = core.Disassemble(newSPV, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
-		printf("spv: \n%s\n", disassembly.c_str());
 
 		std::string newGLSL = ed::ShaderCompiler::ConvertToGLSL(newSPV, ed::ShaderLanguage::GLSL, ed::ShaderStage::Pixel, passData->TSUsed, passData->GSUsed, nullptr, false);
 		

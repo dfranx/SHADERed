@@ -1,9 +1,10 @@
 [v1.5]
-+ add FrameAnalysis
++ add "Frame analysis" window
 + add the ability to detect undefined behavior in shaders
 + add global/frame breakpoints
 + add the ability to see variable's value throughout the whole frame
 + add SPIR-V instruction heatmap
++ add color histogram
 
 [v1.4.4]
 + add tessellation shaders

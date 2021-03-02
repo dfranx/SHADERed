@@ -79,6 +79,7 @@ set(SOURCES
 	src/SHADERed/UI/PixelInspectUI.cpp
 	src/SHADERed/UI/PreviewUI.cpp
 	src/SHADERed/UI/PropertyUI.cpp
+	src/SHADERed/UI/FrameAnalysisUI.cpp
 
 # engine:
 	src/SHADERed/Engine/Timer.cpp

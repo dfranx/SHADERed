@@ -41,7 +41,8 @@ namespace ed {
 		DebugImmediate,
 		DebugGeometryOutput,
 		Options,
-		ObjectPreview
+		ObjectPreview,
+		FrameAnalysis,
 	};
 
 	class GUIManager {
@@ -123,6 +124,7 @@ namespace ed {
 		UIView* m_browseOnline;
 		UIView* m_objectPrev;
 		UIView* m_geometryOutput;
+		UIView* m_frameAnalysis;
 
 		std::string m_cachedFont;
 		int m_cachedFontSize;

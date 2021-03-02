@@ -27,11 +27,16 @@ namespace ed {
 		float* AllocateHeatmap();
 		inline uint32_t GetHeatmapMax() { return m_instCountMax; }
 		inline uint32_t GetInstructionCount(int x, int y) { return m_instCount[y * m_width + x]; }
+		inline uint32_t GetInstructionCountAverage() { return m_instCountAvg; }
 
 		uint32_t* AllocateUndefinedBehaviorMap();
 		inline uint32_t GetUndefinedBehaviorLastLine(int x, int y) { return (m_ub[y * m_width + x] & 0xFFFFF000) >> 12; }
 		inline uint32_t GetUndefinedBehaviorCount(int x, int y) { return (m_ub[y * m_width + x] & 0x00000F00) >> 8; }
 		inline uint32_t GetUndefinedBehaviorLastType(int x, int y) { return (m_ub[y * m_width + x] & 0x000000FF); }
+
+		inline uint32_t GetPixelCount() { return m_pixelCount; }
+		inline uint32_t GetPixelsDiscarded() { return m_pixelsDiscarded; }
+		inline uint32_t GetPixelsUndefinedBehavior() { return m_pixelsUB; }
 
 		uint32_t* AllocateGlobalBreakpointsMap();
 		inline bool HasGlobalBreakpoints() { return m_hasBreakpoints; }
@@ -74,7 +79,9 @@ namespace ed {
 		uint32_t* m_color;
 		int m_width, m_height;
 
-		uint32_t m_instCountMax, m_instCountAvg, m_instCountAvgN;
+		uint32_t m_pixelCount, m_pixelsDiscarded, m_pixelsUB;
+
+		int m_instCountMax, m_instCountAvg, m_instCountAvgN;
 		uint32_t* m_instCount;
 
 		uint32_t* m_ub;
@@ -133,15 +140,18 @@ namespace ed {
 							else 
 								m_pixel.DebuggerColor = m_executePixelShaderWithBreakpoints(x, y, m_bkpt[y * m_width + x], m_pixel.RenderTextureIndex);
 
-							if (renderer->GetVM()->discarded)
+							if (renderer->GetVM()->discarded) {
+								m_pixelsDiscarded++; 
 								continue;
+							}
 
 							// actual color and depth
 							m_color[y * m_width + x] = m_encodeColor(m_pixel.DebuggerColor);
 							m_depth[y * m_width + x] = depth;
+							m_pixelCount++;
 
 							// instruction count / heatmap stuff
-							uint32_t instCount = renderer->GetVM()->instruction_count;
+							int instCount = renderer->GetVM()->instruction_count;
 							m_instCount[y * m_width + x] = instCount;
 							m_instCountMax = std::max(m_instCountMax, instCount);
 							m_instCountAvgN++;
@@ -152,6 +162,7 @@ namespace ed {
 							spvm_word ubLine = renderer->GetLastUndefinedBehaviorLine();
 							spvm_word ubCount = renderer->GetUndefinedBehaviorCount();
 							m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubCount << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
+							m_pixelsUB += (ubType > 0);
 						}
 					}
 				}

@@ -43,6 +43,7 @@ namespace ed {
 			m_viewUB = 0;
 			m_viewBreakpoints = 0;
 			m_viewVariableValue = 0;
+			m_frameAnalyzed = false;
 
 			m_varValueItem = nullptr;
 			m_varValueName = "";
@@ -79,6 +80,7 @@ namespace ed {
 		inline glm::vec2 GetUIRectPosition() { return glm::vec2(m_imgPosition.x, m_imgPosition.y); }
 
 		void SetVariableValue(PipelineItem* item, const std::string& varName, int line);
+		inline bool IsFrameAnalyzed() { return m_frameAnalyzed; }
 
 		inline void Reset()
 		{
