@@ -13,6 +13,8 @@ namespace ed {
 
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
+		
+		void RenderPixelInfo(PixelInformation& pixel, float& elementHeight);
 
 		void StartDebugging(TextEditor* editor, PixelInformation* pixel);
 

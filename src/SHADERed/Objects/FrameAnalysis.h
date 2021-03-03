@@ -37,6 +37,10 @@ namespace ed {
 		inline uint32_t GetPixelCount() { return m_pixelCount; }
 		inline uint32_t GetPixelsDiscarded() { return m_pixelsDiscarded; }
 		inline uint32_t GetPixelsUndefinedBehavior() { return m_pixelsUB; }
+		inline uint32_t GetPixelsFailedDepthTest() { return m_pixelsFailedDepthTest; }
+
+		inline uint32_t GetTriangleCount() { return m_triangleCount; }
+		inline uint32_t GetTrianglesDiscarded() { return m_trianglesDiscarded; }
 
 		uint32_t* AllocateGlobalBreakpointsMap();
 		inline bool HasGlobalBreakpoints() { return m_hasBreakpoints; }
@@ -79,7 +83,10 @@ namespace ed {
 		uint32_t* m_color;
 		int m_width, m_height;
 
-		uint32_t m_pixelCount, m_pixelsDiscarded, m_pixelsUB;
+		glm::ivec2 m_pixelHistoryLocation;
+
+		uint32_t m_pixelCount, m_pixelsDiscarded, m_pixelsUB, m_pixelsFailedDepthTest;
+		uint32_t m_triangleCount, m_trianglesDiscarded;
 
 		int m_instCountMax, m_instCountAvg, m_instCountAvgN;
 		uint32_t* m_instCount;
@@ -137,11 +144,11 @@ namespace ed {
 						if (depth <= m_depth[y * m_width + x]) { // TODO: OpExecutionMode DepthReplacing -> execute pixel shader, then go through depth test
 							if constexpr (!hasBreakpoints)
 								m_pixel.DebuggerColor = renderer->ExecutePixelShader(x, y, m_pixel.RenderTextureIndex);
-							else 
+							else
 								m_pixel.DebuggerColor = m_executePixelShaderWithBreakpoints(x, y, m_bkpt[y * m_width + x], m_pixel.RenderTextureIndex);
 
 							if (renderer->GetVM()->discarded) {
-								m_pixelsDiscarded++; 
+								m_pixelsDiscarded++;
 								continue;
 							}
 
@@ -163,7 +170,25 @@ namespace ed {
 							spvm_word ubCount = renderer->GetUndefinedBehaviorCount();
 							m_ub[y * m_width + x] = (ubType & 0x000000FF) | ((ubCount << 8) & 0x00000F00) | ((ubLine << 12) & 0xFFFFF000);
 							m_pixelsUB += (ubType > 0);
-						}
+
+							// pixel history
+							if (m_pixelHistoryLocation == m_pixel.Coordinate) {
+								bool exists = false;
+								for (const auto& pixel : m_debugger->GetPixelList())
+									if (pixel.Object == m_pixel.Object && pixel.VertexID == m_pixel.VertexID) {
+										exists = true;
+										break;
+									}
+
+								if (!exists) {
+									m_pixel.Color = m_pixel.DebuggerColor;
+									m_pixel.History = true;
+									m_debugger->AddPixel(m_pixel);
+								}
+							}
+
+						} else
+							m_pixelsFailedDepthTest++;
 					}
 				}
 			}

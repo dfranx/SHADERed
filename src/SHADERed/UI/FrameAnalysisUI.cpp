@@ -1,4 +1,5 @@
 #include <SHADERed/UI/FrameAnalysisUI.h>
+#include <SHADERed/UI/PixelInspectUI.h>
 
 namespace ed {
 	void FrameAnalysisUI::Process()
@@ -58,14 +59,39 @@ namespace ed {
 
 		ImGui::TextWrapped("Miscellaneous");
 		ImGui::Separator();
-		ImGui::TextWrapped("%u (out of %u) pixels discarded with \"discard;\"", m_data->Analysis.GetPixelsDiscarded(), m_data->Analysis.GetPixelCount());
-		ImGui::TextWrapped("%u (out of %u) pixels have undefined behavior", m_data->Analysis.GetPixelsUndefinedBehavior(), m_data->Analysis.GetPixelCount());
+		ImGui::TextWrapped("%u pixels rendered", m_data->Analysis.GetPixelCount());
+		ImGui::TextWrapped("%u pixels discarded with \"discard;\"", m_data->Analysis.GetPixelsDiscarded());
+		ImGui::TextWrapped("%u pixels discarded due to depth test", m_data->Analysis.GetPixelsFailedDepthTest());
+		ImGui::TextWrapped("%u pixels have undefined behavior", m_data->Analysis.GetPixelsUndefinedBehavior());
 		ImGui::TextWrapped("Average instruction count per pixel: %u", m_data->Analysis.GetInstructionCountAverage());
+		ImGui::NewLine();
+		ImGui::TextWrapped("%u triangles", m_data->Analysis.GetTriangleCount());
+		ImGui::TextWrapped("%u triangles discarded", m_data->Analysis.GetTrianglesDiscarded());
 		ImGui::NewLine();
 
 		ImGui::TextWrapped("Pixel history");
 		ImGui::Separator();
-		ImGui::TextWrapped("No pixel history");
+		std::vector<PixelInformation>& pixels = m_data->Debugger.GetPixelList();
+		if (pixels.size() != m_pixelHeights.size())
+			m_pixelHeights.resize(pixels.size());
+		int pixelHistoryCount = 0;
+		for (auto& pixel : pixels)
+			pixelHistoryCount += pixel.History;
+		if (pixelHistoryCount > 0) {
+			int pxId = 0;
+			for (auto& pixel : pixels) {
+				if (!pixel.History)
+					continue;
+
+				ImGui::PushID(pxId);
+
+				((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->RenderPixelInfo(pixel, m_pixelHeights[pxId]);
+
+				ImGui::PopID();
+				pxId++;
+			}
+		} else
+			ImGui::TextWrapped("No pixel history");
 		ImGui::NewLine();
 	}
 }

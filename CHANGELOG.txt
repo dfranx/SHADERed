@@ -5,6 +5,7 @@
 + add the ability to see variable's value throughout the whole frame
 + add SPIR-V instruction heatmap
 + add color histogram
++ add pixel history
 
 [v1.4.4]
 + add tessellation shaders

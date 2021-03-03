@@ -44,149 +44,15 @@ namespace ed {
 		ImVec4 childBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, childBg * ImVec4(0.9f, 0.9f, 0.9f, 0.9f));
 
-		// pixel/vertex
+		// pixel/vertex/geometry
 		int pxId = 0;
 		for (auto& pixel : pixels) {
+			if (pixel.History)
+				continue;
+
 			ImGui::PushID(pxId);
-
-			if (ImGui::BeginChild("##pixel_container", ImVec2(0, m_pixelHeights[pxId]), true)) {
-				float pxCursorStart = ImGui::GetCursorPosY();
-
-				/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
-				ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture == nullptr ? "Window" : pixel.RenderTexture->Name.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
-
-				/* [PIXEL COLOR] */
-				ImGui::PushItemWidth(-1);
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::ColorEdit4("##pixel_edit", const_cast<float*>(glm::value_ptr(pixel.Color)));
-				ImGui::PopItemFlag();
-				ImGui::PopItemWidth();
-
-				m_ui->Get(ViewID::PixelInspect);
-
-				if (!pixel.Fetched) {
-					if (ImGui::Button("Fetch##pixel_fetch", ImVec2(-1, 0))
-						&& m_data->Messages.CanRenderPreview()) {
-						m_data->FetchPixel(pixel);
-					}
-				} else {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-
-					TextEditor* editor = nullptr;
-					bool requestCompile = false;
-					int initIndex = 0;
-
-					bool vertexShaderEnabled = true, pixelShaderEnabled = true;
-					if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
-						pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
-						vertexShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Vertex);
-						pixelShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Pixel);
-					}
-
-					/* [PIXEL] */
-					if (!pixelShaderEnabled) {
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-					}
-					if (ImGui::Button(UI_ICON_PLAY "##debug_pixel", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-						&& m_data->Messages.CanRenderPreview()) {
-						pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
-
-						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-						codeUI->StopDebugging();
-						if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
-							codeUI->Open(pixel.Pass, ShaderStage::Pixel);
-						else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
-							pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
-							plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
-						}
-						editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
-
-						// for plugins that store vertex and pixel shader in the same file
-						if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
-							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
-
-						m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
-						m_data->Debugger.SetPixelShaderInput(pixel);
-						requestCompile = true;
-					}
-					ImGui::SameLine();
-					if (pixel.Discarded)
-						ImGui::Text("discarded");
-					else {
-						ImGui::PushItemWidth(-1);
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
-						ImGui::PopItemFlag();
-						ImGui::PopItemWidth();
-					}
-					if (!pixelShaderEnabled) {
-						ImGui::PopStyleVar();
-						ImGui::PopItemFlag();
-					}
-
-					/* [VERTEX] */
-					if (!vertexShaderEnabled) {
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-					}
-					for (int i = 0; i < pixel.VertexCount; i++) {
-						ImGui::PushID(i);
-						if (ImGui::Button(UI_ICON_PLAY "##debug_vertex", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
-							&& m_data->Messages.CanRenderPreview()) {
-							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-							codeUI->StopDebugging();
-							if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
-								codeUI->Open(pixel.Pass, ShaderStage::Vertex);
-							else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
-								pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
-								plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
-							}
-							editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
-
-							m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
-							m_data->Debugger.SetVertexShaderInput(pixel, i);
-
-							initIndex = i;
-							requestCompile = true;
-						}
-						ImGui::PopID();
-						ImGui::SameLine();
-						ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
-					}
-					if (!vertexShaderEnabled) {
-						ImGui::PopStyleVar();
-						ImGui::PopItemFlag();
-					}
-
-					/* [GEOMETRY SHADER] */
-					if (pixel.GeometryShaderUsed) {
-						if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
-							CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
-							codeUI->StopDebugging();
-							codeUI->Open(pixel.Pass, ShaderStage::Geometry);
-							editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
-
-							m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
-							m_data->Debugger.SetGeometryShaderInput(pixel);
-
-							requestCompile = true;
-						}
-						ImGui::SameLine();
-						ImGui::Text("Geometry Shader");
-					}
-
-					/* ACTUAL ACTION HERE */
-					if (requestCompile && editor != nullptr)
-						StartDebugging(editor, &pixel);
-
-					ImGui::PopStyleColor();
-				}
-
-				m_pixelHeights[pxId] = (ImGui::GetCursorPosY() - pxCursorStart) + 2 * ImGui::GetStyle().WindowPadding.y;
-			}
-			ImGui::EndChild();
-			ImGui::NewLine();
+			
+			this->RenderPixelInfo(pixel, m_pixelHeights[pxId]);
 
 			ImGui::PopID();
 			pxId++;
@@ -266,6 +132,145 @@ namespace ed {
 
 		ImGui::PopStyleColor();
 		ImGui::EndChild();
+	}
+	void PixelInspectUI::RenderPixelInfo(PixelInformation& pixel, float& elementHeight)
+	{
+		if (ImGui::BeginChild("##pixel_container", ImVec2(0, elementHeight), true)) {
+			float pxCursorStart = ImGui::GetCursorPosY();
+
+			/* [PASS NAME, RT NAME, OBJECT NAME, COORDINATE] */
+			ImGui::Text("%s(%s) - %s@(%d,%d)", pixel.Pass->Name, pixel.RenderTexture == nullptr ? "Window" : pixel.RenderTexture->Name.c_str(), pixel.Object->Name, pixel.Coordinate.x, pixel.Coordinate.y);
+
+			/* [PIXEL COLOR] */
+			ImGui::PushItemWidth(-1);
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::ColorEdit4("##pixel_edit", const_cast<float*>(glm::value_ptr(pixel.Color)));
+			ImGui::PopItemFlag();
+			ImGui::PopItemWidth();
+
+			if (!pixel.Fetched) {
+				if (ImGui::Button("Fetch##pixel_fetch", ImVec2(-1, 0))
+					&& m_data->Messages.CanRenderPreview()) {
+					m_data->FetchPixel(pixel);
+				}
+			} else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+				TextEditor* editor = nullptr;
+				bool requestCompile = false;
+				int initIndex = 0;
+
+				bool vertexShaderEnabled = true, pixelShaderEnabled = true;
+				if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* plData = (pipe::PluginItemData*)pixel.Pass->Data;
+					vertexShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Vertex);
+					pixelShaderEnabled = plData->Owner->PipelineItem_IsStageDebuggable(plData->Type, plData->PluginData, ed::plugin::ShaderStage::Pixel);
+				}
+
+				/* [PIXEL] */
+				if (!pixelShaderEnabled) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+				if (ImGui::Button(UI_ICON_PLAY "##debug_pixel", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+					&& m_data->Messages.CanRenderPreview()) {
+					pipe::ShaderPass* pass = ((pipe::ShaderPass*)pixel.Pass->Data);
+
+					CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+					codeUI->StopDebugging();
+					if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
+						codeUI->Open(pixel.Pass, ShaderStage::Pixel);
+					else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+						pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
+						plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+					}
+					editor = codeUI->Get(pixel.Pass, ShaderStage::Pixel);
+
+					// for plugins that store vertex and pixel shader in the same file
+					if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
+						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+
+					m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
+					m_data->Debugger.SetPixelShaderInput(pixel);
+					requestCompile = true;
+				}
+				ImGui::SameLine();
+				if (pixel.Discarded)
+					ImGui::Text("discarded");
+				else {
+					ImGui::PushItemWidth(-1);
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::ColorEdit4("##dbg_pixel_edit", const_cast<float*>(glm::value_ptr(pixel.DebuggerColor)));
+					ImGui::PopItemFlag();
+					ImGui::PopItemWidth();
+				}
+				if (!pixelShaderEnabled) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
+
+				/* [VERTEX] */
+				if (!vertexShaderEnabled) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+				for (int i = 0; i < pixel.VertexCount; i++) {
+					ImGui::PushID(i);
+					if (ImGui::Button(UI_ICON_PLAY "##debug_vertex", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))
+						&& m_data->Messages.CanRenderPreview()) {
+						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+						codeUI->StopDebugging();
+						if (pixel.Pass->Type == PipelineItem::ItemType::ShaderPass)
+							codeUI->Open(pixel.Pass, ShaderStage::Vertex);
+						else if (pixel.Pass->Type == PipelineItem::ItemType::PluginItem) {
+							pipe::PluginItemData* plData = ((pipe::PluginItemData*)pixel.Pass->Data);
+							plData->Owner->PipelineItem_OpenInEditor(plData->Type, plData->PluginData);
+						}
+						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+
+						m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
+						m_data->Debugger.SetVertexShaderInput(pixel, i);
+
+						initIndex = i;
+						requestCompile = true;
+					}
+					ImGui::PopID();
+					ImGui::SameLine();
+					ImGui::Text("Vertex[%d] = (%.2f, %.2f, %.2f)", i, pixel.Vertex[i].Position.x, pixel.Vertex[i].Position.y, pixel.Vertex[i].Position.z);
+				}
+				if (!vertexShaderEnabled) {
+					ImGui::PopStyleVar();
+					ImGui::PopItemFlag();
+				}
+
+				/* [GEOMETRY SHADER] */
+				if (pixel.GeometryShaderUsed) {
+					if (ImGui::Button(UI_ICON_PLAY "##debug_geometryshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
+						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+						codeUI->StopDebugging();
+						codeUI->Open(pixel.Pass, ShaderStage::Geometry);
+						editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
+
+						m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+						m_data->Debugger.SetGeometryShaderInput(pixel);
+
+						requestCompile = true;
+					}
+					ImGui::SameLine();
+					ImGui::Text("Geometry Shader");
+				}
+
+				/* ACTUAL ACTION HERE */
+				if (requestCompile && editor != nullptr)
+					StartDebugging(editor, &pixel);
+
+				ImGui::PopStyleColor();
+			}
+
+			elementHeight = (ImGui::GetCursorPosY() - pxCursorStart) + 2 * ImGui::GetStyle().WindowPadding.y;
+		}
+		ImGui::EndChild();
+		ImGui::NewLine();
 	}
 	void PixelInspectUI::StartDebugging(TextEditor* editor, PixelInformation* pixel)
 	{

@@ -75,13 +75,16 @@ namespace ed {
 		m_hasBreakpoints = false;
 		m_isRegion = false;
 		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
-		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = 0;
+		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = m_pixelsFailedDepthTest = 0;
+		m_triangleCount = m_trianglesDiscarded = 0;
 
 		m_debugger = dbgr;
 		m_renderer = renderer;
 		m_pipeline = pipeline;
 		m_objects = objects;
 		m_msgs = msgs;
+
+		m_pixelHistoryLocation = glm::ivec2(-1, -1);
 	}
 	FrameAnalysis::~FrameAnalysis()
 	{
@@ -332,9 +335,17 @@ namespace ed {
 		m_height = height;
 
 		m_instCountAvg = m_instCountAvgN = m_instCountMax = 0;
-		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = 0;
+		m_pixelCount = m_pixelsDiscarded = m_pixelsUB = m_pixelsFailedDepthTest = 0;
+		m_triangleCount = m_trianglesDiscarded = 0;
 
 		m_isRegion = false;
+
+		// check if we need to collect pixel history
+		m_pixelHistoryLocation = glm::ivec2(-1, -1);
+		for (const auto& pixel : m_debugger->GetPixelList()) {
+			if (pixel.RenderTexture == nullptr)
+				m_pixelHistoryLocation = pixel.Coordinate;
+		}
 	}
 	void FrameAnalysis::Copy(GLuint tex, int width, int height)
 	{
@@ -486,6 +497,7 @@ namespace ed {
 		m_pixel.RenderTextureSize = m_renderer->GetLastRenderSize();
 		m_pixel.RenderTextureIndex = 0;
 		m_pixel.VertexID = vertexStart;
+		m_pixel.Fetched = false;
 
 		// run the vertex shader
 		m_debugger->PrepareVertexShader(m_pass, item, &m_pixel);
@@ -555,8 +567,11 @@ namespace ed {
 		EdgeEquation edge3(vert[2], vert[0]);
 
 		// check if backfacing
-		if (edge1.c + edge2.c + edge3.c < 0.0f)
+		m_triangleCount++;
+		if (edge1.c + edge2.c + edge3.c < 0.0f) {
+			m_trianglesDiscarded++;
 			return;
+		}
 
 		// clip to region limits
 		if (m_isRegion) {

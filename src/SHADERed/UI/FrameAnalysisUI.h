@@ -19,7 +19,8 @@ namespace ed {
 
 	private:
 		int m_histogramType;
-
 		float m_histogramR[256], m_histogramG[256], m_histogramB[256], m_histogramRGB[256];
+
+		std::vector<float> m_pixelHeights;
 	};
 }
