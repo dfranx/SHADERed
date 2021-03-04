@@ -6,6 +6,7 @@
 + add SPIR-V instruction heatmap
 + add color histogram
 + add pixel history
++ add support for .dds textures
 
 [v1.4.4]
 + add tessellation shaders

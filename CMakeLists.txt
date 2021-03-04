@@ -105,6 +105,7 @@ set(SOURCES
 	libs/ShaderExpressionParser/Parser.cpp
 	libs/ShaderExpressionParser/Tokenizer.cpp
 	libs/ImFileDialog/ImFileDialog.cpp
+	libs/dds/dds.c
 )
 
 

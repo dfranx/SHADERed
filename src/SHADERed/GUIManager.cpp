@@ -47,6 +47,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
+extern "C" {
+#include <dds/dds.h>
+}
+
 #define STBIR_DEFAULT_FILTER_DOWNSAMPLE STBIR_FILTER_CATMULLROM
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize.h>
@@ -357,6 +361,19 @@ namespace ed {
 					m_data->Objects.CreateAudio(file);
 				else if (std::count(shaderExt.begin(), shaderExt.end(), ext) > 0)
 					((CodeEditorUI*)Get(ed::ViewID::Code))->OpenFile(m_data->Parser.GetProjectPath(file));
+				else if (ext == "dds") {
+					std::string actualFileLoc = m_data->Parser.GetProjectPath(file);
+
+					// this makes the load time 2x slower, but it's not like everyones gonna be dropping dds files non stop
+					dds_image_t ddsImage = dds_load_from_file(actualFileLoc.c_str());
+					bool is3D = ddsImage->header.caps2 & DDSCAPS2_VOLUME;
+					dds_image_free(ddsImage);
+					
+					if (is3D) {
+						// ...
+					} else
+						m_data->Objects.CreateTexture(actualFileLoc);
+				}
 				else
 					m_data->Plugins.HandleDropFile(file.c_str());
 			}
@@ -2070,7 +2087,7 @@ namespace ed {
 	}
 	void GUIManager::CreateNewTexture()
 	{
-		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*", true);
+		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*", true);
 	}
 	void GUIManager::CreateNewAudio()
 	{
@@ -2304,7 +2321,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##left")) {
 				m_cubemapPathPtr = &left;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - left", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - left", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			ImGui::Text("Top: %s", std::filesystem::path(top).filename().string().c_str());
@@ -2312,7 +2329,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##top")) {
 				m_cubemapPathPtr = &top;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - top", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - top", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			ImGui::Text("Front: %s", std::filesystem::path(front).filename().string().c_str());
@@ -2320,7 +2337,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##front")) {
 				m_cubemapPathPtr = &front;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - front", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - front", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			ImGui::Text("Bottom: %s", std::filesystem::path(bottom).filename().string().c_str());
@@ -2328,7 +2345,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##bottom")) {
 				m_cubemapPathPtr = &bottom;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - bottom", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - bottom", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			ImGui::Text("Right: %s", std::filesystem::path(right).filename().string().c_str());
@@ -2336,7 +2353,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##right")) {
 				m_cubemapPathPtr = &right;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - right", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - right", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			ImGui::Text("Back: %s", std::filesystem::path(back).filename().string().c_str());
@@ -2344,7 +2361,7 @@ namespace ed {
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth);
 			if (ImGui::Button("Change##back")) {
 				m_cubemapPathPtr = &back;
-				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - back", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+				ifd::FileDialog::Instance().Open("CubemapFaceDlg", "Select cubemap face - back", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 			}
 
 			if (ifd::FileDialog::Instance().IsDone("CubemapFaceDlg")) {

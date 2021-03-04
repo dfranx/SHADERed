@@ -234,7 +234,8 @@ This project uses:
  - [dfranx/SPIRV-VM](https://github.com/dfranx/SPIRV-VM)
  - [rAzoR8/SpvGenTwo](https://github.com/rAzoR8/SpvGenTwo)
  - [nothings/stb](https://github.com/nothings/stb)
- - [aiekick/ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
+ - [dfranx/ImFileDialog](https://github.com/dfranx/ImFileDialog)
+ - [dfranx/dds](https://github.com/dfranx/dds)
 
 ## LICENSE
 SHADERed is licensed under MIT license. See [LICENSE](./LICENSE) for more details.

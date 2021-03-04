@@ -1294,7 +1294,7 @@ namespace ed {
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0)))
-					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 				ImGui::NextColumn();
 				ImGui::Separator();
 

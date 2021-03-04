@@ -212,12 +212,12 @@ namespace ed {
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD BYTE DATA FROM TEXTURE")) {
 							m_dialogActionType = 0;
-							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("LOAD FLOAT DATA FROM TEXTURE")) {
 							m_dialogActionType = 1;
-							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+							ifd::FileDialog::Instance().Open("LoadObjectDlg", "Select a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 						}
 						if (ImGui::Button("LOAD DATA FROM 3D MODEL")) {
 							m_dialogActionType = 2;
@@ -371,7 +371,7 @@ namespace ed {
 
 						if (!ImGui::GetIO().KeyAlt && ImGui::BeginPopupContextItem("##context")) {
 							if (ImGui::Selectable("Save")) {
-								ifd::FileDialog::Instance().Save("SavePreviewTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+								ifd::FileDialog::Instance().Save("SavePreviewTextureDlg", "Save", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*");
 								m_saveObject = item;
 							}
 							ImGui::EndPopup();

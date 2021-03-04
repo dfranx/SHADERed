@@ -15,6 +15,10 @@
 #include <stb/stb_image.h>
 #include <stb/stb_image_write.h>
 
+extern "C" {
+#include <dds/dds.h>
+}
+
 namespace ed {
 	ObjectManager::ObjectManager(ProjectParser* parser, RenderEngine* rnd)
 			: m_parser(parser)
@@ -137,9 +141,23 @@ namespace ed {
 	{
 		stbi_set_flip_vertically_on_load(0);
 
-		int nrChannels = 0;
-		unsigned char* data = stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
+		bool isDDS = (std::filesystem::path(path).extension().u8string() == ".dds");
+
+		unsigned char* data = nullptr;
 		unsigned char* paddedData = nullptr;
+		dds_image_t ddsImage = nullptr;
+		int nrChannels = 0;
+
+		if (!isDDS) {
+			stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
+		} else {
+			ddsImage = dds_load_from_file(path.c_str());
+
+			data = ddsImage->pixels;
+			w = ddsImage->header.width;
+			h = ddsImage->header.height;
+			nrChannels = 4;
+		}
 
 		if (nrChannels != 4) {
 			paddedData = (unsigned char*)malloc(w * h * 4);
@@ -166,7 +184,11 @@ namespace ed {
 
 		if (paddedData != nullptr)
 			free(paddedData);
-		stbi_image_free(data);
+
+		if (!isDDS)
+			stbi_image_free(data);
+		else
+			dds_image_free(ddsImage);
 	}
 
 	void ObjectManager::Clear()
@@ -247,13 +269,26 @@ namespace ed {
 			return false;
 		}
 
-		stbi_set_flip_vertically_on_load(1);
-
+		bool isDDS = (std::filesystem::path(file).extension().u8string() == ".dds");
 		std::string path = m_parser->GetProjectPath(file);
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
-		
-		if (data == nullptr) {
+
+		int width = 0, height = 0;
+		unsigned char* data = nullptr;
+		dds_image_t ddsImage = nullptr;
+
+		if (isDDS) {
+			ddsImage = dds_load_from_file(path.c_str());
+
+			data = ddsImage->pixels;
+			width = ddsImage->header.width;
+			height = ddsImage->header.height;
+		} else {
+			int nrChannels = 0;
+			stbi_set_flip_vertically_on_load(1);
+			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+		}
+
+		if (data == nullptr || width == 0 || height == 0 || (isDDS && ddsImage == nullptr)) {
 			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
 			return false;
 		}
@@ -299,7 +334,11 @@ namespace ed {
 		item->TextureSize = glm::ivec2(width, height);
 
 		free(flippedData);
-		stbi_image_free(data);
+
+		if (isDDS)
+			dds_image_free(ddsImage);
+		else
+			stbi_image_free(data);
 
 		return true;
 	}
@@ -606,9 +645,23 @@ namespace ed {
 
 		std::string path = m_parser->GetProjectPath(str);
 		int width, height, nrChannels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char* data = nullptr;
+		dds_image_t ddsImage = nullptr;
+
+		bool isDDS = (std::filesystem::path(path).extension().u8string() == ".dds");
+
+		if (!isDDS)
+			stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		else {
+			ddsImage = dds_load_from_file(path.c_str());
+
+			data = ddsImage->pixels;
+			width = ddsImage->header.width;
+			height = ddsImage->header.height;
+			nrChannels = 4;
+		}
 		
-		if (data != nullptr) {
+		if (data != nullptr || (isDDS && ddsImage != nullptr)) {
 			m_parser->ModifyProject();
 
 			if (convertToFloat) {
@@ -630,8 +683,10 @@ namespace ed {
 				memcpy(buf->Data, data, buf->Size);
 			}
 
-			stbi_image_free(data);
-
+			if (!isDDS)
+				stbi_image_free(data);
+			else
+				dds_image_free(ddsImage);
 			
 			glBindBuffer(GL_UNIFORM_BUFFER, buf->ID);
 			glBufferData(GL_UNIFORM_BUFFER, buf->Size, buf->Data, GL_STATIC_DRAW); // upload data
@@ -709,10 +764,23 @@ namespace ed {
 		for (int i = 0; i < m_items.size(); i++) {
 			if (m_items[i] == item) {
 				std::string path = m_parser->GetProjectPath(newPath);
-				int width, height, nrChannels;
-				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+				int width = 0, height = 0;
+				unsigned char* data = nullptr;
+				dds_image_t ddsImage = nullptr;
 
-				if (data == nullptr)
+				bool isDDS = (std::filesystem::path(path).extension().u8string() == ".dds");
+				if (!isDDS) {
+					int nrChannels = 0;
+					stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+				} else {
+					ddsImage = dds_load_from_file(path.c_str());
+
+					data = ddsImage->pixels;
+					width = ddsImage->header.width;
+					height = ddsImage->header.height;
+				}
+		
+				if (data == nullptr || (isDDS && ddsImage == nullptr))
 					return false;
 
 				if (m_items[i]->Name != newPath) {
@@ -746,8 +814,12 @@ namespace ed {
 				item->TextureSize = glm::ivec2(width, height);
 
 				free(flippedData);
-				stbi_image_free(data);
-				
+
+				if (!isDDS)
+					stbi_image_free(data);
+				else
+					dds_image_free(ddsImage);
+
 				return true;
 			}
 		}
