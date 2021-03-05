@@ -4,6 +4,14 @@
 #include <filesystem>
 #include <vector>
 
+#include <spvgentwo/Logger.h>
+#include <spvgentwo/Module.h>
+#include <spvgentwo/Grammar.h>
+#include <common/HeapAllocator.h>
+#include <common/BinaryFileWriter.h>
+#include <common/BinaryFileReader.h>
+#include <common/ModuleToString.h>
+
 namespace ed {
 	CommandLineOptionParser::CommandLineOptionParser()
 	{
@@ -241,6 +249,44 @@ namespace ed {
 					i++;
 				}
 			}
+			// --disassemble, -dis [file]
+			else if (strcmp(argv[i], "--disassemble") == 0 || strcmp(argv[i], "-dis") == 0) {
+				LaunchUI = false;
+
+				std::string disPath = "";
+				if (i + 1 < argc) {
+					disPath = argv[i + 1];
+					i++;
+
+					if (spvgentwo::BinaryFileReader reader(disPath.c_str()); reader.isOpen()) {
+						spvgentwo::HeapAllocator alloc;
+						spvgentwo::Module module(&alloc, spvgentwo::spv::Version);
+						spvgentwo::Grammar gram(&alloc);
+
+						if (!module.read(&reader, gram))
+							return;
+
+						if (!module.resolveIDs())
+							return;
+
+						if (!module.reconstructTypeAndConstantInfo())
+							return;
+
+						if (!module.reconstructNames())
+							return;
+						
+						module.assignIDs();
+
+
+						spvgentwo::String buffer(&alloc, 2048u);
+						spvgentwo::ModuleStringPrinter printer(buffer, true);
+
+						const bool success = moduleToString(module, gram, &alloc, &printer, false);
+
+						printf("%s", buffer.c_str());
+					}
+				}
+			}
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 				static const std::vector<std::pair<std::string, std::string>> opts = {
@@ -268,6 +314,8 @@ namespace ed {
 					{ "--output | -o <path>", "compiler output path" },
 					{ "--target | -t <spirv|glsl>", "choose whether to compile to SPIR-V or GLSL" },
 					{ "--entry | -e <funcname>", "shader entry" },
+
+					{ "--disassemble | -dis <file>", "disassemble SPIR-V file" },
 
 					{ "<file>", "open a file" }
 				};
