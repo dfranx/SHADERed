@@ -23,7 +23,8 @@ namespace ed {
 		Texture,
 		Image3D,
 		KeyboardTexture,
-		PluginObject
+		PluginObject,
+		Texture3D
 	};
 
 	/* object information */
@@ -88,6 +89,7 @@ namespace ed {
 			Type = type;
 
 			TextureSize = glm::ivec2(0, 0);
+			Depth = 1;
 			Texture = 0;
 			FlippedTexture = 0;
 			Texture_VFlipped = false;
@@ -95,6 +97,7 @@ namespace ed {
 			Texture_MagFilter = GL_NEAREST;
 			Texture_WrapS = GL_REPEAT;
 			Texture_WrapT = GL_REPEAT;
+			Texture_WrapR = GL_REPEAT;
 			CubemapPaths.clear();
 			SoundBuffer = nullptr;
 			Sound = nullptr;
@@ -139,11 +142,12 @@ namespace ed {
 		ObjectType Type;
 
 		glm::ivec2 TextureSize;
+		int Depth;
 		GLuint Texture, FlippedTexture;
 		std::vector<std::string> CubemapPaths;
 
 		bool Texture_VFlipped;
-		GLuint Texture_MinFilter, Texture_MagFilter, Texture_WrapS, Texture_WrapT;
+		GLuint Texture_MinFilter, Texture_MagFilter, Texture_WrapS, Texture_WrapT, Texture_WrapR;
 
 		sf::SoundBuffer* SoundBuffer;
 		sf::Sound* Sound;

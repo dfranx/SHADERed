@@ -54,6 +54,8 @@ namespace ed {
 					ImGui::Text("Image");
 				else if (IsImage3D())
 					ImGui::Text("Image3D");
+				else if (IsTexture3D())
+					ImGui::Text("Texture3D");
 				else if (IsPlugin())
 					ImGui::Text(m_currentObj->Plugin->Type);
 				else
@@ -1115,7 +1117,8 @@ namespace ed {
 					}
 					ImGui::PopItemWidth();
 				} 
-			} else if (IsRenderTexture()) {
+			} 
+			else if (IsRenderTexture()) {
 				ed::RenderTextureObject* m_currentRT = m_currentObj->RT;
 
 				/* FIXED SIZE */
@@ -1208,7 +1211,8 @@ namespace ed {
 					ImGui::PopStyleVar();
 					ImGui::PopItemFlag();
 				}
-			} else if (IsImage()) {
+			} 
+			else if (IsImage()) {
 				ed::ImageObject* m_currentImg = m_currentObj->Image;
 
 				/* SIZE */
@@ -1283,7 +1287,8 @@ namespace ed {
 						m_data->Objects.UploadDataToImage(m_currentImg, tex, texSize);
 					}
 				}
-			} else if (IsTexture()) {
+			} 
+			else if (IsTexture()) {
 				/* texture path */
 				ImGui::Text("Path:");
 				ImGui::NextColumn();
@@ -1354,7 +1359,8 @@ namespace ed {
 					m_data->Objects.UpdateTextureParameters(m_itemName);
 					m_data->Parser.ModifyProject();
 				}
-			} else if (IsImage3D()) {
+			} 
+			else if (IsImage3D()) {
 				ed::Image3DObject* m_currentImg3D = m_currentObj->Image3D;
 
 				/* SIZE */
@@ -1394,7 +1400,77 @@ namespace ed {
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-			} else if (IsPlugin()) {
+			} 
+			else if (IsTexture3D()) {
+				/* texture path */
+				ImGui::Text("Path:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::InputText("##pui_tex3dpath", const_cast<char*>(m_currentObj->Name.c_str()), SHADERED_MAX_PATH); // not like it's going to be modified, amirite
+				ImGui::PopItemFlag();
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0)))
+					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "DDS file (*.dds){.dds},.*");
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* MIN FILTER */
+				ImGui::Text("MinFilter:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				bool paramsUpdated = false;
+				if (UIHelper::CreateTextureMinFilterCombo("##prop_tex3d_min", m_currentObj->Texture_MinFilter))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* MAG FILTER */
+				ImGui::Text("MagFilter:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureMagFilterCombo("##prop_tex3d_mag", m_currentObj->Texture_MagFilter))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* WRAP S */
+				ImGui::Text("Wrap S:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_s", m_currentObj->Texture_WrapS))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				/* WRAP T */
+				ImGui::Text("Wrap T:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_t", m_currentObj->Texture_WrapT))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				/* WRAP T */
+				ImGui::Text("Wrap R:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_r", m_currentObj->Texture_WrapR))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				if (paramsUpdated) {
+					m_data->Objects.UpdateTextureParameters(m_itemName);
+					m_data->Parser.ModifyProject();
+				}
+			} 
+			else if (IsPlugin()) {
 				ImGui::Columns(1);
 
 				m_currentObj->Plugin->Owner->Object_ShowProperties(m_currentObj->Plugin->Type, m_currentObj->Plugin->Data, m_currentObj->Plugin->ID);
@@ -1464,12 +1540,13 @@ namespace ed {
 		Logger::Get().Log("Opening an ObjectManager item in the PropertyUI");
 
 		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
-		memcpy(m_itemName, obj->Name.c_str(), obj->Name.size());
 
 		m_current = nullptr;
 		m_currentObj = obj;
 
-		if (obj != nullptr)
+		if (obj != nullptr) {
+			memcpy(m_itemName, obj->Name.c_str(), obj->Name.size());
 			Visible = true;
+		}
 	}
 }

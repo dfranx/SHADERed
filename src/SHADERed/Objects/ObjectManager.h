@@ -22,6 +22,7 @@ namespace ed {
 
 		bool CreateRenderTexture(const std::string& name);
 		bool CreateTexture(const std::string& file);
+		bool CreateTexture3D(const std::string& file);
 		bool CreateAudio(const std::string& file);
 		bool CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back);
 		bool CreateBuffer(const std::string& file);

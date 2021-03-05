@@ -264,7 +264,7 @@ namespace ed {
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-					else if (srvData->Type == ObjectType::Image3D)
+					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
@@ -470,7 +470,7 @@ namespace ed {
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-					else if (srvData->Type == ObjectType::Image3D)
+					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
@@ -528,7 +528,7 @@ namespace ed {
 					glActiveTexture(GL_TEXTURE0 + j);
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-					else if (srvData->Type == ObjectType::Image3D)
+					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
 						glBindTexture(GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
@@ -646,7 +646,7 @@ namespace ed {
 				glActiveTexture(GL_TEXTURE0 + j);
 				if (srvData->Type == ObjectType::CubeMap)
 					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-				else if (srvData->Type == ObjectType::Image3D)
+				else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
 					glBindTexture(GL_TEXTURE_3D, srvs[j]);
 				else if (srvData->Type == ObjectType::PluginObject) {
 					PluginObject* pobj = srvData->Plugin;
@@ -897,7 +897,7 @@ namespace ed {
 				glActiveTexture(GL_TEXTURE0 + j);
 				if (srvData->Type == ObjectType::CubeMap)
 					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
-				else if (srvData->Type == ObjectType::Image3D)
+				else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
 					glBindTexture(GL_TEXTURE_3D, srvs[j]);
 				else if (srvData->Type == ObjectType::PluginObject) {
 					PluginObject* pobj = srvData->Plugin;

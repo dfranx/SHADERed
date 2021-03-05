@@ -65,6 +65,7 @@ namespace ed {
 
 		void CreateNewShaderPass();
 		void CreateNewTexture();
+		void CreateNewTexture3D();
 		inline void CreateNewCubemap() { m_isCreateCubemapOpened = true; }
 		void CreateNewAudio();
 		inline void CreateNewRenderTexture() { m_isCreateRTOpened = true; }

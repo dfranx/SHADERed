@@ -1342,6 +1342,8 @@ namespace ed {
 					ImGui::Text("buffer");
 				else if (resData->Type == ObjectType::CubeMap)
 					ImGui::Text("cubemap");
+				else if (resData->Type == ObjectType::Texture3D)
+					ImGui::Text("texture3D");
 				else
 					ImGui::Text("texture");
 				ImGui::NextColumn();

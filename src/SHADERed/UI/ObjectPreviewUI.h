@@ -2,6 +2,7 @@
 #include <SHADERed/Engine/GLUtils.h>
 #include <SHADERed/Objects/PipelineItem.h>
 #include <SHADERed/UI/Tools/CubemapPreview.h>
+#include <SHADERed/UI/Tools/Texture3DPreview.h>
 #include <SHADERed/UI/Tools/Magnifier.h>
 #include <SHADERed/UI/UIView.h>
 
@@ -12,6 +13,7 @@ namespace ed {
 				: UIView(ui, objects, name, visible)
 		{
 			m_cubePrev.Init(256, 192);
+			m_tex3DPrev.Init();
 			m_curHoveredItem = -1;
 			m_initRowSize = false;
 			m_saveObject = nullptr;
@@ -35,6 +37,7 @@ namespace ed {
 		std::vector<std::vector<ShaderVariable::ValueType>> m_cachedBufFormat;
 		std::vector<int> m_cachedBufSize;
 		std::vector<glm::ivec2> m_cachedImgSize;
+		std::vector<int> m_cachedImgSlice;
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_samples[512], m_fft[512];
 
@@ -46,6 +49,7 @@ namespace ed {
 
 		// tools
 		CubemapPreview m_cubePrev;
+		Texture3DPreview m_tex3DPrev;
 
 		// for each item opened
 		int m_curHoveredItem;

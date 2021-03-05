@@ -369,9 +369,9 @@ namespace ed {
 					bool is3D = ddsImage->header.caps2 & DDSCAPS2_VOLUME;
 					dds_image_free(ddsImage);
 					
-					if (is3D) {
-						// ...
-					} else
+					if (is3D)
+						m_data->Objects.CreateTexture3D(actualFileLoc);
+					else
 						m_data->Objects.CreateTexture(actualFileLoc);
 				}
 				else
@@ -804,6 +804,8 @@ namespace ed {
 					ImGui::Separator();
 					if (ImGui::MenuItem("Texture", KeyboardShortcuts::Instance().GetString("Project.NewTexture").c_str()))
 						this->CreateNewTexture();
+					if (ImGui::MenuItem("Texture 3D", KeyboardShortcuts::Instance().GetString("Project.NewTexture3D").c_str()))
+						this->CreateNewTexture3D();
 					if (ImGui::MenuItem("Cubemap", KeyboardShortcuts::Instance().GetString("Project.NewCubeMap").c_str()))
 						this->CreateNewCubemap();
 					if (ImGui::MenuItem("Audio", KeyboardShortcuts::Instance().GetString("Project.NewAudio").c_str()))
@@ -2089,6 +2091,10 @@ namespace ed {
 	{
 		ifd::FileDialog::Instance().Open("CreateTextureDlg", "Select texture(s)", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.dds){.png,.jpg,.jpeg,.bmp,.tga,.dds},.*", true);
 	}
+	void GUIManager::CreateNewTexture3D()
+	{
+		ifd::FileDialog::Instance().Open("CreateTexture3DDlg", "Select texture(s)", "DDS file (*.dds){.dds},.*", true);
+	}
 	void GUIManager::CreateNewAudio()
 	{
 		ifd::FileDialog::Instance().Open("CreateAudioDlg", "Select audio file", "Audio file (*.wav;*.flac;*.ogg;*.midi){.wav,.flac,.ogg,.midi},.*");
@@ -2223,6 +2229,15 @@ namespace ed {
 				const std::vector<std::filesystem::path>& results = ifd::FileDialog::Instance().GetResults();
 				for (const auto& res : results)
 					m_data->Objects.CreateTexture(res.u8string());
+			}
+
+			ifd::FileDialog::Instance().Close();
+		}
+		if (ifd::FileDialog::Instance().IsDone("CreateTexture3DDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				const std::vector<std::filesystem::path>& results = ifd::FileDialog::Instance().GetResults();
+				for (const auto& res : results)
+					m_data->Objects.CreateTexture3D(res.u8string());
 			}
 
 			ifd::FileDialog::Instance().Close();
@@ -2914,6 +2929,9 @@ namespace ed {
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewTexture", [=]() {
 			CreateNewTexture();
+		});
+		KeyboardShortcuts::Instance().SetCallback("Project.NewTexture3D", [=]() {
+			CreateNewTexture3D();
 		});
 		KeyboardShortcuts::Instance().SetCallback("Project.NewAudio", [=]() {
 			CreateNewAudio();

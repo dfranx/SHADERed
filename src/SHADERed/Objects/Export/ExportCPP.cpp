@@ -686,7 +686,7 @@ namespace ed {
 						renderSrc += indent + "glActiveTexture(GL_TEXTURE0 + " + std::to_string(j) + ");\n";
 						if (itemData->Type == ObjectType::CubeMap)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_CUBE_MAP, " + texName + ");\n";
-						else if (itemData->Type == ObjectType::Image3D)
+						else if (itemData->Type == ObjectType::Image3D || itemData->Type == ObjectType::Texture3D)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_3D, " + texName + ");\n";
 						else if (itemData->Type == ObjectType::RenderTexture)
 							renderSrc += indent + "glBindTexture(GL_TEXTURE_2D, " + texName + "_Color);\n";

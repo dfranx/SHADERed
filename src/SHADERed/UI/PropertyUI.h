@@ -27,6 +27,7 @@ namespace ed {
 		inline bool IsTexture() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Texture; }
 		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image; }
 		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image3D; }
+		inline bool IsTexture3D() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Texture3D; }
 		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::PluginObject; }
 
 	private:

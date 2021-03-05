@@ -589,15 +589,24 @@ namespace ed {
 				bool isImage3D = (item->Type == ObjectType::Image3D);
 				bool isPluginOwner = (item->Type == ObjectType::PluginObject);
 				bool isTexture = (item->Type == ObjectType::Texture);
+				bool isTexture3D = (item->Type == ObjectType::Texture3D);
 				bool isKeyboardTexture = (item->Type == ObjectType::KeyboardTexture);
 				
 				std::string texOutPath = item->Name;
 				if ((isTexture && !isKeyboardTexture) || isAudio)
 					texOutPath = GetRelativePath(oldProjectPath + "/" + item->Name);
+				
+				std::string typeName = "texture";
+				if (isBuffer) typeName = "buffer";
+				else if (isRT) typeName = "rendertexture";
+				else if (isAudio) typeName = "audio";
+				else if (isImage) typeName = "image";
+				else if (isImage3D) typeName = "image3d";
+				else if (isPluginOwner) typeName = "pluginobject";
 
 				pugi::xml_node textureNode = objectsNode.append_child("object");
-				textureNode.append_attribute("type").set_value(isBuffer ? "buffer" : (isRT ? "rendertexture" : (isAudio ? "audio" : (isImage ? "image" : (isImage3D ? "image3d" : (isPluginOwner ? "pluginobject" : "texture"))))));
-				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isAudio) ? "path" : "name").set_value(texOutPath.c_str());
+				textureNode.append_attribute("type").set_value(typeName.c_str());
+				textureNode.append_attribute(((isTexture && !isKeyboardTexture) || isTexture3D || isAudio) ? "path" : "name").set_value(texOutPath.c_str());
 
 				if (isRT) {
 					ed::RenderTextureObject* rtObj = item->RT;
@@ -630,12 +639,17 @@ namespace ed {
 					textureNode.append_attribute("back").set_value(texmaps[5].c_str());
 				}
 
-				if (isTexture && !isKeyboardTexture) {
+				if ((isTexture && !isKeyboardTexture) || isTexture3D) {
 					textureNode.append_attribute("vflip").set_value(item->Texture_VFlipped);
 					textureNode.append_attribute("min_filter").set_value(ed::gl::String::TextureMinFilter(item->Texture_MinFilter));
 					textureNode.append_attribute("mag_filter").set_value(ed::gl::String::TextureMagFilter(item->Texture_MagFilter));
 					textureNode.append_attribute("wrap_s").set_value(ed::gl::String::TextureWrap(item->Texture_WrapS));
 					textureNode.append_attribute("wrap_t").set_value(ed::gl::String::TextureWrap(item->Texture_WrapT));
+
+					if (isTexture3D) {
+						textureNode.append_attribute("is_3d").set_value(true);
+						textureNode.append_attribute("wrap_r").set_value(ed::gl::String::TextureWrap(item->Texture_WrapR));
+					}
 				}
 
 				if (isKeyboardTexture)
@@ -2747,6 +2761,7 @@ namespace ed {
 				pugi::char_t name[SHADERED_MAX_PATH];
 				bool isCube = false;
 				bool isKeyboardTexture = false;
+				bool is3D = false;
 				pugi::char_t cubeLeft[SHADERED_MAX_PATH], cubeRight[SHADERED_MAX_PATH], cubeTop[SHADERED_MAX_PATH],
 					cubeBottom[SHADERED_MAX_PATH], cubeFront[SHADERED_MAX_PATH], cubeBack[SHADERED_MAX_PATH];
 				
@@ -2754,6 +2769,8 @@ namespace ed {
 					isCube = objectNode.attribute("cube").as_bool();
 				if (!objectNode.attribute("keyboard_texture").empty())
 					isKeyboardTexture = objectNode.attribute("keyboard_texture").as_bool();
+				if (!objectNode.attribute("is_3d").empty())
+					is3D = objectNode.attribute("is_3d").as_bool();
 
 				if (isCube || isKeyboardTexture)
 					strcpy(name, objectNode.attribute("name").as_string());
@@ -2773,6 +2790,8 @@ namespace ed {
 					m_objects->CreateCubemap(name, cubeLeft, cubeTop, cubeFront, cubeBottom, cubeRight, cubeBack);
 				else if (isKeyboardTexture)
 					m_objects->CreateKeyboardTexture(name);
+				else if (is3D)
+					m_objects->CreateTexture3D(name);
 				else
 					m_objects->CreateTexture(name);
 
@@ -2841,6 +2860,18 @@ namespace ed {
 									itemData->Texture_WrapT = TEXTURE_WRAP_VALUES[i];
 									break;
 								}
+						}
+
+						if (is3D) {
+							// wrap z
+							if (!objectNode.attribute("wrap_r").empty()) {
+								auto filterName = objectNode.attribute("wrap_r").as_string();
+								for (int i = 0; i < HARRAYSIZE(TEXTURE_WRAP_VALUES); i++)
+									if (strcmp(filterName, TEXTURE_WRAP_NAMES[i]) == 0) {
+										itemData->Texture_WrapT = TEXTURE_WRAP_VALUES[i];
+										break;
+									}
+							}
 						}
 
 						m_objects->UpdateTextureParameters(name);

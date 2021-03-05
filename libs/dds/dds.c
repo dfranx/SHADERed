@@ -6,6 +6,7 @@
 
 #define FOURCC(str) (dds_uint)(((str)[3] << 24U) | ((str)[2] << 16U) | ((str)[1] << 8U) | (str)[0])
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+#define IMAGE_PITCH(width, block_size) MAX(1, ((width + 3) / 4)) * block_size
 
 dds_uint dds_calculate_left_shift(dds_uint* right_shift, dds_uint bit_count)
 {
@@ -93,16 +94,15 @@ void dds_parse_dxt1(dds_image_t image, const char* data, long data_length)
 
 	dds_uint blocks_x = MAX(1, img_width / 4);
 	dds_uint blocks_y = MAX(1, img_height / 4);
-	dds_uint blocks_z = MAX(1, img_depth / 4);
 
-	for (dds_uint z = 0; z < blocks_z; z++)
+	for (dds_uint z = 0; z < img_depth; z++) {
 		for (dds_uint x = 0; x < blocks_x; x++)
 			for (dds_uint y = 0; y < blocks_y; y++) {
 				unsigned short color0 = 0, color1 = 0;
 				dds_uint codes = 0;
-				
+
 				// read the block data
-				dds_uint block_offset = (z * blocks_y * blocks_x + y * blocks_x + x) * 8; // * 8 == * 64bits cuz blocks are 64 bits (2x shorts, 1x uint)
+				dds_uint block_offset = (y * blocks_x + x) * 8; // * 8 == * 64bits cuz blocks are 64 bits (2x shorts, 1x uint)
 				memcpy(&color0, data + block_offset + 0, 2);
 				memcpy(&color1, data + block_offset + 2, 2);
 				memcpy(&codes, data + block_offset + 4, 4);
@@ -118,23 +118,21 @@ void dds_parse_dxt1(dds_image_t image, const char* data, long data_length)
 				// process the data
 				for (dds_uint b = 0; b < 16; b++) {
 					dds_uint px_index = ((z * 4) * img_height * img_width + (img_height - ((y * 4) + b / 4) - 1) * img_width + x * 4 + b % 4) * 4;
-					
-					dds_byte code = (codes >> (2*b)) & 3;
+
+					dds_byte code = (codes >> (2 * b)) & 3;
 					image->pixels[px_index + 3] = 0xFF;
 					if (code == 0) {
 						// color0
 						image->pixels[px_index + 0] = r0;
 						image->pixels[px_index + 1] = g0;
 						image->pixels[px_index + 2] = b0;
-					}
-					else if (code == 1) {
+					} else if (code == 1) {
 						// color1
 						image->pixels[px_index + 0] = r1;
 						image->pixels[px_index + 1] = g1;
 						image->pixels[px_index + 2] = b1;
-					}
-					else if (code == 2) {
-						// (2*color0 + color1) / 3	
+					} else if (code == 2) {
+						// (2*color0 + color1) / 3
 						if (color0 > color1) {
 							image->pixels[px_index + 0] = (2 * r0 + r1) / 3;
 							image->pixels[px_index + 1] = (2 * g0 + g1) / 3;
@@ -146,9 +144,8 @@ void dds_parse_dxt1(dds_image_t image, const char* data, long data_length)
 							image->pixels[px_index + 1] = (g0 + g1) / 2;
 							image->pixels[px_index + 2] = (b0 + b1) / 2;
 						}
-					}
-					else if (code == 3) {
-						// (color0 + 2*color1) / 3	
+					} else if (code == 3) {
+						// (color0 + 2*color1) / 3
 						if (color0 > color1) {
 							image->pixels[px_index + 0] = (r0 + 2 * r1) / 3;
 							image->pixels[px_index + 1] = (g0 + 2 * g1) / 3;
@@ -163,6 +160,10 @@ void dds_parse_dxt1(dds_image_t image, const char* data, long data_length)
 					}
 				}
 			}
+
+		// skip this slice
+		data += blocks_x * blocks_y * 16;
+	}
 }
 void dds_parse_dxt3(dds_image_t image, const char* data, long data_length)
 {
@@ -172,9 +173,8 @@ void dds_parse_dxt3(dds_image_t image, const char* data, long data_length)
 
 	dds_uint blocks_x = MAX(1, img_width / 4);
 	dds_uint blocks_y = MAX(1, img_height / 4);
-	dds_uint blocks_z = MAX(1, img_depth / 4);
 
-	for (dds_uint z = 0; z < blocks_z; z++)
+	for (dds_uint z = 0; z < img_depth; z++) {
 		for (dds_uint x = 0; x < blocks_x; x++)
 			for (dds_uint y = 0; y < blocks_y; y++) {
 				unsigned short color0 = 0, color1 = 0;
@@ -182,7 +182,7 @@ void dds_parse_dxt3(dds_image_t image, const char* data, long data_length)
 				unsigned long long alpha_data = 0;
 
 				// read the block data
-				dds_uint block_offset = (z * blocks_y * blocks_x + y * blocks_x + x) * 16; // 16 == 128bits
+				dds_uint block_offset = (y * blocks_x + x) * 16; // 16 == 128bits
 				memcpy(&alpha_data, data + block_offset, 8);
 				memcpy(&color0, data + block_offset + 8, 2);
 				memcpy(&color1, data + block_offset + 10, 2);
@@ -230,6 +230,10 @@ void dds_parse_dxt3(dds_image_t image, const char* data, long data_length)
 					}
 				}
 			}
+
+		// skip this slice
+		data += blocks_x * blocks_y * 16;
+	}
 }
 void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 {
@@ -240,9 +244,8 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 
 	dds_uint blocks_x = MAX(1, img_width / 4);
 	dds_uint blocks_y = MAX(1, img_height / 4);
-	dds_uint blocks_z = MAX(1, img_depth / 4);
 
-	for (dds_uint z = 0; z < blocks_z; z++)
+	for (dds_uint z = 0; z < img_depth; z++) {
 		for (dds_uint x = 0; x < blocks_x; x++)
 			for (dds_uint y = 0; y < blocks_y; y++) {
 				unsigned short color0 = 0, color1 = 0;
@@ -251,7 +254,7 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 				dds_byte alpha0 = 0, alpha1 = 0;
 
 				// read the block data
-				dds_uint block_offset = (z * blocks_y * blocks_x + y * blocks_x + x) * 16; // 16 == 128bits
+				dds_uint block_offset = (y * blocks_x + x) * 16; // 16 == 128bits
 				alpha0 = data[block_offset + 0];
 				alpha1 = data[block_offset + 1];
 				memcpy(&alpha_codes, data + block_offset + 2, 6);
@@ -269,7 +272,7 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 
 				// process the data
 				for (dds_uint b = 0; b < 16; b++) {
-					dds_uint px_index = ((z * 4) * img_height * img_width + (img_height - ((y * 4) + b / 4) - 1) * img_width + x * 4 + b % 4) * 4;
+					dds_uint px_index = (z * img_height * img_width + (img_height - ((y * 4) + b / 4) - 1) * img_width + x * 4 + b % 4) * 4;
 					dds_byte code = (codes >> (2 * b)) & 0b0011;
 					dds_byte alpha_code = (alpha_codes >> (3 * b)) & 0b0111;
 
@@ -286,13 +289,13 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 						image->pixels[px_index + 1] = g1;
 						image->pixels[px_index + 2] = b1;
 					}
-					// (2*color0 + color1) / 3	
+					// (2*color0 + color1) / 3
 					else if (code == 2) {
 						image->pixels[px_index + 0] = (2 * r0 + r1) / 3;
 						image->pixels[px_index + 1] = (2 * g0 + g1) / 3;
 						image->pixels[px_index + 2] = (2 * b0 + b1) / 3;
 					}
-					// (color0 + 2*color1) / 3	
+					// (color0 + 2*color1) / 3
 					else if (code == 3) {
 						image->pixels[px_index + 0] = (r0 + 2 * r1) / 3;
 						image->pixels[px_index + 1] = (g0 + 2 * g1) / 3;
@@ -301,8 +304,10 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 
 					/* ALPHA */
 					dds_byte alpha = 0xFF;
-					if (code == 0) alpha = alpha0;
-					else if (code == 1) alpha = alpha1;
+					if (code == 0)
+						alpha = alpha0;
+					else if (code == 1)
+						alpha = alpha1;
 					else {
 						if (alpha0 > alpha1)
 							alpha = ((8 - alpha_code) * alpha0 + (alpha_code - 1) * alpha1) / 7;
@@ -313,12 +318,15 @@ void dds_parse_dxt5(dds_image_t image, const char* data, long data_length)
 								alpha = 255;
 							else
 								alpha = ((6 - alpha_code) * alpha0 + (alpha_code - 1) * alpha1) / 5;
-
 						}
 					}
 					image->pixels[px_index + 3] = alpha;
 				}
 			}
+	
+		// skip this slice
+		data += blocks_x * blocks_y * 16;
+	}
 }
 
 dds_image_t dds_load_from_memory(const char* data, long data_length)

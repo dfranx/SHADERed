@@ -7,6 +7,8 @@
 + add color histogram
 + add pixel history
 + add support for .dds textures
++ add Texture3D object
++ add preview for Image3D objects
 
 [v1.4.4]
 + add tessellation shaders

@@ -342,6 +342,46 @@ namespace ed {
 
 		return true;
 	}
+	bool ObjectManager::CreateTexture3D(const std::string& file)
+	{
+		Logger::Get().Log("Creating a 3D texture " + file + " ...");
+
+		if (Exists(file)) {
+			Logger::Get().Log("Cannot create a 3D texture " + file + " because that texture is already added to the project", true);
+			return false;
+		}
+
+		std::string path = m_parser->GetProjectPath(file);
+		dds_image_t ddsImage = dds_load_from_file(path.c_str());
+
+		if (ddsImage == nullptr) {
+			Logger::Get().Log("Failed to load a texture " + file + " from file", true);
+			return false;
+		}
+
+		m_parser->ModifyProject();
+
+		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Texture3D);
+		m_items.push_back(item);
+
+		glGenTextures(1, &item->Texture);
+		glBindTexture(GL_TEXTURE_3D, item->Texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapR);
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, ddsImage->header.width, ddsImage->header.height, ddsImage->header.depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, ddsImage->pixels);
+		glGenerateMipmap(GL_TEXTURE_3D);
+		glBindTexture(GL_TEXTURE_3D, 0);
+
+		item->TextureSize = glm::ivec2(ddsImage->header.width, ddsImage->header.height);
+		item->Depth = ddsImage->header.depth;
+
+		dds_image_free(ddsImage);
+
+		return true;
+	}
 	bool ObjectManager::CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back)
 	{
 		Logger::Get().Log("Creating a cubemap " + name + " ...");
@@ -764,7 +804,7 @@ namespace ed {
 		for (int i = 0; i < m_items.size(); i++) {
 			if (m_items[i] == item) {
 				std::string path = m_parser->GetProjectPath(newPath);
-				int width = 0, height = 0;
+				int width = 0, height = 0, depth = 0;
 				unsigned char* data = nullptr;
 				dds_image_t ddsImage = nullptr;
 
@@ -778,9 +818,10 @@ namespace ed {
 					data = ddsImage->pixels;
 					width = ddsImage->header.width;
 					height = ddsImage->header.height;
+					depth = ddsImage->header.depth;
 				}
 		
-				if (data == nullptr || (isDDS && ddsImage == nullptr))
+				if (data == nullptr || (isDDS && ddsImage == nullptr) || (item->Type == ObjectType::Texture3D && depth == 0))
 					return false;
 
 				if (m_items[i]->Name != newPath) {
@@ -788,32 +829,39 @@ namespace ed {
 					m_parser->ModifyProject();
 				}
 
-				// normal texture
-				glBindTexture(GL_TEXTURE_2D, item->Texture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, 0);
+				if (item->Type == ObjectType::Texture3D) {
+					// normal texture
+					glBindTexture(GL_TEXTURE_3D, item->Texture);
+					glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+					glGenerateMipmap(GL_TEXTURE_3D);
+					glBindTexture(GL_TEXTURE_3D, 0);
+				} else {
+					// normal texture
+					glBindTexture(GL_TEXTURE_2D, item->Texture);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+					glGenerateMipmap(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, 0);
 
-				// flipped texture
-				unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
-				for (int x = 0; x < width; x++) {
-					for (int y = 0; y < height; y++) {
-						flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
-						flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
-						flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
-						flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
+					// flipped texture
+					unsigned char* flippedData = (unsigned char*)malloc(width * height * 4);
+					for (int x = 0; x < width; x++) {
+						for (int y = 0; y < height; y++) {
+							flippedData[(y * width + x) * 4 + 0] = data[((height - y - 1) * width + x) * 4 + 0];
+							flippedData[(y * width + x) * 4 + 1] = data[((height - y - 1) * width + x) * 4 + 1];
+							flippedData[(y * width + x) * 4 + 2] = data[((height - y - 1) * width + x) * 4 + 2];
+							flippedData[(y * width + x) * 4 + 3] = data[((height - y - 1) * width + x) * 4 + 3];
+						}
 					}
+					glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
+					glGenerateMipmap(GL_TEXTURE_2D);
+					glBindTexture(GL_TEXTURE_2D, 0);
+
+					free(flippedData);
 				}
 
-				glGenTextures(1, &item->FlippedTexture);
-				glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, 0);
-
 				item->TextureSize = glm::ivec2(width, height);
-
-				free(flippedData);
+				item->Depth = depth;
 
 				if (!isDDS)
 					stbi_image_free(data);
@@ -1217,19 +1265,31 @@ namespace ed {
 		ObjectManagerItem* item = Get(name);
 
 		if (item != nullptr) {
-			glBindTexture(GL_TEXTURE_2D, item->Texture);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+			if (item->Type == ed::ObjectType::Texture) {
+				glBindTexture(GL_TEXTURE_2D, item->Texture);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 
-			glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+				glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			else if (item->Type == ed::ObjectType::Texture3D) {
+				glBindTexture(GL_TEXTURE_3D, item->Texture);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapR);
+				glBindTexture(GL_TEXTURE_3D, 0);
+			}
 		}
 	}
 

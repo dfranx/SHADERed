@@ -41,12 +41,15 @@ namespace ed {
 			imgSize = item->Image3D->Size;
 		else if (item->Type != ObjectType::PluginObject)
 			imgSize = glm::vec2(item->TextureSize);
+		else if (item->Type == ObjectType::Texture3D)
+			imgSize = item->TextureSize;
 
 		m_items.push_back(item);
 		m_isOpen.push_back(true);
 		m_cachedBufFormat.push_back(cachedFormat);
 		m_cachedBufSize.push_back(cachedSize);
 		m_cachedImgSize.push_back(imgSize);
+		m_cachedImgSlice.push_back(0);
 		m_zoom.push_back(Magnifier());
 		m_zoomColor.push_back(0);
 		m_zoomDepth.push_back(0);
@@ -131,6 +134,55 @@ namespace ed {
 						ImGui::SetCursorPosX(posX);
 						ImGui::SetCursorPosY(posY);
 						ImGui::Image((void*)(intptr_t)m_zoomColor[i], aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+					}
+					else if (item->Type == ObjectType::Texture3D || item->Type == ObjectType::Image3D) {
+						ImVec2 posSize = ImGui::GetContentRegionAvail();
+						float posX = (posSize.x - aSize.x) / 2;
+						float posY = (posSize.y - aSize.y) / 2;
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+
+						glm::ivec3 objSize = glm::ivec3(item->TextureSize, item->Depth);
+						if (item->Type == ObjectType::Image3D && item->Image3D)
+							objSize = item->Image3D->Size;
+
+						glm::vec2 mousePos = glm::vec2((ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x) / aSize.x,
+							1.0f - (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y) / aSize.y);
+						m_zoom[i].SetCurrentMousePosition(mousePos);
+
+						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
+						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
+						m_tex3DPrev.Draw(item->Texture, objSize.x, objSize.y, (float)(m_cachedImgSlice[i] + 0.5f) / objSize.z);
+						ImGui::Image((void*)(intptr_t)m_tex3DPrev.GetTexture(), aSize, ImVec2(zPos.x, zPos.y), ImVec2(zPos.x + zSize.x, zPos.y + zSize.y));
+
+						if (ImGui::IsItemHovered()) m_curHoveredItem = i;
+
+						if (m_curHoveredItem == i && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
+							m_zoom[i].Reset();
+
+						m_renderZoom(i, glm::vec2(aSize.x, aSize.y));
+
+						ImGui::SetCursorPosX(posX);
+						ImGui::SetCursorPosY(posY);
+						ImGui::Image((void*)(intptr_t)m_zoomColor[i], aSize, ImVec2(zPos.x, zPos.y), ImVec2(zPos.x + zSize.x, zPos.y + zSize.y));
+					
+						
+						// slices
+						posSize = ImGui::GetWindowContentRegionMax();
+						ImGui::SetCursorPosY(posSize.y - Settings::Instance().CalculateSize(Settings::Instance().General.FontSize + 5.0f));
+
+						ImGui::Text("%dx%dx%d", objSize.x, objSize.y, objSize.z);
+						ImGui::SameLine();
+
+						ImGui::Text("Slice: ");
+						ImGui::SameLine();
+						if (ImGui::Button("-", ImVec2(30, 0)))
+							m_cachedImgSlice[i] = MAX(m_cachedImgSlice[i] - 1, 0);
+						ImGui::SameLine();
+						ImGui::Text("%d", m_cachedImgSlice[i]);
+						ImGui::SameLine();
+						if (ImGui::Button("+", ImVec2(30, 0)))
+							m_cachedImgSlice[i] = MIN(m_cachedImgSlice[i] + 1, objSize.z - 1);
 					}
 					else if (item->Type == ObjectType::Audio) {
 						sf::Sound* player = item->Sound;
@@ -553,12 +605,13 @@ namespace ed {
 	{
 		for (int i = 0; i < m_items.size(); i++) {
 			if (m_items[i]->Name == name) {
-				// wow
+				// sheesh... what are objects, amirite?
 				m_items.erase(m_items.begin() + i);
 				m_isOpen.erase(m_isOpen.begin() + i);
 				m_cachedBufFormat.erase(m_cachedBufFormat.begin() + i);
 				m_cachedBufSize.erase(m_cachedBufSize.begin() + i);
 				m_cachedImgSize.erase(m_cachedImgSize.begin() + i);
+				m_cachedImgSlice.erase(m_cachedImgSlice.begin() + i);
 				m_zoom.erase(m_zoom.begin() + i);
 				m_zoomColor.erase(m_zoomColor.begin() + i);
 				m_zoomDepth.erase(m_zoomDepth.begin() + i);
