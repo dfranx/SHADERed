@@ -79,8 +79,10 @@ namespace ed {
 
 		inline bool IsPerformanceMode() { return m_performanceMode; }
 		inline void SetPerformanceMode(bool mode) { m_perfModeFake = mode; }
-		inline void SetMinimalMode(bool mode) { m_minimalMode = mode; }
 		inline bool IsMinimalMode() { return m_minimalMode; }
+		inline void SetMinimalMode(bool mode) { m_minimalMode = mode; }
+		inline bool IsFocusMode() { return m_focusMode; }
+		inline void SetFocusMode(bool mode) { m_focusMode = mode; }
 
 		void AddNotification(int id, const char* text, const char* btnText, std::function<void(int, IPlugin1*)> fn, IPlugin1* plugin = nullptr);
 
@@ -132,6 +134,9 @@ namespace ed {
 		bool m_fontNeedsUpdate;
 
 		bool m_minimalMode;
+		bool m_focusMode, m_focusModeTemp;
+		void m_renderFocusMode();
+		void m_renderTextEditorFocusMode(const std::string& name, void* item, ShaderStage stage);
 
 		bool m_cacheProjectModified;
 		bool m_recompiledAll;

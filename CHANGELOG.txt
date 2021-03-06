@@ -6,6 +6,7 @@
 + add SPIR-V instruction heatmap
 + add color histogram
 + add pixel history
++ add focus mode
 + add support for .dds textures
 + add Texture3D object
 + add preview for Image3D objects
