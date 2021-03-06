@@ -81,6 +81,7 @@ set(SOURCES
 	src/SHADERed/UI/PreviewUI.cpp
 	src/SHADERed/UI/PropertyUI.cpp
 	src/SHADERed/UI/FrameAnalysisUI.cpp
+	src/SHADERed/UI/ProfilerUI.cpp
 
 # engine:
 	src/SHADERed/Engine/Timer.cpp

@@ -5,6 +5,7 @@
 #include <SHADERed/Objects/PipelineManager.h>
 #include <SHADERed/Objects/PluginManager.h>
 #include <SHADERed/Objects/ProjectParser.h>
+#include <SHADERed/Objects/PerformanceTimer.h>
 
 #include <functional>
 #include <unordered_map>
@@ -56,6 +57,9 @@ namespace ed {
 		inline GLuint GetTexture() { return m_rtColor; }
 		inline GLuint GetDepthTexture() { return m_rtDepth; }
 		inline glm::ivec2 GetLastRenderSize() { return m_lastSize; }
+
+		inline const std::vector<PerformanceTimer>& GetPerformanceTimers() { return m_perfTimers; }
+		inline unsigned long long GetGPUTime() { return m_totalPerfTime; }
 
 		inline bool IsPaused() { return m_paused; }
 		void Pause(bool pause);
@@ -156,6 +160,10 @@ namespace ed {
 			GLuint VS, PS, GS, TCS, TES;
 		};
 		std::vector<ShaderPack> m_shaderSources;
+
+		std::vector<PerformanceTimer> m_perfTimers;
+		unsigned long long m_totalPerfTime;
+		eng::Timer m_lastPerfMeasure;
 
 		GLuint m_generalDebugShader;
 

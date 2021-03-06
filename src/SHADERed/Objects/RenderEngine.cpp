@@ -176,8 +176,41 @@ namespace ed {
 
 		m_plugins->BeginRender();
 
+		// check if we need to perform performance measurement
+		bool performPerfMeasure = Settings::Instance().General.Profiler && m_lastPerfMeasure.GetElapsedTime() > 0.4f;
+		if (performPerfMeasure) {
+			bool isAllDone = true;
+			unsigned long long totalTime = 0;
+
+			for (int i = 0; i < m_perfTimers.size(); i++) {
+				if (!m_perfTimers[i].IsDone) {
+					isAllDone = false;
+
+					int queryDone = 0;
+					glGetQueryObjectiv(m_perfTimers[i].Object, GL_QUERY_RESULT_AVAILABLE, &queryDone);
+
+					if (queryDone) {
+						glGetQueryObjectui64v(m_perfTimers[i].Object, GL_QUERY_RESULT, &m_perfTimers[i].LastTime);
+						m_perfTimers[i].IsDone = true;
+					}
+				}
+				totalTime += m_perfTimers[i].LastTime;
+			}
+			
+			m_totalPerfTime = totalTime;
+			performPerfMeasure &= isAllDone;
+
+			if (performPerfMeasure)
+				m_lastPerfMeasure.Restart();
+		}
+
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* it = m_items[i];
+
+			if (performPerfMeasure) {
+				glBeginQuery(GL_TIME_ELAPSED, m_perfTimers[i].Object);
+				m_perfTimers[i].IsDone = false;
+			}
 
 			if (it->Type == PipelineItem::ItemType::ShaderPass) {
 				pipe::ShaderPass* data = (pipe::ShaderPass*)it->Data;
@@ -557,6 +590,9 @@ namespace ed {
 				else if (pldata->Owner->PipelineItem_IsDebuggable(pldata->Type, pldata->PluginData))
 					pldata->Owner->PipelineItem_DebugExecute(pldata->Type, pldata->PluginData, pldata->Items.data(), pldata->Items.size(), &debugID);
 			}
+
+			if (performPerfMeasure)
+				glEndQuery(GL_TIME_ELAPSED);
 
 			if (it == breakItem && breakItem != nullptr)
 				break;
@@ -1875,12 +1911,14 @@ namespace ed {
 			glDeleteShader(m_shaderSources[i].TCS);
 			glDeleteShader(m_shaderSources[i].TES);
 			glDeleteProgram(m_shaders[i]);
+			glDeleteQueries(1, &m_perfTimers[i].Object);
 		}
 
 		m_fbos.clear();
 		m_fboCount.clear();
 		m_items.clear();
 		m_shaders.clear();
+		m_perfTimers.clear();
 		m_shaderSources.clear();
 		m_uboMax.clear();
 		m_fbosNeedUpdate = true;
@@ -1928,6 +1966,11 @@ namespace ed {
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 					
 					SPIRVQueue.push_back(items[i]);
+
+					// cache performance timer
+					m_perfTimers.insert(m_perfTimers.begin() + i, PerformanceTimer(items[i]));
+					glGenQueries(1, &m_perfTimers[i].Object);
+					m_perfTimers[i].IsCreated = true;
 
 					if (strlen(data->VSPath) == 0 || strlen(data->PSPath) == 0) {
 						Logger::Get().Log("No shader paths are set", true);
@@ -2140,6 +2183,11 @@ namespace ed {
 
 					SPIRVQueue.push_back(items[i]);
 
+					// cache performance timer
+					m_perfTimers.insert(m_perfTimers.begin() + i, PerformanceTimer(items[i]));
+					glGenQueries(1, &m_perfTimers[i].Object);
+					m_perfTimers[i].IsCreated = true;
+
 					if (strlen(data->Path) == 0) {
 						Logger::Get().Log("No shader paths are set", true);
 						continue;
@@ -2211,6 +2259,11 @@ namespace ed {
 					m_debugShaders.insert(m_debugShaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
 
+					// cache performance timer
+					m_perfTimers.insert(m_perfTimers.begin() + i, PerformanceTimer(items[i]));
+					glGenQueries(1, &m_perfTimers[i].Object);
+					m_perfTimers[i].IsCreated = true;
+
 					/*
 						ITEM CACHING
 					*/
@@ -2232,6 +2285,11 @@ namespace ed {
 					m_shaders.insert(m_shaders.begin() + i, 0);
 					m_debugShaders.insert(m_debugShaders.begin() + i, 0);
 					m_shaderSources.insert(m_shaderSources.begin() + i, ShaderPack());
+
+					// cache performance timer
+					m_perfTimers.insert(m_perfTimers.begin() + i, PerformanceTimer(items[i]));
+					glGenQueries(1, &m_perfTimers[i].Object);
+					m_perfTimers[i].IsCreated = true;
 				}
 			}
 		}
@@ -2248,6 +2306,7 @@ namespace ed {
 			if (!found) {
 				glDeleteProgram(m_shaders[i]);
 				glDeleteProgram(m_debugShaders[i]);
+				glDeleteQueries(1, &m_perfTimers[i].Object);
 
 				Logger::Get().Log("Removing an item from cache");
 
@@ -2258,6 +2317,7 @@ namespace ed {
 				m_shaders.erase(m_shaders.begin() + i);
 				m_debugShaders.erase(m_debugShaders.begin() + i);
 				m_shaderSources.erase(m_shaderSources.begin() + i);
+				m_perfTimers.erase(m_perfTimers.begin() + i);
 			}
 		}
 
@@ -2278,6 +2338,7 @@ namespace ed {
 						GLuint sCopy = m_shaders[i];
 						GLuint sdbgCopy = m_debugShaders[i];
 						ShaderPack ssrcCopy = m_shaderSources[i];
+						PerformanceTimer perfTimerCopy = m_perfTimers[i];
 
 						m_shaders.erase(m_shaders.begin() + i);
 						m_shaders.insert(m_shaders.begin() + dest, sCopy);
@@ -2287,6 +2348,9 @@ namespace ed {
 
 						m_shaderSources.erase(m_shaderSources.begin() + i);
 						m_shaderSources.insert(m_shaderSources.begin() + dest, ssrcCopy);
+
+						m_perfTimers.erase(m_perfTimers.begin() + i);
+						m_perfTimers.insert(m_perfTimers.begin() + dest, perfTimerCopy);
 					}
 				}
 			}

@@ -308,39 +308,7 @@ namespace ed {
 						ImGui::PopFont();
 					} else {
 						if (m_editor[i]) {
-							// add error markers if needed
-							auto msgs = m_data->Messages.GetMessages();
-							int groupMsg = 0;
-							TextEditor::ErrorMarkers groupErrs;
-							for (int j = 0; j < msgs.size(); j++) {
-								ed::MessageStack::Message* msg = &msgs[j];
-
-								if (groupErrs.count(msg->Line))
-									continue;
-
-								if (msg->Line > 0 && msg->Group == m_items[i]->Name && msg->Shader == m_shaderStage[i])
-									groupErrs[msg->Line] = msg->Text;
-							}
-							m_editor[i]->SetErrorMarkers(groupErrs);
-
-							bool statusbar = Settings::Instance().Editor.StatusBar;
-
-							// render code
-							ImGui::PushFont(m_font);
-							m_editor[i]->Render(windowName.c_str(), ImVec2(0, -statusbar * STATUSBAR_HEIGHT));
-							if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
-								Settings::Instance().Editor.FontSize = Settings::Instance().Editor.FontSize + ImGui::GetIO().MouseWheel;
-								this->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
-							}
-							ImGui::PopFont();
-
-							// status bar
-							if (statusbar) {
-								auto cursor = m_editor[i]->GetCursorPosition();
-
-								ImGui::Separator();
-								ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i]->GetLanguageDefinition().mName.c_str(), m_paths[i].c_str());
-							}
+							DrawTextEditor(windowName, m_editor[i]);
 						} else {
 							PluginShaderEditor* pluginData = &m_pluginEditor[i];
 							if (pluginData->Plugin) {
@@ -522,6 +490,50 @@ namespace ed {
 					m_shaderStage.erase(m_shaderStage.begin() + i);
 					i--;
 				}
+			}
+		}
+	}
+
+	void CodeEditorUI::DrawTextEditor(const std::string& windowName, TextEditor* tEdit)
+	{
+		if (tEdit) {
+			int i = 0;
+			for (; i < m_editor.size(); i++)
+				if (m_editor[i] == tEdit)
+					break;
+
+			// add error markers if needed
+			auto msgs = m_data->Messages.GetMessages();
+			int groupMsg = 0;
+			TextEditor::ErrorMarkers groupErrs;
+			for (int j = 0; j < msgs.size(); j++) {
+				ed::MessageStack::Message* msg = &msgs[j];
+
+				if (groupErrs.count(msg->Line))
+					continue;
+
+				if (msg->Line > 0 && msg->Group == m_items[i]->Name && msg->Shader == m_shaderStage[i])
+					groupErrs[msg->Line] = msg->Text;
+			}
+			tEdit->SetErrorMarkers(groupErrs);
+
+			bool statusbar = Settings::Instance().Editor.StatusBar;
+
+			// render code
+			ImGui::PushFont(m_font);
+			m_editor[i]->Render(windowName.c_str(), ImVec2(0, -statusbar * STATUSBAR_HEIGHT));
+			if (ImGui::IsItemHovered() && ImGui::GetIO().KeyCtrl && ImGui::GetIO().MouseWheel != 0.0f) {
+				Settings::Instance().Editor.FontSize = Settings::Instance().Editor.FontSize + ImGui::GetIO().MouseWheel;
+				this->SetFont(Settings::Instance().Editor.Font, Settings::Instance().Editor.FontSize);
+			}
+			ImGui::PopFont();
+
+			// status bar
+			if (statusbar) {
+				auto cursor = m_editor[i]->GetCursorPosition();
+
+				ImGui::Separator();
+				ImGui::Text("Line %d\tCol %d\tType: %s\tPath: %s", cursor.mLine, cursor.mColumn, m_editor[i]->GetLanguageDefinition().mName.c_str(), m_paths[i].c_str());
 			}
 		}
 	}

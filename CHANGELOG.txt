@@ -4,8 +4,10 @@
 + add global/frame breakpoints
 + add the ability to see variable's value throughout the whole frame
 + add SPIR-V instruction heatmap
++ add "Profiler" window - measure shader execution time
 + add color histogram
 + add pixel history
++ add "Focus mode"
 + add support for .dds textures
 + add Texture3D object
 + add preview for Image3D objects

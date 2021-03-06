@@ -275,6 +275,11 @@ namespace ed {
 		ImGui::SameLine();
 		ImGui::Checkbox("##optg_toolbar", &settings->General.Toolbar);
 
+		/* PROFILER: */
+		ImGui::Text("Profiler: ");
+		ImGui::SameLine();
+		ImGui::Checkbox("##optg_profiler", &settings->General.Profiler);
+
 		/* AUTO ERROR SHOW: */
 		ImGui::Text("Show error list window when build finishes with an error: ");
 		ImGui::SameLine();

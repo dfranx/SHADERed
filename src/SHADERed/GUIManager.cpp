@@ -33,6 +33,7 @@
 #include <SHADERed/UI/PixelInspectUI.h>
 #include <SHADERed/UI/PreviewUI.h>
 #include <SHADERed/UI/PropertyUI.h>
+#include <SHADERed/UI/ProfilerUI.h>
 #include <SHADERed/UI/FrameAnalysisUI.h>
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
@@ -120,6 +121,8 @@ namespace ed {
 		m_recompiledAll = false;
 		m_isIncompatPluginsOpened = false;
 		m_minimalMode = false;
+		m_focusMode = false;
+		m_focusModeTemp = false;
 		m_cubemapPathPtr = nullptr;
 		m_cmdArguments = nullptr;
 
@@ -168,6 +171,7 @@ namespace ed {
 		m_views.push_back(new PipelineUI(this, objects, "Pipeline"));
 		m_views.push_back(new PropertyUI(this, objects, "Properties"));
 		m_views.push_back(new PixelInspectUI(this, objects, "Pixel Inspect"));
+		m_views.push_back(new ProfilerUI(this, objects, "Profiler"));
 
 		m_debugViews.push_back(new DebugWatchUI(this, objects, "Watches"));
 		m_debugViews.push_back(new DebugValuesUI(this, objects, "Variables"));
@@ -428,6 +432,7 @@ namespace ed {
 
 		Settings& settings = Settings::Instance();
 		m_performanceMode = m_perfModeFake;
+		m_focusMode = m_focusModeTemp;
 
 		// reset FunctionVariableManager
 		FunctionVariableManager::Instance().ClearVariableList();
@@ -498,7 +503,7 @@ namespace ed {
 
 		// toolbar
 		static bool initializedToolbar = false;
-		bool actuallyToolbar = settings.General.Toolbar && !m_performanceMode && !m_minimalMode;
+		bool actuallyToolbar = settings.General.Toolbar && !m_performanceMode && !m_minimalMode && !m_focusMode;
 		if (!initializedToolbar) { // some hacks ew
 			m_renderToolbar();
 			initializedToolbar = true;
@@ -519,7 +524,7 @@ namespace ed {
 		ImGui::PopStyleVar(3);
 
 		// DockSpace
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode && !m_minimalMode) {
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable && !m_performanceMode && !m_minimalMode && !m_focusMode) {
 			ImGuiID dockspace_id = ImGui::GetID("DockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		}
@@ -932,6 +937,8 @@ namespace ed {
 				ImGui::Separator();
 
 				ImGui::MenuItem("Performance Mode", KeyboardShortcuts::Instance().GetString("Workspace.PerformanceMode").c_str(), &m_perfModeFake);
+				ImGui::MenuItem("Focus mode", KeyboardShortcuts::Instance().GetString("Workspace.FocusMode").c_str(), &m_focusModeTemp);
+				
 				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
 					*m_settingsBkp = settings;
@@ -981,12 +988,16 @@ namespace ed {
 			ImGui::EndMainMenuBar();
 		}
 
-		if (m_performanceMode || m_minimalMode)
+		if (m_performanceMode || m_minimalMode || m_focusMode) {
 			((PreviewUI*)Get(ViewID::Preview))->Update(delta);
+		
+			if (m_focusMode) 
+				m_renderFocusMode();
+		}
 
 		ImGui::End();
 
-		if (!m_performanceMode && !m_minimalMode) {
+		if (!m_performanceMode && !m_minimalMode && !m_focusMode) {
 			m_data->Plugins.Update(delta);
 
 			for (auto& view : m_views)
@@ -1512,6 +1523,106 @@ namespace ed {
 			((OptionsUI*)m_options)->ApplyTheme();
 			m_optionsOpened = false;
 		}
+	}
+
+	void GUIManager::m_renderFocusMode()
+	{
+		ImGui::SetCursorPos(ImVec2(10, Settings::Instance().CalculateSize(35.0f)));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, 0xB5000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+		ImGui::BeginChild("##focus_container", ImVec2(m_width / 2 - 50, -Settings::Instance().CalculateSize(10) - Settings::Instance().Preview.StatusBar * 35.0f), false);
+
+
+		if (ImGui::BeginTabBar("PassTabs")) {
+			auto& passes = m_data->Pipeline.GetList();
+			for (auto& pass : passes) {
+				if (pass->Type == PipelineItem::ItemType::ShaderPass) {
+					if (ImGui::BeginTabItem(pass->Name)) {
+						pipe::ShaderPass* passData = (pipe::ShaderPass*)pass->Data;
+
+						// shader tabs for this pass
+						if (ImGui::BeginTabBar("ShaderTabs")) {
+							CodeEditorUI* codeEditor = ((CodeEditorUI*)Get(ViewID::Code));
+
+							// vertex shader
+							if (ImGui::BeginTabItem("Vertex shader")) {
+								m_renderTextEditorFocusMode("Vertex shader editor", pass, ShaderStage::Vertex);
+								ImGui::EndTabItem();
+							}
+
+							// geometry shader if used
+							if (passData->GSUsed) {
+								// geometry shader
+								if (ImGui::BeginTabItem("Geometry shader")) {
+									m_renderTextEditorFocusMode("Geometry shader editor", pass, ShaderStage::Geometry);
+									ImGui::EndTabItem();
+								}
+							}
+
+							// tessellation shaders
+							if (passData->TSUsed) {
+								// tc shader
+								if (ImGui::BeginTabItem("Tessellation control shader")) {
+									m_renderTextEditorFocusMode("Tessellation control shader editor", pass, ShaderStage::TessellationControl);
+									ImGui::EndTabItem();
+								}
+
+								// te shader
+								if (ImGui::BeginTabItem("Tessellation evaluation shader")) {
+									m_renderTextEditorFocusMode("Tessellation evaluation shader editor", pass, ShaderStage::TessellationEvaluation);
+									ImGui::EndTabItem();
+								}
+							}
+
+							// pixel shader
+							if (ImGui::BeginTabItem("Pixel shader")) {
+								m_renderTextEditorFocusMode("Pixel shader editor", pass, ShaderStage::Pixel);
+								ImGui::EndTabItem();
+							}
+
+							ImGui::EndTabBar();
+						}
+
+
+						ImGui::EndTabItem();
+					}
+				} else if (pass->Type == PipelineItem::ItemType::ComputePass) {
+					if (ImGui::BeginTabItem(pass->Name)) {
+						pipe::ComputePass* passData = (pipe::ComputePass*)pass->Data;
+
+						// shader tabs for this pass
+						if (ImGui::BeginTabBar("ShaderTabs")) {
+							CodeEditorUI* codeEditor = ((CodeEditorUI*)Get(ViewID::Code));
+
+							// vertex shader
+							if (ImGui::BeginTabItem("Compute shader")) {
+								m_renderTextEditorFocusMode("Compute shader editor", pass, ShaderStage::Compute);
+								ImGui::EndTabItem();
+							}
+
+							ImGui::EndTabBar();
+						}
+
+						ImGui::EndTabItem();
+					}
+				}
+			}
+			ImGui::EndTabBar();
+		}
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor();
+	}
+	void GUIManager::m_renderTextEditorFocusMode(const std::string& name, void* item, ShaderStage stage)
+	{
+		CodeEditorUI* codeEditor = ((CodeEditorUI*)Get(ViewID::Code));
+
+		TextEditor* editor = codeEditor->Get((PipelineItem*)item, stage);
+		if (editor == nullptr) {
+			codeEditor->Open((PipelineItem*)item, stage);
+			editor = codeEditor->Get((PipelineItem*)item, stage);
+		}
+
+		codeEditor->DrawTextEditor(name, editor);
 	}
 
 	UIView* GUIManager::Get(ViewID view)
@@ -2961,6 +3072,10 @@ namespace ed {
 		KeyboardShortcuts::Instance().SetCallback("Workspace.PerformanceMode", [=]() {
 			m_performanceMode = !m_performanceMode;
 			m_perfModeFake = m_performanceMode;
+		});
+		KeyboardShortcuts::Instance().SetCallback("Workspace.FocusMode", [=]() {
+			m_focusMode = !m_focusMode;
+			m_focusModeTemp = m_focusMode;
 		});
 		KeyboardShortcuts::Instance().SetCallback("Workspace.HideOutput", [=]() {
 			Get(ViewID::Output)->Visible = !Get(ViewID::Output)->Visible;

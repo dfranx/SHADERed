@@ -30,6 +30,8 @@ namespace ed {
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
+		void DrawTextEditor(const std::string& name, TextEditor* tEdit);
+
 		void LoadSnippets();
 		void SaveSnippets();
 		void AddSnippet(const std::string& lang, const std::string& display, const std::string& search, const std::string& code);
@@ -48,6 +50,7 @@ namespace ed {
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 		TextEditor* Get(const std::string& path);
+		
 
 		void SetTheme(const TextEditor::Palette& colors);
 		void SetFont(const std::string& filename, int size = 15);

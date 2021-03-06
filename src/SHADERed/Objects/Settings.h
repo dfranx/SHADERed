@@ -25,6 +25,7 @@ namespace ed {
 			bool AutoOpenErrorWindow;
 			bool Toolbar;
 			bool Recovery; // [TODO] Not implemented
+			bool Profiler;
 			bool CheckUpdates;
 			bool CheckPluginUpdates;
 			bool RecompileOnFileChange;
