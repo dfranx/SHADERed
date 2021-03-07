@@ -2626,7 +2626,7 @@ namespace ed {
 		// Create about popup
 		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(270), Settings::Instance().CalculateSize(220)), ImGuiCond_Always);
 		if (ImGui::BeginPopupModal("About##main_about", 0, ImGuiWindowFlags_NoResize)) {
-			ImGui::TextWrapped("(C) 2021 dfranx");
+			ImGui::TextWrapped("(C) 2018 - 2021 dfranx");
 			ImGui::TextWrapped("Version %s", WebAPI::Version);
 			ImGui::TextWrapped("Internal version: %d", WebAPI::InternalVersion);
 			ImGui::TextWrapped("Compute shaders: %s", GLEW_ARB_compute_shader ? "true" : "false");
@@ -2635,7 +2635,7 @@ namespace ed {
 				ImGui::TextWrapped("GL_MAX_PATCH_VERTICES: %d", m_data->Renderer.GetMaxPatchVertices());
 
 			ImGui::NewLine();
-			UIHelper::Markdown("SHADERed is [open sourc](https://www.github.com/dfranx/SHADERed)");
+			UIHelper::Markdown("SHADERed is [open source](https://www.github.com/dfranx/SHADERed)");
 			ImGui::NewLine();
 
 			ImGui::Separator();
