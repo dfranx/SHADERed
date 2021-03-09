@@ -14,7 +14,7 @@ namespace ed {
 
 		bool IsCreated;
 		bool IsDone;
-		unsigned long long LastTime; // Last timer results
+		uint64_t LastTime; // Last timer results
 		PipelineItem* Pass;
 
 		unsigned int Object; // OpenGL Query

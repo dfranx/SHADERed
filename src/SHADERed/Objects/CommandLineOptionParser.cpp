@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <vector>
 
+#ifdef BUILD_IMMEDIATE_MODE
 #include <spvgentwo/Logger.h>
 #include <spvgentwo/Module.h>
 #include <spvgentwo/Grammar.h>
@@ -11,6 +12,7 @@
 #include <common/BinaryFileWriter.h>
 #include <common/BinaryFileReader.h>
 #include <common/ModuleToString.h>
+#endif
 
 namespace ed {
 	CommandLineOptionParser::CommandLineOptionParser()
@@ -253,6 +255,7 @@ namespace ed {
 			else if (strcmp(argv[i], "--disassemble") == 0 || strcmp(argv[i], "-dis") == 0) {
 				LaunchUI = false;
 
+#ifdef BUILD_IMMEDIATE_MODE
 				std::string disPath = "";
 				if (i + 1 < argc) {
 					disPath = argv[i + 1];
@@ -286,6 +289,7 @@ namespace ed {
 						printf("%s", buffer.c_str());
 					}
 				}
+#endif
 			}
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
