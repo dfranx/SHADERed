@@ -772,11 +772,11 @@ namespace ed {
 							lastBBIndex = i;
 							continue;
 						}
-						spvgentwo::BasicBlock& bb = *(f.begin() + i);
+						spvgentwo::BasicBlock& bb = *(f.begin() + (unsigned int)i);
 						bb.clear();
 					}
 
-					spvgentwo::BasicBlock& bb = *(f.begin() + lastBBIndex);
+					spvgentwo::BasicBlock& bb = *(f.begin() + (unsigned int)lastBBIndex);
 					
 					spvgentwo::Instruction* loadedInput = bb->opLoad(inputInstruction);
 					spvgentwo::Instruction* newValue = nullptr;
