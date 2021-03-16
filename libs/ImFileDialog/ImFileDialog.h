@@ -3,6 +3,7 @@
 #include <stack>
 #include <string>
 #include <thread>
+#include <vector>
 #include <functional>
 #include <filesystem>
 #include <unordered_map>
