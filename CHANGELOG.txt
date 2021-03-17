@@ -1,3 +1,6 @@
+[v1.5.1]
++ fix a bug in immediate mode that would cause it to crash
+
 [v1.5]
 + add "Frame analysis" window
 + add the ability to detect undefined behavior in shaders

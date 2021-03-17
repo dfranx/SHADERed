@@ -3,6 +3,7 @@
 #include <common/BinaryVectorWriter.h>
 #include <spvgentwo/GLSL450Instruction.h>
 #include <common/HeapList.h>
+#include <spvgentwo/Templates.h>
 #include <string.h>
 
 namespace ed {
@@ -633,7 +634,7 @@ namespace ed {
 			if (obj->getType()->isVector())
 				return m_swizzle(obj, maccess->Field);
 			else if (obj->getType()->isStruct()) {
-				spvgentwo::Instruction* objType = obj->getTypeInstr();
+				spvgentwo::Instruction* objType = obj->getResultTypeInstr();
 				const char* member = nullptr;
 				unsigned int memberIndex = 0;
 				while ((member = objType->getName(memberIndex++)) != 0) {
@@ -663,7 +664,7 @@ namespace ed {
 					resType = m_module->type<spvgentwo::vector_t<float, 4>*>();
 				
 				if (resType != nullptr) {
-					spvgentwo::Instruction* tempVar = bb->opVariable(obj->getTypeInstr(), spvgentwo::spv::StorageClass::Function);
+					spvgentwo::Instruction* tempVar = bb->opVariable(obj->getResultTypeInstr(), spvgentwo::spv::StorageClass::Function);
 					bb->opStore(tempVar, obj);
 					spvgentwo::Instruction* vecPtr = bb->opAccessChain(resType, tempVar, m_visit(a_access->Indices[0]));
 					
@@ -698,7 +699,7 @@ namespace ed {
 
 			// user defined method
 			if (objType->isStruct()) {
-				const char* objName = obj->getTypeInstr()->getName();
+				const char* objName = obj->getResultTypeInstr()->getName();
 				std::string mname = std::string(objName) + "::" + fname;
 
 				// find a match with user defined function
@@ -782,15 +783,15 @@ namespace ed {
 		if (op != '*' || (op == '*' && !bBaseType.isFloat() && !aBaseType.isFloat())) {
 			if (aType->isVector() && !bType->isVector()) {
 				switch (aType->getVectorComponentCount()) {
-				case 2: outB = bb->opCompositeConstruct(a->getTypeInstr(), outB, outB); break;
-				case 3: outB = bb->opCompositeConstruct(a->getTypeInstr(), outB, outB, outB); break;
-				case 4: outB = bb->opCompositeConstruct(a->getTypeInstr(), outB, outB, outB, outB); break;
+				case 2: outB = bb->opCompositeConstruct(a->getResultTypeInstr(), outB, outB); break;
+				case 3: outB = bb->opCompositeConstruct(a->getResultTypeInstr(), outB, outB, outB); break;
+				case 4: outB = bb->opCompositeConstruct(a->getResultTypeInstr(), outB, outB, outB, outB); break;
 				}
 			} else if (bType->isVector() && !aType->isVector()) {
-				switch (aType->getVectorComponentCount()) {
-				case 2: outA = bb->opCompositeConstruct(a->getTypeInstr(), outA, outA); break;
-				case 3: outA = bb->opCompositeConstruct(a->getTypeInstr(), outA, outA, outA); break;
-				case 4: outA = bb->opCompositeConstruct(a->getTypeInstr(), outA, outA, outA, outA); break;
+				switch (bType->getVectorComponentCount()) {
+				case 2: outA = bb->opCompositeConstruct(b->getResultTypeInstr(), outA, outA); break;
+				case 3: outA = bb->opCompositeConstruct(b->getResultTypeInstr(), outA, outA, outA); break;
+				case 4: outA = bb->opCompositeConstruct(b->getResultTypeInstr(), outA, outA, outA, outA); break;
 				}
 			}
 		}

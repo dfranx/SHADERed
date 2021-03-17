@@ -11,7 +11,7 @@
 #include <common/HeapAllocator.h>
 #include <common/BinaryFileWriter.h>
 #include <common/BinaryFileReader.h>
-#include <common/ModuleToString.h>
+#include <common/ModulePrinter.h>
 #endif
 
 namespace ed {
@@ -280,11 +280,9 @@ namespace ed {
 						
 						module.assignIDs();
 
-
 						spvgentwo::String buffer(&alloc, 2048u);
-						spvgentwo::ModuleStringPrinter printer(buffer, true);
-
-						const bool success = moduleToString(module, gram, &alloc, &printer, false);
+						spvgentwo::ModulePrinter::ModuleStringPrinter printer(buffer, true);
+						spvgentwo::ModulePrinter::printModule(module, gram, printer);
 
 						printf("%s", buffer.c_str());
 					}
