@@ -5,9 +5,7 @@
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/RenderEngine.h>
 #include <SHADERed/Objects/ShaderLanguage.h>
-#ifdef BUILD_IMMEDIATE_MODE
-	#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
-#endif
+#include <SHADERed/Objects/Debug/ExpressionCompiler.h>
 
 #include <sstream>
 
@@ -144,10 +142,7 @@ namespace ed {
 		MessageStack* m_msgs;
 
 		bool m_updatedGeometryOutput;
-
-#ifdef BUILD_IMMEDIATE_MODE
 		ExpressionCompiler m_compiler;
-#endif
 
 		bool m_isDebugging;
 

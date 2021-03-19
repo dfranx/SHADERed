@@ -8,13 +8,10 @@
 #include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 
-#ifdef BUILD_IMMEDIATE_MODE
 #include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
-#endif
 
 namespace ed {
-#ifdef BUILD_IMMEDIATE_MODE
 	template <typename U32Vector>
 	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
 	public:
@@ -37,7 +34,6 @@ namespace ed {
 		U32Vector& m_vec;
 		int m_index;
 	};
-#endif
 
 	FrameAnalysis::EdgeEquation::EdgeEquation(const glm::ivec2& v0, const glm::ivec2& v1)
 	{
@@ -113,7 +109,6 @@ namespace ed {
 
 	void FrameAnalysis::m_cacheBreakpoint(int i)
 	{
-#ifdef BUILD_IMMEDIATE_MODE
 		ExpressionCompiler compiler;
 		compiler.SetSPIRV(*m_getPixelShaderSPV(m_breakpoint[i].PSPath));
 
@@ -140,7 +135,6 @@ namespace ed {
 					m_breakpoint[i].VM->results[j].extension = m_debugger->GetGLSLExtension();
 
 		m_breakpoint[i].Cached = true;
-#endif
 	}
 	spvm_result_t FrameAnalysis::m_executeBreakpoint(int index, spvm_result_t& returnType)
 	{
@@ -679,7 +673,6 @@ namespace ed {
 		if (pass == nullptr || variableName.size() == 0 || line == 0 || pass->Type != PipelineItem::ItemType::ShaderPass)
 			return nullptr;
 
-#ifdef BUILD_IMMEDIATE_MODE
 		pipe::ShaderPass* passData = ((pipe::ShaderPass*)pass->Data);
 		std::vector<unsigned int> oldSPV = passData->PSSPV;
 		if (oldSPV.size() <= 1)
@@ -834,8 +827,5 @@ namespace ed {
 		m_renderer->Render();
 
 		return returnData;
-#else
-		return nullptr;
-#endif
 	}
 }

@@ -1207,14 +1207,15 @@ namespace ed {
 	}
 	spvm_member_t DebugInformation::GetVariableFromState(spvm_state_t state, const std::string& vname, size_t& outCount, spvm_result_t& outType)
 	{
+		bool skipLastTypeGetter = false;
+
 		spvm_word mem_index = 0, mem_count = 0;
 		spvm_result_t val = spvm_state_get_local_result(state, state->current_function, (spvm_string)vname.c_str());
 		if (val == nullptr)
 			val = spvm_state_get_result_with_value(state, (spvm_string)vname.c_str());
 
-		if (val == nullptr) { // anon buffer object uniforms
-			val = spvm_state_get_result(state, "");
-
+		if (val == nullptr) {
+			// anon buffer object uniforms
 			bool foundBufferVariable = false;
 			for (spvm_word i = 0; i < m_shader->bound; i++) {
 				if (state->results[i].name) {
@@ -1227,6 +1228,7 @@ namespace ed {
 								mem_count = 1;
 
 								outType = spvm_state_get_type_info(state->results, &state->results[val->members[mem_index].type]);
+								skipLastTypeGetter = true;
 
 								foundBufferVariable = true;
 								break;
@@ -1249,7 +1251,8 @@ namespace ed {
 				return &val->members[mem_index].members[0];
 			}*/
 
-			outType = spvm_state_get_type_info(state->results, &state->results[val->pointer]);
+			if (!skipLastTypeGetter)
+				outType = spvm_state_get_type_info(state->results, &state->results[val->pointer]);
 			outCount = mem_count;
 			return &val->members[mem_index];
 		}
@@ -1336,7 +1339,6 @@ namespace ed {
 			}
 		}
 
-#ifdef BUILD_IMMEDIATE_MODE // TODO
 		int resultID = 0;
 
 		std::vector<std::string> varList;
@@ -1452,6 +1454,12 @@ namespace ed {
 				}
 			}
 		}
+		
+		// copy HLSL no-named cbuffers
+		spvm_result_t cbufferSource = spvm_state_get_result_with_value(m_vm, "");
+		spvm_result_t cbufferTarget = spvm_state_get_result_with_value(m_vmImmediate, "");
+		if (cbufferSource && cbufferTarget)
+			spvm_member_memcpy(cbufferTarget->members, cbufferSource->members, cbufferTarget->member_count);
 
 		// execute $$_shadered_immediate
 		spvm_word fnImmediate = spvm_state_get_result_location(m_vmImmediate, "$$_shadered_immediate");
@@ -1462,9 +1470,6 @@ namespace ed {
 		spvm_result_t val = &m_vmImmediate->results[resultID];
 		outType = spvm_state_get_type_info(m_vmImmediate->results, &m_vmImmediate->results[val->pointer]);
 		return val;
-#else
-		return nullptr; // TODO: enable DebugInformation::Immediate() for macOS devices
-#endif
 	}
 
 	void DebugInformation::PrepareVertexShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
@@ -2254,10 +2259,8 @@ namespace ed {
 
 		m_funcStackLines[0] = m_vm->current_line;
 
-#ifdef BUILD_IMMEDIATE_MODE
 		// prepare immediate mode compiler
 		m_compiler.SetSPIRV(m_spv);
-#endif
 	}
 
 	void DebugInformation::ClearWatchList()

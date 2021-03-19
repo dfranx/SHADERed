@@ -144,12 +144,6 @@ cmake .
 make
 ```
 
-**NOTE:** If you want immediate mode and related features, set the BUILD_IMMEDIATE_MODE flag to "ON".
-```
-cmake -DBUILD_IMMEDIATE_MODE=ON .
-make
-```
-
 **NOTE:** If you dont have SFML 2.5 installed on your machine, run these commands:
 ```
 cmake -DUSE_FINDSFML=ON .
@@ -200,7 +194,7 @@ Run:
 
 ### Windows
 1. Install SDL2, SFML, GLEW & GLM through your favourite package manager (I recommend vcpkg)
-2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable (and turn on BUILD_IMMEDIATE_MODE flag if you want to have immediate mode and related features)
+2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable
 3. Press Configure and then Generate if no errors occured
 4. Open the .sln and build the project!
 

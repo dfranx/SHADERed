@@ -1,5 +1,8 @@
 [v1.5.1]
++ remove BUILD_IMMEDIATE_MODE (immediate mode now works on all systems)
++ fix immediate mode when using HLSL's cbuffer variables
 + fix a bug in immediate mode that would cause it to crash
++ fix a bug where --disassemble command would output wrong IDs
 
 [v1.5]
 + add "Frame analysis" window

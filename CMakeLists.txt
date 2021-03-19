@@ -5,8 +5,6 @@ project(SHADERed)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-option(BUILD_IMMEDIATE_MODE "Build the immediate mode related features" OFF)
-
 # source code
 set(SOURCES
 	main.cpp
@@ -19,6 +17,7 @@ set(SOURCES
 
 # objects:
 	src/SHADERed/Objects/Export/ExportCPP.cpp
+	src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
 	src/SHADERed/Objects/ArcBallCamera.cpp
 	src/SHADERed/Objects/AudioAnalyzer.cpp
 	src/SHADERed/Objects/AudioShaderStream.cpp
@@ -150,13 +149,7 @@ find_package(GLM REQUIRED)
 find_package(SFML COMPONENTS system audio network)
 
 # SpvGenTwo
-if(BUILD_IMMEDIATE_MODE)
-	set(SOURCES
-		"${SOURCES}"
-		src/SHADERed/Objects/Debug/ExpressionCompiler.cpp
-	)
-	add_subdirectory(libs/SpvGenTwo)
-endif()
+add_subdirectory(libs/SpvGenTwo)
 
 # assimp
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Static lib" FORCE)
@@ -203,11 +196,6 @@ set_target_properties(SHADERed PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-# preprocessor
-if (BUILD_IMMEDIATE_MODE)
-	target_compile_definitions(SHADERed PRIVATE BUILD_IMMEDIATE_MODE)
-endif()
-
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
 target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include libs/spirv-tools/include)
@@ -216,12 +204,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp)
-
-# link SpvGenTwo
-if (BUILD_IMMEDIATE_MODE)
-	target_link_libraries(SHADERed SpvGenTwoLib SpvGenTwoCommon)
-endif()
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp SpvGenTwoLib SpvGenTwoCommon)
 
 # link sfml
 if(${USE_FINDSFML})

@@ -122,8 +122,41 @@ namespace ed {
 						sc == spvgentwo::spv::StorageClass::Input ||
 						sc == spvgentwo::spv::StorageClass::Output) // global variable
 					{
-						if (m_vars.count(iName) == 0)
-							m_vars[iName] = &inst; // copy global variable
+						if (strlen(iName) != 0) { 
+							if (m_vars.count(iName) == 0)
+								m_vars[iName] = &inst; // copy global variable
+						} else {
+							// HLSL "" named cbuffers
+							if (inst.getResultTypeInstr()->getType()->isPointer()) {
+								bool isDone = false;
+								
+								// iterate over OpTypePointer operands, find the type to which it points to
+								for (auto opIt = inst.getResultTypeInstr()->begin(); opIt != inst.getResultTypeInstr()->end(); opIt++) {
+									if (!(*opIt).isInstruction())
+										continue;
+
+									// check if it's a struct
+									auto operand = (*opIt).getInstruction();
+									if (operand->getType() && operand->getType()->isStruct()) {
+										// if it is, iterate over it's member names
+										unsigned int memberIndex = 0;
+										const char* memberName = operand->getName(memberIndex);
+										while (memberName) {
+											if (m_vars.count(memberName)) {
+												m_vars[memberName] = myBB->opAccessChain(&inst, memberIndex);
+												isDone = true;
+												break;
+											}
+											memberName = operand->getName(++memberIndex);
+										}
+									}
+								
+									// finish
+									if (isDone)
+										break;
+								}
+							}
+						}
 					}
 					if (m_vars.count(iName) && m_vars[iName] == nullptr)
 						m_vars[iName] = &inst;
