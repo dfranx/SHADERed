@@ -119,6 +119,8 @@ namespace ed {
 		PipelineItem* m_pass;
 		PixelInformation m_pixel;
 
+		void m_variableViewerProcess(spvgentwo::Module* module, const spvgentwo::Function& func, const std::string& variableName, unsigned int line, spvgentwo::Instruction* outputInstruction, spvgentwo::Instruction*& inputInstruction, uint8_t& components);
+
 		void m_clean();
 		void m_copyVBOData(eng::Model::Mesh::Vertex& vertex, GLfloat* vbo, int stride);
 		inline uint32_t m_encodeColor(const glm::vec4& color)

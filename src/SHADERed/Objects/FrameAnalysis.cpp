@@ -11,6 +11,9 @@
 #include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
 
+#include <spirv-tools/libspirv.h>
+#include <spirv-tools/optimizer.hpp>
+
 namespace ed {
 	template <typename U32Vector>
 	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
@@ -668,6 +671,102 @@ namespace ed {
 
 		return tex;
 	}
+	void FrameAnalysis::m_variableViewerProcess(spvgentwo::Module* module, const spvgentwo::Function& func, const std::string& variableName, unsigned int line, spvgentwo::Instruction* outputInstruction, spvgentwo::Instruction*& inputInstruction, uint8_t& components)
+	{
+		bool passedOpReturn = false;
+		unsigned int currentLine = 0;
+
+		// loop through global variables
+		auto& globalVariables = module->getGlobalVariables();
+		for (auto& glob : globalVariables) {
+			const char* globName = glob.getName();
+			if (globName != nullptr && strcmp(globName, variableName.c_str()) == 0) {
+				inputInstruction = &glob;
+				break;
+			}
+		}
+
+		// loop through BasicBlocks
+		std::vector<bool> clearBB(func.size(), true);
+		int lastBBIndex = 0, currentBBIndex = 0;
+		for (auto bbIterator = func.begin(); bbIterator != func.end(); bbIterator++, currentBBIndex++) {
+			spvgentwo::BasicBlock& bb = *bbIterator;
+
+			// loop through instructions
+			auto it = bb.begin();
+			while (it != bb.end()) {
+				spvgentwo::Instruction& inst = *it;
+				unsigned int actualOpCode = (inst.getOpCode() & spvgentwo::spv::OpCodeMask);
+
+				if (actualOpCode == (unsigned int)spvgentwo::spv::Op::OpLine) {
+					for (auto& op : inst) {
+						if (op.isLiteral()) {
+							currentLine = op.getLiteral().value;
+							break;
+						}
+					}
+				}
+				const char* iName = inst.getName();
+				if (iName != nullptr && strcmp(iName, variableName.c_str()) == 0)
+					inputInstruction = &inst;
+
+				bool isOpReturn = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpReturn;
+				bool isOpFunctionEnd = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpFunctionEnd;
+
+				if (currentLine > line + 1 || passedOpReturn || ((isOpReturn || isOpFunctionEnd) && inputInstruction != nullptr)) { // since line starts from 0 and currentLine (SPIR-V) is from 1
+					it++;
+					bb.remove(&inst);
+					passedOpReturn = isOpReturn;
+				} else {
+					if (currentLine == line + 1)
+						lastBBIndex = currentBBIndex;
+					it++;
+					clearBB[currentBBIndex] = false;
+				}
+			}
+		}
+
+		// generate new instructions
+		if (inputInstruction && outputInstruction) {
+			if (lastBBIndex >= func.size())
+				lastBBIndex = func.size() - 1;
+			for (int i = 0; i < clearBB.size(); i++) {
+				if (!clearBB[i]) {
+					lastBBIndex = i;
+					continue;
+				}
+				spvgentwo::BasicBlock& bb = *(func.begin() + (unsigned int)i);
+				bb.clear();
+			}
+
+			spvgentwo::BasicBlock& bb = *(func.begin() + (unsigned int)lastBBIndex);
+
+			spvgentwo::Instruction* loadedInput = bb->opLoad(inputInstruction);
+			spvgentwo::Instruction* newValue = nullptr;
+
+			if (loadedInput->getType()->isScalar()) {
+				newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, loadedInput, loadedInput, loadedInput);
+				components = 1;
+			} else if (loadedInput->getType()->getScalarOrVectorLength() == 2) {
+				newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(0.0f), module->constant<float>(1.0f));
+				components = 2;
+			} else if (loadedInput->getType()->getScalarOrVectorLength() == 3) {
+				newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(1.0f));
+				components = 3;
+			} else if (loadedInput->getType()->getScalarOrVectorLength() == 4) {
+				newValue = loadedInput;
+				components = 4;
+			}
+
+
+			if (func.getReturnType()->getType()->isVoid()) {
+				bb->opStore(outputInstruction, newValue);
+				bb->opReturn();
+			} else
+				bb->opReturnValue(newValue);
+			bb->opFunctionEnd();
+		}
+	}
 	float* FrameAnalysis::AllocateVariableValueMap(PipelineItem* pass, const std::string& variableName, unsigned int line, uint8_t& components)
 	{
 		if (pass == nullptr || variableName.size() == 0 || line == 0 || pass->Type != PipelineItem::ItemType::ShaderPass)
@@ -700,98 +799,24 @@ namespace ed {
 			}
 		});
 
-		bool passedOpReturn = false;
-		unsigned int currentLine = 0;
-		auto& funcs = module->getEntryPoints();
-		for (auto& f : funcs) {
-			const char* fName = f.getName();
-			if (strcmp(fName, "main") == 0) {
-				// loop through global variables
-				auto& globalVariables = module->getGlobalVariables();
-				for (auto& glob : globalVariables) {
-					const char* globName = glob.getName();
-					if (globName != nullptr && strcmp(globName, variableName.c_str()) == 0) {
-						inputInstruction = &glob;
-						break;
-					}
-				}
 
-				// loop through BasicBlocks
-				std::vector<bool> clearBB(f.size(), true);
-				int lastBBIndex = 0, currentBBIndex = 0;
-				for (auto bbIterator = f.begin(); bbIterator != f.end(); bbIterator++, currentBBIndex++) {
-					spvgentwo::BasicBlock& bb = *bbIterator;
-					
-					// loop through instructions
-					auto it = bb.begin();
-					while (it != bb.end()) {
-						spvgentwo::Instruction& inst = *it;
-						unsigned int actualOpCode = (inst.getOpCode() & spvgentwo::spv::OpCodeMask);
-
-						if (actualOpCode == (unsigned int)spvgentwo::spv::Op::OpLine) {
-							for (auto& op : inst) {
-								if (op.isLiteral()) {
-									currentLine = op.getLiteral().value;
-									break;
-								}
-							}
-						}
-						const char* iName = inst.getName();
-						if (iName != nullptr && strcmp(iName, variableName.c_str()) == 0)
-							inputInstruction = &inst;
-
-						bool isOpReturn = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpReturn;
-						bool isOpFunctionEnd = actualOpCode == (unsigned int)spvgentwo::spv::Op::OpFunctionEnd;
-						
-						if (currentLine > line + 1 || passedOpReturn || ((isOpReturn || isOpFunctionEnd) && inputInstruction != nullptr)) { // since line starts from 0 and currentLine (SPIR-V) is from 1
-							it++;
-							bb.remove(&inst);
-							passedOpReturn = isOpReturn;
-						} else {
-							if (currentLine == line + 1)
-								lastBBIndex = currentBBIndex;
-							it++;
-							clearBB[currentBBIndex] = false;
-						}
-					}
-				}
-
-				// generate new instructions
-				if (inputInstruction && outputInstruction) {
-					if (lastBBIndex >= f.size())
-						lastBBIndex = f.size() - 1;
-					for (int i = 0; i < clearBB.size(); i++) {
-						if (!clearBB[i]) {
-							lastBBIndex = i;
-							continue;
-						}
-						spvgentwo::BasicBlock& bb = *(f.begin() + (unsigned int)i);
-						bb.clear();
-					}
-
-					spvgentwo::BasicBlock& bb = *(f.begin() + (unsigned int)lastBBIndex);
-					
-					spvgentwo::Instruction* loadedInput = bb->opLoad(inputInstruction);
-					spvgentwo::Instruction* newValue = nullptr;
-
-					if (loadedInput->getType()->isScalar()) {
-						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, loadedInput, loadedInput, loadedInput);
-						components = 1;
-					} else if (loadedInput->getType()->getScalarOrVectorLength() == 2) {
-						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(0.0f), module->constant<float>(1.0f));
-						components = 2;
-					} else if (loadedInput->getType()->getScalarOrVectorLength() == 3) {
-						newValue = bb->opCompositeConstruct(module->type<spvgentwo::vector_t<float, 4>>(), loadedInput, module->constant<float>(1.0f));
-						components = 3;
-					} else if (loadedInput->getType()->getScalarOrVectorLength() == 4) {
-						newValue = loadedInput;
-						components = 4;
-					}
-
-					bb->opStore(outputInstruction, newValue);
-					bb->opReturn();
-					bb->opFunctionEnd();
-				}
+		// if HLSL, check @name functions
+		if (ed::ShaderCompiler::GetShaderLanguageFromExtension(passData->PSPath) == ShaderLanguage::HLSL) {
+			std::string entryName = "@" + std::string(passData->PSEntry);
+			auto& funcs = module->getFunctions();
+			for (auto& f : funcs) {
+				std::string fName = std::string(f.getName());
+				if (fName.find(entryName) == 0)
+					;//m_variableViewerProcess(module, f, variableName, line, outputInstruction, inputInstruction, components);
+			}
+		}
+		// otherwise check entry points
+		else {
+			auto& entryPoints = module->getEntryPoints();
+			for (auto& f : entryPoints) {
+				std::string fName = std::string(f.getName());
+				if (fName == "main")
+					; //m_variableViewerProcess(module, f, variableName, line, outputInstruction, inputInstruction, components);
 			}
 		}
 
@@ -801,7 +826,8 @@ namespace ed {
 		spvgentwo::BinaryVectorWriter writer(newSPV);
 		module->write(&writer);
 
-		bool failed = (outputInstruction == nullptr || inputInstruction == nullptr);
+		bool failed = false;
+		//(outputInstruction == nullptr || inputInstruction == nullptr);
 
 		delete grammar;
 		delete module;
@@ -809,6 +835,11 @@ namespace ed {
 
 		if (failed)
 			return nullptr;
+
+		std::string disassembly = "";
+		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
+		bool disResult = core.Disassemble(newSPV, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+		printf("%s\n\n", disassembly.c_str());
 
 		std::string newGLSL = ed::ShaderCompiler::ConvertToGLSL(newSPV, ed::ShaderLanguage::GLSL, ed::ShaderStage::Pixel, passData->TSUsed, passData->GSUsed, nullptr, false);
 		
