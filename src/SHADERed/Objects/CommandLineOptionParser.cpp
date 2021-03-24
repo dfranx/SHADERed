@@ -1,7 +1,9 @@
 #include <SHADERed/Objects/CommandLineOptionParser.h>
 #include <SHADERed/Objects/WebAPI.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <string.h>
 #include <filesystem>
+#include <fstream>
 #include <vector>
 
 #include <spvgentwo/Logger.h>
@@ -283,6 +285,17 @@ namespace ed {
 					}
 				}
 			}
+			// --convert, -con [file]
+			else if (strcmp(argv[i], "--convert") == 0 || strcmp(argv[i], "-con") == 0) {
+				LaunchUI = false;
+				ConvertPath = "";
+
+				if (i + 1 < argc) {
+					ConvertPath = argv[i + 1];
+					i++;
+
+				}
+			}
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 				static const std::vector<std::pair<std::string, std::string>> opts = {
@@ -312,6 +325,7 @@ namespace ed {
 					{ "--entry | -e <funcname>", "shader entry" },
 
 					{ "--disassemble | -dis <file>", "disassemble SPIR-V file" },
+					{ "--convert | -con <file>", "convert HLSL to GLSL" },
 
 					{ "<file>", "open a file" }
 				};
@@ -332,6 +346,43 @@ namespace ed {
 			// invalid command
 			else
 				printf("Invalid option '%s'\n", argv[i]);
+		}
+	}
+	void CommandLineOptionParser::Execute()
+	{
+		// --compile
+		if (!CompilePath.empty()) {
+			std::vector<unsigned int> spv;
+			std::vector<ed::ShaderMacro> macros;
+			bool status = ed::ShaderCompiler::CompileToSPIRV(spv, CompileLanguage, CompilePath, CompileStage, CompileEntry, macros, nullptr, nullptr);
+			if (!status) {
+				printf("Failed to compile the shader.\n");
+			} else {
+				if (CompileSPIRV) {
+					std::ofstream spvOut(CompileOutput, std::ios::out | std::ios::binary);
+					spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
+					spvOut.close();
+				} else {
+					std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, CompileLanguage, CompileStage, false, false, nullptr);
+
+					std::ofstream glslOut(CompileOutput, std::ios::out | std::ios::binary);
+					glslOut.write(glslSource.c_str(), glslSource.size());
+					glslOut.close();
+				}
+				printf("Done compiling.");
+			}
+		}
+
+		// --convert
+		if (!ConvertPath.empty()) {
+			std::vector<unsigned int> spv;
+			std::vector<ed::ShaderMacro> macros;
+			bool status = ed::ShaderCompiler::CompileToSPIRV(spv, ShaderLanguage::HLSL, ConvertPath, CompileStage, CompileEntry, macros, nullptr, nullptr);
+
+			if (status && spv.size() > 0) {
+				std::string converted = ed::ShaderCompiler::ConvertToGLSL(spv, ShaderLanguage::HLSL, CompileStage, false, false, nullptr, false);
+				printf("%s\n", converted.c_str());
+			}
 		}
 	}
 }

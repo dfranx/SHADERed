@@ -69,29 +69,7 @@ int main(int argc, char* argv[])
 
 	ed::CommandLineOptionParser coptsParser;
 	coptsParser.Parse(cmdDir, argc - 1, argv + 1);
-
-	// --compile
-	if (!coptsParser.CompilePath.empty()) {
-		std::vector<unsigned int> spv;
-		std::vector<ed::ShaderMacro> macros;
-		bool status = ed::ShaderCompiler::CompileToSPIRV(spv, coptsParser.CompileLanguage, coptsParser.CompilePath, coptsParser.CompileStage, coptsParser.CompileEntry, macros, nullptr, nullptr);
-		if (!status) {
-			printf("Failed to compile the shader.\n");
-		} else {
-			if (coptsParser.CompileSPIRV) {
-				std::ofstream spvOut(coptsParser.CompileOutput, std::ios::out | std::ios::binary);
-				spvOut.write((char*)spv.data(), spv.size() * sizeof(unsigned int));
-				spvOut.close();
-			} else {
-				std::string glslSource = ed::ShaderCompiler::ConvertToGLSL(spv, coptsParser.CompileLanguage, coptsParser.CompileStage, false, false, nullptr);
-
-				std::ofstream glslOut(coptsParser.CompileOutput, std::ios::out | std::ios::binary);
-				glslOut.write(glslSource.c_str(), glslSource.size());
-				glslOut.close();
-			}
-			printf("Done compiling.");
-		}
-	}
+	coptsParser.Execute();
 
 	if (!coptsParser.LaunchUI)
 		return 0;
