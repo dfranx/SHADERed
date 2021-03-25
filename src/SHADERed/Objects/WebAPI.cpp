@@ -77,7 +77,8 @@ namespace ed {
 	void getChangelog(std::function<void(const std::string&)> onFetch)
 	{
 		httplib::Client cli(WebAPI::URL.c_str());
-		auto res = cli.Post("/changelog.php", "version=" + std::to_string(WebAPI::InternalVersion), "text/plain");
+		httplib::Params params { { "version", std::to_string(WebAPI::InternalVersion) } };
+		auto res = cli.Post("/changelog.php", params);
 
 		if (res->status == 200)
 			onFetch(res->body);
@@ -101,12 +102,20 @@ namespace ed {
 	{
 		std::vector<WebAPI::ShaderResult> ret = std::vector<WebAPI::ShaderResult>();
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort + "&language=" + language + "&exclude_godot=" + std::to_string(excludeGodotShaders) + "&include_cpp=" + std::to_string(includeCPPShaders) + "&include_rust=" + std::to_string(includeRustShaders);
+		httplib::Params params {
+			{ "query", query },
+			{ "page", std::to_string(page) },
+			{ "sort", sort },
+			{ "language", language },
+			{ "exclude_godot", std::to_string(excludeGodotShaders) },
+			{ "include_cpp", std::to_string(includeCPPShaders) },
+			{ "include_rust", std::to_string(includeRustShaders) }
+		};
 		if (!owner.empty())
-			requestBody += "&owner=" + owner;
+			params.emplace("owner", owner);
 
 		httplib::Client cli(WebAPI::URL.c_str());
-		auto res = cli.Post("/search.php", requestBody, "text/plain");
+		auto res = cli.Post("/search.php", params);
 
 		if (res->status == 200) {
 			pugi::xml_document doc;
@@ -135,12 +144,16 @@ namespace ed {
 	{
 		std::vector<WebAPI::ThemeResult> ret = std::vector<WebAPI::ThemeResult>();
 		
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		httplib::Params params {
+			{ "query", query },
+			{ "page", std::to_string(page) },
+			{ "sort", sort }
+		};
 		if (!owner.empty())
-			requestBody += "&owner=" + owner;
+			params.emplace("owner", owner);
 
 		httplib::Client cli(WebAPI::URL.c_str());
-		auto res = cli.Post("/search_theme.php", requestBody, "text/plain");
+		auto res = cli.Post("/search_theme.php", params);
 
 		if (res->status == 200) {
 			pugi::xml_document doc;
@@ -171,12 +184,17 @@ namespace ed {
 	{
 		std::vector<WebAPI::PluginResult> ret = std::vector<WebAPI::PluginResult>();
 
-		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
+		httplib::Params params {
+			{ "query", query },
+			{ "page", std::to_string(page) },
+			{ "sort", sort }
+		};
 		if (!owner.empty())
-			requestBody += "&owner=" + owner;
+			params.emplace("owner", owner);
 
 		httplib::Client cli(WebAPI::URL.c_str());
-		auto res = cli.Post("/search_plugin.php", requestBody, "text/plain");
+
+		auto res = cli.Post("/search_plugin.php", params);
 
 		if (res->status == 200) {
 			pugi::xml_document doc;
@@ -226,7 +244,9 @@ namespace ed {
 	void allocateThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch)
 	{
 		httplib::Client cli(WebAPI::URL.c_str());
-		auto response = cli.Post("/get_shader_thumbnail.php", ("shader=" + id).c_str(), "image/png");
+
+		httplib::Params params { { "shader", id } };
+		auto response = cli.Post("/get_shader_thumbnail.php", params);
 
 		unsigned char* imgData = nullptr;
 		int imgWidth = 0, imgHeight = 0;

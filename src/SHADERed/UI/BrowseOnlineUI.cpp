@@ -102,7 +102,13 @@ namespace ed {
 				m_onlinePluginPage = 0;
 			else
 				m_onlineThemePage = 0;
-			m_onlineSearchShaders();
+
+			if (m_onlineIsShader)
+				m_onlineSearchShaders();
+			else if (m_onlineIsPlugin)
+				m_onlineSearchPlugins();
+			else
+				m_onlineSearchThemes();
 		}
 
 		bool hasNext = true;
