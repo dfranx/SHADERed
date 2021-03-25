@@ -6,6 +6,7 @@
 + fix a bug in immediate mode that would cause it to crash
 + fix a bug where --disassemble command would output wrong IDs
 + fix a bug in text editor that would sometimes highlight wrong code folding collapse/expand sections
++ remove SFML (Network)
 
 [v1.5]
 + add "Frame analysis" window

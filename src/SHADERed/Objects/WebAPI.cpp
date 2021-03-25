@@ -2,10 +2,11 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 
-#include <SFML/Network.hpp>
 #include <pugixml/src/pugixml.hpp>
 #include <miniz/zip_file.hpp>
 #include <stb/stb_image.h>
+#define CPPHTTPLIB_CONNECTION_TIMEOUT_SECOND 5
+#include <httplib/httplib.h>
 
 #include <filesystem>
 #include <fstream>
@@ -19,7 +20,7 @@
 
 
 namespace ed {
-	const std::string WebAPI::URL = "api.shadered.org";
+	const std::string WebAPI::URL = "http://api.shadered.org";
 	const char* WebAPI::Version = "1.5";
 
 	bool isDigitsOnly(const std::string& str)
@@ -40,16 +41,12 @@ namespace ed {
 	/* actual functions */
 	void getTips(std::function<void(int, int, const std::string&, const std::string&)> onFetch)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/tips.xml");
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.75f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Get("/tips.xml");
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
+		if (res->status == 200) {
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (!result) {
 				Logger::Get().Log("Failed to parse tips.xml", true);
 				return;
@@ -79,27 +76,19 @@ namespace ed {
 	}
 	void getChangelog(std::function<void(const std::string&)> onFetch)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/changelog.php");
-		request.setBody("version=" + std::to_string(WebAPI::InternalVersion));
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Post("/changelog.php", "version=" + std::to_string(WebAPI::InternalVersion), "text/plain");
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-			onFetch(src);
-		}
+		if (res->status == 200)
+			onFetch(res->body);
 	}
 	void checkUpdates(std::function<void()> onUpdate)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/version.php");
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(5.0f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Get("/version.php");
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
+		if (res->status == 200) {
+			const std::string& src = res->body;
 
 			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src)) {
 				int ver = std::stoi(src);
@@ -116,18 +105,12 @@ namespace ed {
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(2.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Post("/search.php", requestBody, "text/plain");
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
+		if (res->status == 200) {
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
 				auto resultsNode = doc.child("results");
 
@@ -150,24 +133,18 @@ namespace ed {
 	}
 	void searchThemes(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<WebAPI::ThemeResult>&)> onFetch)
 	{
+		std::vector<WebAPI::ThemeResult> ret = std::vector<WebAPI::ThemeResult>();
+		
 		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search_theme.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Post("/search_theme.php", requestBody, "text/plain");
 
-		std::vector<WebAPI::ThemeResult> ret = std::vector<WebAPI::ThemeResult>();
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
+		if (res->status == 200) {
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
 				auto resultsNode = doc.child("results");
 
@@ -192,24 +169,18 @@ namespace ed {
 	}
 	void searchPlugins(const std::string& query, int page, const std::string& sort, const std::string& owner, std::function<void(const std::vector<WebAPI::PluginResult>&)> onFetch)
 	{
+		std::vector<WebAPI::PluginResult> ret = std::vector<WebAPI::PluginResult>();
+
 		std::string requestBody = "query=" + query + "&page=" + std::to_string(page) + "&sort=" + sort;
 		if (!owner.empty())
 			requestBody += "&owner=" + owner;
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/search_plugin.php");
-		request.setBody(requestBody);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto res = cli.Post("/search_plugin.php", requestBody, "text/plain");
 
-		std::vector<WebAPI::PluginResult> ret = std::vector<WebAPI::PluginResult>();
-
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
+		if (res->status == 200) {
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_string(src.c_str());
+			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
 				auto resultsNode = doc.child("results");
 
@@ -254,21 +225,15 @@ namespace ed {
 	}
 	void allocateThumbnail(const std::string& id, std::function<void(unsigned char*, int, int)> onFetch)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/get_shader_thumbnail");
-		request.setBody("shader=" + id);
-		request.setMethod(sf::Http::Request::Method::Post);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto response = cli.Post("/get_shader_thumbnail.php", ("shader=" + id).c_str(), "image/png");
 
 		unsigned char* imgData = nullptr;
 		int imgWidth = 0, imgHeight = 0;
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
-			const char* byteData = src.c_str();
-			size_t byteLength = src.size();
+		if (response->status == 200) {
+			const char* byteData = response->body.c_str();
+			size_t byteLength = response->body.size();
 
 			int nrChannels;
 			imgData = stbi_load_from_memory((stbi_uc*)byteData, byteLength, &imgWidth, &imgHeight, &nrChannels, STBI_rgb_alpha);
@@ -467,13 +432,11 @@ namespace ed {
 		std::filesystem::remove_all(outputPath, ec);
 		std::filesystem::create_directory(outputPath);
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/download?type=shader&id=" + id);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto response = cli.Get(("/download.php?type=shader&id=" + id).c_str());
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
+		if (response->status == 200) {
+			const std::string& src = response->body;
 
 			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
 			std::vector<std::string> files = zipFile.namelist();
@@ -524,16 +487,13 @@ namespace ed {
 		body += "lin";
 #endif
 		
-		
 		std::string outputDir = Settings::Instance().ConvertPath(".");
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri(body);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto response = cli.Get(body.c_str());
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
+		if (response->status == 200) {
+			const std::string& src = response->body;
 
 			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
 			std::vector<std::string> files = zipFile.namelist();
@@ -562,28 +522,22 @@ namespace ed {
 
 		std::string outputPath = Settings::Instance().ConvertPath("themes/");
 
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/download?type=theme&id=" + id);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto response = cli.Get(("/download?type=theme&id=" + id).c_str());
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
-
+		if (response->status == 200) {
 			std::ofstream outFile(outputPath + id + ".ini");
-			outFile << src;
+			outFile << response->body;
 			outFile.close();
 		}
 	}
 	int WebAPI::GetPluginVersion(const std::string& id)
 	{
-		sf::Http http(WebAPI::URL);
-		sf::Http::Request request;
-		request.setUri("/get_plugin_version.php?id=" + id);
-		sf::Http::Response response = http.sendRequest(request, sf::seconds(0.5f));
+		httplib::Client cli(WebAPI::URL.c_str());
+		auto response = cli.Get(("/get_plugin_version.php?id=" + id).c_str());
 
-		if (response.getStatus() == sf::Http::Response::Ok) {
-			std::string src = response.getBody();
+		if (response->status == 200) {
+			const std::string& src = response->body;
 
 			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src))
 				return std::stoi(src);
