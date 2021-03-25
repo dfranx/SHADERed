@@ -1,6 +1,6 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
-#include <inih/INIReader.h>
+#include <misc/INIReader.h>
 
 #include <algorithm>
 #include <fstream>

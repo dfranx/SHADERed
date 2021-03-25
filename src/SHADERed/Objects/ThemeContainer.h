@@ -1,7 +1,7 @@
 #pragma once
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui/imgui.h>
-#include <inih/INIReader.h>
+#include <misc/INIReader.h>
 #include <map>
 #include <string>
 
