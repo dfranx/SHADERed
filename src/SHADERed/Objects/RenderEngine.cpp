@@ -1092,12 +1092,13 @@ namespace ed {
 
 		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemCompiled, (void*)name, nullptr);
 
-		int d3dCounter = 0;
+		GLchar shaderMessage[1024] = { 0 };
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
 				if (item->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(name);
 
 					SPIRVQueue.push_back(item);
 
@@ -1141,7 +1142,7 @@ namespace ed {
 
 					shader->Variables.UpdateTextureList(psContent);
 					GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-					psCompiled &= gl::CheckShaderCompilationStatus(ps);
+					psCompiled &= gl::CheckShaderCompilationStatus(ps, shaderMessage);
 
 					// vertex shader
 					lineBias = 0;
@@ -1166,7 +1167,7 @@ namespace ed {
 					}
 
 					GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-					vsCompiled &= gl::CheckShaderCompilationStatus(vs);
+					vsCompiled &= gl::CheckShaderCompilationStatus(vs, shaderMessage);
 
 					// geometry shader
 					bool gsCompiled = true;
@@ -1195,7 +1196,7 @@ namespace ed {
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-						gsCompiled &= gl::CheckShaderCompilationStatus(gs);
+						gsCompiled &= gl::CheckShaderCompilationStatus(gs, shaderMessage);
 
 						if (gsContent.empty())
 							gsCompiled = false;
@@ -1230,7 +1231,7 @@ namespace ed {
 							}
 
 							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs, shaderMessage);
 
 							if (tcsContent.empty())
 								tsCompiled = false;
@@ -1261,7 +1262,7 @@ namespace ed {
 							}
 
 							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes, shaderMessage);
 
 							if (tesContent.empty())
 								tsCompiled = false;
@@ -1272,12 +1273,15 @@ namespace ed {
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
-					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled | vsContent.empty() || psContent.empty()) {
+					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled || vsContent.empty() || psContent.empty()) {
 						Logger::Get().Log("Shaders not compiled", true);
 						if (vsContent.empty() || psContent.empty())
 							m_msgs->Add(MessageStack::Type::Error, name, "Shader source empty - try recompiling");
-						else
+						else {
+							if (shaderMessage[0] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(name))
+								m_msgs->Add(MessageStack::Type::Error, name, shaderMessage);
 							m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
+						}
 
 						m_shaders[i] = 0;
 					} else {
@@ -1300,8 +1304,10 @@ namespace ed {
 					m_shaderSources[i].GS = gs;
 					m_shaderSources[i].TCS = tcs;
 					m_shaderSources[i].TES = tes;
-				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+				} 
+				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(name);
 
 					SPIRVQueue.push_back(item);
 
@@ -1333,7 +1339,7 @@ namespace ed {
 
 					// compute shader supported == version 4.3 == not needed: shader->Variables.UpdateTextureList(content);
 					GLuint cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
-					compiled &= gl::CheckShaderCompilationStatus(cs);
+					compiled &= gl::CheckShaderCompilationStatus(cs, shaderMessage);
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
@@ -1342,8 +1348,12 @@ namespace ed {
 						Logger::Get().Log("Compute shader was not compiled", true);
 						if (content.empty())
 							m_msgs->Add(MessageStack::Type::Error, name, "Shader source empty - try recompiling");
-						else
+						else {
+							if (shaderMessage[0] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(name))
+								m_msgs->Add(MessageStack::Type::Error, name, shaderMessage);
 							m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
+						}
+
 						m_shaders[i] = 0;
 					} else {
 						m_msgs->Add(MessageStack::Type::Message, name, "Compiled the compute shader.");
@@ -1357,7 +1367,8 @@ namespace ed {
 
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
-				} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (item->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
 
 					m_msgs->ClearGroup(name);
@@ -1370,7 +1381,8 @@ namespace ed {
 
 					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::HLSL);
 					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
-				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+				} 
+				else if (item->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
 					idata->Owner->HandleRecompile(name);
 				}
@@ -1406,12 +1418,14 @@ namespace ed {
 
 		m_plugins->HandleApplicationEvent(plugin::ApplicationEvent::PipelineItemCompiled, (void*)name, nullptr);
 
-		int d3dCounter = 0;
+		GLchar shaderMessage[1024] = { 0 };
 		for (int i = 0; i < m_items.size(); i++) {
 			PipelineItem* item = m_items[i];
 			if (strcmp(item->Name, name) == 0) {
 				if (item->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* shader = (pipe::ShaderPass*)item->Data;
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(name);
+
 					m_msgs->ClearGroup(name);
 
 					SPIRVQueue.push_back(item);
@@ -1443,7 +1457,7 @@ namespace ed {
 
 						shader->Variables.UpdateTextureList(psContent);
 						GLuint ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-						psCompiled &= gl::CheckShaderCompilationStatus(ps);
+						psCompiled &= gl::CheckShaderCompilationStatus(ps, shaderMessage);
 
 						glDeleteShader(m_shaderSources[i].PS);
 						m_shaderSources[i].PS = ps;
@@ -1472,7 +1486,7 @@ namespace ed {
 
 
 						GLuint vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-						vsCompiled &= gl::CheckShaderCompilationStatus(vs);
+						vsCompiled &= gl::CheckShaderCompilationStatus(vs, shaderMessage);
 
 						glDeleteShader(m_shaderSources[i].VS);
 						m_shaderSources[i].VS = vs;
@@ -1504,7 +1518,7 @@ namespace ed {
 						glDeleteShader(m_shaderSources[i].GS);
 						if (shader->GSUsed && strlen(shader->GSPath) > 0 && strlen(shader->GSEntry) > 0) {
 							gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-							gsCompiled &= gl::CheckShaderCompilationStatus(gs);
+							gsCompiled &= gl::CheckShaderCompilationStatus(gs, shaderMessage);
 
 							m_shaderSources[i].GS = gs;
 						}
@@ -1535,7 +1549,7 @@ namespace ed {
 						glDeleteShader(m_shaderSources[i].TCS);
 						if (shader->TSUsed && strlen(shader->TCSPath) > 0 && strlen(shader->TCSEntry) > 0) {
 							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs, shaderMessage);
 
 							m_shaderSources[i].TCS = tcs;
 						}
@@ -1566,7 +1580,7 @@ namespace ed {
 						glDeleteShader(m_shaderSources[i].TES);
 						if (shader->TSUsed && strlen(shader->TESPath) > 0 && strlen(shader->TESEntry) > 0) {
 							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes, shaderMessage);
 
 							m_shaderSources[i].TES = tes;
 						}
@@ -1576,6 +1590,8 @@ namespace ed {
 						glDeleteProgram(m_shaders[i]);
 
 					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled) {
+						if (shaderMessage[0] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(name))
+							m_msgs->Add(MessageStack::Type::Error, name, shaderMessage);
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the shader(s)");
 						m_shaders[i] = 0;
 					} else {
@@ -1592,8 +1608,11 @@ namespace ed {
 
 					if (m_shaders[i] != 0)
 						shader->Variables.UpdateUniformInfo(m_shaders[i]);
-				} else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
+				} 
+				else if (item->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* shader = (pipe::ComputePass*)item->Data;
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(name);
+
 					m_msgs->ClearGroup(name);
 
 					SPIRVQueue.push_back(item);
@@ -1630,6 +1649,9 @@ namespace ed {
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
+					if (m_shaders[i] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(name))
+						shader->Variables.UpdateUniformInfo(m_shaders[i]);
+
 					if (!compiled) {
 						m_msgs->Add(MessageStack::Type::Error, name, "Failed to compile the compute shader");
 						m_shaders[i] = 0;
@@ -1641,11 +1663,9 @@ namespace ed {
 						glLinkProgram(m_shaders[i]);
 					}
 
-					if (m_shaders[i] != 0)
-						shader->Variables.UpdateUniformInfo(m_shaders[i]);
-
 					glDeleteShader(cs);
-				} else if (item->Type == PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (item->Type == PipelineItem::ItemType::AudioPass) {
 					pipe::AudioPass* shader = (pipe::AudioPass*)item->Data;
 					m_msgs->ClearGroup(name);
 
@@ -1946,6 +1966,7 @@ namespace ed {
 		}
 
 		// check if some item was added
+		GLchar shaderMessage[1024] = { 0 };
 		for (int i = 0; i < items.size(); i++) {
 			bool found = false;
 			for (int j = 0; j < m_items.size(); j++)
@@ -1959,6 +1980,7 @@ namespace ed {
 
 				if (items[i]->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* data = reinterpret_cast<ed::pipe::ShaderPass*>(items[i]->Data);
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(items[i]->Name);
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
@@ -2022,7 +2044,7 @@ namespace ed {
 					}
 
 					vs = gl::CompileShader(GL_VERTEX_SHADER, vsContent.c_str());
-					vsCompiled &= gl::CheckShaderCompilationStatus(vs);
+					vsCompiled &= gl::CheckShaderCompilationStatus(vs, shaderMessage);
 					
 					// pixel shader
 					lineBias = 0;
@@ -2047,7 +2069,7 @@ namespace ed {
 
 					data->Variables.UpdateTextureList(psContent);
 					ps = gl::CompileShader(GL_FRAGMENT_SHADER, psContent.c_str());
-					psCompiled &= gl::CheckShaderCompilationStatus(ps);
+					psCompiled &= gl::CheckShaderCompilationStatus(ps, shaderMessage);
 
 					// geometry shader
 					lineBias = 0;
@@ -2074,7 +2096,7 @@ namespace ed {
 						}
 
 						gs = gl::CompileShader(GL_GEOMETRY_SHADER, gsContent.c_str());
-						gsCompiled &= gl::CheckShaderCompilationStatus(gs);
+						gsCompiled &= gl::CheckShaderCompilationStatus(gs, shaderMessage);
 					}
 
 					// tessellation shader
@@ -2104,7 +2126,7 @@ namespace ed {
 							}
 
 							tcs = gl::CompileShader(GL_TESS_CONTROL_SHADER, tcsContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tcs);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tcs, shaderMessage);
 						}
 
 						// tessellation evauluation shader
@@ -2130,7 +2152,7 @@ namespace ed {
 							}
 
 							tes = gl::CompileShader(GL_TESS_EVALUATION_SHADER, tesContent.c_str());
-							tsCompiled &= gl::CheckShaderCompilationStatus(tes);
+							tsCompiled &= gl::CheckShaderCompilationStatus(tes, shaderMessage);
 						}
 					}
 
@@ -2142,6 +2164,8 @@ namespace ed {
 						glDeleteProgram(m_debugShaders[i]);
 
 					if (!vsCompiled || !psCompiled || !gsCompiled || !tsCompiled) {
+						if (shaderMessage[0] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(items[i]->Name))
+							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, shaderMessage);
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 						m_shaders[i] = 0;
 					} else {
@@ -2175,6 +2199,7 @@ namespace ed {
 				}
 				else if (items[i]->Type == PipelineItem::ItemType::ComputePass && m_computeSupported) {
 					pipe::ComputePass* data = reinterpret_cast<ed::pipe::ComputePass*>(items[i]->Data);
+					int shaderMessagesBefore = m_msgs->GetGroupErrorAndWarningMsgCount(items[i]->Name);
 
 					m_items.insert(m_items.begin() + i, items[i]);
 					m_shaders.insert(m_shaders.begin() + i, 0);
@@ -2226,12 +2251,14 @@ namespace ed {
 					}
 
 					cs = gl::CompileShader(GL_COMPUTE_SHADER, content.c_str());
-					compiled &= gl::CheckShaderCompilationStatus(cs);
+					compiled &= gl::CheckShaderCompilationStatus(cs, shaderMessage);
 
 					if (m_shaders[i] != 0)
 						glDeleteProgram(m_shaders[i]);
 
 					if (!compiled) {
+						if (shaderMessage[0] != 0 && shaderMessagesBefore == m_msgs->GetGroupErrorAndWarningMsgCount(items[i]->Name))
+							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, shaderMessage);
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the compute shader");
 						m_shaders[i] = 0;
 					} else {
