@@ -1,7 +1,4 @@
 
-[submodule "libs/inih"]
-	path = libs/inih
-	url = https://github.com/jtilly/inih
 [submodule "libs/pugixml"]
 	path = libs/pugixml
 	url = https://github.com/zeux/pugixml

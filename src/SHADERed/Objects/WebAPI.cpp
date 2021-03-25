@@ -3,10 +3,10 @@
 #include <SHADERed/Objects/Settings.h>
 
 #include <pugixml/src/pugixml.hpp>
-#include <miniz/zip_file.hpp>
-#include <stb/stb_image.h>
+#include <misc/zip_file.hpp>
+#include <misc/stb_image.h>
 #define CPPHTTPLIB_CONNECTION_TIMEOUT_SECOND 5
-#include <httplib/httplib.h>
+#include <misc/httplib.h>
 
 #include <filesystem>
 #include <fstream>

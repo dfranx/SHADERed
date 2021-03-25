@@ -7,7 +7,7 @@
 #include <SHADERed/UI/OptionsUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImFileDialog/ImFileDialog.h>
+#include <misc/ImFileDialog.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>

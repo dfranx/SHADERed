@@ -105,8 +105,8 @@ set(SOURCES
 	libs/pugixml/src/pugixml.cpp
 	libs/ShaderExpressionParser/Parser.cpp
 	libs/ShaderExpressionParser/Tokenizer.cpp
-	libs/ImFileDialog/ImFileDialog.cpp
-	libs/dds/dds.c
+	libs/misc/ImFileDialog.cpp
+	libs/misc/dds.c
 )
 
 
@@ -146,7 +146,7 @@ find_package(GLEW REQUIRED)
 find_package(GLM REQUIRED)
 
 # sfml audio
-find_package(SFML COMPONENTS system audio network)
+find_package(SFML COMPONENTS system audio)
 
 # SpvGenTwo
 add_subdirectory(libs/SpvGenTwo)
@@ -210,7 +210,7 @@ target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang S
 if(${USE_FINDSFML})
 	target_link_libraries(SHADERed ${SFML_LIBRARIES})
 else()
-	target_link_libraries(SHADERed sfml-audio sfml-system sfml-network)
+	target_link_libraries(SHADERed sfml-audio sfml-system)
 endif()
 
 if(WIN32)

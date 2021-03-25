@@ -6,7 +6,7 @@
 #include <SHADERed/UI/UIHelper.h>
 #include <imgui/imgui.h>
 
-#include <ImFileDialog/ImFileDialog.h>
+#include <misc/ImFileDialog.h>
 
 namespace ed {
 	void ObjectPreviewUI::Open(ObjectManagerItem* item)

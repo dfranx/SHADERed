@@ -6,7 +6,7 @@
 #include <SHADERed/Objects/Settings.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <stb/stb_image.h>
+#include <misc/stb_image.h>
 
 namespace ed {
 	BrowseOnlineUI::BrowseOnlineUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name, bool visible)

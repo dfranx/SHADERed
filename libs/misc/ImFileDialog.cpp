@@ -10,7 +10,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include <stb/stb_image.h>
+#include <misc/stb_image.h>
 
 #ifdef _WIN32
 #include <Windows.h>

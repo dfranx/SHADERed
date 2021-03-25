@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <ImFileDialog/ImFileDialog.h>
+#include <misc/ImFileDialog.h>
 
 #define IMAGE_CONTEXT_WIDTH Settings::Instance().CalculateSize(150)
 

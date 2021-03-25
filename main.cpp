@@ -16,8 +16,8 @@
 #include <thread>
 #include <string>
 
-#include <stb/stb_image.h>
-#include <stb/stb_image_write.h>
+#include <misc/stb_image.h>
+#include <misc/stb_image_write.h>
 
 #if defined(__linux__) || defined(__unix__)
 #include <libgen.h>

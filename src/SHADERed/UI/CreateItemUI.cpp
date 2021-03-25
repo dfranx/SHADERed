@@ -11,7 +11,7 @@
 #include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIHelper.h>
 
-#include <ImFileDialog/ImFileDialog.h>
+#include <misc/ImFileDialog.h>
 
 #include <filesystem>
 #include <fstream>

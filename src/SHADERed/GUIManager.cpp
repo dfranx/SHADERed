@@ -39,22 +39,22 @@
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/imgui.h>
-#include <ImFileDialog/ImFileDialog.h>
+#include <misc/ImFileDialog.h>
 
 #include <filesystem>
 #include <fstream>
 
-#include <stb/stb_image.h>
+#include <misc/stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
+#include <misc/stb_image_write.h>
 
 extern "C" {
-#include <dds/dds.h>
+#include <misc/dds.h>
 }
 
 #define STBIR_DEFAULT_FILTER_DOWNSAMPLE STBIR_FILTER_CATMULLROM
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb/stb_image_resize.h>
+#include <misc/stb_image_resize.h>
 
 #if defined(__APPLE__)
 // no includes on mac os
