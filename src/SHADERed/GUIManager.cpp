@@ -1012,7 +1012,7 @@ namespace ed {
 				m_objectPrev->Update(delta);
 
 			// frame analysis window
-			if (((PreviewUI*)Get(ViewID::Preview))->IsFrameAnalyzed()) {
+			if (((PreviewUI*)Get(ViewID::Preview))->IsFrameAnalyzed() && m_frameAnalysis->Visible) {
 				if (ImGui::Begin(m_frameAnalysis->Name.c_str(), &m_frameAnalysis->Visible))
 					m_frameAnalysis->Update(delta);
 				ImGui::End();

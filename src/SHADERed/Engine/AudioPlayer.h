@@ -1,6 +1,7 @@
 #pragma once
 #include <misc/miniaudio.h>
 #include <string>
+#include <string.h>
 
 namespace ed {
 	namespace eng {

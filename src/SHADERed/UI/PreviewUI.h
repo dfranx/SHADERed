@@ -90,6 +90,7 @@ namespace ed {
 			m_varValueItem = nullptr;
 			m_varValueName = "";
 			m_varValueLine = 0;
+			m_frameAnalyzed = false;
 		}
 
 		enum class PreviewView {
