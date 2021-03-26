@@ -250,7 +250,7 @@ namespace ed {
 				else
 					ypr = glm::inverse(glm::lookAt(glm::vec3(0, 0, 0), -glm::vec3(pos), glm::vec3(0, 1, 0)));
 
-				matWorld = ypr * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, glm::max(0.0f, length - m_vectorPointSize)));
+				matWorld = ypr * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, glm::max<float>(0.0f, length - m_vectorPointSize)));
 				glUniformMatrix4fv(m_uMatWorld, 1, GL_FALSE, glm::value_ptr(matWorld));
 				m_vectorHandle.Draw();
 
@@ -296,8 +296,8 @@ namespace ed {
 
 		float wWidth = ImGui::GetWindowContentRegionWidth();
 		float wHeight = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
-		float exprHeight = std::max(250.0f, wHeight - 512 - ImGui::GetStyle().WindowPadding.y);
-		float imgHeight = std::min(512.0f, wHeight - exprHeight - ImGui::GetStyle().WindowPadding.y);
+		float exprHeight = std::max<float>(250.0f, wHeight - 512 - ImGui::GetStyle().WindowPadding.y);
+		float imgHeight = std::min<float>(512.0f, wHeight - exprHeight - ImGui::GetStyle().WindowPadding.y);
 		float imgWidth = wWidth;
 
 		float imgX = (wWidth - imgWidth) / 2.0f + ImGui::GetStyle().WindowPadding.x;

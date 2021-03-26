@@ -1,7 +1,5 @@
 #pragma once
 #include <SDL2/SDL_surface.h>
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -115,6 +113,7 @@ namespace ed {
 
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_audioTempTexData[ed::AudioAnalyzer::SampleCount * 2];
+		short m_samplesTempBuffer[1024];
 
 		unsigned char m_kbTexture[256 * 3];
 

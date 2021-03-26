@@ -83,6 +83,7 @@ set(SOURCES
 	src/SHADERed/UI/ProfilerUI.cpp
 
 # engine:
+	src/SHADERed/Engine/AudioPlayer.cpp
 	src/SHADERed/Engine/Timer.cpp
 	src/SHADERed/Engine/Model.cpp
 	src/SHADERed/Engine/GLUtils.cpp
@@ -145,9 +146,6 @@ find_package(GLEW REQUIRED)
 # glm
 find_package(GLM REQUIRED)
 
-# sfml audio
-find_package(SFML COMPONENTS system audio)
-
 # SpvGenTwo
 add_subdirectory(libs/SpvGenTwo)
 
@@ -197,7 +195,7 @@ set_target_properties(SHADERed PROPERTIES
 )
 
 # include directories
-target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR} ${SFML_INCLUDE_DIR})
+target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR})
 target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include libs/spirv-tools/include)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
@@ -205,13 +203,6 @@ endif()
 
 # link libraries
 target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp SpvGenTwoLib SpvGenTwoCommon)
-
-# link sfml
-if(${USE_FINDSFML})
-	target_link_libraries(SHADERed ${SFML_LIBRARIES})
-else()
-	target_link_libraries(SHADERed sfml-audio sfml-system)
-endif()
 
 if(WIN32)
 	# link specific win32 libraries
@@ -222,7 +213,7 @@ elseif(UNIX AND NOT APPLE)
 	target_link_libraries(SHADERed ${GLEW_LIBRARIES} ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})
 
 	if (NOT DONT_LINK_FILESYSTEM)
-		target_link_libraries(SHADERed stdc++fs)
+		target_link_libraries(SHADERed stdc++fs pthread m dl)
 	endif()
 elseif(APPLE)
 	target_link_libraries(SHADERed GLEW::GLEW ${SDL2_LIBRARIES} ${GTK_LIBRARIES} ${CMAKE_DL_LIBS})

@@ -5,9 +5,6 @@
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Engine/Model.h>
 
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
-
 #include <unordered_map>
 #include <fstream>
 
@@ -448,8 +445,8 @@ namespace ed {
 
 		ObjectManagerItem* item = new ObjectManagerItem(file, ObjectType::Audio);
 
-		item->SoundBuffer = new sf::SoundBuffer();
-		bool loaded = item->SoundBuffer->loadFromFile(m_parser->GetProjectPath(file));
+		item->Sound = new eng::AudioPlayer();
+		bool loaded = item->Sound->LoadFromFile(m_parser->GetProjectPath(file));
 		if (!loaded) {
 			delete item;
 			ed::Logger::Get().Log("Failed to load an audio file " + file, true);
@@ -468,10 +465,7 @@ namespace ed {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 2, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		item->Sound = new sf::Sound();
-		item->Sound->setBuffer(*(item->SoundBuffer));
-		item->Sound->setLoop(true);
-		item->Sound->play();
+		item->Sound->Start();
 		item->SoundMuted = false;
 
 		return true;
@@ -878,16 +872,13 @@ namespace ed {
 	void ObjectManager::Pause(bool pause)
 	{
 		for (auto& it : m_items) {
-			if (it->SoundBuffer == nullptr)
+			if (it->Sound == nullptr)
 				continue;
 
-			// get samples and fft data
-			sf::Sound* player = it->Sound;
-			
 			if (pause)
-				player->pause();
+				it->Sound->Stop();
 			else
-				player->play();
+				it->Sound->Start();
 		}
 	}
 	void ObjectManager::OnEvent(const SDL_Event& e)
@@ -970,21 +961,17 @@ namespace ed {
 	{
 		for (auto& it : m_items) {
 			// update audio items
-			if (it->SoundBuffer != nullptr) {
+			if (it->Type == ed::ObjectType::Audio && it->Sound != nullptr) {
 				// get samples and fft data
-				sf::Sound* player = it->Sound;
-				int channels = it->SoundBuffer->getChannelCount();
-				int perChannel = it->SoundBuffer->getSampleCount() / channels;
-				int curSample = (int)((player->getPlayingOffset().asSeconds() / it->SoundBuffer->getDuration().asSeconds()) * perChannel);
+				memset(&m_samplesTempBuffer, 0, sizeof(short) * 1024);
+				it->Sound->GetSamples(m_samplesTempBuffer);
+				double* fftData = m_audioAnalyzer.FFT(m_samplesTempBuffer);
 
-				double* fftData = m_audioAnalyzer.FFT(*(it->SoundBuffer), curSample);
-
-				const sf::Int16* samples = it->SoundBuffer->getSamples();
 				for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
-					sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
+					short s = (m_samplesTempBuffer[i * 2] + m_samplesTempBuffer[i * 2 + 1]) / 2;
 					float sf = (float)s / (float)INT16_MAX;
 
-					m_audioTempTexData[i] = fftData[i / 2];
+					m_audioTempTexData[i] = fftData[i/2];
 					m_audioTempTexData[i + ed::AudioAnalyzer::SampleCount] = sf * 0.5f + 0.5f;
 				}
 
@@ -1297,14 +1284,14 @@ namespace ed {
 	{
 		if (item != nullptr) {
 			item->SoundMuted = true;
-			item->Sound->setVolume(0);
+			item->Sound->SetVolume(0);
 		}
 	}
 	void ObjectManager::Unmute(ObjectManagerItem* item)
 	{
 		if (item != nullptr) {
 			item->SoundMuted = false;
-			item->Sound->setVolume(100);
+			item->Sound->SetVolume(1.0f);
 		}
 	}
 

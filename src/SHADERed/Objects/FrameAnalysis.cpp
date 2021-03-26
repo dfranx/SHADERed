@@ -558,10 +558,10 @@ namespace ed {
 			vert[v] = ((glm::vec2(m_pixel.FinalPosition[v]) / m_pixel.FinalPosition[v].w + 1.0f) * 0.5f) * glm::vec2(m_pixel.RenderTextureSize);
 
 		// triangle bounding box
-		int minX = std::max(0, std::min(std::min(vert[0].x, vert[1].x), vert[2].x));
-		int maxX = std::min(m_width - 1, std::max(std::max(vert[0].x, vert[1].x), vert[2].x));
-		int minY = std::max(0, std::min(std::min(vert[0].y, vert[1].y), vert[2].y));
-		int maxY = std::min(m_height - 1, std::max(std::max(vert[0].y, vert[1].y), vert[2].y));
+		int minX = std::max<int>(0, std::min<int>(std::min<int>(vert[0].x, vert[1].x), vert[2].x));
+		int maxX = std::min<int>(m_width - 1, std::max<int>(std::max<int>(vert[0].x, vert[1].x), vert[2].x));
+		int minY = std::max<int>(0, std::min<int>(std::min<int>(vert[0].y, vert[1].y), vert[2].y));
+		int maxY = std::min<int>(m_height - 1, std::max<int>(std::max<int>(vert[0].y, vert[1].y), vert[2].y));
 		if (minX < 0 || maxX < 0 || minY < 0 || maxY < 0)
 			return;
 
@@ -579,10 +579,10 @@ namespace ed {
 
 		// clip to region limits
 		if (m_isRegion) {
-			minX = std::max(minX, m_regionX);
-			minY = std::max(minY, m_regionY);
-			maxX = std::min(maxX, m_regionEndX);
-			maxY = std::min(maxY, m_regionEndY);
+			minX = std::max<int>(minX, m_regionX);
+			minY = std::max<int>(minY, m_regionY);
+			maxX = std::min<int>(maxX, m_regionEndX);
+			maxY = std::min<int>(maxY, m_regionEndY);
 		}
 
 		// round to block size

@@ -185,17 +185,12 @@ namespace ed {
 							m_cachedImgSlice[i] = MIN(m_cachedImgSlice[i] + 1, objSize.z - 1);
 					}
 					else if (item->Type == ObjectType::Audio) {
-						sf::Sound* player = item->Sound;
-						sf::SoundBuffer* buffer = item->SoundBuffer;
-						int channels = buffer->getChannelCount();
-						int perChannel = buffer->getSampleCount() / channels;
-						int curSample = (int)((player->getPlayingOffset().asSeconds() / buffer->getDuration().asSeconds()) * perChannel);
+						memset(&m_samplesTempBuffer, 0, sizeof(short) * 1024);
+						item->Sound->GetSamples(m_samplesTempBuffer);
+						double* fftData = m_audioAnalyzer.FFT(m_samplesTempBuffer);
 
-						double* fftData = m_audioAnalyzer.FFT(*buffer, curSample);
-
-						const sf::Int16* samples = buffer->getSamples();
 						for (int i = 0; i < ed::AudioAnalyzer::SampleCount; i++) {
-							sf::Int16 s = samples[std::min<int>(i + curSample, perChannel)];
+							short s = (m_samplesTempBuffer[i * 2] + m_samplesTempBuffer[i * 2 + 1]) / 2;
 							float sf = (float)s / (float)INT16_MAX;
 
 							m_fft[i] = fftData[i / 2];

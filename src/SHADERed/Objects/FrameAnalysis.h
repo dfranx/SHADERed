@@ -162,7 +162,7 @@ namespace ed {
 							// instruction count / heatmap stuff
 							int instCount = renderer->GetVM()->instruction_count;
 							m_instCount[y * m_width + x] = instCount;
-							m_instCountMax = std::max(m_instCountMax, instCount);
+							m_instCountMax = std::max<int>(m_instCountMax, instCount);
 							m_instCountAvgN++;
 							m_instCountAvg = m_instCountAvg + (instCount - m_instCountAvg) / m_instCountAvgN;
 

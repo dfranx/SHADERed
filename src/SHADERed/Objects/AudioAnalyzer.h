@@ -3,8 +3,6 @@
 #include <valarray>
 #include <vector>
 
-#include <SFML/Audio/SoundBuffer.hpp>
-
 namespace ed {
 	class AudioAnalyzer {
 	public: /*   CONFIG   */
@@ -20,7 +18,7 @@ namespace ed {
 		AudioAnalyzer();
 		~AudioAnalyzer();
 
-		double* FFT(sf::SoundBuffer& file, int curSample);
+		double* FFT(const short* samples);
 
 	private:
 		void m_fftAlgorithm(std::valarray<std::complex<double>>& x);

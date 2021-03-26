@@ -239,9 +239,6 @@ namespace ed {
 						delete passItem;
 					}
 					data->Items.clear();
-				} else if (m_items[i]->Type == PipelineItem::ItemType::AudioPass) {
-					pipe::AudioPass* pass = (pipe::AudioPass*)m_items[i]->Data;
-					pass->Stream.stop();
 				} else if (m_items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_items[i]->Data;
 					pdata->Owner->PipelineItem_Remove(m_items[i]->Name, pdata->Type, pdata->PluginData);

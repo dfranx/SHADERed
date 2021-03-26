@@ -2318,7 +2318,7 @@ namespace ed {
 
 				// patch vertex count
 				if (!passNode.attribute("patchverts").empty())
-					data->TSPatchVertices = std::max(1, std::min(m_renderer->GetMaxPatchVertices(), passNode.attribute("patchverts").as_int()));
+					data->TSPatchVertices = std::max<int>(1, std::min<int>(m_renderer->GetMaxPatchVertices(), passNode.attribute("patchverts").as_int()));
 
 				// get render textures
 				int rtCur = 0;

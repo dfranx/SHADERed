@@ -251,7 +251,7 @@ namespace ed {
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragInt("##cui_sptspatchverts", &data->TSPatchVertices, 1.0f, 1, m_data->Renderer.GetMaxPatchVertices()))
-				data->TSPatchVertices = std::max(1, std::min(m_data->Renderer.GetMaxPatchVertices(), data->TSPatchVertices));
+				data->TSPatchVertices = std::max<int>(1, std::min<int>(m_data->Renderer.GetMaxPatchVertices(), data->TSPatchVertices));
 			ImGui::NextColumn();
 			ImGui::Separator();
 

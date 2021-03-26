@@ -580,7 +580,7 @@ namespace ed {
 				// bind variables
 				data->Variables.Bind();
 
-				data->Stream.renderAudio();
+				data->Stream.RenderAudio();
 			}
 			else if (it->Type == PipelineItem::ItemType::PluginItem) {
 				pipe::PluginItemData* pldata = reinterpret_cast<pipe::PluginItemData*>(it->Data);
@@ -1075,9 +1075,9 @@ namespace ed {
 				pipe::AudioPass* pass = (pipe::AudioPass*)itemList[i]->Data;
 
 				if (m_paused)
-					pass->Stream.pause();
+					pass->Stream.Stop();
 				else
-					pass->Stream.play();
+					pass->Stream.Start();
 			}
 		}
 
@@ -1379,8 +1379,8 @@ namespace ed {
 					if (ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, shader);
 
-					shader->Stream.compileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::HLSL);
-					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
+					shader->Stream.CompileFromShaderSource(m_project, m_msgs, content, shader->Macros, ShaderCompiler::GetShaderLanguageFromExtension(shader->Path) == ShaderLanguage::HLSL);
+					shader->Variables.UpdateUniformInfo(shader->Stream.GetShader());
 				} 
 				else if (item->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* idata = (pipe::PluginItemData*)item->Data;
@@ -1674,8 +1674,8 @@ namespace ed {
 
 					// audio shader
 					if (vssrc.size() > 0)
-						shader->Stream.compileFromShaderSource(m_project, m_msgs, vssrc, shader->Macros, true);
-					shader->Variables.UpdateUniformInfo(shader->Stream.getShader());
+						shader->Stream.CompileFromShaderSource(m_project, m_msgs, vssrc, shader->Macros, true);
+					shader->Variables.UpdateUniformInfo(shader->Stream.GetShader());
 				}
 			}
 		}
@@ -2301,9 +2301,9 @@ namespace ed {
 					// vertex shader
 					if (ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::GLSL)
 						m_applyMacros(content, data);
-					data->Stream.compileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::HLSL);
+					data->Stream.CompileFromShaderSource(m_project, m_msgs, content, data->Macros, ShaderCompiler::GetShaderLanguageFromExtension(data->Path) == ShaderLanguage::HLSL);
 
-					data->Variables.UpdateUniformInfo(data->Stream.getShader());
+					data->Variables.UpdateUniformInfo(data->Stream.GetShader());
 				} 
 				else if (items[i]->Type == PipelineItem::ItemType::PluginItem) {
 					pipe::PluginItemData* data = reinterpret_cast<pipe::PluginItemData*>(items[i]->Data);

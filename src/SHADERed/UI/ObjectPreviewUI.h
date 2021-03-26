@@ -40,6 +40,7 @@ namespace ed {
 		std::vector<int> m_cachedImgSlice;
 		ed::AudioAnalyzer m_audioAnalyzer;
 		float m_samples[512], m_fft[512];
+		short m_samplesTempBuffer[1024];
 
 		ObjectManagerItem* m_saveObject;
 

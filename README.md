@@ -133,9 +133,9 @@ git submodule update --init
 Install all the libraries that are needed:
 ```
 # Ubuntu
-sudo apt install libsdl2-dev libsfml-dev libglew-dev libglm-dev libgtk-3-dev
+sudo apt install libsdl2-dev libglew-dev libglm-dev libgtk-3-dev
 # Fedora
-sudo dnf install SFML-devel glm-devel glew-devel SDL2-devel gtk3-devel
+sudo dnf install glm-devel glew-devel SDL2-devel gtk3-devel
 ```
 
 Build:
@@ -144,17 +144,11 @@ cmake .
 make
 ```
 
-**NOTE:** If you dont have SFML 2.5 installed on your machine, run these commands:
-```
-cmake -DUSE_FINDSFML=ON .
-make
-```
-
 If you would like to perform an out-of-source build, do the following:
 ```
 mkdir build
 cd build
-cmake .. # or, if SFML 2.5 is not installed, cmake -DUSE_FINDSFML=ON ..
+cmake ..
 make
 ```
 
@@ -169,7 +163,7 @@ Run:
 Install all the libraries that are needed:
 
 ```sh
-brew install sdl2 sfml glew glm
+brew install sdl2 glew glm
 ```
 
 Build:
@@ -193,7 +187,7 @@ Run:
 ```
 
 ### Windows
-1. Install SDL2, SFML, GLEW & GLM through your favourite package manager (I recommend vcpkg)
+1. Install SDL2, GLEW & GLM through your favourite package manager (I recommend vcpkg)
 2. Run cmake-gui and set CMAKE_TOOLCHAIN_FILE variable
 3. Press Configure and then Generate if no errors occured
 4. Open the .sln and build the project!

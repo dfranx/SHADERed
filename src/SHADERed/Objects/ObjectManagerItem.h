@@ -1,9 +1,7 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
-
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
+#include <SHADERed/Engine/AudioPlayer.h>
 
 #include <GL/glew.h>
 #if defined(__APPLE__)
@@ -99,7 +97,6 @@ namespace ed {
 			Texture_WrapT = GL_REPEAT;
 			Texture_WrapR = GL_REPEAT;
 			CubemapPaths.clear();
-			SoundBuffer = nullptr;
 			Sound = nullptr;
 			SoundMuted = false;
 			RT = nullptr;
@@ -123,13 +120,8 @@ namespace ed {
 				glDeleteTextures(1, &RT->DepthStencilBuffer);
 				delete RT;
 			}
-			if (Sound != nullptr) {
-				if (Sound->getStatus() == sf::Sound::Playing)
-					Sound->stop();
-
-				delete SoundBuffer;
+			if (Sound != nullptr)
 				delete Sound;
-			}
 			if (Plugin != nullptr)
 				delete Plugin;
 
@@ -149,8 +141,7 @@ namespace ed {
 		bool Texture_VFlipped;
 		GLuint Texture_MinFilter, Texture_MagFilter, Texture_WrapS, Texture_WrapT, Texture_WrapR;
 
-		sf::SoundBuffer* SoundBuffer;
-		sf::Sound* Sound;
+		eng::AudioPlayer* Sound;
 		bool SoundMuted;
 
 		RenderTextureObject* RT;

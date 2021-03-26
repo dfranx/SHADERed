@@ -6,45 +6,109 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+#define SHADER_STREAM_PCM_FRAME_CHUNK_SIZE 1024
+
+void audioShaderCallbackFixed(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+{
+	ed::AudioShaderStream* player = (ed::AudioShaderStream*)pDevice->pUserData;
+	if (player == NULL)
+		return;
+
+	std::lock_guard<std::mutex> guard(player->Mutex);
+
+	player->NeedsUpdate = true;
+	memcpy(pOutput, player->GetAudioBuffer(), 1024 * 2 * sizeof(short));
+	player->CurrentTime += 1024 / 44100.0f;
+
+	(void)pInput;
+}
+void audioShaderCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
+{
+	ed::AudioShaderStream* player = (ed::AudioShaderStream*)pDevice->pUserData;
+	if (player == NULL)
+		return;
+
+	ma_uint32 pcmFramesAvailableInRB;
+	ma_uint32 pcmFramesProcessed = 0;
+	ma_uint8* pRunningOutput = (ma_uint8*)pOutput;
+
+	/*
+    The first thing to do is check if there's enough data available in the ring buffer. If so we can read from it. Otherwise we need to keep filling
+    the ring buffer until there's enough, making sure we only fill the ring buffer in chunks of PCM_FRAME_CHUNK_SIZE.
+    */
+	while (pcmFramesProcessed < frameCount) { /* Keep going until we've filled the output buffer. */
+		ma_uint32 framesRemaining = frameCount - pcmFramesProcessed;
+
+		pcmFramesAvailableInRB = ma_pcm_rb_available_read(player->GetRingBuffer());
+		if (pcmFramesAvailableInRB > 0) {
+			ma_uint32 framesToRead = (framesRemaining < pcmFramesAvailableInRB) ? framesRemaining : pcmFramesAvailableInRB;
+			void* pReadBuffer;
+
+			ma_pcm_rb_acquire_read(player->GetRingBuffer(), &framesToRead, &pReadBuffer);
+			{
+				memcpy(pRunningOutput, pReadBuffer, framesToRead * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels));
+			}
+			ma_pcm_rb_commit_read(player->GetRingBuffer(), framesToRead, pReadBuffer);
+
+			pRunningOutput += framesToRead * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels);
+			pcmFramesProcessed += framesToRead;
+		} else {
+			/*
+            There's nothing in the buffer. Fill it with more data from the callback. We reset the buffer first so that the read and write pointers
+            are reset back to the start so we can fill the ring buffer in chunks of PCM_FRAME_CHUNK_SIZE which is what we initialized it with. Note
+            that this is not how you would want to do it in a multi-threaded environment. In this case you would want to seek the write pointer
+            forward via the producer thread and the read pointer forward via the consumer thread (this thread).
+            */
+			ma_uint32 framesToWrite = SHADER_STREAM_PCM_FRAME_CHUNK_SIZE;
+			void* pWriteBuffer;
+
+			ma_pcm_rb_reset(player->GetRingBuffer());
+			ma_pcm_rb_acquire_write(player->GetRingBuffer(), &framesToWrite, &pWriteBuffer);
+			{
+				// MA_ASSERT(framesToWrite == PCM_FRAME_CHUNK_SIZE); /* <-- This should always work in this example because we just reset the ring buffer. */
+				audioShaderCallbackFixed(pDevice, pWriteBuffer, NULL, framesToWrite);
+			}
+			ma_pcm_rb_commit_write(player->GetRingBuffer(), framesToWrite, pWriteBuffer);
+		}
+	}
+
+	/* Unused in this example. */
+	(void)pInput;
+}
+
 namespace ed {
 	AudioShaderStream::AudioShaderStream()
 	{
 		m_fboBuffers = GL_COLOR_ATTACHMENT0;
-		m_curTime = 0.0f;
 
 		memset(m_pixels, 0, sizeof(char) * 1024);
-		m_needsUpdate = false;
+		NeedsUpdate = false;
+		CurrentTime = 0.0f;
 
-		initialize(2, 44100);
+		ma_pcm_rb_init(ma_format_s16, 2, SHADER_STREAM_PCM_FRAME_CHUNK_SIZE, NULL, NULL, &m_rb);
+		
+		m_deviceConfig = ma_device_config_init(ma_device_type_playback);
+		m_deviceConfig.playback.format = ma_format_s16;
+		m_deviceConfig.playback.channels = 2;
+		m_deviceConfig.sampleRate = 44100;
+		m_deviceConfig.dataCallback = audioShaderCallback;
+		m_deviceConfig.pUserData = this;
+
+		if (ma_device_init(NULL, &m_deviceConfig, &m_device) != MA_SUCCESS)
+			ma_pcm_rb_uninit(&m_rb);
 	}
 	AudioShaderStream::~AudioShaderStream()
 	{
+		m_clean();
+
 		gl::FreeSimpleFramebuffer(m_fbo, m_rt, m_depth);
 		glDeleteVertexArrays(1, &m_fsRectVAO);
 		glDeleteBuffers(1, &m_fsRectVBO);
 		glDeleteProgram(m_shader);
-		stop();
 	}
 
-	bool AudioShaderStream::onGetData(Chunk& data)
+	void AudioShaderStream::CompileFromShaderSource(ProjectParser* project, MessageStack* m_msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL)
 	{
-		m_mutex.lock();
-
-		data.samples = m_audio;
-		data.sampleCount = 1024 * 2;
-
-		m_curTime += 1024.0f / 44100.0f;
-		m_needsUpdate = true;
-
-		m_mutex.unlock();
-
-		return true;
-	}
-	void AudioShaderStream::compileFromShaderSource(ProjectParser* project, MessageStack* m_msgs, const std::string& str, std::vector<ed::ShaderMacro>& macros, bool isHLSL)
-	{
-		if (getStatus() != sf::SoundSource::Status::Playing)
-			stop();
-
 		const char* vsCode = R"(
 			#version 330
 			layout (location = 0) in vec2 pos;
@@ -118,16 +182,13 @@ namespace ed {
 		m_fbo = gl::CreateSimpleFramebuffer(1024, 1, m_rt, m_depth, GL_RGBA32F);
 
 		m_svarCurTimeLoc = glGetUniformLocation(m_shader, "sedCurrentTime");
-
-		if (getStatus() != sf::SoundSource::Status::Playing)
-			play();
 	}
-	void AudioShaderStream::renderAudio()
+	void AudioShaderStream::RenderAudio()
 	{
-		if (!m_needsUpdate)
+		if (!NeedsUpdate)
 			return;
 
-		m_mutex.lock();
+		std::lock_guard<std::mutex> guard(Mutex);
 
 		glUseProgram(m_shader);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
@@ -136,7 +197,7 @@ namespace ed {
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)));
 		glViewport(0, 0, 1024, 1);
 
-		glUniform1f(m_svarCurTimeLoc, m_curTime);
+		glUniform1f(m_svarCurTimeLoc, CurrentTime);
 		glBindVertexArray(m_fsRectVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -151,12 +212,21 @@ namespace ed {
 			m_audio[s * 2 + 1] = m_pixels[off + 1] * INT16_MAX;
 		}
 
-		m_needsUpdate = false;
-
-		m_mutex.unlock();
+		NeedsUpdate = false;
 	}
-	void AudioShaderStream::onSeek(sf::Time timeOffset)
+	void AudioShaderStream::Start()
 	{
-		m_curTime = timeOffset.asSeconds();
+		if (ma_device_start(&m_device) != MA_SUCCESS)
+			m_clean();
+	}
+	void AudioShaderStream::Stop()
+	{
+		if (ma_device_stop(&m_device) != MA_SUCCESS)
+			m_clean();
+	}
+	void AudioShaderStream::m_clean()
+	{
+		ma_device_uninit(&m_device);
+		ma_pcm_rb_uninit(&m_rb);
 	}
 }

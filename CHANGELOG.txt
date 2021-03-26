@@ -7,7 +7,7 @@
 + fix a bug where --disassemble command would output wrong IDs
 + fix a bug in text editor that would sometimes highlight wrong code folding collapse/expand sections
 + fix a bug where search in "Browse online" wouldn't work when searching for themes & plugins
-+ remove SFML (Network)
++ remove SFML
 
 [v1.5]
 + add "Frame analysis" window
