@@ -110,6 +110,18 @@ set(SOURCES
 	libs/misc/dds.c
 )
 
+# add header files
+file(GLOB SHADERED_HEADERS 
+		src/SHADERed/*.h
+		src/SHADERed/Engine/*.h
+		src/SHADERed/Objects/*.h
+		src/SHADERed/Objects/Debug/*.h
+		src/SHADERed/Objects/Export/*.h
+		src/SHADERed/Objects/PluginAPI/*.h 
+		src/SHADERed/UI/*.h
+		src/SHADERed/UI/Tools/*.h
+		src/SHADERed/UI/Debug/*.h
+)
 
 if(WIN32)
 	set(SOURCES
@@ -186,7 +198,7 @@ if (APPLE)
 endif()
 
 # create executable
-add_executable(SHADERed ${SOURCES})
+add_executable(SHADERed ${SOURCES} ${SHADERED_HEADERS})
 
 # properties
 set_target_properties(SHADERed PROPERTIES
