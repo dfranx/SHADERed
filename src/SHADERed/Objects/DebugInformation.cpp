@@ -1612,7 +1612,7 @@ namespace ed {
 								valCount = ((int)inputType - (int)InputLayoutValue::BufferFloat) + 1;
 
 							for (int v = 0; v < valCount; v++)
-								value[v] = *(bufPtr + layOffset + v);
+								value[v] = *(bufPtr + vertexIndex * (stride/sizeof(float)) + layOffset + v);
 
 							free(bufPtr);
 						}
@@ -2096,7 +2096,8 @@ namespace ed {
 							}
 						}
 					}
-				} else {
+				} 
+				else {
 					const char* blockName = nullptr;
 					spvm_result_t currentBlock = slot;
 					
@@ -2209,6 +2210,142 @@ namespace ed {
 				}
 			}
 		}
+	}
+
+	void DebugInformation::PrepareTessellationControlShader(PipelineItem* owner, PipelineItem* item, PixelInformation* px)
+	{
+		m_stage = ShaderStage::TessellationControl;
+
+		m_resetVM();
+		if (owner->Type == PipelineItem::ItemType::ShaderPass)
+			m_setupVM(((pipe::ShaderPass*)owner->Data)->TCSSPV);
+		else if (owner->Type == PipelineItem::ItemType::PluginItem) {
+			pipe::PluginItemData* plData = (pipe::PluginItemData*)owner->Data;
+
+			unsigned int spvSize = plData->Owner->PipelineItem_GetSPIRVSize(plData->Type, plData->PluginData, plugin::ShaderStage::TessellationControl);
+			std::vector<unsigned int> spv;
+			if (spvSize != 0) {
+				unsigned int* spvPtr = plData->Owner->PipelineItem_GetSPIRV(plData->Type, plData->PluginData, plugin::ShaderStage::TessellationControl);
+				spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+			}
+			m_setupVM(spv);
+		}
+
+		// uniforms
+		m_copyUniforms(owner, item, px);
+	}
+	void DebugInformation::SetTessellationControlShaderInput(PixelInformation& pixel)
+	{
+		m_pixel = &pixel;
+
+		auto* mainStageOutput = &m_pixel->VertexShaderOutput[0];
+		if (m_pixel->GeometryShaderUsed && m_pixel->GeometrySelectedPrimitive != -1 && m_pixel->GeometrySelectedVertex != -1)
+			mainStageOutput = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+
+		// match the tcs input with vs/gs output
+		for (int i = 0; i < m_vm->owner->bound; i++) {
+			spvm_result_t slot = &m_vm->results[i];
+			spvm_result_t pointer = nullptr;
+
+			if (slot->pointer)
+				pointer = &m_vm->results[m_vm->results[i].pointer];
+
+			// input variable
+			if (pointer && pointer->storage_class == SpvStorageClassInput) {
+				int loc = -1, outputIndex = -1;
+
+				// get location
+				for (int j = 0; j < slot->decoration_count; j++)
+					if (slot->decorations[j].type == SpvDecorationLocation) {
+						loc = slot->decorations[j].literal1;
+						break;
+					}
+
+				// get vs output index
+				for (int j = 0; j < mainStageOutput->size(); j++) {
+					const struct spvm_result* vsOutput = &(*mainStageOutput)[j];
+					if (vsOutput->return_type == loc) {
+						if (loc == -1) {
+							if (vsOutput->name && slot->name)
+								if (strcmp(vsOutput->name, slot->name) == 0) {
+									outputIndex = j;
+									break;
+								}
+						} else {
+							outputIndex = j;
+							break;
+						}
+					}
+				}
+
+				// copy and interpolate values
+				if (outputIndex >= 0) {
+					auto* outputPtr0 = &m_pixel->VertexShaderOutput[0];
+					auto* outputPtr1 = &m_pixel->VertexShaderOutput[1];
+					auto* outputPtr2 = &m_pixel->VertexShaderOutput[2];
+
+					if (m_pixel->GeometryShaderUsed && m_pixel->GeometrySelectedPrimitive != -1 && m_pixel->GeometrySelectedVertex != -1) {
+						if (m_pixel->GeometryOutputType == GeometryShaderOutput::Points) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+							outputPtr1 = nullptr;
+							outputPtr2 = nullptr;
+						} else if (m_pixel->GeometryOutputType == GeometryShaderOutput::LineStrip) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 1];
+							outputPtr1 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+							outputPtr2 = nullptr;
+						} else if (m_pixel->GeometryOutputType == GeometryShaderOutput::TriangleStrip) {
+							outputPtr0 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 2];
+							outputPtr1 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex - 1];
+							outputPtr2 = &m_pixel->GeometryOutput[m_pixel->GeometrySelectedPrimitive].Output[m_pixel->GeometrySelectedVertex];
+						}
+					}
+					
+					const struct spvm_result* value0 = (outputPtr0 == nullptr || outputPtr0->empty()) ? nullptr : &(*outputPtr0)[outputIndex];
+					const struct spvm_result* value1 = (outputPtr1 == nullptr || outputPtr1->empty()) ? nullptr : &(*outputPtr1)[outputIndex];
+					const struct spvm_result* value2 = (outputPtr2 == nullptr || outputPtr2->empty()) ? nullptr : &(*outputPtr2)[outputIndex];
+
+					if (value0)
+						spvm_member_memcpy(slot->members[0].members, value0->members, value0->member_count);
+					if (value1)
+						spvm_member_memcpy(slot->members[1].members, value1->members, value1->member_count);
+					if (value2)
+						spvm_member_memcpy(slot->members[2].members, value2->members, value2->member_count);
+				}
+			}
+		}
+	}
+	void DebugInformation::ExecuteTessellationControlShader(unsigned int invocationId)
+	{
+		if (m_vm == nullptr)
+			return;
+
+		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
+		if (fnMain == 0)
+			return;
+
+		spvm_word invIdMemCount = 0;
+		spvm_member_t mems = spvm_state_get_builtin(m_vm, SpvBuiltInInvocationId, &invIdMemCount);
+		if (mems)
+			mems->value.u = invocationId;
+
+		spvm_state_prepare(m_vm, fnMain);
+		spvm_state_call_function(m_vm);
+	}
+	void DebugInformation::CopyTessellationControlShaderOutput()
+	{
+		if (m_pixel == nullptr)
+			return;
+
+		// get inner/outer levels
+		spvm_word innerMemCount = 0, outerMemCount = 0;
+		spvm_member_t innerMem = spvm_state_get_builtin(m_vm, SpvBuiltInTessLevelInner, &innerMemCount);
+		spvm_member_t outerMem = spvm_state_get_builtin(m_vm, SpvBuiltInTessLevelOuter, &outerMemCount);
+		for (spvm_word i = 0; i < std::min<spvm_word>(2, innerMemCount); i++)
+			m_pixel->TessLevelInner[i] = innerMem[i].members[0].value.f;
+		for (spvm_word i = 0; i < std::min<spvm_word>(4, outerMemCount); i++)
+			m_pixel->TessLevelOuter[i] = outerMem[i].members[0].value.f;
+
+		// TODO: copy output arrays (variables)
 	}
 
 	void DebugInformation::PrepareComputeShader(PipelineItem* pass, int x, int y, int z)

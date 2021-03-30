@@ -51,6 +51,11 @@ namespace ed {
 		void SetGeometryShaderInput(PixelInformation& pixel);
 		void ExecuteGeometryShader();
 
+		void PrepareTessellationControlShader(PipelineItem* pass, PipelineItem* item, PixelInformation* px = nullptr);
+		void SetTessellationControlShaderInput(PixelInformation& pixel);
+		void ExecuteTessellationControlShader(unsigned int invocationId);
+		void CopyTessellationControlShaderOutput();
+
 		void PrepareComputeShader(PipelineItem* pass, int x, int y, int z);
 
 		spvm_result_t Immediate(const std::string& entry, spvm_result_t& outType);

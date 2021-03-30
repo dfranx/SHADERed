@@ -5,7 +5,7 @@
 #include <pugixml/src/pugixml.hpp>
 #include <misc/zip_file.hpp>
 #include <misc/stb_image.h>
-#define CPPHTTPLIB_CONNECTION_TIMEOUT_SECOND 5
+#define CPPHTTPLIB_CONNECTION_TIMEOUT_SECOND 3
 #include <misc/httplib.h>
 
 #include <filesystem>
@@ -44,7 +44,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto res = cli.Get("/tips.xml");
 
-		if (res->status == 200) {
+		if (res && res->status == 200) {
 			pugi::xml_document doc;
 			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (!result) {
@@ -80,7 +80,7 @@ namespace ed {
 		httplib::Params params { { "version", std::to_string(WebAPI::InternalVersion) } };
 		auto res = cli.Post("/changelog.php", params);
 
-		if (res->status == 200)
+		if (res && res->status == 200)
 			onFetch(res->body);
 	}
 	void checkUpdates(std::function<void()> onUpdate)
@@ -88,7 +88,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto res = cli.Get("/version.php");
 
-		if (res->status == 200) {
+		if (res && res->status == 200) {
 			const std::string& src = res->body;
 
 			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src)) {
@@ -117,7 +117,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto res = cli.Post("/search.php", params);
 
-		if (res->status == 200) {
+		if (res && res->status == 200) {
 			pugi::xml_document doc;
 			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
@@ -155,7 +155,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto res = cli.Post("/search_theme.php", params);
 
-		if (res->status == 200) {
+		if (res && res->status == 200) {
 			pugi::xml_document doc;
 			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
@@ -196,7 +196,7 @@ namespace ed {
 
 		auto res = cli.Post("/search_plugin.php", params);
 
-		if (res->status == 200) {
+		if (res && res->status == 200) {
 			pugi::xml_document doc;
 			pugi::xml_parse_result result = doc.load_string(res->body.c_str());
 			if (result) {
@@ -251,7 +251,7 @@ namespace ed {
 		unsigned char* imgData = nullptr;
 		int imgWidth = 0, imgHeight = 0;
 
-		if (response->status == 200) {
+		if (response && response->status == 200) {
 			const char* byteData = response->body.c_str();
 			size_t byteLength = response->body.size();
 
@@ -455,7 +455,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto response = cli.Get(("/download.php?type=shader&id=" + id).c_str());
 
-		if (response->status == 200) {
+		if (response && response->status == 200) {
 			const std::string& src = response->body;
 
 			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
@@ -512,7 +512,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto response = cli.Get(body.c_str());
 
-		if (response->status == 200) {
+		if (response && response->status == 200) {
 			const std::string& src = response->body;
 
 			miniz_cpp::zip_file zipFile((unsigned char*)src.c_str(), src.size());
@@ -545,7 +545,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto response = cli.Get(("/download?type=theme&id=" + id).c_str());
 
-		if (response->status == 200) {
+		if (response && response->status == 200) {
 			std::ofstream outFile(outputPath + id + ".ini");
 			outFile << response->body;
 			outFile.close();
@@ -556,7 +556,7 @@ namespace ed {
 		httplib::Client cli(WebAPI::URL.c_str());
 		auto response = cli.Get(("/get_plugin_version.php?id=" + id).c_str());
 
-		if (response->status == 200) {
+		if (response && response->status == 200) {
 			const std::string& src = response->body;
 
 			if (src.size() > 0 && src.size() < 6 && isDigitsOnly(src))

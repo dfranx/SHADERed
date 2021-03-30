@@ -196,9 +196,12 @@ namespace ed {
 			pxInfo.InTopology = pxInfo.OutTopology = objTopology;
 			pxInfo.InstanceBuffer = instanceBuffer;
 			pxInfo.GeometryShaderUsed = false;
+			pxInfo.TessellationShaderUsed = false;
 
-			if (pxInfo.Pass && pxInfo.Pass->Type == PipelineItem::ItemType::ShaderPass)
+			if (pxInfo.Pass && pxInfo.Pass->Type == PipelineItem::ItemType::ShaderPass) {
 				pxInfo.GeometryShaderUsed = ((pipe::ShaderPass*)pxInfo.Pass->Data)->GSUsed;
+				pxInfo.TessellationShaderUsed = ((pipe::ShaderPass*)pxInfo.Pass->Data)->TSUsed;
+			}
 
 			if (Settings::Instance().Debug.AutoFetch)
 				FetchPixel(pxInfo);
@@ -238,6 +241,15 @@ namespace ed {
 			Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
 			Debugger.SetGeometryShaderInput(pixel);
 			Debugger.ExecuteGeometryShader();
+		}
+
+		// run the tessellation shader if needed
+		if (pixel.TessellationShaderUsed) {
+			Debugger.PrepareTessellationControlShader(pixel.Pass, pixel.Object);
+			Debugger.SetTessellationControlShaderInput(pixel);
+			for (int iid = 0; iid < pixel.VertexCount; iid++)
+				Debugger.ExecuteTessellationControlShader(iid);
+			Debugger.CopyTessellationControlShaderOutput();
 		}
 
 		// run pixel shader

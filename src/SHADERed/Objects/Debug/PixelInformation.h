@@ -43,6 +43,7 @@ namespace ed {
 			GeometryShaderUsed = false;
 			GeometrySelectedPrimitive = -1;
 			GeometrySelectedVertex = -1;
+			TessellationShaderUsed = false;
 		}
 
 		bool History;				// is this an actual visible pixel or is it part of the "Pixel History"
@@ -83,7 +84,13 @@ namespace ed {
 		int GeometrySelectedPrimitive;
 		int GeometrySelectedVertex;
 
-		// final primitive position (equal to VertexShaderPosition if GS is not used, otherwise equal positions from GS's output
+		// tessellation shader stuff
+		bool TessellationShaderUsed;
+		float TessLevelOuter[4];
+		float TessLevelInner[2];
+		std::vector<std::vector<struct spvm_result>> TessControlOutput;
+
+		// final primitive position (equal to VertexShaderPosition if GS is not used, otherwise equal to positions from GS's output
 		glm::vec4 FinalPosition[3];
 	};
 }

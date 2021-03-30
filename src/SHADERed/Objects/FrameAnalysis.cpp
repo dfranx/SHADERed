@@ -62,6 +62,9 @@ namespace ed {
 			value -= id1;
 		}
 
+		if (id1 < 0 || id1 > 4 || id2 < 0 || id2 > 4)
+			return color[0];
+
 		return (color[id2] - color[id1]) * value + color[id1];
 	}
 
@@ -398,6 +401,7 @@ namespace ed {
 			pipe::ShaderPass* data = (pipe::ShaderPass*)pass->Data;
 
 			m_pixel.GeometryShaderUsed = data->GSUsed;
+			m_pixel.TessellationShaderUsed = data->TSUsed;
 
 			for (PipelineItem* item : data->Items) {
 				// built-in geometry

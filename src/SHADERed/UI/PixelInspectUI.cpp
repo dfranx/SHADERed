@@ -7,6 +7,7 @@
 #include <SHADERed/UI/Debug/AutoUI.h>
 #include <SHADERed/UI/Debug/FunctionStackUI.h>
 #include <SHADERed/UI/Debug/GeometryOutputUI.h>
+#include <SHADERed/UI/Debug/TessellationControlOutputUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
 #include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
@@ -260,6 +261,23 @@ namespace ed {
 					ImGui::Text("Geometry Shader");
 				}
 
+				/* [TESSELLATION SHADER] */
+				if (pixel.TessellationShaderUsed) {
+					if (ImGui::Button(UI_ICON_PLAY "##debug_tessctrlshader", ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Messages.CanRenderPreview()) {
+						CodeEditorUI* codeUI = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+						codeUI->StopDebugging();
+						codeUI->Open(pixel.Pass, ShaderStage::TessellationControl);
+						editor = codeUI->Get(pixel.Pass, ShaderStage::TessellationControl);
+
+						m_data->Debugger.PrepareTessellationControlShader(pixel.Pass, pixel.Object);
+						m_data->Debugger.SetTessellationControlShaderInput(pixel);
+
+						requestCompile = true;
+					}
+					ImGui::SameLine();
+					ImGui::Text("Tessellation Control Shader");
+				}
+
 				/* ACTUAL ACTION HERE */
 				if (requestCompile && editor != nullptr)
 					StartDebugging(editor, &pixel);
@@ -334,6 +352,8 @@ namespace ed {
 				((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 				((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 				((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+				if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
+					((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 
 				int curLine = m_data->Debugger.GetCurrentLine();
 
@@ -359,6 +379,10 @@ namespace ed {
 
 			ed->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
 			((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
+			((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
+			((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+			if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
+				((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 		};
 		editor->HasIdentifierHover = [&](TextEditor* ed, const std::string& id) -> bool {
 			if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)

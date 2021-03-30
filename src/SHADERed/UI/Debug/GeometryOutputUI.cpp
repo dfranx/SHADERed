@@ -321,7 +321,6 @@ namespace ed {
 		glDrawArrays(GL_POINTS, 0, m_points);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		DefaultState::Bind();
 	}
 	void DebugGeometryOutputUI::OnEvent(const SDL_Event& e)

@@ -61,6 +61,7 @@ set(SOURCES
 	src/SHADERed/UI/Debug/BreakpointListUI.cpp
 	src/SHADERed/UI/Debug/FunctionStackUI.cpp
 	src/SHADERed/UI/Debug/GeometryOutputUI.cpp
+	src/SHADERed/UI/Debug/TessellationControlOutputUI.cpp
 	src/SHADERed/UI/Debug/ImmediateUI.cpp
 	src/SHADERed/UI/Debug/ValuesUI.cpp
 	src/SHADERed/UI/Debug/WatchUI.cpp

@@ -41,6 +41,7 @@ namespace ed {
 		DebugAuto,
 		DebugImmediate,
 		DebugGeometryOutput,
+		DebugTessControlOutput,
 		Options,
 		ObjectPreview,
 		FrameAnalysis,
@@ -129,6 +130,7 @@ namespace ed {
 		UIView* m_objectPrev;
 		UIView* m_geometryOutput;
 		UIView* m_frameAnalysis;
+		UIView* m_tessControlOutput;
 
 		std::string m_cachedFont;
 		int m_cachedFontSize;
