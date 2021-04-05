@@ -31,7 +31,7 @@ you will be able to:
 
 <img src="./Misc/Screenshots/debugger.gif">
 
-With SHADERed, you can debug vertex, geometry, pixel and compute shaders.
+With SHADERed, you can debug vertex, geometry, tessellation control, pixel and compute shaders.
 
 ### Compute & geometry shaders
 You are not limited to vertex and pixel shaders. SHADERed also supports compute & geometry
@@ -88,8 +88,6 @@ SHADERed has lots of features that let you achieve effects like in no other shad
   * Andrew Kerr
 
 If you like SHADERed and would like to support the development, check out Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)
-
-... or **PayPal**: [<img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/pp-acceptance-medium.png" alt="Buy now with PayPal" />](https://paypal.me/dfranx) 
 
 My e-mail address for businesses (or if you just want to contact me):
 **contact at shadered dot org**

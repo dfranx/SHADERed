@@ -1,3 +1,6 @@
+[v1.5.2]
++ fix a bug that caused the geometry shader file dialog to be unresponsive
+
 [v1.5.1]
 + add tessellation control shader debugger
 + add --convert command

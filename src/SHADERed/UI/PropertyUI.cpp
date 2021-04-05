@@ -285,7 +285,8 @@ namespace ed {
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!item->GSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					if (!item->GSUsed) 
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
 					// gs path
 					ImGui::Text("GS path:");
@@ -317,11 +318,12 @@ namespace ed {
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!item->GSUsed) ImGui::PopItemFlag();
+					if (!item->GSUsed) 
+						ImGui::PopItemFlag();
 
 
 					
-					// gs used
+					// ts used
 					ImGui::Text("TS:");
 					ImGui::NextColumn();
 					ImGui::PushItemWidth(-1);
@@ -330,7 +332,8 @@ namespace ed {
 					ImGui::NextColumn();
 					ImGui::Separator();
 
-					if (!item->TSUsed) ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					if (!item->TSUsed) 
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
 					// patch vertices
 					ImGui::Text("Patch vertices:");
@@ -400,8 +403,10 @@ namespace ed {
 						ImGui::Text("main");
 					ImGui::NextColumn();
 
-					if (!item->GSUsed) ImGui::PopItemFlag();
-				} else if (m_current->Type == ed::PipelineItem::ItemType::ComputePass) {
+					if (!item->TSUsed) 
+						ImGui::PopItemFlag();
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::ComputePass) {
 					ed::pipe::ComputePass* item = reinterpret_cast<ed::pipe::ComputePass*>(m_current->Data);
 
 					/* compute shader path */
@@ -450,7 +455,8 @@ namespace ed {
 
 						m_data->Parser.ModifyProject();
 					}
-				} else if (m_current->Type == ed::PipelineItem::ItemType::AudioPass) {
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::AudioPass) {
 					ed::pipe::AudioPass* item = reinterpret_cast<ed::pipe::AudioPass*>(m_current->Data);
 
 					/* audio shader path */
@@ -468,7 +474,8 @@ namespace ed {
 						m_dialogShaderType = "Audio";
 						ifd::FileDialog::Instance().Open("PropertyShaderDlg", "Select a shader", "GLSL & HLSL {.glsl,.hlsl,.vert,.vs,.frag,.fs,.geom,.gs,.comp,.cs,.slang,.shader},.*");
 					}
-				} else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::Geometry) {
 					ed::pipe::GeometryItem* item = reinterpret_cast<ed::pipe::GeometryItem*>(m_current->Data);
 
 					/* position */
@@ -588,7 +595,8 @@ namespace ed {
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
-				} else if (m_current->Type == PipelineItem::ItemType::RenderState) {
+				} 
+				else if (m_current->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* data = (pipe::RenderState*)m_current->Data;
 
 					// enable/disable wireframe rendering
@@ -913,7 +921,8 @@ namespace ed {
 						ImGui::PopItemFlag();
 						ImGui::PopStyleVar();
 					}
-				} else if (m_current->Type == ed::PipelineItem::ItemType::Model) {
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::Model) {
 					ed::pipe::Model* item = reinterpret_cast<ed::pipe::Model*>(m_current->Data);
 
 					/* position */
@@ -1013,12 +1022,14 @@ namespace ed {
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
-				} else if (m_current->Type == ed::PipelineItem::ItemType::PluginItem) {
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::PluginItem) {
 					ImGui::Columns(1);
 
 					pipe::PluginItemData* pdata = (pipe::PluginItemData*)m_current->Data;
 					pdata->Owner->PipelineItem_ShowProperties(pdata->Type, pdata->PluginData);
-				} else if (m_current->Type == ed::PipelineItem::ItemType::VertexBuffer) {
+				} 
+				else if (m_current->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 					ed::pipe::VertexBuffer* item = reinterpret_cast<ed::pipe::VertexBuffer*>(m_current->Data);
 
 					/* buffers */
