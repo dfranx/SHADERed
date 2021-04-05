@@ -10,6 +10,7 @@
 
 #include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
+#include <spvgentwo/Templates.h>
 
 #include <spirv-tools/libspirv.h>
 #include <spirv-tools/optimizer.hpp>
