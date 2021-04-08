@@ -85,6 +85,7 @@ SHADERed has lots of features that let you achieve effects like in no other shad
   * [Snow Developments](https://snow.llc)
   * [Adad Morales](https://www.moralesfx.com/)
   * [Liam Don](https://twitter.com/liamdon)
+  * [Chris Sprance](https://csprance.com)
   * Andrew Kerr
 
 If you like SHADERed and would like to support the development, check out Patreon: [<img width="120" src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png">](https://www.patreon.com/dfranx)

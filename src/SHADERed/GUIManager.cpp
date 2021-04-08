@@ -962,7 +962,8 @@ namespace ed {
 					std::make_pair("Snow Developments", "https://snow.llc"),
 					std::make_pair("Adad Morales", "https://www.moralesfx.com/"),
 					std::make_pair("Liam Don", "https://twitter.com/liamdon"),
-					std::make_pair("Andrew Kerr", "")
+					std::make_pair("Andrew Kerr", ""),
+					std::make_pair("Chris Sprance", "https://csprance.com")
 				};
 
 				for (auto& sitem : slist)
