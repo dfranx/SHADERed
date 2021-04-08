@@ -1028,6 +1028,9 @@ namespace ed {
 
 	void ObjectManager::Bind(ObjectManagerItem* item, PipelineItem* pass)
 	{
+		if (item == nullptr)
+			return; // ProjectParser::m_parseV2()
+
 		if (IsBound(item, pass) == -1) {
 			m_parser->ModifyProject();
 
@@ -1038,6 +1041,9 @@ namespace ed {
 	}
 	void ObjectManager::Unbind(ObjectManagerItem* item, PipelineItem* pass)
 	{
+		if (item == nullptr)
+			return; // ProjectParser::m_parseV2()
+
 		std::vector<GLuint>& srvs = m_binds[pass];
 
 		GLuint glObject = this->m_getGLObject(item);
@@ -1066,6 +1072,9 @@ namespace ed {
 
 	void ObjectManager::BindUniform(ObjectManagerItem* item, PipelineItem* pass)
 	{
+		if (item == nullptr)
+			return; // ProjectParser::m_parseV2()
+
 		if (IsUniformBound(item, pass) == -1) {
 			GLuint glObject = this->m_getGLObject(item);
 			
@@ -1076,6 +1085,9 @@ namespace ed {
 	}
 	void ObjectManager::UnbindUniform(ObjectManagerItem* item, PipelineItem* pass)
 	{
+		if (item == nullptr)
+			return; // ProjectParser::m_parseV2()
+
 		std::vector<GLuint>& ubos = m_uniformBinds[pass];
 
 		GLuint glObject = this->m_getGLObject(item);
