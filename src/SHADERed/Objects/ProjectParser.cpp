@@ -593,8 +593,12 @@ namespace ed {
 				bool isKeyboardTexture = (item->Type == ObjectType::KeyboardTexture);
 				
 				std::string texOutPath = item->Name;
-				if ((isTexture && !isKeyboardTexture) || isAudio)
-					texOutPath = GetRelativePath(oldProjectPath + "/" + item->Name);
+				if ((isTexture && !isKeyboardTexture) || isAudio) {
+					if (std::filesystem::path(item->Name).is_absolute())
+						texOutPath = GetRelativePath(item->Name);
+					else
+						texOutPath = GetRelativePath(std::filesystem::absolute(std::filesystem::path(oldProjectPath) / item->Name).string());
+				}
 				
 				std::string typeName = "texture";
 				if (isBuffer) typeName = "buffer";

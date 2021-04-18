@@ -1,4 +1,5 @@
 [v1.5.2]
++ fix a critical bug that would cause SHADERed to not store proper texture paths in project files
 + fix a bug that caused the geometry shader file dialog to be unresponsive
 + fix a bug that would crash SHADERed when a project file is referencing an texture that doesn't exist
 
