@@ -146,7 +146,7 @@ namespace ed {
 		int nrChannels = 0;
 
 		if (!isDDS) {
-			stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
+			data = stbi_load(path.c_str(), &w, &h, &nrChannels, 0);
 		} else {
 			ddsImage = dds_load_from_file(path.c_str());
 

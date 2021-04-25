@@ -593,12 +593,8 @@ namespace ed {
 				bool isKeyboardTexture = (item->Type == ObjectType::KeyboardTexture);
 				
 				std::string texOutPath = item->Name;
-				if ((isTexture && !isKeyboardTexture) || isAudio) {
-					if (std::filesystem::path(item->Name).is_absolute())
-						texOutPath = GetRelativePath(item->Name);
-					else
-						texOutPath = GetRelativePath(std::filesystem::absolute(std::filesystem::path(oldProjectPath) / item->Name).string());
-				}
+				if ((isTexture && !isKeyboardTexture) || isAudio)
+					texOutPath = GetTexturePath(item->Name, oldProjectPath);
 				
 				std::string typeName = "texture";
 				if (isBuffer) typeName = "buffer";
@@ -635,12 +631,12 @@ namespace ed {
 
 					textureNode.append_attribute("cube").set_value(isCube);
 
-					textureNode.append_attribute("left").set_value(texmaps[0].c_str());
-					textureNode.append_attribute("top").set_value(texmaps[1].c_str());
-					textureNode.append_attribute("front").set_value(texmaps[2].c_str());
-					textureNode.append_attribute("bottom").set_value(texmaps[3].c_str());
-					textureNode.append_attribute("right").set_value(texmaps[4].c_str());
-					textureNode.append_attribute("back").set_value(texmaps[5].c_str());
+					textureNode.append_attribute("left").set_value(GetTexturePath(texmaps[0], oldProjectPath).c_str());
+					textureNode.append_attribute("top").set_value(GetTexturePath(texmaps[1], oldProjectPath).c_str());
+					textureNode.append_attribute("front").set_value(GetTexturePath(texmaps[2], oldProjectPath).c_str());
+					textureNode.append_attribute("bottom").set_value(GetTexturePath(texmaps[3], oldProjectPath).c_str());
+					textureNode.append_attribute("right").set_value(GetTexturePath(texmaps[4], oldProjectPath).c_str());
+					textureNode.append_attribute("back").set_value(GetTexturePath(texmaps[5], oldProjectPath).c_str());
 				}
 
 				if ((isTexture && !isKeyboardTexture) || isTexture3D) {
@@ -663,7 +659,7 @@ namespace ed {
 					ImageObject* iobj = item->Image;
 
 					if (iobj->DataPath[0] != 0)
-						textureNode.append_attribute("data").set_value(iobj->DataPath);
+						textureNode.append_attribute("data").set_value(GetTexturePath(iobj->DataPath, oldProjectPath).c_str());
 
 					textureNode.append_attribute("width").set_value(iobj->Size.x);
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
@@ -1044,6 +1040,13 @@ namespace ed {
 	bool ProjectParser::FileExists(const std::string& str)
 	{
 		return std::filesystem::exists(GetProjectPath(str));
+	}
+	std::string ProjectParser::GetTexturePath(const std::string& texPath, const std::string& oldProjectPath)
+	{
+		if (std::filesystem::path(texPath).is_absolute())
+			return GetRelativePath(texPath);
+		else
+			return GetRelativePath(std::filesystem::absolute(std::filesystem::path(oldProjectPath) / texPath).string());				
 	}
 	void ProjectParser::ResetProjectDirectory()
 	{
