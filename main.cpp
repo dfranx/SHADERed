@@ -43,8 +43,6 @@ void SetDpiAware();
 
 int main(int argc, char* argv[])
 {
-	bool run = true; // should we enter the infinite loop?
-
 	srand(time(NULL));
 	
 	std::error_code fsError;
@@ -203,7 +201,8 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // double buffering
 
 	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
-	
+
+	bool run = true; // should we enter the infinite loop?
 	// make the window invisible if only rendering to a file
 	if (coptsParser.Render) {
 		windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
@@ -242,6 +241,7 @@ int main(int argc, char* argv[])
 	ed::Logger::Get().Log("Creating EditorEngine...");
 	engine.Create();
 	ed::Logger::Get().Log("Created EditorEngine");
+	engine.Interface().Run = run;
 
 	// set window icon:
 	SetIcon(wnd);
@@ -267,12 +267,16 @@ int main(int argc, char* argv[])
 		engine.UI().SavePreviewToFile();
 	}
 
+	// start the DAP server
+	if (coptsParser.StartDAPServer)
+		engine.Interface().DAP.Initialize();
+
 	// timer for time delta
 	ed::eng::Timer timer;
 	SDL_Event event;
 	bool minimized = false;
 	bool hasFocus = true;
-	while (run) {
+	while (engine.Interface().Run) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				bool cont = true;
@@ -283,7 +287,7 @@ int main(int argc, char* argv[])
 				}
 
 				if (cont) {
-					run = false;
+					engine.Interface().Run = false;
 					ed::Logger::Get().Log("Received SDL_QUIT event -> quitting");
 				}
 			} else if (event.type == SDL_WINDOWEVENT) {
@@ -330,7 +334,7 @@ int main(int argc, char* argv[])
 			engine.OnEvent(event);
 		}
 
-		if (!run) break;
+		if (!engine.Interface().Run) break;
 
 		float delta = timer.Restart();
 		engine.Update(delta);

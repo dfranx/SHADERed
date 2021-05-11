@@ -25,6 +25,7 @@ set(SOURCES
 	src/SHADERed/Objects/CommandLineOptionParser.cpp
 	src/SHADERed/Objects/DefaultState.cpp
 	src/SHADERed/Objects/DebugInformation.cpp
+	src/SHADERed/Objects/DebugAdapterProtocol.cpp
 	src/SHADERed/Objects/FirstPersonCamera.cpp
 	src/SHADERed/Objects/FunctionVariableManager.cpp
 	src/SHADERed/Objects/FrameAnalysis.cpp
@@ -189,6 +190,12 @@ add_subdirectory(libs/glslang)
 # SPIRV-VM
 add_subdirectory(libs/SPIRV-VM)
 
+# cppdap
+set(CPPDAP_DIR libs/cppdap)
+set(CPPDAP_THIRD_PARTY_DIR libs)
+set(CPPDAP_JSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/json)
+add_subdirectory(${CPPDAP_DIR})
+
 # Native macOS frameworks
 if (APPLE)
 	# Link Homebrew library path for Mojave and up
@@ -215,7 +222,7 @@ if (NOT WIN32)
 endif()
 
 # link libraries
-target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp SpvGenTwoLib SpvGenTwoCommon)
+target_link_libraries(SHADERed ${OPENGL_LIBRARIES} ${GLM_LIBRARY_DIRS} glslang SPIRV SPIRVVM assimp::assimp SpvGenTwoLib SpvGenTwoCommon cppdap)
 
 if(WIN32)
 	# link specific win32 libraries

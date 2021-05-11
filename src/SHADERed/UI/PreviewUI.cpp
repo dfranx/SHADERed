@@ -670,8 +670,24 @@ namespace ed {
 		if (m_mouseHovers && ImGui::GetIO().KeyAlt && ImGui::IsMouseDoubleClicked(0))
 			m_zoom.Reset();
 
-		// mouse controls for preview window
+		// auto pause in DAP mode
 		m_mouseHovers = ImGui::IsItemHovered();
+		if (m_data->DAP.IsStarted()) {
+			if (!paused) {
+				if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
+					m_pause();
+					paused = true;
+				}
+			} else {
+				if (((ImGui::IsMouseClicked(1) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(0) && settings.Preview.SwitchLeftRightClick))) {
+					m_pause();
+					paused = false;
+				}
+			}
+		}
+
+		// mouse controls for preview window
+		// if not paused - various controls
 		if (m_mouseHovers && !paused) {
 			bool fp = settings.Project.FPCamera;
 

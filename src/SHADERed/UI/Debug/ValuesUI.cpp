@@ -3,40 +3,37 @@
 #include <imgui/imgui.h>
 
 namespace ed {
+	void DebugValuesUI::Refresh()
+	{
+		m_cachedGlobals.clear();
+		m_cachedLocals.clear();
+
+		std::stringstream ss;
+		spvm_state_t vm = m_data->Debugger.GetVM();
+
+		for (spvm_word i = 0; i < vm->owner->bound; i++) {
+			spvm_result_t slot = &vm->results[i];
+
+			if ((slot->type == spvm_result_type_variable || slot->type == spvm_result_type_function_parameter) && slot->name != nullptr) {
+				if (slot->owner == nullptr) {
+					spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
+					m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
+					m_cachedGlobals[slot->name] = ss.str();
+					ss.str(std::string());
+				} else if (slot->owner == vm->current_function) {
+					spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
+					m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
+					m_cachedLocals[slot->name] = ss.str();
+					ss.str(std::string());
+				}
+			}
+		}
+	}
 	void DebugValuesUI::OnEvent(const SDL_Event& e)
 	{
 	}
 	void DebugValuesUI::Update(float delta)
 	{
-		if (m_timer.GetElapsedTime() >= 0.175f) {
-			m_cachedGlobals.clear();
-			m_cachedLocals.clear();
-
-			std::stringstream ss;
-			spvm_state_t vm = m_data->Debugger.GetVM();
-
-			for (spvm_word i = 0; i < vm->owner->bound; i++) {
-				spvm_result_t slot = &vm->results[i];
-
-				if ((slot->type == spvm_result_type_variable || slot->type == spvm_result_type_function_parameter) && slot->name != nullptr) {
-					if (slot->owner == nullptr) {
-						spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
-						m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
-						m_cachedGlobals[slot->name] = ss.str();
-						ss.str(std::string());
-					} else if (slot->owner == vm->current_function) {
-						spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
-						m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), vtype, slot->members, slot->member_count, "");
-						m_cachedLocals[slot->name] = ss.str();
-						ss.str(std::string());
-					}
-				}
-			}
-
-			m_timer.Restart();
-		}
-
-
 		// Main window
 		ImGui::BeginChild("##values_viewarea", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 

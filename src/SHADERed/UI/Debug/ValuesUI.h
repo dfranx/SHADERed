@@ -7,12 +7,12 @@ namespace ed {
 	public:
 		using UIView::UIView;
 
+		void Refresh();
+
 		virtual void OnEvent(const SDL_Event& e);
 		virtual void Update(float delta);
 
 	private:
-		eng::Timer m_timer;
-
 		std::unordered_map<std::string, std::string> m_cachedGlobals;
 		std::unordered_map<std::string, std::string> m_cachedLocals;
 	};

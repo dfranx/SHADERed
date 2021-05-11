@@ -33,5 +33,7 @@ namespace ed {
 		int WindowWidth, WindowHeight;
 		bool MinimalMode;
 		std::string ProjectFile;
+
+		bool StartDAPServer;
 	};
 }

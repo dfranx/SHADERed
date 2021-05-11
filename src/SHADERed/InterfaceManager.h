@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL_events.h>
 #include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/DebugAdapterProtocol.h>
 #include <SHADERed/Objects/MessageStack.h>
 #include <SHADERed/Objects/ObjectManager.h>
 #include <SHADERed/Objects/PipelineManager.h>
@@ -24,6 +25,8 @@ namespace ed {
 		void DebugClick(glm::vec2 r);
 		void FetchPixel(PixelInformation& pixel);
 
+		bool Run;
+
 		PluginManager Plugins;
 		RenderEngine Renderer;
 		PipelineManager Pipeline;
@@ -33,6 +36,7 @@ namespace ed {
 		DebugInformation Debugger;
 		FrameAnalysis Analysis;
 		WebAPI API;
+		DebugAdapterProtocol DAP;
 
 	private:
 		GUIManager* m_ui;

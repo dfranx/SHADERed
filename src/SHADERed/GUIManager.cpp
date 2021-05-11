@@ -978,12 +978,17 @@ namespace ed {
 
 		if (m_performanceMode || m_minimalMode || m_focusMode) {
 			((PreviewUI*)Get(ViewID::Preview))->Update(delta);
-		
+
+			// focus mode
 			if (m_focusMode) 
 				m_renderFocusMode();
 		}
 
 		ImGui::End();
+
+		// DAP host mode
+		if (m_minimalMode && m_data->DAP.IsStarted())
+			m_renderDAPMode();
 
 		if (!m_performanceMode && !m_minimalMode && !m_focusMode) {
 			m_data->Plugins.Update(delta);
@@ -1274,6 +1279,7 @@ namespace ed {
 		CodeEditorUI* codeUI = (CodeEditorUI*)Get(ViewID::Code);
 		codeUI->StopDebugging();
 		m_data->Debugger.SetDebugging(false);
+		m_data->DAP.StopDebugging();
 	}
 	void GUIManager::Destroy()
 	{
@@ -1611,6 +1617,21 @@ namespace ed {
 		}
 
 		codeEditor->DrawTextEditor(name, editor);
+	}
+
+	void GUIManager::m_renderDAPMode()
+	{
+		ImGui::SetNextWindowPos(ImVec2(m_width - 310, m_height - 420));
+		ImGui::SetNextWindowSize(ImVec2(280, 390), ImGuiCond_Always);
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, 0xB5000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+		ImGui::Begin("##focus_container", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+		ImGui::Text("[DEBUG] %s", m_data->DAP.DebugMessage.c_str());
+
+		Get(ViewID::PixelInspect)->Update(0.0f); // is delta necessary for the PixelInspect window?
+
+		ImGui::End();
+		ImGui::PopStyleColor();
 	}
 
 	UIView* GUIManager::Get(ViewID view)

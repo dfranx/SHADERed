@@ -48,6 +48,7 @@ namespace ed {
 			, Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui)
 			, Debugger(&Objects, &Renderer, &Messages)
 			, Analysis(&Debugger, &Renderer, &Pipeline, &Objects, &Messages)
+			, DAP(&Debugger, &Run)
 	{
 		m_ui = gui;
 	}
@@ -58,6 +59,7 @@ namespace ed {
 	}
 	void InterfaceManager::DebugClick(glm::vec2 r)
 	{
+		DAP.StopDebugging();
 		Debugger.ClearPixelList();
 
 		if (!m_canDebug())

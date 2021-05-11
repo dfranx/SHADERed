@@ -9,6 +9,7 @@
 #include <SHADERed/UI/Debug/GeometryOutputUI.h>
 #include <SHADERed/UI/Debug/TessellationControlOutputUI.h>
 #include <SHADERed/UI/Debug/WatchUI.h>
+#include <SHADERed/UI/Debug/ValuesUI.h>
 #include <SHADERed/UI/Debug/VectorWatchUI.h>
 #include <SHADERed/UI/Icons.h>
 #include <SHADERed/UI/PixelInspectUI.h>
@@ -298,6 +299,9 @@ namespace ed {
 		m_data->Debugger.SetDebugging(true);
 		m_data->Debugger.PrepareDebugger();
 
+		// start the DAP server
+		m_data->DAP.StartDebugging(editor->GetPath(), m_data->Debugger.GetStage());
+
 		// skip initialization
 		editor->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
 
@@ -306,6 +310,9 @@ namespace ed {
 
 		// reset function stack
 		((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+
+		// update variable values
+		((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
 
 		// update watch values
 		const std::vector<char*>& watchList = m_data->Debugger.GetWatchList();
@@ -352,6 +359,7 @@ namespace ed {
 				((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 				((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 				((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+				((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
 				if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
 					((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 
@@ -381,6 +389,7 @@ namespace ed {
 			((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 			((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 			((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+			((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
 			if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
 				((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 		};

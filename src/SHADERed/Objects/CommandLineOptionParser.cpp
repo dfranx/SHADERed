@@ -22,6 +22,7 @@ namespace ed {
 		MinimalMode = false;
 		PerformanceMode = false;
 		LaunchUI = true;
+		StartDAPServer = false;
 		ProjectFile = "";
 		WindowWidth = WindowHeight = 0;
 
@@ -296,6 +297,9 @@ namespace ed {
 
 				}
 			}
+			// -dap
+			else if (strcmp(argv[i], "-dap") == 0)
+				StartDAPServer = true;
 			// --help, -h
 			else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 				static const std::vector<std::pair<std::string, std::string>> opts = {
