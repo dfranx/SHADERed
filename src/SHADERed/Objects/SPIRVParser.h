@@ -7,7 +7,7 @@
 namespace ed {
 	class SPIRVParser {
 	public:
-		void Parse(const std::vector<unsigned int>& spv);
+		void Parse(const std::vector<unsigned int>& spv, bool trimFunctionNames = true);
 
 		enum class ValueType
 		{

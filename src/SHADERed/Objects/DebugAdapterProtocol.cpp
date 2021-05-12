@@ -9,15 +9,15 @@
 #endif
 
 #define DAP_THREAD_ID (int)m_stage
-#define DEBUG_FRAME_ID 1
 #define DAP_LOCALS_VAR_REF_ID 1
 #define DAP_GLOBALS_VAR_REF_ID 2
 #define DAP_ARGUMENTS_VAR_REF_ID 3
-#define DAP_CUSTOM_VAR_REF_ID 4
+#define DAP_CUSTOM_VAR_REF_ID 1000
 
-// step in, step out, continue, breakpoints
+// continue, breakpoints
+// step a single line after the last line so that results can be seen
 // test HLSL
-// clean up the code + remove not needed files from libs/cppdap and libs/json
+// clean up the code + remove some files from libs/cppdap and libs/json
 
 namespace ed {
 	dap::Variable m_convertVariable(DebugAdapterProtocol::VariableValue* var)
@@ -64,6 +64,7 @@ namespace ed {
 			response.supportsConditionalBreakpoints = true;
 			response.supportsFunctionBreakpoints = false;
 			response.supportsHitConditionalBreakpoints = false;
+			response.supportsGotoTargetsRequest = true;
 			return response;
 		});
 
@@ -111,6 +112,9 @@ namespace ed {
 			// this is called on each step AFAIK, update the variable list here
 			m_updateVariableList();
 
+			// also update the stack
+			m_updateStack();
+
 			// create thread
 			dap::Thread thread;
 			thread.id = DAP_THREAD_ID;
@@ -149,13 +153,15 @@ namespace ed {
 
 				dap::StackTraceResponse response;
 
-				dap::StackFrame frame;
-				frame.line = m_debugger->GetCurrentLine();
-				frame.column = 1;
-				frame.name = "main"; // TODO
-				frame.id = DEBUG_FRAME_ID;
-				frame.source = source;
-				response.stackFrames.push_back(frame);
+				for (const auto& info : m_stack) {
+					dap::StackFrame frame;
+					frame.line = info.Line;
+					frame.column = 1;
+					frame.name = info.Name; // TODO
+					frame.id = info.ID;
+					frame.source = source;
+					response.stackFrames.push_back(frame);
+				}
 
 				return response;
 			});
@@ -166,7 +172,7 @@ namespace ed {
 		m_session->registerHandler([&](const dap::ScopesRequest& req)
 									   -> dap::ResponseOrError<dap::ScopesResponse> {
 
-			if (req.frameId != DEBUG_FRAME_ID)
+			if (req.frameId > m_stack.size())
 				return dap::Error("Unknown frameId '%d'", int(req.frameId));
 
 			dap::ScopesResponse response;
@@ -181,12 +187,20 @@ namespace ed {
 			args.name = "Arguments";
 			args.presentationHint = "arguments";
 			args.variablesReference = DAP_ARGUMENTS_VAR_REF_ID;
+			if (m_stack.size() > 0) {
+				args.line = m_parser.Functions[m_stack[0].RealName].LineStart;
+				args.endLine = m_parser.Functions[m_stack[0].RealName].LineEnd;
+			}
 			response.scopes.push_back(args);
 
 			dap::Scope locals;
 			locals.name = "Locals";
 			locals.presentationHint = "locals";
 			locals.variablesReference = DAP_LOCALS_VAR_REF_ID;
+			if (m_stack.size() > 0) {
+				locals.line = m_parser.Functions[m_stack[0].RealName].LineStart;
+				locals.endLine = m_parser.Functions[m_stack[0].RealName].LineEnd;
+			}
 			response.scopes.push_back(locals);
 
 			return response;
@@ -197,7 +211,6 @@ namespace ed {
 		// report all the variables for a given scope
 		m_session->registerHandler([&](const dap::VariablesRequest& req)
 									   -> dap::VariablesResponse {
-
 			dap::VariablesResponse response;
 
 			if (req.variablesReference == DAP_LOCALS_VAR_REF_ID ||
@@ -210,16 +223,10 @@ namespace ed {
 				else if (req.variablesReference == DAP_ARGUMENTS_VAR_REF_ID)
 					group = &m_args;
 
-				for (VariableValue* loc : *group) {
-					if (loc->Name == "pos")
-						DebugMessage = std::to_string(loc->ID);
+				for (VariableValue* loc : *group)
 					response.variables.push_back(m_convertVariable(loc));
-				}
 			} else {
 				for (VariableValue* data : m_values) {
-					if (data->Name == "pos")
-						DebugMessage = std::to_string(req.variablesReference) + " -- " + std::to_string(data->ID);
-
 					if (data->ID == req.variablesReference) {
 						DebugMessage = "Found custom VAR_REF_ID " + data->Name;
 						for (VariableValue* child : data->Children)
@@ -271,14 +278,59 @@ namespace ed {
 		m_session->registerHandler([&](const dap::NextRequest& req) {
 			m_debugger->Step();
 
-			dap::StoppedEvent event;
-			event.reason = "step";
-			event.threadId = DAP_THREAD_ID;
-			m_session->send(event);
+			this->SendStepEvent();
 
 			return dap::NextResponse();
 		});
 
+
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StepIn
+		// step into a function
+		m_session->registerHandler([&](const dap::StepInRequest& req) {
+			m_debugger->StepInto();
+
+			this->SendStepEvent();
+
+			return dap::StepInResponse();
+		});
+
+
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StepIn
+		// step into a function
+		m_session->registerHandler([&](const dap::StepOutRequest& req) {
+			m_debugger->StepOut();
+
+			this->SendStepEvent();
+
+			return dap::StepOutResponse();
+		});
+
+		
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_GotoTargets
+		// list of goto targets(?)
+		m_session->registerHandler([&](const dap::GotoTargetsRequest& req) {
+			dap::GotoTargetsResponse res;
+
+			dap::GotoTarget target;
+			target.id = req.line;
+			target.line = req.line;
+			target.label = req.source.path.value();
+			res.targets.push_back(target);
+
+			return res;
+		});
+
+
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Goto
+		// jump to a cursor line?
+		m_session->registerHandler([&](const dap::GotoRequest& req) {
+			m_debugger->Jump(req.targetId);
+			this->SendStepEvent();
+
+			return dap::GotoResponse();
+		});
+
+		
 
 		// bind the sessions to stdin and stdout
 		auto in = dap::file(stdin, false);
@@ -297,6 +349,16 @@ namespace ed {
 
 		m_path = path;
 		m_stage = stage;
+
+		if (m_debugger->GetSPIRV().size() > 0)
+			m_parser.Parse(m_debugger->GetSPIRV(), false);
+	}
+	void DebugAdapterProtocol::SendStepEvent()
+	{
+		dap::StoppedEvent event;
+		event.reason = "step";
+		event.threadId = DAP_THREAD_ID;
+		m_session->send(event);
 	}
 	void DebugAdapterProtocol::StopDebugging()
 	{
@@ -319,6 +381,34 @@ namespace ed {
 		m_session->send(event);
 
 		m_started = false;
+	}
+	void DebugAdapterProtocol::m_updateStack()
+	{
+		m_stack.clear();
+
+		spvm_state_t vm = m_debugger->GetVM();
+
+		if (vm == nullptr || vm->function_stack_info == nullptr)
+			return;
+
+		const std::vector<int>& lines = m_debugger->GetFunctionStackLines();
+
+		for (int i = vm->function_stack_current; i >= 0; i--) {
+			spvm_result_t func = vm->function_stack_info[i];
+			if (func->name && func->name[0] != '@') {
+				std::string fname(func->name);
+				size_t parenth = fname.find('(');
+				if (parenth != std::string::npos)
+					fname = fname.substr(0, parenth);
+
+				StackFrame frame;
+				frame.ID = i + 1;
+				frame.Line = lines[i];
+				frame.Name = fname;
+				frame.RealName = func->name;
+				m_stack.push_back(frame);
+			}
+		}
 	}
 	void DebugAdapterProtocol::m_cleanVariables(std::vector<VariableValue*>& vals)
 	{
@@ -349,9 +439,12 @@ namespace ed {
 		for (spvm_word i = 0; i < vm->owner->bound; i++) {
 			spvm_result_t slot = &vm->results[i];
 
-			if ((slot->type == spvm_result_type_variable || (slot->type == spvm_result_type_function_parameter && slot->owner == vm->current_function)) && slot->name != nullptr) {
+			if (((slot->type == spvm_result_type_variable && (slot->owner == nullptr || slot->owner == vm->current_function)) || 
+				(slot->type == spvm_result_type_function_parameter && slot->owner == vm->current_function)) && 
+				slot->name != nullptr)
+			{
 				spvm_result_t vtype = spvm_state_get_type_info(vm->results, &vm->results[slot->pointer]);
-				if (slot->name && slot->name[0] == 0 && slot->owner == nullptr) {
+				if (slot->name[0] == 0 && slot->owner == nullptr) {
 					// cache those global structures with "" name
 					for (spvm_word i = 0; i < vtype->member_count; i++) {
 						std::string memberName = "";
@@ -469,4 +562,11 @@ namespace ed {
 			if (elType->value_type == spvm_value_type_int)
 				ret = "i" + ret;
 			if (elType->value_type == spvm_value_type_bool)
-				ret =
+				ret = "b" + ret;
+
+			return ret;
+		}
+
+		return "";
+	}
+}

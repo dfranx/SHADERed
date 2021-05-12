@@ -27,7 +27,7 @@ namespace ed {
 		return ret;
 	}
 
-	void SPIRVParser::Parse(const std::vector<unsigned int>& ir)
+	void SPIRVParser::Parse(const std::vector<unsigned int>& ir, bool trimFunctionNames)
 	{
 		Functions.clear();
 		UserTypes.clear();
@@ -132,9 +132,12 @@ namespace ed {
 				spv_word loc = ir[++i];
 
 				curFunc = names[loc];
-				size_t args = curFunc.find_first_of('(');
-				if (args != std::string::npos)
-					curFunc = curFunc.substr(0, args);
+
+				if (trimFunctionNames) {
+					size_t args = curFunc.find_first_of('(');
+					if (args != std::string::npos)
+						curFunc = curFunc.substr(0, args);
+				}
 
 				fetchType(Functions[curFunc].ReturnType, type);
 				Functions[curFunc].LineStart = -1;

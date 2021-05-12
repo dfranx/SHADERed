@@ -1,11 +1,9 @@
 #pragma once
 #include <memory>
 #include <SHADERed/Objects/DebugInformation.h>
+#include <SHADERed/Objects/SPIRVParser.h>
 
-namespace dap {
-	class Session;
-}
-
+namespace dap { class Session; }
 namespace ed {
 	class DebugAdapterProtocol {
 	public:
@@ -16,6 +14,8 @@ namespace ed {
 
 		void StartDebugging(const std::string& path, ShaderStage stage);
 		void StopDebugging();
+
+		void SendStepEvent();
 
 		void Terminate();
 
@@ -32,15 +32,27 @@ namespace ed {
 			std::vector<VariableValue*> Children;
 		};
 
+		struct StackFrame {
+			int64_t ID;
+			std::string Name;
+			std::string RealName;
+			int Line;
+		};
+
 	private:
 		DebugInformation* m_debugger;
 		bool* m_run;
+
+		ed::SPIRVParser m_parser;
 
 		std::unique_ptr<dap::Session> m_session;
 		bool m_started;
 
 		std::string m_path;
 		ShaderStage m_stage;
+
+		std::vector<StackFrame> m_stack;
+		void m_updateStack();
 
 		std::vector<VariableValue*> m_values, m_locals, m_args, m_globals;
 		void m_cleanVariables(std::vector<VariableValue*>& vals);

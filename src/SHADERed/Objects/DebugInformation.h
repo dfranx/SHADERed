@@ -30,6 +30,7 @@ namespace ed {
 		inline void SetCurrentFile(const std::string& file) { m_file = file; }
 		inline const std::string& GetCurrentFile() { return m_file; }
 		inline const std::vector<int>& GetFunctionStackLines() { return m_funcStackLines; }
+		inline const std::vector<unsigned int>& GetSPIRV() { return m_spv; }
 		
 		spvm_member_t GetVariable(const std::string& str, size_t& count, spvm_result_t& outType);
 		spvm_member_t GetVariable(const std::string& str, size_t& count);

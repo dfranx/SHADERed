@@ -97,7 +97,7 @@ namespace ed {
 							TextEditor* editor = codeUI->Get(suggestion.Item, ShaderStage::Compute);
 
 							m_data->Debugger.PrepareComputeShader(suggestion.Item, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
-							((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
+							this->StartDebugging(editor, nullptr);
 						}
 						ImGui::SameLine();
 
