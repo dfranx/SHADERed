@@ -14,9 +14,9 @@
 #define DAP_ARGUMENTS_VAR_REF_ID 3
 #define DAP_CUSTOM_VAR_REF_ID 1000
 
-// continue, breakpoints
-// step a single line after the last line so that results can be seen
 // test HLSL
+// step a single line after the last line so that results can be seen
+// show GS, TCS previews
 // clean up the code + remove some files from libs/cppdap and libs/json
 
 namespace ed {
@@ -90,7 +90,6 @@ namespace ed {
 			return dap::LaunchResponse(); 
 		});
 
-		
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disconnect
 		// Handle disconnect requests
 		m_session->registerHandler([&](const dap::DisconnectRequest& req) {
@@ -100,7 +99,6 @@ namespace ed {
 			return dap::DisconnectResponse();
 		});
 
-		
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Threads
 		// get the list of active threads
 		m_session->registerHandler([&](const dap::ThreadsRequest& req) {
@@ -157,7 +155,7 @@ namespace ed {
 					dap::StackFrame frame;
 					frame.line = info.Line;
 					frame.column = 1;
-					frame.name = info.Name; // TODO
+					frame.name = info.Name;
 					frame.id = info.ID;
 					frame.source = source;
 					response.stackFrames.push_back(frame);
@@ -166,7 +164,7 @@ namespace ed {
 				return response;
 			});
 
-
+		
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Scopes
 		// report all the scopes of a given stack frame
 		m_session->registerHandler([&](const dap::ScopesRequest& req)
@@ -206,7 +204,7 @@ namespace ed {
 			return response;
 		});
 
-
+		
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Variables
 		// report all the variables for a given scope
 		m_session->registerHandler([&](const dap::VariablesRequest& req)
@@ -305,6 +303,19 @@ namespace ed {
 			return dap::StepOutResponse();
 		});
 
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_StepIn
+		// step into a function
+		m_session->registerHandler([&](const dap::ContinueRequest& req) {
+			bool hitBkpt = m_debugger->Continue();
+
+			if (hitBkpt)
+				this->SendBreakpointEvent();
+			else
+				this->SendStepEvent();
+
+			return dap::ContinueResponse();
+		});
+
 		
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_GotoTargets
 		// list of goto targets(?)
@@ -324,13 +335,40 @@ namespace ed {
 		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Goto
 		// jump to a cursor line?
 		m_session->registerHandler([&](const dap::GotoRequest& req) {
-			m_debugger->Jump(req.targetId);
-			this->SendStepEvent();
+			bool hitBkpt = m_debugger->Jump(req.targetId);
+
+			if (hitBkpt)
+				this->SendBreakpointEvent();
+			else
+				this->SendStepEvent();
 
 			return dap::GotoResponse();
 		});
 
-		
+
+		// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_SetBreakpoints
+		// set breakpoints request
+		m_session->registerHandler([&](const dap::SetBreakpointsRequest& req) {
+			dap::SetBreakpointsResponse res;
+
+			auto breakpoints = req.breakpoints.value({});
+			std::string path = std::filesystem::absolute(req.source.path.value("")).generic_u8string();
+			if (path.size() > 0 && islower(path[0])) // hax
+				path[0] = toupper(path[0]);
+
+			m_debugger->ClearBreakpointList(path);
+
+			res.breakpoints.resize(breakpoints.size());
+			for (size_t i = 0; i < breakpoints.size(); i++) {
+				std::string condition = breakpoints[i].condition.value("");
+
+				m_debugger->AddBreakpoint(path, breakpoints[i].line, breakpoints[i].condition.has_value() && condition.size() > 0, condition, true);
+
+				res.breakpoints[i].verified = true;
+			}
+
+			return res;
+		});
 
 		// bind the sessions to stdin and stdout
 		auto in = dap::file(stdin, false);
@@ -357,6 +395,13 @@ namespace ed {
 	{
 		dap::StoppedEvent event;
 		event.reason = "step";
+		event.threadId = DAP_THREAD_ID;
+		m_session->send(event);
+	}
+	void DebugAdapterProtocol::SendBreakpointEvent()
+	{
+		dap::StoppedEvent event;
+		event.reason = "breakpoint";
 		event.threadId = DAP_THREAD_ID;
 		m_session->send(event);
 	}
@@ -435,6 +480,9 @@ namespace ed {
 		m_globals.clear();
 
 		spvm_state_t vm = m_debugger->GetVM();
+
+		if (vm == nullptr)
+			return;
 
 		for (spvm_word i = 0; i < vm->owner->bound; i++) {
 			spvm_result_t slot = &vm->results[i];

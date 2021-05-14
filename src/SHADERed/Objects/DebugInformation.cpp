@@ -2510,21 +2510,23 @@ namespace ed {
 			m_vectorWatchValues[index] = "ERROR";
 	}
 
-	void DebugInformation::Jump(int line)
+	bool DebugInformation::Jump(int line)
 	{
 		while (m_vm->code_current != nullptr && m_vm->current_line != line) {
 			StepInto();
 			if (CheckBreakpoint(GetCurrentLine()))
-				break;
+				return true;
 		}
+		return false;
 	}
-	void DebugInformation::Continue()
+	bool DebugInformation::Continue()
 	{
 		while (m_vm->code_current != nullptr) {
 			StepInto();
 			if (CheckBreakpoint(GetCurrentLine()))
-				break;
+				return true;
 		}
+		return false;
 	}
 	void DebugInformation::Step()
 	{

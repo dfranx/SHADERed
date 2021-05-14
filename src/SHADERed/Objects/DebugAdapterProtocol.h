@@ -16,6 +16,7 @@ namespace ed {
 		void StopDebugging();
 
 		void SendStepEvent();
+		void SendBreakpointEvent();
 
 		void Terminate();
 

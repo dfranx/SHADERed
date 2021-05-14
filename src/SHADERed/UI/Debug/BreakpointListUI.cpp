@@ -37,8 +37,8 @@ namespace ed {
 					const dbg::Breakpoint& b = bkpt.second[i];
 					isEnabled = bkptStates[bkpt.first][i];
 					if (ImGui::Checkbox("##bkpt_state", &isEnabled)) {
-						m_data->Debugger.SetBreakpointEnabled(bkpt.first, b.Line, isEnabled);
-						TextEditor* textEd = ((CodeEditorUI*)m_ui->Get(ViewID::Code))->Get(bkpt.first);
+						m_data->Debugger.SetBreakpointEnabled(std::filesystem::absolute(bkpt.first).generic_u8string(), b.Line, isEnabled);
+						TextEditor* textEd = ((CodeEditorUI*)m_ui->Get(ViewID::Code))->Get(std::filesystem::absolute(bkpt.first).generic_u8string());
 						if (textEd != nullptr)
 							textEd->SetBreakpointEnabled(b.Line, isEnabled);
 					}

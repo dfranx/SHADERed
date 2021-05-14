@@ -26,7 +26,7 @@ namespace ed {
 		inline spvm_context_t GetVMContext() { return m_vmContext; }
 		inline spvm_ext_opcode_func* GetGLSLExtension() { return m_vmGLSL; }
 		inline int GetCurrentLine() { return m_shader->language == SpvSourceLanguageHLSL ? (m_vm->current_line - 1) : m_vm->current_line; }
-		inline bool IsVMRunning() { return m_vm->code_current != nullptr; }
+		inline bool IsVMRunning() { return m_vm != nullptr && m_vm->code_current != nullptr; }
 		inline void SetCurrentFile(const std::string& file) { m_file = file; }
 		inline const std::string& GetCurrentFile() { return m_file; }
 		inline const std::vector<int>& GetFunctionStackLines() { return m_funcStackLines; }
@@ -63,8 +63,8 @@ namespace ed {
 
 		void PrepareDebugger();
 
-		void Jump(int line);
-		void Continue();
+		bool Jump(int line);
+		bool Continue();
 		void Step();
 		void StepInto();
 		void StepOut();
@@ -103,6 +103,13 @@ namespace ed {
 		inline const std::vector<bool>& GetBreakpointStateList(const std::string& file) { return m_breakpointStates[file]; }
 		inline const std::unordered_map<std::string, std::vector<dbg::Breakpoint>>& GetBreakpointList() { return m_breakpoints; }
 		inline const std::unordered_map<std::string, std::vector<bool>>& GetBreakpointStateList() { return m_breakpointStates; }
+		inline void ClearBreakpointList(const std::string& file)
+		{
+			if (m_breakpoints.count(file))
+				m_breakpoints.erase(file);
+			if (m_breakpointStates.count(file))
+				m_breakpointStates.erase(file);
+		}
 		inline void ClearBreakpointList()
 		{
 			m_breakpoints.clear();
