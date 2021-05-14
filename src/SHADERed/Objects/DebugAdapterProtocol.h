@@ -49,6 +49,8 @@ namespace ed {
 		std::unique_ptr<dap::Session> m_session;
 		bool m_started;
 
+		bool m_sessionEnded, m_lastStep;
+
 		std::string m_path;
 		ShaderStage m_stage;
 

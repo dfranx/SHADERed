@@ -14,7 +14,6 @@
 #define DAP_ARGUMENTS_VAR_REF_ID 3
 #define DAP_CUSTOM_VAR_REF_ID 1000
 
-// step a single line after the last line so that results can be seen
 // show GS, TCS previews
 // clean up the code + remove some files from libs/cppdap and libs/json
 
@@ -103,8 +102,14 @@ namespace ed {
 		m_session->registerHandler([&](const dap::ThreadsRequest& req) {
 			dap::ThreadsResponse response;
 
-			if (!m_debugger->IsVMRunning())
-				return response;
+			if (!m_debugger->IsVMRunning()) {
+				if (m_sessionEnded)
+					m_lastStep = true;
+				m_sessionEnded = true;
+
+				if (m_lastStep && m_sessionEnded)
+					return response;
+			}
 
 			// this is called on each step AFAIK, update the variable list here
 			m_updateVariableList();
@@ -388,6 +393,8 @@ namespace ed {
 
 		m_path = path;
 		m_stage = stage;
+		m_sessionEnded = false;
+		m_lastStep = false;
 
 		if (m_debugger->GetSPIRV().size() > 0)
 			m_parser.Parse(m_debugger->GetSPIRV(), false);
