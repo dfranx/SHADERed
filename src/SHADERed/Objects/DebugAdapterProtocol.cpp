@@ -14,7 +14,6 @@
 #define DAP_ARGUMENTS_VAR_REF_ID 3
 #define DAP_CUSTOM_VAR_REF_ID 1000
 
-// test HLSL
 // step a single line after the last line so that results can be seen
 // show GS, TCS previews
 // clean up the code + remove some files from libs/cppdap and libs/json
@@ -278,6 +277,8 @@ namespace ed {
 
 			this->SendStepEvent();
 
+			DebugMessage = "New line: " + std::to_string(m_debugger->GetCurrentLine());
+
 			return dap::NextResponse();
 		});
 
@@ -440,15 +441,27 @@ namespace ed {
 
 		for (int i = vm->function_stack_current; i >= 0; i--) {
 			spvm_result_t func = vm->function_stack_info[i];
-			if (func->name && func->name[0] != '@') {
+			if (!(vm->owner->language == SpvSourceLanguageHLSL && i == 0)) {
 				std::string fname(func->name);
+				if (fname.size() > 0 && fname[0] == '@') // clean up the @main(
+					fname = fname.substr(1);
 				size_t parenth = fname.find('(');
 				if (parenth != std::string::npos)
 					fname = fname.substr(0, parenth);
 
+				int line = 0;
+				if (i >= lines.size())
+					line = vm->current_line;
+				else
+					line = lines[i];
+
+				if (vm->owner->language == SpvSourceLanguageHLSL)
+					line--;
+
+
 				StackFrame frame;
-				frame.ID = i + 1;
-				frame.Line = lines[i];
+				frame.ID = i;
+				frame.Line = line;
 				frame.Name = fname;
 				frame.RealName = func->name;
 				m_stack.push_back(frame);

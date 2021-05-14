@@ -1,3 +1,6 @@
+[v1.5.3]
++ fix a bug where "Function Stack" window would display wrong line numbers while debugging HLSL
+
 [v1.5.2]
 + fix a critical bug that would cause SHADERed to not store proper texture paths in project files
 + fix a bug that would cause SHADERed to crash on creating cubemaps

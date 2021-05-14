@@ -7,20 +7,29 @@ namespace ed {
 		m_stack.clear();
 		spvm_state_t vm = m_data->Debugger.GetVM();
 		
-		if (vm->function_stack_info == nullptr)
+		if (vm && vm->function_stack_info == nullptr)
 			return;
 
 		const std::vector<int>& lines = m_data->Debugger.GetFunctionStackLines();
 
 		for (int i = vm->function_stack_current; i >= 0; i--) {
 			spvm_result_t func = vm->function_stack_info[i];
-			if (func->name && func->name[0] != '@') {
+			if (!(vm->owner->language == SpvSourceLanguageHLSL && i == 0)) {
 				std::string fname(func->name);
+				if (fname.size() > 0 && fname[0] == '@') // clean up the @main(
+					fname = fname.substr(1);
 				size_t parenth = fname.find('(');
 				if (parenth != std::string::npos)
 					fname = fname.substr(0, parenth);
 
-				m_stack.push_back(fname + " @ line " + std::to_string(lines[i]));
+				int line = 0;
+				if (i >= lines.size()) line = vm->current_line;
+				else line = lines[i];
+
+				if (vm->owner->language == SpvSourceLanguageHLSL)
+					line--;
+
+				m_stack.push_back(fname + " @ line " + std::to_string(line));
 			}
 		}
 	}
