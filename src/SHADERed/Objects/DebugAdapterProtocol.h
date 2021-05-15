@@ -5,9 +5,11 @@
 
 namespace dap { class Session; }
 namespace ed {
+	class GUIManager;
+
 	class DebugAdapterProtocol {
 	public:
-		DebugAdapterProtocol(DebugInformation* dbgr, bool* run);
+		DebugAdapterProtocol(DebugInformation* dbgr, GUIManager* gui, bool* run);
 		~DebugAdapterProtocol();
 
 		void Initialize();
@@ -21,8 +23,6 @@ namespace ed {
 		void Terminate();
 
 		inline bool IsStarted() { return m_started; }
-
-		std::string DebugMessage;
 
 		struct VariableValue {
 			int64_t ID;
@@ -41,6 +41,7 @@ namespace ed {
 		};
 
 	private:
+		GUIManager* m_ui;
 		DebugInformation* m_debugger;
 		bool* m_run;
 

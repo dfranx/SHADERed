@@ -48,7 +48,7 @@ namespace ed {
 			, Parser(&Pipeline, &Objects, &Renderer, &Plugins, &Messages, &Debugger, gui)
 			, Debugger(&Objects, &Renderer, &Messages)
 			, Analysis(&Debugger, &Renderer, &Pipeline, &Objects, &Messages)
-			, DAP(&Debugger, &Run)
+			, DAP(&Debugger, gui, &Run)
 	{
 		m_ui = gui;
 	}

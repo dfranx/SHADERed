@@ -672,7 +672,7 @@ namespace ed {
 
 		// auto pause in DAP mode
 		m_mouseHovers = ImGui::IsItemHovered();
-		if (m_data->DAP.IsStarted()) {
+		if (m_data->DAP.IsStarted() && m_mouseHovers) {
 			if (!paused) {
 				if (((ImGui::IsMouseClicked(0) && !settings.Preview.SwitchLeftRightClick) || (ImGui::IsMouseClicked(1) && settings.Preview.SwitchLeftRightClick)) && !ImGui::GetIO().KeyAlt) {
 					m_pause();

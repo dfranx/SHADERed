@@ -2,6 +2,8 @@
 #include <dap/protocol.h>
 #include <dap/session.h>
 #include <SHADERed/Objects/DebugAdapterProtocol.h>
+#include <SHADERed/GUIManager.h>
+#include <SHADERed/UI/Debug/TessellationControlOutputUI.h>
 
 #ifdef _WIN32
 #include <fcntl.h>
@@ -14,7 +16,6 @@
 #define DAP_ARGUMENTS_VAR_REF_ID 3
 #define DAP_CUSTOM_VAR_REF_ID 1000
 
-// show GS, TCS previews
 // clean up the code + remove some files from libs/cppdap and libs/json
 
 namespace ed {
@@ -28,11 +29,11 @@ namespace ed {
 		return ret;
 	}
 
-	DebugAdapterProtocol::DebugAdapterProtocol(DebugInformation* dbgr, bool* run)
+	DebugAdapterProtocol::DebugAdapterProtocol(DebugInformation* dbgr, GUIManager* gui, bool* run)
 	{
 		m_debugger = dbgr;
 		m_started = false;
-		DebugMessage = "";
+		m_ui = gui;
 
 		m_run = run;
 	}
@@ -230,7 +231,6 @@ namespace ed {
 			} else {
 				for (VariableValue* data : m_values) {
 					if (data->ID == req.variablesReference) {
-						DebugMessage = "Found custom VAR_REF_ID " + data->Name;
 						for (VariableValue* child : data->Children)
 							response.variables.push_back(m_convertVariable(child));
 						break;
@@ -281,8 +281,6 @@ namespace ed {
 			m_debugger->Step();
 
 			this->SendStepEvent();
-
-			DebugMessage = "New line: " + std::to_string(m_debugger->GetCurrentLine());
 
 			return dap::NextResponse();
 		});
@@ -359,9 +357,11 @@ namespace ed {
 
 			auto breakpoints = req.breakpoints.value({});
 			std::string path = std::filesystem::absolute(req.source.path.value("")).generic_u8string();
+
+#ifdef _WIN32
 			if (path.size() > 0 && islower(path[0])) // hax
 				path[0] = toupper(path[0]);
-
+#endif
 			m_debugger->ClearBreakpointList(path);
 
 			res.breakpoints.resize(breakpoints.size());
@@ -405,6 +405,9 @@ namespace ed {
 		event.reason = "step";
 		event.threadId = DAP_THREAD_ID;
 		m_session->send(event);
+
+		if (m_debugger->IsDebugging() && m_debugger->GetStage() == ShaderStage::TessellationControl)
+			((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 	}
 	void DebugAdapterProtocol::SendBreakpointEvent()
 	{
@@ -412,6 +415,9 @@ namespace ed {
 		event.reason = "breakpoint";
 		event.threadId = DAP_THREAD_ID;
 		m_session->send(event);
+
+		if (m_debugger->IsDebugging() && m_debugger->GetStage() == ShaderStage::TessellationControl)
+			((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 	}
 	void DebugAdapterProtocol::StopDebugging()
 	{

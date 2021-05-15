@@ -988,7 +988,7 @@ namespace ed {
 
 		// DAP host mode
 		if (m_minimalMode && m_data->DAP.IsStarted())
-			m_renderDAPMode();
+			m_renderDAPMode(delta);
 
 		if (!m_performanceMode && !m_minimalMode && !m_focusMode) {
 			m_data->Plugins.Update(delta);
@@ -1619,19 +1619,56 @@ namespace ed {
 		codeEditor->DrawTextEditor(name, editor);
 	}
 
-	void GUIManager::m_renderDAPMode()
+	void GUIManager::m_renderDAPMode(float delta)
 	{
+		// PIXEL INSPECT //
 		ImGui::SetNextWindowPos(ImVec2(m_width - 310, m_height - 420));
 		ImGui::SetNextWindowSize(ImVec2(280, 390), ImGuiCond_Always);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, 0xB5000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
-		ImGui::Begin("##focus_container", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, 0x55000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+		ImGui::Begin("##dap_wnd_pixelinsp", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-		ImGui::Text("[DEBUG] %s", m_data->DAP.DebugMessage.c_str());
-
-		Get(ViewID::PixelInspect)->Update(0.0f); // is delta necessary for the PixelInspect window?
+		Get(ViewID::PixelInspect)->Update(delta); // is delta necessary for the PixelInspect window?
 
 		ImGui::End();
-		ImGui::PopStyleColor();
+		ImGui::PopStyleColor(2);
+
+
+		
+		if (m_data->Debugger.IsDebugging()) {
+			// GS OUTPUT WINDOW //
+			if (m_data->Debugger.GetStage() == ShaderStage::Geometry) {
+				float gsWidth = (m_width / (float)m_height) * 390.0f;
+
+				ImGui::SetNextWindowPos(ImVec2(m_width - 310 - 30 - gsWidth, m_height - 420));
+				ImGui::SetNextWindowSize(ImVec2(gsWidth, 390), ImGuiCond_Always);
+				ImGui::PushStyleColor(ImGuiCol_WindowBg, 0xB5000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, 0x55000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+				ImGui::Begin("##dap_wnd_gsoutput", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+				Get(ViewID::DebugGeometryOutput)->Update(delta);
+
+				ImGui::End();
+				ImGui::PopStyleColor(2);
+			}
+
+
+			// TS CONTROL OUTPUT //
+			else if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl) {
+				float tsWidth = 280;
+
+				ImGui::SetNextWindowPos(ImVec2(m_width - 310 - 30 - tsWidth, m_height - 420));
+				ImGui::SetNextWindowSize(ImVec2(tsWidth, 390), ImGuiCond_Always);
+				ImGui::PushStyleColor(ImGuiCol_WindowBg, 0xB5000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, 0x55000000 | (ImGui::GetColorU32(ImGuiCol_WindowBg) & 0x00FFFFFF));
+				ImGui::Begin("##dap_wnd_tcsoutput", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+				Get(ViewID::DebugTessControlOutput)->Update(delta); // TODO: doesn't work for some reason
+
+				ImGui::End();
+				ImGui::PopStyleColor(2);
+			}
+		}
 	}
 
 	UIView* GUIManager::Get(ViewID view)

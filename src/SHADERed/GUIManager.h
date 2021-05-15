@@ -141,7 +141,7 @@ namespace ed {
 		void m_renderFocusMode();
 		void m_renderTextEditorFocusMode(const std::string& name, void* item, ShaderStage stage);
 
-		void m_renderDAPMode();
+		void m_renderDAPMode(float delta);
 
 		bool m_cacheProjectModified;
 		bool m_recompiledAll;
