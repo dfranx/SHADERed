@@ -1029,7 +1029,7 @@ namespace ed {
 	}
 	std::string ProjectParser::GetProjectPath(const std::string& to)
 	{
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__APPLE__)
 		std::filesystem::path fTo(to);
 		if (fTo.is_absolute()) // TODO: from.root_path == to.root_path check? or nah?
 			return to;
