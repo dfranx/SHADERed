@@ -65,10 +65,13 @@ Gizmo.Rotation CTRL G R
 Gizmo.Scale CTRL G S
 Preview.Delete Delete
 Preview.Duplicate SHIFT D
+Preview.DecreaseTime CTRL Left
+Preview.DecreaseTimeFast CTRL SHIFT Left
 Preview.IncreaseTime CTRL Right
 Preview.IncreaseTimeFast CTRL SHIFT Right
 Preview.SaveImage CTRL R
 Preview.SelectAll SHIFT A
+Preview.ResetTime Backspace
 Preview.TogglePause Space
 Preview.ToggleStatusbar CTRL SHIFT F3
 Preview.Unselect CTRL SHIFT Delete
