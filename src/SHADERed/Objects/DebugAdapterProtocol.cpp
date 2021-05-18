@@ -17,6 +17,7 @@
 #define DAP_CUSTOM_VAR_REF_ID 1000
 
 // clean up the code + remove some files from libs/cppdap and libs/json
+// readme, videos, push the extension to vscode store, blog post
 
 namespace ed {
 	dap::Variable m_convertVariable(DebugAdapterProtocol::VariableValue* var)

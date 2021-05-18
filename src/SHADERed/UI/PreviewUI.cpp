@@ -1114,7 +1114,7 @@ namespace ed {
 		else
 			ImGui::SetCursorPosX(pauseStartX);
 
-
+		
 		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) 
