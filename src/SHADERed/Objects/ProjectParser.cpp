@@ -1029,13 +1029,12 @@ namespace ed {
 	}
 	std::string ProjectParser::GetProjectPath(const std::string& to)
 	{
-#if defined(_WIN32)
-		std::filesystem::path fTo(to);
-		if (fTo.is_absolute()) // TODO: from.root_path == to.root_path check? or nah?
-			return to;
-#endif
+		std::filesystem::path fTo = std::filesystem::u8path(to);
 
-		return std::filesystem::path(m_projectPath + ((m_projectPath[m_projectPath.size() - 1] == '/') ? "" : "/") + to).generic_string();
+		if (!fTo.is_absolute())
+			fTo = std::filesystem::u8path(m_projectPath) / fTo;
+		
+		return fTo.generic_string();
 	}
 	bool ProjectParser::FileExists(const std::string& str)
 	{
