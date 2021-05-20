@@ -1,4 +1,6 @@
 [v1.5.3]
++ add Debug Adapter Protocol
++ fix a bug that would sometimes cause SHADERed to concat two absolute paths
 + fix a bug where "Function Stack" window would display wrong line numbers while debugging HLSL
 
 [v1.5.2]
