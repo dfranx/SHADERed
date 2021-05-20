@@ -29,14 +29,28 @@ you will be able to:
 * see list of all variables and their values
 * hover over expressions and see their value
 
-<img src="./Misc/Screenshots/debugger.gif">
+![Debugging a shader](./Misc/Screenshots/debugger.gif)
 
 With SHADERed, you can debug vertex, geometry, tessellation control, pixel and compute shaders.
+
+Thanks to SHADERed, you can now also debug shaders in Visual Studio Code with an extension. Read more about this in the blog post: [https://shadered.org/blog?id=9](https://shadered.org/blog?id=9).
+
+### Frame analyzer
+Besides debugging your shader line-by-line, SHADERed also lets you find bugs and errors visually.
+After you run the frame analyzer, you will be able to:
+* detect undefined behavior
+* see variable's value throughout the whole frame
+* global breakpoints (color a pixel that meets a certain condition)
+* SPIR-V instruction heatmap
+
+![Analyzing a frame](./Misc/Screenshots/UndefinedBehavior.png)
 
 ### Compute & geometry shaders
 You are not limited to vertex and pixel shaders. SHADERed also supports compute & geometry
 shaders. You can create advanced animations and effects with these two shader stages:
-<img src="./Misc/Screenshots/computesh.gif">
+
+![Compute shaders and buffers](./Misc/Screenshots/computesh.gif)
+
 
 ### Plugin API
 You can develop custom SHADERed plugins and upload them to [SHADERed store](https://shadered.org/addons) so that they can be installed through SHADERed.
@@ -51,8 +65,11 @@ To see the plugin API's potential, check out these plugins:
 * [Terminal](https://shadered.org/plugin?id=Terminal) - open terminal windows in SHADERed
 
 ### See changes instantly
-SHADERed can compile your shaders while you write  the code. This way you can see your changes instantly. SHADERed also works nicely with external text editors (such as VS Code) - it will recompile the shaders if it has been modified by some external program.
-<img src="./Misc/Screenshots/instantresult.gif">
+SHADERed can compile your shaders while you write the code.
+This way you can see your changes instantly.
+SHADERed also works nicely with external text editors (such as VS Code) - it will recompile the shaders that were modified by some external program.
+
+![Instant preview as you write your shader](./Misc/Screenshots/instantresult.gif)
 
 ### Other features
 SHADERed has lots of features that let you achieve effects like in no other shader editor. Features are also being added rapidly. Here are some of the feature:
@@ -64,7 +81,8 @@ SHADERed has lots of features that let you achieve effects like in no other shad
 * render textures (easily build G-Buffer)
 * buffers
 * instancing
-* camera system
+* profiling
+* multi-camera system
 * audio shaders (generate music on GPU)
 * custom variables & powerful variable system
 * zooming in on the preview window
