@@ -12,9 +12,6 @@
 #include <common/BinaryVectorWriter.h>
 #include <spvgentwo/Templates.h>
 
-#include <spirv-tools/libspirv.h>
-#include <spirv-tools/optimizer.hpp>
-
 namespace ed {
 	template <typename U32Vector>
 	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
@@ -840,11 +837,6 @@ namespace ed {
 
 		if (failed)
 			return nullptr;
-
-		std::string disassembly = "";
-		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
-		bool disResult = core.Disassemble(newSPV, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
-		printf("%s\n\n", disassembly.c_str());
 
 		std::string newGLSL = ed::ShaderCompiler::ConvertToGLSL(newSPV, ed::ShaderLanguage::GLSL, ed::ShaderStage::Pixel, passData->TSUsed, passData->GSUsed, nullptr, false);
 		
