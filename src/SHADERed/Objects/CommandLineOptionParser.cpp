@@ -261,12 +261,12 @@ namespace ed {
 					disPath = argv[i + 1];
 					i++;
 
-					if (spvgentwo::BinaryFileReader reader(disPath.c_str()); reader.isOpen()) {
-						spvgentwo::HeapAllocator alloc;
-						spvgentwo::Module module(&alloc, spvgentwo::spv::Version);
+					spvgentwo::HeapAllocator alloc;
+					if (spvgentwo::BinaryFileReader reader(alloc, disPath.c_str()); reader.operator bool()) {
+						spvgentwo::Module module(&alloc);
 						spvgentwo::Grammar gram(&alloc);
 
-						if (!module.read(&reader, gram))
+						if (!module.read(reader, gram))
 							return;
 
 						if (!module.resolveIDs())

@@ -764,7 +764,7 @@ namespace ed {
 			}
 
 
-			if (func.getReturnType()->getType()->isVoid()) {
+			if (func.getReturnType().isVoid()) {
 				bb->opStore(outputInstruction, newValue);
 				bb->opReturn();
 			} else
@@ -784,13 +784,13 @@ namespace ed {
 
 		spvgentwo::HeapAllocator* allocator = new spvgentwo::HeapAllocator();
 		spvgentwo::Grammar* grammar = new spvgentwo::Grammar(allocator);
-		spvgentwo::Module* module = new spvgentwo::Module(allocator, spvgentwo::spv::Version);
+		spvgentwo::Module* module = new spvgentwo::Module(allocator);
 
 
 		SPIRVBinaryVectorReader reader(oldSPV);
 
 		module->reset();
-		module->read(&reader, *grammar);
+		module->read(reader, *grammar);
 		module->resolveIDs();
 		module->reconstructTypeAndConstantInfo();
 		module->reconstructNames();
@@ -829,7 +829,7 @@ namespace ed {
 
 		std::vector<unsigned int> newSPV;
 		spvgentwo::BinaryVectorWriter writer(newSPV);
-		module->write(&writer);
+		module->write(writer);
 
 		bool failed = false;
 		//(outputInstruction == nullptr || inputInstruction == nullptr);

@@ -33,7 +33,7 @@ namespace ed {
 
 		m_allocator = new spvgentwo::HeapAllocator();
 		m_grammar = new spvgentwo::Grammar(m_allocator);
-		m_module = new spvgentwo::Module(m_allocator, spvgentwo::spv::Version);
+		m_module = new spvgentwo::Module(m_allocator);
 	}
 	ExpressionCompiler::~ExpressionCompiler()
 	{
@@ -46,7 +46,7 @@ namespace ed {
 		BinaryVectorReader reader(spv);
 
 		m_module->reset();
-		m_module->read(&reader, *m_grammar);
+		m_module->read(reader, *m_grammar);
 		m_module->resolveIDs();
 		m_module->reconstructTypeAndConstantInfo();
 		m_module->reconstructNames();
@@ -191,7 +191,7 @@ namespace ed {
 		// output spirv
 		outSPV.clear();
 		spvgentwo::BinaryVectorWriter writer(outSPV);
-		m_module->write(&writer);
+		m_module->write(writer);
 	}
 	std::vector<std::string> ExpressionCompiler::GetVariableList()
 	{
