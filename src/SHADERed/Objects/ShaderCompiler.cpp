@@ -9,11 +9,19 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
+
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
 #include <glslang/glslang/Public/ShaderLang.h>
+
 #include <SPIRVCross/spirv_cross_util.hpp>
 #include <SPIRVCross/spirv_glsl.hpp>
+
+#include <spvgentwo/Module.h>
+#include <spvgentwo/Grammar.h>
+#include <common/HeapAllocator.h>
+#include <common/BinaryFileReader.h>
+#include <common/ModulePrinter.h>
 
 const TBuiltInResource DefaultTBuiltInResource = {
 	/* .MaxLights = */ 32,
@@ -537,5 +545,71 @@ namespace ed {
 				return ShaderLanguage::Plugin;
 
 		return ShaderLanguage::GLSL;
+	}
+
+	
+
+	class BinaryVectorReader : public spvgentwo::IReader {
+	public:
+		BinaryVectorReader(std::vector<unsigned int>& spv)
+		{
+			m_spv = &spv;
+		}
+		bool get(unsigned int& _word) 
+		{
+			if (m_spv && m_pos < m_spv->size()) {
+				_word = m_spv->at(m_pos++);
+				return true;
+			}
+			return false;
+		}
+	private:
+		std::vector<unsigned int>* m_spv;
+		spvgentwo::sgt_size_t m_pos = 0u;
+	};
+	bool ShaderCompiler::DisassembleSPIRV(spvgentwo::IReader& reader, spvgentwo::String& out, spvgentwo::HeapAllocator& alloc, bool useColorCodes)
+	{
+		spvgentwo::Module module(&alloc);
+		spvgentwo::Grammar gram(&alloc);
+
+		if (!module.read(reader, gram))
+			return false;
+
+		if (!module.resolveIDs())
+			return false;
+
+		if (!module.reconstructTypeAndConstantInfo())
+			return false;
+
+		if (!module.reconstructNames())
+			return false;
+
+		spvgentwo::ModulePrinter::ModuleStringPrinter printer(out, useColorCodes);
+		spvgentwo::ModulePrinter::printModule(module, gram, printer);
+		
+		return true;
+	}
+	bool ShaderCompiler::DisassembleSPIRV(std::vector<unsigned int>& spv, std::string& out, bool useColorCodes)
+	{
+		BinaryVectorReader reader(spv);
+
+		spvgentwo::HeapAllocator alloc;
+		spvgentwo::String buffer(&alloc);
+
+		bool ret = ShaderCompiler::DisassembleSPIRV(reader, buffer, alloc, useColorCodes);
+		if (ret)
+			out = std::string(buffer.c_str());
+		return ret;
+	}
+	bool ShaderCompiler::DisassembleSPIRVFromFile(const std::string& filename, std::string& out, bool useColorCodes)
+	{
+		spvgentwo::HeapAllocator alloc;
+		spvgentwo::BinaryFileReader reader(alloc, filename.c_str());
+		spvgentwo::String buffer(&alloc);
+
+		bool ret = ShaderCompiler::DisassembleSPIRV(reader, buffer, alloc, useColorCodes);
+		if (ret)
+			out = std::string(buffer.c_str());
+		return ret;
 	}
 }

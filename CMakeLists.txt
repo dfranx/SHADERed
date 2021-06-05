@@ -174,14 +174,6 @@ add_subdirectory(libs/assimp)
 set(SPIRV_HEADERS_SKIP_EXAMPLES ON CACHE BOOL "Skip example" FORCE)
 add_subdirectory(libs/spirv-headers)
 
-# spirv-tools
-set(SPIRV_BUILD_FUZZER OFF CACHE BOOL "Build the spirv-fuzz tool" FORCE)
-set(SPIRV_COLOR_TERMINAL OFF CACHE BOOL "Enables color console output" FORCE)
-set(SPIRV_SKIP_TESTS ON CACHE BOOL "Build only the library and the command line tools" FORCE)
-set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "Build only the library" FORCE)
-set(SPIRV_WERROR OFF CACHE BOOL "Forces a compilation error on any warnings encountered" FORCE)
-add_subdirectory(libs/spirv-tools)
-
 # glslang
 set(ENABLE_SPVREMAPPER OFF CACHE BOOL "Enables building of SPVRemapper" FORCE)
 set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "Builds glslangValidator and spirv-remap" FORCE)
@@ -216,7 +208,7 @@ set_target_properties(SHADERed PROPERTIES
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include libs/spirv-tools/include)
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()

@@ -1,9 +1,8 @@
 #include <SHADERed/UI/Tools/StatsPage.h>
 #include <SHADERed/Objects/ThemeContainer.h>
+#include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/Settings.h>
 #include <imgui/imgui.h>
-#include <spirv-tools/libspirv.h>
-#include <spirv-tools/optimizer.hpp>
 #include <sstream>
 
 namespace ed {
@@ -36,7 +35,6 @@ namespace ed {
 			return;
 
 		std::string disassembly = "";
-		spvtools::SpirvTools core(SPV_ENV_UNIVERSAL_1_3);
 
 		if (item->Type == PipelineItem::ItemType::ShaderPass) {
 			pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
@@ -65,9 +63,9 @@ namespace ed {
 		}
 
 		if (!m_spv.empty()) {
-			bool disResult = core.Disassemble(m_spv, &disassembly, SPV_BINARY_TO_TEXT_OPTION_INDENT | SPV_BINARY_TO_TEXT_OPTION_FRIENDLY_NAMES);
+			bool res = ShaderCompiler::DisassembleSPIRV(m_spv, disassembly);
 
-			if (disResult)
+			if (res)
 				m_parse(disassembly);
 
 			m_info.Parse(m_spv);

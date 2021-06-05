@@ -20,10 +20,6 @@
 	path = libs/SPIRV-VM
 	url = https://github.com/dfranx/SPIRV-VM.git
 	ignore = dirty
-[submodule "libs/spirv-tools"]
-	path = libs/spirv-tools
-	url = https://github.com/KhronosGroup/SPIRV-Tools.git
-	ignore = dirty
 [submodule "libs/spirv-headers"]
 	path = libs/spirv-headers
 	url = https://github.com/KhronosGroup/SPIRV-Headers

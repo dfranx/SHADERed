@@ -261,29 +261,12 @@ namespace ed {
 					disPath = argv[i + 1];
 					i++;
 
-					spvgentwo::HeapAllocator alloc;
-					if (spvgentwo::BinaryFileReader reader(alloc, disPath.c_str()); reader.operator bool()) {
-						spvgentwo::Module module(&alloc);
-						spvgentwo::Grammar gram(&alloc);
-
-						if (!module.read(reader, gram))
-							return;
-
-						if (!module.resolveIDs())
-							return;
-
-						if (!module.reconstructTypeAndConstantInfo())
-							return;
-
-						if (!module.reconstructNames())
-							return;
-						
-						spvgentwo::String buffer(&alloc, 2048u);
-						spvgentwo::ModulePrinter::ModuleStringPrinter printer(buffer, true);
-						spvgentwo::ModulePrinter::printModule(module, gram, printer);
-
-						printf("%s", buffer.c_str());
-					}
+					std::string disassembly;
+					bool res = ShaderCompiler::DisassembleSPIRVFromFile(disPath, disassembly, true);
+					if (res)
+						printf("%s\n", disassembly.c_str());
+					else
+						printf("Failed to disassemble \"%s\"\n", disPath.c_str());
 				}
 			}
 			// --convert, -con [file]
