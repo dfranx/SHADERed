@@ -139,6 +139,28 @@ namespace ed {
 				m_picks.clear();
 			}
 		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.DecreaseTime", [=]() {
+			if (!m_data->Renderer.IsPaused())
+				return;
+
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+
+			SystemVariableManager::Instance().AdvanceTimer(-deltaTime);
+			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() - 1);
+
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.DecreaseTimeFast", [=]() {
+			if (!m_data->Renderer.IsPaused())
+				return;
+
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+
+			SystemVariableManager::Instance().AdvanceTimer(-0.1f);
+			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() - 0.1f / deltaTime);
+
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
+		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.IncreaseTime", [=]() {
 			if (!m_data->Renderer.IsPaused())
 				return;
@@ -160,6 +182,12 @@ namespace ed {
 			SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() + 0.1f / deltaTime); // add estimated number of frames
 
 			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
+		});
+		KeyboardShortcuts::Instance().SetCallback("Preview.ResetTime", [=]() {
+			SystemVariableManager::Instance().Reset();
+
+			if (m_data->Renderer.IsPaused())
+				m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
 		});
 		KeyboardShortcuts::Instance().SetCallback("Preview.TogglePause", [=]() {
 			m_pause();
@@ -1108,16 +1136,41 @@ namespace ed {
 			ImGui::SameLine();
 		}
 
-		float pauseStartX = (width - ((ICON_BUTTON_WIDTH * 2) + (BUTTON_INDENT * 1))) / 2;
-		if (ImGui::GetCursorPosX() >= pauseStartX - 100)
+		float controlsStartX = (width - ((ICON_BUTTON_WIDTH * 4) + (BUTTON_INDENT * 3))) / 2;
+		if (ImGui::GetCursorPosX() >= controlsStartX - 100)
 			ImGui::SameLine();
 		else
-			ImGui::SetCursorPosX(pauseStartX);
+			ImGui::SetCursorPosX(controlsStartX);
 
 		
-		/* PAUSE BUTTON */
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) 
+
+		if (ImGui::Button(UI_ICON_PRESS, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)) && m_data->Renderer.IsPaused()) {
+			float deltaTime = SystemVariableManager::Instance().GetTimeDelta();
+
+			if (ImGui::GetIO().KeyCtrl) {
+				SystemVariableManager::Instance().AdvanceTimer(-deltaTime);
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() - 1);
+			} else {
+				SystemVariableManager::Instance().AdvanceTimer(-0.1f);
+				SystemVariableManager::Instance().SetFrameIndex(SystemVariableManager::Instance().GetFrameIndex() - 0.1f / deltaTime);
+			}
+
+			m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
+		}
+
+		/* RESET TIME BUTTON */
+		ImGui::SameLine();
+		if (ImGui::Button(UI_ICON_UNDO, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE))) {
+			SystemVariableManager::Instance().Reset();
+
+			if (m_data->Renderer.IsPaused())
+				m_data->Renderer.Render(m_imgSize.x, m_imgSize.y);
+		}
+
+		/* PAUSE BUTTON */
+		ImGui::SameLine();
+		if (ImGui::Button(m_data->Renderer.IsPaused() ? UI_ICON_PLAY : UI_ICON_PAUSE, ImVec2(ICON_BUTTON_WIDTH, BUTTON_SIZE)))
 			m_pause();
 
 		ImGui::SameLine(0, BUTTON_INDENT);
