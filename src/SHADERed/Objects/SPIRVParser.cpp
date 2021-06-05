@@ -1,5 +1,5 @@
 #include <SHADERed/Objects/SPIRVParser.h>
-#include <spirv/unified1/spirv.hpp>
+#include <spvgentwo/Spv.h>
 #include <unordered_map>
 #include <functional>
 
@@ -73,24 +73,24 @@ namespace ed {
 			int iStart = i;
 			spv_word opcodeData = ir[i];
 
-			spv_word wordCount = ((opcodeData & (~spv::OpCodeMask)) >> spv::WordCountShift) - 1;
-			spv_word opcode = (opcodeData & spv::OpCodeMask);
+			spv_word wordCount = ((opcodeData & (~spvgentwo::spv::OpCodeMask)) >> spvgentwo::spv::WordCountShift) - 1;
+			spvgentwo::spv::Op opcode = (spvgentwo::spv::Op)(opcodeData & spvgentwo::spv::OpCodeMask);
 
 			switch (opcode) {
-			case spv::OpName: {
+			case spvgentwo::spv::Op::OpName: {
 				spv_word loc = ir[++i];
 				spv_word stringLength = wordCount - 1;
 
 				names[loc] = spvReadString(ir.data(), stringLength, ++i);
 			} break;
-			case spv::OpLine: {
+			case spvgentwo::spv::Op::OpLine: {
 				++i; // skip file
 				lastOpLine = ir[++i];
 
 				if (!curFunc.empty() && Functions[curFunc].LineStart == -1)
 					Functions[curFunc].LineStart = lastOpLine;
 			} break;
-			case spv::OpTypeStruct: {
+			case spvgentwo::spv::Op::OpTypeStruct: {
 				spv_word loc = ir[++i];
 
 				spv_word memCount = wordCount - 1;
@@ -112,7 +112,7 @@ namespace ed {
 
 				types[loc] = std::make_pair(ValueType::Struct, loc);
 			} break;
-			case spv::OpMemberName: {
+			case spvgentwo::spv::Op::OpMemberName: {
 				spv_word owner = ir[++i];
 				spv_word index = ir[++i]; // index
 
@@ -127,7 +127,7 @@ namespace ed {
 					typeInfo[index].Name = spvReadString(ir.data(), stringLength, ++i);
 				}
 			} break;
-			case spv::OpFunction: {
+			case spvgentwo::spv::Op::OpFunction: {
 				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
@@ -142,20 +142,20 @@ namespace ed {
 				fetchType(Functions[curFunc].ReturnType, type);
 				Functions[curFunc].LineStart = -1;
 			} break;
-			case spv::OpFunctionEnd: {
+			case spvgentwo::spv::Op::OpFunctionEnd: {
 				Functions[curFunc].LineEnd = lastOpLine;
 				lastOpLine = -1;
 				curFunc = "";
 			} break;
-			case spv::OpVariable: {
+			case spvgentwo::spv::Op::OpVariable: {
 				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
 				std::string varName = names[loc];
 
 				if (curFunc.empty()) {
-					spv::StorageClass sType = (spv::StorageClass)ir[++i];
-					if (sType == spv::StorageClassUniform || sType == spv::StorageClassUniformConstant) {
+					spvgentwo::spv::StorageClass sType = (spvgentwo::spv::StorageClass)ir[++i];
+					if (sType == spvgentwo::spv::StorageClass::Uniform || sType == spvgentwo::spv::StorageClass::UniformConstant) {
 						Variable uni;
 						uni.Name = varName;
 						fetchType(uni, type);
@@ -182,7 +182,7 @@ namespace ed {
 					Functions[curFunc].Locals.push_back(loc);
 				}
 			} break;
-			case spv::OpFunctionParameter: {
+			case spvgentwo::spv::Op::OpFunctionParameter: {
 				spv_word type = ir[++i];
 				spv_word loc = ir[++i];
 
@@ -191,26 +191,26 @@ namespace ed {
 				fetchType(arg, type);
 				Functions[curFunc].Arguments.push_back(arg);
 			} break;
-			case spv::OpTypePointer: {
+			case spvgentwo::spv::Op::OpTypePointer: {
 				spv_word loc = ir[++i];
 				++i; // skip storage class
 				spv_word type = ir[++i];
 
 				pointers[loc] = type;
 			} break;
-			case spv::OpTypeBool: {
+			case spvgentwo::spv::Op::OpTypeBool: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Bool, 0);
 			} break;
-			case spv::OpTypeInt: {
+			case spvgentwo::spv::Op::OpTypeInt: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Int, 0);
 			} break;
-			case spv::OpTypeFloat: {
+			case spvgentwo::spv::Op::OpTypeFloat: {
 				spv_word loc = ir[++i];
 				types[loc] = std::make_pair(ValueType::Float, 0);
 			} break;
-			case spv::OpTypeVector: {
+			case spvgentwo::spv::Op::OpTypeVector: {
 				spv_word loc = ir[++i];
 				spv_word comp = ir[++i];
 				spv_word compcount = ir[++i];
@@ -219,7 +219,7 @@ namespace ed {
 
 				types[loc] = std::make_pair(ValueType::Vector, val);
 			} break;
-			case spv::OpTypeMatrix: {
+			case spvgentwo::spv::Op::OpTypeMatrix: {
 				spv_word loc = ir[++i];
 				spv_word comp = ir[++i];
 				spv_word compcount = ir[++i];
@@ -228,119 +228,119 @@ namespace ed {
 
 				types[loc] = std::make_pair(ValueType::Matrix, val);
 			} break;
-			case spv::OpExecutionMode: {
+			case spvgentwo::spv::Op::OpExecutionMode: {
 				++i; // skip
-				spv_word execMode = ir[++i];
+				spvgentwo::spv::ExecutionMode execMode = (spvgentwo::spv::ExecutionMode)ir[++i];
 
-				if (execMode == spv::ExecutionMode::ExecutionModeLocalSize) {
+				if (execMode == spvgentwo::spv::ExecutionMode::LocalSize) {
 					LocalSizeX = ir[++i];
 					LocalSizeY = ir[++i];
 					LocalSizeZ = ir[++i];
 				}
 			} break;
 
-			case spv::OpControlBarrier:
-			case spv::OpMemoryBarrier:
-			case spv::OpNamedBarrierInitialize: {
+			case spvgentwo::spv::Op::OpControlBarrier:
+			case spvgentwo::spv::Op::OpMemoryBarrier:
+			case spvgentwo::spv::Op::OpNamedBarrierInitialize: {
 				BarrierUsed = true;
 			} break;
 
-			case spv::OpSNegate: case spv::OpFNegate:
-			case spv::OpIAdd: case spv::OpFAdd:
-			case spv::OpISub: case spv::OpFSub:
-			case spv::OpIMul: case spv::OpFMul:
-			case spv::OpUDiv: case spv::OpSDiv:
-			case spv::OpFDiv: case spv::OpUMod:
-			case spv::OpSRem: case spv::OpSMod:
-			case spv::OpFRem: case spv::OpFMod:
-			case spv::OpVectorTimesScalar:
-			case spv::OpMatrixTimesScalar:
-			case spv::OpVectorTimesMatrix:
-			case spv::OpMatrixTimesVector:
-			case spv::OpMatrixTimesMatrix:
-			case spv::OpOuterProduct:
-			case spv::OpDot:
-			case spv::OpIAddCarry:
-			case spv::OpISubBorrow:
-			case spv::OpUMulExtended:
-			case spv::OpSMulExtended:
+			case spvgentwo::spv::Op::OpSNegate: case spvgentwo::spv::Op::OpFNegate:
+			case spvgentwo::spv::Op::OpIAdd: case spvgentwo::spv::Op::OpFAdd:
+			case spvgentwo::spv::Op::OpISub: case spvgentwo::spv::Op::OpFSub:
+			case spvgentwo::spv::Op::OpIMul: case spvgentwo::spv::Op::OpFMul:
+			case spvgentwo::spv::Op::OpUDiv: case spvgentwo::spv::Op::OpSDiv:
+			case spvgentwo::spv::Op::OpFDiv: case spvgentwo::spv::Op::OpUMod:
+			case spvgentwo::spv::Op::OpSRem: case spvgentwo::spv::Op::OpSMod:
+			case spvgentwo::spv::Op::OpFRem: case spvgentwo::spv::Op::OpFMod:
+			case spvgentwo::spv::Op::OpVectorTimesScalar:
+			case spvgentwo::spv::Op::OpMatrixTimesScalar:
+			case spvgentwo::spv::Op::OpVectorTimesMatrix:
+			case spvgentwo::spv::Op::OpMatrixTimesVector:
+			case spvgentwo::spv::Op::OpMatrixTimesMatrix:
+			case spvgentwo::spv::Op::OpOuterProduct:
+			case spvgentwo::spv::Op::OpDot:
+			case spvgentwo::spv::Op::OpIAddCarry:
+			case spvgentwo::spv::Op::OpISubBorrow:
+			case spvgentwo::spv::Op::OpUMulExtended:
+			case spvgentwo::spv::Op::OpSMulExtended:
 				ArithmeticInstCount++;
 				break;
 
 				
-			case spv::OpShiftRightLogical:
-			case spv::OpShiftRightArithmetic:
-			case spv::OpShiftLeftLogical:
-			case spv::OpBitwiseOr:
-			case spv::OpBitwiseXor:
-			case spv::OpBitwiseAnd:
-			case spv::OpNot:
-			case spv::OpBitFieldInsert:
-			case spv::OpBitFieldSExtract:
-			case spv::OpBitFieldUExtract:
-			case spv::OpBitReverse:
-			case spv::OpBitCount:
+			case spvgentwo::spv::Op::OpShiftRightLogical:
+			case spvgentwo::spv::Op::OpShiftRightArithmetic:
+			case spvgentwo::spv::Op::OpShiftLeftLogical:
+			case spvgentwo::spv::Op::OpBitwiseOr:
+			case spvgentwo::spv::Op::OpBitwiseXor:
+			case spvgentwo::spv::Op::OpBitwiseAnd:
+			case spvgentwo::spv::Op::OpNot:
+			case spvgentwo::spv::Op::OpBitFieldInsert:
+			case spvgentwo::spv::Op::OpBitFieldSExtract:
+			case spvgentwo::spv::Op::OpBitFieldUExtract:
+			case spvgentwo::spv::Op::OpBitReverse:
+			case spvgentwo::spv::Op::OpBitCount:
 				BitInstCount++;
 				break;
 
-			case spv::OpAny: case spv::OpAll:
-			case spv::OpIsNan: case spv::OpIsInf:
-			case spv::OpIsFinite: case spv::OpIsNormal:
-			case spv::OpSignBitSet: case spv::OpLessOrGreater:
-			case spv::OpOrdered: case spv::OpUnordered:
-			case spv::OpLogicalEqual: case spv::OpLogicalNotEqual:
-			case spv::OpLogicalOr: case spv::OpLogicalAnd:
-			case spv::OpLogicalNot: case spv::OpSelect:
-			case spv::OpIEqual: case spv::OpINotEqual:
-			case spv::OpUGreaterThan: case spv::OpSGreaterThan:
-			case spv::OpUGreaterThanEqual: case spv::OpSGreaterThanEqual:
-			case spv::OpULessThan: case spv::OpSLessThan:
-			case spv::OpULessThanEqual: case spv::OpSLessThanEqual:
-			case spv::OpFOrdEqual: case spv::OpFUnordEqual:
-			case spv::OpFOrdNotEqual: case spv::OpFUnordNotEqual:
-			case spv::OpFOrdLessThan: case spv::OpFUnordLessThan:
-			case spv::OpFOrdGreaterThan: case spv::OpFUnordGreaterThan:
-			case spv::OpFOrdLessThanEqual: case spv::OpFUnordLessThanEqual:
-			case spv::OpFOrdGreaterThanEqual: case spv::OpFUnordGreaterThanEqual:
+			case spvgentwo::spv::Op::OpAny: case spvgentwo::spv::Op::OpAll:
+			case spvgentwo::spv::Op::OpIsNan: case spvgentwo::spv::Op::OpIsInf:
+			case spvgentwo::spv::Op::OpIsFinite: case spvgentwo::spv::Op::OpIsNormal:
+			case spvgentwo::spv::Op::OpSignBitSet: case spvgentwo::spv::Op::OpLessOrGreater:
+			case spvgentwo::spv::Op::OpOrdered: case spvgentwo::spv::Op::OpUnordered:
+			case spvgentwo::spv::Op::OpLogicalEqual: case spvgentwo::spv::Op::OpLogicalNotEqual:
+			case spvgentwo::spv::Op::OpLogicalOr: case spvgentwo::spv::Op::OpLogicalAnd:
+			case spvgentwo::spv::Op::OpLogicalNot: case spvgentwo::spv::Op::OpSelect:
+			case spvgentwo::spv::Op::OpIEqual: case spvgentwo::spv::Op::OpINotEqual:
+			case spvgentwo::spv::Op::OpUGreaterThan: case spvgentwo::spv::Op::OpSGreaterThan:
+			case spvgentwo::spv::Op::OpUGreaterThanEqual: case spvgentwo::spv::Op::OpSGreaterThanEqual:
+			case spvgentwo::spv::Op::OpULessThan: case spvgentwo::spv::Op::OpSLessThan:
+			case spvgentwo::spv::Op::OpULessThanEqual: case spvgentwo::spv::Op::OpSLessThanEqual:
+			case spvgentwo::spv::Op::OpFOrdEqual: case spvgentwo::spv::Op::OpFUnordEqual:
+			case spvgentwo::spv::Op::OpFOrdNotEqual: case spvgentwo::spv::Op::OpFUnordNotEqual:
+			case spvgentwo::spv::Op::OpFOrdLessThan: case spvgentwo::spv::Op::OpFUnordLessThan:
+			case spvgentwo::spv::Op::OpFOrdGreaterThan: case spvgentwo::spv::Op::OpFUnordGreaterThan:
+			case spvgentwo::spv::Op::OpFOrdLessThanEqual: case spvgentwo::spv::Op::OpFUnordLessThanEqual:
+			case spvgentwo::spv::Op::OpFOrdGreaterThanEqual: case spvgentwo::spv::Op::OpFUnordGreaterThanEqual:
 				LogicalInstCount++;
 				break;
 
-			case spv::OpImageSampleImplicitLod:
-			case spv::OpImageSampleExplicitLod:
-			case spv::OpImageSampleDrefImplicitLod:
-			case spv::OpImageSampleDrefExplicitLod:
-			case spv::OpImageSampleProjImplicitLod:
-			case spv::OpImageSampleProjExplicitLod:
-			case spv::OpImageSampleProjDrefImplicitLod:
-			case spv::OpImageSampleProjDrefExplicitLod:
-			case spv::OpImageFetch: case spv::OpImageGather:
-			case spv::OpImageDrefGather: case spv::OpImageRead:
-			case spv::OpImageWrite:
+			case spvgentwo::spv::Op::OpImageSampleImplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleExplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleDrefImplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleDrefExplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleProjImplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleProjExplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleProjDrefImplicitLod:
+			case spvgentwo::spv::Op::OpImageSampleProjDrefExplicitLod:
+			case spvgentwo::spv::Op::OpImageFetch: case spvgentwo::spv::Op::OpImageGather:
+			case spvgentwo::spv::Op::OpImageDrefGather: case spvgentwo::spv::Op::OpImageRead:
+			case spvgentwo::spv::Op::OpImageWrite:
 				TextureInstCount++;
 				break;
 
-			case spv::OpDPdx:
-			case spv::OpDPdy:
-			case spv::OpFwidth:
-			case spv::OpDPdxFine:
-			case spv::OpDPdyFine:
-			case spv::OpFwidthFine:
-			case spv::OpDPdxCoarse:
-			case spv::OpDPdyCoarse:
-			case spv::OpFwidthCoarse:
+			case spvgentwo::spv::Op::OpDPdx:
+			case spvgentwo::spv::Op::OpDPdy:
+			case spvgentwo::spv::Op::OpFwidth:
+			case spvgentwo::spv::Op::OpDPdxFine:
+			case spvgentwo::spv::Op::OpDPdyFine:
+			case spvgentwo::spv::Op::OpFwidthFine:
+			case spvgentwo::spv::Op::OpDPdxCoarse:
+			case spvgentwo::spv::Op::OpDPdyCoarse:
+			case spvgentwo::spv::Op::OpFwidthCoarse:
 				DerivativeInstCount++;
 				break;
 
-			case spv::OpPhi:
-			case spv::OpLoopMerge:
-			case spv::OpSelectionMerge:
-			case spv::OpLabel:
-			case spv::OpBranch:
-			case spv::OpBranchConditional:
-			case spv::OpSwitch:
-			case spv::OpKill:
-			case spv::OpReturn:
-			case spv::OpReturnValue:
+			case spvgentwo::spv::Op::OpPhi:
+			case spvgentwo::spv::Op::OpLoopMerge:
+			case spvgentwo::spv::Op::OpSelectionMerge:
+			case spvgentwo::spv::Op::OpLabel:
+			case spvgentwo::spv::Op::OpBranch:
+			case spvgentwo::spv::Op::OpBranchConditional:
+			case spvgentwo::spv::Op::OpSwitch:
+			case spvgentwo::spv::Op::OpKill:
+			case spvgentwo::spv::Op::OpReturn:
+			case spvgentwo::spv::Op::OpReturnValue:
 				ControlFlowInstCount++;
 				break;
 			}

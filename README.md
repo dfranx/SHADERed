@@ -234,8 +234,6 @@ This project uses:
  - [zeux/pugixml](https://github.com/zeux/pugixml)
  - [dfranx/ShaderExpressionParser](https://github.com/dfranx/ShaderExpressionParser)
  - [KhronosGroup/SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
- - [KhronosGroup/SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers)
- - [KhronosGroup/SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools)
  - [dfranx/SPIRV-VM](https://github.com/dfranx/SPIRV-VM)
  - [rAzoR8/SpvGenTwo](https://github.com/rAzoR8/SpvGenTwo)
  - [nothings/stb](https://github.com/nothings/stb)

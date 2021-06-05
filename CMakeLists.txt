@@ -170,10 +170,6 @@ set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
 set(ASSIMP_WERROR OFF CACHE BOOL "Warnings as errors" FORCE)
 add_subdirectory(libs/assimp)
 
-# spirv-headers
-set(SPIRV_HEADERS_SKIP_EXAMPLES ON CACHE BOOL "Skip example" FORCE)
-add_subdirectory(libs/spirv-headers)
-
 # glslang
 set(ENABLE_SPVREMAPPER OFF CACHE BOOL "Enables building of SPVRemapper" FORCE)
 set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "Builds glslangValidator and spirv-remap" FORCE)
@@ -208,7 +204,7 @@ set_target_properties(SHADERed PROPERTIES
 
 # include directories
 target_include_directories(SHADERed PRIVATE ${SDL2_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS} ${ASSIMP_INCLUDE_DIR})
-target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc libs/spirv-headers/include)
+target_include_directories(SHADERed PRIVATE src libs libs/glslang libs/SPIRV-VM/inc)
 if (NOT WIN32)
 	target_include_directories(SHADERed PRIVATE ${GTK_INCLUDE_DIRS})
 endif()
