@@ -34,7 +34,7 @@ namespace ed {
 				if (ImGui::IsWindowHovered())
 					m_notifs[i].Timer.Restart();
 
-				ImGui::TextWrapped(m_notifs[i].Text.c_str());
+				ImGui::TextWrapped("%s", m_notifs[i].Text.c_str());
 
 				if (m_notifs[i].Handler && m_notifs[i].ButtonText.size() > 0) {
 					if (ImGui::Button(m_notifs[i].ButtonText.c_str())) {
