@@ -365,13 +365,25 @@ namespace ed {
 
 				int curLine = m_data->Debugger.GetCurrentLine();
 
+				std::string curFile = m_data->Debugger.GetVM()->current_file ? m_data->Debugger.GetVM()->current_file : "";
+				if (curFile.empty() || curFile == "src/lib.rs" || curFile == "src\\lib.rs") // hack for PluginRust..
+					curFile = m_data->Debugger.GetCurrentFile();
+				else if (!std::filesystem::path(curFile).is_absolute())
+					curFile = m_data->Parser.GetProjectPath(curFile);
+				CodeEditorUI* codeEditor = ((CodeEditorUI*)m_ui->Get(ed::ViewID::Code));
+				if (codeEditor->Get(curFile) == nullptr) {
+					codeEditor->OpenFile(curFile);
+				}
+
+
 				DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
 				if (autoWnd->Visible)
 					autoWnd->SetExpressions(ed->GetRelevantExpressions(curLine));
 
 				if (!m_data->Debugger.IsVMRunning())
 					curLine++;
-				ed->SetCurrentLineIndicator(curLine);
+				codeEditor->Get(curFile)->SetCurrentLineIndicator(curLine);
+				//ed->SetCurrentLineIndicator(curLine);
 
 				m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
 			}
