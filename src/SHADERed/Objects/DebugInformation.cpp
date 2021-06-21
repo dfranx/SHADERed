@@ -1344,7 +1344,7 @@ namespace ed {
 		std::vector<std::string> varList;
 		if (!usePlugin) {
 			std::string curFunction = "";
-			if (m_vm != nullptr && m_vm->current_function != nullptr)
+			if (m_vm && m_vm->current_function && m_vm->current_function->name)
 				curFunction = m_vm->current_function->name;
 
 			// compile the expression
@@ -1635,9 +1635,12 @@ namespace ed {
 		if (m_vm == nullptr)
 			return glm::vec4(0.0f);
 
-		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
-		if (fnMain == 0)
-			return glm::vec4(0.0f);
+		spvm_word fnMain = GetEntryPoint(m_stage);
+		if (fnMain == 0) {
+			fnMain = spvm_state_get_result_location(m_vm, "main");
+			if (fnMain == 0)
+				return glm::vec4(0.0f);
+		}
 
 		spvm_state_prepare(m_vm, fnMain);
 		spvm_state_call_function(m_vm);
@@ -1945,9 +1948,12 @@ namespace ed {
 		if (m_vm == nullptr)
 			return glm::vec4(0.0f);
 
-		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
-		if (fnMain == 0)
-			return glm::vec4(0.0f);
+		spvm_word fnMain = GetEntryPoint(m_stage);
+		if (fnMain == 0) {
+			fnMain = spvm_state_get_result_location(m_vm, "main");
+			if (fnMain == 0)
+				return glm::vec4(0.0f);
+		}
 
 		spvm_state_prepare(m_vm, fnMain);
 		spvm_state_set_frag_coord(m_vm, x + 0.5f, y + 0.5f, 1.0f, 1.0f); // TODO: z and w components
@@ -2141,9 +2147,12 @@ namespace ed {
 		if (m_vm == nullptr)
 			return;
 
-		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
-		if (fnMain == 0)
-			return;
+		spvm_word fnMain = GetEntryPoint(m_stage);
+		if (fnMain == 0) {
+			fnMain = spvm_state_get_result_location(m_vm, "main");
+			if (fnMain == 0)
+				return;
+		}
 
 		spvm_state_prepare(m_vm, fnMain);
 		spvm_state_call_function(m_vm);
@@ -2319,9 +2328,12 @@ namespace ed {
 		if (m_vm == nullptr)
 			return;
 
-		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
-		if (fnMain == 0)
-			return;
+		spvm_word fnMain = GetEntryPoint(m_stage);
+		if (fnMain == 0) {
+			fnMain = spvm_state_get_result_location(m_vm, "main");
+			if (fnMain == 0)
+				return;
+		}
 
 		spvm_word invIdMemCount = 0;
 		spvm_member_t mems = spvm_state_get_builtin(m_vm, SpvBuiltInInvocationId, &invIdMemCount);
@@ -2372,11 +2384,33 @@ namespace ed {
 		}
 	}
 
+	spvm_word DebugInformation::GetEntryPoint(ShaderStage stage)
+	{
+		if (m_shader == nullptr)
+			return 0;
+
+		for (spvm_word i = 0; i < m_shader->entry_point_count; i++)
+			if ((m_stage == ShaderStage::Pixel && m_shader->entry_points[i].exec_model == SpvExecutionModelFragment) || 
+				(m_stage == ShaderStage::Vertex && m_shader->entry_points[i].exec_model == SpvExecutionModelVertex) || 
+				(m_stage == ShaderStage::Compute && m_shader->entry_points[i].exec_model == SpvExecutionModelGLCompute) || 
+				(m_stage == ShaderStage::Geometry && m_shader->entry_points[i].exec_model == SpvExecutionModelGeometry) || 
+				(m_stage == ShaderStage::TessellationControl && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationControl) || 
+				(m_stage == ShaderStage::TessellationEvaluation && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationEvaluation))
+			{
+				return m_shader->entry_points[i].id;
+			}
+
+		return 0;
+	}
+
 	void DebugInformation::PrepareDebugger()
 	{
-		spvm_word fnMain = spvm_state_get_result_location(m_vm, "main");
-		if (fnMain == 0)
-			return;
+		spvm_word fnMain = GetEntryPoint(m_stage);
+		if (fnMain == 0) {
+			fnMain = spvm_state_get_result_location(m_vm, "main");
+			if (fnMain == 0)
+				return;
+		}
 
 		m_funcStackLines.clear();
 		m_funcStackLines.push_back(-1);
@@ -2531,8 +2565,11 @@ namespace ed {
 	void DebugInformation::Step()
 	{
 		int old = m_vm->function_stack_current;
+		char* old_file = m_vm->current_file;
+		int old_line = m_vm->current_line;
+
 		StepInto();
-		while (m_vm->code_current != nullptr && m_vm->function_stack_current > old) {
+		while (m_vm->code_current != nullptr && (m_vm->function_stack_current > old || old_file != m_vm->current_file || old_line == m_vm->current_line)) {
 			StepInto();
 			if (CheckBreakpoint(GetCurrentLine()))
 				break;

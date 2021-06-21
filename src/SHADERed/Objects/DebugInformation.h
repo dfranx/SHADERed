@@ -61,6 +61,7 @@ namespace ed {
 
 		spvm_result_t Immediate(const std::string& entry, spvm_result_t& outType);
 
+		spvm_word GetEntryPoint(ShaderStage stage);
 		void PrepareDebugger();
 
 		bool Jump(int line);
