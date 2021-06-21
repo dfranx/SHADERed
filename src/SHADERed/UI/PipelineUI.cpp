@@ -772,7 +772,7 @@ namespace ed {
 		ImGui::NextColumn();
 		ImGui::PopStyleColor();
 
-		ImGui::Text("%d", els.size());
+		ImGui::Text("%d", (int)els.size());
 		ImGui::NextColumn();
 
 		/* TYPE */

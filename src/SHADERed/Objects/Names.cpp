@@ -22,8 +22,10 @@ const char* TOPOLOGY_ITEM_NAMES[] = {
 	"TriangleStripAdjecent",
 	"Patches"
 };
+// https://www.khronos.org/opengl/wiki/Geometry_Shader
+// https://www.khronos.org/opengl/wiki/Primitive#Patches // TODO patches vertices count depends on tess shaders
 const unsigned char TOPOLOGY_SINGLE_VERTEX_COUNT[] = {
-	0, 1, 2, 2, 3, 3, 2, 2, 3, 3, 3
+	0, 1, 2, 2, 3, 3, 4, 4, 6, 6, 3
 };
 const unsigned char TOPOLOGY_IS_STRIP[] = {
 	0, 0, 0, 1, 0, 2, 0, 1, 0, 2, 0

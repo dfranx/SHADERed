@@ -121,7 +121,8 @@ namespace ed {
 		{
 			int fmtIndex = 0;
 
-			glDeleteVertexArrays(1, &geoVAO);
+			if (geoVAO != 0)
+				glDeleteVertexArrays(1, &geoVAO);
 			glGenVertexArrays(1, &geoVAO);
 
 			glBindVertexArray(geoVAO);
@@ -147,7 +148,8 @@ namespace ed {
 		{
 			int fmtIndex = 0;
 
-			glDeleteVertexArrays(1, &geoVAO);
+			if (geoVAO != 0)
+				glDeleteVertexArrays(1, &geoVAO);
 			glGenVertexArrays(1, &geoVAO);
 
 			glBindVertexArray(geoVAO);

@@ -20,6 +20,7 @@ namespace ed {
 			m_isInpLayoutManagerOpened = false;
 			m_isResourceManagerOpened = false;
 			m_isComputeDebugOpen = false;
+			m_isConfirmDeleteOpened = false;
 		}
 
 		virtual void OnEvent(const SDL_Event& e);

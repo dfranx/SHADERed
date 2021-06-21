@@ -924,6 +924,7 @@ namespace ifd {
 		#endif
 
 		m_clearIconPreview();
+		std::filesystem::path pCopy = p;
 		m_content.clear(); // p == "" after this line, due to reference
 		m_selectedFileItem = -1;
 		
@@ -936,14 +937,14 @@ namespace ifd {
 			m_clearIcons();
 		}
 
-		if (p.u8string() == "Quick Access") {
+		if (pCopy.u8string() == "Quick Access") {
 			for (auto& node : m_treeCache) {
 				if (node->Path == p)
 					for (auto& c : node->Children)
 						m_content.push_back(FileData(c->Path));
 			}
 		} 
-		else if (p.u8string() == "This PC") {
+		else if (pCopy.u8string() == "This PC") {
 			for (auto& node : m_treeCache) {
 				if (node->Path == p)
 					for (auto& c : node->Children)

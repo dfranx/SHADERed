@@ -78,11 +78,13 @@ int main(int argc, char* argv[])
 	// currently the only supported argument is a path to set the working directory... dont do this check if user wants to explicitly set the working directory,
 	// TODO: if more arguments get added, use different methods to check if working directory is being set explicitly
 	{
-		char result[PATH_MAX];
+		char result[PATH_MAX + 1];
 		ssize_t readlinkRes = readlink("/proc/self/exe", result, PATH_MAX);
 		std::string exePath = "";
-		if (readlinkRes != -1)
+		if (readlinkRes > 0) {
+			result[readlinkRes] = '\0';
 			exePath = std::string(dirname(result));
+		}
 		
 		std::vector<std::string> toCheck = {
 			"/../share/SHADERed",
