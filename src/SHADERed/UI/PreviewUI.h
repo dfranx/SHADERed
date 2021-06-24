@@ -19,7 +19,10 @@ namespace ed {
 				, m_overlayFBO(0)
 				, m_overlayColor(0)
 				, m_overlayDepth(0)
+				, m_boxVAO(0)
+				, m_boxVBO(0)
 				, m_lastSize(-1, -1)
+				, m_zoomLastSize(-1, -1)
 		{
 			m_setupShortcuts();
 			m_setupBoundingBox();

@@ -35,6 +35,7 @@ namespace ed {
 	CodeEditorUI::CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name, bool visible)
 			: UIView(ui, objects, name, visible)
 			, m_selectedItem(-1)
+			, m_trackUpdatesNeeded(0)
 	{
 		Settings& sets = Settings::Instance();
 

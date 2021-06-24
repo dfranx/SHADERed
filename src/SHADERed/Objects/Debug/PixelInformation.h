@@ -71,9 +71,9 @@ namespace ed {
 		bool Discarded; // was this pixel discarded?
 
 		int VertexCount;					// 1 for point, 2 for line, 3 for triangle, etc...
-		eng::Model::Mesh::Vertex Vertex[3]; // vertices that are responsible for this pixel
-		glm::vec4 VertexShaderPosition[3];			// position output from vertex shader
-		std::vector<struct spvm_result> VertexShaderOutput[3];
+		eng::Model::Mesh::Vertex Vertex[6]; // vertices that are responsible for this pixel
+		glm::vec4 VertexShaderPosition[6];			// position output from vertex shader
+		std::vector<struct spvm_result> VertexShaderOutput[6];
 
 		void* InstanceBuffer;
 

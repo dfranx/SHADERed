@@ -301,7 +301,7 @@ namespace ed {
 			glBufferData(GL_ARRAY_BUFFER, numPoints * 18 * sizeof(GLfloat), circleData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			GLuint vao;
+			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
@@ -330,7 +330,7 @@ namespace ed {
 			glBufferData(GL_ARRAY_BUFFER, 6 * 18 * sizeof(GLfloat), planeData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			GLuint vao;
+			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
@@ -364,7 +364,7 @@ namespace ed {
 			glBufferData(GL_ARRAY_BUFFER, count * 18 * sizeof(GLfloat), sphereData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			GLuint vao;
+			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;
@@ -388,7 +388,7 @@ namespace ed {
 			glBufferData(GL_ARRAY_BUFFER, 3 * 18 * sizeof(GLfloat), triData, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			GLuint vao;
+			GLuint vao = 0;
 			gl::CreateVAO(vao, vbo, inp);
 
 			return vao;

@@ -238,13 +238,6 @@ namespace ed {
 
 		memcpy(pixel.FinalPosition, pixel.VertexShaderPosition, sizeof(glm::vec4) * 3);
 
-		// run the geometry shader if needed
-		if (pixel.GeometryShaderUsed) {
-			Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
-			Debugger.SetGeometryShaderInput(pixel);
-			Debugger.ExecuteGeometryShader();
-		}
-
 		// run the tessellation shader if needed
 		if (pixel.TessellationShaderUsed) {
 			Debugger.PrepareTessellationControlShader(pixel.Pass, pixel.Object);
@@ -252,6 +245,13 @@ namespace ed {
 			for (int iid = 0; iid < pixel.VertexCount; iid++)
 				Debugger.ExecuteTessellationControlShader(iid);
 			Debugger.CopyTessellationControlShaderOutput();
+		}
+
+		// run the geometry shader if needed
+		if (pixel.GeometryShaderUsed) {
+			Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
+			Debugger.SetGeometryShaderInput(pixel);
+			Debugger.ExecuteGeometryShader();
 		}
 
 		// run pixel shader

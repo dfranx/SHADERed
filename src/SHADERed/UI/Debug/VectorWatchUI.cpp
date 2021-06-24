@@ -52,7 +52,6 @@ namespace ed {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// vao
-		glDeleteVertexArrays(1, &vao);
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
