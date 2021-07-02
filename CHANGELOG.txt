@@ -1,6 +1,8 @@
 [v1.5.4]
 + add ability to step into included files while debugging
-+ fix a bug that caused the debugger not to work if the compiler doesn't output function with name "main"
++ fix outline in the "Preview" window when using lines_adjacency
++ fix a bug that caused the debugger not to work if the compiler doesn't output function with the name "main"
++ fix a bug that caused SHADERed to crash when debugging geometry shaders
 
 [v1.5.3]
 + add Debug Adapter Protocol
