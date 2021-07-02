@@ -63,7 +63,7 @@ void dds_parse_uncompressed(dds_image_t image, const char* data, long data_lengt
 
 	dds_byte bytes_per_pixel = image->header.pixel_format.rgb_bit_count / 8;
 
-	data += img_width * 4; // huh? without this there's gibberish in the first row of the image... am I missing something?
+	data += 128; // Skip the header
 
 	// read the actual data
 	for (dds_uint z = 0; z < img_depth; z++) 
