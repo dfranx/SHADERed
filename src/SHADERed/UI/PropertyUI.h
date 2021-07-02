@@ -31,7 +31,7 @@ namespace ed {
 		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::PluginObject; }
 
 	private:
-		char m_itemName[1024];
+		char m_itemName[2048];
 
 		void m_init();
 

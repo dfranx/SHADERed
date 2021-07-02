@@ -45,7 +45,10 @@ namespace ed {
 					ImGui::Text("(%s)", ((pipe::PluginItemData*)m_current->Data)->Type);
 				}
 			} else if (m_currentObj != nullptr) {
-				ImGui::Text(m_currentObj->Name.c_str());
+				if (IsTexture() || IsTexture3D())
+					ImGui::TextUnformatted(std::filesystem::path(m_currentObj->Name).filename().generic_u8string().c_str());
+				else
+					ImGui::TextUnformatted(m_currentObj->Name.c_str());
 				if (IsRenderTexture())
 					ImGui::Text("Render Texture");
 				else if (IsTexture())

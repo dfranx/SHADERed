@@ -2122,8 +2122,10 @@ namespace ed {
 				}
 
 				// no %d found? add one
-				if (formatCount == 0)
-					filename.insert(lastDot == std::string::npos ? filename.size() : lastDot, "%d"); // frame%d
+				if (formatCount == 0) {
+					int frameCountDigits = log10((int)(m_savePreviewSeqDuration / seqDelta)) + 1;
+					filename.insert(lastDot == std::string::npos ? filename.size() : lastDot, "%0" + std::to_string(frameCountDigits) + "d"); // frame%d
+				}
 
 				SystemVariableManager::Instance().AdvanceTimer(m_savePreviewCachedTime - m_savePreviewTimeDelta);
 				SystemVariableManager::Instance().SetTimeDelta(seqDelta);
