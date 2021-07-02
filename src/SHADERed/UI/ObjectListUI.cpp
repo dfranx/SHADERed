@@ -273,6 +273,8 @@ namespace ed {
 			}
 		}
 
+		ImGui::Dummy(ImVec2(1, 32));
+
 		ImGui::EndChild();
 
 		if (ifd::FileDialog::Instance().IsDone("SaveTextureDlg")) {
