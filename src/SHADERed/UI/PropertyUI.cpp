@@ -1531,6 +1531,7 @@ namespace ed {
 			}
 
 			memcpy(m_itemName, item->Name, PIPELINE_ITEM_NAME_LENGTH);
+			m_itemName[PIPELINE_ITEM_NAME_LENGTH] = 0;
 
 			if (item->Type == PipelineItem::ItemType::ComputePass) {
 				pipe::ComputePass* cPass = (pipe::ComputePass*)item->Data;
@@ -1550,7 +1551,7 @@ namespace ed {
 	{
 		Logger::Get().Log("Opening an ObjectManager item in the PropertyUI");
 
-		memset(m_itemName, 0, PIPELINE_ITEM_NAME_LENGTH);
+		memset(m_itemName, 0, sizeof(m_itemName) / sizeof(m_itemName[0]));
 
 		m_current = nullptr;
 		m_currentObj = obj;
