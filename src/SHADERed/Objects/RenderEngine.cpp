@@ -481,7 +481,7 @@ namespace ed {
 					}
 				}
 			}
-			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && !m_paused && m_computeSupported) {
+			else if (it->Type == PipelineItem::ItemType::ComputePass && !isDebug && (!m_paused || SystemVariableManager::Instance().IsSavingToFile()) && m_computeSupported) {
 				pipe::ComputePass* data = (pipe::ComputePass*)it->Data;
 
 				if (!data->Active)

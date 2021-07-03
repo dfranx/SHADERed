@@ -2,6 +2,7 @@
 + add ability to step into included files while debugging
 + add more spacing in the "Objects" window so it's easier to right click
 + fix a bug that would cause SHADERed to crash when trying to view texture properties
++ fix a bug that would cause compute shaders not to run when rendering a sequence to files
 + fix loading volume .dds textures
 + fix outline in the "Preview" window when using lines_adjacency
 + fix a bug that caused the debugger not to work if the compiler doesn't output function with the name "main"

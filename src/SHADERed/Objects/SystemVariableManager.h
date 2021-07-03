@@ -87,6 +87,7 @@ namespace ed {
 		inline eng::Timer& GetTimeClock() { return m_timer; }
 		inline float GetTimeDelta() { return m_curState.DeltaTime; }
 		inline bool IsPicked() { return m_curState.IsPicked; }
+		inline bool IsSavingToFile() { return m_curState.IsSavingToFile; }
 
 		inline void SetGeometryTransform(PipelineItem* item, const glm::vec3& scale, const glm::vec3& rota, const glm::vec3& pos)
 		{
