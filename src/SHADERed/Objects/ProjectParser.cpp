@@ -3312,20 +3312,22 @@ namespace ed {
 						const pugi::char_t* shaderType = settingItem.attribute("from").as_string();
 						PipelineItem* owner = (PipelineItem*)(m_pipe->Get(settingItem.attribute("owner").as_string()));
 
-						std::vector<ShaderVariable*> vars;
+						if (owner) {
+							std::vector<ShaderVariable*> vars;
 
-						if (owner->Type == PipelineItem::ItemType::ShaderPass)
-							vars = ((pipe::ShaderPass*)owner->Data)->Variables.GetVariables();
-						else if (owner->Type == PipelineItem::ItemType::ComputePass)
-							vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
-						else if (owner->Type == PipelineItem::ItemType::AudioPass)
-							vars = ((pipe::AudioPass*)owner->Data)->Variables.GetVariables();
+							if (owner->Type == PipelineItem::ItemType::ShaderPass)
+								vars = ((pipe::ShaderPass*)owner->Data)->Variables.GetVariables();
+							else if (owner->Type == PipelineItem::ItemType::ComputePass)
+								vars = ((pipe::ComputePass*)owner->Data)->Variables.GetVariables();
+							else if (owner->Type == PipelineItem::ItemType::AudioPass)
+								vars = ((pipe::AudioPass*)owner->Data)->Variables.GetVariables();
 
-						for (const auto& var : vars)
-							if (strcmp(var->Name, item) == 0) {
-								pinned->Add(var);
-								break;
-							}
+							for (const auto& var : vars)
+								if (strcmp(var->Name, item) == 0) {
+									pinned->Add(var);
+									break;
+								}
+						}
 					}
 				} else if (type == "camera") {
 					if (settingItem.attribute("fp").empty())
