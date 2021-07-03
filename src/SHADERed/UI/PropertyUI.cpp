@@ -1034,12 +1034,12 @@ namespace ed {
 				} 
 				else if (m_current->Type == ed::PipelineItem::ItemType::VertexBuffer) {
 					ed::pipe::VertexBuffer* item = reinterpret_cast<ed::pipe::VertexBuffer*>(m_current->Data);
+					auto& bufList = m_data->Objects.GetObjects();
 
 					/* buffers */
 					ImGui::Text("Buffer:");
 					ImGui::NextColumn();
 
-					auto& bufList = m_data->Objects.GetObjects();
 					ImGui::PushItemWidth(-1);
 					if (ImGui::BeginCombo("##pui_vb_buffer", ((item->Buffer == nullptr) ? "NULL" : (m_data->Objects.GetByBufferID(((BufferObject*)item->Buffer)->ID)->Name.c_str())))) {
 						// null element
@@ -1128,6 +1128,65 @@ namespace ed {
 					if (ImGui::Combo("##pui_geotopology", reinterpret_cast<int*>(&selectedTopology), TOPOLOGY_ITEM_NAMES, HARRAYSIZE(TOPOLOGY_ITEM_NAMES))) {
 						item->Topology = TOPOLOGY_ITEM_VALUES[selectedTopology];
 						m_data->Parser.ModifyProject();
+					}
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instanced */
+					ImGui::Text("Instanced:");
+					ImGui::NextColumn();
+
+					if (ImGui::Checkbox("##pui_geoinst", &item->Instanced))
+						m_data->Parser.ModifyProject();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instance count */
+					ImGui::Text("Instance count:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::InputInt("##pui_geoinstcount", &item->InstanceCount))
+						m_data->Parser.ModifyProject();
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
+					ImGui::Separator();
+
+					/* instance array buffers */
+					ImGui::Text("Instance input buffer:");
+					ImGui::NextColumn();
+
+					ImGui::PushItemWidth(-1);
+					if (ImGui::BeginCombo("##pui_geo_instancebuf", ((item->InstanceBuffer == nullptr) ? "NULL" : (m_data->Objects.GetByBufferID(((BufferObject*)item->InstanceBuffer)->ID)->Name.c_str())))) {
+						// null element
+						if (ImGui::Selectable("NULL", item->InstanceBuffer == nullptr)) {
+							item->InstanceBuffer = nullptr;
+
+							ed::BufferObject* bobj = (BufferObject*)item->Buffer;
+							gl::CreateBufferVAO(item->VAO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat));
+
+							m_data->Parser.ModifyProject();
+						}
+
+						for (int i = 0; i < bufList.size(); i++) {
+							if (bufList[i]->Type != ObjectType::Buffer)
+								continue;
+
+							ed::BufferObject* buf = bufList[i]->Buffer;
+
+							if (ImGui::Selectable(bufList[i]->Name.c_str(), buf == item->InstanceBuffer)) {
+								item->InstanceBuffer = buf;
+								auto fmtList = m_data->Objects.ParseBufferFormat(buf->ViewFormat);
+
+								ed::BufferObject* bobj = (BufferObject*)item->Buffer;
+								gl::CreateBufferVAO(item->VAO, bobj->ID, m_data->Objects.ParseBufferFormat(bobj->ViewFormat), buf->ID, fmtList);
+
+								m_data->Parser.ModifyProject();
+							}
+						}
+
+						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
 				} 

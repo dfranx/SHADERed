@@ -393,8 +393,12 @@ namespace ed {
 								// bind variables
 								data->Variables.Bind(item);
 
+								
 								glBindVertexArray(vbData->VAO);
-								glDrawArrays(vbData->Topology, 0, vertCount);
+								if (vbData->Instanced)
+									glDrawArraysInstanced(vbData->Topology, 0, vertCount, vbData->InstanceCount);
+								else
+									glDrawArrays(vbData->Topology, 0, vertCount);
 							}
 						}
 					} else if (item->Type == PipelineItem::ItemType::RenderState) {
@@ -811,7 +815,7 @@ namespace ed {
 						maxVertexCount = std::min<int>(maxVertexCount, actualMaxVertexCount);
 
 						glBindVertexArray(vbData->VAO);
-						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, vbData->Topology, sedVarLoc, false, 0);
+						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, vertexStrip, vbData->Topology, sedVarLoc, vbData->Instanced, vbData->InstanceCount);
 					}
 				} else if (item->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);
@@ -868,6 +872,10 @@ namespace ed {
 				return 0;
 		} else if (vertexItem->Type == PipelineItem::ItemType::Model) {
 			pipe::Model* objData = reinterpret_cast<pipe::Model*>(vertexItem->Data);
+			if (!objData->Instanced)
+				return 0;
+		} else if (vertexItem->Type == PipelineItem::ItemType::VertexBuffer) {
+			pipe::VertexBuffer* objData = reinterpret_cast<pipe::VertexBuffer*>(vertexItem->Data);
 			if (!objData->Instanced)
 				return 0;
 		} else
@@ -1012,6 +1020,33 @@ namespace ed {
 
 						glBindVertexArray(mesh.VAO);
 						DebugDrawInstanced(iStart, iStep, iCount, vertexCount, GL_TRIANGLES, sedVarLoc);
+					}
+				} else if (item->Type == PipelineItem::ItemType::VertexBuffer) {
+					pipe::VertexBuffer* vbData = reinterpret_cast<pipe::VertexBuffer*>(item->Data);
+					ed::BufferObject* bobj = (ed::BufferObject*)vbData->Buffer;
+
+					auto bobjFmt = m_objects->ParseBufferFormat(bobj->ViewFormat);
+					int stride = 0;
+					for (const auto& f : bobjFmt)
+						stride += ShaderVariable::GetSize(f, true);
+
+					if (stride != 0) {
+						int vertexCount = bobj->Size / stride;
+
+						systemVM.SetGeometryTransform(item, vbData->Scale, vbData->Rotation, vbData->Position);
+						systemVM.SetPicked(std::count(m_pick.begin(), m_pick.end(), item));
+
+						// bind variables
+						vertexPass->Variables.Bind(item);
+
+						int iStart = (group >= 0) * group;
+						int iCount = group < 0 ? vbData->InstanceCount : (vbData->InstanceCount + DEBUG_INSTANCE_GROUP);
+						int iStep = group < 0 ? DEBUG_INSTANCE_GROUP : 1;
+
+						iCount = std::min<int>(iCount, vbData->InstanceCount);
+
+						glBindVertexArray(vbData->VAO);
+						DebugDrawInstanced(iStart, iStep, iCount, vertexCount, vbData->Topology, sedVarLoc);
 					}
 				} else if (item->Type == PipelineItem::ItemType::RenderState) {
 					pipe::RenderState* state = reinterpret_cast<pipe::RenderState*>(item->Data);

@@ -28,7 +28,7 @@ namespace ed {
 
 		std::vector<MessageStack::Message> ParseGlslangMessages(const std::string& owner, ShaderStage stage, const std::string& str);
 
-		void CreateBufferVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<ed::ShaderVariable::ValueType>& ilayout);
+		void CreateBufferVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<ed::ShaderVariable::ValueType>& ilayout, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
 		void CreateVAO(GLuint& geoVAO, GLuint geoVBO, const std::vector<InputLayoutItem>& ilayout, GLuint geoEBO = 0, GLuint bufVBO = 0, std::vector<ed::ShaderVariable::ValueType> types = std::vector<ed::ShaderVariable::ValueType>());
 
 		void GetVertexBufferBounds(ObjectManager* objs, pipe::VertexBuffer* model, glm::vec3& minPosItem, glm::vec3& maxPosItem);

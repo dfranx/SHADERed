@@ -1,6 +1,7 @@
 [v1.5.4]
 + add ability to step into included files while debugging
-+ add more spacing in the "Objects" window so it's easier to right click
++ add vertex buffer instancing
++ add more empty space to the "Objects" window so it's easier to right click
 + fix a bug that would cause SHADERed to crash when trying to view texture properties
 + fix a bug that would cause compute shaders not to run when rendering a sequence to image files
 + fix a bug where 3D textures wouldn't be bound properly to a shader debugger

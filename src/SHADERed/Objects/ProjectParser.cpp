@@ -1351,6 +1351,12 @@ namespace ed {
 					itemNode.append_child("y").text().set(tData->Position.y);
 				if (tData->Position.z != 0.0f)
 					itemNode.append_child("z").text().set(tData->Position.z);
+				if (tData->Instanced)
+					itemNode.append_child("instanced").text().set(tData->Instanced);
+				if (tData->InstanceCount > 0)
+					itemNode.append_child("instancecount").text().set(tData->InstanceCount);
+				if (tData->InstanceBuffer != nullptr)
+					itemNode.append_child("instancebuffer").text().set(m_objects->GetByBufferID(((BufferObject*)tData->InstanceBuffer)->ID)->Name.c_str());
 				for (int tind = 0; tind < HARRAYSIZE(TOPOLOGY_ITEM_VALUES); tind++) {
 					if (TOPOLOGY_ITEM_VALUES[tind] == tData->Topology) {
 						itemNode.append_child("topology").text().set(TOPOLOGY_ITEM_NAMES[tind]);
@@ -1376,7 +1382,8 @@ namespace ed {
 	void ProjectParser::m_importItems(const char* name, pipe::ShaderPass* data, const pugi::xml_node& node, const std::vector<InputLayoutItem>& inpLayout,
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>>& geoUBOs,
 		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>>& modelUBOs,
-		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>>& vbUBOs)
+		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>>& vbUBOs,
+		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>>& vbInstanceUBOs)
 	{
 		for (pugi::xml_node itemNode : node.children()) {
 			char itemName[PIPELINE_ITEM_NAME_LENGTH];
@@ -1578,6 +1585,9 @@ namespace ed {
 				vbData->Scale = glm::vec3(1, 1, 1);
 				vbData->Position = glm::vec3(0, 0, 0);
 				vbData->Rotation = glm::vec3(0, 0, 0);
+				vbData->Instanced = false;
+				vbData->InstanceCount = 0;
+				vbData->InstanceBuffer = nullptr;
 
 				for (pugi::xml_node attrNode : itemNode.children()) {
 					if (strcmp(attrNode.name(), "scaleX") == 0)
@@ -1600,6 +1610,12 @@ namespace ed {
 						vbData->Position.z = attrNode.text().as_float();
 					else if (strcmp(attrNode.name(), "buffer") == 0)
 						vbUBOs[vbData] = std::make_pair(attrNode.text().as_string(), data);
+					else if (strcmp(attrNode.name(), "instanced") == 0)
+						vbData->Instanced = attrNode.text().as_bool();
+					else if (strcmp(attrNode.name(), "instancecount") == 0)
+						vbData->InstanceCount = attrNode.text().as_int();
+					else if (strcmp(attrNode.name(), "instancebuffer") == 0)
+						vbInstanceUBOs[vbData] = std::make_pair(attrNode.text().as_string(), data);
 					else if (strcmp(attrNode.name(), "topology") == 0) {
 						for (int k = 0; k < HARRAYSIZE(TOPOLOGY_ITEM_NAMES); k++)
 							if (strcmp(attrNode.text().as_string(), TOPOLOGY_ITEM_NAMES[k]) == 0)
@@ -2285,6 +2301,7 @@ namespace ed {
 		std::map<pipe::GeometryItem*, std::pair<std::string, pipe::ShaderPass*>> geoUBOs; // buffers that are bound to pipeline items
 		std::map<pipe::Model*, std::pair<std::string, pipe::ShaderPass*>> modelUBOs;
 		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>> vbUBOs;
+		std::map<pipe::VertexBuffer*, std::pair<std::string, pipe::ShaderPass*>> vbInstanceUBOs;
 
 		// shader passes
 		for (pugi::xml_node passNode : projectNode.child("pipeline").children("pass")) {
@@ -2494,7 +2511,7 @@ namespace ed {
 				}
 
 				// parse items
-				m_importItems(name, data, passNode.child("items"), data->InputLayout, geoUBOs, modelUBOs, vbUBOs);
+				m_importItems(name, data, passNode.child("items"), data->InputLayout, geoUBOs, modelUBOs, vbUBOs, vbInstanceUBOs);
 
 				// parse item values
 				for (pugi::xml_node itemValueNode : passNode.child("itemvalues").children("value")) {
@@ -2732,7 +2749,7 @@ namespace ed {
 				// add the item
 				m_pipe->AddPluginItem(nullptr, name, otype.c_str(), pluginData, plugin);
 
-				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, otype.c_str(), pluginData), geoUBOs, modelUBOs, vbUBOs);
+				m_importItems(name, nullptr, passNode.child("items"), m_plugins->BuildInputLayout(plugin, otype.c_str(), pluginData), geoUBOs, modelUBOs, vbUBOs, vbInstanceUBOs);
 			}
 		}
 
@@ -3199,8 +3216,19 @@ namespace ed {
 			BufferObject* bobj = m_objects->Get(vb.second.first)->Buffer;
 			vb.first->Buffer = bobj;
 
-			if (bobj)
-				gl::CreateBufferVAO(vb.first->VAO, bobj->ID, m_objects->ParseBufferFormat(bobj->ViewFormat));
+			if (bobj) {
+				GLuint ibufID = 0;
+				std::vector<ShaderVariable::ValueType> ibufFormat;
+
+				if (vbInstanceUBOs.count(vb.first) != 0) {
+					BufferObject* ibufobj = m_objects->Get(vbInstanceUBOs[vb.first].first)->Buffer;
+					ibufID = ibufobj->ID;
+					ibufFormat = m_objects->ParseBufferFormat(ibufobj->ViewFormat);
+				}
+
+				gl::CreateBufferVAO(vb.first->VAO, bobj->ID, m_objects->ParseBufferFormat(bobj->ViewFormat), ibufID, ibufFormat);
+				
+			}
 		}
 
 		// bind objects

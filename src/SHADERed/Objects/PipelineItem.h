@@ -200,6 +200,9 @@ namespace ed {
 				Topology = GL_TRIANGLES;
 				Buffer = 0;
 				VAO = 0;
+				Instanced = false;
+				InstanceCount = 0;
+				InstanceBuffer = nullptr;
 			}
 
 			void* Buffer;
@@ -207,6 +210,10 @@ namespace ed {
 
 			unsigned int Topology;
 			glm::vec3 Position, Rotation, Scale;
+
+			bool Instanced;
+			int InstanceCount;
+			void* InstanceBuffer;
 		};
 
 		struct RenderState {
