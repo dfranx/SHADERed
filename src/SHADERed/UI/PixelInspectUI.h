@@ -1,5 +1,6 @@
 #pragma once
 #include <SHADERed/UI/Tools/CubemapPreview.h>
+#include <SHADERed/UI/Tools/Texture3DPreview.h>
 #include <SHADERed/UI/UIView.h>
 
 namespace ed {
@@ -9,6 +10,7 @@ namespace ed {
 				: UIView(ui, objects, name, visible)
 		{
 			m_cubePrev.Init(152, 114);
+			m_tex3DPrev.Init();
 		}
 
 		virtual void OnEvent(const SDL_Event& e);
@@ -26,6 +28,7 @@ namespace ed {
 		glm::vec4 m_cacheColor;
 
 		CubemapPreview m_cubePrev;
+		Texture3DPreview m_tex3DPrev;
 
 		std::vector<float> m_pixelHeights;
 		std::vector<float> m_suggestionHeights;

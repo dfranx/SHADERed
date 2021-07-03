@@ -77,7 +77,7 @@ namespace ed {
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
 				ImGui::SetDragDropPayload("ObjectPayload", &oItem, sizeof(ed::ObjectManagerItem**));
 
-				ImGui::Text("%s", itemText.c_str());
+				ImGui::TextUnformatted(itemText.c_str());
 				bool hasPluginPreview = isPluginOwner && pobj->Owner->Object_HasPreview(pobj->Type);
 				if (oItem->Type == ObjectType::CubeMap) {
 					m_cubePrev.Draw(tex);

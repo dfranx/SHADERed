@@ -422,7 +422,8 @@ namespace ed {
 			if (res != nullptr && resType != nullptr) {
 
 				bool isTex = false,
-					 isCube = false;
+					 isCube = false,
+					 isTex3D = false;
 
 				// Type:
 				if (resType->value_type == spvm_value_type_int && resType->value_sign == 0)
@@ -449,8 +450,24 @@ namespace ed {
 					isTex = true;
 					ImGui::Text("texture");
 
-					if (resType && resType->image_info && resType->image_info->dim == SpvDimCube)
-						isCube = true;
+					if (resType) {
+						spvm_image_info* image_info = resType->image_info;
+
+						if (image_info == nullptr && m_data->Debugger.GetVM()) {
+							spvm_result_t type_info = spvm_state_get_type_info(m_data->Debugger.GetVM()->results, resType);
+							image_info = type_info->image_info;
+							
+							if (image_info == NULL) {
+								type_info = &m_data->Debugger.GetVM()->results[type_info->pointer];
+								image_info = type_info->image_info;
+							}
+						}
+
+						if (image_info && image_info->dim == SpvDimCube)
+							isCube = true;
+						else if (image_info && image_info->dim == SpvDim3D)
+							isTex3D = true;
+					}
 				}
 
 				ImGui::Separator();
@@ -462,7 +479,13 @@ namespace ed {
 					if (isCube) {
 						m_cubePrev.Draw((GLuint)((uintptr_t)tex->user_data));
 						ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
-					} else
+					}
+					else if (isTex3D) {
+						float imgWH = (tex->height / (float)tex->width);
+						m_tex3DPrev.Draw((GLuint)((uintptr_t)tex->user_data), 128.0f, 128.0f * (float)imgWH);
+						ImGui::Image((void*)(intptr_t)m_tex3DPrev.GetTexture(), ImVec2(128.0f, 128.0f * imgWH));
+					}
+					else
 						ImGui::Image((ImTextureID)tex->user_data, ImVec2(128.0f, 128.0f * (tex->height / (float)tex->width)), ImVec2(0, 1), ImVec2(1, 0));
 				} else {
 					// color preview

@@ -959,7 +959,7 @@ namespace ed {
 						if (!wrongBind && textureID != 0) {
 							ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 							if (itemData) {
-								if (!(itemData->Type == ObjectType::Texture || itemData->Type == ObjectType::RenderTexture || itemData->Type == ObjectType::Image || itemData->Type == ObjectType::Image3D || itemData->Type == ObjectType::KeyboardTexture)) {
+								if (!(itemData->Type == ObjectType::Texture || itemData->Type == ObjectType::Texture3D || itemData->Type == ObjectType::RenderTexture || itemData->Type == ObjectType::Image || itemData->Type == ObjectType::Image3D || itemData->Type == ObjectType::KeyboardTexture)) {
 									wrongBind = true;
 									textureID = 0;
 								}
@@ -1076,8 +1076,12 @@ namespace ed {
 									// get texture size
 									ObjectManagerItem* itemData = m_objs->GetByTextureID(textureID);
 									
-									if (itemData != nullptr && itemData->Image3D != nullptr)
-										imgSize = itemData->Image3D->Size;
+									if (itemData != nullptr) {
+										if (itemData->Image3D != nullptr)
+											imgSize = itemData->Image3D->Size;
+										else if (itemData->Type == ed::ObjectType::Texture3D)
+											imgSize = glm::ivec3(itemData->TextureSize.x, itemData->TextureSize.y, itemData->Depth);
+									}
 
 									imgData = (float*)malloc(sizeof(float) * imgSize.x * imgSize.y * imgSize.z * 4);
 
