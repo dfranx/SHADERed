@@ -2394,12 +2394,12 @@ namespace ed {
 			return 0;
 
 		for (spvm_word i = 0; i < m_shader->entry_point_count; i++)
-			if ((m_stage == ShaderStage::Pixel && m_shader->entry_points[i].exec_model == SpvExecutionModelFragment) || 
-				(m_stage == ShaderStage::Vertex && m_shader->entry_points[i].exec_model == SpvExecutionModelVertex) || 
-				(m_stage == ShaderStage::Compute && m_shader->entry_points[i].exec_model == SpvExecutionModelGLCompute) || 
-				(m_stage == ShaderStage::Geometry && m_shader->entry_points[i].exec_model == SpvExecutionModelGeometry) || 
-				(m_stage == ShaderStage::TessellationControl && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationControl) || 
-				(m_stage == ShaderStage::TessellationEvaluation && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationEvaluation))
+			if ((stage == ShaderStage::Pixel && m_shader->entry_points[i].exec_model == SpvExecutionModelFragment) || 
+				(stage == ShaderStage::Vertex && m_shader->entry_points[i].exec_model == SpvExecutionModelVertex) || 
+				(stage == ShaderStage::Compute && m_shader->entry_points[i].exec_model == SpvExecutionModelGLCompute) || 
+				(stage == ShaderStage::Geometry && m_shader->entry_points[i].exec_model == SpvExecutionModelGeometry) || 
+				(stage == ShaderStage::TessellationControl && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationControl) || 
+				(stage == ShaderStage::TessellationEvaluation && m_shader->entry_points[i].exec_model == SpvExecutionModelTessellationEvaluation))
 			{
 				return m_shader->entry_points[i].id;
 			}
