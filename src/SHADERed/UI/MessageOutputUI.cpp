@@ -59,6 +59,13 @@ namespace ed {
 						}
 					}
 				}
+				// context menu -- "Copy" button
+				if (ImGui::BeginPopupContextItem("##context_main_msgs")) {
+					if (ImGui::Selectable("Copy"))
+						ImGui::SetClipboardText(m->Text.c_str());
+
+					ImGui::EndPopup();
+				}
 				ImGui::PopID();
 
 				ImGui::TableSetColumnIndex(1);
