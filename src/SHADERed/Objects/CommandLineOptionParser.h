@@ -35,5 +35,8 @@ namespace ed {
 		std::string ProjectFile;
 
 		bool StartDAPServer;
+
+		bool ConvertCPP;
+		std::string CMakePath;
 	};
 }

@@ -42,6 +42,9 @@ namespace ed {
 		RenderFrameIndex = 0;
 		RenderSequenceFPS = 30;
 		RenderSequenceDuration = 0.5f;
+
+		ConvertCPP = false;
+		CMakePath = "";
 	}
 	void CommandLineOptionParser::Parse(const std::filesystem::path& cmdDir, int argc, char* argv[])
 	{
@@ -280,6 +283,16 @@ namespace ed {
 
 				}
 			}
+			// --generatecmake, -gcm [path]
+			else if (strcmp(argv[i], "--generatecmake") == 0 || strcmp(argv[i], "-gcm") == 0) {
+				ConvertCPP = true;
+				CMakePath = "";
+
+				if (i + 1 < argc) {
+					CMakePath = argv[i + 1];
+					i++;
+				}
+			}
 			// -dap
 			else if (strcmp(argv[i], "-dap") == 0)
 				StartDAPServer = true;
@@ -313,6 +326,8 @@ namespace ed {
 
 					{ "--disassemble | -dis <file>", "disassemble SPIR-V file" },
 					{ "--convert | -con <file>", "convert HLSL to GLSL" },
+
+					{ "--generatecmake | -gcm <path>", "convert SHADERed project to C++/CMake" },
 
 					{ "<file>", "open a file" }
 				};

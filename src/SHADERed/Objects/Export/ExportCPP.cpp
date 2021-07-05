@@ -401,9 +401,8 @@ namespace ed {
 		if (locShaders != std::string::npos) {
 			std::string shadersSrc = "";
 
-			for (int i = 0; i < allShaderFiles.size(); i++) {
-				if (externalShaders) {
-				} else {
+			if (!externalShaders) {
+				for (int i = 0; i < allShaderFiles.size(); i++) {
 					std::string shdrSource = data->Parser.LoadProjectFile(allShaderFiles[i]);
 					ShaderLanguage shdrLanguage = ShaderCompiler::GetShaderLanguageFromExtension(allShaderFiles[i].c_str());
 					if (shdrLanguage != ShaderLanguage::GLSL) {
@@ -434,7 +433,7 @@ namespace ed {
 			if (externalShaders) {
 				initSrc += indent + "// shaders\n";
 				for (int i = 0; i < allShaderFiles.size(); i++) {
-					std::string shdrFile = std::filesystem::path(allShaderFiles[i]).filename().string();
+					std::string shdrFile = (parentPath / std::filesystem::path(allShaderFiles[i]).filename()).string();
 
 					initSrc += indent + "std::string " + getShaderFilename(allShaderFiles[i]) + " = LoadFile(\"" + shdrFile + "\");\n";
 

@@ -8,6 +8,7 @@
 #include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
+#include <SHADERed/Objects/Export/ExportCPP.h>
 #include <glslang/Public/ShaderLang.h>
 
 #include <chrono>
@@ -206,7 +207,7 @@ int main(int argc, char* argv[])
 
 	bool run = true; // should we enter the infinite loop?
 	// make the window invisible if only rendering to a file
-	if (coptsParser.Render) {
+	if (coptsParser.Render || coptsParser.ConvertCPP) {
 		windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
 		maximized = false;
 		fullscreen = false;
@@ -261,6 +262,13 @@ int main(int argc, char* argv[])
 	GLenum oglError;
 	while ((oglError = glGetError()) != GL_NO_ERROR)
 		ed::Logger::Get().Log("GL error: " + std::to_string(oglError), true);
+
+	// convert .sprj -> cmake/c++
+	if (coptsParser.ConvertCPP) {
+		engine.UI().Open(coptsParser.ProjectFile);
+		ed::ExportCPP::Export(&engine.Interface(), coptsParser.CMakePath, true, true, "ShaderProject", true, true, true);
+		// return 0;
+	}
 
 	// render to file
 	if (coptsParser.Render) {
@@ -364,7 +372,7 @@ int main(int argc, char* argv[])
 
 	// save window size
 	preloadDatPath = ed::Settings::Instance().ConvertPath("data/preload.dat");
-	if (!coptsParser.Render) {
+	if (!coptsParser.Render && !coptsParser.ConvertCPP) {
 		ed::Logger::Get().Log("Saving window information");
 
 		std::ofstream save(preloadDatPath);
