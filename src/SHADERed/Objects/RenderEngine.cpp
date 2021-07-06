@@ -70,18 +70,6 @@ namespace ed {
 			iStart += iStep;
 		}
 	}
-	uint8_t* GetRawPixel(GLuint rt, uint8_t* data, int x, int y, int width)
-	{
-		glBindTexture(GL_TEXTURE_2D, rt);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		return &data[(x + y * width) * 4];
-	}
-	uint32_t GetPixelID(GLuint rt, uint8_t* data, int x, int y, int width)
-	{
-		uint8_t* pxData = GetRawPixel(rt, data, x, y, width);
-		return ((uint32_t)pxData[0] << 0) | ((uint32_t)pxData[1] << 8) | ((uint32_t)pxData[2] << 16) | ((uint32_t)pxData[3] << 24);
-	}
 
 	RenderEngine::RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* msgs, PluginManager* plugins, DebugInformation* debugger)
 			: m_pipeline(pipeline)
@@ -770,7 +758,7 @@ namespace ed {
 						maxVertexCount = std::min<int>(maxVertexCount, mesh.Indices.size());
 
 						glBindVertexArray(mesh.VAO);
-						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, 0, GL_TRIANGLES, objData->Instanced, objData->InstanceCount, true, vbase);
+						DebugDrawPrimitives(vertexStart, vertexCount, maxVertexCount, 0, GL_TRIANGLES, sedVarLoc, objData->Instanced, objData->InstanceCount, true, vbase);
 
 						vbase += mesh.Indices.size();
 					}
@@ -846,7 +834,7 @@ namespace ed {
 			}
 
 			// window pixel color
-			int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+			int vertexGroup = 0x00ffffff & getPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
 
 			// return old info
 			vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
@@ -1077,7 +1065,7 @@ namespace ed {
 			}
 
 			// window pixel color
-			int vertexGroup = 0x00ffffff & GetPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
+			int vertexGroup = 0x00ffffff & getPixelID(vertexPass->RenderTextures[0], mainPixelData, x, y, rtSize.x);
 
 			// return old info
 			vertexPass->Variables.UpdateUniformInfo(m_shaders[vertexPassID]);
@@ -2213,6 +2201,7 @@ namespace ed {
 						if (data->TSUsed) glAttachShader(m_shaders[i], tcs);
 						if (data->TSUsed) glAttachShader(m_shaders[i], tes);
 						glLinkProgram(m_shaders[i]);
+						// XXX TODO check link status
 
 						m_debugShaders[i] = glCreateProgram();
 						glAttachShader(m_debugShaders[i], m_generalDebugShader);
