@@ -895,7 +895,7 @@ namespace ed {
 				if (!externalEditor) spvData.Parse(shader->PSSPV);
 			} else if (stage == ShaderStage::Geometry) {
 				shaderPath = shader->GSPath;
-				if (!externalEditor) spvData.Parse(shader->PSSPV);
+				if (!externalEditor) spvData.Parse(shader->GSSPV);
 			} else if (stage == ShaderStage::TessellationControl) {
 				shaderPath = shader->TCSPath;
 				if (!externalEditor) spvData.Parse(shader->TCSSPV);
