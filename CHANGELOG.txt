@@ -10,8 +10,9 @@
 + fix loading volume .dds textures
 + fix a bug that would cause shaders to be output in wrong directory when converting project into C++
 + fix debug outline in the "Preview" window when using lines_adjacency
-+ fix a bug that caused the debugger not to work if the compiler doesn't output function with the name "main"
++ fix a bug that caused SHADERed to crash when a non-project shader file is open in a text editor and there are error messages
 + fix a bug that caused SHADERed to crash when debugging geometry shaders
++ fix a bug that caused the debugger not to work if the compiler doesn't output function with the name "main"
 
 [v1.5.3]
 + add Debug Adapter Protocol

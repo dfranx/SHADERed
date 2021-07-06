@@ -513,7 +513,7 @@ namespace ed {
 				if (groupErrs.count(msg->Line))
 					continue;
 
-				if (msg->Line > 0 && msg->Group == m_items[i]->Name && msg->Shader == m_shaderStage[i])
+				if (m_items[i] != nullptr && msg->Line > 0 && msg->Group == m_items[i]->Name && msg->Shader == m_shaderStage[i])
 					groupErrs[msg->Line] = msg->Text;
 			}
 			tEdit->SetErrorMarkers(groupErrs);
