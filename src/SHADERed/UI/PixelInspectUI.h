@@ -32,5 +32,7 @@ namespace ed {
 
 		std::vector<float> m_pixelHeights;
 		std::vector<float> m_suggestionHeights;
+
+		std::vector<std::string> m_editorStack;
 	};
 }

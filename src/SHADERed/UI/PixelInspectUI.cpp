@@ -299,6 +299,10 @@ namespace ed {
 		m_data->Debugger.SetDebugging(true);
 		m_data->Debugger.PrepareDebugger();
 
+		// text editor stack
+		m_editorStack.clear();
+		m_editorStack.push_back(editor->GetPath());
+
 		// start the DAP server
 		m_data->DAP.StartDebugging(editor->GetPath(), m_data->Debugger.GetStage());
 
@@ -352,10 +356,18 @@ namespace ed {
 
 			if (act == TextEditor::DebugAction::Stop || !state) {
 				m_data->Debugger.SetDebugging(false);
+
 				ed->SetCurrentLineIndicator(-1);
+
+				// stop debugging in all editors
+				CodeEditorUI* codeEditor = ((CodeEditorUI*)m_ui->Get(ed::ViewID::Code));
+				for (int i = 0; i < m_editorStack.size(); i++)
+					if (codeEditor->Get(m_editorStack[i]))
+						codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
 
 				m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStopped, nullptr, nullptr);
 			} else {
+				// update all the debug windows
 				((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 				((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 				((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
@@ -364,26 +376,57 @@ namespace ed {
 					((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
 
 				int curLine = m_data->Debugger.GetCurrentLine();
+				bool vmRunning = m_data->Debugger.IsVMRunning();
 
+				// get filename
 				std::string curFile = m_data->Debugger.GetVM()->current_file ? m_data->Debugger.GetVM()->current_file : "";
 				if (curFile.empty() || curFile == "src/lib.rs" || curFile == "src\\lib.rs") // hack for PluginRust..
 					curFile = m_data->Debugger.GetCurrentFile();
 				else if (!std::filesystem::path(curFile).is_absolute())
 					curFile = m_data->Parser.GetProjectPath(curFile);
+
+				// open the file if it's not already open
 				CodeEditorUI* codeEditor = ((CodeEditorUI*)m_ui->Get(ed::ViewID::Code));
-				if (codeEditor->Get(curFile) == nullptr) {
+				if (codeEditor->Get(curFile) == nullptr)
 					codeEditor->OpenFile(curFile);
+
+				TextEditor* actualEditor = codeEditor->Get(curFile);
+
+				// stop debugging in all editors
+				bool deleteStack = false;
+				for (int i = 0; i < m_editorStack.size(); i++) {
+					if (deleteStack || (i > 0 && !vmRunning)) {
+						if (codeEditor->Get(m_editorStack[i]))
+							codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
+						m_editorStack.erase(m_editorStack.begin() + i);
+						i--;
+					}
+					else if (m_editorStack[i] == curFile)
+						deleteStack = true;
 				}
+				if (!deleteStack)
+					m_editorStack.push_back(curFile);
 
 
+				// generate "Auto" watches
 				DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
 				if (autoWnd->Visible)
-					autoWnd->SetExpressions(ed->GetRelevantExpressions(curLine));
+					autoWnd->SetExpressions(actualEditor->GetRelevantExpressions(curLine));
 
-				if (!m_data->Debugger.IsVMRunning())
-					curLine++;
-				codeEditor->Get(curFile)->SetCurrentLineIndicator(curLine);
-				//ed->SetCurrentLineIndicator(curLine);
+				// update the line indicator
+				if (!vmRunning) {
+					curLine = ed->GetCurrentLineIndicator() + 1;
+					ed->SetCurrentLineIndicator(curLine);
+				} else
+					actualEditor->SetCurrentLineIndicator(curLine, actualEditor == ed);
+
+				// copy the debug methods if we are in some other file
+				if (actualEditor != ed) {
+					actualEditor->HasIdentifierHover = ed->HasIdentifierHover;
+					actualEditor->OnIdentifierHover = ed->OnIdentifierHover;
+					actualEditor->HasExpressionHover = ed->HasExpressionHover;
+					actualEditor->OnExpressionHover = ed->OnExpressionHover;
+				}
 
 				m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
 			}
