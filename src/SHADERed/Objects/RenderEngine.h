@@ -24,6 +24,8 @@
 namespace ed {
 	class ObjectManager;
 
+	uint32_t getPixelID(GLuint rt, uint8_t* data, int x, int y, int width);
+
 	class RenderEngine {
 	public:
 		RenderEngine(PipelineManager* pipeline, ObjectManager* objects, ProjectParser* project, MessageStack* messages, PluginManager* plugins, DebugInformation* debugger);
