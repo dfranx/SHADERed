@@ -104,6 +104,7 @@ set(SOURCES
 	libs/SPIRVCross/spirv_cross_util.cpp
 	libs/SPIRVCross/spirv_cross_parsed_ir.cpp
 	libs/SPIRVCross/spirv_glsl.cpp
+	libs/SPIRVCross/spirv_hlsl.cpp
 	libs/SPIRVCross/spirv_parser.cpp
 	libs/pugixml/src/pugixml.cpp
 	libs/ShaderExpressionParser/Parser.cpp
