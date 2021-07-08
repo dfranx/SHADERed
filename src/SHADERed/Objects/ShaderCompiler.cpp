@@ -9,6 +9,7 @@
 #include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/Settings.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
+#include <SHADERed/Objects/BinaryVectorReader.h>
 
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/StandAlone/DirStackFileIncluder.h>
@@ -549,24 +550,6 @@ namespace ed {
 
 	
 
-	class BinaryVectorReader : public spvgentwo::IReader {
-	public:
-		BinaryVectorReader(std::vector<unsigned int>& spv)
-		{
-			m_spv = &spv;
-		}
-		bool get(unsigned int& _word) 
-		{
-			if (m_spv && m_pos < m_spv->size()) {
-				_word = m_spv->at(m_pos++);
-				return true;
-			}
-			return false;
-		}
-	private:
-		std::vector<unsigned int>* m_spv;
-		spvgentwo::sgt_size_t m_pos = 0u;
-	};
 	bool ShaderCompiler::DisassembleSPIRV(spvgentwo::IReader& reader, spvgentwo::String& out, spvgentwo::HeapAllocator& alloc, bool useColorCodes)
 	{
 		spvgentwo::Module module(&alloc);

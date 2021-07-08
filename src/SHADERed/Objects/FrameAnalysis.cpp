@@ -2,40 +2,17 @@
 #include <SHADERed/Objects/Debug/PixelInformation.h>
 #include <SHADERed/Objects/ShaderCompiler.h>
 #include <SHADERed/Objects/Names.h>
+#include <SHADERed/Objects/BinaryVectorReader.h>
 #include <SHADERed/Engine/GeometryFactory.h>
 
 #include <thread>
 #include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <spvgentwo/Reader.h>
 #include <common/BinaryVectorWriter.h>
 #include <spvgentwo/Templates.h>
 
 namespace ed {
-	template <typename U32Vector>
-	class SPIRVBinaryVectorReader : public spvgentwo::IReader {
-	public:
-		SPIRVBinaryVectorReader(U32Vector& spv)
-				: m_vec(spv)
-				, m_index(0)
-		{
-		}
-		~SPIRVBinaryVectorReader() { }
-
-		bool get(unsigned int& _word) final
-		{
-			if (m_index >= m_vec.size())
-				return false;
-			_word = m_vec[m_index++];
-			return true;
-		}
-
-	private:
-		U32Vector& m_vec;
-		int m_index;
-	};
-
 	FrameAnalysis::EdgeEquation::EdgeEquation(const glm::ivec2& v0, const glm::ivec2& v1)
 	{
 		a = v0.y - v1.y;
@@ -784,7 +761,7 @@ namespace ed {
 		spvgentwo::Module* module = new spvgentwo::Module(allocator);
 
 
-		SPIRVBinaryVectorReader reader(oldSPV);
+		BinaryVectorReader reader(oldSPV);
 
 		module->reset();
 		module->read(reader, *grammar);
