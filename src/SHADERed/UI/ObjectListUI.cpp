@@ -36,6 +36,8 @@ namespace ed {
 			bool isPluginOwner = (oItem->Type == ObjectType::PluginObject);
 
 			GLuint tex = oItem->Texture;
+			if (oItem->Type == ObjectType::Texture)
+				tex = oItem->FlippedTexture;
 
 			float imgWH = 0.0f;
 			if (oItem->Type == ObjectType::RenderTexture) {
