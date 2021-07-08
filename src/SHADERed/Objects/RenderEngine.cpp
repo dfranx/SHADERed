@@ -2192,8 +2192,6 @@ namespace ed {
 						m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to compile the shader");
 						m_shaders[i] = 0;
 					} else {
-						m_msgs->ClearGroup(items[i]->Name);
-
 						m_shaders[i] = glCreateProgram();
 						glAttachShader(m_shaders[i], vs);
 						glAttachShader(m_shaders[i], ps);
@@ -2201,7 +2199,12 @@ namespace ed {
 						if (data->TSUsed) glAttachShader(m_shaders[i], tcs);
 						if (data->TSUsed) glAttachShader(m_shaders[i], tes);
 						glLinkProgram(m_shaders[i]);
-						// XXX TODO check link status
+
+						if (!gl::CheckShaderLinkStatus(m_shaders[i], shaderMessage)) {
+							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, shaderMessage);
+							m_msgs->Add(MessageStack::Type::Error, items[i]->Name, "Failed to link the shader");
+						} else
+							m_msgs->ClearGroup(items[i]->Name);
 
 						m_debugShaders[i] = glCreateProgram();
 						glAttachShader(m_debugShaders[i], m_generalDebugShader);
