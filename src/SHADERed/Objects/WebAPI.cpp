@@ -21,7 +21,7 @@
 
 namespace ed {
 	const std::string WebAPI::URL = "http://api.shadered.org";
-	const char* WebAPI::Version = "1.5.3";
+	const char* WebAPI::Version = "1.5.4";
 
 	bool isDigitsOnly(const std::string& str)
 	{
