@@ -1,31 +1,14 @@
 #include <SHADERed/Objects/Debug/ExpressionCompiler.h>
-#include <common/BinaryFileReader.h>
+#include <SHADERed/Objects/BinaryVectorReader.h>
+
 #include <common/BinaryVectorWriter.h>
 #include <spvgentwo/GLSL450Instruction.h>
 #include <common/HeapList.h>
 #include <spvgentwo/Templates.h>
+
 #include <string.h>
 
 namespace ed {
-	template <typename U32Vector>
-	class BinaryVectorReader : public spvgentwo::IReader {
-	public:
-		BinaryVectorReader(U32Vector& spv) : m_vec(spv), m_index(0) { }
-		~BinaryVectorReader() { }
-
-		bool get(unsigned int& _word) final
-		{
-			if (m_index >= m_vec.size())
-				return false;
-			_word = m_vec[m_index++];
-			return true;
-		}
-
-	private:
-		U32Vector& m_vec;
-		int m_index;
-	};
-
 	ExpressionCompiler::ExpressionCompiler()
 	{
 		m_error = false;

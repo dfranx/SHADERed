@@ -407,7 +407,6 @@ namespace ed {
 				if (!deleteStack)
 					m_editorStack.push_back(curFile);
 
-
 				// generate "Auto" watches
 				DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
 				if (autoWnd->Visible)

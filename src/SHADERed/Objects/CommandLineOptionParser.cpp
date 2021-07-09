@@ -280,7 +280,6 @@ namespace ed {
 				if (i + 1 < argc) {
 					ConvertPath = argv[i + 1];
 					i++;
-
 				}
 			}
 			// --generatecmake, -gcm [path]
@@ -325,7 +324,7 @@ namespace ed {
 					{ "--entry | -e <funcname>", "shader entry" },
 
 					{ "--disassemble | -dis <file>", "disassemble SPIR-V file" },
-					{ "--convert | -con <file>", "convert HLSL to GLSL" },
+					{ "--convert | -con <file>", "convert HLSL to GLSL or GLSL to HLSL" },
 
 					{ "--generatecmake | -gcm <path>", "convert SHADERed project to C++/CMake" },
 
@@ -377,13 +376,24 @@ namespace ed {
 
 		// --convert
 		if (!ConvertPath.empty()) {
-			std::vector<unsigned int> spv;
-			std::vector<ed::ShaderMacro> macros;
-			bool status = ed::ShaderCompiler::CompileToSPIRV(spv, ShaderLanguage::HLSL, ConvertPath, CompileStage, CompileEntry, macros, nullptr, nullptr);
+			if (CompileLanguage == ShaderLanguage::GLSL) {
+				std::vector<unsigned int> spv;
+				std::vector<ed::ShaderMacro> macros;
+				bool status = ed::ShaderCompiler::CompileToSPIRV(spv, ShaderLanguage::GLSL, ConvertPath, CompileStage, CompileEntry, macros, nullptr, nullptr);
 
-			if (status && spv.size() > 0) {
-				std::string converted = ed::ShaderCompiler::ConvertToGLSL(spv, ShaderLanguage::HLSL, CompileStage, false, false, nullptr, false);
-				printf("%s\n", converted.c_str());
+				if (status && spv.size() > 0) {
+					std::string converted = ed::ShaderCompiler::ConvertToHLSL(spv, CompileStage);
+					printf("%s\n", converted.c_str());
+				}
+			} else {
+				std::vector<unsigned int> spv;
+				std::vector<ed::ShaderMacro> macros;
+				bool status = ed::ShaderCompiler::CompileToSPIRV(spv, ShaderLanguage::HLSL, ConvertPath, CompileStage, CompileEntry, macros, nullptr, nullptr);
+
+				if (status && spv.size() > 0) {
+					std::string converted = ed::ShaderCompiler::ConvertToGLSL(spv, ShaderLanguage::HLSL, CompileStage, false, false, nullptr, false);
+					printf("%s\n", converted.c_str());
+				}
 			}
 		}
 	}

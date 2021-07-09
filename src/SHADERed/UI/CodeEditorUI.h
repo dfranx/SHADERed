@@ -119,6 +119,7 @@ namespace ed {
 		void m_save(int id);
 		void m_saveAsSPV(int id);
 		void m_saveAsGLSL(int id);
+		void m_saveAsHLSL(int id);
 		void m_compile(int id);
 
 		std::vector<PipelineItem*> m_items;
