@@ -17,6 +17,7 @@
 
 #include <SPIRVCross/spirv_cross_util.hpp>
 #include <SPIRVCross/spirv_glsl.hpp>
+#include <SPIRVCross/spirv_hlsl.hpp>
 
 #include <spvgentwo/Module.h>
 #include <spvgentwo/Grammar.h>
@@ -174,8 +175,6 @@ namespace ed {
 		}
 		if (!entry_point.empty() && model != spv::ExecutionModeMax)
 			glsl.set_entry_point(entry_point, model);
-
-		auto active = glsl.get_active_interface_variables();
 
 		// rename outputs
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
@@ -348,6 +347,52 @@ namespace ed {
 
 				source += line + "\n";
 			}
+		}
+
+		return source;
+	}
+	std::string ShaderCompiler::ConvertToHLSL(const std::vector<unsigned int>& spvIn, ShaderStage sType)
+	{
+		if (spvIn.empty())
+			return "";
+
+		// Read SPIR-V
+		spirv_cross::CompilerHLSL hlsl(std::move(spvIn));
+
+		// Set entry
+		auto entry_points = hlsl.get_entry_points_and_stages();
+		spv::ExecutionModel model = spv::ExecutionModelMax;
+		std::string entry_point = "";
+		if (sType == ShaderStage::Vertex)
+			model = spv::ExecutionModelVertex;
+		else if (sType == ShaderStage::Pixel)
+			model = spv::ExecutionModelFragment;
+		else if (sType == ShaderStage::Geometry)
+			model = spv::ExecutionModelGeometry;
+		else if (sType == ShaderStage::Compute)
+			model = spv::ExecutionModelGLCompute;
+		else if (sType == ShaderStage::TessellationControl)
+			model = spv::ExecutionModelTessellationControl;
+		else if (sType == ShaderStage::TessellationEvaluation)
+			model = spv::ExecutionModelTessellationEvaluation;
+		for (auto& e : entry_points) {
+			if (e.execution_model == model) {
+				entry_point = e.name;
+				break;
+			}
+		}
+		if (!entry_point.empty() && model != spv::ExecutionModeMax)
+			hlsl.set_entry_point(entry_point, model);
+
+		// Compile to HLSL
+		std::string source = "";
+		try {
+			hlsl.build_dummy_sampler_for_combined_images();
+			hlsl.build_combined_image_samplers();
+			source = hlsl.compile();
+		} catch (spirv_cross::CompilerError& e) {
+			ed::Logger::Get().Log("An exception occured: " + std::string(e.what()), true);
+			return "error";
 		}
 
 		return source;

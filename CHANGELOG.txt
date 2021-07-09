@@ -1,4 +1,5 @@
 [v1.5.4]
++ add "Save as HLSL" option & --convert flag can now convert GLSL -> HLSL
 + add ability to step into included files while debugging
 + add vertex buffer instancing
 + add ability to copy error messages

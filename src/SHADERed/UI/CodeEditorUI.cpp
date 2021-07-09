@@ -177,6 +177,13 @@ namespace ed {
 			ifd::FileDialog::Instance().Save("SaveGLSLDlg", "Save as GLSL", "GLSL source (*.glsl){.glsl},.*");
 		}
 	}
+	void CodeEditorUI::m_saveAsHLSL(int id)
+	{
+		if (id < m_items.size()) {
+			m_editorSaveRequestID = id;
+			ifd::FileDialog::Instance().Save("SaveHLSLDlg", "Save as HLSL", "HLSL source (*.hlsl){.hlsl},.*");
+		}
+	}
 	void CodeEditorUI::m_compile(int id)
 	{
 		if (id >= m_editor.size() || m_items[id] == nullptr)
@@ -262,6 +269,7 @@ namespace ed {
 							if (ImGui::MenuItem("Save", KeyboardShortcuts::Instance().GetString("CodeUI.Save").c_str())) m_save(i);
 							if (ImGui::MenuItem("Save SPIR-V binary")) m_saveAsSPV(i);
 							if (ImGui::MenuItem("Save as GLSL")) m_saveAsGLSL(i);
+							if (ImGui::MenuItem("Save as HLSL")) m_saveAsHLSL(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
@@ -463,6 +471,50 @@ namespace ed {
 
 				std::ofstream spvOut(filePathName, std::ios::out | std::ios::binary);
 				spvOut.write(glslSource.c_str(), glslSource.size());
+				spvOut.close();
+			}
+			ifd::FileDialog::Instance().Close();
+		}
+
+		// save hlsl dialog
+		if (ifd::FileDialog::Instance().IsDone("SaveHLSLDlg")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::string filePathName = ifd::FileDialog::Instance().GetResult().u8string();
+
+				std::vector<unsigned int> spv;
+
+				PipelineItem* item = m_items[m_editorSaveRequestID];
+				ShaderStage stage = m_shaderStage[m_editorSaveRequestID];
+
+				if (item->Type == PipelineItem::ItemType::ShaderPass) {
+					pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->PSSPV;
+					else if (stage == ShaderStage::Vertex)
+						spv = pass->VSSPV;
+					else if (stage == ShaderStage::Geometry)
+						spv = pass->GSSPV;
+					else if (stage == ShaderStage::TessellationControl)
+						spv = pass->TCSSPV;
+					else if (stage == ShaderStage::TessellationEvaluation)
+						spv = pass->TESSPV;
+				} else if (item->Type == PipelineItem::ItemType::ComputePass) {
+					pipe::ComputePass* pass = (pipe::ComputePass*)item->Data;
+					if (stage == ShaderStage::Pixel)
+						spv = pass->SPV;
+				} else if (item->Type == PipelineItem::ItemType::PluginItem) {
+					pipe::PluginItemData* data = (pipe::PluginItemData*)item->Data;
+					unsigned int spvSize = data->Owner->PipelineItem_GetSPIRVSize(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+					unsigned int* spvPtr = data->Owner->PipelineItem_GetSPIRV(data->Type, data->PluginData, (plugin::ShaderStage)stage);
+
+					if (spvPtr != nullptr && spvSize != 0)
+						spv = std::vector<unsigned int>(spvPtr, spvPtr + spvSize);
+				}
+
+				std::string hlslSource = ed::ShaderCompiler::ConvertToHLSL(spv, stage);
+
+				std::ofstream spvOut(filePathName, std::ios::out | std::ios::binary);
+				spvOut.write(hlslSource.c_str(), hlslSource.size());
 				spvOut.close();
 			}
 			ifd::FileDialog::Instance().Close();
