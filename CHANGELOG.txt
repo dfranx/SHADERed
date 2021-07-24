@@ -8,6 +8,7 @@
 + fix a bug that would cause SHADERed to crash when trying to view texture properties
 + fix a bug that would cause compute shaders not to run when rendering a sequence to image files
 + fix a bug where 3D textures wouldn't be properly bound to a shader debugger
++ fix a bug where sometimes the debugger wouldn't work properly with if statements
 + fix loading volume .dds textures
 + fix autocomplete for geometry shaders
 + fix a bug that would cause shaders to be output in wrong directory when converting project into C++
