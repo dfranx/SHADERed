@@ -635,6 +635,10 @@ namespace ed {
 				return bb->opFwidthCoarse(m_simpleConvert(expr::TokenType_Float, args[0]));
 			else if (fname == "texture" && args.size() == 2)
 				return bb->opImageSampleImplictLod(args[0], m_simpleConvert(expr::TokenType_Float, args[1]));
+			else if (fname == "asfloat" || fname == "intBitsToFloat" || fname == "uintBitsToFloat")
+				return bb->opBitcast(m_module->type<float>(), m_simpleConvert(expr::TokenType_Int, args[0]));
+			else if (fname == "asint" || fname == "floatBitsToInt")
+				return bb->opBitcast(m_module->type<int>(), m_simpleConvert(expr::TokenType_Float, args[0]));
 			else {
 				m_error = true;
 				return nullptr;
