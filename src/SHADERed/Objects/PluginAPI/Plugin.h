@@ -142,6 +142,9 @@ namespace ed {
 		typedef bool (*ImGuiFileDialogGetResultFn)();
 		typedef void (*ImGuiFileDialogGetPathFn)(char* outPath);
 		typedef const char* (*DebuggerImmediateFn)(void* Debugger, const char* expr);
+
+		/********** IPlugin3 **********/
+		typedef void (*RegisterPlugin)(void* pluginManager, void* plugin, const char* pname, int apiVer, int pluginVer, void* procDLL);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -469,5 +472,14 @@ namespace ed {
 		pluginfn::ImGuiFileDialogGetResultFn ImGuiFileDialogGetResult;
 		pluginfn::ImGuiFileDialogGetPathFn ImGuiFileDialogGetPath;
 		pluginfn::DebuggerImmediateFn DebuggerImmediate;
+	};
+
+	class IPlugin3 : public IPlugin2 {
+	public:
+		virtual int GetVersion() { return 3; }
+
+		virtual void PluginManager_RegisterPlugins() = 0;
+
+		pluginfn::RegisterPlugin RegisterPlugin;
 	};
 }
