@@ -1,6 +1,9 @@
 [v1.5.5]
 + add IPlugin3
 + fix gizmo 3D model
++ fix "Save as GLSL/HLSL" when a plugin shader editor is used
++ fix a bug where cached plugin shader editor information sometimes wouldn't be cleared
++ fix a bug that would cause SHADERed to crash when pausing the preview with a plugin shader editor open
 
 [v1.5.4]
 + add "Save as HLSL" option & --convert flag can now convert GLSL -> HLSL

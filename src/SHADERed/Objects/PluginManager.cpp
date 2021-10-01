@@ -395,8 +395,12 @@ namespace ed {
 			return (void*)pipe->Get(name);
 		};
 		plugin->BindShaderPassVariables = [](void* shaderpass, void* item) {
-			pipe::ShaderPass* data = (pipe::ShaderPass*)shaderpass;
-			data->Variables.Bind(item);
+			PipelineItem* pitem = (PipelineItem*)shaderpass;
+
+			if (pitem != nullptr && pitem->Type == PipelineItem::ItemType::ShaderPass) {
+				pipe::ShaderPass* pass = (pipe::ShaderPass*)pitem->Data;
+				pass->Variables.Bind(item);
+			}
 		};
 		plugin->GetViewMatrix = [](float* out) {
 			glm::mat4 viewm = SystemVariableManager::Instance().GetViewMatrix();
@@ -470,7 +474,6 @@ namespace ed {
 		};
 		plugin->IsTexture = [](void* objects, const char* name) -> bool {
 			ObjectManager* obj = (ObjectManager*)objects;
-
 			return obj->Get(name)->Type == ObjectType::Texture;
 		};
 		plugin->GetTexture = [](void* objects, const char* name) -> unsigned int {
@@ -1036,6 +1039,14 @@ namespace ed {
 				PluginManager* pm = (PluginManager*)pluginManager;
 				IPlugin1* p = (IPlugin1*)plugin;
 				pm->RegisterPlugin(p, pname, apiVer, pluginVer, procDLL);
+			};
+			plugin3->GetEditorPipelineItem = nullptr;
+			plugin3->SetViewportSize = [](float width, float height) {
+				SystemVariableManager::Instance().SetViewportSize(width, height);
+			};
+			plugin3->IsObjectBound = [](void* Objects, const char* name, void* pipelineItem) -> int {
+				ObjectManager* obj = (ObjectManager*)Objects;
+				return obj->IsBound(obj->Get(name), (PipelineItem*)pipelineItem);
 			};
 		}
 

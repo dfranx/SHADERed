@@ -83,6 +83,8 @@ namespace ed {
 		bool RequestedProjectSave;
 
 		void ChangePluginShaderEditor(IPlugin1* plugin, int langID, int editorID);
+		PipelineItem* GetPluginEditorPipelineItem(IPlugin1* plugin, int langID, int editorID);
+
 
 	private:
 		void m_setupShortcuts();
@@ -91,6 +93,8 @@ namespace ed {
 
 		TextEditor::LanguageDefinition m_buildLanguageDefinition(IPlugin1* plugin, int languageID);
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
+
+		void m_setupPlugin(ed::IPlugin1* plugin);
 
 		std::vector<CodeSnippet> m_snippets;
 

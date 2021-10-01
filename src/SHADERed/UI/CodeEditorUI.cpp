@@ -432,13 +432,8 @@ namespace ed {
 				PipelineItem* item = m_items[m_editorSaveRequestID];
 				ShaderStage stage = m_shaderStage[m_editorSaveRequestID];
 
-				ed::ShaderLanguage lang = ed::ShaderLanguage::Plugin;
-				if (m_editor[m_editorSaveRequestID]->GetLanguageDefinition().mName == "HLSL")
-					lang = ed::ShaderLanguage::HLSL;
-				else if (m_editor[m_editorSaveRequestID]->GetLanguageDefinition().mName == "GLSL")
-					lang = ed::ShaderLanguage::GLSL;
-
-
+				ed::ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(m_paths[m_editorSaveRequestID]);
+				
 				if (item->Type == PipelineItem::ItemType::ShaderPass) {
 					pipe::ShaderPass* pass = (pipe::ShaderPass*)item->Data;
 					if (stage == ShaderStage::Pixel)
@@ -671,6 +666,17 @@ namespace ed {
 				m_changedPluginEditors.push_back(plEditor);
 			m_contentChanged = true;
 		}
+	}
+	PipelineItem* CodeEditorUI::GetPluginEditorPipelineItem(IPlugin1* plugin, int langID, int editorID)
+	{
+		PluginShaderEditor* plEditor = nullptr;
+		
+		for (int i = 0; i < m_pluginEditor.size(); i++) {
+			if (m_pluginEditor[i].LanguageID == langID && m_pluginEditor[i].ID == editorID && m_pluginEditor[i].Plugin == plugin)
+				return m_items[i];
+		}
+
+		return nullptr;
 	}
 	void CodeEditorUI::UpdateAutoRecompileItems()
 	{
@@ -1070,11 +1076,7 @@ namespace ed {
 			pluginEditor->Plugin = plugin;
 			pluginEditor->ID = idMax + 1;
 
-			pluginEditor->Plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
-				GUIManager* gui = (GUIManager*)UI;
-				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
-				code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
-			};
+			m_setupPlugin(pluginEditor->Plugin);
 
 			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
 		}
@@ -1183,11 +1185,7 @@ namespace ed {
 			pluginEditor->Plugin = plugin;
 			pluginEditor->ID = idMax + 1;
 
-			pluginEditor->Plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
-				GUIManager* gui = (GUIManager*)UI;
-				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
-				code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
-			};
+			m_setupPlugin(pluginEditor->Plugin);
 
 			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
 		}
@@ -1309,11 +1307,7 @@ namespace ed {
 			pluginEditor->Plugin = plugin;
 			pluginEditor->ID = idMax + 1;
 
-			pluginEditor->Plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
-				GUIManager* gui = (GUIManager*)UI;
-				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
-				code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
-			};
+			m_setupPlugin(pluginEditor->Plugin);
 
 			pluginEditor->Plugin->ShaderEditor_Open(pluginEditor->LanguageID, pluginEditor->ID, shaderContent.c_str(), shaderContent.size());
 		}
@@ -1346,6 +1340,7 @@ namespace ed {
 
 				m_items.erase(m_items.begin() + i);
 				m_editor.erase(m_editor.begin() + i);
+				m_pluginEditor.erase(m_pluginEditor.begin() + i);
 				m_editorOpen.erase(m_editorOpen.begin() + i);
 				m_stats.erase(m_stats.begin() + i);
 				m_paths.erase(m_paths.begin() + i);
@@ -1441,10 +1436,30 @@ namespace ed {
 		};
 	}
 
+	void CodeEditorUI::m_setupPlugin(ed::IPlugin1* plugin)
+	{
+		plugin->OnEditorContentChange = [](void* UI, void* plugin, int langID, int editorID) {
+			GUIManager* gui = (GUIManager*)UI;
+			CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
+			code->ChangePluginShaderEditor((IPlugin1*)plugin, langID, editorID);
+		};
+
+		if (plugin->GetVersion() >= 3) {
+			IPlugin3* plug3 = (IPlugin3*)plugin;
+			plug3->GetEditorPipelineItem = [](void* UI, void* plugin, int langID, int editorID) -> void* {
+				GUIManager* gui = (GUIManager*)UI;
+				CodeEditorUI* code = ((CodeEditorUI*)gui->Get(ViewID::Code));
+				return (void*)code->GetPluginEditorPipelineItem((IPlugin1*)plugin, langID, editorID);
+			};
+		}
+	}
+
 	void CodeEditorUI::StopDebugging()
 	{
-		for (auto& ed : m_editor)
-			ed->SetCurrentLineIndicator(-1);
+		for (auto& ed : m_editor) {
+			if (ed)
+				ed->SetCurrentLineIndicator(-1);
+		}
 	}
 	void CodeEditorUI::StopThreads()
 	{

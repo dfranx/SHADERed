@@ -144,7 +144,10 @@ namespace ed {
 		typedef const char* (*DebuggerImmediateFn)(void* Debugger, const char* expr);
 
 		/********** IPlugin3 **********/
-		typedef void (*RegisterPlugin)(void* pluginManager, void* plugin, const char* pname, int apiVer, int pluginVer, void* procDLL);
+		typedef void (*RegisterPluginFn)(void* pluginManager, void* plugin, const char* pname, int apiVer, int pluginVer, void* procDLL);
+		typedef void* (*GetEditorPipelineItemFn)(void* UI, void* plugin, int langID, int editorID);
+		typedef void (*SetViewportSizeFn)(float w, float h);
+		typedef int (*IsObjectBoundFn)(void* Objects, const char* name, void* pipelineItem);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
@@ -479,7 +482,11 @@ namespace ed {
 		virtual int GetVersion() { return 3; }
 
 		virtual void PluginManager_RegisterPlugins() = 0;
-
-		pluginfn::RegisterPlugin RegisterPlugin;
+		virtual const unsigned int* CustomLanguage_CompileToSPIRV2(void* item, int langID, const char* src, size_t src_len, ed::plugin::ShaderStage stage, const char* entry, ed::plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
+		
+		pluginfn::RegisterPluginFn RegisterPlugin;
+		pluginfn::GetEditorPipelineItemFn GetEditorPipelineItem;
+		pluginfn::SetViewportSizeFn SetViewportSize;
+		pluginfn::IsObjectBoundFn IsObjectBound;
 	};
 }
