@@ -189,9 +189,12 @@ namespace ed {
 				codeUI->StopDebugging();
 				codeUI->Open(m_modalItem, ShaderStage::Compute);
 				TextEditor* editor = codeUI->Get(m_modalItem, ShaderStage::Compute);
+				PluginShaderEditor pluginEditor;
+				if (editor == nullptr)
+					pluginEditor = codeUI->GetPluginEditor(m_modalItem, ShaderStage::Compute);
 
 				m_data->Debugger.PrepareComputeShader(m_modalItem, m_thread[0], m_thread[1], m_thread[2]);
-				((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, nullptr);
+				((PixelInspectUI*)m_ui->Get(ViewID::PixelInspect))->StartDebugging(editor, pluginEditor, nullptr);
 
 				m_closePopup();
 			}

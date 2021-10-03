@@ -22,6 +22,24 @@ namespace ed {
 		std::string Code;
 	};
 
+	struct PluginShaderEditor {
+		PluginShaderEditor()
+		{
+			Plugin = nullptr;
+			LanguageID = -1;
+			ID = -1;
+		}
+		PluginShaderEditor(IPlugin1* pl, int langID, int id)
+		{
+			Plugin = pl;
+			LanguageID = langID;
+			ID = id;
+		}
+		IPlugin1* Plugin;
+		int LanguageID;
+		int ID;
+	};
+
 	class CodeEditorUI : public UIView {
 	public:
 		CodeEditorUI(GUIManager* ui, ed::InterfaceManager* objects, const std::string& name = "", bool visible = false);
@@ -50,6 +68,9 @@ namespace ed {
 		void OpenPluginCode(PipelineItem* item, const char* filepath, int id);
 		TextEditor* Get(PipelineItem* item, ed::ShaderStage stage);
 		TextEditor* Get(const std::string& path);
+		PluginShaderEditor GetPluginEditor(PipelineItem* item, ed::ShaderStage stage);
+		PluginShaderEditor GetPluginEditor(const std::string& path);
+		std::string GetPluginEditorPath(const PluginShaderEditor& editor);
 		
 
 		void SetTheme(const TextEditor::Palette& colors);
@@ -97,24 +118,6 @@ namespace ed {
 		void m_setupPlugin(ed::IPlugin1* plugin);
 
 		std::vector<CodeSnippet> m_snippets;
-
-		struct PluginShaderEditor {
-			PluginShaderEditor()
-			{
-				Plugin = nullptr;
-				LanguageID = -1;
-				ID = -1;
-			}
-			PluginShaderEditor(IPlugin1* pl, int langID, int id)
-			{
-				Plugin = pl;
-				LanguageID = langID;
-				ID = id;
-			}
-			IPlugin1* Plugin;
-			int LanguageID;
-			int ID;
-		};
 
 		// code editor font
 		ImFont* m_font;

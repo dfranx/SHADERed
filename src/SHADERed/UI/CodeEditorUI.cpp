@@ -1327,6 +1327,29 @@ namespace ed {
 		return nullptr;
 	}
 
+	PluginShaderEditor CodeEditorUI::GetPluginEditor(PipelineItem* item, ed::ShaderStage stage)
+	{
+		for (int i = 0; i < m_items.size(); i++)
+			if (m_items[i] == item && m_shaderStage[i] == stage)
+				return m_pluginEditor[i];
+		return PluginShaderEditor();
+	}
+	PluginShaderEditor CodeEditorUI::GetPluginEditor(const std::string& path)
+	{
+		for (int i = 0; i < m_paths.size(); i++)
+			if (m_paths[i] == path)
+				return m_pluginEditor[i];
+		return PluginShaderEditor();
+	}
+	std::string CodeEditorUI::GetPluginEditorPath(const PluginShaderEditor& editor)
+	{
+		for (int i = 0; i < m_pluginEditor.size(); i++)
+			if (m_pluginEditor[i].ID == editor.ID && m_pluginEditor[i].LanguageID == editor.LanguageID &&
+				m_pluginEditor[i].Plugin == editor.Plugin)
+				return m_paths[i];
+		return "";
+	}
+
 	void CodeEditorUI::CloseAll(PipelineItem* item)
 	{
 		for (int i = 0; i < m_items.size(); i++) {
@@ -1456,9 +1479,14 @@ namespace ed {
 
 	void CodeEditorUI::StopDebugging()
 	{
-		for (auto& ed : m_editor) {
-			if (ed)
-				ed->SetCurrentLineIndicator(-1);
+		for (int i = 0; i < m_editor.size(); i++) {
+			if (m_editor[i])
+				m_editor[i]->SetCurrentLineIndicator(-1);
+			else {
+				if (m_pluginEditor[i].Plugin->GetVersion() >= 3)
+					((IPlugin3*)m_pluginEditor[i].Plugin)->ShaderEditor_SetLineIndicator(m_pluginEditor[i].LanguageID,
+						m_pluginEditor[i].ID, -1);
+			}
 		}
 	}
 	void CodeEditorUI::StopThreads()

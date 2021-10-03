@@ -1048,6 +1048,34 @@ namespace ed {
 				ObjectManager* obj = (ObjectManager*)Objects;
 				return obj->IsBound(obj->Get(name), (PipelineItem*)pipelineItem);
 			};
+			plugin3->DebuggerStepIntoPluginEditor = [](void* Debugger, void* UI, void* Plugin, int lang, int editorID) {
+				((ed::DebugInformation*)Debugger)->StepInto();
+				int curLine = ((ed::DebugInformation*)Debugger)->GetCurrentLine();
+				((IPlugin3*)Plugin)->ShaderEditor_SetLineIndicator(lang, editorID, curLine);
+			};
+			plugin3->DebuggerGetVariableValue = [](void* Debugger, const char* name, char* value, int valueLength) {
+				ed::DebugInformation* dbgr = ((ed::DebugInformation*)Debugger);
+
+				spvm_result_t memType;
+				size_t memCount = 0;
+				spvm_member_t mem = dbgr->GetVariable(name, memCount, memType);
+
+				std::stringstream ss;
+				dbgr->GetVariableValueAsString(ss, dbgr->GetVM(), memType, mem, memCount, "");
+
+				std::string res = ss.str();
+				if (res.size() >= valueLength - 1)
+					res = res.substr(0, valueLength - 1);
+
+				strcpy(value, res.c_str());
+			};
+			plugin3->DebuggerStopPluginEditor = [](void* Debugger, void* UI, void* Plugin, int lang, int editorID) {
+				((ed::DebugInformation*)Debugger)->SetDebugging(false);
+				((IPlugin3*)Plugin)->ShaderEditor_SetLineIndicator(lang, editorID, -1);
+			};
+			plugin3->DebuggerIsVMRunning = [](void* Debugger) -> bool {
+				return ((ed::DebugInformation*)Debugger)->IsVMRunning();
+			};
 		}
 
 #ifdef SHADERED_DESKTOP
@@ -1059,8 +1087,24 @@ namespace ed {
 
 		if (initResult)
 			ed::Logger::Get().Log("Plugin \"" + pname + "\" successfully initialized.");
-		else
+		else {
 			ed::Logger::Get().Log("Failed to initialize plugin \"" + pname + "\".");
+		
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)dlsym(procDLL, "DestroyPlugin");
+			if (fnDestroyPlugin)
+				(*fnDestroyPlugin)(plugin);
+
+			dlclose(procDLL);
+#else
+			DestroyPluginFn fnDestroyPlugin = (DestroyPluginFn)GetProcAddress((HINSTANCE)procDLL, "DestroyPlugin");
+			if (fnDestroyPlugin)
+				(*fnDestroyPlugin)(plugin);
+
+			FreeLibrary((HINSTANCE)procDLL);
+#endif
+			return;
+		}
 
 		m_plugins.push_back(plugin);
 		m_proc.push_back(procDLL);

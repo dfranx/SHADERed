@@ -7,7 +7,7 @@ namespace ed {
 	class WebAPI {
 	public:
 		static const std::string URL;
-		static const int InternalVersion = 25;
+		static const int InternalVersion = 26;
 		static const char* Version;
 
 		// info that /api/search will return
