@@ -358,6 +358,8 @@ namespace ed {
 		// editor functions
 		if (editor) {
 			editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
+				CodeEditorUI* codeEditor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
+
 				if (!m_data->Debugger.IsDebugging())
 					return;
 
