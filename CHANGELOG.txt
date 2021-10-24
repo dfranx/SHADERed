@@ -1,3 +1,8 @@
+[v1.5.6]
++ display error messages on the preview window when in DAP mode
++ fix a bug that causeed the debugger to crash
++ fix downloading SpearNode through the "Browse online" window
+
 [v1.5.5]
 + add IPlugin3
 + fix gizmo 3D model
