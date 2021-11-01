@@ -185,7 +185,8 @@ brew install sdl2 glew glm
 
 Build:
 
-```sh
+```git submodule update --init
+sh
 mkdir build
 cd build
 cmake ../
