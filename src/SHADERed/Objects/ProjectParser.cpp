@@ -1120,7 +1120,7 @@ namespace ed {
 				}
 		}
 	
-		m_objects->UpdateTextureParameters(item);
+		m_objects->UpdateTextureParameters(itemData);
 	}
 
 	void ProjectParser::m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var)

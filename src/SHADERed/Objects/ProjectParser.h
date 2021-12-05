@@ -71,7 +71,7 @@ namespace ed {
 		void m_parseV1(pugi::xml_node& projectNode); // old
 		void m_parseV2(pugi::xml_node& projectNode); // current -> merge blend, rasterizer and depth states into one "render state" ||| remove input layout parsing ||| ignore shader entry property
 
-		void m_parseSampler(pugi::xml_node& node, ObjectManagerItem* itemData);
+		void m_parseTextureParameters(pugi::xml_node& node, ObjectManagerItem* itemData);
 		void m_parseVariableValue(pugi::xml_node& node, ShaderVariable* var);
 		void m_exportVariableValue(pugi::xml_node& node, ShaderVariable* vars);
 		void m_exportShaderVariables(pugi::xml_node& node, std::vector<ShaderVariable*>& vars);
