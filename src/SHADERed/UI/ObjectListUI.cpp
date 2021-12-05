@@ -170,7 +170,13 @@ namespace ed {
 					ImGui::Separator();
 				}
 
-				if (oItem->Type == ObjectType::RenderTexture || oItem->Type == ObjectType::Image || oItem->Type == ObjectType::Texture || oItem->Type == ObjectType::Texture3D || isImg3D || (isPluginOwner && pobj->Owner->Object_HasProperties(pobj->Type))) {
+				if (oItem->Type == ObjectType::RenderTexture || 
+					oItem->Type == ObjectType::CubeMap ||
+					oItem->Type == ObjectType::Image || 
+					oItem->Type == ObjectType::Texture || 
+					oItem->Type == ObjectType::Texture3D || 
+					isImg3D || 
+					(isPluginOwner && pobj->Owner->Object_HasProperties(pobj->Type))) {
 					if (ImGui::Selectable("Properties"))
 						((ed::PropertyUI*)m_ui->Get(ViewID::Properties))->Open(oItem);
 				}

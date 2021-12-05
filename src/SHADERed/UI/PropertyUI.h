@@ -28,12 +28,14 @@ namespace ed {
 		inline bool IsImage() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image; }
 		inline bool IsImage3D() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Image3D; }
 		inline bool IsTexture3D() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::Texture3D; }
+		inline bool IsCubeMap() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::CubeMap; }
 		inline bool IsPlugin() { return m_currentObj != nullptr && m_currentObj->Type == ObjectType::PluginObject; }
 
 	private:
 		char m_itemName[2048];
 
 		void m_init();
+		void m_renderSamplerParams(int dimension);
 
 		PipelineItem* m_current;
 		ObjectManagerItem* m_currentObj;

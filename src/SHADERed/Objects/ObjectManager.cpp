@@ -232,16 +232,12 @@ namespace ed {
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, rtObj->Format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// depth texture
 		glGenTextures(1, &rtObj->DepthStencilBuffer);
 		glBindTexture(GL_TEXTURE_2D, rtObj->DepthStencilBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, size.x, size.y, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// color texture ms
@@ -254,6 +250,8 @@ namespace ed {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rtObj->DepthStencilBufferMS);
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, Settings::Instance().Preview.MSAA, GL_DEPTH24_STENCIL8, size.x, size.y, true);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+		UpdateTextureParameters(item);
 
 		return true;
 	}
@@ -298,10 +296,6 @@ namespace ed {
 		// normal texture
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -320,15 +314,13 @@ namespace ed {
 
 		glGenTextures(1, &item->FlippedTexture);
 		glBindTexture(GL_TEXTURE_2D, item->FlippedTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, flippedData);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		item->TextureSize = glm::ivec2(width, height);
+
+		UpdateTextureParameters(item);
 
 		free(flippedData);
 
@@ -363,17 +355,14 @@ namespace ed {
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_3D, item->Texture);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapR);
 		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, ddsImage->header.width, ddsImage->header.height, ddsImage->header.depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, ddsImage->pixels);
 		glGenerateMipmap(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, 0);
 
 		item->TextureSize = glm::ivec2(ddsImage->header.width, ddsImage->header.height);
 		item->Depth = ddsImage->header.depth;
+
+		UpdateTextureParameters(item);
 
 		dds_image_free(ddsImage);
 
@@ -398,11 +387,7 @@ namespace ed {
 		int width, height;
 
 		// properties
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		UpdateTextureParameters(item);
 
 		// left face
 		loadCubemapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, m_parser->GetProjectPath(left), width, height);
@@ -517,8 +502,10 @@ namespace ed {
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_2D, item->Texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -548,8 +535,11 @@ namespace ed {
 
 		glGenTextures(1, &item->Texture);
 		glBindTexture(GL_TEXTURE_3D, item->Texture);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapR);
 		glTexImage3D(GL_TEXTURE_3D, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindTexture(GL_TEXTURE_3D, 0);
 
@@ -1259,12 +1249,10 @@ namespace ed {
 			item->Texture_VFlipped = !item->Texture_VFlipped;
 		}
 	}
-	void ObjectManager::UpdateTextureParameters(const std::string& name)
+	void ObjectManager::UpdateTextureParameters(ObjectManagerItem* item)
 	{
-		ObjectManagerItem* item = Get(name);
-
 		if (item != nullptr) {
-			if (item->Type == ed::ObjectType::Texture) {
+			if (item->Type == ed::ObjectType::Texture || item->Type == ed::ObjectType::Image || item->Type == ed::ObjectType::RenderTexture) {
 				glBindTexture(GL_TEXTURE_2D, item->Texture);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
@@ -1279,15 +1267,23 @@ namespace ed {
 
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
-
-			else if (item->Type == ed::ObjectType::Texture3D) {
+ 			else if (item->Type == ed::ObjectType::Texture3D || item->Type == ed::ObjectType::Image3D) {
 				glBindTexture(GL_TEXTURE_3D, item->Texture);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, item->Texture_WrapR);
+
 				glBindTexture(GL_TEXTURE_3D, 0);
+			} else if (item->Type == ed::ObjectType::CubeMap) {
+				glBindTexture(GL_TEXTURE_CUBE_MAP, item->Texture);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, item->Texture_MinFilter);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, item->Texture_MagFilter);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, item->Texture_WrapS);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, item->Texture_WrapT);
+
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			}
 		}
 	}
