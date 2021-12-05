@@ -67,7 +67,7 @@ namespace ed {
 		std::vector<ed::ShaderVariable::ValueType> ParseBufferFormat(const std::string& str);
 
 		void FlipTexture(const std::string& name);
-		void UpdateTextureParameters(const std::string& name);
+		void UpdateTextureParameters(ObjectManagerItem* item);
 
 		void Bind(ObjectManagerItem* item, PipelineItem* pass);
 		void Unbind(ObjectManagerItem* item, PipelineItem* pass);

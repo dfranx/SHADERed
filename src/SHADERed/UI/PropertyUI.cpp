@@ -30,6 +30,80 @@ namespace ed {
 	void PropertyUI::OnEvent(const SDL_Event& e)
 	{
 	}
+	void PropertyUI::m_renderSamplerParams(int dimension)
+	{
+		bool paramsUpdated = false;
+
+		ImGui::NextColumn();
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Sampling"))
+		{
+			ImGui::Separator();
+			/* MIN FILTER */
+			ImGui::Text("MinFilter:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (UIHelper::CreateTextureMinFilterCombo("##prop_tex_min", m_currentObj->Texture_MinFilter))
+				paramsUpdated = true;
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+			ImGui::Separator();
+
+			/* MAG FILTER */
+			ImGui::Text("MagFilter:");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (UIHelper::CreateTextureMagFilterCombo("##prop_tex_mag", m_currentObj->Texture_MagFilter))
+				paramsUpdated = true;
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			/* WRAP S */
+			if (dimension >= 1) {
+				ImGui::Separator();
+				ImGui::Text("Wrap S:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_s", m_currentObj->Texture_WrapS))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+			}
+
+			/* WRAP T */
+			if (dimension >= 2)
+			{
+				ImGui::Separator();
+				ImGui::Text("Wrap T:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_t", m_currentObj->Texture_WrapT))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+			}
+
+			/* WRAP R */
+			if (dimension >= 3) {
+				ImGui::Separator();
+				ImGui::Text("Wrap R:");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_r", m_currentObj->Texture_WrapR))
+					paramsUpdated = true;
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+			}
+
+			if (paramsUpdated) {
+				m_data->Objects.UpdateTextureParameters(m_currentObj);
+				m_data->Parser.ModifyProject();
+			}
+			ImGui::TreePop();
+		}
+		ImGui::Separator();
+	}
 	void PropertyUI::Update(float delta)
 	{
 		if (m_current != nullptr || m_currentObj != nullptr) {
@@ -1280,6 +1354,8 @@ namespace ed {
 					m_data->Parser.ModifyProject();
 				ImGui::PopItemWidth();
 
+				m_renderSamplerParams(2);
+
 				if (!m_currentRT->Clear) {
 					ImGui::PopStyleVar();
 					ImGui::PopItemFlag();
@@ -1323,8 +1399,8 @@ namespace ed {
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
+
+				m_renderSamplerParams(2);
 
 				/* DATA */
 				ImGui::Text("Data:");
@@ -1380,58 +1456,14 @@ namespace ed {
 				ImGui::Text("VFlip:");
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				bool flipped = m_currentObj->Texture_VFlipped, paramsUpdated = false;
+				bool flipped = m_currentObj->Texture_VFlipped;
 				if (ImGui::Checkbox("##prop_tex_vflip", &flipped)) {
 					m_data->Objects.FlipTexture(m_itemName);
 					m_data->Parser.ModifyProject();
 				}
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
 
-				/* MIN FILTER */
-				ImGui::Text("MinFilter:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureMinFilterCombo("##prop_tex_min", m_currentObj->Texture_MinFilter))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* MAG FILTER */
-				ImGui::Text("MagFilter:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureMagFilterCombo("##prop_tex_mag", m_currentObj->Texture_MagFilter))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* WRAP S */
-				ImGui::Text("Wrap S:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_s", m_currentObj->Texture_WrapS))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* WRAP T */
-				ImGui::Text("Wrap T:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureWrapCombo("##prop_tex_wrap_t", m_currentObj->Texture_WrapT))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				if (paramsUpdated) {
-					m_data->Objects.UpdateTextureParameters(m_itemName);
-					m_data->Parser.ModifyProject();
-				}
+				m_renderSamplerParams(2);
 			} 
 			else if (IsImage3D()) {
 				ed::Image3DObject* m_currentImg3D = m_currentObj->Image3D;
@@ -1473,6 +1505,8 @@ namespace ed {
 					ImGui::EndCombo();
 				}
 				ImGui::PopItemWidth();
+
+				m_renderSamplerParams(3);
 			} 
 			else if (IsTexture3D()) {
 				/* texture path */
@@ -1486,63 +1520,24 @@ namespace ed {
 				ImGui::SameLine();
 				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0)))
 					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "DDS file (*.dds){.dds},.*");
-				ImGui::NextColumn();
-				ImGui::Separator();
 
-				/* MIN FILTER */
-				ImGui::Text("MinFilter:");
+				m_renderSamplerParams(3);
+			}
+			else if (IsCubeMap()) {
+				/* texture path */
+				ImGui::Text("Path:");
 				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				bool paramsUpdated = false;
-				if (UIHelper::CreateTextureMinFilterCombo("##prop_tex3d_min", m_currentObj->Texture_MinFilter))
-					paramsUpdated = true;
+				ImGui::PushItemWidth(BUTTON_SPACE_LEFT);
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::InputText("##pui_cube_map_path", const_cast<char*>(m_currentObj->Name.c_str()), SHADERED_MAX_PATH); // not like it's going to be modified, amirite
+				ImGui::PopItemFlag();
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
+				ImGui::SameLine();
+				if (ImGui::Button("...##pui_texbtn", ImVec2(-1, 0)))
+					ifd::FileDialog::Instance().Open("PropertyTextureDlg", "Select a texture", "DDS file (*.dds){.dds},.*");
 
-				/* MAG FILTER */
-				ImGui::Text("MagFilter:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureMagFilterCombo("##prop_tex3d_mag", m_currentObj->Texture_MagFilter))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* WRAP S */
-				ImGui::Text("Wrap S:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_s", m_currentObj->Texture_WrapS))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				ImGui::Separator();
-
-				/* WRAP T */
-				ImGui::Text("Wrap T:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_t", m_currentObj->Texture_WrapT))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				/* WRAP T */
-				ImGui::Text("Wrap R:");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				if (UIHelper::CreateTextureWrapCombo("##prop_tex3d_wrap_r", m_currentObj->Texture_WrapR))
-					paramsUpdated = true;
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-
-				if (paramsUpdated) {
-					m_data->Objects.UpdateTextureParameters(m_itemName);
-					m_data->Parser.ModifyProject();
-				}
-			} 
+				m_renderSamplerParams(0);
+			}
 			else if (IsPlugin()) {
 				ImGui::Columns(1);
 
@@ -1555,7 +1550,6 @@ namespace ed {
 		} else
 			ImGui::TextWrapped("Right click on an item -> Properties");
 
-		
 		// file dialogs
 		if (ifd::FileDialog::Instance().IsDone("PropertyShaderDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
