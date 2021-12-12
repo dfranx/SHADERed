@@ -49,11 +49,12 @@ void audioPlayerCallback(ma_device* pDevice, void* pOutput, const void* pInput, 
 
 			ma_pcm_rb_acquire_read(player->GetRingBuffer(), &framesToRead, &pReadBuffer);
 			{
-				memcpy(pRunningOutput, pReadBuffer, framesToRead * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels));
+				memcpy(pRunningOutput, pReadBuffer,
+					static_cast<size_t>(framesToRead) * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels));
 			}
 			ma_pcm_rb_commit_read(player->GetRingBuffer(), framesToRead, pReadBuffer);
 
-			pRunningOutput += framesToRead * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels);
+			pRunningOutput += static_cast<size_t>(framesToRead) * ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels);
 			pcmFramesProcessed += framesToRead;
 		} else {
 			/*
@@ -85,17 +86,23 @@ namespace ed {
 		{
 			m_loaded = false;
 			m_paused = true;
+			m_audioBuffer[0] = 0;
+
+			memset(&m_decoderConfig, 0, sizeof(ma_decoder_config));
+			memset(&m_decoder, 0, sizeof(ma_decoder));
+			memset(&m_deviceConfig, 0, sizeof(ma_device_config));
+			memset(&m_device, 0, sizeof(ma_device));
+			memset(&m_rb, 0, sizeof(ma_pcm_rb));
 		}
+
 		AudioPlayer::~AudioPlayer()
 		{
-			if (m_loaded)
-				m_clean();
+			m_clean();
 		}
 
 		bool AudioPlayer::LoadFromFile(const std::string& filename)
 		{
-			if (m_loaded)
-				m_clean();
+			m_clean();
 
 			m_loaded = false;
 
@@ -127,28 +134,57 @@ namespace ed {
 		void AudioPlayer::Start()
 		{
 			m_paused = false;
-			if (ma_device_start(&m_device) != MA_SUCCESS) {
-				m_loaded = false;
+
+			if (ma_device_start(&m_device) != MA_SUCCESS)
 				m_clean();
-			}
 		}
 
 		void AudioPlayer::Stop()
 		{
 			m_paused = true;
-			if (ma_device_stop(&m_device) != MA_SUCCESS) {
-				m_loaded = false;
+
+			if (ma_device_stop(&m_device) != MA_SUCCESS)
 				m_clean();
-			}
 		}
 
 		void AudioPlayer::m_clean()
 		{
+			if (!m_loaded) return;
+
 			ma_device_uninit(&m_device);
 			ma_decoder_uninit(&m_decoder);
 			ma_pcm_rb_uninit(&m_rb);
 			m_paused = true;
 			m_loaded = false;
+		}
+
+		void AudioPlayer::SeekFrame(unsigned int frameIndex)
+		{
+			ma_decoder_seek_to_pcm_frame(&m_decoder, frameIndex);
+		}
+
+		uint64_t AudioPlayer::GetCurrentFrame()
+		{
+			ma_uint64 ret = 0;
+			ma_decoder_get_cursor_in_pcm_frames(&m_decoder, &ret);
+			return ret;
+		}
+
+		uint64_t AudioPlayer::GetTotalFrameCount()
+		{
+			return ma_decoder_get_length_in_pcm_frames(&m_decoder);
+		}
+
+		float AudioPlayer::GetVolume()
+		{
+			float ret = 0.0f;
+			ma_device_get_master_volume(&m_device, &ret);
+			return ret;
+		}
+
+		void AudioPlayer::SetVolume(float volume)
+		{
+			ma_device_set_master_volume(&m_device, volume);
 		}
 	}
 }
