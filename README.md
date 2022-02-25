@@ -187,6 +187,7 @@ Build:
 
 ```sh
 mkdir build
+cp -R bin build
 cd build
 cmake ../
 make -j8
@@ -198,10 +199,11 @@ make -j8
 > ln -s "$(xcrun --sdk macosx --show-sdk-path)" "$(xcrun --sdk macosx --show-sdk-platform-path)/Developer/SDKs/MacOSX10.15.sdk"
 > ```
 
-Run:
+You can run the executable directly or use the SHADERed.app in the bin folder:
 ```
 ./bin/SHADERed
 ```
+The first time you run the app if you are on a laptop you will need to adjust the UI scale in `Project -> Options -> UI scale` to be somewhere in the 1.5 - 2.0 range on any retina devices.
 
 ### Windows
 1. Install SDL2, GLEW & GLM through your favourite package manager (I recommend vcpkg)
