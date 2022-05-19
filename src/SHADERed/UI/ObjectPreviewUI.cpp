@@ -445,7 +445,7 @@ namespace ed {
 								static char pxCoord[32] = { 0 };
 
 								for (int i = 0; i < pixelList.size(); i++) {
-									if (pixelList[i].RenderTexture->Name == item->Name && pixelList[i].Fetched) { // we only care about window's pixel info here
+									if (pixelList[i].RenderTexture && pixelList[i].RenderTexture->Name == item->Name && pixelList[i].Fetched) { // we only care about window's pixel info here
 
 										if (Settings::Instance().Debug.PrimitiveOutline) {
 											ImGui::SetCursorPosX(posX);
