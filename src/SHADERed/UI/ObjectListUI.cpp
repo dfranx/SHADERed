@@ -82,6 +82,8 @@ namespace ed {
 				if (oItem->Type == ObjectType::CubeMap) {
 					m_cubePrev.Draw(tex);
 					ImGui::Image((void*)(intptr_t)m_cubePrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
+				} else if (oItem->Type == ObjectType::Texture) {
+					ImGui::Image(*(void **)&tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH));
 				} else if (!isBuf && !isImg3D && !isPluginOwner)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				else if (hasPluginPreview)
@@ -105,6 +107,8 @@ namespace ed {
 					m_tex3DPrev.Draw(tex, IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH);
 					ImGui::Image((void*)(intptr_t)m_tex3DPrev.GetTexture(), ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH));
 				}
+				else if (oItem->Type == ObjectType::Texture)
+					ImGui::Image(*(void **)&tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH));
 				else if (!isBuf && !isImg3D && !isPluginOwner)
 					ImGui::Image((void*)(intptr_t)tex, ImVec2(IMAGE_CONTEXT_WIDTH, ((float)imgWH) * IMAGE_CONTEXT_WIDTH), ImVec2(0, 1), ImVec2(1, 0));
 				else if (hasPluginPreview)

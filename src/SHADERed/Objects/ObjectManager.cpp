@@ -281,7 +281,7 @@ namespace ed {
 			height = ddsImage->header.height;
 		} else {
 			int nrChannels = 0;
-			stbi_set_flip_vertically_on_load(1);
+			stbi_set_flip_vertically_on_load(0);
 			data = stbi_load(path.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
 		}
 
@@ -793,7 +793,7 @@ namespace ed {
 
 	bool ObjectManager::ReloadTexture(ObjectManagerItem* item, const std::string& newPath)
 	{
-		stbi_set_flip_vertically_on_load(1);
+		stbi_set_flip_vertically_on_load(0);
 
 		for (int i = 0; i < m_items.size(); i++) {
 			if (m_items[i] == item) {

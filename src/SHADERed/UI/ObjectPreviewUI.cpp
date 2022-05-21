@@ -379,8 +379,8 @@ namespace ed {
 
 						const glm::vec2& zPos = m_zoom[i].GetZoomPosition();
 						const glm::vec2& zSize = m_zoom[i].GetZoomSize();
-						
-						ImGui::Image((void*)(intptr_t)item->Texture, aSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+
+						ImGui::Image(*(void **)&item->Texture, aSize, ImVec2(zPos.x, zPos.y), ImVec2(zPos.x + zSize.x, zPos.y + zSize.y));
 
 						if (ImGui::IsItemHovered()) {
 							m_curHoveredItem = i;
