@@ -136,7 +136,7 @@ namespace ed {
 		void m_applyMacros(std::string& source, pipe::AudioPass* pass); // TODO: merge this function with the ones above
 
 		// compile to spirv - plugin edition
-		bool m_pluginCompileToSpirv(std::vector<GLuint>& spv, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSrc = "");
+		bool m_pluginCompileToSpirv(PipelineItem* owner, std::vector<GLuint>& spv, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSrc = "");
 		const char* m_pluginProcessGLSL(const char* path, const char* src);
 
 		/* picking */

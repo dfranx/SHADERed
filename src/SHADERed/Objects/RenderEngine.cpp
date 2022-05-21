@@ -1147,7 +1147,7 @@ namespace ed {
 					bool psCompiled = false;
 
 					if (psLang == ShaderLanguage::Plugin)
-						psCompiled = m_pluginCompileToSpirv(shader->PSSPV, shader->PSPath, psEntry, plugin::ShaderStage::Pixel, shader->Macros.data(), shader->Macros.size());
+						psCompiled = m_pluginCompileToSpirv(item, shader->PSSPV, shader->PSPath, psEntry, plugin::ShaderStage::Pixel, shader->Macros.data(), shader->Macros.size());
 					else
 						psCompiled = ShaderCompiler::CompileToSPIRV(shader->PSSPV, psLang, shader->PSPath, ShaderStage::Pixel, psEntry, shader->Macros, m_msgs, m_project);
 
@@ -1172,7 +1172,7 @@ namespace ed {
 					bool vsCompiled = false;
 
 					if (vsLang == ShaderLanguage::Plugin)
-						vsCompiled = m_pluginCompileToSpirv(shader->VSSPV, shader->VSPath, vsEntry, plugin::ShaderStage::Vertex, shader->Macros.data(), shader->Macros.size());
+						vsCompiled = m_pluginCompileToSpirv(item, shader->VSSPV, shader->VSPath, vsEntry, plugin::ShaderStage::Vertex, shader->Macros.data(), shader->Macros.size());
 					else
 						vsCompiled = ShaderCompiler::CompileToSPIRV(shader->VSSPV, vsLang, shader->VSPath, ShaderStage::Vertex, vsEntry, shader->Macros, m_msgs, m_project);
 					
@@ -1202,7 +1202,7 @@ namespace ed {
 						lineBias = 0;
 						
 						if (gsLang == ShaderLanguage::Plugin)
-							gsCompiled = m_pluginCompileToSpirv(shader->GSSPV, shader->GSPath, gsEntry, plugin::ShaderStage::Geometry, shader->Macros.data(), shader->Macros.size());
+							gsCompiled = m_pluginCompileToSpirv(item, shader->GSSPV, shader->GSPath, gsEntry, plugin::ShaderStage::Geometry, shader->Macros.data(), shader->Macros.size());
 						else
 							gsCompiled = ShaderCompiler::CompileToSPIRV(shader->GSSPV, gsLang, shader->GSPath, ShaderStage::Geometry, gsEntry, shader->Macros, m_msgs, m_project);
 						
@@ -1237,7 +1237,7 @@ namespace ed {
 							lineBias = 0;
 
 							if (gsLang == ShaderLanguage::Plugin)
-								tsCompiled &= m_pluginCompileToSpirv(shader->TCSSPV, shader->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size());
+								tsCompiled &= m_pluginCompileToSpirv(item, shader->TCSSPV, shader->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size());
 							else
 								tsCompiled &= ShaderCompiler::CompileToSPIRV(shader->TCSSPV, tcsLang, shader->TCSPath, ShaderStage::TessellationControl, tcsEntry, shader->Macros, m_msgs, m_project);
 
@@ -1268,7 +1268,7 @@ namespace ed {
 							lineBias = 0;
 
 							if (gsLang == ShaderLanguage::Plugin)
-								tsCompiled &= m_pluginCompileToSpirv(shader->TESSPV, shader->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size());
+								tsCompiled &= m_pluginCompileToSpirv(item, shader->TESSPV, shader->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size());
 							else
 								tsCompiled &= ShaderCompiler::CompileToSPIRV(shader->TESSPV, tcsLang, shader->TESPath, ShaderStage::TessellationEvaluation, tesEntry, shader->Macros, m_msgs, m_project);
 
@@ -1344,7 +1344,7 @@ namespace ed {
 					bool compiled = false;
 						
 					if (lang == ShaderLanguage::Plugin)
-						compiled = m_pluginCompileToSpirv(shader->SPV, shader->Path, entry, plugin::ShaderStage::Compute, shader->Macros.data(), shader->Macros.size());
+						compiled = m_pluginCompileToSpirv(item, shader->SPV, shader->Path, entry, plugin::ShaderStage::Compute, shader->Macros.data(), shader->Macros.size());
 					else
 						compiled = ShaderCompiler::CompileToSPIRV(shader->SPV, lang, shader->Path, ShaderStage::Compute, entry, shader->Macros, m_msgs, m_project);
 					
@@ -1461,7 +1461,7 @@ namespace ed {
 					if (pssrc.size() > 0) {
 						ShaderLanguage psLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->PSPath);
 						if (psLang == ShaderLanguage::Plugin)
-							psCompiled = m_pluginCompileToSpirv(shader->PSSPV, shader->PSPath, shader->PSEntry, plugin::ShaderStage::Pixel, shader->Macros.data(), shader->Macros.size(), pssrc);
+							psCompiled = m_pluginCompileToSpirv(item, shader->PSSPV, shader->PSPath, shader->PSEntry, plugin::ShaderStage::Pixel, shader->Macros.data(), shader->Macros.size(), pssrc);
 						else
 							psCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->PSSPV, psLang, shader->PSPath, pssrc, ShaderStage::Pixel, shader->PSEntry, shader->Macros, m_msgs, m_project);
 
@@ -1492,7 +1492,7 @@ namespace ed {
 						
 						ShaderLanguage vsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->VSPath);
 						if (vsLang == ShaderLanguage::Plugin)
-							vsCompiled = m_pluginCompileToSpirv(shader->VSSPV, shader->VSPath, shader->VSEntry, plugin::ShaderStage::Vertex, shader->Macros.data(), shader->Macros.size(), vssrc);
+							vsCompiled = m_pluginCompileToSpirv(item, shader->VSSPV, shader->VSPath, shader->VSEntry, plugin::ShaderStage::Vertex, shader->Macros.data(), shader->Macros.size(), vssrc);
 						else
 							vsCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->VSSPV, vsLang, shader->VSPath, vssrc, ShaderStage::Vertex, shader->VSEntry, shader->Macros, m_msgs, m_project);
 
@@ -1521,7 +1521,7 @@ namespace ed {
 
 						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->GSPath);
 						if (gsLang == ShaderLanguage::Plugin)
-							gsCompiled = m_pluginCompileToSpirv(shader->GSSPV, shader->GSPath, shader->GSEntry, plugin::ShaderStage::Geometry, shader->Macros.data(), shader->Macros.size(), gssrc);
+							gsCompiled = m_pluginCompileToSpirv(item, shader->GSSPV, shader->GSPath, shader->GSEntry, plugin::ShaderStage::Geometry, shader->Macros.data(), shader->Macros.size(), gssrc);
 						else
 							gsCompiled = ShaderCompiler::CompileSourceToSPIRV(shader->GSSPV, gsLang, shader->GSPath, gssrc, ShaderStage::Geometry, shader->GSEntry, shader->Macros, m_msgs, m_project);
 
@@ -1553,7 +1553,7 @@ namespace ed {
 
 						ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TCSPath);
 						if (tcsLang == ShaderLanguage::Plugin)
-							tsCompiled &= m_pluginCompileToSpirv(shader->TCSSPV, shader->TCSPath, shader->TCSEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size(), tcssrc);
+							tsCompiled &= m_pluginCompileToSpirv(item, shader->TCSSPV, shader->TCSPath, shader->TCSEntry, plugin::ShaderStage::TessellationControl, shader->Macros.data(), shader->Macros.size(), tcssrc);
 						else
 							tsCompiled &= ShaderCompiler::CompileSourceToSPIRV(shader->TCSSPV, tcsLang, shader->TCSPath, tcssrc, ShaderStage::TessellationControl, shader->TCSEntry, shader->Macros, m_msgs, m_project);
 
@@ -1584,7 +1584,7 @@ namespace ed {
 
 						ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(shader->TESPath);
 						if (tesLang == ShaderLanguage::Plugin)
-							tsCompiled &= m_pluginCompileToSpirv(shader->TESSPV, shader->TESPath, shader->TESEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size(), tessrc);
+							tsCompiled &= m_pluginCompileToSpirv(item, shader->TESSPV, shader->TESPath, shader->TESEntry, plugin::ShaderStage::TessellationEvaluation, shader->Macros.data(), shader->Macros.size(), tessrc);
 						else
 							tsCompiled &= ShaderCompiler::CompileSourceToSPIRV(shader->TESSPV, tesLang, shader->TESPath, tessrc, ShaderStage::TessellationEvaluation, shader->TESEntry, shader->Macros, m_msgs, m_project);
 
@@ -1649,7 +1649,7 @@ namespace ed {
 
 						ShaderLanguage lang = ShaderCompiler::GetShaderLanguageFromExtension(shader->Path);
 						if (lang == ShaderLanguage::Plugin)
-							compiled = m_pluginCompileToSpirv(shader->SPV, shader->Path, shader->Entry, plugin::ShaderStage::Compute, shader->Macros.data(), shader->Macros.size(), vssrc);
+							compiled = m_pluginCompileToSpirv(item, shader->SPV, shader->Path, shader->Entry, plugin::ShaderStage::Compute, shader->Macros.data(), shader->Macros.size(), vssrc);
 						else
 							compiled = ShaderCompiler::CompileSourceToSPIRV(shader->SPV, lang, shader->Path, vssrc, ShaderStage::Compute, shader->Entry, shader->Macros, m_msgs, m_project);
 
@@ -2049,7 +2049,7 @@ namespace ed {
 					bool vsCompiled = false;
 
 					if (vsLang == ShaderLanguage::Plugin)
-						vsCompiled = m_pluginCompileToSpirv(data->VSSPV, data->VSPath, vsEntry, plugin::ShaderStage::Vertex, data->Macros.data(), data->Macros.size());
+						vsCompiled = m_pluginCompileToSpirv(items[i], data->VSSPV, data->VSPath, vsEntry, plugin::ShaderStage::Vertex, data->Macros.data(), data->Macros.size());
 					else
 						vsCompiled = ShaderCompiler::CompileToSPIRV(data->VSSPV, vsLang, data->VSPath, ShaderStage::Vertex, vsEntry, data->Macros, m_msgs, m_project);
 					
@@ -2074,7 +2074,7 @@ namespace ed {
 					bool psCompiled = false;
 
 					if (psLang == ShaderLanguage::Plugin)
-						psCompiled = m_pluginCompileToSpirv(data->PSSPV, data->PSPath, psEntry, plugin::ShaderStage::Pixel, data->Macros.data(), data->Macros.size());
+						psCompiled = m_pluginCompileToSpirv(items[i], data->PSSPV, data->PSPath, psEntry, plugin::ShaderStage::Pixel, data->Macros.data(), data->Macros.size());
 					else
 						psCompiled = ShaderCompiler::CompileToSPIRV(data->PSSPV, psLang, data->PSPath, ShaderStage::Pixel, psEntry, data->Macros, m_msgs, m_project);
 					
@@ -2102,7 +2102,7 @@ namespace ed {
 						ShaderLanguage gsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->GSPath);
 						
 						if (gsLang == ShaderLanguage::Plugin)
-							gsCompiled = m_pluginCompileToSpirv(data->GSSPV, data->GSPath, gsEntry, plugin::ShaderStage::Geometry, data->Macros.data(), data->Macros.size());
+							gsCompiled = m_pluginCompileToSpirv(items[i], data->GSSPV, data->GSPath, gsEntry, plugin::ShaderStage::Geometry, data->Macros.data(), data->Macros.size());
 						else
 							gsCompiled = ShaderCompiler::CompileToSPIRV(data->GSSPV, gsLang, data->GSPath, ShaderStage::Geometry, gsEntry, data->Macros, m_msgs, m_project);
 						
@@ -2132,7 +2132,7 @@ namespace ed {
 							ShaderLanguage tcsLang = ShaderCompiler::GetShaderLanguageFromExtension(data->TCSPath);
 
 							if (tcsLang == ShaderLanguage::Plugin)
-								tsCompiled &= m_pluginCompileToSpirv(data->TCSSPV, data->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, data->Macros.data(), data->Macros.size());
+								tsCompiled &= m_pluginCompileToSpirv(items[i], data->TCSSPV, data->TCSPath, tcsEntry, plugin::ShaderStage::TessellationControl, data->Macros.data(), data->Macros.size());
 							else
 								tsCompiled &= ShaderCompiler::CompileToSPIRV(data->TCSSPV, tcsLang, data->TCSPath, ShaderStage::TessellationControl, tcsEntry, data->Macros, m_msgs, m_project);
 
@@ -2158,7 +2158,7 @@ namespace ed {
 							ShaderLanguage tesLang = ShaderCompiler::GetShaderLanguageFromExtension(data->TESPath);
 
 							if (tesLang == ShaderLanguage::Plugin)
-								tsCompiled &= m_pluginCompileToSpirv(data->TESSPV, data->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, data->Macros.data(), data->Macros.size());
+								tsCompiled &= m_pluginCompileToSpirv(items[i], data->TESSPV, data->TESPath, tesEntry, plugin::ShaderStage::TessellationEvaluation, data->Macros.data(), data->Macros.size());
 							else
 								tsCompiled &= ShaderCompiler::CompileToSPIRV(data->TESSPV, tesLang, data->TESPath, ShaderStage::TessellationEvaluation, tesEntry, data->Macros, m_msgs, m_project);
 
@@ -2261,7 +2261,7 @@ namespace ed {
 					bool compiled = false;
 
 					if (lang == ShaderLanguage::Plugin)
-						compiled = m_pluginCompileToSpirv(data->SPV, data->Path, entry, plugin::ShaderStage::Compute, data->Macros.data(), data->Macros.size());
+						compiled = m_pluginCompileToSpirv(items[i], data->SPV, data->Path, entry, plugin::ShaderStage::Compute, data->Macros.data(), data->Macros.size());
 					else
 						compiled = ShaderCompiler::CompileToSPIRV(data->SPV, lang, data->Path, ShaderStage::Compute, entry, data->Macros, m_msgs, m_project);
 					
@@ -2492,7 +2492,7 @@ namespace ed {
 
 		return plugin->CustomLanguage_ProcessGeneratedGLSL(plLang, src);
 	}
-	bool RenderEngine::m_pluginCompileToSpirv(std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSource)
+	bool RenderEngine::m_pluginCompileToSpirv(PipelineItem* owner, std::vector<GLuint>& spvvec, const std::string& path, const std::string& entry, plugin::ShaderStage stage, ed::ShaderMacro* macros, size_t macroCount, const std::string& actualSource)
 	{
 		Logger::Get().Log("Plugin is compiling the shader to SPIR-V");
 
@@ -2511,6 +2511,12 @@ namespace ed {
 
 		size_t spv_length = 0;
 		const unsigned int* spv = plugin->CustomLanguage_CompileToSPIRV(plLang, source.c_str(), source.size(), stage, entry.c_str(), (plugin::ShaderMacro*)macros, macroCount, &spv_length, &ret);
+
+		if (spv == nullptr && ret && plugin->GetVersion() >= 3) {
+			IPlugin3* plugin3 = (IPlugin3*)plugin;
+			spv_length = 0;
+			spv = plugin3->CustomLanguage_CompileToSPIRV2(owner, plLang, source.c_str(), source.size(), stage, entry.c_str(), (plugin::ShaderMacro*)macros, macroCount, &spv_length, &ret);
+		}
 
 		spvvec = std::vector<GLuint>(spv, spv + spv_length);
 		

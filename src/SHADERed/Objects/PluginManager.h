@@ -21,6 +21,8 @@ namespace ed {
 		void BeginRender();
 		void EndRender();
 
+		void RegisterPlugin(IPlugin1* plugin, const std::string pname, int apiVer, int pluginVer, void* procDLL = nullptr);
+		
 		IPlugin1* GetPlugin(const std::string& plugin);
 		const std::string& GetPluginName(IPlugin1* plugin);
 		int GetPluginVersion(const std::string& plugin);
@@ -58,5 +60,9 @@ namespace ed {
 
 		
 		std::vector<std::string> m_incompatible;
+
+		InterfaceManager* m_data;
+		GUIManager* m_ui;
+		std::vector<std::string> m_iniLines;
 	};
 }

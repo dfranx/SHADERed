@@ -97,7 +97,7 @@ namespace ed {
 		typedef int (*GetIncludePathCountFn)();
 		typedef const char* (*GetIncludePathFn)(void* project, int index);
 		typedef const char* (*GetMessagesCurrentItemFn)(void* messages);
-	
+
 		typedef void (*OnEditorContentChangeFn)(void* UI, void* plugin, int langID, int editorID);
 		typedef unsigned int* (*GetPipelineItemSPIRVFn)(void* item, ed::plugin::ShaderStage stage, int* dataLen);
 		typedef void (*RegisterShortcutFn)(void* plugin, const char* name);
@@ -132,7 +132,6 @@ namespace ed {
 
 		typedef float (*ScaleSizeFn)(float size);
 
-		
 		/********** IPlugin2 **********/
 		typedef int (*GetHostIPluginMaxVersionFn)();
 		typedef void (*ImGuiFileDialogOpenFn)(const char* key, const char* title, const char* filter);
@@ -142,13 +141,23 @@ namespace ed {
 		typedef bool (*ImGuiFileDialogGetResultFn)();
 		typedef void (*ImGuiFileDialogGetPathFn)(char* outPath);
 		typedef const char* (*DebuggerImmediateFn)(void* Debugger, const char* expr);
+
+		/********** IPlugin3 **********/
+		typedef void (*RegisterPluginFn)(void* pluginManager, void* plugin, const char* pname, int apiVer, int pluginVer, void* procDLL);
+		typedef void* (*GetEditorPipelineItemFn)(void* UI, void* plugin, int langID, int editorID);
+		typedef void (*SetViewportSizeFn)(float w, float h);
+		typedef int (*IsObjectBoundFn)(void* Objects, const char* name, void* pipelineItem);
+		typedef void (*DebuggerStepIntoPluginEditorFn)(void* Debugger, void* Code, void* Plugin, int lang, int editor);
+		typedef void (*DebuggerGetVariableValueFn)(void* Debugger, const char* name, char* value, int valueLength);
+		typedef void (*DebuggerStopPluginEditorFn)(void* Debugger, void* Code, void* Plugin, int lang, int editor);
+		typedef bool (*DebuggerIsVMRunningFn)(void* Debugger);
 	}
 
 	// CreatePlugin(), DestroyPlugin(ptr), GetPluginAPIVersion(), GetPluginVersion(), GetPluginName()
 	class IPlugin1 {
 	public:
 		virtual int GetVersion() { return 1; }
-		
+
 		virtual bool Init(bool isWeb, int sedVersion) = 0;
 		virtual void InitUI(void* ctx) = 0;
 		virtual void OnEvent(void* e) = 0; // e is &SDL_Event
@@ -336,7 +345,7 @@ namespace ed {
 		virtual void HandlePluginMessage(const char* sender, char* msg, int msgLen) = 0;
 		virtual void HandleApplicationEvent(ed::plugin::ApplicationEvent event, void* data1, void* data2) = 0;
 		virtual void HandleNotification(int id) = 0;
-		
+
 		// host functions
 		void *Renderer, *Messages, *Project, *UI, *ObjectManager, *PipelineManager, *Plugins, *Debugger;
 		pluginfn::AddObjectFn AddObject;
@@ -454,7 +463,7 @@ namespace ed {
 		virtual bool PipelineItem_SupportsImmediateMode(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
 		virtual bool PipelineItem_HasCustomImmediateModeCompiler(const char* type, void* data, ed::plugin::ShaderStage stage) = 0;
 		virtual bool PipelineItem_ImmediateModeCompile(const char* type, void* data, ed::plugin::ShaderStage stage, const char* expression) = 0;
-		
+
 		virtual unsigned int ImmediateMode_GetSPIRVSize() = 0;
 		virtual unsigned int* ImmediateMode_GetSPIRV() = 0;
 		virtual unsigned int ImmediateMode_GetVariableCount() = 0;
@@ -469,5 +478,23 @@ namespace ed {
 		pluginfn::ImGuiFileDialogGetResultFn ImGuiFileDialogGetResult;
 		pluginfn::ImGuiFileDialogGetPathFn ImGuiFileDialogGetPath;
 		pluginfn::DebuggerImmediateFn DebuggerImmediate;
+	};
+
+	class IPlugin3 : public IPlugin2 {
+	public:
+		virtual int GetVersion() { return 3; }
+
+		virtual void PluginManager_RegisterPlugins() = 0;
+		virtual const unsigned int* CustomLanguage_CompileToSPIRV2(void* item, int langID, const char* src, size_t src_len, ed::plugin::ShaderStage stage, const char* entry, ed::plugin::ShaderMacro* macros, size_t macroCount, size_t* spv_length, bool* compiled) = 0;
+		virtual void ShaderEditor_SetLineIndicator(int langID, int editorID, int line) = 0;
+
+		pluginfn::RegisterPluginFn RegisterPlugin;
+		pluginfn::GetEditorPipelineItemFn GetEditorPipelineItem;
+		pluginfn::SetViewportSizeFn SetViewportSize;
+		pluginfn::IsObjectBoundFn IsObjectBound;
+		pluginfn::DebuggerStepIntoPluginEditorFn DebuggerStepIntoPluginEditor;
+		pluginfn::DebuggerGetVariableValueFn DebuggerGetVariableValue;
+		pluginfn::DebuggerStopPluginEditorFn DebuggerStopPluginEditor;
+		pluginfn::DebuggerIsVMRunningFn DebuggerIsVMRunning;
 	};
 }

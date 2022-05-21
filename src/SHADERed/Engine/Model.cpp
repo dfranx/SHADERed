@@ -141,13 +141,13 @@ namespace ed {
 		Model::Mesh Model::m_processMesh(aiMesh* mesh, const aiScene* scene)
 		{
 			// data to fill
-			std::vector<Model::Mesh::Vertex> vertices;
+			std::vector<Model::Mesh::Vertex> vertices(mesh->mNumVertices);
 			std::vector<unsigned int> indices;
 			std::vector<Model::Mesh::Texture> textures;
 
 			// walk through each of the mesh's vertices
 			for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-				Model::Mesh::Vertex vertex;
+				Model::Mesh::Vertex& vertex = vertices[i];
 				glm::vec3 vector;
 
 				// positions
@@ -204,11 +204,9 @@ namespace ed {
 					vertex.Color = vec;
 				} else
 					vertex.Color = glm::vec4(1, 1, 1, 1);
-
-				vertices.push_back(vertex);
 			}
 
-			// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+			// now walk through each of the mesh's faces
 			for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 				aiFace face = mesh->mFaces[i];
 				for (unsigned int j = 0; j < face.mNumIndices; j++)

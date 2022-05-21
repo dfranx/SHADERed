@@ -386,7 +386,48 @@ namespace ed {
 	void PreviewUI::Update(float delta)
 	{
 		if (!m_data->Messages.CanRenderPreview()) {
-			ImGui::TextColored(ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ErrorMessage, "Can not display preview - there are some errors you should fix.");
+			ImVec4 errorMsgColor = ThemeContainer::Instance().GetCustomStyle(Settings::Instance().Theme).ErrorMessage;
+
+			if (m_data->DAP.IsStarted() || !m_ui->Get(ViewID::Output)->Visible) {
+				for (const auto& msg : m_data->Messages.GetMessages()) {
+					if (msg.Line < 0)
+						continue;
+
+					std::string errorFilename = "";
+					if (msg.Shader != ShaderStage::Count) {
+						ed::PipelineItem* msgItem = m_data->Pipeline.Get(msg.Group.c_str());
+
+						if (msgItem != nullptr) {
+							if (msgItem->Type == PipelineItem::ItemType::ShaderPass) {
+								pipe::ShaderPass* msgData = (pipe::ShaderPass*)msgItem->Data;
+
+								if (msg.Shader == ed::ShaderStage::Pixel)
+									errorFilename = std::filesystem::path(msgData->PSPath).filename().u8string();
+								else if (msg.Shader == ed::ShaderStage::Vertex)
+									errorFilename = std::filesystem::path(msgData->VSPath).filename().u8string();
+								else if (msg.Shader == ed::ShaderStage::Geometry)
+									errorFilename = std::filesystem::path(msgData->GSPath).filename().u8string();
+								else if (msg.Shader == ed::ShaderStage::TessellationControl)
+									errorFilename = std::filesystem::path(msgData->TCSPath).filename().u8string();
+								else if (msg.Shader == ed::ShaderStage::TessellationEvaluation)
+									errorFilename = std::filesystem::path(msgData->TESPath).filename().u8string();
+							} else if (msgItem->Type == PipelineItem::ItemType::ComputePass) {
+								pipe::ComputePass* msgData = (pipe::ComputePass*)msgItem->Data;
+								errorFilename = std::filesystem::path(msgData->Path).filename().u8string();
+							} else if (msgItem->Type == PipelineItem::ItemType::AudioPass) {
+								pipe::AudioPass* msgData = (pipe::AudioPass*)msgItem->Data;
+								errorFilename = std::filesystem::path(msgData->Path).filename().u8string();
+							}
+						}
+					}
+
+					ImGui::TextColored(errorMsgColor, "%s (L%d): %s", errorFilename.c_str(), msg.Line, msg.Text.c_str());
+				}
+			}
+
+			ImGui::NewLine();
+
+			ImGui::TextColored(errorMsgColor, "Can not display preview - there are some errors you should fix.");
 			return;
 		}
 

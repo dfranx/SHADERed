@@ -95,9 +95,12 @@ namespace ed {
 							codeUI->StopDebugging();
 							codeUI->Open(suggestion.Item, ShaderStage::Compute);
 							TextEditor* editor = codeUI->Get(suggestion.Item, ShaderStage::Compute);
+							PluginShaderEditor pluginEditor;
+							if (editor == nullptr)
+								pluginEditor = codeUI->GetPluginEditor(suggestion.Item, ShaderStage::Compute);
 
 							m_data->Debugger.PrepareComputeShader(suggestion.Item, suggestion.Thread.x, suggestion.Thread.y, suggestion.Thread.z);
-							this->StartDebugging(editor, nullptr);
+							this->StartDebugging(editor, pluginEditor, nullptr);
 						}
 						ImGui::SameLine();
 
@@ -158,6 +161,7 @@ namespace ed {
 			} else {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
+				PluginShaderEditor pluginEditor;
 				TextEditor* editor = nullptr;
 				bool requestCompile = false;
 				int initIndex = 0;
@@ -191,6 +195,8 @@ namespace ed {
 					// for plugins that store vertex and pixel shader in the same file
 					if (editor == nullptr && pixel.Pass->Type == PipelineItem::ItemType::PluginItem)
 						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
+					if (editor == nullptr)
+						pluginEditor = codeUI->GetPluginEditor(pixel.Pass, ShaderStage::Pixel);
 
 					m_data->Debugger.PreparePixelShader(pixel.Pass, pixel.Object);
 					m_data->Debugger.SetPixelShaderInput(pixel);
@@ -230,6 +236,9 @@ namespace ed {
 						}
 						editor = codeUI->Get(pixel.Pass, ShaderStage::Vertex);
 
+						if (editor == nullptr)
+							pluginEditor = codeUI->GetPluginEditor(pixel.Pass, ShaderStage::Vertex);
+
 						m_data->Debugger.PrepareVertexShader(pixel.Pass, pixel.Object);
 						m_data->Debugger.SetVertexShaderInput(pixel, i);
 
@@ -253,6 +262,9 @@ namespace ed {
 						codeUI->Open(pixel.Pass, ShaderStage::Geometry);
 						editor = codeUI->Get(pixel.Pass, ShaderStage::Geometry);
 
+						if (editor == nullptr)
+							pluginEditor = codeUI->GetPluginEditor(pixel.Pass, ShaderStage::Geometry);
+
 						m_data->Debugger.PrepareGeometryShader(pixel.Pass, pixel.Object);
 						m_data->Debugger.SetGeometryShaderInput(pixel);
 
@@ -270,6 +282,9 @@ namespace ed {
 						codeUI->Open(pixel.Pass, ShaderStage::TessellationControl);
 						editor = codeUI->Get(pixel.Pass, ShaderStage::TessellationControl);
 
+						if (editor == nullptr)
+							pluginEditor = codeUI->GetPluginEditor(pixel.Pass, ShaderStage::TessellationControl);
+
 						m_data->Debugger.PrepareTessellationControlShader(pixel.Pass, pixel.Object);
 						m_data->Debugger.SetTessellationControlShaderInput(pixel);
 
@@ -280,8 +295,8 @@ namespace ed {
 				}
 
 				/* ACTUAL ACTION HERE */
-				if (requestCompile && editor != nullptr)
-					StartDebugging(editor, &pixel);
+				if (requestCompile)
+					StartDebugging(editor, pluginEditor, &pixel);
 
 				ImGui::PopStyleColor();
 			}
@@ -291,26 +306,38 @@ namespace ed {
 		ImGui::EndChild();
 		ImGui::NewLine();
 	}
-	void PixelInspectUI::StartDebugging(TextEditor* editor, PixelInformation* pixel)
+	void PixelInspectUI::StartDebugging(TextEditor* editor, const PluginShaderEditor& pluginEditor, PixelInformation* pixel)
 	{
 		Logger::Get().Log("Starting up the debugger");
+		
+		CodeEditorUI* codeEditor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 
-		m_data->Debugger.SetCurrentFile(editor->GetPath());
+		std::string path = "";
+		if (editor != nullptr)
+			path = editor->GetPath();
+		else
+			path = codeEditor->GetPluginEditorPath(pluginEditor);
+
+		
+		m_data->Debugger.SetCurrentFile(path);
 		m_data->Debugger.SetDebugging(true);
 		m_data->Debugger.PrepareDebugger();
 
 		// text editor stack
 		m_editorStack.clear();
-		m_editorStack.push_back(editor->GetPath());
+		m_editorStack.push_back(path);
 
 		// start the DAP server
-		m_data->DAP.StartDebugging(editor->GetPath(), m_data->Debugger.GetStage());
+		m_data->DAP.StartDebugging(path, m_data->Debugger.GetStage());
 
 		// skip initialization
-		editor->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
+		if (editor != nullptr)
+			editor->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
+		else if (pluginEditor.Plugin->GetVersion() >= 3)
+			((IPlugin3*)pluginEditor.Plugin)->ShaderEditor_SetLineIndicator(pluginEditor.LanguageID, pluginEditor.ID, m_data->Debugger.GetCurrentLine());
 
 		if (pixel)
-			m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStarted, pixel->Pass->Name, (void*)editor);
+			m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStarted, pixel->Pass->Name, editor != nullptr ? (void*)editor : (void*)&pluginEditor);
 
 		// reset function stack
 		((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
@@ -329,276 +356,282 @@ namespace ed {
 			m_data->Debugger.UpdateVectorWatchValue(i);
 
 		// editor functions
-		editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
-			if (!m_data->Debugger.IsDebugging())
-				return;
+		if (editor) {
+			editor->OnDebuggerAction = [&](TextEditor* ed, TextEditor::DebugAction act) {
+				CodeEditorUI* codeEditor = (reinterpret_cast<CodeEditorUI*>(m_ui->Get(ViewID::Code)));
 
-			m_cacheExpression.clear();
+				if (!m_data->Debugger.IsDebugging())
+					return;
 
-			bool state = m_data->Debugger.IsVMRunning();
-			switch (act) {
-			case TextEditor::DebugAction::Continue:
-				m_data->Debugger.Continue();
-				break;
-			case TextEditor::DebugAction::Step:
-				m_data->Debugger.Step();
-				break;
-			case TextEditor::DebugAction::StepInto:
-				m_data->Debugger.StepInto();
-				break;
-			case TextEditor::DebugAction::StepOut:
-				m_data->Debugger.StepOut();
-				break;
-			}
+				m_cacheExpression.clear();
 
-			if (m_data->Debugger.GetVM()->discarded)
-				state = false;
+				bool state = m_data->Debugger.IsVMRunning();
+				switch (act) {
+				case TextEditor::DebugAction::Continue:
+					m_data->Debugger.Continue();
+					break;
+				case TextEditor::DebugAction::Step:
+					m_data->Debugger.Step();
+					break;
+				case TextEditor::DebugAction::StepInto:
+					m_data->Debugger.StepInto();
+					break;
+				case TextEditor::DebugAction::StepOut:
+					m_data->Debugger.StepOut();
+					break;
+				}
 
-			if (act == TextEditor::DebugAction::Stop || !state) {
-				m_data->Debugger.SetDebugging(false);
+				if (m_data->Debugger.GetVM()->discarded)
+					state = false;
 
-				ed->SetCurrentLineIndicator(-1);
+				if (act == TextEditor::DebugAction::Stop || !state) {
+					m_data->Debugger.SetDebugging(false);
 
-				// stop debugging in all editors
-				CodeEditorUI* codeEditor = ((CodeEditorUI*)m_ui->Get(ed::ViewID::Code));
-				for (int i = 0; i < m_editorStack.size(); i++)
-					if (codeEditor->Get(m_editorStack[i]))
-						codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
+					ed->SetCurrentLineIndicator(-1);
 
-				m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStopped, nullptr, nullptr);
-			} else {
-				// update all the debug windows
+					// stop debugging in all editors
+					for (int i = 0; i < m_editorStack.size(); i++) {
+						if (codeEditor->Get(m_editorStack[i]))
+							codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
+						else {
+							PluginShaderEditor pluginEditor = codeEditor->GetPluginEditor(m_editorStack[i]);
+
+							if (pluginEditor.Plugin->GetVersion() >= 3)
+								((IPlugin3*)pluginEditor.Plugin)->ShaderEditor_SetLineIndicator(pluginEditor.LanguageID, pluginEditor.ID, -1);
+						}
+					}
+
+					m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStopped, nullptr, nullptr);
+				} else {
+					// update all the debug windows
+					((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
+					((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
+					((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
+					((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
+					if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
+						((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
+
+					int curLine = m_data->Debugger.GetCurrentLine();
+					bool vmRunning = m_data->Debugger.IsVMRunning();
+
+					// get filename
+					std::string curFile = m_data->Debugger.GetVM()->current_file ? m_data->Debugger.GetVM()->current_file : "";
+					if (curFile.empty() || curFile == "src/lib.rs" || curFile == "src\\lib.rs") // hack for PluginRust..
+						curFile = m_data->Debugger.GetCurrentFile();
+					else if (!std::filesystem::path(curFile).is_absolute())
+						curFile = m_data->Parser.GetProjectPath(curFile);
+
+					// open the file if it's not already open
+					if (codeEditor->Get(curFile) == nullptr)
+						codeEditor->OpenFile(curFile);
+
+					TextEditor* actualEditor = codeEditor->Get(curFile);
+
+					// stop debugging in all editors
+					bool deleteStack = false;
+					for (int i = 0; i < m_editorStack.size(); i++) {
+						if (deleteStack || (i > 0 && !vmRunning)) {
+							if (codeEditor->Get(m_editorStack[i]))
+								codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
+							m_editorStack.erase(m_editorStack.begin() + i);
+							i--;
+						} else if (m_editorStack[i] == curFile)
+							deleteStack = true;
+					}
+					if (!deleteStack)
+						m_editorStack.push_back(curFile);
+
+					// generate "Auto" watches
+					DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
+					if (autoWnd->Visible)
+						autoWnd->SetExpressions(actualEditor->GetRelevantExpressions(curLine));
+
+					// update the line indicator
+					if (!vmRunning) {
+						curLine = ed->GetCurrentLineIndicator() + 1;
+						ed->SetCurrentLineIndicator(curLine);
+					} else
+						actualEditor->SetCurrentLineIndicator(curLine, actualEditor == ed);
+
+					// copy the debug methods if we are in some other file
+					if (actualEditor != ed) {
+						actualEditor->HasIdentifierHover = ed->HasIdentifierHover;
+						actualEditor->OnIdentifierHover = ed->OnIdentifierHover;
+						actualEditor->HasExpressionHover = ed->HasExpressionHover;
+						actualEditor->OnExpressionHover = ed->OnExpressionHover;
+					}
+
+					m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
+				}
+			};
+			editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
+				if (!m_data->Debugger.IsDebugging())
+					return;
+
+				m_cacheExpression.clear();
+
+				while (m_data->Debugger.IsVMRunning() && m_data->Debugger.GetCurrentLine() != line)
+					spvm_state_step_into(m_data->Debugger.GetVM());
+
+				ed->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
 				((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
 				((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
 				((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
 				((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
 				if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
 					((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
+			};
+			editor->HasIdentifierHover = [&](TextEditor* ed, const std::string& id) -> bool {
+				if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)
+					return false;
 
-				int curLine = m_data->Debugger.GetCurrentLine();
-				bool vmRunning = m_data->Debugger.IsVMRunning();
+				size_t vcount = 0;
+				spvm_member_t res = m_data->Debugger.GetVariable(id, vcount);
 
-				// get filename
-				std::string curFile = m_data->Debugger.GetVM()->current_file ? m_data->Debugger.GetVM()->current_file : "";
-				if (curFile.empty() || curFile == "src/lib.rs" || curFile == "src\\lib.rs") // hack for PluginRust..
-					curFile = m_data->Debugger.GetCurrentFile();
-				else if (!std::filesystem::path(curFile).is_absolute())
-					curFile = m_data->Parser.GetProjectPath(curFile);
+				return res != nullptr;
+			};
+			editor->OnIdentifierHover = [&](TextEditor* ed, const std::string& id) {
+				size_t vcount = 0;
+				spvm_result_t resType = nullptr;
+				spvm_member_t res = m_data->Debugger.GetVariable(id, vcount, resType);
 
-				// open the file if it's not already open
-				CodeEditorUI* codeEditor = ((CodeEditorUI*)m_ui->Get(ed::ViewID::Code));
-				if (codeEditor->Get(curFile) == nullptr)
-					codeEditor->OpenFile(curFile);
+				if (res != nullptr && resType != nullptr) {
 
-				TextEditor* actualEditor = codeEditor->Get(curFile);
+					bool isTex = false,
+						 isCube = false,
+						 isTex3D = false;
 
-				// stop debugging in all editors
-				bool deleteStack = false;
-				for (int i = 0; i < m_editorStack.size(); i++) {
-					if (deleteStack || (i > 0 && !vmRunning)) {
-						if (codeEditor->Get(m_editorStack[i]))
-							codeEditor->Get(m_editorStack[i])->SetCurrentLineIndicator(-1);
-						m_editorStack.erase(m_editorStack.begin() + i);
-						i--;
-					}
-					else if (m_editorStack[i] == curFile)
-						deleteStack = true;
-				}
-				if (!deleteStack)
-					m_editorStack.push_back(curFile);
+					// Type:
+					if (resType->value_type == spvm_value_type_int && resType->value_sign == 0)
+						ImGui::Text("uint");
+					else if (resType->value_type == spvm_value_type_int)
+						ImGui::Text("int");
+					else if (resType->value_type == spvm_value_type_bool)
+						ImGui::Text("bool");
+					else if (resType->value_type == spvm_value_type_float && resType->value_bitcount > 32)
+						ImGui::Text("double");
+					else if (resType->value_type == spvm_value_type_float)
+						ImGui::Text("float");
+					else if (resType->value_type == spvm_value_type_matrix)
+						ImGui::Text("matrix");
+					else if (resType->value_type == spvm_value_type_vector)
+						ImGui::Text("vector");
+					else if (resType->value_type == spvm_value_type_array)
+						ImGui::Text("array");
+					else if (resType->value_type == spvm_value_type_runtime_array)
+						ImGui::Text("runtime array");
+					else if (resType->value_type == spvm_value_type_struct && resType->name)
+						ImGui::Text(resType->name);
+					else if (resType->value_type == spvm_value_type_sampled_image || resType->value_type == spvm_value_type_image) {
+						isTex = true;
+						ImGui::Text("texture");
 
-				// generate "Auto" watches
-				DebugAutoUI* autoWnd = ((DebugAutoUI*)m_ui->Get(ViewID::DebugAuto));
-				if (autoWnd->Visible)
-					autoWnd->SetExpressions(actualEditor->GetRelevantExpressions(curLine));
+						if (resType) {
+							spvm_image_info* image_info = resType->image_info;
 
-				// update the line indicator
-				if (!vmRunning) {
-					curLine = ed->GetCurrentLineIndicator() + 1;
-					ed->SetCurrentLineIndicator(curLine);
-				} else
-					actualEditor->SetCurrentLineIndicator(curLine, actualEditor == ed);
-
-				// copy the debug methods if we are in some other file
-				if (actualEditor != ed) {
-					actualEditor->HasIdentifierHover = ed->HasIdentifierHover;
-					actualEditor->OnIdentifierHover = ed->OnIdentifierHover;
-					actualEditor->HasExpressionHover = ed->HasExpressionHover;
-					actualEditor->OnExpressionHover = ed->OnExpressionHover;
-				}
-
-				m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
-			}
-		};
-		editor->OnDebuggerJump = [&](TextEditor* ed, int line) {
-			if (!m_data->Debugger.IsDebugging())
-				return;
-
-			m_cacheExpression.clear();
-
-			while (m_data->Debugger.IsVMRunning() && m_data->Debugger.GetCurrentLine() != line)
-				spvm_state_step_into(m_data->Debugger.GetVM());
-
-			ed->SetCurrentLineIndicator(m_data->Debugger.GetCurrentLine());
-			((DebugWatchUI*)m_ui->Get(ViewID::DebugWatch))->Refresh();
-			((DebugVectorWatchUI*)m_ui->Get(ViewID::DebugVectorWatch))->Refresh();
-			((DebugFunctionStackUI*)m_ui->Get(ViewID::DebugFunctionStack))->Refresh();
-			((DebugValuesUI*)m_ui->Get(ViewID::DebugValues))->Refresh();
-			if (m_data->Debugger.GetStage() == ShaderStage::TessellationControl)
-				((DebugTessControlOutputUI*)m_ui->Get(ViewID::DebugTessControlOutput))->Refresh();
-		};
-		editor->HasIdentifierHover = [&](TextEditor* ed, const std::string& id) -> bool {
-			if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)
-				return false;
-
-			size_t vcount = 0;
-			spvm_member_t res = m_data->Debugger.GetVariable(id, vcount);
-
-			return res != nullptr;
-		};
-		editor->OnIdentifierHover = [&](TextEditor* ed, const std::string& id) {
-			size_t vcount = 0;
-			spvm_result_t resType = nullptr;
-			spvm_member_t res = m_data->Debugger.GetVariable(id, vcount, resType);
-
-			if (res != nullptr && resType != nullptr) {
-
-				bool isTex = false,
-					 isCube = false,
-					 isTex3D = false;
-
-				// Type:
-				if (resType->value_type == spvm_value_type_int && resType->value_sign == 0)
-					ImGui::Text("uint");
-				else if (resType->value_type == spvm_value_type_int)
-					ImGui::Text("int");
-				else if (resType->value_type == spvm_value_type_bool)
-					ImGui::Text("bool");
-				else if (resType->value_type == spvm_value_type_float && resType->value_bitcount > 32)
-					ImGui::Text("double");
-				else if (resType->value_type == spvm_value_type_float)
-					ImGui::Text("float");
-				else if (resType->value_type == spvm_value_type_matrix)
-					ImGui::Text("matrix");
-				else if (resType->value_type == spvm_value_type_vector)
-					ImGui::Text("vector");
-				else if (resType->value_type == spvm_value_type_array)
-					ImGui::Text("array");
-				else if (resType->value_type == spvm_value_type_runtime_array)
-					ImGui::Text("runtime array");
-				else if (resType->value_type == spvm_value_type_struct && resType->name)
-					ImGui::Text(resType->name);
-				else if (resType->value_type == spvm_value_type_sampled_image || resType->value_type == spvm_value_type_image) {
-					isTex = true;
-					ImGui::Text("texture");
-
-					if (resType) {
-						spvm_image_info* image_info = resType->image_info;
-
-						if (image_info == nullptr && m_data->Debugger.GetVM()) {
-							spvm_result_t type_info = spvm_state_get_type_info(m_data->Debugger.GetVM()->results, resType);
-							image_info = type_info->image_info;
-							
-							if (image_info == NULL) {
-								type_info = &m_data->Debugger.GetVM()->results[type_info->pointer];
+							if (image_info == nullptr && m_data->Debugger.GetVM()) {
+								spvm_result_t type_info = spvm_state_get_type_info(m_data->Debugger.GetVM()->results, resType);
 								image_info = type_info->image_info;
+
+								if (image_info == NULL) {
+									type_info = &m_data->Debugger.GetVM()->results[type_info->pointer];
+									image_info = type_info->image_info;
+								}
+							}
+
+							if (image_info && image_info->dim == SpvDimCube)
+								isCube = true;
+							else if (image_info && image_info->dim == SpvDim3D)
+								isTex3D = true;
+						}
+					}
+
+					ImGui::Separator();
+
+					// Value:
+					if (isTex && res->image_data != nullptr) {
+						spvm_image_t tex = res->image_data;
+
+						if (isCube) {
+							m_cubePrev.Draw((GLuint)((uintptr_t)tex->user_data));
+							ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
+						} else if (isTex3D) {
+							float imgWH = (tex->height / (float)tex->width);
+							m_tex3DPrev.Draw((GLuint)((uintptr_t)tex->user_data), 128.0f, 128.0f * (float)imgWH);
+							ImGui::Image((void*)(intptr_t)m_tex3DPrev.GetTexture(), ImVec2(128.0f, 128.0f * imgWH));
+						} else
+							ImGui::Image((ImTextureID)tex->user_data, ImVec2(128.0f, 128.0f * (tex->height / (float)tex->width)), ImVec2(0, 1), ImVec2(1, 0));
+					} else {
+						// color preview
+						if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVM()->results[resType->pointer].value_type == spvm_value_type_float) {
+							if (resType->member_count == 3) {
+								float colorVal[3] = { res[0].value.f, res[1].value.f, res[2].value.f };
+								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+								ImGui::ColorEdit3("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
+								ImGui::PopItemFlag();
+								ImGui::SameLine();
+							} else if (resType->member_count == 4) {
+								float colorVal[4] = { res[0].value.f, res[1].value.f, res[2].value.f, res[3].value.f };
+								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+								ImGui::ColorEdit4("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
+								ImGui::PopItemFlag();
+								ImGui::SameLine();
 							}
 						}
 
-						if (image_info && image_info->dim == SpvDimCube)
-							isCube = true;
-						else if (image_info && image_info->dim == SpvDim3D)
-							isTex3D = true;
+						// text value
+						std::stringstream ss;
+						m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), resType, res, vcount, "");
+						ImGui::Text(ss.str().c_str());
 					}
 				}
+			};
+			editor->HasExpressionHover = [&](TextEditor* ed, const std::string& id) -> bool {
+				if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)
+					return false;
 
-				ImGui::Separator();
+				if (id == m_cacheExpression)
+					return m_cacheExists;
 
-				// Value:
-				if (isTex && res->image_data != nullptr) {
-					spvm_image_t tex = res->image_data;
+				m_cacheExpression = id;
 
-					if (isCube) {
-						m_cubePrev.Draw((GLuint)((uintptr_t)tex->user_data));
-						ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
-					}
-					else if (isTex3D) {
-						float imgWH = (tex->height / (float)tex->width);
-						m_tex3DPrev.Draw((GLuint)((uintptr_t)tex->user_data), 128.0f, 128.0f * (float)imgWH);
-						ImGui::Image((void*)(intptr_t)m_tex3DPrev.GetTexture(), ImVec2(128.0f, 128.0f * imgWH));
-					}
-					else
-						ImGui::Image((ImTextureID)tex->user_data, ImVec2(128.0f, 128.0f * (tex->height / (float)tex->width)), ImVec2(0, 1), ImVec2(1, 0));
-				} else {
-					// color preview
-					if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVM()->results[resType->pointer].value_type == spvm_value_type_float) {
-						if (resType->member_count == 3) {
-							float colorVal[3] = { res[0].value.f, res[1].value.f, res[2].value.f };
-							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-							ImGui::ColorEdit3("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
-							ImGui::PopItemFlag();
-							ImGui::SameLine();
-						} else if (resType->member_count == 4) {
-							float colorVal[4] = { res[0].value.f, res[1].value.f, res[2].value.f, res[3].value.f };
-							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-							ImGui::ColorEdit4("##value_preview", colorVal, ImGuiColorEditFlags_NoInputs);
-							ImGui::PopItemFlag();
-							ImGui::SameLine();
-						}
-					}
+				spvm_result_t resType = nullptr;
+				spvm_result_t exprVal = m_data->Debugger.Immediate(id, resType);
 
-					// text value
+				m_cacheExists = exprVal != nullptr && resType != nullptr;
+
+				if (m_cacheExists) {
 					std::stringstream ss;
-					m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVM(), resType, res, vcount, "");
-					ImGui::Text(ss.str().c_str());
-				}
-			}
-		};
-		editor->HasExpressionHover = [&](TextEditor* ed, const std::string& id) -> bool {
-			if (!m_data->Debugger.IsDebugging() || !Settings::Instance().Debug.ShowValuesOnHover)
-				return false;
+					m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVMImmediate(), resType, exprVal->members, exprVal->member_count, "");
 
-			if (id == m_cacheExpression)
+					m_cacheValue = ss.str();
+					m_cacheHasColor = false;
+					m_cacheColor = glm::vec4(0.0f);
+
+					if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVMImmediate()->results[resType->pointer].value_type == spvm_value_type_float) {
+						if (resType->member_count == 3)
+							m_cacheHasColor = true;
+						else if (resType->member_count == 4)
+							m_cacheHasColor = true;
+						for (int i = 0; i < resType->member_count; i++)
+							m_cacheColor[i] = exprVal->members[i].value.f;
+					}
+				}
+
 				return m_cacheExists;
-
-			m_cacheExpression = id;
-
-			spvm_result_t resType = nullptr;
-			spvm_result_t exprVal = m_data->Debugger.Immediate(id, resType);
-
-			m_cacheExists = exprVal != nullptr && resType != nullptr;
-
-			if (m_cacheExists) {
-				std::stringstream ss;
-				m_data->Debugger.GetVariableValueAsString(ss, m_data->Debugger.GetVMImmediate(), resType, exprVal->members, exprVal->member_count, "");
-
-				m_cacheValue = ss.str();
-				m_cacheHasColor = false;
-				m_cacheColor = glm::vec4(0.0f);
-
-				if (resType->value_type == spvm_value_type_vector && m_data->Debugger.GetVMImmediate()->results[resType->pointer].value_type == spvm_value_type_float) {
-					if (resType->member_count == 3)
-						m_cacheHasColor = true;
-					else if (resType->member_count == 4)
-						m_cacheHasColor = true;
-					for (int i = 0; i < resType->member_count; i++)
-						m_cacheColor[i] = exprVal->members[i].value.f;
+			};
+			editor->OnExpressionHover = [&](TextEditor* ed, const std::string& id) {
+				ImGui::Text(id.c_str());
+				ImGui::Separator();
+				if (m_cacheHasColor) {
+					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+					ImGui::ColorEdit4("##value_preview", const_cast<float*>(glm::value_ptr(m_cacheColor)), ImGuiColorEditFlags_NoInputs);
+					ImGui::PopItemFlag();
+					ImGui::SameLine();
 				}
-			}
-
-			return m_cacheExists;
-		};
-		editor->OnExpressionHover = [&](TextEditor* ed, const std::string& id) {
-			ImGui::Text(id.c_str());
-			ImGui::Separator();
-			if (m_cacheHasColor) {
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::ColorEdit4("##value_preview", const_cast<float*>(glm::value_ptr(m_cacheColor)), ImGuiColorEditFlags_NoInputs);
-				ImGui::PopItemFlag();
-				ImGui::SameLine();
-			}
-			ImGui::Text(m_cacheValue.c_str());
-		};
+				ImGui::Text(m_cacheValue.c_str());
+			};
+		}
 
 		// copy preview camera info to vertex watch camera & geometry shader output camera
 		if (!Settings::Instance().Project.FPCamera) {

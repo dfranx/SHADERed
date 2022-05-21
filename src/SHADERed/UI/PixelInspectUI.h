@@ -1,6 +1,7 @@
 #pragma once
 #include <SHADERed/UI/Tools/CubemapPreview.h>
 #include <SHADERed/UI/Tools/Texture3DPreview.h>
+#include <SHADERed/UI/CodeEditorUI.h>
 #include <SHADERed/UI/UIView.h>
 
 namespace ed {
@@ -18,7 +19,7 @@ namespace ed {
 		
 		void RenderPixelInfo(PixelInformation& pixel, float& elementHeight);
 
-		void StartDebugging(TextEditor* editor, PixelInformation* pixel);
+		void StartDebugging(TextEditor* editor, const PluginShaderEditor& pluginEditor, PixelInformation* pixel);
 
 	private:
 		std::string m_cacheExpression;
