@@ -1,0 +1,9 @@
+{
+  "name": "shadered",
+  "version-string": "latest",
+  "dependencies": [
+    "sdl2",
+    "glew",
+    "glm"
+  ]
+}

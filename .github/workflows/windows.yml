@@ -1,0 +1,37 @@
+name: Windows
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: bash
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: lukka/get-cmake@latest
+    - uses: lukka/run-vcpkg@v10
+      with:
+        vcpkgGitCommitId: '83eb3d3d136f751b0562e1219d391575fdf9fe73'
+    - uses: hendrikmuhs/ccache-action@v1.2
+    - uses: Trass3r/setup-cpp@master
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: configure
+      env:
+        CMAKE_C_COMPILER_LAUNCHER: ccache
+        CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      run: |
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" .
+    - name: build
+      env:
+        UseMultiToolTask: 1
+      run: ninja
+    - uses: actions/upload-artifact@v3
+      with:
+        name: windowsbuild
+        path: bin/*
