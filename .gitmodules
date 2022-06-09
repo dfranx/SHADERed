@@ -25,5 +25,5 @@
 	url = https://github.com/dfranx/ShaderExpressionParser
 [submodule "libs/SpvGenTwo"]
 	path = libs/SpvGenTwo
-	url = https://github.com/dfranx/SpvGenTwo
+	url = https://github.com/rAzoR8/SpvGenTwo.git
 	ignore = dirty
