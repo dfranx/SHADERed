@@ -25,7 +25,7 @@ namespace ed {
 		inline spvm_state_t GetVMImmediate() { return m_vmImmediate; }
 		inline spvm_context_t GetVMContext() { return m_vmContext; }
 		inline spvm_ext_opcode_func* GetGLSLExtension() { return m_vmGLSL; }
-		inline int GetCurrentLine() { return m_shader->language == SpvSourceLanguageHLSL ? (m_vm->current_line - 1) : m_vm->current_line; }
+		inline int GetCurrentLine() { return m_shader->files[0].language == SpvSourceLanguageHLSL ? (m_vm->current_line - 1) : m_vm->current_line; }
 		inline bool IsVMRunning() { return m_vm != nullptr && m_vm->code_current != nullptr; }
 		inline void SetCurrentFile(const std::string& file) { m_file = file; }
 		inline const std::string& GetCurrentFile() { return m_file; }
@@ -169,7 +169,7 @@ namespace ed {
 		glm::vec3 m_processWeight(glm::ivec2 offset);
 		void m_interpolateValues(spvm_state_t state, glm::vec3 weights);
 
-		std::vector<spvm_image_t> m_images; // TODO: clear these + smart cache
+		std::vector<spvm_image_data*> m_images; // TODO: clear these + smart cache
 
 		spvm_context_t m_vmContext;
 		spvm_ext_opcode_func* m_vmGLSL;

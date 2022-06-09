@@ -177,12 +177,12 @@ namespace ed {
 						ImGui::Text("Slice: ");
 						ImGui::SameLine();
 						if (ImGui::Button("-", ImVec2(30, 0)))
-							m_cachedImgSlice[i] = MAX(m_cachedImgSlice[i] - 1, 0);
+							m_cachedImgSlice[i] = SPVM_MAX(m_cachedImgSlice[i] - 1, 0);
 						ImGui::SameLine();
 						ImGui::Text("%d", m_cachedImgSlice[i]);
 						ImGui::SameLine();
 						if (ImGui::Button("+", ImVec2(30, 0)))
-							m_cachedImgSlice[i] = MIN(m_cachedImgSlice[i] + 1, objSize.z - 1);
+							m_cachedImgSlice[i] = SPVM_MIN(m_cachedImgSlice[i] + 1, objSize.z - 1);
 					}
 					else if (item->Type == ObjectType::Audio) {
 						memset(&m_samplesTempBuffer, 0, sizeof(short) * 1024);

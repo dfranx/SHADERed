@@ -9,17 +9,21 @@
 	path = libs/imgui
 	url = https://github.com/dfranx/imgui.git
 	branch = docking
+	shallow = true
 [submodule "libs/glslang"]
 	path = libs/glslang
 	url = https://github.com/KhronosGroup/glslang
 	ignore = dirty
+	shallow = true
 [submodule "libs/assimp"]
 	path = libs/assimp
 	url = https://github.com/dfranx/assimp.git
+	shallow = true
 [submodule "libs/SPIRV-VM"]
 	path = libs/SPIRV-VM
 	url = https://github.com/dfranx/SPIRV-VM.git
 	ignore = dirty
+	shallow = true
 [submodule "libs/ShaderExpressionParser"]
 	path = libs/ShaderExpressionParser
 	url = https://github.com/dfranx/ShaderExpressionParser
