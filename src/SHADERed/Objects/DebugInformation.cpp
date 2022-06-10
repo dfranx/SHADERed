@@ -1125,6 +1125,11 @@ namespace ed {
 							slot->members[0].value.image = (spvm_image*)img;
 							m_images.push_back(img);
 							sampler2Dloc++;
+							// oddly it's an image not a sampled_image
+							//if (type_info->value_type == spvm_value_type_sampled_image) {
+								auto sampler = (spvm_sampler*)calloc(1, sizeof(spvm_sampler));
+								slot->members[1].value.sampler = sampler;
+							//}
 						}
 					}
 				} 
