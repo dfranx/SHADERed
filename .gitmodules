@@ -21,7 +21,7 @@
 	shallow = true
 [submodule "libs/SPIRV-VM"]
 	path = libs/SPIRV-VM
-	url = https://github.com/dfranx/SPIRV-VM.git
+	url = https://github.com/Trass3r/SPIRV-VM.git
 	ignore = dirty
 	shallow = true
 [submodule "libs/ShaderExpressionParser"]
