@@ -54,13 +54,13 @@ void writeWorkgroupMemory(struct spvm_state* state, spvm_word result_id, spvm_wo
 		spvm_word index_id = SPVM_READ_WORD(code);
 		spvm_word index = state->results[index_id].members[0].value.s;
 
-		spvm_member_t result = sharedData->members + MIN(index, sharedData->member_count - 1);
+		spvm_member_t result = sharedData->members + SPVM_MIN(index, sharedData->member_count - 1);
 
 		while (index_count) {
 			index_id = SPVM_READ_WORD(code);
 			index = state->results[index_id].members[0].value.s;
 
-			result = result->members + MIN(index, result->member_count - 1);
+			result = result->members + SPVM_MIN(index, result->member_count - 1);
 
 			index_count--;
 		}
@@ -165,25 +165,25 @@ void atomicOperation(spvm_word inst, spvm_word word_count, struct spvm_state* st
 			spvm_result_t value = &state->results[value_id];
 
 			for (int i = 0; i < data->member_count; i++)
-				data->members[i].value.s = MIN(value->members[i].value.s, data->members[i].value.s);
+				data->members[i].value.s = SPVM_MIN(value->members[i].value.s, data->members[i].value.s);
 		} else if (inst == SpvOpAtomicUMin) {
 			spvm_word value_id = SPVM_READ_WORD(state->code_current);
 			spvm_result_t value = &state->results[value_id];
 
 			for (int i = 0; i < data->member_count; i++)
-				data->members[i].value.u = MIN(value->members[i].value.u, data->members[i].value.u);
+				data->members[i].value.u = SPVM_MIN(value->members[i].value.u, data->members[i].value.u);
 		} else if (inst == SpvOpAtomicSMax) {
 			spvm_word value_id = SPVM_READ_WORD(state->code_current);
 			spvm_result_t value = &state->results[value_id];
 
 			for (int i = 0; i < data->member_count; i++)
-				data->members[i].value.s = MAX(value->members[i].value.s, data->members[i].value.s);
+				data->members[i].value.s = SPVM_MAX(value->members[i].value.s, data->members[i].value.s);
 		} else if (inst == SpvOpAtomicUMax) {
 			spvm_word value_id = SPVM_READ_WORD(state->code_current);
 			spvm_result_t value = &state->results[value_id];
 
 			for (int i = 0; i < data->member_count; i++)
-				data->members[i].value.u = MAX(value->members[i].value.u, data->members[i].value.u);
+				data->members[i].value.u = SPVM_MAX(value->members[i].value.u, data->members[i].value.u);
 		} else if (inst == SpvOpAtomicAnd) {
 			spvm_word value_id = SPVM_READ_WORD(state->code_current);
 			spvm_result_t value = &state->results[value_id];
@@ -367,7 +367,7 @@ namespace ed {
 	{
 		ed::Logger::Get().Log("Resetting the debugger");
 
-		for (spvm_image_t img : m_images) {
+		for (spvm_image_data* img : m_images) {
 			free(img->data);
 			free(img);
 		}
@@ -967,18 +967,14 @@ namespace ed {
 						}
 
 						if ((wrongBind || textureID == 0) && !pluginUsesCustomTextures) {
-							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
+							auto img = (spvm_image_data*)calloc(1, sizeof(spvm_image_data));
 
 							// get texture size
 							glm::ivec2 size(1, 1);
 							float* imgData = (float*)calloc(1, sizeof(float) * size.x * size.y * 4);
-
-							img->user_data = nullptr;
-
 							spvm_image_create(img, imgData, size.x, size.y, 1);
-							free(imgData);
 
-							slot->members[0].image_data = img;
+							slot->members[0].value.image = (spvm_image*)img;
 
 							m_images.push_back(img);
 
@@ -988,8 +984,8 @@ namespace ed {
 							if (slot->members == nullptr) // if slot->members == nullptr it means that it's a pointer/function argument
 								continue;
 
-							spvm_image_t img = (spvm_image_t)malloc(sizeof(spvm_image));
-							
+							auto img = (spvm_image_data*)calloc(1, sizeof(spvm_image_data));
+
 							if (type_info->image_info == NULL)
 								type_info = &m_vm->results[type_info->pointer];
 							
@@ -1119,17 +1115,21 @@ namespace ed {
 
 							if (imgData != nullptr) {
 								spvm_image_create(img, imgData, imgSize.x, imgSize.y, imgSize.z);
-								free(imgData);
 							}
-
+/*
 							if (pluginUsesCustomTextures)
 								img->user_data = (void*)pluginCustomTexture;
 							else
 								img->user_data = (void*)textureID;
-
-							slot->members[0].image_data = img;
+*/
+							slot->members[0].value.image = (spvm_image*)img;
 							m_images.push_back(img);
 							sampler2Dloc++;
+							// oddly it's an image not a sampled_image
+							//if (type_info->value_type == spvm_value_type_sampled_image) {
+								auto sampler = (spvm_sampler*)calloc(1, sizeof(spvm_sampler));
+								slot->members[1].value.sampler = sampler;
+							//}
 						}
 					}
 				} 
@@ -2426,7 +2426,7 @@ namespace ed {
 
 		// move to cursor to first line in the function
 		spvm_state_step_into(m_vm);
-		if (m_vm->owner->language == SpvSourceLanguageHLSL) {
+		if (m_vm->owner->files[0].language == SpvSourceLanguageHLSL) {
 			// since actual main is encapsulated into another main function
 			while (m_vm->code_current && m_vm->function_stack_current == 0)
 				spvm_state_step_into(m_vm);

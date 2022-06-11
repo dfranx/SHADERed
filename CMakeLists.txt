@@ -133,6 +133,10 @@ if(WIN32)
 	)
 endif()
 
+if(MSVC)
+	add_compile_options(-wd4996)
+endif()
+
 # cmake toolchain
 if(CMAKE_TOOLCHAIN_FILE)
     include(${CMAKE_TOOLCHAIN_FILE})

@@ -455,7 +455,7 @@ namespace ed {
 
 		for (int i = vm->function_stack_current; i >= 0; i--) {
 			spvm_result_t func = vm->function_stack_info[i];
-			if (!(vm->owner->language == SpvSourceLanguageHLSL && i == 0)) {
+			if (!(vm->owner->files[0].language == SpvSourceLanguageHLSL && i == 0)) {
 				std::string fname(func->name);
 				if (fname.size() > 0 && fname[0] == '@') // clean up the @main(
 					fname = fname.substr(1);
@@ -469,7 +469,7 @@ namespace ed {
 				else
 					line = lines[i];
 
-				if (vm->owner->language == SpvSourceLanguageHLSL)
+				if (vm->owner->files[0].language == SpvSourceLanguageHLSL)
 					line--;
 
 
@@ -599,7 +599,7 @@ namespace ed {
 	std::string DebugAdapterProtocol::m_getTypeString(spvm_result_t type, bool returnEmpty)
 	{
 		spvm_state_t vm = m_debugger->GetVM();
-		if (vm && vm->owner->language == SpvSourceLanguageHLSL) {
+		if (vm && vm->owner->files[0].language == SpvSourceLanguageHLSL) {
 			// HLSL names
 			if (type->value_type == spvm_value_type_vector && !returnEmpty) {
 				std::string ret = "float";

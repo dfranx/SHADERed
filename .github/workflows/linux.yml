@@ -4,17 +4,23 @@ on: [push, pull_request]
 
 jobs:
   build:
+    runs-on: ubuntu-22.04
 
-    runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout submodules
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Install libs
-      run: sudo apt install libsdl2-dev libglew-dev libglm-dev libgtk-3-dev
-    - name: cmake
-      run: sudo cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++-9 -DCMAKE_C_COMPILER=/usr/bin/gcc-9 .
-    - name: make
-      run: sudo make
+    - run: sudo apt install -y ccache ninja-build libsdl2-dev libglew-dev libglm-dev libgtk-3-dev
+    - uses: hendrikmuhs/ccache-action@v1.2
+    - uses: Trass3r/setup-cpp@master
+    - run: cmake -GNinja -DCMAKE_BUILD_TYPE=Release .
+      env:
+        CMAKE_C_COMPILER_LAUNCHER: ccache
+        CMAKE_CXX_COMPILER_LAUNCHER: ccache
+    - run: ninja -k0
+      env:
+        CCACHE_NOCOMPRESS: 1 # cache action will also compress
+    - uses: actions/upload-artifact@v3
+      with:
+        name: linuxbuild
+        path: bin/*

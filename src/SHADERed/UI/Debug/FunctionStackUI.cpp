@@ -14,7 +14,7 @@ namespace ed {
 
 		for (int i = vm->function_stack_current; i >= 0; i--) {
 			spvm_result_t func = vm->function_stack_info[i];
-			if (!(vm->owner->language == SpvSourceLanguageHLSL && i == 0) && func->name != nullptr) {
+			if (!(vm->owner->files[0].language == SpvSourceLanguageHLSL && i == 0) && func->name != nullptr) {
 				std::string fname(func->name);
 				if (fname.size() > 0 && fname[0] == '@') // clean up the @main(
 					fname = fname.substr(1);
@@ -26,7 +26,7 @@ namespace ed {
 				if (i >= lines.size()) line = vm->current_line;
 				else line = lines[i];
 
-				if (vm->owner->language == SpvSourceLanguageHLSL)
+				if (vm->owner->files[0].language == SpvSourceLanguageHLSL)
 					line--;
 
 				m_stack.push_back(fname + " @ line " + std::to_string(line));
