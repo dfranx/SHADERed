@@ -116,6 +116,7 @@ namespace ed {
 		void m_applyBreakpoints(TextEditor* editor, const std::string& path);
 
 		void m_setupPlugin(ed::IPlugin1* plugin);
+		std::string m_getShaderFile(int id);
 
 		std::vector<CodeSnippet> m_snippets;
 
@@ -123,6 +124,7 @@ namespace ed {
 		ImFont* m_font;
 
 		// menu bar item actions
+		void m_openInExternalEditor(int id);
 		void m_save(int id);
 		void m_saveAsSPV(int id);
 		void m_saveAsGLSL(int id);
