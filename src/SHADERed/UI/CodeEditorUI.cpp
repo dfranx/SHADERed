@@ -100,6 +100,8 @@ namespace ed {
 		m_editorSaveRequestID = id;
 
 		auto openFunc = [this, id](bool success) {
+			if (!success) return;
+
 			std::string const shaderFile = m_getShaderFile(id);
 			if (!shaderFile.empty())
 				UIHelper::ShellOpen(m_data->Parser.GetProjectPath(shaderFile));
