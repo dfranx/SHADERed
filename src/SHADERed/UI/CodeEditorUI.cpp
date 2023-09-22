@@ -91,6 +91,28 @@ namespace ed {
 			Settings::Instance().Editor.StatusBar = !Settings::Instance().Editor.StatusBar;
 		});
 	}
+
+	void CodeEditorUI::m_openInExternalEditor(int id)
+	{
+		if (id >= m_editor.size())
+			return;
+
+		m_editorSaveRequestID = id;
+
+		auto openFunc = [this, id](bool success) {
+			std::string const shaderFile = m_getShaderFile(id);
+			if (!shaderFile.empty())
+				UIHelper::ShellOpen(m_data->Parser.GetProjectPath(shaderFile));
+		};
+
+		// prompt user to choose a project location first
+		if (m_data->Parser.GetOpenedFile() == "") {
+			RequestedProjectSave = true;
+			m_ui->SaveAsProject(true, openFunc);
+		} else
+			openFunc(true);
+	}
+
 	void CodeEditorUI::m_save(int editor_id)
 	{
 		if (editor_id >= m_editor.size())
@@ -196,31 +218,9 @@ namespace ed {
 
 		m_save(id);
 
-		std::string shaderFile = "";
-		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
-			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
-			if (m_shaderStage[id] == ShaderStage::Vertex)
-				shaderFile = shader->VSPath;
-			else if (m_shaderStage[id] == ShaderStage::Pixel)
-				shaderFile = shader->PSPath;
-			else if (m_shaderStage[id] == ShaderStage::Geometry)
-				shaderFile = shader->GSPath;
-			else if (m_shaderStage[id] == ShaderStage::TessellationControl)
-				shaderFile = shader->TCSPath;
-			else if (m_shaderStage[id] == ShaderStage::TessellationEvaluation)
-				shaderFile = shader->TESPath;
-		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
-			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
-			shaderFile = shader->Path;
-		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
-			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
-			shaderFile = shader->Path;
-		} else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
-			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
-			shader->Owner->HandleRecompile(m_items[id]->Name);
-		}
-
-		m_data->Renderer.RecompileFile(shaderFile.c_str());
+		std::string const shaderFile = m_getShaderFile(id);
+		if (!shaderFile.empty())
+			m_data->Renderer.RecompileFile(shaderFile.c_str());
 	}
 
 	void CodeEditorUI::OnEvent(const SDL_Event& e) { }
@@ -270,6 +270,7 @@ namespace ed {
 							if (ImGui::MenuItem("Save SPIR-V binary")) m_saveAsSPV(i);
 							if (ImGui::MenuItem("Save as GLSL")) m_saveAsGLSL(i);
 							if (ImGui::MenuItem("Save as HLSL")) m_saveAsHLSL(i);
+							if (ImGui::MenuItem("Open in external editor")) m_openInExternalEditor(i);
 							ImGui::EndMenu();
 						}
 						if (ImGui::BeginMenu("Code")) {
@@ -1475,6 +1476,33 @@ namespace ed {
 				return (void*)code->GetPluginEditorPipelineItem((IPlugin1*)plugin, langID, editorID);
 			};
 		}
+	}
+
+	std::string CodeEditorUI::m_getShaderFile(int id)
+	{
+		if (m_items[id]->Type == PipelineItem::ItemType::ShaderPass) {
+			ed::pipe::ShaderPass* shader = reinterpret_cast<ed::pipe::ShaderPass*>(m_items[id]->Data);
+			if (m_shaderStage[id] == ShaderStage::Vertex)
+				return shader->VSPath;
+			else if (m_shaderStage[id] == ShaderStage::Pixel)
+				return shader->PSPath;
+			else if (m_shaderStage[id] == ShaderStage::Geometry)
+				return shader->GSPath;
+			else if (m_shaderStage[id] == ShaderStage::TessellationControl)
+				return shader->TCSPath;
+			else if (m_shaderStage[id] == ShaderStage::TessellationEvaluation)
+				return shader->TESPath;
+		} else if (m_items[id]->Type == PipelineItem::ItemType::ComputePass) {
+			ed::pipe::ComputePass* shader = reinterpret_cast<ed::pipe::ComputePass*>(m_items[id]->Data);
+			return shader->Path;
+		} else if (m_items[id]->Type == PipelineItem::ItemType::AudioPass) {
+			ed::pipe::AudioPass* shader = reinterpret_cast<ed::pipe::AudioPass*>(m_items[id]->Data);
+			return shader->Path;
+		} else if (m_items[id]->Type == PipelineItem::ItemType::PluginItem) {
+			ed::pipe::PluginItemData* shader = reinterpret_cast<ed::pipe::PluginItemData*>(m_items[id]->Data);
+			shader->Owner->HandleRecompile(m_items[id]->Name);
+		}
+		return {};
 	}
 
 	void CodeEditorUI::StopDebugging()
