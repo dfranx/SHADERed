@@ -21,6 +21,7 @@
 #include <cstring>  // strlen
 #include <deque>
 #include <mutex>
+#include <string>
 
 namespace {
 
