@@ -1851,7 +1851,13 @@ namespace ed {
 		}
 #elif defined(__linux__) || defined(__unix__)
 			fd_set rfds;
-			int eCount = select(notifyEngine + 1, &rfds, NULL, NULL, NULL);
+			FD_ZERO(&rfds);
+			FD_SET(notifyEngine, &rfds);
+			timeval timeout;
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 100000;
+
+			int eCount = select(notifyEngine + 1, &rfds, NULL, NULL, &timeout);
 
 			if (eCount <= 0) continue;
 
