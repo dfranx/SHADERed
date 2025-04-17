@@ -140,7 +140,7 @@ namespace ed {
 							ImVec2 spinnerPos = ImGui::GetCursorPos();
 							ImGui::Dummy(ImVec2(256, 144));
 							ImGui::SetCursorPos(ImVec2(spinnerPos.x + 256 / 2 - 32, spinnerPos.y + 144 / 2 - 32));
-							UIHelper::Spinner("##spinner", 32.0f, 6, ImGui::GetColorU32(ImGuiCol_Text));
+							//UIHelper::Spinner("##spinner", 32.0f, 6, ImGui::GetColorU32(ImGuiCol_Text));
 						}
 
 						ImGui::TableSetColumnIndex(1);
