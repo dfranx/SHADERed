@@ -684,10 +684,7 @@ namespace ed {
 					resType = m_module->type<spvgentwo::vector_t<float, 4>*>();
 				
 				if (resType != nullptr) {
-					spvgentwo::Instruction* tempVar = bb->opVariable(obj->getResultTypeInstr(), spvgentwo::spv::StorageClass::Function);
-					bb->opStore(tempVar, obj);
-					spvgentwo::Instruction* vecPtr = bb->opAccessChain(resType, tempVar, m_visit(a_access->Indices[0]));
-					
+					spvgentwo::Instruction* vecPtr = bb->opAccessChain(resType, obj, m_visit(a_access->Indices[0]));
 					return bb->opLoad(vecPtr);
 				}
 			} else if (obj->getType()->isArray() || obj->getType()->isStruct()) {

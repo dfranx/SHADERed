@@ -167,6 +167,24 @@ namespace ed {
 				matrix = glm::perspectiveFov(45.0f, view[0], view[1], z[0], z[1]);
 			} break;
 
+			case FunctionShaderVariable::MatrixPerspectiveVFovLH: {
+				float fov = *LoadFloat(var->Arguments, 0);
+				float* view = LoadFloat(var->Arguments, 1);
+				float* z = LoadFloat(var->Arguments, 3);
+
+				matrix = glm::perspective(fov, view[0] / view[1], z[0], z[1]);
+			} break;
+
+			case FunctionShaderVariable::MatrixPerspectiveHFovLH: {
+				float* view = LoadFloat(var->Arguments, 1);
+				float aspect = view[0] / view[1];
+				float hfov = *LoadFloat(var->Arguments, 0);
+				float* z = LoadFloat(var->Arguments, 3);
+				float vfov = 2.0f * atan(tan(hfov / 2.0f) / aspect);
+
+				matrix = glm::perspective(vfov, aspect, z[0], z[1]);
+			} break;
+
 			case FunctionShaderVariable::MatrixRotationAxis: {
 				float* axis = LoadFloat(var->Arguments, 0);
 				float angle = *LoadFloat(var->Arguments, 3);
@@ -297,6 +315,14 @@ namespace ed {
 				*LoadFloat(var->Arguments, 2) = 0.1f;
 				*LoadFloat(var->Arguments, 3) = 100.0f;
 				break;
+			case FunctionShaderVariable::MatrixPerspectiveVFovLH:
+			case FunctionShaderVariable::MatrixPerspectiveHFovLH:
+				*LoadFloat(var->Arguments, 0) = glm::half_pi<float>();
+				*LoadFloat(var->Arguments, 1) = 800;
+				*LoadFloat(var->Arguments, 2) = 600;
+				*LoadFloat(var->Arguments, 3) = 0.1f;
+				*LoadFloat(var->Arguments, 4) = 100.0f;
+				break;
 			case FunctionShaderVariable::MatrixRotationAxis:
 				*LoadFloat(var->Arguments, 0) = 1;
 				break;
@@ -324,6 +350,8 @@ namespace ed {
 		case FunctionShaderVariable::MatrixOrthographicLH: return 4;
 		case FunctionShaderVariable::MatrixPerspectiveFovLH: return 4;
 		case FunctionShaderVariable::MatrixPerspectiveLH: return 4;
+		case FunctionShaderVariable::MatrixPerspectiveVFovLH: return 5;
+		case FunctionShaderVariable::MatrixPerspectiveHFovLH: return 5;
 		case FunctionShaderVariable::MatrixRotationAxis: return 4;
 		case FunctionShaderVariable::MatrixRotationNormal: return 4;
 		case FunctionShaderVariable::MatrixRotationRollPitchYaw: return 3;

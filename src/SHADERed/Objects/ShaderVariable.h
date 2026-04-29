@@ -53,6 +53,8 @@ namespace ed {
 		MatrixOrthographicLH,
 		MatrixPerspectiveFovLH,
 		MatrixPerspectiveLH,
+		MatrixPerspectiveVFovLH,
+		MatrixPerspectiveHFovLH,
 		MatrixRotationAxis,
 		MatrixRotationNormal,
 		MatrixRotationRollPitchYaw,

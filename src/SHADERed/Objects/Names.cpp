@@ -101,6 +101,8 @@ const char* FUNCTION_NAMES[] = {
 	"MatrixOrthographicLH",
 	"MatrixPerspectiveFovLH",
 	"MatrixPerspectiveLH",
+	"MatrixPerspectiveVFovLH",
+	"MatrixPerspectiveHFovLH",
 	"MatrixRotationAxis",
 	"MatrixRotationNormal",
 	"MatrixRotationRollPitchYaw",

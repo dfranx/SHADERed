@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "shadered-project",
+  "version": "1.5.6",
+  "description": "SHADERed project compilation",
+  "dependencies": [
+    "sdl2",
+    "glew",
+    "glm"
+  ]
+}

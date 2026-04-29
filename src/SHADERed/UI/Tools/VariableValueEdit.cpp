@@ -415,10 +415,10 @@ namespace ed {
 			ImGui::NextColumn();
 
 			ImGui::PushItemWidth(-1);
-			float fov = glm::degrees(*FunctionVariableManager::LoadFloat(m_var->Arguments, 0));
+			float fov = *FunctionVariableManager::LoadFloat(m_var->Arguments, 0);
 			if (ImGui::SliderAngle(("##fovAngle" + std::string(m_var->Name)).c_str(), &fov, 0, 180))
 				ret = true;
-			*FunctionVariableManager::LoadFloat(m_var->Arguments, 0) = glm::radians(fov);
+			*FunctionVariableManager::LoadFloat(m_var->Arguments, 0) = fov;
 			ImGui::NextColumn();
 
 			ImGui::Text("Aspect ratio:");
@@ -468,6 +468,43 @@ namespace ed {
 
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat(("##farZ" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 3), 0.01f))
+				ret = true;
+			ImGui::NextColumn();
+		} break;
+
+		case FunctionShaderVariable::MatrixPerspectiveVFovLH: 
+		case FunctionShaderVariable::MatrixPerspectiveHFovLH: {
+			ImGui::Text("FOV:");
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-1);
+			float fov = *FunctionVariableManager::LoadFloat(m_var->Arguments, 0);
+			if (ImGui::SliderAngle(("##fovAngle" + std::string(m_var->Name)).c_str(), &fov, 0, 180))
+				ret = true;
+			*FunctionVariableManager::LoadFloat(m_var->Arguments, 0) = fov;
+			ImGui::NextColumn();
+
+			ImGui::Text("View size:");
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-1);
+			if (ImGui::DragFloat2(("##viewSize" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 1), 0.01f))
+				ret = true;
+			ImGui::NextColumn();
+
+			ImGui::Text("Near Z:");
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-1);
+			if (ImGui::DragFloat(("##nearZ" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 3), 0.01f))
+				ret = true;
+			ImGui::NextColumn();
+
+			ImGui::Text("Far Z:");
+			ImGui::NextColumn();
+
+			ImGui::PushItemWidth(-1);
+			if (ImGui::DragFloat(("##farZ" + std::string(m_var->Name)).c_str(), FunctionVariableManager::LoadFloat(m_var->Arguments, 4), 0.01f))
 				ret = true;
 			ImGui::NextColumn();
 		} break;
