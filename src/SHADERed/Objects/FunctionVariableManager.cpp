@@ -178,10 +178,11 @@ namespace ed {
 			case FunctionShaderVariable::MatrixPerspectiveHFovLH: {
 				float* view = LoadFloat(var->Arguments, 1);
 				float aspect = view[0] / view[1];
-				float fov = *LoadFloat(var->Arguments, 0) / aspect;
+				float hfov = *LoadFloat(var->Arguments, 0);
 				float* z = LoadFloat(var->Arguments, 3);
+				float vfov = 2.0f * atan(tan(hfov / 2.0f) / aspect);
 
-				matrix = glm::perspective(fov, aspect, z[0], z[1]);
+				matrix = glm::perspective(vfov, aspect, z[0], z[1]);
 			} break;
 
 			case FunctionShaderVariable::MatrixRotationAxis: {
