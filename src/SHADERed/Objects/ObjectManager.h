@@ -25,7 +25,7 @@ namespace ed {
 		bool CreateCubemap(const std::string& name, const std::string& left, const std::string& top, const std::string& front, const std::string& bottom, const std::string& right, const std::string& back);
 		bool CreateBuffer(const std::string& file);
 		bool CreateImage(const std::string& name, glm::ivec2 size = glm::ivec2(1, 1));
-		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1));
+		bool CreateImage3D(const std::string& name, glm::ivec3 size = glm::ivec3(1, 1, 1), bool isArray = false);
 		bool CreatePluginItem(const std::string& name, const std::string& objtype, void* data, GLuint id, IPlugin1* owner);
 		bool CreateKeyboardTexture(const std::string& name);
 		

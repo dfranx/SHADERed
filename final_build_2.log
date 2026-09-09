@@ -1,0 +1,1241 @@
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- 'SPVGENTWO_LOGGING' is TRUE
+-- 'SPVGENTWO_REPLACE_PLACEMENTNEW' is TRUE
+-- 'SPVGENTWO_REPLACE_TRAITS' is TRUE
+-- 'SPVGENTWO_BUILD_EXAMPLES' is FALSE
+-- 'SPVGENTWO_BUILD_DISASSEMBLER' is FALSE
+-- 'SPVGENTWO_BUILD_REFLECT' is FALSE
+-- 'SPVGENTWO_BUILD_LINKER' is FALSE
+-- 'SPVGENTWO_DEBUG_HEAP_ALLOC' is FALSE
+-- 
+CMake Deprecation Warning at libs/assimp/CMakeLists.txt:39 (CMAKE_MINIMUM_REQUIRED):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Shared libraries disabled
+-- Looking for ZLIB...
+-- Checking for module 'zzip-zlib-config'
+--   Package 'zzip-zlib-config' not found
+-- Found ZLIB: optimized;/usr/lib/x86_64-linux-gnu/libz.so;debug;/usr/lib/x86_64-linux-gnu/libz.so
+-- Checking for module 'minizip'
+--   Package 'minizip' not found
+CMake Deprecation Warning at libs/assimp/code/CMakeLists.txt:46 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Warning (dev) at /usr/share/cmake-4.2/Modules/FindPackageHandleStandardArgs.cmake:493 (message):
+  The package name passed to find_package_handle_standard_args() (rt) does
+  not match the name of the calling package (RT).  This can lead to problems
+  in calling code that expects find_package() result variables (e.g.,
+  `_FOUND`) to follow a certain pattern.
+Call Stack (most recent call first):
+  libs/assimp/cmake-modules/FindRT.cmake:19 (find_package_handle_standard_args)
+  libs/assimp/code/CMakeLists.txt:1038 (FIND_PACKAGE)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Enabled importer formats: AMF 3DS AC ASE ASSBIN B3D BVH COLLADA DXF CSM HMP IRRMESH IRR LWO LWS M3D MD2 MD3 MD5 MDC MDL NFF NDO OFF OBJ OGRE OPENGEX PLY MS3D COB BLEND IFC XGL FBX Q3D Q3BSP RAW SIB SMD STL TERRAGEN 3D X X3D GLTF 3MF MMD
+-- Disabled importer formats:
+-- Enabled exporter formats: OBJ OPENGEX PLY 3DS ASSBIN ASSXML M3D COLLADA FBX STL X X3D GLTF 3MF ASSJSON STEP
+-- Disabled exporter formats:
+CMake Deprecation Warning at libs/glslang/CMakeLists.txt:39 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- No build type selected, default to Debug
+CMake Warning (dev) at libs/glslang/CMakeLists.txt:233 (find_package):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  libs/glslang/CMakeLists.txt:239 (find_host_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Google Mock was not found - tests based on that will not build
+-- spirv-tools not linked - illegal SPIRV may be generated for HLSL
+CMake Deprecation Warning at libs/SPIRV-VM/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at libs/cppdap/CMakeLists.txt:16 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Configuring done (0.3s)
+-- Generating done (0.2s)
+-- Build files have been written to: /mnt/train/SHADERed
+[  0%] Building CXX object libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/irrXML.cpp.o
+[  0%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Allocator.cpp.o
+[  0%] Building CXX object libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o
+[  0%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/content_stream.cpp.o
+[  1%] Built target glslang-build-info
+[  1%] Building CXX object libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o
+[  1%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/program.c.o
+[  1%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/CodeGen.cpp.o
+[  1%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o
+[  2%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/types.c.o
+[  2%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/BasicBlock.cpp.o
+[  2%] Linking CXX static library libOSDependent.a
+[  2%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/image.c.o
+[  2%] Built target OSDependent
+[  2%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/result.c.o
+[  2%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Constant.cpp.o
+[  2%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/state.c.o
+[  2%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o
+[  2%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/value.c.o
+[  2%] Linking CXX static library libOGLCompiler.a
+[  2%] Built target OGLCompiler
+[  4%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/context.c.o
+[  4%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/EntryPoint.cpp.o
+[  4%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/Link.cpp.o
+[  4%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/opcode_execute.c.o
+[  4%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/opcode_setup.c.o
+[  4%] Linking CXX static library ../../../../lib/libIrrXML.a
+[  4%] Built target IrrXML
+[  4%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Function.cpp.o
+[  4%] Building CXX object libs/glslang/hlsl/CMakeFiles/HLSL.dir/stub.cpp.o
+[  4%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/ext/GLSL450.c.o
+[  5%] Linking CXX static library libHLSL.a
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/GLSL450Instruction.cpp.o
+[  5%] Built target HLSL
+[  5%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Grammar.cpp.o
+[  6%] Linking C static library libSPIRVVM.a
+[  6%] Linking CXX static library libGenericCodeGen.a
+[  7%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Instruction.cpp.o
+[  7%] Built target GenericCodeGen
+[  7%] Built target SPIRVVM
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_events.cpp.o
+[  8%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Module.cpp.o
+[  8%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Assimp.cpp.o
+[  8%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/cmake_pch.hxx.gch
+[  9%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CApi/CInterfaceIOWrapper.cpp.o
+[  9%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/BaseImporter.cpp.o
+[  9%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_requests.cpp.o
+[  9%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Operand.cpp.o
+[  9%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Operators.cpp.o
+[  9%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_response.cpp.o
+[ 10%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_types.cpp.o
+[ 10%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/BaseProcess.cpp.o
+[ 10%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/session.cpp.o
+[ 10%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/String.cpp.o
+[ 10%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/PostStepRegistry.cpp.o
+[ 10%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/socket.cpp.o
+[ 11%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/glslang_tab.cpp.o
+[ 12%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ImporterRegistry.cpp.o
+[ 12%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/typeinfo.cpp.o
+[ 13%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Type.cpp.o
+[ 13%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/TypeInferenceAndValiation.cpp.o
+[ 13%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/attribute.cpp.o
+[ 13%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultIOStream.cpp.o
+[ 13%] Linking CXX static library ../../lib/libSpvGenTwoLib.a
+[ 13%] Built target SpvGenTwoLib
+[ 14%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/typeof.cpp.o
+[ 14%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileReader.cpp.o
+[ 14%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileWriter.cpp.o
+[ 14%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ConsoleLogger.cpp.o
+[ 15%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ExternalMemoryAllocator.cpp.o
+[ 15%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/FunctionCallGraph.cpp.o
+[ 15%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultIOSystem.cpp.o
+[ 15%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Constant.cpp.o
+[ 15%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/GrammarHelper.cpp.o
+[ 15%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/HeapAllocator.cpp.o
+[ 16%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/LinkerHelper.cpp.o
+[ 16%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ZipArchiveIOSystem.cpp.o
+[ 17%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Importer.cpp.o
+[ 17%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/iomapper.cpp.o
+[ 17%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ModulePrinter.cpp.o
+[ 18%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/InfoSink.cpp.o
+[ 18%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SGSpatialSort.cpp.o
+[ 18%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ReflectionHelper.cpp.o
+[ 18%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/TypeHelper.cpp.o
+[ 18%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Initialize.cpp.o
+[ 18%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/VertexTriangleAdjacency.cpp.o
+[ 18%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/VulkanInterop.cpp.o
+[ 19%] Linking CXX static library ../../lib/libSpvGenTwoCommon.a
+[ 19%] Built target SpvGenTwoCommon
+[ 19%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/IntermTraverse.cpp.o
+[ 19%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SpatialSort.cpp.o
+[ 19%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Intermediate.cpp.o
+[ 19%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SceneCombiner.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/Common/SpatialSort.cpp: In function ‘{anonymous}::BinFloat {anonymous}::ToBinary(const ai_real&)’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SpatialSort.cpp:215:34: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+  215 |     bool SignedMagnitude = ((-42 == (42 | (-0))) && (binValue & 0x80000000));
+      |                              ~~~ ^~ ~~~~~~~~~~~
+[ 19%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ParseContextBase.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ScenePreprocessor.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp: In instantiation of ‘void Assimp::GetArrayCopy(Type*&, ai_uint) [with Type = aiFace; ai_uint = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:1088:17:   required from here
+ 1088 |     GetArrayCopy(dest->mFaces,dest->mNumFaces);
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:981:13: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘struct aiFace’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+  981 |     ::memcpy(dest, old, sizeof(Type) * num);
+      |     ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/scene.h:57,
+                 from /mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:62:
+/mnt/train/SHADERed/libs/assimp/include/assimp/mesh.h:136:8: note: ‘struct aiFace’ declared here
+  136 | struct aiFace {
+      |        ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp: In instantiation of ‘void Assimp::GetArrayCopy(Type*&, ai_uint) [with Type = aiMeshMorphKey; ai_uint = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:1229:17:   required from here
+ 1229 |     GetArrayCopy( dest->mKeys, dest->mNumKeys );
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:981:13: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of non-trivially copyable type ‘struct aiMeshMorphKey’; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+  981 |     ::memcpy(dest, old, sizeof(Type) * num);
+      |     ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/scene.h:61:
+/mnt/train/SHADERed/libs/assimp/include/assimp/anim.h:196:8: note: ‘struct aiMeshMorphKey’ declared here
+  196 | struct aiMeshMorphKey {
+      |        ^~~~~~~~~~~~~~
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SkeletonMeshBuilder.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/StandardShapes.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/TargetAnimation.cpp.o
+[ 21%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ParseHelper.cpp.o
+[ 21%] Linking CXX static library libcppdap.a
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/RemoveComments.cpp.o
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Subdivision.cpp.o
+[ 22%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/PoolAlloc.cpp.o
+[ 22%] Built target cppdap
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/scene.cpp.o
+[ 22%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/RemoveTree.cpp.o
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Bitmap.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Version.cpp.o
+[ 23%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Scan.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/CreateAnimMesh.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/simd.cpp.o
+[ 24%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ShaderLang.cpp.o
+[ 24%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/SymbolTable.cpp.o
+[ 24%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Versions.cpp.o
+[ 24%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/material.cpp.o
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultLogger.cpp.o
+[ 25%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/intermOut.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/limits.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Exporter.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CApi/AssimpCExport.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/linkValidate.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/CalcTangentsProcess.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/parseConst.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/reflection.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/Pp.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpAtom.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpContext.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpScanner.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ComputeUVMappingProcess.cpp.o
+[ 28%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ConvertToLHProcess.cpp.o
+[ 28%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpTokens.cpp.o
+[ 28%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/EmbedTexturesProcess.cpp.o
+[ 29%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/propagateNoContraction.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindDegenerates.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindInstancesProcess.cpp.o
+[ 29%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslAttributes.cpp.o
+[ 29%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslParseHelper.cpp.o
+[ 29%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslScanContext.cpp.o
+[ 30%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindInvalidDataProcess.cpp.o
+[ 30%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FixNormalsStep.cpp.o
+[ 30%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/DropFaceNormalsProcess.cpp.o
+[ 30%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenFaceNormalsProcess.cpp.o
+[ 31%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslOpMap.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenVertexNormalsProcess.cpp.o
+[ 32%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslTokenStream.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/PretransformVertices.cpp.o
+[ 32%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslGrammar.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ImproveCacheLocality.cpp.o
+[ 32%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslParseables.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/JoinVerticesProcess.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/LimitBoneWeightsProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/RemoveRedundantMaterials.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/RemoveVCProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SortByPTypeProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SplitLargeMeshes.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/TextureTransform.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/TriangulateProcess.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ValidateDataStructure.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeGraph.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeMeshes.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/DeboneProcess.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ProcessHelper.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/MakeVerboseFormat.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ScaleProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ArmaturePopulate.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenBoundingBoxesProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SplitByBoneCountProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Material/MaterialSystem.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/STEPParser/STEPFileReader.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/STEPParser/STEPFileEncoding.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Geometry.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Material.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Postprocess.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSConverter.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSLoader.cpp.o
+[ 39%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AC/ACLoader.cpp.o
+[ 39%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/ASE/ASELoader.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp: In member function ‘void Assimp::AMFImporter::Postprocess_AddMetadata(const std::__cxx11::list<CAMFImporter_NodeElement_Metadata*>&, aiNode&) const’:
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp:362:62: warning: loop variable ‘metadata’ of type ‘const CAMFImporter_NodeElement_Metadata&’ binds to a temporary constructed from type ‘CAMFImporter_NodeElement_Metadata* const’ [-Wrange-loop-construct]
+  362 |                 for(const CAMFImporter_NodeElement_Metadata& metadata: metadataList)
+      |                                                              ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp:362:62: note: use non-reference type ‘const CAMFImporter_NodeElement_Metadata’ to make the copy explicit or ‘CAMFImporter_NodeElement_Metadata* const&’ to prevent copying
+[ 40%] Linking CXX static library libMachineIndependent.a
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/ASE/ASEParser.cpp.o
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assbin/AssbinLoader.cpp.o
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/B3D/B3DImporter.cpp.o
+[ 40%] Built target MachineIndependent
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/BVH/BVHLoader.cpp.o
+[ 41%] Building CXX object libs/glslang/glslang/CMakeFiles/glslang.dir/CInterface/glslang_c_interface.cpp.o
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaHelper.cpp.o
+[ 41%] Linking CXX static library libglslang.a
+[ 41%] Built target glslang
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaLoader.cpp.o
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaParser.cpp.o
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/GlslangToSpv.cpp.o
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/InReadableOrder.cpp.o
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/Logger.cpp.o
+[ 42%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/DXF/DXFLoader.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvBuilder.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvPostProcess.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/doc.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CSM/CSMLoader.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvTools.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/HMP/HMPLoader.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRMeshLoader.cpp.o
+[ 44%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/disassemble.cpp.o
+[ 44%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/CInterface/spirv_c_interface.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRShared.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRLoader.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOAnimation.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOBLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOMaterial.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWS/LWSLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/M3D/M3DImporter.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/M3D/M3DWrapper.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD2/MD2Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD3/MD3Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD5/MD5Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD5/MD5Parser.cpp.o
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDC/MDCLoader.cpp.o
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/MDLLoader.cpp.o
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/MDLMaterialLoader.cpp.o
+[ 48%] Linking CXX static library libSPIRV.a
+[ 48%] Built target SPIRV
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/HalfLife/HL1MDLLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/HalfLife/UniqueNameGenerator.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/NFF/NFFLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/NDO/NDOLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OFF/OFFLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileMtlImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileParser.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreStructs.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreBinarySerializer.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreXmlSerializer.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreMaterial.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OpenGEX/OpenGEXImporter.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyLoader.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyParser.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MS3D/MS3DLoader.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/COB/COBLoader.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderLoader.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderDNA.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderScene.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderModifier.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderBMesh.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderTessellator.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderCustomData.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCLoader.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCReaderGen1_2x3.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCReaderGen2_2x3.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCUtil.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCGeometry.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCMaterial.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCProfile.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCCurve.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCBoolean.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCOpenings.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/XGL/XGLLoader.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXImporter.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXParser.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXTokenizer.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXConverter.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXUtil.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDocument.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXProperties.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXMeshGeometry.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXMaterial.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXModel.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXAnimation.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDeformer.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXNodeAttribute.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXBinaryTokenizer.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDocumentUtil.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3D/Q3DLoader.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3BSP/Q3BSPFileParser.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3BSP/Q3BSPFileImporter.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Raw/RawLoader.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/SIB/SIBImporter.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/SMD/SMDLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/STL/STLLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Terragen/TerragenLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Unreal/UnrealLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X/XFileImporter.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp: In member function ‘void Assimp::STLImporter::LoadASCIIFile(aiNode*)’:
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:373:19: warning: ‘void* memcpy(void*, const void*, size_t)’ copying an object of non-trivial type ‘aiVector3D’ {aka ‘class aiVector3t<float>’} from an array of ‘float’ [-Wclass-memaccess]
+  373 |             memcpy(pMesh->mVertices, &positionBuffer[0].x, pMesh->mNumVertices * sizeof(aiVector3D));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/types.h:65,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/IOStream.hpp:55,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/DefaultIOStream.h:53,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/Exceptional.h:50,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/BaseImporter.h:52,
+                 from /mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.h:48,
+                 from /mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:49:
+/mnt/train/SHADERed/libs/assimp/include/assimp/vector3.h:70:7: note: ‘aiVector3D’ {aka ‘class aiVector3t<float>’} declared here
+   70 | class aiVector3t {
+      |       ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:379:19: warning: ‘void* memcpy(void*, const void*, size_t)’ copying an object of non-trivial type ‘aiVector3D’ {aka ‘class aiVector3t<float>’} from an array of ‘float’ [-Wclass-memaccess]
+  379 |             memcpy(pMesh->mNormals, &normalBuffer[0].x, pMesh->mNumVertices * sizeof(aiVector3D));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/include/assimp/vector3.h:70:7: note: ‘aiVector3D’ {aka ‘class aiVector3t<float>’} declared here
+   70 | class aiVector3t {
+      |       ^~~~~~~~~~
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X/XFileParser.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry2D.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry3D.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Group.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Light.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Metadata.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Networking.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Postprocess.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Rendering.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Shape.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Texturing.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/FIReader.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DVocabulary.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF/glTFCommon.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF/glTFImporter.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF2/glTF2Importer.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3MF/D3MFImporter.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3MF/D3MFOpcPackage.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDImporter.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDPmxParser.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.h:109,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:50,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:1148,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFImporter.cpp:45:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl: In member function ‘o3dgc::O3DGCErrorCode o3dgc::SC3DMCDecoder<T>::DecodeHeader(o3dgc::IndexedFaceSet<T>&, const o3dgc::BinaryStream&)’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:75:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   75 |         ifs.SetSolid           ((mask & 2) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:76:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   76 |         ifs.SetConvex          ((mask & 4) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:77:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   77 |         ifs.SetIsTriangularMesh((mask & 8) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjExporter.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:43:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:67:17: error: ‘uint8_t’ does not name a type
+   67 |                 uint8_t encoding;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:50:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   49 | #include "MMDCpp14.h"
+  +++ |+#include <cstdint>
+   50 | 
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:68:17: error: ‘uint8_t’ does not name a type
+   68 |                 uint8_t uv;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:68:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:69:17: error: ‘uint8_t’ does not name a type
+   69 |                 uint8_t vertex_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:69:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:70:17: error: ‘uint8_t’ does not name a type
+   70 |                 uint8_t texture_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:70:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:71:17: error: ‘uint8_t’ does not name a type
+   71 |                 uint8_t material_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:71:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:72:17: error: ‘uint8_t’ does not name a type
+   72 |                 uint8_t bone_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:72:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:73:17: error: ‘uint8_t’ does not name a type
+   73 |                 uint8_t morph_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:73:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:74:17: error: ‘uint8_t’ does not name a type
+   74 |                 uint8_t rigidbody_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:74:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxSetting::PmxSetting()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:57:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘encoding’
+   57 |                         : encoding(0)
+      |                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:58:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘uv’
+   58 |                         , uv(0)
+      |                           ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:59:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘vertex_index_size’
+   59 |                         , vertex_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:60:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘texture_index_size’
+   60 |                         , texture_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:61:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘material_index_size’
+   61 |                         , material_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:62:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘bone_index_size’
+   62 |                         , bone_index_size(0)
+      |                           ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:63:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘morph_index_size’
+   63 |                         , morph_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:64:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘rigidbody_index_size’
+   64 |                         , rigidbody_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:42: error: found ‘:’ in nested-name-specifier, expected ‘::’
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |                                          ^
+      |                                          ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:20: error: ‘PmxVertexSkinningType’ has not been declared
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |                    ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:79:9: error: expected unqualified-id before ‘{’ token
+   79 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:216:17: error: ‘PmxVertexSkinningType’ does not name a type; did you mean ‘PmxVertexSkinningSDEF’?
+  216 |                 PmxVertexSkinningType skinning_type;
+      |                 ^~~~~~~~~~~~~~~~~~~~~
+      |                 PmxVertexSkinningSDEF
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:252:17: error: ‘uint8_t’ does not name a type
+  252 |                 uint8_t flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:252:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:257:17: error: ‘uint8_t’ does not name a type
+  257 |                 uint8_t sphere_op_mode;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:257:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:258:17: error: ‘uint8_t’ does not name a type
+  258 |                 uint8_t common_toon_flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:258:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxMaterial::PmxMaterial()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:227:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘flag’
+  227 |                         , flag(0)
+      |                           ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:231:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘sphere_op_mode’
+  231 |                         , sphere_op_mode(0)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:232:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘common_toon_flag’
+  232 |                         , common_toon_flag(0)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:279:17: error: ‘uint8_t’ does not name a type
+  279 |                 uint8_t angle_lock;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:279:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxIkLink::PmxIkLink()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:270:27: error: class ‘pmx::PmxIkLink’ does not have any field named ‘angle_lock’
+  270 |                         , angle_lock(0)
+      |                           ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:315:17: error: ‘uint16_t’ does not name a type
+  315 |                 uint16_t bone_flag;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:315:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxBone::PmxBone()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:291:27: error: class ‘pmx::PmxBone’ does not have any field named ‘bone_flag’
+  291 |                         , bone_flag(0)
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  332 |         enum class MorphType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:30: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  332 |         enum class MorphType : uint8_t
+      |                              ^
+      |                              ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:20: error: ‘MorphType’ has not been declared
+  332 |         enum class MorphType : uint8_t
+      |                    ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:333:9: error: expected unqualified-id before ‘{’ token
+  333 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  347 |         enum class MorphCategory : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:34: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  347 |         enum class MorphCategory : uint8_t
+      |                                  ^
+      |                                  ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:20: error: ‘MorphCategory’ has not been declared
+  347 |         enum class MorphCategory : uint8_t
+      |                    ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:348:9: error: expected unqualified-id before ‘{’ token
+  348 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:431:17: error: ‘uint8_t’ does not name a type
+  431 |                 uint8_t offset_operation;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:431:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:481:17: error: ‘uint8_t’ does not name a type
+  481 |                 uint8_t is_local;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:481:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxMorphImplusOffset::PmxMorphImplusOffset()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:473:27: error: class ‘pmx::PmxMorphImplusOffset’ does not have any field named ‘is_local’
+  473 |                         , is_local(0)
+      |                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:496:17: error: ‘MorphCategory’ does not name a type
+  496 |                 MorphCategory category;
+      |                 ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:497:17: error: ‘MorphType’ does not name a type
+  497 |                 MorphType morph_type;
+      |                 ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:517:17: error: ‘uint8_t’ does not name a type
+  517 |                 uint8_t element_target;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:517:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxFrameElement::PmxFrameElement()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:513:27: error: class ‘pmx::PmxFrameElement’ does not have any field named ‘element_target’
+  513 |                         : element_target(0)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:532:17: error: ‘uint8_t’ does not name a type
+  532 |                 uint8_t frame_flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:532:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxFrame::PmxFrame()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:526:27: error: class ‘pmx::PmxFrame’ does not have any field named ‘frame_flag’
+  526 |                         : frame_flag(0)
+      |                           ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:562:17: error: ‘uint8_t’ does not name a type
+  562 |                 uint8_t group;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:562:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:563:17: error: ‘uint16_t’ does not name a type
+  563 |                 uint16_t mask;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:563:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:564:17: error: ‘uint8_t’ does not name a type
+  564 |                 uint8_t shape;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:564:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:573:17: error: ‘uint8_t’ does not name a type
+  573 |                 uint8_t physics_calc_type;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:573:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxRigidBody::PmxRigidBody()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:543:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘group’
+  543 |                         , group(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:544:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘mask’
+  544 |                         , mask(0)
+      |                           ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:545:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘shape’
+  545 |                         , shape(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:551:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘physics_calc_type’
+  551 |                         , physics_calc_type(0)
+      |                           ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  577 |         enum class PmxJointType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:33: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  577 |         enum class PmxJointType : uint8_t
+      |                                 ^
+      |                                 ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:20: error: ‘PmxJointType’ has not been declared
+  577 |         enum class PmxJointType : uint8_t
+      |                    ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:578:9: error: expected unqualified-id before ‘{’ token
+  578 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:623:17: error: ‘PmxJointType’ does not name a type; did you mean ‘PmxJoint’?
+  623 |                 PmxJointType joint_type;
+      |                 ^~~~~~~~~~~~
+      |                 PmxJoint
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:628:30: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  628 |         enum PmxSoftBodyFlag : uint8_t
+      |                              ^
+      |                              ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:628:14: error: ‘PmxSoftBodyFlag’ has not been declared
+  628 |         enum PmxSoftBodyFlag : uint8_t
+      |              ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:629:9: error: expected unqualified-id before ‘{’ token
+  629 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:692:17: error: ‘uint8_t’ does not name a type
+  692 |                 uint8_t shape;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:692:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:694:17: error: ‘uint8_t’ does not name a type
+  694 |                 uint8_t group;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:694:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:695:17: error: ‘uint16_t’ does not name a type
+  695 |                 uint16_t mask;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:695:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:696:17: error: ‘PmxSoftBodyFlag’ does not name a type; did you mean ‘PmxSoftBody’?
+  696 |                 PmxSoftBodyFlag flag;
+      |                 ^~~~~~~~~~~~~~~
+      |                 PmxSoftBody
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxSoftBody::PmxSoftBody()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:653:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘shape’
+  653 |                         : shape(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:655:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘group’
+  655 |                         , group(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:656:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘mask’
+  656 |                         , mask(0)
+      |                           ^~~~
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:66:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxSetting::Read(std::istream*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:127:39: error: ‘encoding’ was not declared in this scope
+  127 |                 stream->read((char*) &encoding, sizeof(uint8_t));
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:128:39: error: ‘uv’ was not declared in this scope
+  128 |                 stream->read((char*) &uv, sizeof(uint8_t));
+      |                                       ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:129:39: error: ‘vertex_index_size’ was not declared in this scope
+  129 |                 stream->read((char*) &vertex_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:130:39: error: ‘texture_index_size’ was not declared in this scope
+  130 |                 stream->read((char*) &texture_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:131:39: error: ‘material_index_size’ was not declared in this scope
+  131 |                 stream->read((char*) &material_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:132:39: error: ‘bone_index_size’ was not declared in this scope
+  132 |                 stream->read((char*) &bone_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:133:39: error: ‘morph_index_size’ was not declared in this scope
+  133 |                 stream->read((char*) &morph_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:134:39: error: ‘rigidbody_index_size’ was not declared in this scope
+  134 |                 stream->read((char*) &rigidbody_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF1::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:144:63: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  144 |                 this->bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF2::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:149:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  149 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:150:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  150 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF4::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:156:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  156 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:157:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  157 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:158:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  158 |                 this->bone_index3 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:159:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  159 |                 this->bone_index4 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningSDEF::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:168:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  168 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:169:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  169 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningQDEF::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:178:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  178 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:179:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  179 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:180:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  180 |                 this->bone_index3 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:181:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  181 |                 this->bone_index4 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxVertex::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:193:46: error: ‘class pmx::PmxSetting’ has no member named ‘uv’
+  193 |                 for (int i = 0; i < setting->uv; ++i)
+      |                                              ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:197:45: error: ‘class pmx::PmxVertex’ has no member named ‘skinning_type’; did you mean ‘skinning’?
+  197 |                 stream->read((char*) &this->skinning_type, sizeof(PmxVertexSkinningType));
+      |                                             ^~~~~~~~~~~~~
+      |                                             skinning
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:197:67: error: ‘PmxVertexSkinningType’ was not declared in this scope; did you mean ‘PmxVertexSkinningSDEF’?
+  197 |                 stream->read((char*) &this->skinning_type, sizeof(PmxVertexSkinningType));
+      |                                                                   ^~~~~~~~~~~~~~~~~~~~~
+      |                                                                   PmxVertexSkinningSDEF
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:198:31: error: ‘class pmx::PmxVertex’ has no member named ‘skinning_type’; did you mean ‘skinning’?
+  198 |                 switch (this->skinning_type)
+      |                               ^~~~~~~~~~~~~
+      |                               skinning
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:200:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  200 |                 case PmxVertexSkinningType::BDEF1:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:203:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  203 |                 case PmxVertexSkinningType::BDEF2:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.h:67,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Importer.cpp:46:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:206:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  206 |                 case PmxVertexSkinningType::BDEF4:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:209:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  209 |                 case PmxVertexSkinningType::SDEF:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:212:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  212 |                 case PmxVertexSkinningType::QDEF:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxMaterial::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:224:67: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  224 |                 this->material_name = ReadString(stream, setting->encoding);
+      |                                                                   ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:225:75: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  225 |                 this->material_english_name = ReadString(stream, setting->encoding);
+      |                                                                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:230:45: error: ‘class pmx::PmxMaterial’ has no member named ‘flag’
+  230 |                 stream->read((char*) &this->flag, sizeof(uint8_t));
+      |                                             ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:233:74: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  233 |                 this->diffuse_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                          ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:234:73: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  234 |                 this->sphere_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                         ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:235:45: error: ‘class pmx::PmxMaterial’ has no member named ‘sphere_op_mode’
+  235 |                 stream->read((char*) &this->sphere_op_mode, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:236:45: error: ‘class pmx::PmxMaterial’ has no member named ‘common_toon_flag’
+  236 |                 stream->read((char*) &this->common_toon_flag, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:237:27: error: ‘class pmx::PmxMaterial’ has no member named ‘common_toon_flag’
+  237 |                 if (this->common_toon_flag)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:242:79: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  242 |                         this->toon_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                               ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:244:58: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  244 |                 this->memo = ReadString(stream, setting->encoding);
+      |                                                          ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxIkLink::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:250:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  250 |                 this->link_target = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:251:45: error: ‘class pmx::PmxIkLink’ has no member named ‘angle_lock’
+  251 |                 stream->read((char*) &this->angle_lock, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:252:21: error: ‘angle_lock’ was not declared in this scope
+  252 |                 if (angle_lock == 1)
+      |                     ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxBone::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:261:63: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  261 |                 this->bone_name = ReadString(stream, setting->encoding);
+      |                                                               ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:262:71: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  262 |                 this->bone_english_name = ReadString(stream, setting->encoding);
+      |                                                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:264:65: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  264 |                 this->parent_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:266:45: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  266 |                 stream->read((char*) &this->bone_flag, sizeof(uint16_t));
+      |                                             ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:267:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  267 |                 if (this->bone_flag & 0x0001) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:268:73: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  268 |                         this->target_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                         ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:273:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  273 |                 if (this->bone_flag & (0x0100 | 0x0200)) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:274:79: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  274 |                         this->grant_parent_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:277:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  277 |                 if (this->bone_flag & 0x0400) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:280:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  280 |                 if (this->bone_flag & 0x0800) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:284:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  284 |                 if (this->bone_flag & 0x2000) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:287:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  287 |                 if (this->bone_flag & 0x0020) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:288:81: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  288 |                         this->ik_target_bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                                 ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphVertexOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:301:65: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  301 |                 this->vertex_index = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphUVOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:307:65: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  307 |                 this->vertex_index = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphBoneOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:313:63: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  313 |                 this->bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphMaterialOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:320:67: error: ‘class pmx::PmxSetting’ has no member named ‘material_index_size’
+  320 |                 this->material_index = ReadIndex(stream, setting->material_index_size);
+      |                                                                   ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:321:45: error: ‘class pmx::PmxMorphMaterialOffset’ has no member named ‘offset_operation’
+  321 |                 stream->read((char*) &this->offset_operation, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphGroupOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:335:64: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  335 |                 this->morph_index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphFlipOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:341:64: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  341 |                 this->morph_index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphImplusOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:347:69: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  347 |                 this->rigid_body_index = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                     ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:348:45: error: ‘class pmx::PmxMorphImplusOffset’ has no member named ‘is_local’
+  348 |                 stream->read((char*) &this->is_local, sizeof(uint8_t));
+      |                                             ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxMorph::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:355:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  355 |                 this->morph_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:356:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  356 |                 this->morph_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:357:39: error: ‘category’ was not declared in this scope
+  357 |                 stream->read((char*) &category, sizeof(MorphCategory));
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:357:56: error: ‘MorphCategory’ was not declared in this scope
+  357 |                 stream->read((char*) &category, sizeof(MorphCategory));
+      |                                                        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:358:39: error: ‘morph_type’ was not declared in this scope; did you mean ‘morph_name’?
+  358 |                 stream->read((char*) &morph_type, sizeof(MorphType));
+      |                                       ^~~~~~~~~~
+      |                                       morph_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:358:58: error: ‘MorphType’ was not declared in this scope
+  358 |                 stream->read((char*) &morph_type, sizeof(MorphType));
+      |                                                          ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:360:31: error: ‘class pmx::PmxMorph’ has no member named ‘morph_type’; did you mean ‘morph_name’?
+  360 |                 switch (this->morph_type)
+      |                               ^~~~~~~~~~
+      |                               morph_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:362:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  362 |                 case MorphType::Group:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:369:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  369 |                 case MorphType::Vertex:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:376:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  376 |                 case MorphType::Bone:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:383:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  383 |                 case MorphType::Matrial:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:390:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  390 |                 case MorphType::UV:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:391:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  391 |                 case MorphType::AdditionalUV1:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:392:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  392 |                 case MorphType::AdditionalUV2:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:393:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  393 |                 case MorphType::AdditionalUV3:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:394:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  394 |                 case MorphType::AdditionalUV4:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxFrameElement::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:408:45: error: ‘class pmx::PmxFrameElement’ has no member named ‘element_target’
+  408 |                 stream->read((char*) &this->element_target, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:409:27: error: ‘class pmx::PmxFrameElement’ has no member named ‘element_target’
+  409 |                 if (this->element_target == 0x00)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:411:66: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  411 |                         this->index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                  ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:414:66: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  414 |                         this->index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                  ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxFrame::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:420:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  420 |                 this->frame_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:421:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  421 |                 this->frame_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:422:45: error: ‘class pmx::PmxFrame’ has no member named ‘frame_flag’
+  422 |                 stream->read((char*) &this->frame_flag, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxRigidBody::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:433:69: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  433 |                 this->girid_body_name = ReadString(stream, setting->encoding);
+      |                                                                     ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:434:77: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  434 |                 this->girid_body_english_name = ReadString(stream, setting->encoding);
+      |                                                                             ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:435:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  435 |                 this->target_bone = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:436:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘group’
+  436 |                 stream->read((char*) &this->group, sizeof(uint8_t));
+      |                                             ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:437:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘mask’; did you mean ‘mass’?
+  437 |                 stream->read((char*) &this->mask, sizeof(uint16_t));
+      |                                             ^~~~
+      |                                             mass
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:438:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘shape’
+  438 |                 stream->read((char*) &this->shape, sizeof(uint8_t));
+      |                                             ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:447:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘physics_calc_type’
+  447 |                 stream->read((char*) &this->physics_calc_type, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxJointParam::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:452:64: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  452 |                 this->rigid_body1 = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:453:64: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  453 |                 this->rigid_body2 = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxJoint::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:466:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  466 |                 this->joint_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:467:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  467 |                 this->joint_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:468:45: error: ‘class pmx::PmxJoint’ has no member named ‘joint_type’; did you mean ‘joint_name’?
+  468 |                 stream->read((char*) &this->joint_type, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+      |                                             joint_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxAncherRigidBody::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:474:71: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  474 |                 this->related_rigid_body = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                       ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:475:67: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  475 |                 this->related_vertex = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                   ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxModel::Read(std::istream*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:531:63: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  531 |                 this->model_name = ReadString(stream, setting.encoding);
+      |                                                               ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:532:71: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  532 |                 this->model_english_name = ReadString(stream, setting.encoding);
+      |                                                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:533:66: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  533 |                 this->model_comment = ReadString(stream, setting.encoding);
+      |                                                                  ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:534:74: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  534 |                 this->model_english_comment = ReadString(stream, setting.encoding);
+      |                                                                          ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:549:70: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  549 |                         this->indices[i] = ReadIndex(stream, setting.vertex_index_size);
+      |                                                                      ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:557:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  557 |                         this->textures[i] = ReadString(stream, setting.encoding);
+      |                                                                        ^~~~~~~~
+[ 68%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OpenGEX/OpenGEXExporter.cpp.o
+make[2]: *** [libs/assimp/code/CMakeFiles/assimp.dir/build.make:2585: libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDPmxParser.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [CMakeFiles/Makefile2:628: libs/assimp/code/CMakeFiles/assimp.dir/all] Error 2
+make: *** [Makefile:136: all] Error 2

@@ -672,6 +672,8 @@ namespace ed {
 					textureNode.append_attribute("height").set_value(iobj->Size.y);
 					textureNode.append_attribute("depth").set_value(iobj->Size.z);
 					textureNode.append_attribute("format").set_value(gl::String::Format(iobj->Format));
+					if (iobj->IsArray)
+						textureNode.append_attribute("array").set_value(true);
 				}
 
 				PluginObject* pluginObj = item->Plugin;
@@ -3037,8 +3039,9 @@ namespace ed {
 				}
 			} else if (strcmp(objType, "image3d") == 0) {
 				const pugi::char_t* objName = objectNode.attribute("name").as_string();
+				bool isArray = !objectNode.attribute("array").empty() && objectNode.attribute("array").as_bool();
 
-				m_objects->CreateImage3D(objName);
+				m_objects->CreateImage3D(objName, glm::ivec3(1, 1, 1), isArray);
 				ObjectManagerItem* iobjOwner = m_objects->Get(objName);
 				Image3DObject* iobj = iobjOwner->Image3D;
 

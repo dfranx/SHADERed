@@ -263,6 +263,13 @@ int main(int argc, char* argv[])
 	while ((oglError = glGetError()) != GL_NO_ERROR)
 		ed::Logger::Get().Log("GL error: " + std::to_string(oglError), true);
 
+	// headless CLI modes (--render / --convertcpp) skip the normal event loop, so the
+	// splash-screen-driven plugin load (GUIManager::m_splashScreenRender) never runs.
+	// Without this, projects using a plugin-provided shader language (e.g. Slang) would
+	// silently fall back to being parsed as plain GLSL when opened via these flags.
+	if (coptsParser.Render || coptsParser.ConvertCPP)
+		engine.Interface().Plugins.Init(&engine.Interface(), &engine.UI());
+
 	// convert .sprj -> cmake/c++
 	if (coptsParser.ConvertCPP) {
 		engine.UI().Open(coptsParser.ProjectFile);
