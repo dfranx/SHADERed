@@ -1,0 +1,704 @@
+[  0%] Built target IrrXML
+[  3%] Built target SpvGenTwoLib
+[  3%] Built target GenericCodeGen
+[  4%] Built target glslang-build-info
+[  4%] Built target OGLCompiler
+[  4%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o
+[  4%] Built target OSDependent
+[  7%] Built target SPIRVVM
+[  7%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o
+[  7%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o
+[  9%] Built target HLSL
+[  9%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_events.cpp.o
+[  9%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileReader.cpp.o
+[ 18%] Built target MachineIndependent
+[ 18%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileWriter.cpp.o
+[ 18%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ConsoleLogger.cpp.o
+[ 18%] Building CXX object libs/glslang/glslang/CMakeFiles/glslang.dir/CInterface/glslang_c_interface.cpp.o
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ExternalMemoryAllocator.cpp.o
+In file included from /mnt/train/SHADERed/libs/cppdap/include/dap/types.h:21,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/typeof.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/protocol.h:25,
+                 from /mnt/train/SHADERed/libs/cppdap/src/null_json_serializer.h:18,
+                 from /mnt/train/SHADERed/libs/cppdap/src/null_json_serializer.cpp:15:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:69:3: error: ‘uint8_t’ does not name a type
+   69 |   uint8_t buffer[32];    // or internal allocation
+      |   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:21:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   20 | #include <assert.h>
+  +++ |+#include <cstdint>
+   21 | 
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In static member function ‘static void* dap::any::alignUp(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: error: ‘uintptr_t’ does not name a type
+  162 |   auto ptr = reinterpret_cast<uintptr_t>(val);
+      |                               ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::alloc(size_t, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:169:19: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  169 |   value = alignUp(buffer, align);
+      |                   ^~~~~~
+      |                   setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: error: ‘uint8_t’ does not name a type
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:42: error: expected ‘>’ before ‘*’ token
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                          ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: error: ‘uint8_t’ does not name a type
+  173 |   heap = new uint8_t[size + align];
+      |              ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::free()’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: error: ‘uint8_t’ does not name a type
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                               ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:38: error: expected ‘>’ before ‘*’ token
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                                      ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘bool dap::any::isInBuffer(void*) const’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: error: ‘uintptr_t’ does not name a type
+  187 |   auto addr = reinterpret_cast<uintptr_t>(ptr);
+      |                                ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: error: ‘uintptr_t’ does not name a type
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:46: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                              ^~~~~~
+      |                                              setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: error: ‘uintptr_t’ does not name a type
+  189 |          addr < reinterpret_cast<uintptr_t>(buffer + sizeof(buffer));
+      |                                  ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/FunctionCallGraph.cpp.o
+In file included from /mnt/train/SHADERed/libs/cppdap/include/dap/types.h:21,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/typeof.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/protocol.h:25,
+                 from /mnt/train/SHADERed/libs/cppdap/src/protocol_events.cpp:20:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:69:3: error: ‘uint8_t’ does not name a type
+   69 |   uint8_t buffer[32];    // or internal allocation
+      |   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:21:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   20 | #include <assert.h>
+  +++ |+#include <cstdint>
+   21 | 
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In static member function ‘static void* dap::any::alignUp(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: error: ‘uintptr_t’ does not name a type
+  162 |   auto ptr = reinterpret_cast<uintptr_t>(val);
+      |                               ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::alloc(size_t, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:169:19: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  169 |   value = alignUp(buffer, align);
+      |                   ^~~~~~
+      |                   setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: error: ‘uint8_t’ does not name a type
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:42: error: expected ‘>’ before ‘*’ token
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                          ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: error: ‘uint8_t’ does not name a type
+  173 |   heap = new uint8_t[size + align];
+      |              ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::free()’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: error: ‘uint8_t’ does not name a type
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                               ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:38: error: expected ‘>’ before ‘*’ token
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                                      ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘bool dap::any::isInBuffer(void*) const’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: error: ‘uintptr_t’ does not name a type
+  187 |   auto addr = reinterpret_cast<uintptr_t>(ptr);
+      |                                ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: error: ‘uintptr_t’ does not name a type
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:46: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                              ^~~~~~
+      |                                              setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: error: ‘uintptr_t’ does not name a type
+  189 |          addr < reinterpret_cast<uintptr_t>(buffer + sizeof(buffer));
+      |                                  ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+In file included from /mnt/train/SHADERed/libs/cppdap/src/network.cpp:15:
+/mnt/train/SHADERed/libs/cppdap/include/dap/network.h:31:39: error: ‘uint32_t’ has not been declared
+   31 |                                       uint32_t timeoutMillis = 0);
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/network.h:20:1: note: ‘uint32_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   19 | #include <memory>
+  +++ |+#include <cstdint>
+   20 | 
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:175:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  175 |   const std::string prefix;
+      |                     ^~~~~~
+In file included from /usr/include/c++/15/iosfwd:43,
+                 from /usr/include/c++/15/bits/shared_ptr.h:52,
+                 from /usr/include/c++/15/memory:82,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/io.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/src/io.cpp:15:
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual size_t {anonymous}::ReaderSpy::read(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:165:19: error: variable ‘std::string buf’ has initializer but incomplete type
+  165 |       std::string buf = prefix;
+      |                   ^~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: At global scope:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:202:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  202 |   const std::string prefix;
+      |                     ^~~~~~
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual bool {anonymous}::WriterSpy::write(const void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:193:17: error: variable ‘std::string buf’ has initializer but incomplete type
+  193 |     std::string buf = prefix;
+      |                 ^~~
+[ 19%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/FIReader.cpp.o
+In file included from /mnt/train/SHADERed/libs/cppdap/include/dap/types.h:21,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/typeof.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/protocol.h:25,
+                 from /mnt/train/SHADERed/libs/cppdap/src/nlohmann_json_serializer.h:18,
+                 from /mnt/train/SHADERed/libs/cppdap/src/nlohmann_json_serializer.cpp:15:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:69:3: error: ‘uint8_t’ does not name a type
+   69 |   uint8_t buffer[32];    // or internal allocation
+      |   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:21:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   20 | #include <assert.h>
+  +++ |+#include <cstdint>
+   21 | 
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In static member function ‘static void* dap::any::alignUp(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: error: ‘uintptr_t’ does not name a type
+  162 |   auto ptr = reinterpret_cast<uintptr_t>(val);
+      |                               ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:162:31: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::alloc(size_t, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:169:19: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  169 |   value = alignUp(buffer, align);
+      |                   ^~~~~~
+      |                   setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: error: ‘uint8_t’ does not name a type
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                   ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:35: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:170:42: error: expected ‘>’ before ‘*’ token
+  170 |   if (isInBuffer(reinterpret_cast<uint8_t*>(value) + size - 1)) {
+      |                                          ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: error: ‘uint8_t’ does not name a type
+  173 |   heap = new uint8_t[size + align];
+      |              ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:173:14: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘void dap::any::free()’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: error: ‘uint8_t’ does not name a type
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                               ^~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:31: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:180:38: error: expected ‘>’ before ‘*’ token
+  180 |     delete[] reinterpret_cast<uint8_t*>(heap);
+      |                                      ^
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h: In member function ‘bool dap::any::isInBuffer(void*) const’:
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: error: ‘uintptr_t’ does not name a type
+  187 |   auto addr = reinterpret_cast<uintptr_t>(ptr);
+      |                                ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:187:32: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: error: ‘uintptr_t’ does not name a type
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:35: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:188:46: error: ‘buffer’ was not declared in this scope; did you mean ‘setbuffer’?
+  188 |   return addr >= reinterpret_cast<uintptr_t>(buffer) &&
+      |                                              ^~~~~~
+      |                                              setbuffer
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: error: ‘uintptr_t’ does not name a type
+  189 |          addr < reinterpret_cast<uintptr_t>(buffer + sizeof(buffer));
+      |                                  ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/any.h:189:34: note: ‘uintptr_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+In file included from /usr/include/c++/15/bits/stl_tempbuf.h:61,
+                 from /usr/include/c++/15/memory:68:
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::ReaderSpy; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::ReaderSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:235:37:   required from here
+  235 |   return std::make_shared<ReaderSpy>(r, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:153:3: note: candidate 1: ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  153 |   ReaderSpy(const std::shared_ptr<dap::Reader>& r,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:155:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  155 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 2: ‘{anonymous}::ReaderSpy::ReaderSpy(const {anonymous}::ReaderSpy&)’
+  151 | class ReaderSpy : public dap::Reader {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 3: ‘{anonymous}::ReaderSpy::ReaderSpy({anonymous}::ReaderSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::WriterSpy; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::WriterSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:243:37:   required from here
+  243 |   return std::make_shared<WriterSpy>(w, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:180:3: note: candidate 1: ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  180 |   WriterSpy(const std::shared_ptr<dap::Writer>& w,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:182:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  182 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 2: ‘{anonymous}::WriterSpy::WriterSpy(const {anonymous}::WriterSpy&)’
+  178 | class WriterSpy : public dap::Writer {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 3: ‘{anonymous}::WriterSpy::WriterSpy({anonymous}::WriterSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:93: libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+[ 19%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/GlslangToSpv.cpp.o
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/GrammarHelper.cpp.o
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:135: libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o] Error 1
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/HeapAllocator.cpp.o
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:121: libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o] Error 1
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DVocabulary.cpp.o
+[ 20%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/InReadableOrder.cpp.o
+[ 21%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/LinkerHelper.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:49:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:17: error: ‘uint8_t’ was not declared in this scope
+   79 |     std::vector<uint8_t> value;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:64:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   63 | #  include <irrXML.h>
+  +++ |+#include <cstdint>
+   64 | #endif
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:24: error: template argument 1 is invalid
+   79 |     std::vector<uint8_t> value;
+      |                        ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:24: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:59: error: ‘uint8_t’ was not declared in this scope
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                                           ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:59: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:66: error: template argument 1 is invalid
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                                                  ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:66: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:62: error: ‘uint8_t’ was not declared in this scope
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                                              ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:62: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:69: error: template argument 1 is invalid
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                                                     ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:69: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:60: error: ‘uint8_t’ was not declared in this scope
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                                            ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:60: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:67: error: template argument 1 is invalid
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                                                   ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:67: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:57: error: ‘uint8_t’ does not name a type
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                                         ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:57: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+In file included from /mnt/train/SHADERed/libs/assimp/code/X3D/X3DVocabulary.cpp:49:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:17: error: ‘uint8_t’ was not declared in this scope
+   79 |     std::vector<uint8_t> value;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:64:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   63 | #  include <irrXML.h>
+  +++ |+#include <cstdint>
+   64 | #endif
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:24: error: template argument 1 is invalid
+   79 |     std::vector<uint8_t> value;
+      |                        ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:79:24: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:59: error: ‘uint8_t’ was not declared in this scope
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                                           ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:59: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:66: error: template argument 1 is invalid
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                                                  ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:66: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:62: error: ‘uint8_t’ was not declared in this scope
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                                              ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:62: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:69: error: template argument 1 is invalid
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                                                     ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:69: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:60: error: ‘uint8_t’ was not declared in this scope
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                                            ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:60: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:67: error: template argument 1 is invalid
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                                                   ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:67: error: template argument 2 is invalid
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:57: error: ‘uint8_t’ does not name a type
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                                         ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:57: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+make[2]: *** [libs/assimp/code/CMakeFiles/assimp.dir/build.make:2487: libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DVocabulary.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+[ 21%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/Logger.cpp.o
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:149: libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_events.cpp.o] Error 1
+[ 21%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ModulePrinter.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In constructor ‘Assimp::FIHexValueImpl::FIHexValueImpl(std::vector<unsigned char>&&)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:154:100: error: cannot convert ‘std::remove_reference<std::vector<unsigned char>&>::type’ {aka ‘std::vector<unsigned char>’} to ‘int’ in assignment
+  154 |     inline FIHexValueImpl(std::vector<uint8_t> &&value_):  strValueValid(false) { value = std::move(value_); }
+      |                                                                                           ~~~~~~~~~^~~~~~~~
+      |                                                                                                    |
+      |                                                                                                    std::remove_reference<std::vector<unsigned char>&>::type {aka std::vector<unsigned char>}
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual const std::string& Assimp::FIHexValueImpl::toString() const’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:160:33: error: request for member ‘begin’ in ‘((const Assimp::FIHexValueImpl*)this)->Assimp::FIHexValueImpl::Assimp::FIHexValue.Assimp::FIHexValue::Assimp::FIByteValue.Assimp::FIByteValue::value’, which is of non-class type ‘const int’
+  160 |             std::for_each(value.begin(), value.end(), [&](uint8_t c) { os << std::setw(2) << static_cast<int>(c); });
+      |                                 ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:160:48: error: request for member ‘end’ in ‘((const Assimp::FIHexValueImpl*)this)->Assimp::FIHexValueImpl::Assimp::FIHexValue.Assimp::FIHexValue::Assimp::FIByteValue.Assimp::FIByteValue::value’, which is of non-class type ‘const int’
+  160 |             std::for_each(value.begin(), value.end(), [&](uint8_t c) { os << std::setw(2) << static_cast<int>(c); });
+      |                                                ^~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:167:29: error: no declaration matches ‘std::shared_ptr<Assimp::FIHexValue> Assimp::FIHexValue::create(std::vector<unsigned char>&&)’
+  167 | std::shared_ptr<FIHexValue> FIHexValue::create(std::vector<uint8_t> &&value) {
+      |                             ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:40: note: candidate is: ‘static std::shared_ptr<Assimp::FIHexValue> Assimp::FIHexValue::create(int&&)’
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                        ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:82:8: note: ‘struct Assimp::FIHexValue’ defined here
+   82 | struct FIHexValue: public FIByteValue {
+      |        ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In constructor ‘Assimp::FIBase64ValueImpl::FIBase64ValueImpl(std::vector<unsigned char>&&)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:174:102: error: cannot convert ‘std::remove_reference<std::vector<unsigned char>&>::type’ {aka ‘std::vector<unsigned char>’} to ‘int’ in assignment
+  174 |     inline FIBase64ValueImpl(std::vector<uint8_t> &&value_): strValueValid(false) { value = std::move(value_); }
+      |                                                                                             ~~~~~~~~~^~~~~~~~
+      |                                                                                                      |
+      |                                                                                                      std::remove_reference<std::vector<unsigned char>&>::type {aka std::vector<unsigned char>}
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual const std::string& Assimp::FIBase64ValueImpl::toString() const’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:181:63: error: request for member ‘size’ in ‘((const Assimp::FIBase64ValueImpl*)this)->Assimp::FIBase64ValueImpl::Assimp::FIBase64Value.Assimp::FIBase64Value::Assimp::FIByteValue.Assimp::FIByteValue::value’, which is of non-class type ‘const int’
+  181 |             std::vector<uint8_t>::size_type valueSize = value.size();
+      |                                                               ^~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:183:27: error: invalid types ‘const int[std::vector<unsigned char>::size_type {aka long unsigned int}]’ for array subscript
+  183 |                 c2 = value[i];
+      |                           ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:217:32: error: no declaration matches ‘std::shared_ptr<Assimp::FIBase64Value> Assimp::FIBase64Value::create(std::vector<unsigned char>&&)’
+  217 | std::shared_ptr<FIBase64Value> FIBase64Value::create(std::vector<uint8_t> &&value) {
+      |                                ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:43: note: candidate is: ‘static std::shared_ptr<Assimp::FIBase64Value> Assimp::FIBase64Value::create(int&&)’
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                           ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:86:8: note: ‘struct Assimp::FIBase64Value’ defined here
+   86 | struct FIBase64Value: public FIByteValue {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In constructor ‘Assimp::FIUUIDValueImpl::FIUUIDValueImpl(std::vector<unsigned char>&&)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:345:100: error: cannot convert ‘std::remove_reference<std::vector<unsigned char>&>::type’ {aka ‘std::vector<unsigned char>’} to ‘int’ in assignment
+  345 |     inline FIUUIDValueImpl(std::vector<uint8_t> &&value_): strValueValid(false) { value = std::move(value_); }
+      |                                                                                           ~~~~~~~~~^~~~~~~~
+      |                                                                                                    |
+      |                                                                                                    std::remove_reference<std::vector<unsigned char>&>::type {aka std::vector<unsigned char>}
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual const std::string& Assimp::FIUUIDValueImpl::toString() const’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:351:63: error: request for member ‘size’ in ‘((const Assimp::FIUUIDValueImpl*)this)->Assimp::FIUUIDValueImpl::Assimp::FIUUIDValue.Assimp::FIUUIDValue::Assimp::FIByteValue.Assimp::FIByteValue::value’, which is of non-class type ‘const int’
+  351 |             std::vector<uint8_t>::size_type valueSize = value.size();
+      |                                                               ^~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:358:65: error: invalid types ‘const int[std::vector<unsigned char>::size_type {aka long unsigned int}]’ for array subscript
+  358 |                     os << std::setw(2) << static_cast<int>(value[i]);
+      |                                                                 ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:377:65: error: invalid types ‘const int[std::vector<unsigned char>::size_type {aka long unsigned int}]’ for array subscript
+  377 |                     os << std::setw(2) << static_cast<int>(value[i]);
+      |                                                                 ^
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:387:30: error: no declaration matches ‘std::shared_ptr<Assimp::FIUUIDValue> Assimp::FIUUIDValue::create(std::vector<unsigned char>&&)’
+  387 | std::shared_ptr<FIUUIDValue> FIUUIDValue::create(std::vector<uint8_t> &&value) {
+      |                              ^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:41: note: candidate is: ‘static std::shared_ptr<Assimp::FIUUIDValue> Assimp::FIUUIDValue::create(int&&)’
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                         ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:120:8: note: ‘struct Assimp::FIUUIDValue’ defined here
+  120 | struct FIUUIDValue: public FIByteValue {
+      |        ^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:401:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIHexDecoder::decode(const uint8_t*, size_t)’
+  401 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIHexDecoder::decode(const uint8_t*, size_t)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:402:40: error: cannot convert ‘std::vector<unsigned char>’ to ‘int&&’
+  402 |         return FIHexValue::create(std::vector<uint8_t>(data, data + len));
+      |                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                        |
+      |                                        std::vector<unsigned char>
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:83:70: note: initializing argument 1 of ‘static std::shared_ptr<Assimp::FIHexValue> Assimp::FIHexValue::create(int&&)’
+   83 |     static std::shared_ptr<FIHexValue> create(std::vector<uint8_t> &&value);
+      |                                               ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:407:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIBase64Decoder::decode(const uint8_t*, size_t)’
+  407 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIBase64Decoder::decode(const uint8_t*, size_t)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:408:43: error: cannot convert ‘std::vector<unsigned char>’ to ‘int&&’
+  408 |         return FIBase64Value::create(std::vector<uint8_t>(data, data + len));
+      |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                           |
+      |                                           std::vector<unsigned char>
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:87:73: note: initializing argument 1 of ‘static std::shared_ptr<Assimp::FIBase64Value> Assimp::FIBase64Value::create(int&&)’
+   87 |     static std::shared_ptr<FIBase64Value> create(std::vector<uint8_t> &&value);
+      |                                                  ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:413:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIShortDecoder::decode(const uint8_t*, size_t)’
+  413 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:430:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIIntDecoder::decode(const uint8_t*, size_t)’
+  430 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:447:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FILongDecoder::decode(const uint8_t*, size_t)’
+  447 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:465:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIBoolDecoder::decode(const uint8_t*, size_t)’
+  465 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:487:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIFloatDecoder::decode(const uint8_t*, size_t)’
+  487 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:506:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDoubleDecoder::decode(const uint8_t*, size_t)’
+  506 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:526:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIUUIDDecoder::decode(const uint8_t*, size_t)’
+  526 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+[ 21%] Linking CXX static library libglslang.a
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIUUIDDecoder::decode(const uint8_t*, size_t)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:530:41: error: cannot convert ‘std::vector<unsigned char>’ to ‘int&&’
+  530 |         return FIUUIDValue::create(std::vector<uint8_t>(data, data + len));
+      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                         |
+      |                                         std::vector<unsigned char>
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:121:71: note: initializing argument 1 of ‘static std::shared_ptr<Assimp::FIUUIDValue> Assimp::FIUUIDValue::create(int&&)’
+  121 |     static std::shared_ptr<FIUUIDValue> create(std::vector<uint8_t> &&value);
+      |                                                ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: warning: ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’ was hidden [-Woverloaded-virtual=]
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:535:44: note:   by ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FICDATADecoder::decode(const uint8_t*, size_t)’
+  535 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) /*override*/ {
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: In member function ‘std::shared_ptr<const Assimp::FIValue> Assimp::CFIReaderImpl::parseEncodedData(size_t, size_t)’:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1002:36: error: cannot convert ‘uint8_t*’ {aka ‘unsigned char*’} to ‘const int*’
+ 1002 |             return decoder->decode(dataP, len);
+      |                                    ^~~~~
+      |                                    |
+      |                                    uint8_t* {aka unsigned char*}
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:66: note: initializing argument 1 of ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                                   ~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1014:43: error: cannot convert ‘uint8_t*’ {aka ‘unsigned char*’} to ‘const int*’
+ 1014 |                 return it->second->decode(dataP, len);
+      |                                           ^~~~~
+      |                                           |
+      |                                           uint8_t* {aka unsigned char*}
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:66: note: initializing argument 1 of ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                                   ~~~~~~~~~~~~~~~^~~~
+[ 21%] Built target glslang
+[ 21%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ReflectionHelper.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1692:14: error: cannot declare variable ‘Assimp::CFIReaderImpl::hexDecoder’ to be of abstract type ‘Assimp::FIHexDecoder’
+ 1692 | FIHexDecoder CFIReaderImpl::hexDecoder;
+      |              ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:400:8: note:   because the following virtual functions are pure within ‘Assimp::FIHexDecoder’:
+  400 | struct FIHexDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1693:17: error: cannot declare variable ‘Assimp::CFIReaderImpl::base64Decoder’ to be of abstract type ‘Assimp::FIBase64Decoder’
+ 1693 | FIBase64Decoder CFIReaderImpl::base64Decoder;
+      |                 ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:406:8: note:   because the following virtual functions are pure within ‘Assimp::FIBase64Decoder’:
+  406 | struct FIBase64Decoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1694:16: error: cannot declare variable ‘Assimp::CFIReaderImpl::shortDecoder’ to be of abstract type ‘Assimp::FIShortDecoder’
+ 1694 | FIShortDecoder CFIReaderImpl::shortDecoder;
+      |                ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:412:8: note:   because the following virtual functions are pure within ‘Assimp::FIShortDecoder’:
+  412 | struct FIShortDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1695:14: error: cannot declare variable ‘Assimp::CFIReaderImpl::intDecoder’ to be of abstract type ‘Assimp::FIIntDecoder’
+ 1695 | FIIntDecoder CFIReaderImpl::intDecoder;
+      |              ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:429:8: note:   because the following virtual functions are pure within ‘Assimp::FIIntDecoder’:
+  429 | struct FIIntDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1696:15: error: cannot declare variable ‘Assimp::CFIReaderImpl::longDecoder’ to be of abstract type ‘Assimp::FILongDecoder’
+ 1696 | FILongDecoder CFIReaderImpl::longDecoder;
+      |               ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:446:8: note:   because the following virtual functions are pure within ‘Assimp::FILongDecoder’:
+  446 | struct FILongDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1697:15: error: cannot declare variable ‘Assimp::CFIReaderImpl::boolDecoder’ to be of abstract type ‘Assimp::FIBoolDecoder’
+ 1697 | FIBoolDecoder CFIReaderImpl::boolDecoder;
+      |               ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:464:8: note:   because the following virtual functions are pure within ‘Assimp::FIBoolDecoder’:
+  464 | struct FIBoolDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1698:16: error: cannot declare variable ‘Assimp::CFIReaderImpl::floatDecoder’ to be of abstract type ‘Assimp::FIFloatDecoder’
+ 1698 | FIFloatDecoder CFIReaderImpl::floatDecoder;
+      |                ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:486:8: note:   because the following virtual functions are pure within ‘Assimp::FIFloatDecoder’:
+  486 | struct FIFloatDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1699:17: error: cannot declare variable ‘Assimp::CFIReaderImpl::doubleDecoder’ to be of abstract type ‘Assimp::FIDoubleDecoder’
+ 1699 | FIDoubleDecoder CFIReaderImpl::doubleDecoder;
+      |                 ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:505:8: note:   because the following virtual functions are pure within ‘Assimp::FIDoubleDecoder’:
+  505 | struct FIDoubleDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1700:15: error: cannot declare variable ‘Assimp::CFIReaderImpl::uuidDecoder’ to be of abstract type ‘Assimp::FIUUIDDecoder’
+ 1700 | FIUUIDDecoder CFIReaderImpl::uuidDecoder;
+      |               ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:525:8: note:   because the following virtual functions are pure within ‘Assimp::FIUUIDDecoder’:
+  525 | struct FIUUIDDecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:1701:16: error: cannot declare variable ‘Assimp::CFIReaderImpl::cdataDecoder’ to be of abstract type ‘Assimp::FICDATADecoder’
+ 1701 | FICDATADecoder CFIReaderImpl::cdataDecoder;
+      |                ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.cpp:534:8: note:   because the following virtual functions are pure within ‘Assimp::FICDATADecoder’:
+  534 | struct FICDATADecoder: public FIDecoder {
+      |        ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/X3D/FIReader.hpp:129:44: note:     ‘virtual std::shared_ptr<const Assimp::FIValue> Assimp::FIDecoder::decode(const int*, size_t)’
+  129 |     virtual std::shared_ptr<const FIValue> decode(const uint8_t *data, size_t len) = 0;
+      |                                            ^~~~~~
+[ 22%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvBuilder.cpp.o
+[ 22%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvPostProcess.cpp.o
+[ 22%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/TypeHelper.cpp.o
+[ 22%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/VulkanInterop.cpp.o
+[ 22%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/doc.cpp.o
+[ 22%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvTools.cpp.o
+[ 23%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/disassemble.cpp.o
+[ 24%] Linking CXX static library ../../lib/libSpvGenTwoCommon.a
+[ 24%] Built target SpvGenTwoCommon
+[ 24%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/CInterface/spirv_c_interface.cpp.o
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:107: libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1855: libs/cppdap/CMakeFiles/cppdap.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make[2]: *** [libs/assimp/code/CMakeFiles/assimp.dir/build.make:2473: libs/assimp/code/CMakeFiles/assimp.dir/X3D/FIReader.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:628: libs/assimp/code/CMakeFiles/assimp.dir/all] Error 2
+[ 24%] Linking CXX static library libSPIRV.a
+[ 24%] Built target SPIRV
+make: *** [Makefile:136: all] Error 2

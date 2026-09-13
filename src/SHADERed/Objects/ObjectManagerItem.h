@@ -69,6 +69,7 @@ namespace ed {
 	struct Image3DObject {
 		glm::ivec3 Size;
 		GLuint Format;
+		bool IsArray = false; // true: GL_TEXTURE_2D_ARRAY (Size.z = layer count), false: GL_TEXTURE_3D
 	};
 	struct PluginObject {
 		char Type[128];

@@ -1,4 +1,5 @@
 #include <SHADERed/Objects/FunctionVariableManager.h>
+#include <SHADERed/Objects/Logger.h>
 #include <SHADERed/Objects/ShaderVariableContainer.h>
 #include <SHADERed/Objects/SystemVariableManager.h>
 #include <iostream>
@@ -15,6 +16,15 @@ namespace ed {
 			m_vars[i]->Arguments = nullptr;
 			delete m_vars[i];
 		}
+		m_clearBlockUBOs();
+	}
+	void ShaderVariableContainer::m_clearBlockUBOs()
+	{
+		if (!m_blockUBOs.empty())
+			glDeleteBuffers((GLsizei)m_blockUBOs.size(), m_blockUBOs.data());
+		m_blockUBOs.clear();
+		m_blockMemberOffsets.clear();
+		m_blockBindings.clear();
 	}
 	ShaderVariable* ShaderVariableContainer::AddCopy(ShaderVariable var)
 	{
@@ -61,6 +71,51 @@ namespace ed {
 			else
 				m_uLocs[name] = glGetUniformLocation(pass, name);
 		}
+
+		// std140 uniform blocks (e.g. Slang ParameterBlock<T> globals such as time/mouse/
+		// custom): their members never show up in GL_ACTIVE_UNIFORMS above, so they need
+		// their own enumeration + a real backing UBO to be reachable at all.
+		m_clearBlockUBOs();
+
+		GLint blockCount = 0;
+		glGetProgramiv(pass, GL_ACTIVE_UNIFORM_BLOCKS, &blockCount);
+		for (GLint b = 0; b < blockCount; b++) {
+			GLint dataSize = 0;
+			glGetActiveUniformBlockiv(pass, b, GL_UNIFORM_BLOCK_DATA_SIZE, &dataSize);
+			if (dataSize <= 0)
+				continue;
+
+			GLuint ubo = 0;
+			glGenBuffers(1, &ubo);
+			glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+			glBufferData(GL_UNIFORM_BUFFER, dataSize, NULL, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			m_blockUBOs.push_back(ubo);
+
+			GLuint bindingPoint = (GLuint)m_blockBindings.size();
+			glUniformBlockBinding(pass, b, bindingPoint);
+			m_blockBindings.push_back({ bindingPoint, ubo });
+
+			GLint activeCount = 0;
+			glGetActiveUniformBlockiv(pass, b, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &activeCount);
+			if (activeCount <= 0)
+				continue;
+
+			std::vector<GLint> indices(activeCount);
+			glGetActiveUniformBlockiv(pass, b, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices.data());
+
+			std::vector<GLint> offsets(activeCount);
+			glGetActiveUniformsiv(pass, activeCount, (const GLuint*)indices.data(), GL_UNIFORM_OFFSET, offsets.data());
+
+			for (GLint m = 0; m < activeCount; m++) {
+				GLchar memberName[bufSize];
+				GLsizei memberLen;
+				GLint memberSize;
+				GLenum memberType;
+				glGetActiveUniform(pass, (GLuint)indices[m], bufSize, &memberLen, &memberSize, &memberType, memberName);
+				m_blockMemberOffsets[memberName] = { ubo, offsets[m] };
+			}
+		}
 	}
 	void ShaderVariableContainer::UpdateTextureList(const std::string& fragShader)
 	{
@@ -91,13 +146,21 @@ namespace ed {
 	}
 	void ShaderVariableContainer::Bind(void* item)
 	{
+		// glBindBufferBase binds a global GL binding point, shared by every ComputePass's
+		// program - rebind ours every time in case another pass's Bind() stole the same
+		// binding point index since our UBOs were set up in UpdateUniformInfo().
+		for (auto& bb : m_blockBindings)
+			glBindBufferBase(GL_UNIFORM_BUFFER, bb.first, bb.second);
+
 		for (int i = 0; i < m_vars.size(); i++) {
 			FunctionVariableManager::Instance().AddToList(m_vars[i]);
 
-			if (m_uLocs.count(m_vars[i]->Name) == 0)
+			bool isLooseUniform = m_uLocs.count(m_vars[i]->Name) > 0;
+			bool isBlockMember = m_blockMemberOffsets.count(m_vars[i]->Name) > 0;
+			if (!isLooseUniform && !isBlockMember)
 				continue;
 
-			GLint loc = m_uLocs[m_vars[i]->Name];
+			GLint loc = isLooseUniform ? m_uLocs[m_vars[i]->Name] : 0;
 
 			// update values if needed
 			SystemVariableManager::Instance().Update(m_vars[i], item);
@@ -119,6 +182,21 @@ namespace ed {
 					glm::mat2x2 matVal = glm::make_mat2x2(m_vars[i]->AsFloatPtr());
 					memcpy(m_vars[i]->Data, glm::value_ptr(glm::inverse(matVal)), sizeof(glm::mat2x2));
 				}
+			}
+
+			if (isBlockMember) {
+				// std140 uniform block member: write the raw bytes at their resolved
+				// offset into the block's backing UBO. Every type ShaderVariable stores
+				// via a system/function binding here is a plain scalar or vector (never
+				// a matrix), so its natural size matches its std140 size and no extra
+				// padding logic is needed.
+				GLuint ubo = m_blockMemberOffsets[m_vars[i]->Name].first;
+				GLint offset = m_blockMemberOffsets[m_vars[i]->Name].second;
+				int size = ShaderVariable::GetSize(type);
+				glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+				glBufferSubData(GL_UNIFORM_BUFFER, offset, size, m_vars[i]->Data);
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+				continue;
 			}
 
 			switch (type) {

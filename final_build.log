@@ -1,0 +1,294 @@
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- 'SPVGENTWO_LOGGING' is TRUE
+-- 'SPVGENTWO_REPLACE_PLACEMENTNEW' is TRUE
+-- 'SPVGENTWO_REPLACE_TRAITS' is TRUE
+-- 'SPVGENTWO_BUILD_EXAMPLES' is FALSE
+-- 'SPVGENTWO_BUILD_DISASSEMBLER' is FALSE
+-- 'SPVGENTWO_BUILD_REFLECT' is FALSE
+-- 'SPVGENTWO_BUILD_LINKER' is FALSE
+-- 'SPVGENTWO_DEBUG_HEAP_ALLOC' is FALSE
+-- 
+CMake Deprecation Warning at libs/assimp/CMakeLists.txt:39 (CMAKE_MINIMUM_REQUIRED):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Shared libraries disabled
+-- Looking for ZLIB...
+-- Checking for module 'zzip-zlib-config'
+--   Package 'zzip-zlib-config' not found
+-- Found ZLIB: optimized;/usr/lib/x86_64-linux-gnu/libz.so;debug;/usr/lib/x86_64-linux-gnu/libz.so
+-- Checking for module 'minizip'
+--   Package 'minizip' not found
+CMake Deprecation Warning at libs/assimp/code/CMakeLists.txt:46 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Warning (dev) at /usr/share/cmake-4.2/Modules/FindPackageHandleStandardArgs.cmake:493 (message):
+  The package name passed to find_package_handle_standard_args() (rt) does
+  not match the name of the calling package (RT).  This can lead to problems
+  in calling code that expects find_package() result variables (e.g.,
+  `_FOUND`) to follow a certain pattern.
+Call Stack (most recent call first):
+  libs/assimp/cmake-modules/FindRT.cmake:19 (find_package_handle_standard_args)
+  libs/assimp/code/CMakeLists.txt:1038 (FIND_PACKAGE)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Enabled importer formats: AMF 3DS AC ASE ASSBIN B3D BVH COLLADA DXF CSM HMP IRRMESH IRR LWO LWS M3D MD2 MD3 MD5 MDC MDL NFF NDO OFF OBJ OGRE OPENGEX PLY MS3D COB BLEND IFC XGL FBX Q3D Q3BSP RAW SIB SMD STL TERRAGEN 3D X X3D GLTF 3MF MMD
+-- Disabled importer formats:
+-- Enabled exporter formats: OBJ OPENGEX PLY 3DS ASSBIN ASSXML M3D COLLADA FBX STL X X3D GLTF 3MF ASSJSON STEP
+-- Disabled exporter formats:
+CMake Deprecation Warning at libs/glslang/CMakeLists.txt:39 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- No build type selected, default to Debug
+CMake Warning (dev) at libs/glslang/CMakeLists.txt:233 (find_package):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  libs/glslang/CMakeLists.txt:239 (find_host_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Google Mock was not found - tests based on that will not build
+-- spirv-tools not linked - illegal SPIRV may be generated for HLSL
+CMake Deprecation Warning at libs/SPIRV-VM/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at libs/cppdap/CMakeLists.txt:16 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Configuring done (0.5s)
+-- Generating done (0.2s)
+-- Build files have been written to: /mnt/train/SHADERed
+[  0%] Building CXX object libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/irrXML.cpp.o
+[  0%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Allocator.cpp.o
+[  0%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/CodeGen.cpp.o
+[  1%] Built target glslang-build-info
+[  0%] Building CXX object libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o
+[  1%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/content_stream.cpp.o
+[  1%] Building CXX object libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o
+[  1%] Building C object libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/program.c.o
+[  1%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/BasicBlock.cpp.o
+<command-line>: fatal error: cstdint: No such file or directory
+compilation terminated.
+make[2]: *** [libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/build.make:79: libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/src/program.c.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1823: libs/SPIRV-VM/CMakeFiles/SPIRVVM.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+[  1%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Constant.cpp.o
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/build.make:79: libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Allocator.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Allocator.cpp.o'
+make[2]: *** Waiting for unfinished jobs....
+[  1%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/build.make:79: libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:1691: libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/all] Error 2
+[  1%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/Link.cpp.o
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/build.make:107: libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Constant.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Constant.cpp.o'
+[  1%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/build.make:93: libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/BasicBlock.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/BasicBlock.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:500: libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/all] Error 2
+[  1%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/build.make:79: libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:1723: libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/all] Error 2
+[  2%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:175:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  175 |   const std::string prefix;
+      |                     ^~~~~~
+In file included from /usr/include/c++/15/iosfwd:43,
+                 from /usr/include/c++/15/bits/shared_ptr.h:52,
+                 from /usr/include/c++/15/memory:82,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/io.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/src/io.cpp:15:
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual size_t {anonymous}::ReaderSpy::read(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:165:19: error: variable ‘std::string buf’ has initializer but incomplete type
+  165 |       std::string buf = prefix;
+      |                   ^~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: At global scope:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:202:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  202 |   const std::string prefix;
+      |                     ^~~~~~
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual bool {anonymous}::WriterSpy::write(const void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:193:17: error: variable ‘std::string buf’ has initializer but incomplete type
+  193 |     std::string buf = prefix;
+      |                 ^~~
+In file included from /usr/include/c++/15/bits/stl_tempbuf.h:61,
+                 from /usr/include/c++/15/memory:68:
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::ReaderSpy; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::ReaderSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:235:37:   required from here
+  235 |   return std::make_shared<ReaderSpy>(r, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:153:3: note: candidate 1: ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  153 |   ReaderSpy(const std::shared_ptr<dap::Reader>& r,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:155:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  155 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 2: ‘{anonymous}::ReaderSpy::ReaderSpy(const {anonymous}::ReaderSpy&)’
+  151 | class ReaderSpy : public dap::Reader {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 3: ‘{anonymous}::ReaderSpy::ReaderSpy({anonymous}::ReaderSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::WriterSpy; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::WriterSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:243:37:   required from here
+  243 |   return std::make_shared<WriterSpy>(w, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:180:3: note: candidate 1: ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  180 |   WriterSpy(const std::shared_ptr<dap::Writer>& w,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:182:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  182 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 2: ‘{anonymous}::WriterSpy::WriterSpy(const {anonymous}::WriterSpy&)’
+  178 | class WriterSpy : public dap::Writer {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 3: ‘{anonymous}::WriterSpy::WriterSpy({anonymous}::WriterSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:93: libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/build.make:79: libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/irrXML.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/irrXML.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:596: libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/all] Error 2
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/build.make:79: libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/CodeGen.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/CodeGen.cpp.o'
+make[2]: *** Waiting for unfinished jobs....
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:79: libs/cppdap/CMakeFiles/cppdap.dir/src/content_stream.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/cppdap/CMakeFiles/cppdap.dir/src/content_stream.cpp.o'
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/build.make:93: libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/Link.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/Link.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:1588: libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/all] Error 2
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:135: libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o'
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:121: libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o'
+c++: warning: string: linker input file unused because linking not done
+c++: error: string: linker input file not found: No such file or directory
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:107: libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o] Error 1
+make[2]: *** Deleting file 'libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o'
+make[1]: *** [CMakeFiles/Makefile2:1855: libs/cppdap/CMakeFiles/cppdap.dir/all] Error 2
+make: *** [Makefile:136: all] Error 2

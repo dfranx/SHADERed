@@ -35,5 +35,15 @@ namespace ed {
 		std::vector<ShaderVariable*> m_vars;
 		std::map<std::string, GLint> m_uLocs;
 		std::vector<std::string> m_samplers;
+
+		// uniform block member support (e.g. Slang ParameterBlock<T> globals such as
+		// time/mouse/custom, which compile to a named std140 uniform block instead of
+		// loose default-block uniforms and so are invisible to GL_ACTIVE_UNIFORMS).
+		std::map<std::string, std::pair<GLuint, GLint>> m_blockMemberOffsets; // full name -> (ubo, byte offset)
+		std::vector<GLuint> m_blockUBOs;
+		std::vector<std::pair<GLuint, GLuint>> m_blockBindings; // (binding point, ubo) - rebound every Bind() since
+		                                                        // glBindBufferBase is global GL state shared by
+		                                                        // every ComputePass program, not per-program
+		void m_clearBlockUBOs();
 	};
 }

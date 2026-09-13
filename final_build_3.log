@@ -1,0 +1,1289 @@
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- 'SPVGENTWO_LOGGING' is TRUE
+-- 'SPVGENTWO_REPLACE_PLACEMENTNEW' is TRUE
+-- 'SPVGENTWO_REPLACE_TRAITS' is TRUE
+-- 'SPVGENTWO_BUILD_EXAMPLES' is FALSE
+-- 'SPVGENTWO_BUILD_DISASSEMBLER' is FALSE
+-- 'SPVGENTWO_BUILD_REFLECT' is FALSE
+-- 'SPVGENTWO_BUILD_LINKER' is FALSE
+-- 'SPVGENTWO_DEBUG_HEAP_ALLOC' is FALSE
+-- 
+CMake Deprecation Warning at libs/assimp/CMakeLists.txt:39 (CMAKE_MINIMUM_REQUIRED):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Shared libraries disabled
+-- Looking for ZLIB...
+-- Checking for module 'zzip-zlib-config'
+--   Package 'zzip-zlib-config' not found
+-- Found ZLIB: optimized;/usr/lib/x86_64-linux-gnu/libz.so;debug;/usr/lib/x86_64-linux-gnu/libz.so
+-- Checking for module 'minizip'
+--   Package 'minizip' not found
+CMake Deprecation Warning at libs/assimp/code/CMakeLists.txt:46 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Warning (dev) at /usr/share/cmake-4.2/Modules/FindPackageHandleStandardArgs.cmake:493 (message):
+  The package name passed to find_package_handle_standard_args() (rt) does
+  not match the name of the calling package (RT).  This can lead to problems
+  in calling code that expects find_package() result variables (e.g.,
+  `_FOUND`) to follow a certain pattern.
+Call Stack (most recent call first):
+  libs/assimp/cmake-modules/FindRT.cmake:19 (find_package_handle_standard_args)
+  libs/assimp/code/CMakeLists.txt:1038 (FIND_PACKAGE)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Enabled importer formats: AMF 3DS AC ASE ASSBIN B3D BVH COLLADA DXF CSM HMP IRRMESH IRR LWO LWS M3D MD2 MD3 MD5 MDC MDL NFF NDO OFF OBJ OGRE OPENGEX PLY MS3D COB BLEND IFC XGL FBX Q3D Q3BSP RAW SIB SMD STL TERRAGEN 3D X X3D GLTF 3MF MMD
+-- Disabled importer formats:
+-- Enabled exporter formats: OBJ OPENGEX PLY 3DS ASSBIN ASSXML M3D COLLADA FBX STL X X3D GLTF 3MF ASSJSON STEP
+-- Disabled exporter formats:
+CMake Deprecation Warning at libs/glslang/CMakeLists.txt:39 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- No build type selected, default to Debug
+CMake Warning (dev) at libs/glslang/CMakeLists.txt:233 (find_package):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  libs/glslang/CMakeLists.txt:239 (find_host_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Google Mock was not found - tests based on that will not build
+-- spirv-tools not linked - illegal SPIRV may be generated for HLSL
+CMake Deprecation Warning at libs/SPIRV-VM/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at libs/cppdap/CMakeLists.txt:16 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /mnt/train/SHADERed
+[  0%] Building CXX object libs/glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o
+[  0%] Building CXX object libs/glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o
+[  0%] Building CXX object libs/assimp/contrib/irrXML/CMakeFiles/IrrXML.dir/irrXML.cpp.o
+[  0%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/CodeGen.cpp.o
+[  0%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Allocator.cpp.o
+[  1%] Built target glslang-build-info
+[  4%] Built target SPIRVVM
+[  4%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/BasicBlock.cpp.o
+[  4%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/content_stream.cpp.o
+[  4%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Constant.cpp.o
+[  4%] Linking CXX static library libOSDependent.a
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/EntryPoint.cpp.o
+[  5%] Built target OSDependent
+[  5%] Building CXX object libs/glslang/glslang/CMakeFiles/GenericCodeGen.dir/GenericCodeGen/Link.cpp.o
+[  5%] Linking CXX static library libOGLCompiler.a
+[  5%] Built target OGLCompiler
+[  5%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Function.cpp.o
+[  5%] Building CXX object libs/glslang/hlsl/CMakeFiles/HLSL.dir/stub.cpp.o
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/GLSL450Instruction.cpp.o
+[  5%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o
+[  5%] Linking CXX static library ../../../../lib/libIrrXML.a
+[  5%] Built target IrrXML
+[  5%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Grammar.cpp.o
+[  5%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o
+[  6%] Linking CXX static library libHLSL.a
+[  6%] Built target HLSL
+[  7%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Instruction.cpp.o
+[  7%] Linking CXX static library libGenericCodeGen.a
+[  7%] Built target GenericCodeGen
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o
+[  8%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/cmake_pch.hxx.gch
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_events.cpp.o
+[  8%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Module.cpp.o
+[  8%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Assimp.cpp.o
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_requests.cpp.o
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_response.cpp.o
+[  9%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CApi/CInterfaceIOWrapper.cpp.o
+[  9%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Operand.cpp.o
+[  9%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/BaseImporter.cpp.o
+[  9%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Operators.cpp.o
+[ 10%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_types.cpp.o
+[ 10%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/session.cpp.o
+[ 10%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/BaseProcess.cpp.o
+[ 11%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/glslang_tab.cpp.o
+[ 11%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/String.cpp.o
+[ 11%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/attribute.cpp.o
+[ 11%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/PostStepRegistry.cpp.o
+[ 11%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/socket.cpp.o
+[ 12%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ImporterRegistry.cpp.o
+[ 13%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/Type.cpp.o
+[ 13%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Constant.cpp.o
+[ 13%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultIOStream.cpp.o
+[ 13%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoLib.dir/lib/source/TypeInferenceAndValiation.cpp.o
+[ 13%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/typeinfo.cpp.o
+[ 13%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultIOSystem.cpp.o
+[ 14%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/typeof.cpp.o
+[ 14%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/iomapper.cpp.o
+[ 14%] Linking CXX static library ../../lib/libSpvGenTwoLib.a
+[ 14%] Built target SpvGenTwoLib
+[ 14%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ZipArchiveIOSystem.cpp.o
+[ 15%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/InfoSink.cpp.o
+[ 15%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Initialize.cpp.o
+[ 15%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/IntermTraverse.cpp.o
+[ 15%] Linking CXX static library libcppdap.a
+[ 15%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileReader.cpp.o
+[ 16%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Importer.cpp.o
+[ 16%] Built target cppdap
+[ 16%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Intermediate.cpp.o
+[ 16%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ParseContextBase.cpp.o
+[ 16%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/BinaryFileWriter.cpp.o
+[ 16%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ConsoleLogger.cpp.o
+[ 16%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SGSpatialSort.cpp.o
+[ 17%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ExternalMemoryAllocator.cpp.o
+[ 17%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/FunctionCallGraph.cpp.o
+[ 17%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/GrammarHelper.cpp.o
+[ 17%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/VertexTriangleAdjacency.cpp.o
+[ 17%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/HeapAllocator.cpp.o
+[ 18%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ParseHelper.cpp.o
+[ 18%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SpatialSort.cpp.o
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/LinkerHelper.cpp.o
+[ 19%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ModulePrinter.cpp.o
+[ 19%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SceneCombiner.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/Common/SpatialSort.cpp: In function ‘{anonymous}::BinFloat {anonymous}::ToBinary(const ai_real&)’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SpatialSort.cpp:215:34: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+  215 |     bool SignedMagnitude = ((-42 == (42 | (-0))) && (binValue & 0x80000000));
+      |                              ~~~ ^~ ~~~~~~~~~~~
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ScenePreprocessor.cpp.o
+[ 20%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/ReflectionHelper.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/SkeletonMeshBuilder.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp: In instantiation of ‘void Assimp::GetArrayCopy(Type*&, ai_uint) [with Type = aiFace; ai_uint = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:1088:17:   required from here
+ 1088 |     GetArrayCopy(dest->mFaces,dest->mNumFaces);
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:981:13: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘struct aiFace’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+  981 |     ::memcpy(dest, old, sizeof(Type) * num);
+      |     ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/scene.h:57,
+                 from /mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:62:
+/mnt/train/SHADERed/libs/assimp/include/assimp/mesh.h:136:8: note: ‘struct aiFace’ declared here
+  136 | struct aiFace {
+      |        ^~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp: In instantiation of ‘void Assimp::GetArrayCopy(Type*&, ai_uint) [with Type = aiMeshMorphKey; ai_uint = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:1229:17:   required from here
+ 1229 |     GetArrayCopy( dest->mKeys, dest->mNumKeys );
+      |     ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/Common/SceneCombiner.cpp:981:13: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of non-trivially copyable type ‘struct aiMeshMorphKey’; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+  981 |     ::memcpy(dest, old, sizeof(Type) * num);
+      |     ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/scene.h:61:
+/mnt/train/SHADERed/libs/assimp/include/assimp/anim.h:196:8: note: ‘struct aiMeshMorphKey’ declared here
+  196 | struct aiMeshMorphKey {
+      |        ^~~~~~~~~~~~~~
+[ 20%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/PoolAlloc.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/StandardShapes.cpp.o
+[ 20%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/TypeHelper.cpp.o
+[ 20%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/TargetAnimation.cpp.o
+[ 20%] Building CXX object libs/SpvGenTwo/CMakeFiles/SpvGenTwoCommon.dir/common/source/VulkanInterop.cpp.o
+[ 21%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/RemoveComments.cpp.o
+[ 21%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/RemoveTree.cpp.o
+[ 21%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Subdivision.cpp.o
+[ 22%] Linking CXX static library ../../lib/libSpvGenTwoCommon.a
+[ 22%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Scan.cpp.o
+[ 23%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/ShaderLang.cpp.o
+[ 23%] Built target SpvGenTwoCommon
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/scene.cpp.o
+[ 23%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/SymbolTable.cpp.o
+[ 23%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/Versions.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Bitmap.cpp.o
+[ 24%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Version.cpp.o
+[ 24%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/intermOut.cpp.o
+[ 25%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/limits.cpp.o
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/CreateAnimMesh.cpp.o
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/simd.cpp.o
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/material.cpp.o
+[ 25%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/linkValidate.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/DefaultLogger.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/parseConst.cpp.o
+[ 26%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/reflection.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/Pp.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/Exporter.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CApi/AssimpCExport.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpAtom.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpContext.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpScanner.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/CalcTangentsProcess.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ComputeUVMappingProcess.cpp.o
+[ 27%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/preprocessor/PpTokens.cpp.o
+[ 28%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/MachineIndependent/propagateNoContraction.cpp.o
+[ 28%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslAttributes.cpp.o
+[ 28%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslParseHelper.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ConvertToLHProcess.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/EmbedTexturesProcess.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindDegenerates.cpp.o
+[ 29%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslScanContext.cpp.o
+[ 29%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindInstancesProcess.cpp.o
+[ 30%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FindInvalidDataProcess.cpp.o
+[ 31%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslOpMap.cpp.o
+[ 31%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslTokenStream.cpp.o
+[ 31%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslGrammar.cpp.o
+[ 31%] Building CXX object libs/glslang/glslang/CMakeFiles/MachineIndependent.dir/HLSL/hlslParseables.cpp.o
+[ 31%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/FixNormalsStep.cpp.o
+[ 31%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/DropFaceNormalsProcess.cpp.o
+[ 31%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenFaceNormalsProcess.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenVertexNormalsProcess.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/PretransformVertices.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ImproveCacheLocality.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/JoinVerticesProcess.cpp.o
+[ 32%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/LimitBoneWeightsProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/RemoveRedundantMaterials.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/RemoveVCProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SortByPTypeProcess.cpp.o
+[ 33%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SplitLargeMeshes.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/TextureTransform.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/TriangulateProcess.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ValidateDataStructure.cpp.o
+[ 34%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeGraph.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeMeshes.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/DeboneProcess.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ProcessHelper.cpp.o
+[ 35%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/MakeVerboseFormat.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ScaleProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/ArmaturePopulate.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/GenBoundingBoxesProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/PostProcessing/SplitByBoneCountProcess.cpp.o
+[ 36%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Material/MaterialSystem.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/STEPParser/STEPFileReader.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/STEPParser/STEPFileEncoding.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter.cpp.o
+[ 37%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Geometry.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Material.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AMF/AMFImporter_Postprocess.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSConverter.cpp.o
+[ 38%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSLoader.cpp.o
+[ 39%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/AC/ACLoader.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp: In member function ‘void Assimp::AMFImporter::Postprocess_AddMetadata(const std::__cxx11::list<CAMFImporter_NodeElement_Metadata*>&, aiNode&) const’:
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp:362:62: warning: loop variable ‘metadata’ of type ‘const CAMFImporter_NodeElement_Metadata&’ binds to a temporary constructed from type ‘CAMFImporter_NodeElement_Metadata* const’ [-Wrange-loop-construct]
+  362 |                 for(const CAMFImporter_NodeElement_Metadata& metadata: metadataList)
+      |                                                              ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/AMF/AMFImporter_Postprocess.cpp:362:62: note: use non-reference type ‘const CAMFImporter_NodeElement_Metadata’ to make the copy explicit or ‘CAMFImporter_NodeElement_Metadata* const&’ to prevent copying
+[ 39%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/ASE/ASELoader.cpp.o
+[ 40%] Linking CXX static library libMachineIndependent.a
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/ASE/ASEParser.cpp.o
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assbin/AssbinLoader.cpp.o
+[ 40%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/B3D/B3DImporter.cpp.o
+[ 40%] Built target MachineIndependent
+[ 40%] Building CXX object libs/glslang/glslang/CMakeFiles/glslang.dir/CInterface/glslang_c_interface.cpp.o
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/BVH/BVHLoader.cpp.o
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/GlslangToSpv.cpp.o
+[ 41%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaHelper.cpp.o
+[ 41%] Linking CXX static library libglslang.a
+[ 41%] Built target glslang
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/InReadableOrder.cpp.o
+[ 41%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/Logger.cpp.o
+[ 42%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvBuilder.cpp.o
+[ 42%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaLoader.cpp.o
+[ 42%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaParser.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/DXF/DXFLoader.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvPostProcess.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/doc.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/CSM/CSMLoader.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/HMP/HMPLoader.cpp.o
+[ 43%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvTools.cpp.o
+[ 43%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRMeshLoader.cpp.o
+[ 44%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/disassemble.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRShared.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Irr/IRRLoader.cpp.o
+[ 45%] Building CXX object libs/glslang/SPIRV/CMakeFiles/SPIRV.dir/CInterface/spirv_c_interface.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOAnimation.cpp.o
+[ 45%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOBLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWO/LWOMaterial.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/LWS/LWSLoader.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/M3D/M3DImporter.cpp.o
+[ 46%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/M3D/M3DWrapper.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD2/MD2Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD3/MD3Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD5/MD5Loader.cpp.o
+[ 47%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MD5/MD5Parser.cpp.o
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDC/MDCLoader.cpp.o
+[ 48%] Linking CXX static library libSPIRV.a
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/MDLLoader.cpp.o
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/MDLMaterialLoader.cpp.o
+[ 48%] Built target SPIRV
+[ 48%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/HalfLife/HL1MDLLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MDL/HalfLife/UniqueNameGenerator.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/NFF/NFFLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/NDO/NDOLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OFF/OFFLoader.cpp.o
+[ 49%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileMtlImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjFileParser.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreImporter.cpp.o
+[ 50%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreStructs.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreBinarySerializer.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreXmlSerializer.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ogre/OgreMaterial.cpp.o
+[ 51%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OpenGEX/OpenGEXImporter.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyLoader.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyParser.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MS3D/MS3DLoader.cpp.o
+[ 52%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/COB/COBLoader.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderLoader.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderDNA.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderScene.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderModifier.cpp.o
+[ 53%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderBMesh.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderTessellator.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Blender/BlenderCustomData.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCLoader.cpp.o
+[ 54%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCReaderGen1_2x3.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCReaderGen2_2x3.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCUtil.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCGeometry.cpp.o
+[ 55%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCMaterial.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCProfile.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCCurve.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCBoolean.cpp.o
+[ 56%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Importer/IFC/IFCOpenings.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/XGL/XGLLoader.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXImporter.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXParser.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXTokenizer.cpp.o
+[ 57%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXConverter.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXUtil.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDocument.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXProperties.cpp.o
+[ 58%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXMeshGeometry.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXMaterial.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXModel.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXAnimation.cpp.o
+[ 59%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXNodeAttribute.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDeformer.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXBinaryTokenizer.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXDocumentUtil.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3D/Q3DLoader.cpp.o
+[ 60%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3BSP/Q3BSPFileParser.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Q3BSP/Q3BSPFileImporter.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Raw/RawLoader.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/SIB/SIBImporter.cpp.o
+[ 61%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/SMD/SMDLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/STL/STLLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Terragen/TerragenLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Unreal/UnrealLoader.cpp.o
+[ 62%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X/XFileImporter.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X/XFileParser.cpp.o
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp: In member function ‘void Assimp::STLImporter::LoadASCIIFile(aiNode*)’:
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:373:19: warning: ‘void* memcpy(void*, const void*, size_t)’ copying an object of non-trivial type ‘aiVector3D’ {aka ‘class aiVector3t<float>’} from an array of ‘float’ [-Wclass-memaccess]
+  373 |             memcpy(pMesh->mVertices, &positionBuffer[0].x, pMesh->mNumVertices * sizeof(aiVector3D));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/train/SHADERed/libs/assimp/include/assimp/types.h:65,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/IOStream.hpp:55,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/DefaultIOStream.h:53,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/Exceptional.h:50,
+                 from /mnt/train/SHADERed/libs/assimp/include/assimp/BaseImporter.h:52,
+                 from /mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.h:48,
+                 from /mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:49:
+/mnt/train/SHADERed/libs/assimp/include/assimp/vector3.h:70:7: note: ‘aiVector3D’ {aka ‘class aiVector3t<float>’} declared here
+   70 | class aiVector3t {
+      |       ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/STL/STLLoader.cpp:379:19: warning: ‘void* memcpy(void*, const void*, size_t)’ copying an object of non-trivial type ‘aiVector3D’ {aka ‘class aiVector3t<float>’} from an array of ‘float’ [-Wclass-memaccess]
+  379 |             memcpy(pMesh->mNormals, &normalBuffer[0].x, pMesh->mNumVertices * sizeof(aiVector3D));
+      |             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/include/assimp/vector3.h:70:7: note: ‘aiVector3D’ {aka ‘class aiVector3t<float>’} declared here
+   70 | class aiVector3t {
+      |       ^~~~~~~~~~
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry2D.cpp.o
+[ 63%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry3D.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Group.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Light.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Metadata.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Networking.cpp.o
+[ 64%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Postprocess.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Rendering.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Shape.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Texturing.cpp.o
+[ 65%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/FIReader.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DVocabulary.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF/glTFCommon.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF/glTFImporter.cpp.o
+[ 66%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF2/glTF2Importer.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3MF/D3MFImporter.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3MF/D3MFOpcPackage.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDImporter.cpp.o
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDPmxParser.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.h:109,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:50,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:1148,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFImporter.cpp:45:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl: In member function ‘o3dgc::O3DGCErrorCode o3dgc::SC3DMCDecoder<T>::DecodeHeader(o3dgc::IndexedFaceSet<T>&, const o3dgc::BinaryStream&)’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:75:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   75 |         ifs.SetSolid           ((mask & 2) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:76:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   76 |         ifs.SetConvex          ((mask & 4) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:77:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   77 |         ifs.SetIsTriangularMesh((mask & 8) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+[ 67%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjExporter.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:66:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+[ 68%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OpenGEX/OpenGEXExporter.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.h:67,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Importer.cpp:46:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+[ 68%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyExporter.cpp.o
+[ 68%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSExporter.cpp.o
+[ 68%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assbin/AssbinExporter.cpp.o
+[ 69%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assbin/AssbinFileWriter.cpp.o
+[ 69%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assxml/AssxmlExporter.cpp.o
+[ 69%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assxml/AssxmlFileWriter.cpp.o
+[ 69%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/M3D/M3DExporter.cpp.o
+[ 70%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Collada/ColladaExporter.cpp.o
+[ 70%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXExporter.cpp.o
+[ 70%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXExportNode.cpp.o
+[ 70%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/FBX/FBXExportProperty.cpp.o
+[ 71%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/STL/STLExporter.cpp.o
+[ 71%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X/XFileExporter.cpp.o
+[ 71%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DExporter.cpp.o
+[ 71%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF/glTFExporter.cpp.o
+[ 71%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/glTF2/glTF2Exporter.cpp.o
+[ 72%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3MF/D3MFExporter.cpp.o
+[ 72%] Building C object libs/assimp/code/CMakeFiles/assimp.dir/Assjson/cencode.c.o
+[ 72%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assjson/json_exporter.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.h:109,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:50,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:1148,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAssetWriter.h:55,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFExporter.cpp:46:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl: In member function ‘o3dgc::O3DGCErrorCode o3dgc::SC3DMCDecoder<T>::DecodeHeader(o3dgc::IndexedFaceSet<T>&, const o3dgc::BinaryStream&)’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:75:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   75 |         ifs.SetSolid           ((mask & 2) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:76:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   76 |         ifs.SetConvex          ((mask & 4) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/Open3DGC/o3dgcSC3DMCDecoder.inl:77:44: warning: bitwise comparison always evaluates to false [-Wtautological-compare]
+   77 |         ifs.SetIsTriangularMesh((mask & 8) == 1);
+      |                                 ~~~~~~~~~~ ^~ ~
+[ 72%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Assjson/mesh_splitter.cpp.o
+[ 73%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Step/StepExporter.cpp.o
+[ 73%] Building C object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/unzip/ioapi.c.o
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fopen_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:71:18: warning: old-style function definition [-Wold-style-definition]
+   71 | voidpf ZCALLBACK fopen_file_func (opaque, filename, mode)
+      |                  ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fread_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:93:17: warning: old-style function definition [-Wold-style-definition]
+   93 | uLong ZCALLBACK fread_file_func (opaque, stream, buf, size)
+      |                 ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fwrite_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:105:17: warning: old-style function definition [-Wold-style-definition]
+  105 | uLong ZCALLBACK fwrite_file_func (opaque, stream, buf, size)
+      |                 ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘ftell_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:116:16: warning: old-style function definition [-Wold-style-definition]
+  116 | long ZCALLBACK ftell_file_func (opaque, stream)
+      |                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fseek_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:125:16: warning: old-style function definition [-Wold-style-definition]
+  125 | long ZCALLBACK fseek_file_func (opaque, stream, offset, origin)
+      |                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fclose_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:151:15: warning: old-style function definition [-Wold-style-definition]
+  151 | int ZCALLBACK fclose_file_func (opaque, stream)
+      |               ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘ferror_file_func’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:160:15: warning: old-style function definition [-Wold-style-definition]
+  160 | int ZCALLBACK ferror_file_func (opaque, stream)
+      |               ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c: In function ‘fill_fopen_filefunc’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/ioapi.c:169:6: warning: old-style function definition [-Wold-style-definition]
+  169 | void fill_fopen_filefunc (pzlib_filefunc_def)
+      |      ^~~~~~~~~~~~~~~~~~~
+[ 73%] Building C object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/unzip/unzip.c.o
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_getByte’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:178:11: warning: old-style function definition [-Wold-style-definition]
+  178 | local int unzlocal_getByte(pzlib_filefunc_def,filestream,pi)
+      |           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_getShort’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:208:11: warning: old-style function definition [-Wold-style-definition]
+  208 | local int unzlocal_getShort (pzlib_filefunc_def,filestream,pX)
+      |           ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_getLong’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:236:11: warning: old-style function definition [-Wold-style-definition]
+  236 | local int unzlocal_getLong (pzlib_filefunc_def,filestream,pX)
+      |           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘strcmpcasenosensitive_internal’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:269:11: warning: old-style function definition [-Wold-style-definition]
+  269 | local int strcmpcasenosensitive_internal (fileName1,fileName2)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzStringFileNameCompare’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:312:20: warning: old-style function definition [-Wold-style-definition]
+  312 | extern int ZEXPORT unzStringFileNameCompare (fileName1,fileName2,iCaseSensitivity)
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_SearchCentralDir’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:338:13: warning: old-style function definition [-Wold-style-definition]
+  338 | local uLong unzlocal_SearchCentralDir(pzlib_filefunc_def,filestream)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpen2’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:404:24: warning: old-style function definition [-Wold-style-definition]
+  404 | extern unzFile ZEXPORT unzOpen2 (path, pzlib_filefunc_def)
+      |                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpen’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:507:24: warning: old-style function definition [-Wold-style-definition]
+  507 | extern unzFile ZEXPORT unzOpen (path)
+      |                        ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzClose’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:518:20: warning: old-style function definition [-Wold-style-definition]
+  518 | extern int ZEXPORT unzClose (file)
+      |                    ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetGlobalInfo’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:539:20: warning: old-style function definition [-Wold-style-definition]
+  539 | extern int ZEXPORT unzGetGlobalInfo (file,pglobal_info)
+      |                    ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_DosDateToTmuDate’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:555:12: warning: old-style function definition [-Wold-style-definition]
+  555 | local void unzlocal_DosDateToTmuDate (ulDosDate, ptm)
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_GetCurrentFileInfoInternal’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:584:11: warning: old-style function definition [-Wold-style-definition]
+  584 | local int unzlocal_GetCurrentFileInfoInternal (file,
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetCurrentFileInfo’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:762:20: warning: old-style function definition [-Wold-style-definition]
+  762 | extern int ZEXPORT unzGetCurrentFileInfo (file,
+      |                    ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGoToFirstFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:786:20: warning: old-style function definition [-Wold-style-definition]
+  786 | extern int ZEXPORT unzGoToFirstFile (file)
+      |                    ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGoToNextFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:808:20: warning: old-style function definition [-Wold-style-definition]
+  808 | extern int ZEXPORT unzGoToNextFile (file)
+      |                    ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzLocateFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:842:20: warning: old-style function definition [-Wold-style-definition]
+  842 | extern int ZEXPORT unzLocateFile (file, szFileName, iCaseSensitivity)
+      |                    ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetFilePos’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:921:20: warning: old-style function definition [-Wold-style-definition]
+  921 | extern int ZEXPORT unzGetFilePos(file, file_pos)
+      |                    ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGoToFilePos’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:939:20: warning: old-style function definition [-Wold-style-definition]
+  939 | extern int ZEXPORT unzGoToFilePos(file, file_pos)
+      |                    ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzlocal_CheckCurrentFileCoherencyHeader’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:975:11: warning: old-style function definition [-Wold-style-definition]
+  975 | local int unzlocal_CheckCurrentFileCoherencyHeader (s,piSizeVar,
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpenCurrentFile3’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1067:20: warning: old-style function definition [-Wold-style-definition]
+ 1067 | extern int ZEXPORT unzOpenCurrentFile3 (file, method, level, raw, password)
+      |                    ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpenCurrentFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1212:20: warning: old-style function definition [-Wold-style-definition]
+ 1212 | extern int ZEXPORT unzOpenCurrentFile (file)
+      |                    ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpenCurrentFilePassword’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1218:20: warning: old-style function definition [-Wold-style-definition]
+ 1218 | extern int ZEXPORT unzOpenCurrentFilePassword (file, password)
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzOpenCurrentFile2’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1225:20: warning: old-style function definition [-Wold-style-definition]
+ 1225 | extern int ZEXPORT unzOpenCurrentFile2 (file,method,level,raw)
+      |                    ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzReadCurrentFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1244:20: warning: old-style function definition [-Wold-style-definition]
+ 1244 | extern int ZEXPORT unzReadCurrentFile  (file, buf, len)
+      |                    ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unztell’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1405:24: warning: old-style function definition [-Wold-style-definition]
+ 1405 | extern z_off_t ZEXPORT unztell (file)
+      |                        ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzeof’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1425:20: warning: old-style function definition [-Wold-style-definition]
+ 1425 | extern int ZEXPORT unzeof (file)
+      |                    ^~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetLocalExtrafield’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1458:20: warning: old-style function definition [-Wold-style-definition]
+ 1458 | extern int ZEXPORT unzGetLocalExtrafield (file,buf,len)
+      |                    ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzCloseCurrentFile’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1509:20: warning: old-style function definition [-Wold-style-definition]
+ 1509 | extern int ZEXPORT unzCloseCurrentFile (file)
+      |                    ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetGlobalComment’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1552:20: warning: old-style function definition [-Wold-style-definition]
+ 1552 | extern int ZEXPORT unzGetGlobalComment (file, szComment, uSizeBuf)
+      |                    ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzGetOffset’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1584:22: warning: old-style function definition [-Wold-style-definition]
+ 1584 | extern uLong ZEXPORT unzGetOffset (file)
+      |                      ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c: In function ‘unzSetOffset’:
+/mnt/train/SHADERed/libs/assimp/contrib/unzip/unzip.c:1600:20: warning: old-style function definition [-Wold-style-definition]
+ 1600 | extern int ZEXPORT unzSetOffset (file, pos)
+      |                    ^~~~~~~~~~~~
+[ 73%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/poly2tri/poly2tri/common/shapes.cc.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.h:66:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF/glTFAsset.inl:1307:20:   required from here
+ 1307 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+[ 74%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/poly2tri/poly2tri/sweep/advancing_front.cc.o
+[ 74%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/poly2tri/poly2tri/sweep/cdt.cc.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.h:67,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2AssetWriter.h:55,
+                 from /mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Exporter.cpp:46:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetObjectRaw(Member*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; Member = rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2430:55:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndObject(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2430 |         stack_.template Top<ValueType>()->SetObjectRaw(members, memberCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2069:40:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2069 |             bool hr = handler.EndObject(c);
+      |                       ~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2015:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} with no trivial copy-assignment; use copy-assignment instead [-Wclass-memaccess]
+ 2015 |             std::memcpy(m, members, count * sizeof(Member));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:71:8: note: ‘rapidjson::GenericValue<rapidjson::UTF8<> >::Member’ {aka ‘struct rapidjson::GenericMember<rapidjson::UTF8<>, rapidjson::MemoryPoolAllocator<> >’} declared here
+   71 | struct GenericMember {
+      |        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h: In instantiation of ‘void rapidjson::GenericValue<Encoding, Allocator>::SetArrayRaw(rapidjson::GenericValue<Encoding, Allocator>*, rapidjson::SizeType, Allocator&) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; rapidjson::SizeType = unsigned int]’:
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2438:54:   required from ‘bool rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::EndArray(rapidjson::SizeType) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; rapidjson::SizeType = unsigned int]’
+ 2438 |         stack_.template Top<ValueType>()->SetArrayRaw(elements, elementCount, GetAllocator());
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2099:39:   required from ‘rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParsingState rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Transit(IterativeParsingState, Token, IterativeParsingState, InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2099 |             bool hr = handler.EndArray(c);
+      |                       ~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:2173:58:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::IterativeParse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2173 |             IterativeParsingState d = Transit<parseFlags>(state, t, n, is, handler);
+      |                                       ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/reader.h:560:46:   required from ‘rapidjson::ParseResult rapidjson::GenericReader<SourceEncoding, TargetEncoding, StackAllocator>::Parse(InputStream&, Handler&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Handler = rapidjson::GenericDocument<rapidjson::UTF8<> >; SourceEncoding = rapidjson::UTF8<>; TargetEncoding = rapidjson::UTF8<>; StackAllocator = rapidjson::CrtAllocator]’
+  560 |             return IterativeParse<parseFlags>(is, handler);
+      |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2226:57:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; SourceEncoding = rapidjson::UTF8<>; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2226 |         parseResult_ = reader.template Parse<parseFlags>(is, *this);
+      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2242:62:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseStream(InputStream&) [with unsigned int parseFlags = 1; InputStream = rapidjson::GenericInsituStringStream<rapidjson::UTF8<> >; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator]’
+ 2242 |         return ParseStream<parseFlags, Encoding, InputStream>(is);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2267:58:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with unsigned int parseFlags = 0; Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2267 |         return ParseStream<parseFlags | kParseInsituFlag>(s);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2275:47:   required from ‘rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>& rapidjson::GenericDocument<Encoding, Allocator, StackAllocator>::ParseInsitu(Ch*) [with Encoding = rapidjson::UTF8<>; Allocator = rapidjson::MemoryPoolAllocator<>; StackAllocator = rapidjson::CrtAllocator; Ch = char]’
+ 2275 |         return ParseInsitu<kParseDefaultFlags>(str);
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+/mnt/train/SHADERed/libs/assimp/code/glTF2/glTF2Asset.inl:1393:20:   required from here
+ 1393 |     doc.ParseInsitu(&sceneData[0]);
+      |     ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:2002:24: warning: ‘void* memcpy(void*, const void*, size_t)’ writing to an object of type ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [-Wclass-memaccess]
+ 2002 |             std::memcpy(e, values, count * sizeof(GenericValue));
+      |             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/../contrib/rapidjson/include/rapidjson/document.h:551:7: note: ‘class rapidjson::GenericValue<rapidjson::UTF8<> >’ declared here
+  551 | class GenericValue {
+      |       ^~~~~~~~~~~~
+[ 74%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/poly2tri/poly2tri/sweep/sweep.cc.o
+[ 74%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/poly2tri/poly2tri/sweep/sweep_context.cc.o
+[ 74%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/clipper/clipper.cpp.o
+[ 75%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/OpenDDLParser.cpp.o
+[ 75%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/DDLNode.cpp.o
+[ 75%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/OpenDDLCommon.cpp.o
+[ 75%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/OpenDDLExport.cpp.o
+[ 76%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/Value.cpp.o
+[ 76%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/openddlparser/code/OpenDDLStream.cpp.o
+[ 76%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/Open3DGC/o3dgcArithmeticCodec.cpp.o
+[ 76%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/Open3DGC/o3dgcDynamicVectorDecoder.cpp.o
+[ 77%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/Open3DGC/o3dgcDynamicVectorEncoder.cpp.o
+[ 77%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/Open3DGC/o3dgcTools.cpp.o
+[ 77%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/Open3DGC/o3dgcTriangleFans.cpp.o
+[ 77%] Building C object libs/assimp/code/CMakeFiles/assimp.dir/__/contrib/zip/src/zip.c.o
+[ 78%] Linking CXX static library ../../../lib/libassimp.a
+[ 78%] Built target assimp
+[ 78%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/UIHelper.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/InterfaceManager.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/main.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/Export/ExportCPP.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/EditorEngine.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/Debug/ExpressionCompiler.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/GUIManager.cpp.o
+[ 80%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ArcBallCamera.cpp.o
+[ 81%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/AudioAnalyzer.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/UIHelper.cpp: In static member function ‘static bool ed::UIHelper::Spinner(const char*, float, int, unsigned int)’:
+/mnt/train/SHADERed/src/SHADERed/UI/UIHelper.cpp:62:9: warning: control reaches end of non-void function [-Wreturn-type]
+   62 |         }
+      |         ^
+[ 81%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/AudioShaderStream.cpp.o
+[ 81%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/CameraSnapshots.cpp.o
+[ 81%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/CommandLineOptionParser.cpp.o
+[ 82%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/DefaultState.cpp.o
+[ 82%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/DebugInformation.cpp.o
+[ 82%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/DebugAdapterProtocol.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/CommandLineOptionParser.cpp: In member function ‘void ed::CommandLineOptionParser::Parse(const std::filesystem::__cxx11::path&, int, char**)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/CommandLineOptionParser.cpp:340:54: warning: field width specifier ‘*’ expects argument of type ‘int’, but argument 3 has type ‘std::__cxx11::basic_string<char>::size_type’ {aka ‘long unsigned int’} [-Wformat=]
+  340 |                                         printf("\t%s%*s - %s\n", opt.first.c_str(), maxSize - opt.first.size(), "", opt.second.c_str());
+      |                                                     ~^~                             ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                                      |                                      |
+      |                                                      int                                    std::__cxx11::basic_string<char>::size_type {aka long unsigned int}
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp: In lambda function:
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp:246:32: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  246 |                         return (void*)tex;
+      |                                ^~~~~~~~~~
+[ 82%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/FirstPersonCamera.cpp.o
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp: In member function ‘void ed::GUIManager::m_splashScreenRender()’:
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp:1093:38: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1093 |                         ImGui::Image((ImTextureID)m_splashScreenIcon, ImVec2(350, 324));
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp:1096:38: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1096 |                         ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(199, 46));
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp:1099:38: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1099 |                         ImGui::Image((ImTextureID)m_sponsorDigitalOcean, ImVec2(200, 200));
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/GUIManager.cpp:1102:38: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1102 |                         ImGui::Image((ImTextureID)m_sponsorEmbark, ImVec2(284, 64));
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 82%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/FunctionVariableManager.cpp.o
+[ 83%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/FrameAnalysis.cpp.o
+[ 83%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/GizmoObject.cpp.o
+[ 83%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ShaderCompiler.cpp.o
+[ 83%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/KeyboardShortcuts.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/GizmoObject.cpp: In member function ‘int ed::GizmoObject::m_getBasicAxisSelection(int, int, int, int, float&)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/GizmoObject.cpp:526:55: warning: ignoring return value of ‘bool glm::intersectRayPlane(const genType&, const genType&, const genType&, const genType&, typename genType::value_type&) [with genType = vec<4, float, glm::packed_highp>; typename genType::value_type = float]’, declared with attribute ‘nodiscard’ [-Wunused-result]
+  526 |                                 glm::intersectRayPlane(glm::vec4(rayOrigin, 1), glm::vec4(rayDir, 0), glm::vec4(planeOrigin, 1), planeNormal, depth);
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/glm/gtx/intersect.hpp:90,
+                 from /mnt/train/SHADERed/src/SHADERed/Objects/GizmoObject.cpp:9:
+/usr/include/glm/gtx/intersect.inl:6:33: note: declared here
+    6 |         GLM_FUNC_QUALIFIER bool intersectRayPlane
+      |                                 ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::m_setupVM(std::vector<unsigned int>&)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:443:48: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+  443 |                 spvm_state_set_extension(m_vm, "GLSL.std.450", m_vmGLSL);
+      |                                                ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::m_setupWorkgroup()’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:468:100: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+  468 |                                         spvm_result_t glsl_std_450 = spvm_state_get_result(worker, "GLSL.std.450");
+      |                                                                                                    ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:474:99: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+  474 |                                         spvm_word fnMain = spvm_state_get_result_location(worker, "main");
+      |                                                                                                   ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::m_copyUniforms(ed::PipelineItem*, ed::PipelineItem*, ed::PixelInformation*)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1126:82: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1126 |                                                                 img->user_data = (void*)pluginCustomTexture;
+      |                                                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1128:82: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1128 |                                                                 img->user_data = (void*)textureID;
+      |                                                                                  ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘spvm_result* ed::DebugInformation::Immediate(const std::string&, spvm_result*&)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1463:86: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 1463 |                 spvm_result_t cbufferSource = spvm_state_get_result_with_value(m_vm, "");
+      |                                                                                      ^~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1464:95: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 1464 |                 spvm_result_t cbufferTarget = spvm_state_get_result_with_value(m_vmImmediate, "");
+      |                                                                                               ^~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1469:87: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 1469 |                 spvm_word fnImmediate = spvm_state_get_result_location(m_vmImmediate, "$$_shadered_immediate");
+      |                                                                                       ^~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘glm::vec4 ed::DebugInformation::ExecuteVertexShader()’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1644:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 1644 |                         fnMain = spvm_state_get_result_location(m_vm, "main");
+      |                                                                       ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘glm::vec4 ed::DebugInformation::ExecutePixelShader(int, int, int)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:1957:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 1957 |                         fnMain = spvm_state_get_result_location(m_vm, "main");
+      |                                                                       ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::ExecuteGeometryShader()’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:2156:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 2156 |                         fnMain = spvm_state_get_result_location(m_vm, "main");
+      |                                                                       ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::ExecuteTessellationControlShader(unsigned int)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:2337:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 2337 |                         fnMain = spvm_state_get_result_location(m_vm, "main");
+      |                                                                       ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp: In member function ‘void ed::DebugInformation::PrepareDebugger()’:
+/mnt/train/SHADERed/src/SHADERed/Objects/DebugInformation.cpp:2414:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+ 2414 |                         fnMain = spvm_state_get_result_location(m_vm, "main");
+      |                                                                       ^~~~~~
+[ 84%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/Logger.cpp.o
+[ 84%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/InputLayout.cpp.o
+[ 84%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/MessageStack.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/FrameAnalysis.cpp: In member function ‘spvm_result* ed::FrameAnalysis::m_executeBreakpoint(int, spvm_result*&)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/FrameAnalysis.cpp:193:76: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+  193 |                 spvm_word fnImmediate = spvm_state_get_result_location(vm, "$$_shadered_immediate");
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/FrameAnalysis.cpp: In member function ‘glm::vec4 ed::FrameAnalysis::m_executePixelShaderWithBreakpoints(int, int, uint8_t&, int)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/FrameAnalysis.cpp:263:71: warning: ISO C++ forbids converting a string constant to ‘spvm_string’ {aka ‘char*’} [-Wwrite-strings]
+  263 |                 spvm_word fnMain = spvm_state_get_result_location(vm, "main");
+      |                                                                       ^~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/ShaderCompiler.cpp: In static member function ‘static std::string ed::ShaderCompiler::ConvertToGLSL(const std::vector<unsigned int>&, ed::ShaderLanguage, ed::ShaderStage, bool, bool, ed::MessageStack*, bool)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/ShaderCompiler.cpp:176:51: warning: comparison between ‘enum spv::ExecutionModel’ and ‘enum spv::ExecutionMode’ [-Wenum-compare]
+  176 |                 if (!entry_point.empty() && model != spv::ExecutionModeMax)
+      |                                             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Objects/ShaderCompiler.cpp: In static member function ‘static std::string ed::ShaderCompiler::ConvertToHLSL(const std::vector<unsigned int>&, ed::ShaderStage)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/ShaderCompiler.cpp:384:51: warning: comparison between ‘enum spv::ExecutionModel’ and ‘enum spv::ExecutionMode’ [-Wenum-compare]
+  384 |                 if (!entry_point.empty() && model != spv::ExecutionModeMax)
+      |                                             ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+[ 84%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/Names.cpp.o
+[ 85%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ObjectManager.cpp.o
+[ 85%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/PipelineManager.cpp.o
+[ 85%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ProjectParser.cpp.o
+[ 85%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/RenderEngine.cpp.o
+[ 85%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/Settings.cpp.o
+[ 86%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ShaderVariableContainer.cpp.o
+[ 86%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/SPIRVParser.cpp.o
+[ 86%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/SystemVariableManager.cpp.o
+[ 86%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/ThemeContainer.cpp.o
+[ 87%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/PluginManager.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/ThemeContainer.cpp: In member function ‘ImVec4 ed::ThemeContainer::m_loadColor(const INIReader&, const std::string&)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/ThemeContainer.cpp:32:9: warning: control reaches end of non-void function [-Wreturn-type]
+   32 |         }
+      |         ^
+[ 87%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Objects/WebAPI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/RenderEngine.cpp: In member function ‘void ed::RenderEngine::m_pickItem(ed::PipelineItem*, bool)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/RenderEngine.cpp:1810:56: warning: ignoring return value of ‘bool glm::intersectRaySphere(const genType&, const genType&, const genType&, typename genType::value_type, typename genType::value_type&) [with genType = vec<3, float, glm::packed_highp>; typename genType::value_type = float]’, declared with attribute ‘nodiscard’ [-Wunused-result]
+ 1810 |                                 glm::intersectRaySphere(vec3Origin, glm::normalize(vec3Dir), glm::vec3(0), r, myDist);
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/glm/gtx/intersect.hpp:90,
+                 from /mnt/train/SHADERed/src/SHADERed/Objects/RenderEngine.cpp:15:
+/usr/include/glm/gtx/intersect.inl:135:33: note: declared here
+  135 |         GLM_FUNC_QUALIFIER bool intersectRaySphere
+      |                                 ^~~~~~~~~~~~~~~~~~
+[ 87%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/CubemapPreview.cpp.o
+[ 87%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/Magnifier.cpp.o
+[ 88%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/StatsPage.cpp.o
+[ 88%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/VariableValueEdit.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Objects/PluginManager.cpp: In member function ‘const std::string& ed::PluginManager::GetPluginName(ed::IPlugin1*)’:
+/mnt/train/SHADERed/src/SHADERed/Objects/PluginManager.cpp:1192:24: warning: returning reference to temporary [-Wreturn-local-addr]
+ 1192 |                 return "";
+      |                        ^~
+[ 88%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/DebuggerOutline.cpp.o
+[ 88%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/NotificationSystem.cpp.o
+[ 89%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Tools/Texture3DPreview.cpp.o
+[ 89%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/AutoUI.cpp.o
+[ 89%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/BreakpointListUI.cpp.o
+[ 89%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/FunctionStackUI.cpp.o
+[ 89%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/GeometryOutputUI.cpp.o
+[ 90%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/TessellationControlOutputUI.cpp.o
+[ 90%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/ImmediateUI.cpp.o
+[ 90%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/ValuesUI.cpp.o
+[ 90%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/WatchUI.cpp.o
+[ 91%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/Debug/VectorWatchUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/GeometryOutputUI.cpp: In member function ‘virtual void ed::DebugGeometryOutputUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/GeometryOutputUI.cpp:365:46: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  365 |                                 ImGui::Image((ImTextureID)px->RenderTexture->Texture, ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/GeometryOutputUI.cpp:367:46: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  367 |                                 ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+      |                                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/GeometryOutputUI.cpp:376:30: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  376 |                 ImGui::Image((ImTextureID)m_fboColor, ImVec2(m_lastFBOWidth, m_lastFBOHeight), ImVec2(0, 1), ImVec2(1, 0), ImVec4(0.9f, 0.9f, 0.9f, 0.6f));
+      |                              ^~~~~~~~~~~~~~~~~~~~~~~
+[ 91%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/BrowseOnlineUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/TessellationControlOutputUI.cpp: In member function ‘virtual void ed::DebugTessControlOutputUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/TessellationControlOutputUI.cpp:71:30: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+   71 |                 ImGui::Image((ImTextureID)m_color, contentSize, ImVec2(0, 1), ImVec2(1, 0));
+      |                              ^~~~~~~~~~~~~~~~~~~~
+[ 91%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/CodeEditorUI.cpp.o
+[ 91%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/CreateItemUI.cpp.o
+[ 92%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/MessageOutputUI.cpp.o
+[ 92%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/ObjectListUI.cpp.o
+[ 92%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/ObjectPreviewUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/VectorWatchUI.cpp: In member function ‘virtual void ed::DebugVectorWatchUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/Debug/VectorWatchUI.cpp:387:30: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  387 |                 ImGui::Image((ImTextureID)m_fboColor, ImVec2(imgWidth, imgHeight), ImVec2(0, 1), ImVec2(1, 0));
+      |                              ^~~~~~~~~~~~~~~~~~~~~~~
+[ 92%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/OptionsUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/BrowseOnlineUI.cpp: In member function ‘virtual void ed::BrowseOnlineUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/BrowseOnlineUI.cpp:138:70: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  138 |                                                         ImGui::Image((ImTextureID)m_onlineShaderThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+/mnt/train/SHADERed/src/SHADERed/UI/BrowseOnlineUI.cpp:235:62: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  235 |                                                 ImGui::Image((ImTextureID)m_onlinePluginThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+/mnt/train/SHADERed/src/SHADERed/UI/BrowseOnlineUI.cpp:343:62: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  343 |                                                 ImGui::Image((ImTextureID)m_onlineThemeThumbnail[i], ImVec2(256, 144), ImVec2(0, 1), ImVec2(1, 0));
+[ 93%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/PinnedUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/MessageOutputUI.cpp: In member function ‘virtual void ed::MessageOutputUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/MessageOutputUI.cpp:86:52: warning: format not a string literal and no format arguments [-Wformat-security]
+   86 |                                         ImGui::Text(std::to_string(m->Line).c_str());
+      |                                         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/MessageOutputUI.cpp:89:51: warning: format not a string literal and no format arguments [-Wformat-security]
+   89 |                                 ImGui::TextColored(color, m->Text.c_str());
+      |                                 ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+[ 93%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/PipelineUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/ObjectPreviewUI.cpp: In member function ‘virtual void ed::ObjectPreviewUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/ObjectPreviewUI.cpp:325:76: warning: format not a string literal and no format arguments [-Wformat-security]
+  325 |                                                                 ImGui::Text(VARIABLE_TYPE_NAMES[(int)m_cachedBufFormat[i][j]]);
+      |                                                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 93%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/PixelInspectUI.cpp.o
+[ 93%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/PreviewUI.cpp.o
+[ 93%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/PropertyUI.cpp.o
+[ 94%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/FrameAnalysisUI.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp: In member function ‘void ed::OptionsUI::m_renderShortcuts()’:
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp:752:36: warning: format not a string literal and no format arguments [-Wformat-security]
+  752 |                         ImGui::Text(names[i].c_str());
+      |                         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp:760:44: warning: format not a string literal and no format arguments [-Wformat-security]
+  760 |                                 ImGui::Text(txt.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp: In member function ‘void ed::OptionsUI::m_renderCodeSnippets()’:
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp:1079:44: warning: format not a string literal and no format arguments [-Wformat-security]
+ 1079 |                                 ImGui::Text(snippet.Display.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp:1081:44: warning: format not a string literal and no format arguments [-Wformat-security]
+ 1081 |                                 ImGui::Text(snippet.Search.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/OptionsUI.cpp:1083:44: warning: format not a string literal and no format arguments [-Wformat-security]
+ 1083 |                                 ImGui::Text(snippet.Code.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+[ 94%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/UI/ProfilerUI.cpp.o
+[ 94%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/AudioPlayer.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/PipelineUI.cpp: In member function ‘void ed::PipelineUI::m_renderChangeVariablesUI()’:
+/mnt/train/SHADERed/src/SHADERed/UI/PipelineUI.cpp:1184:49: warning: format not a string literal and no format arguments [-Wformat-security]
+ 1184 |                         ImGui::Text(i.Variable->Name);
+      |                                     ~~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp: In lambda function:
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:464:127: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  464 |                                         m_data->Plugins.HandleApplicationEvent(ed::plugin::ApplicationEvent::DebuggerStepped, (void*)curLine, nullptr);
+      |                                                                                                                               ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp: In lambda function:
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:524:60: warning: format not a string literal and no format arguments [-Wformat-security]
+  524 |                                                 ImGui::Text(resType->name);
+      |                                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:557:70: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  557 |                                                         ImGui::Image((ImTextureID)m_cubePrev.GetTexture(), ImVec2(128.0f, 128.0f * (375.0f / 512.0f)), ImVec2(0, 1), ImVec2(1, 0));
+      |                                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:585:60: warning: format not a string literal and no format arguments [-Wformat-security]
+  585 |                                                 ImGui::Text(ss.str().c_str());
+      |                                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp: In lambda function:
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:624:44: warning: format not a string literal and no format arguments [-Wformat-security]
+  624 |                                 ImGui::Text(id.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PixelInspectUI.cpp:632:44: warning: format not a string literal and no format arguments [-Wformat-security]
+  632 |                                 ImGui::Text(m_cacheValue.c_str());
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+[ 94%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/Timer.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp: In member function ‘virtual void ed::PreviewUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:499:30: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  499 |                 ImGui::Image((void*)displayImagePtr, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+      |                              ^~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:524:93: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  524 |                                         ImGui::Image(m_view == PreviewView::VariableValue ? (ImTextureID)m_viewVariableValue : (ImTextureID)m_viewHeatmap, ImVec2(pixelCount * pixelMult, pixelCount * pixelMult), ImVec2(selectionPos.x - (pixelCount / 2) * pixelSize.x, selectionPos.y + (pixelCount / 2 + 1) * pixelSize.y), ImVec2(selectionPos.x + (pixelCount / 2 + 1) * pixelSize.x, selectionPos.y - (pixelCount / 2) * pixelSize.y));
+      |                                                                                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:524:128: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  524 |                                         ImGui::Image(m_view == PreviewView::VariableValue ? (ImTextureID)m_viewVariableValue : (ImTextureID)m_viewHeatmap, ImVec2(pixelCount * pixelMult, pixelCount * pixelMult), ImVec2(selectionPos.x - (pixelCount / 2) * pixelSize.x, selectionPos.y + (pixelCount / 2 + 1) * pixelSize.y), ImVec2(selectionPos.x + (pixelCount / 2 + 1) * pixelSize.x, selectionPos.y - (pixelCount / 2) * pixelSize.y));
+      |                                                                                                                                ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:605:38: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  605 |                         ImGui::Image((void*)m_overlayColor, imageSize, ImVec2(zPos.x, zPos.y + zSize.y), ImVec2(zPos.x + zSize.x, zPos.y));
+      |                                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp: In member function ‘void ed::PreviewUI::m_renderAnalyzerPopup()’:
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:1458:54: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1458 |                                         ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), iSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, isFullFrame ? 1.0f : 0.5f));
+      |                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PreviewUI.cpp:1499:70: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 1499 |                                                         ImGui::Image((ImTextureID)m_data->Renderer.GetTexture(), ImVec2((m_regionEnd.x - m_regionStart.x) * iSize.x, (m_regionEnd.y - m_regionStart.y) * iSize.y), ImVec2(m_regionStart.x, 1.0f - m_regionStart.y), ImVec2(m_regionEnd.x, 1.0f - m_regionEnd.y));
+      |                                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 95%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/Model.cpp.o
+/mnt/train/SHADERed/src/SHADERed/UI/PropertyUI.cpp: In member function ‘virtual void ed::PropertyUI::Update(float)’:
+/mnt/train/SHADERed/src/SHADERed/UI/PropertyUI.cpp:38:56: warning: format not a string literal and no format arguments [-Wformat-security]
+   38 |                                 ImGui::Text(m_current->Name);
+      |                                             ~~~~~~~~~~~^~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PropertyUI.cpp:39:44: warning: format not a string literal and no format arguments [-Wformat-security]
+   39 |                                 ImGui::Text(PIPELINE_ITEM_NAMES[(int)m_current->Type]);
+      |                                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/UI/PropertyUI.cpp:63:75: warning: format not a string literal and no format arguments [-Wformat-security]
+   63 |                                         ImGui::Text(m_currentObj->Plugin->Type);
+      |                                                     ~~~~~~~~~~~~~~~~~~~~~~^~~~
+[ 95%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/GLUtils.cpp.o
+[ 95%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/GeometryFactory.cpp.o
+[ 95%] Building CXX object CMakeFiles/SHADERed.dir/src/SHADERed/Engine/Ray.cpp.o
+[ 96%] Building CXX object CMakeFiles/SHADERed.dir/libs/ImGuiColorTextEdit/TextEditor.cpp.o
+[ 96%] Building CXX object CMakeFiles/SHADERed.dir/libs/imgui/imgui_draw.cpp.o
+[ 96%] Building CXX object CMakeFiles/SHADERed.dir/libs/imgui/imgui_widgets.cpp.o
+[ 96%] Building CXX object CMakeFiles/SHADERed.dir/libs/imgui/imgui.cpp.o
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp: In function ‘void ed::gl::CreateBufferVAO(GLuint&, GLuint, const std::vector<ed::ShaderVariable::ValueType>&, GLuint, std::vector<ed::ShaderVariable::ValueType>)’:
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp:137:134: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  137 |                                 glVertexAttribPointer(fmtIndex, ShaderVariable::GetSize(layitem) / 4, GL_FLOAT, GL_FALSE, rowStride, (void*)curStride);
+      |                                                                                                                                      ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp:176:112: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  176 |                                         glVertexAttribPointer(fmtIndex, colCount, type, GL_FALSE, sizeInBytes, (void*)fmtOffset);
+      |                                                                                                                ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp: In function ‘void ed::gl::CreateVAO(GLuint&, GLuint, const std::vector<ed::InputLayoutItem>&, GLuint, GLuint, std::vector<ed::ShaderVariable::ValueType>)’:
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp:210:111: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  210 |                                 glVertexAttribPointer(fmtIndex, size, GL_FLOAT, GL_FALSE, 18 * sizeof(float), (void*)offset);
+      |                                                                                                               ^~~~~~~~~~~~~
+/mnt/train/SHADERed/src/SHADERed/Engine/GLUtils.cpp:248:112: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  248 |                                         glVertexAttribPointer(fmtIndex, colCount, type, GL_FALSE, sizeInBytes, (void*)fmtOffset);
+      |                                                                                                                ^~~~~~~~~~~~~~~~
+[ 96%] Building CXX object CMakeFiles/SHADERed.dir/libs/imgui/examples/imgui_impl_opengl3.cpp.o
+[ 97%] Building CXX object CMakeFiles/SHADERed.dir/libs/imgui/examples/imgui_impl_sdl.cpp.o
+[ 97%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_cfg.cpp.o
+[ 97%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_cross.cpp.o
+[ 97%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_cross_util.cpp.o
+[ 98%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_cross_parsed_ir.cpp.o
+[ 98%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_glsl.cpp.o
+/mnt/train/SHADERed/libs/ImGuiColorTextEdit/TextEditor.cpp: In member function ‘TextEditor::Breakpoint& TextEditor::GetBreakpoint(int)’:
+/mnt/train/SHADERed/libs/ImGuiColorTextEdit/TextEditor.cpp:1628:1: warning: control reaches end of non-void function [-Wreturn-type]
+ 1628 | }
+      | ^
+[ 98%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_hlsl.cpp.o
+[ 98%] Building CXX object CMakeFiles/SHADERed.dir/libs/SPIRVCross/spirv_parser.cpp.o
+[ 99%] Building CXX object CMakeFiles/SHADERed.dir/libs/pugixml/src/pugixml.cpp.o
+[ 99%] Building CXX object CMakeFiles/SHADERed.dir/libs/ShaderExpressionParser/Parser.cpp.o
+[ 99%] Building CXX object CMakeFiles/SHADERed.dir/libs/ShaderExpressionParser/Tokenizer.cpp.o
+[ 99%] Building CXX object CMakeFiles/SHADERed.dir/libs/misc/ImFileDialog.cpp.o
+[100%] Building C object CMakeFiles/SHADERed.dir/libs/misc/dds.c.o
+[100%] Linking CXX executable bin/SHADERed
+[100%] Built target SHADERed

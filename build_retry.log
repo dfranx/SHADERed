@@ -1,0 +1,798 @@
+[  3%] Built target SpvGenTwoLib
+[  3%] Built target IrrXML
+[  3%] Built target OGLCompiler
+[  6%] Built target SPIRVVM
+[  7%] Built target glslang-build-info
+[  7%] Built target GenericCodeGen
+[  7%] Built target OSDependent
+[  7%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o
+[  7%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o
+[  7%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/nlohmann_json_serializer.cpp.o
+[  8%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/null_json_serializer.cpp.o
+[  9%] Built target HLSL
+[ 12%] Built target SpvGenTwoCommon
+[ 21%] Built target MachineIndependent
+[ 21%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_events.cpp.o
+[ 21%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_requests.cpp.o
+[ 21%] Building CXX object libs/cppdap/CMakeFiles/cppdap.dir/src/protocol_response.cpp.o
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Common/ImporterRegistry.cpp.o
+In file included from /mnt/train/SHADERed/libs/cppdap/src/network.cpp:15:
+/mnt/train/SHADERed/libs/cppdap/include/dap/network.h:31:39: error: ‘uint32_t’ has not been declared
+   31 |                                       uint32_t timeoutMillis = 0);
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/include/dap/network.h:20:1: note: ‘uint32_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   19 | #include <memory>
+  +++ |+#include <cstdint>
+   20 | 
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:175:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  175 |   const std::string prefix;
+      |                     ^~~~~~
+In file included from /usr/include/c++/15/iosfwd:43,
+                 from /usr/include/c++/15/bits/shared_ptr.h:52,
+                 from /usr/include/c++/15/memory:82,
+                 from /mnt/train/SHADERed/libs/cppdap/include/dap/io.h:19,
+                 from /mnt/train/SHADERed/libs/cppdap/src/io.cpp:15:
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual size_t {anonymous}::ReaderSpy::read(void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:165:19: error: variable ‘std::string buf’ has initializer but incomplete type
+  165 |       std::string buf = prefix;
+      |                   ^~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: At global scope:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:202:21: error: field ‘prefix’ has incomplete type ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’}
+  202 |   const std::string prefix;
+      |                     ^~~~~~
+/usr/include/c++/15/bits/stringfwd.h:74:11: note: declaration of ‘std::string’ {aka ‘class std::__cxx11::basic_string<char>’}
+   74 |     class basic_string;
+      |           ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp: In member function ‘virtual bool {anonymous}::WriterSpy::write(const void*, size_t)’:
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:193:17: error: variable ‘std::string buf’ has initializer but incomplete type
+  193 |     std::string buf = prefix;
+      |                 ^~~
+In file included from /usr/include/c++/15/bits/stl_tempbuf.h:61,
+                 from /usr/include/c++/15/memory:68:
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::ReaderSpy; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::ReaderSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::ReaderSpy; _Args = {const shared_ptr<dap::Reader>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::ReaderSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:235:37:   required from here
+  235 |   return std::make_shared<ReaderSpy>(r, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:153:3: note: candidate 1: ‘{anonymous}::ReaderSpy::ReaderSpy(const std::shared_ptr<dap::Reader>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  153 |   ReaderSpy(const std::shared_ptr<dap::Reader>& r,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:155:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  155 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 2: ‘{anonymous}::ReaderSpy::ReaderSpy(const {anonymous}::ReaderSpy&)’
+  151 | class ReaderSpy : public dap::Reader {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate 3: ‘{anonymous}::ReaderSpy::ReaderSpy({anonymous}::ReaderSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:151:7: note: candidate expects 1 argument, 3 provided
+/usr/include/c++/15/bits/stl_construct.h: In instantiation of ‘void std::_Construct(_Tp*, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}]’:
+/usr/include/c++/15/bits/alloc_traits.h:805:19:   required from ‘static void std::allocator_traits<std::allocator<void> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = {anonymous}::WriterSpy; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; allocator_type = std::allocator<void>]’
+  805 |         { std::_Construct(__p, std::forward<_Args>(__args)...); }
+      |           ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:606:39:   required from ‘std::_Sp_counted_ptr_inplace<_Tp, _Alloc, _Lp>::_Sp_counted_ptr_inplace(_Alloc, _Args&& ...) [with _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  606 |           allocator_traits<_Alloc>::construct(__a, _M_ptr(),
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+  607 |               std::forward<_Args>(__args)...); // might throw
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+/usr/include/c++/15/bits/shared_ptr_base.h:969:16:   required from ‘std::__shared_count<_Lp>::__shared_count(_Tp*&, std::_Sp_alloc_shared_tag<_Alloc>, _Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+  969 |           auto __pi = ::new (__mem)
+      |                       ^~~~~~~~~~~~~
+  970 |             _Sp_cp_type(__a._M_a, std::forward<_Args>(__args)...);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr_base.h:1719:14:   required from ‘std::__shared_ptr<_Tp, _Lp>::__shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy; __gnu_cxx::_Lock_policy _Lp = __gnu_cxx::_S_atomic]’
+ 1719 |         : _M_ptr(), _M_refcount(_M_ptr, __tag, std::forward<_Args>(__args)...)
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/shared_ptr.h:463:59:   required from ‘std::shared_ptr<_Tp>::shared_ptr(std::_Sp_alloc_shared_tag<_Tp>, _Args&& ...) [with _Alloc = std::allocator<void>; _Args = {const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&}; _Tp = {anonymous}::WriterSpy]’
+  463 |         : __shared_ptr<_Tp>(__tag, std::forward<_Args>(__args)...)
+      |                                                                  ^
+/usr/include/c++/15/bits/shared_ptr.h:1007:14:   required from ‘std::shared_ptr<typename std::enable_if<(! std::is_array<_Tp>::value), _Tp>::type> std::make_shared(_Args&& ...) [with _Tp = {anonymous}::WriterSpy; _Args = {const shared_ptr<dap::Writer>&, const shared_ptr<dap::Writer>&, const char*&}; typename enable_if<(! is_array<_Tp>::value), _Tp>::type = {anonymous}::WriterSpy]’
+ 1007 |       return shared_ptr<_Tp>(_Sp_alloc_shared_tag<_Alloc>{__a},
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1008 |                              std::forward<_Args>(__args)...);
+      |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:243:37:   required from here
+  243 |   return std::make_shared<WriterSpy>(w, s, prefix);
+      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: error: no matching function for call to ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const char*&)’
+  133 |       ::new(static_cast<void*>(__p)) _Tp(std::forward<_Args>(__args)...);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/15/bits/stl_construct.h:133:7: note: there are 3 candidates
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:180:3: note: candidate 1: ‘{anonymous}::WriterSpy::WriterSpy(const std::shared_ptr<dap::Writer>&, const std::shared_ptr<dap::Writer>&, const std::string&)’
+  180 |   WriterSpy(const std::shared_ptr<dap::Writer>& w,
+      |   ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:182:32: note: no known conversion for argument 3 from ‘const char*’ to ‘const std::string&’ {aka ‘const std::__cxx11::basic_string<char>&’}
+  182 |             const std::string& prefix)
+      |             ~~~~~~~~~~~~~~~~~~~^~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 2: ‘{anonymous}::WriterSpy::WriterSpy(const {anonymous}::WriterSpy&)’
+  178 | class WriterSpy : public dap::Writer {
+      |       ^~~~~~~~~
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate 3: ‘{anonymous}::WriterSpy::WriterSpy({anonymous}::WriterSpy&&)’
+/mnt/train/SHADERed/libs/cppdap/src/io.cpp:178:7: note: candidate expects 1 argument, 3 provided
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:93: libs/cppdap/CMakeFiles/cppdap.dir/src/io.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+[ 22%] Built target glslang
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry2D.cpp.o
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter.cpp.o
+make[2]: *** [libs/cppdap/CMakeFiles/cppdap.dir/build.make:121: libs/cppdap/CMakeFiles/cppdap.dir/src/network.cpp.o] Error 1
+[ 22%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Geometry3D.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Group.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Light.cpp.o
+[ 23%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Metadata.cpp.o
+[ 25%] Built target SPIRV
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Networking.cpp.o
+[ 25%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Postprocess.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Rendering.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Shape.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DImporter_Texturing.cpp.o
+[ 26%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/FIReader.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/X3D/X3DVocabulary.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDImporter.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDPmxParser.cpp.o
+[ 27%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Obj/ObjExporter.cpp.o
+[ 28%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/OpenGEX/OpenGEXExporter.cpp.o
+[ 28%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/Ply/PlyExporter.cpp.o
+[ 28%] Building CXX object libs/assimp/code/CMakeFiles/assimp.dir/3DS/3DSExporter.cpp.o
+In file included from /mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:43:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:67:17: error: ‘uint8_t’ does not name a type
+   67 |                 uint8_t encoding;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:50:1: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+   49 | #include "MMDCpp14.h"
+  +++ |+#include <cstdint>
+   50 | 
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:68:17: error: ‘uint8_t’ does not name a type
+   68 |                 uint8_t uv;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:68:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:69:17: error: ‘uint8_t’ does not name a type
+   69 |                 uint8_t vertex_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:69:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:70:17: error: ‘uint8_t’ does not name a type
+   70 |                 uint8_t texture_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:70:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:71:17: error: ‘uint8_t’ does not name a type
+   71 |                 uint8_t material_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:71:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:72:17: error: ‘uint8_t’ does not name a type
+   72 |                 uint8_t bone_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:72:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:73:17: error: ‘uint8_t’ does not name a type
+   73 |                 uint8_t morph_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:73:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:74:17: error: ‘uint8_t’ does not name a type
+   74 |                 uint8_t rigidbody_index_size;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:74:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxSetting::PmxSetting()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:57:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘encoding’
+   57 |                         : encoding(0)
+      |                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:58:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘uv’
+   58 |                         , uv(0)
+      |                           ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:59:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘vertex_index_size’
+   59 |                         , vertex_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:60:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘texture_index_size’
+   60 |                         , texture_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:61:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘material_index_size’
+   61 |                         , material_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:62:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘bone_index_size’
+   62 |                         , bone_index_size(0)
+      |                           ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:63:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘morph_index_size’
+   63 |                         , morph_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:64:27: error: class ‘pmx::PmxSetting’ does not have any field named ‘rigidbody_index_size’
+   64 |                         , rigidbody_index_size(0)
+      |                           ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:42: error: found ‘:’ in nested-name-specifier, expected ‘::’
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |                                          ^
+      |                                          ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:78:20: error: ‘PmxVertexSkinningType’ has not been declared
+   78 |         enum class PmxVertexSkinningType : uint8_t
+      |                    ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:79:9: error: expected unqualified-id before ‘{’ token
+   79 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:216:17: error: ‘PmxVertexSkinningType’ does not name a type; did you mean ‘PmxVertexSkinningSDEF’?
+  216 |                 PmxVertexSkinningType skinning_type;
+      |                 ^~~~~~~~~~~~~~~~~~~~~
+      |                 PmxVertexSkinningSDEF
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:252:17: error: ‘uint8_t’ does not name a type
+  252 |                 uint8_t flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:252:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:257:17: error: ‘uint8_t’ does not name a type
+  257 |                 uint8_t sphere_op_mode;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:257:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:258:17: error: ‘uint8_t’ does not name a type
+  258 |                 uint8_t common_toon_flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:258:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxMaterial::PmxMaterial()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:227:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘flag’
+  227 |                         , flag(0)
+      |                           ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:231:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘sphere_op_mode’
+  231 |                         , sphere_op_mode(0)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:232:27: error: class ‘pmx::PmxMaterial’ does not have any field named ‘common_toon_flag’
+  232 |                         , common_toon_flag(0)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:279:17: error: ‘uint8_t’ does not name a type
+  279 |                 uint8_t angle_lock;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:279:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxIkLink::PmxIkLink()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:270:27: error: class ‘pmx::PmxIkLink’ does not have any field named ‘angle_lock’
+  270 |                         , angle_lock(0)
+      |                           ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:315:17: error: ‘uint16_t’ does not name a type
+  315 |                 uint16_t bone_flag;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:315:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxBone::PmxBone()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:291:27: error: class ‘pmx::PmxBone’ does not have any field named ‘bone_flag’
+  291 |                         , bone_flag(0)
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  332 |         enum class MorphType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:30: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  332 |         enum class MorphType : uint8_t
+      |                              ^
+      |                              ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:332:20: error: ‘MorphType’ has not been declared
+  332 |         enum class MorphType : uint8_t
+      |                    ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:333:9: error: expected unqualified-id before ‘{’ token
+  333 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  347 |         enum class MorphCategory : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:34: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  347 |         enum class MorphCategory : uint8_t
+      |                                  ^
+      |                                  ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:347:20: error: ‘MorphCategory’ has not been declared
+  347 |         enum class MorphCategory : uint8_t
+      |                    ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:348:9: error: expected unqualified-id before ‘{’ token
+  348 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:431:17: error: ‘uint8_t’ does not name a type
+  431 |                 uint8_t offset_operation;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:431:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:481:17: error: ‘uint8_t’ does not name a type
+  481 |                 uint8_t is_local;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:481:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxMorphImplusOffset::PmxMorphImplusOffset()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:473:27: error: class ‘pmx::PmxMorphImplusOffset’ does not have any field named ‘is_local’
+  473 |                         , is_local(0)
+      |                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:496:17: error: ‘MorphCategory’ does not name a type
+  496 |                 MorphCategory category;
+      |                 ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:497:17: error: ‘MorphType’ does not name a type
+  497 |                 MorphType morph_type;
+      |                 ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:517:17: error: ‘uint8_t’ does not name a type
+  517 |                 uint8_t element_target;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:517:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxFrameElement::PmxFrameElement()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:513:27: error: class ‘pmx::PmxFrameElement’ does not have any field named ‘element_target’
+  513 |                         : element_target(0)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:532:17: error: ‘uint8_t’ does not name a type
+  532 |                 uint8_t frame_flag;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:532:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxFrame::PmxFrame()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:526:27: error: class ‘pmx::PmxFrame’ does not have any field named ‘frame_flag’
+  526 |                         : frame_flag(0)
+      |                           ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:562:17: error: ‘uint8_t’ does not name a type
+  562 |                 uint8_t group;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:562:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:563:17: error: ‘uint16_t’ does not name a type
+  563 |                 uint16_t mask;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:563:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:564:17: error: ‘uint8_t’ does not name a type
+  564 |                 uint8_t shape;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:564:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:573:17: error: ‘uint8_t’ does not name a type
+  573 |                 uint8_t physics_calc_type;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:573:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxRigidBody::PmxRigidBody()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:543:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘group’
+  543 |                         , group(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:544:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘mask’
+  544 |                         , mask(0)
+      |                           ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:545:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘shape’
+  545 |                         , shape(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:551:27: error: class ‘pmx::PmxRigidBody’ does not have any field named ‘physics_calc_type’
+  551 |                         , physics_calc_type(0)
+      |                           ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: At global scope:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:14: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+  577 |         enum class PmxJointType : uint8_t
+      |         ~~~~ ^~~~~
+      |              -----
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:33: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  577 |         enum class PmxJointType : uint8_t
+      |                                 ^
+      |                                 ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:577:20: error: ‘PmxJointType’ has not been declared
+  577 |         enum class PmxJointType : uint8_t
+      |                    ^~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:578:9: error: expected unqualified-id before ‘{’ token
+  578 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:623:17: error: ‘PmxJointType’ does not name a type; did you mean ‘PmxJoint’?
+  623 |                 PmxJointType joint_type;
+      |                 ^~~~~~~~~~~~
+      |                 PmxJoint
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:628:30: error: found ‘:’ in nested-name-specifier, expected ‘::’
+  628 |         enum PmxSoftBodyFlag : uint8_t
+      |                              ^
+      |                              ::
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:628:14: error: ‘PmxSoftBodyFlag’ has not been declared
+  628 |         enum PmxSoftBodyFlag : uint8_t
+      |              ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:629:9: error: expected unqualified-id before ‘{’ token
+  629 |         {
+      |         ^
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:692:17: error: ‘uint8_t’ does not name a type
+  692 |                 uint8_t shape;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:692:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:694:17: error: ‘uint8_t’ does not name a type
+  694 |                 uint8_t group;
+      |                 ^~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:694:17: note: ‘uint8_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:695:17: error: ‘uint16_t’ does not name a type
+  695 |                 uint16_t mask;
+      |                 ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:695:17: note: ‘uint16_t’ is defined in header ‘<cstdint>’; this is probably fixable by adding ‘#include <cstdint>’
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:696:17: error: ‘PmxSoftBodyFlag’ does not name a type; did you mean ‘PmxSoftBody’?
+  696 |                 PmxSoftBodyFlag flag;
+      |                 ^~~~~~~~~~~~~~~
+      |                 PmxSoftBody
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h: In constructor ‘pmx::PmxSoftBody::PmxSoftBody()’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:653:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘shape’
+  653 |                         : shape(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:655:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘group’
+  655 |                         , group(0)
+      |                           ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.h:656:27: error: class ‘pmx::PmxSoftBody’ does not have any field named ‘mask’
+  656 |                         , mask(0)
+      |                           ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxSetting::Read(std::istream*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:127:39: error: ‘encoding’ was not declared in this scope
+  127 |                 stream->read((char*) &encoding, sizeof(uint8_t));
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:128:39: error: ‘uv’ was not declared in this scope
+  128 |                 stream->read((char*) &uv, sizeof(uint8_t));
+      |                                       ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:129:39: error: ‘vertex_index_size’ was not declared in this scope
+  129 |                 stream->read((char*) &vertex_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:130:39: error: ‘texture_index_size’ was not declared in this scope
+  130 |                 stream->read((char*) &texture_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:131:39: error: ‘material_index_size’ was not declared in this scope
+  131 |                 stream->read((char*) &material_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:132:39: error: ‘bone_index_size’ was not declared in this scope
+  132 |                 stream->read((char*) &bone_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:133:39: error: ‘morph_index_size’ was not declared in this scope
+  133 |                 stream->read((char*) &morph_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:134:39: error: ‘rigidbody_index_size’ was not declared in this scope
+  134 |                 stream->read((char*) &rigidbody_index_size, sizeof(uint8_t));
+      |                                       ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF1::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:144:63: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  144 |                 this->bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF2::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:149:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  149 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:150:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  150 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningBDEF4::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:156:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  156 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:157:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  157 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:158:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  158 |                 this->bone_index3 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:159:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  159 |                 this->bone_index4 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningSDEF::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:168:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  168 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:169:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  169 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxVertexSkinningQDEF::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:178:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  178 |                 this->bone_index1 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:179:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  179 |                 this->bone_index2 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:180:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  180 |                 this->bone_index3 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:181:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  181 |                 this->bone_index4 = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxVertex::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:193:46: error: ‘class pmx::PmxSetting’ has no member named ‘uv’
+  193 |                 for (int i = 0; i < setting->uv; ++i)
+      |                                              ^~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:197:45: error: ‘class pmx::PmxVertex’ has no member named ‘skinning_type’; did you mean ‘skinning’?
+  197 |                 stream->read((char*) &this->skinning_type, sizeof(PmxVertexSkinningType));
+      |                                             ^~~~~~~~~~~~~
+      |                                             skinning
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:197:67: error: ‘PmxVertexSkinningType’ was not declared in this scope; did you mean ‘PmxVertexSkinningSDEF’?
+  197 |                 stream->read((char*) &this->skinning_type, sizeof(PmxVertexSkinningType));
+      |                                                                   ^~~~~~~~~~~~~~~~~~~~~
+      |                                                                   PmxVertexSkinningSDEF
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:198:31: error: ‘class pmx::PmxVertex’ has no member named ‘skinning_type’; did you mean ‘skinning’?
+  198 |                 switch (this->skinning_type)
+      |                               ^~~~~~~~~~~~~
+      |                               skinning
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:200:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  200 |                 case PmxVertexSkinningType::BDEF1:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:203:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  203 |                 case PmxVertexSkinningType::BDEF2:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:206:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  206 |                 case PmxVertexSkinningType::BDEF4:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:209:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  209 |                 case PmxVertexSkinningType::SDEF:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:212:22: error: ‘PmxVertexSkinningType’ is not a class, namespace, or enumeration
+  212 |                 case PmxVertexSkinningType::QDEF:
+      |                      ^~~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxMaterial::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:224:67: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  224 |                 this->material_name = ReadString(stream, setting->encoding);
+      |                                                                   ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:225:75: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  225 |                 this->material_english_name = ReadString(stream, setting->encoding);
+      |                                                                           ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:230:45: error: ‘class pmx::PmxMaterial’ has no member named ‘flag’
+  230 |                 stream->read((char*) &this->flag, sizeof(uint8_t));
+      |                                             ^~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:233:74: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  233 |                 this->diffuse_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                          ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:234:73: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  234 |                 this->sphere_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                         ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:235:45: error: ‘class pmx::PmxMaterial’ has no member named ‘sphere_op_mode’
+  235 |                 stream->read((char*) &this->sphere_op_mode, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:236:45: error: ‘class pmx::PmxMaterial’ has no member named ‘common_toon_flag’
+  236 |                 stream->read((char*) &this->common_toon_flag, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:237:27: error: ‘class pmx::PmxMaterial’ has no member named ‘common_toon_flag’
+  237 |                 if (this->common_toon_flag)
+      |                           ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:242:79: error: ‘class pmx::PmxSetting’ has no member named ‘texture_index_size’
+  242 |                         this->toon_texture_index = ReadIndex(stream, setting->texture_index_size);
+      |                                                                               ^~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:244:58: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  244 |                 this->memo = ReadString(stream, setting->encoding);
+      |                                                          ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxIkLink::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:250:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  250 |                 this->link_target = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:251:45: error: ‘class pmx::PmxIkLink’ has no member named ‘angle_lock’
+  251 |                 stream->read((char*) &this->angle_lock, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:252:21: error: ‘angle_lock’ was not declared in this scope
+  252 |                 if (angle_lock == 1)
+      |                     ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxBone::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:261:63: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  261 |                 this->bone_name = ReadString(stream, setting->encoding);
+      |                                                               ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:262:71: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  262 |                 this->bone_english_name = ReadString(stream, setting->encoding);
+      |                                                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:264:65: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  264 |                 this->parent_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:266:45: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  266 |                 stream->read((char*) &this->bone_flag, sizeof(uint16_t));
+      |                                             ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:267:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  267 |                 if (this->bone_flag & 0x0001) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:268:73: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  268 |                         this->target_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                         ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:273:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  273 |                 if (this->bone_flag & (0x0100 | 0x0200)) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:274:79: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  274 |                         this->grant_parent_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:277:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  277 |                 if (this->bone_flag & 0x0400) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:280:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  280 |                 if (this->bone_flag & 0x0800) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:284:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  284 |                 if (this->bone_flag & 0x2000) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:287:27: error: ‘class pmx::PmxBone’ has no member named ‘bone_flag’
+  287 |                 if (this->bone_flag & 0x0020) {
+      |                           ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:288:81: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  288 |                         this->ik_target_bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                                 ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphVertexOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:301:65: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  301 |                 this->vertex_index = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphUVOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:307:65: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  307 |                 this->vertex_index = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                 ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphBoneOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:313:63: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  313 |                 this->bone_index = ReadIndex(stream, setting->bone_index_size);
+      |                                                               ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphMaterialOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:320:67: error: ‘class pmx::PmxSetting’ has no member named ‘material_index_size’
+  320 |                 this->material_index = ReadIndex(stream, setting->material_index_size);
+      |                                                                   ^~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:321:45: error: ‘class pmx::PmxMorphMaterialOffset’ has no member named ‘offset_operation’
+  321 |                 stream->read((char*) &this->offset_operation, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphGroupOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:335:64: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  335 |                 this->morph_index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphFlipOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:341:64: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  341 |                 this->morph_index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘virtual void pmx::PmxMorphImplusOffset::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:347:69: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  347 |                 this->rigid_body_index = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                     ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:348:45: error: ‘class pmx::PmxMorphImplusOffset’ has no member named ‘is_local’
+  348 |                 stream->read((char*) &this->is_local, sizeof(uint8_t));
+      |                                             ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxMorph::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:355:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  355 |                 this->morph_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:356:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  356 |                 this->morph_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:357:39: error: ‘category’ was not declared in this scope
+  357 |                 stream->read((char*) &category, sizeof(MorphCategory));
+      |                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:357:56: error: ‘MorphCategory’ was not declared in this scope
+  357 |                 stream->read((char*) &category, sizeof(MorphCategory));
+      |                                                        ^~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:358:39: error: ‘morph_type’ was not declared in this scope; did you mean ‘morph_name’?
+  358 |                 stream->read((char*) &morph_type, sizeof(MorphType));
+      |                                       ^~~~~~~~~~
+      |                                       morph_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:358:58: error: ‘MorphType’ was not declared in this scope
+  358 |                 stream->read((char*) &morph_type, sizeof(MorphType));
+      |                                                          ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:360:31: error: ‘class pmx::PmxMorph’ has no member named ‘morph_type’; did you mean ‘morph_name’?
+  360 |                 switch (this->morph_type)
+      |                               ^~~~~~~~~~
+      |                               morph_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:362:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  362 |                 case MorphType::Group:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:369:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  369 |                 case MorphType::Vertex:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:376:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  376 |                 case MorphType::Bone:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:383:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  383 |                 case MorphType::Matrial:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:390:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  390 |                 case MorphType::UV:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:391:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  391 |                 case MorphType::AdditionalUV1:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:392:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  392 |                 case MorphType::AdditionalUV2:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:393:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  393 |                 case MorphType::AdditionalUV3:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:394:22: error: ‘MorphType’ is not a class, namespace, or enumeration
+  394 |                 case MorphType::AdditionalUV4:
+      |                      ^~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxFrameElement::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:408:45: error: ‘class pmx::PmxFrameElement’ has no member named ‘element_target’
+  408 |                 stream->read((char*) &this->element_target, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:409:27: error: ‘class pmx::PmxFrameElement’ has no member named ‘element_target’
+  409 |                 if (this->element_target == 0x00)
+      |                           ^~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:411:66: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  411 |                         this->index = ReadIndex(stream, setting->bone_index_size);
+      |                                                                  ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:414:66: error: ‘class pmx::PmxSetting’ has no member named ‘morph_index_size’
+  414 |                         this->index = ReadIndex(stream, setting->morph_index_size);
+      |                                                                  ^~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxFrame::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:420:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  420 |                 this->frame_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:421:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  421 |                 this->frame_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:422:45: error: ‘class pmx::PmxFrame’ has no member named ‘frame_flag’
+  422 |                 stream->read((char*) &this->frame_flag, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxRigidBody::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:433:69: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  433 |                 this->girid_body_name = ReadString(stream, setting->encoding);
+      |                                                                     ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:434:77: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  434 |                 this->girid_body_english_name = ReadString(stream, setting->encoding);
+      |                                                                             ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:435:64: error: ‘class pmx::PmxSetting’ has no member named ‘bone_index_size’
+  435 |                 this->target_bone = ReadIndex(stream, setting->bone_index_size);
+      |                                                                ^~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:436:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘group’
+  436 |                 stream->read((char*) &this->group, sizeof(uint8_t));
+      |                                             ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:437:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘mask’; did you mean ‘mass’?
+  437 |                 stream->read((char*) &this->mask, sizeof(uint16_t));
+      |                                             ^~~~
+      |                                             mass
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:438:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘shape’
+  438 |                 stream->read((char*) &this->shape, sizeof(uint8_t));
+      |                                             ^~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:447:45: error: ‘class pmx::PmxRigidBody’ has no member named ‘physics_calc_type’
+  447 |                 stream->read((char*) &this->physics_calc_type, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxJointParam::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:452:64: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  452 |                 this->rigid_body1 = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:453:64: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  453 |                 this->rigid_body2 = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxJoint::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:466:64: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  466 |                 this->joint_name = ReadString(stream, setting->encoding);
+      |                                                                ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:467:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  467 |                 this->joint_english_name = ReadString(stream, setting->encoding);
+      |                                                                        ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:468:45: error: ‘class pmx::PmxJoint’ has no member named ‘joint_type’; did you mean ‘joint_name’?
+  468 |                 stream->read((char*) &this->joint_type, sizeof(uint8_t));
+      |                                             ^~~~~~~~~~
+      |                                             joint_name
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxAncherRigidBody::Read(std::istream*, pmx::PmxSetting*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:474:71: error: ‘class pmx::PmxSetting’ has no member named ‘rigidbody_index_size’
+  474 |                 this->related_rigid_body = ReadIndex(stream, setting->rigidbody_index_size);
+      |                                                                       ^~~~~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:475:67: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  475 |                 this->related_vertex = ReadIndex(stream, setting->vertex_index_size);
+      |                                                                   ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp: In member function ‘void pmx::PmxModel::Read(std::istream*)’:
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:531:63: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  531 |                 this->model_name = ReadString(stream, setting.encoding);
+      |                                                               ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:532:71: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  532 |                 this->model_english_name = ReadString(stream, setting.encoding);
+      |                                                                       ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:533:66: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  533 |                 this->model_comment = ReadString(stream, setting.encoding);
+      |                                                                  ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:534:74: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  534 |                 this->model_english_comment = ReadString(stream, setting.encoding);
+      |                                                                          ^~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:549:70: error: ‘class pmx::PmxSetting’ has no member named ‘vertex_index_size’
+  549 |                         this->indices[i] = ReadIndex(stream, setting.vertex_index_size);
+      |                                                                      ^~~~~~~~~~~~~~~~~
+/mnt/train/SHADERed/libs/assimp/code/MMD/MMDPmxParser.cpp:557:72: error: ‘class pmx::PmxSetting’ has no member named ‘encoding’
+  557 |                         this->textures[i] = ReadString(stream, setting.encoding);
+      |                                                                        ^~~~~~~~
+make[2]: *** [libs/assimp/code/CMakeFiles/assimp.dir/build.make:2585: libs/assimp/code/CMakeFiles/assimp.dir/MMD/MMDPmxParser.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [CMakeFiles/Makefile2:1855: libs/cppdap/CMakeFiles/cppdap.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make[1]: *** [CMakeFiles/Makefile2:628: libs/assimp/code/CMakeFiles/assimp.dir/all] Error 2
+make: *** [Makefile:136: all] Error 2

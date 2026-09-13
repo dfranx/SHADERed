@@ -286,7 +286,7 @@ namespace ed {
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
-						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+						glBindTexture((srvData->Type == ObjectType::Image3D && srvData->Image3D->IsArray) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
 						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
@@ -487,7 +487,7 @@ namespace ed {
 
 				// bind shaders
 				glUseProgram(m_shaders[i]);
-				
+
 				// bind shader resource views
 				for (int j = 0; j < srvs.size(); j++) {
 					ObjectManagerItem* srvData = m_objects->GetByTextureID(srvs[j]);
@@ -496,7 +496,7 @@ namespace ed {
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
-						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+						glBindTexture((srvData->Type == ObjectType::Image3D && srvData->Image3D->IsArray) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
 						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
@@ -537,7 +537,7 @@ namespace ed {
 				glDispatchCompute(data->WorkX, data->WorkY, data->WorkZ);
 
 				// wait until it finishes
-				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+				glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_UNIFORM_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 				// or maybe until i implement these as options glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
 			else if (it->Type == PipelineItem::ItemType::AudioPass && !isDebug) {
@@ -554,7 +554,7 @@ namespace ed {
 					if (srvData->Type == ObjectType::CubeMap)
 						glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 					else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
-						glBindTexture(GL_TEXTURE_3D, srvs[j]);
+						glBindTexture((srvData->Type == ObjectType::Image3D && srvData->Image3D->IsArray) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D, srvs[j]);
 					else if (srvData->Type == ObjectType::PluginObject) {
 						PluginObject* pobj = srvData->Plugin;
 						pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
@@ -675,7 +675,7 @@ namespace ed {
 				if (srvData->Type == ObjectType::CubeMap)
 					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 				else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
-					glBindTexture(GL_TEXTURE_3D, srvs[j]);
+					glBindTexture((srvData->Type == ObjectType::Image3D && srvData->Image3D->IsArray) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D, srvs[j]);
 				else if (srvData->Type == ObjectType::PluginObject) {
 					PluginObject* pobj = srvData->Plugin;
 					pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);
@@ -930,7 +930,7 @@ namespace ed {
 				if (srvData->Type == ObjectType::CubeMap)
 					glBindTexture(GL_TEXTURE_CUBE_MAP, srvs[j]);
 				else if (srvData->Type == ObjectType::Image3D || srvData->Type == ObjectType::Texture3D)
-					glBindTexture(GL_TEXTURE_3D, srvs[j]);
+					glBindTexture((srvData->Type == ObjectType::Image3D && srvData->Image3D->IsArray) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D, srvs[j]);
 				else if (srvData->Type == ObjectType::PluginObject) {
 					PluginObject* pobj = srvData->Plugin;
 					pobj->Owner->Object_Bind(pobj->Type, pobj->Data, pobj->ID);

@@ -528,7 +528,7 @@ namespace ed {
 
 		return true;
 	}
-	bool ObjectManager::CreateImage3D(const std::string& name, glm::ivec3 size)
+	bool ObjectManager::CreateImage3D(const std::string& name, glm::ivec3 size, bool isArray)
 	{
 		Logger::Get().Log("Creating an image " + name + " ...");
 
@@ -545,13 +545,16 @@ namespace ed {
 		ed::Image3DObject* iObj = item->Image3D = new Image3DObject();
 		iObj->Size = size;
 		iObj->Format = GL_RGBA32F;
+		iObj->IsArray = isArray;
+
+		GLenum target = isArray ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D;
 
 		glGenTextures(1, &item->Texture);
-		glBindTexture(GL_TEXTURE_3D, item->Texture);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage3D(GL_TEXTURE_3D, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glBindTexture(GL_TEXTURE_3D, 0);
+		glBindTexture(target, item->Texture);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage3D(target, 0, iObj->Format, size.x, size.y, size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(target, 0);
 
 		return true;
 	}
@@ -1351,8 +1354,10 @@ namespace ed {
 
 		iobj->Size = size;
 
-		glBindTexture(GL_TEXTURE_3D, item->Texture);
-		glTexImage3D(GL_TEXTURE_3D, 0, iobj->Format, iobj->Size.x, iobj->Size.y, iobj->Size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glBindTexture(GL_TEXTURE_3D, 0);
+		GLenum target = iobj->IsArray ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_3D;
+
+		glBindTexture(target, item->Texture);
+		glTexImage3D(target, 0, iobj->Format, iobj->Size.x, iobj->Size.y, iobj->Size.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(target, 0);
 	}
 }
